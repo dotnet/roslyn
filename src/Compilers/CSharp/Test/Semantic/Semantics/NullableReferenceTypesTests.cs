@@ -16,127 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NullableReferenceTypesTests : CSharpTestBase
     {
-        // PROTOTYPE(NullableReferenceTypes): Move attribute definitions to base class.
-
-        private const string NullableAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    [System.AttributeUsage(AttributeTargets.Event | // The type of the event is nullable, or has a nullable reference type as one of its constituents  
-                    AttributeTargets.Field | // The type of the field is a nullable reference type, or has a nullable reference type as one of its constituents  
-                    AttributeTargets.GenericParameter | // The generic parameter is a nullable reference type
-                    AttributeTargets.Module | // Nullable reference types in this module are annotated by means of NullableAttribute applied to other targets in it
-                    AttributeTargets.Parameter | // The type of the parameter is a nullable reference type, or has a nullable reference type as one of its constituents  
-                    AttributeTargets.ReturnValue | // The return type is a nullable reference type, or has a nullable reference type as one of its constituents  
-                    AttributeTargets.Property | // The type of the property is a nullable reference type, or has a nullable reference type as one of its constituents 
-                    AttributeTargets.Class , // Base type has a nullable reference type as one of its constituents
-                   AllowMultiple = false)]
-    public class NullableAttribute : Attribute
-    {
-        public NullableAttribute() { }
-        public NullableAttribute(bool[] transformFlags)
-        {
-        }
-    }
-}
-";
-
-        private const string NonNullTypesAttributesDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    /// <summary>
-    /// Opt out of nullability warnings that could originate from definitions in the given assembly. 
-    /// The attribute is not preserved in metadata and ignored if present in metadata.
-    /// </summary>
-    [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = true)]
-    class NullableOptOutForAssemblyAttribute : Attribute
-    {
-        /// <param name=""assemblyName"">An assembly name - a simple name plus its PublicKey, if any.""/></param>
-        public NullableOptOutForAssemblyAttribute(string assemblyName) { }
-    }
-
-    /// <summary>
-    /// Control whether unannotated reference types are treated as non-null or null-oblivious.
-    /// </summary>
-    [System.AttributeUsage(AttributeTargets.Class |
-                    AttributeTargets.Constructor |
-                    AttributeTargets.Delegate |
-                    AttributeTargets.Enum |
-                    AttributeTargets.Event |
-                    AttributeTargets.Field |
-                    AttributeTargets.Interface |
-                    AttributeTargets.Method |
-                    AttributeTargets.Module |
-                    AttributeTargets.Property |
-                    AttributeTargets.Struct,
-                    AllowMultiple = false)]
-    [System.Obsolete(""The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above)."")]
-    public sealed class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
-
-        private const string NotNullWhenTrueAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class NotNullWhenTrueAttribute : Attribute
-    {
-        public NotNullWhenTrueAttribute() { }
-    }
-}
-";
-
-        private const string NotNullWhenFalseAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class NotNullWhenFalseAttribute : Attribute
-    {
-        public NotNullWhenFalseAttribute() { }
-    }
-}
-";
-
-        private const string EnsuresNotNullAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class EnsuresNotNullAttribute : Attribute
-    {
-        public EnsuresNotNullAttribute() { }
-    }
-}
-";
-
-        private const string AssertsTrueAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class AssertsTrueAttribute : Attribute
-    {
-        public AssertsTrueAttribute () { }
-    }
-}
-";
-
-        private const string AssertsFalseAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class AssertsFalseAttribute : Attribute
-    {
-        public AssertsFalseAttribute () { }
-    }
-}
-";
-        private const string NonNullTypesFalse = "[module: System.Runtime.CompilerServices.NonNullTypes(false)]";
-        private const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
-
         [Fact]
         public void Test0()
         {
@@ -161,27 +40,41 @@ class C
         }
 
         [Fact]
+        public void NoNullableAnalysisWithoutNonNullTypes()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void M(string z)
+    {
+        z = null;
+        z.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void SuppressionWithoutNonNullTypes()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
 {
-    string x = null!;
+    string x = null!; // 1
     static void Main(string z = null!)
     {
-        string y = null!;
+        string y = null!; // 2
     }
 }
 ", parseOptions: TestOptions.Regular8);
 
-            // PROTOTYPE(NullableReferenceTypes): should warn in field initializer and non-executable code as well
+            // PROTOTYPE(NullableReferenceTypes): should warn, but the check is implemented in NullableWalker which is skipped...
             c.VerifyDiagnostics(
                 // (7,16): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         string y = null!;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(7, 16),
-                // (7,20): warning CS8627: The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.
-                //         string y = null!;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "null!").WithLocation(7, 20),
                 // (4,12): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     string x = null!;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x").WithLocation(4, 12)
@@ -214,7 +107,7 @@ class C
         [Fact, WorkItem(26746, "https://github.com/dotnet/roslyn/issues/26746")]
         public void TernaryWithConversionFromExpression()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(new[] { @"
 public class C 
 {
     public void M() 
@@ -224,7 +117,7 @@ public class C
         uint y = true ? 1 : a;
     }
 }
-", parseOptions: TestOptions.Regular8);
+", NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): should not warn 
             c.VerifyDiagnostics(
                 // (7,18): warning CS8626: No best nullability for operands of conditional expression 'uint' and 'int'.
@@ -317,15 +210,15 @@ class C<T> where T : class
     static string M3(C<string?> x, C<string> y) => throw null; // warn 17
     delegate string? MyDelegate(C<string?> x); // warn 18 and 19
     event MyDelegate? Event; // warn 20
-    void M4() { Event(new C<string?>()); } // warn 21 and 22
-    class D<T2> where T2 : T? { } // warn 23
-    class D2 : C<string?> { } // warn 24
-    public static C<T?> operator +(C<T> x, C<T?> y) => throw null; // warn 25 and 26
+    void M4() { Event(new C<string?>()); } // warn 21
+    class D<T2> where T2 : T? { } // warn 22
+    class D2 : C<string?> { } // warn 23
+    public static C<T?> operator +(C<T> x, C<T?> y) => throw null; // warn 24 and 25
     class D3
     {
-        D3(C<T?> x) => throw null; // warn 27
+        D3(C<T?> x) => throw null; // warn 26
     }
-    public string? this[C<string?> x] { get => throw null; } // warn 28 and 29
+    public string? this[C<string?> x] { get => throw null; } // warn 27 and 28
 }
 ";
             var expectedDiagnostics = new[] {
@@ -348,22 +241,22 @@ class C<T> where T : class
                 //     event MyDelegate? Event; // warn 20
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "Event").WithLocation(36, 23),
                 // (40,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     public static C<T?> operator +(C<T> x, C<T?> y) => throw null; // warn 25 and 26
+                //     public static C<T?> operator +(C<T> x, C<T?> y) => throw null; // warn 24 and 25
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "C<T?>").WithLocation(40, 19),
                 // (40,44): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     public static C<T?> operator +(C<T> x, C<T?> y) => throw null; // warn 25 and 26
+                //     public static C<T?> operator +(C<T> x, C<T?> y) => throw null; // warn 24 and 25
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "C<T?> y").WithLocation(40, 44),
                 // (45,12): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     public string? this[C<string?> x] { get => throw null; } // warn 28 and 29
+                //     public string? this[C<string?> x] { get => throw null; } // warn 27 and 28
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "string?").WithLocation(45, 12),
                 // (45,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     public string? this[C<string?> x] { get => throw null; } // warn 28 and 29
+                //     public string? this[C<string?> x] { get => throw null; } // warn 27 and 28
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "C<string?> x").WithLocation(45, 25),
                 // (4,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     static string? field = M2(out string? x1); // warn 1 and 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "field").WithLocation(4, 20),
                 // (43,12): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         D3(C<T?> x) => throw null; // warn 27
+                //         D3(C<T?> x) => throw null; // warn 26
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "C<T?> x").WithLocation(43, 12),
                 // (35,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     delegate string? MyDelegate(C<string?> x); // warn 18 and 19
@@ -372,7 +265,7 @@ class C<T> where T : class
                 //     delegate string? MyDelegate(C<string?> x); // warn 18 and 19
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "C<string?> x").WithLocation(35, 33),
                 // (39,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     class D2 : C<string?> { } // warn 24
+                //     class D2 : C<string?> { } // warn 23
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "D2").WithLocation(39, 11),
                 // (4,41): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     static string? field = M2(out string? x1); // warn 1 and 2
@@ -408,11 +301,8 @@ class C<T> where T : class
                 //             string? x6 = null; // warn 15
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 19),
                 // (37,35): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     void M4() { Event(new C<string?>()); } // warn 21 and 22
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(37, 35),
-                // (37,17): warning CS8602: Possible dereference of a null reference.
-                //     void M4() { Event(new C<string?>()); } // warn 21 and 22
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Event").WithLocation(37, 17)
+                //     void M4() { Event(new C<string?>()); } // warn 21
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(37, 35)
             };
 
             // PROTOTYPE(NullableReferenceTypes): are annotations on events meaningful/allowed?
@@ -431,7 +321,12 @@ class C<T> where T : class
                 );
 
             var c3 = CreateCompilation(new[] { source, NonNullTypesFalse, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            c3.VerifyDiagnostics(expectedDiagnostics);
+            c3.VerifyDiagnostics(expectedDiagnostics
+                .Concat(new[] {
+                    // (37,17): warning CS8602: Possible dereference of a null reference.
+                    //     void M4() { Event(new C<string?>()); } // warn 21
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Event").WithLocation(37, 17)
+                    }).ToArray());
         }
 
         [Fact]
@@ -477,7 +372,7 @@ class Client
     }
 }
 ";
-            var comp2 = CreateCompilation(client, references: new[] { c.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp2 = CreateCompilation(new[] { client, NonNullTypesTrue, NonNullTypesAttributesDefinition }, references: new[] { c.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp2.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         c.M("").ToString();
@@ -1071,7 +966,10 @@ public class D : C
             comp2A.VerifyDiagnostics();
 
             var comp2B = CreateCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
-            comp2B.VerifyDiagnostics(
+            comp2B.VerifyDiagnostics();
+
+            var expectedDiagnostics = new[]
+            {
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         ((I)a).F(o).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((I)a).F(o)").WithLocation(5, 9),
@@ -1089,7 +987,13 @@ public class D : C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((I)d).F(o)").WithLocation(19, 9),
                 // (20,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         ((I)d).G(null).ToString();
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 18));
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 18)
+            };
+            var comp2C = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
+            comp2C.VerifyDiagnostics(expectedDiagnostics);
+
+            var comp2D = CreateCompilation(new[] { source2, NonNullTypesFalse }, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
+            comp2D.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): Needs to be adjusted for NonNullTypes(false) default context")]
@@ -11165,7 +11069,7 @@ public class D
     }
 }
 ";
-            var compilation = CreateCompilationWithIL(new[] { NonNullTypesTrue, source, NonNullTypesAttributesDefinition }, il, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilationWithIL(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, il, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn 1
@@ -11554,7 +11458,7 @@ public class C
         [Fact]
         public void EnsuresNotNull_WithParamsOnFirstParameter()
         {
-            CSharpCompilation c = CreateCompilationWithIL(@"
+            CSharpCompilation c = CreateCompilationWithIL(new[] { @"
 public class D
 {
     static void F(object[]? a, object? b, object? c)
@@ -11565,7 +11469,7 @@ public class D
         c.ToString(); // warn 2
     }
 }
-", @"
+", NonNullTypesTrue, NonNullTypesAttributesDefinition }, @"
 .class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableAttribute
     extends [mscorlib]System.Attribute
 {
@@ -11646,15 +11550,6 @@ public class D
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (4,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     static void F(object[]? a, object? b, object? c)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "object[]? a").WithLocation(4, 19),
-                // (4,32): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     static void F(object[]? a, object? b, object? c)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "object? b").WithLocation(4, 32),
-                // (4,43): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     static void F(object[]? a, object? b, object? c)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "object? c").WithLocation(4, 43),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         b.ToString(); // warn 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(8, 9),
@@ -11724,7 +11619,7 @@ public class C
     }
     public static void ThrowIfNull<T>([EnsuresNotNull] T s) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesAttributesDefinition, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+", EnsuresNotNullAttributeDefinition, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -25220,7 +25115,7 @@ class UsePia
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source,
+            var compilation = CreateCompilationWithMscorlib45(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                                                 new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
                                                 options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
 
@@ -25280,29 +25175,6 @@ class F : C<F?>, I1<C<B?>>, I2<C<B>?>
             Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());
             Assert.Equal("I1<C<B?>>", f.Interfaces()[0].ToTestDisplayString());
             Assert.Equal("I2<C<B>?>", f.Interfaces()[1].ToTestDisplayString());
-        }
-
-        [Fact]
-        public void DifferentParseOptions_01()
-        {
-            var source = @"";
-            var optionsWithoutFeature = TestOptions.Regular8;
-            var optionsWithFeature = optionsWithoutFeature.WithNullCheckingFeature(NullableReferenceFlags.None);
-            Assert.Throws<System.ArgumentException>(() => CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithFeature),
-                                                                                                CSharpSyntaxTree.ParseText(source, optionsWithoutFeature) },
-                                                                                        options: TestOptions.ReleaseDll));
-
-            Assert.Throws<System.ArgumentException>(() => CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithoutFeature),
-                                                                                                CSharpSyntaxTree.ParseText(source, optionsWithFeature) },
-                                                                                        options: TestOptions.ReleaseDll));
-
-            CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithFeature),
-                                                  CSharpSyntaxTree.ParseText(source, optionsWithFeature) },
-                                          options: TestOptions.ReleaseDll);
-
-            CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithoutFeature),
-                                                  CSharpSyntaxTree.ParseText(source, optionsWithoutFeature) },
-                                          options: TestOptions.ReleaseDll);
         }
 
         [Fact]
@@ -25519,7 +25391,7 @@ public class C<T> {}
         [Fact(Skip = "[NonNullTypes(true)] is disabled")]
         public void OptOutFromAssembly_01()
         {
-            var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
+            var parseOptions = TestOptions.Regular8;
             CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
@@ -25564,7 +25436,7 @@ class C
         [Fact(Skip = "[NullableOptOutForAssembly] is disabled")]
         public void OptOutFromAssembly_02()
         {
-            var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
+            var parseOptions = TestOptions.Regular8;
             CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
@@ -25625,7 +25497,7 @@ class C
         [Fact(Skip = "[NullableOptOutForAssembly] is disabled")]
         public void OptOutFromAssembly_03()
         {
-            var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
+            var parseOptions = TestOptions.Regular8;
             string source = @"
 [module:System.Runtime.CompilerServices.NullableOptOutForAssembly(null)]
 [module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""invalid, assembly, name"")]
@@ -30629,36 +30501,6 @@ class C
         }
 
         [Fact]
-        public void GetNullableReferenceFlags()
-        {
-            // C# 7
-            Assert.Equal(NullableReferenceFlags.None,
-                TestOptions.Regular7.GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.None,
-                TestOptions.Regular7.WithFeature("staticNullChecking").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.None,
-                TestOptions.Regular7.WithFeature("staticNullChecking", "3").GetNullableReferenceFlags());
-
-            // C# 8
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.WithFeature("staticNullChecking").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "0").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled | NullableReferenceFlags.AllowMemberOptOut | NullableReferenceFlags.AllowAssemblyOptOut,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "12").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled | (NullableReferenceFlags)0x123,
-                TestOptions.Regular8.WithFeature("staticNullChecking", 0x123.ToString()).GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "false").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "true").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "other").GetNullableReferenceFlags());
-        }
-
-        [Fact]
         public void Feature()
         {
             var source =
@@ -30722,7 +30564,7 @@ class C
 
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesAttributesDefinition },
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowMemberOptOut));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.G(object o)'.
                 //         G(o);
@@ -30767,7 +30609,7 @@ class B
 
             var comp1 = CreateCompilation(
                 new[] { source1, NonNullTypesAttributesDefinition },
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut),
+                parseOptions: TestOptions.Regular8,
                 references: new[] { ref0 });
             comp1.VerifyDiagnostics();
 
@@ -31306,11 +31148,11 @@ public class D
 
     void M()
     {
-        C.field /*T:string!*/ = null;
-        D.field /*T:string!*/ = null;
-        D.Method(null) /*T:string!*/;
-        D.Property /*T:string!*/ = null;
-        D.Event /*T:System.Action!*/();
+        C.field = null;
+        D.field = null;
+        D.Method(null);
+        D.Property = null;
+        D.Event();
     }
 }
 ";
@@ -31332,13 +31174,11 @@ public class D
                 //     [System.Runtime.CompilerServices.NonNullTypes]
                 Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(9, 6)
                 );
-            comp.VerifyTypes();
         }
 
         [Fact]
         public void NonNullTypesInCSharp7_FromMetadata()
         {
-            // PROTOTYPE(NullableReferenceTypes): NonNullTypes attribute on PE symbols should have no effect in a C# 7.3 compilation
             var libSource = @"
 [System.Runtime.CompilerServices.NonNullTypes]
 public class C
@@ -31372,21 +31212,27 @@ class Client
 {
     void M()
     {
-        C.field /*T:string!*/ = null;
-        D.field /*T:string!*/ = null;
-        D.Method(null) /*T:string!*/;
-        D.Property /*T:string!*/ = null;
-        D.Event /*T:System.Action*/();
+        C.field = null;
+        D.field = null;
+        D.Method(null);
+        D.Property = null;
+        D.Event();
     }
 }
 ";
             var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() }, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
                 // (10,11): error CS0079: The event 'D.Event' can only appear on the left hand side of += or -=
-                //         D.Event /*T:System.Action*/();
+                //         D.Event();
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "Event").WithArguments("D.Event").WithLocation(10, 11)
                 );
-            comp.VerifyTypes();
+
+            var comp2 = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp2.VerifyDiagnostics(
+                // (10,11): error CS0079: The event 'D.Event' can only appear on the left hand side of += or -=
+                //         D.Event();
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "Event").WithArguments("D.Event").WithLocation(10, 11)
+                );
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
@@ -31928,15 +31774,30 @@ namespace System
             _value = _f.GetHashCode();
         }
     }
+    public class String { }
+    public struct Boolean { }
+    public struct Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get; set; }
+    }
+    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
+        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
+        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
+        GenericParameter = 16384, All = 32767 }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute(string message) => throw null;
+    }
 }";
-            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (13,17): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         object? _f;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "_f").WithLocation(13, 17),
                 // (16,22): warning CS8602: Possible dereference of a null reference.
                 //             _value = _f.GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_f").WithLocation(16, 22));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_f").WithLocation(16, 22)
+                );
         }
 
         [Fact]
@@ -33130,6 +32991,24 @@ class C
         public object? P { get; set; }
     }
     public struct Void { }
+    public struct Boolean { }
+    public struct Enum { }
+    public class Attribute { }
+    public struct Int32 { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get; set; }
+    }
+    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
+        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
+        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
+        GenericParameter = 16384, All = 32767 }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute(string message) => throw null;
+    }
+
     public struct ValueTuple<T1, T2>
     {
         public ValueTuple(T1 item1, T2 item2)
@@ -33153,13 +33032,16 @@ class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F").WithLocation(6, 24),
                 // (11,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         public object? P { get; set; }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "object?").WithLocation(11, 16),
-                // (26,9): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "object?").WithLocation(11, 16));
+
+            var comp2 = CreateEmptyCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp2.VerifyDiagnostics(
+                // (44,9): warning CS8602: Possible dereference of a null reference.
                 //         y.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(26, 9),
-                // (27,9): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(44, 9),
+                // (45,9): warning CS8602: Possible dereference of a null reference.
                 //         y.P.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.P").WithLocation(27, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.P").WithLocation(45, 9));
         }
 
         [Fact]
@@ -33463,25 +33345,25 @@ class C
 {
     static void M(C c)
     {
-        c.F.ToString(); // 1
-        c.P.ToString(); // 2
+        c.F.ToString();
+        c.P.ToString();
         c.F = null;
         c.P = null;
-        c.F.ToString(); // 3
-        c.P.ToString(); // 4
+        c.F.ToString(); // 1
+        c.P.ToString(); // 2
         if (c.F == null) return;
         if (c.P == null) return;
-        c.F.ToString(); // 5
-        c.P.ToString(); // 6
+        c.F.ToString();
+        c.P.ToString();
     }
 }";
-            var comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition }, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         c.F.ToString(); // 3
+                //         c.F.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.F").WithLocation(9, 9),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         c.P.ToString(); // 4
+                //         c.P.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.P").WithLocation(10, 9));
         }
 
@@ -38474,10 +38356,7 @@ class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 14),
                 // (29,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //             T? x = t; // warn 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(29, 14),
-                // (30,13): warning CS8629: The suppression operator (!) should be used in code with a `[NonNullTypes(true/false)]` context.
-                //             x!.ToString(); // warn 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "x!").WithLocation(30, 13)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(29, 14)
                 );
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);

@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(method.MethodKind == MethodKind.Constructor);
 
-            var flags = ((CSharpParseOptions)node.SyntaxTree.Options).GetNullableReferenceFlags();
-            if ((flags & NullableReferenceFlags.Enabled) == 0)
+            if (method.NonNullTypes == null)
             {
                 return;
             }
