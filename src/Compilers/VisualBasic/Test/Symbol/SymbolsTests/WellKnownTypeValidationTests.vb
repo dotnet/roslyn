@@ -603,7 +603,9 @@ End Namespace
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length
                         ' Not always available.
                         Continue For
                 End Select
@@ -697,7 +699,9 @@ End Namespace
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length
                         ' Not always available.
                         Continue For
                 End Select
