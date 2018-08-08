@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Now that LHS is transformed with temporaries, we rewrite this node into a coalesce expression:
             // lhsRead ?? (transformedLHS = loweredRight)
 
-            // transformedLHS = rhs
+            // transformedLHS = loweredRight
             // isCompoundAssignment is only used for dynamic scenarios, and we want those scenarios to treat this like a standard assignment.
             // See CodeGenNullCoalescingAssignmentTests.CoalescingAssignment_DynamicRuntimeCastFailure, which will fail if
             // isCompoundAssignment is set to true. It will fail to throw a runtime binder cast exception.

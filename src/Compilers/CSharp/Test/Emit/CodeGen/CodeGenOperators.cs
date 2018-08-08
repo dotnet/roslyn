@@ -1363,27 +1363,97 @@ public class C
 ");
         }
 
-        [WorkItem(541337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541337")]
         [Fact]
-        public void TestNullCoalesce_TypeParameter_Bug8008()
+        public void TestNullCoalesce_TypeParameter()
         {
             var source = @"
+using System;
 static class Program
 {
     static void Main()
     {
+        Goo(default, 10);
+        Goo(1, 10);
+        Goo(default, ""String parameter 1"");
+        Goo(""String parameter 2"", ""Should not print"");
     }
- 
-    static void Goo<T>(T x)
+
+    static void Goo<T>(T x1, T x2)
     {
-        var y = default(T) ?? x;
+        Console.WriteLine(x1 ?? x2);
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,17): error CS0019: Operator '??' cannot be applied to operands of type 'T' and 'T'
-                //         var y = default(T) ?? x;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) ?? x").WithArguments("??", "T", "T").WithLocation(10, 17)); ;
+            var comp = CompileAndVerify(source, expectedOutput: @"
+0
+1
+String parameter 1
+String parameter 2
+");
+
+            comp.VerifyIL("Program.Goo<T>(T, T)", expectedIL: @"
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  box        ""T""
+  IL_0008:  brtrue.s   IL_000d
+  IL_000a:  ldarg.1
+  IL_000b:  br.s       IL_000e
+  IL_000d:  ldloc.0
+  IL_000e:  box        ""T""
+  IL_0013:  call       ""void System.Console.WriteLine(object)""
+  IL_0018:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestNullCoalesce_TypeParameter_DefaultLHS()
+        {
+
+            var source = @"
+using System;
+static class Program
+{
+    static void Main()
+    {
+        Goo(10);
+        Goo(""String parameter"");
+    }
+
+    static void Goo<T>(T x)
+    {
+        Console.WriteLine(default(T) ?? x);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"
+0
+String parameter
+");
+
+            comp.VerifyIL("Program.Goo<T>(T)", expectedIL: @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""T""
+  IL_0008:  ldloc.0
+  IL_0009:  box        ""T""
+  IL_000e:  brtrue.s   IL_0013
+  IL_0010:  ldarg.0
+  IL_0011:  br.s       IL_0014
+  IL_0013:  ldloc.0
+  IL_0014:  box        ""T""
+  IL_0019:  call       ""void System.Console.WriteLine(object)""
+  IL_001e:  ret
+}
+");
         }
 
         [Fact]

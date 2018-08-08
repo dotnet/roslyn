@@ -47,14 +47,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // first we can make a small optimization:
             // If left is a constant then we already know whether it is null or not. If it is null then we 
             // can simply generate "right". If it is not null then we can simply generate
-            // MakeConversion(left).
+            // MakeConversion(left). This does not hold when the left is an unconstrained type parameter: at runtime,
+            // it can be either left or right depending on the runtime type of T
 
-            if (rewrittenLeft.IsDefaultValue())
+            var isUnconstrainedTypeParameter = rewrittenLeft.Type?.IsReferenceType == false && rewrittenLeft.Type?.IsValueType == false;
+
+            if (rewrittenLeft.IsDefaultValue() && !isUnconstrainedTypeParameter)
             {
                 return rewrittenRight;
             }
 
-            if (rewrittenLeft.ConstantValue != null)
+            if (rewrittenLeft.ConstantValue != null && !isUnconstrainedTypeParameter)
             {
                 Debug.Assert(!rewrittenLeft.ConstantValue.IsNull);
 
@@ -213,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(leftConversion.IsValid);
 
             TypeSymbol rewrittenLeftType = rewrittenLeft.Type;
-            Debug.Assert(rewrittenLeftType.IsNullableType() || rewrittenLeftType.IsReferenceType);
+            Debug.Assert(rewrittenLeftType.IsNullableType() || !rewrittenLeftType.IsValueType);
 
             // Native compiler violates the specification for the case where result type is right operand type and left operand is nullable.
             // For this case, we need to insert an extra explicit nullable conversion from the left operand to its underlying nullable type

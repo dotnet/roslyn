@@ -3353,6 +3353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.NoConversion, CreateErrorType(), hasErrors: true);
             }
 
+            // The specification does not permit the left hand side to be a default literal
             if (leftOperand.IsLiteralDefault())
             {
                 Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
@@ -3361,15 +3362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.NoConversion, CreateErrorType(), hasErrors: true);
             }
 
-            // SPEC ERROR: The specification states:
-            // SPEC ERROR:
-            // SPEC ERROR: "A null coalescing expression of the form a??b requires 'a' to be of 
-            // SPEC ERROR: nullable type or reference type."
-            // SPEC ERROR:
-            // SPEC ERROR: This is an error because it disallows the pointless-but-legal expression
-            // SPEC ERROR: null??whatever. We'll strike that from the specification.
-
-            // SPEC: The type of the expression a ?? b depends on which implicit conversions are available 
+            // SPEC: The type of the expression a ?? b depends on which implicit conversions are available
             // SPEC: between the types of the operands. In order of preference, the type of a ?? b is A0, A, or B,
             // SPEC: where A is the type of a, B is the type of b (provided that b has a type),
             // SPEC: and A0 is the underlying type of A if A is a nullable type, or A otherwise.
@@ -3381,17 +3374,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 optLeftType.GetNullableUnderlyingType() :
                 optLeftType;
 
-            // SPEC ERROR: The spec does not call out that the left-hand side may not be a method group
-            // SPEC ERROR: or anonymous function. We should add a line to the spec to say so.
-
+            // SPEC: The left hand side must be either the null literal, or not a non-nullable value type. Method groups
+            // SPEC: and lambdas are neither.
             if (leftOperand.Kind == BoundKind.UnboundLambda || leftOperand.Kind == BoundKind.MethodGroup)
             {
                 return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
             }
 
-            // SPEC: Otherwise, if A exists and is not a nullable type or a reference type, a compile-time error occurs.
+            // SPEC: Otherwise, if A exists and is a value type, a compile-time error occurs.
 
-            if ((object)optLeftType != null && !optLeftType.IsReferenceType && !isLeftNullable)
+            if ((object)optLeftType != null && optLeftType.IsValueType && !optLeftType.IsNullableType())
             {
                 return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
             }
@@ -3399,7 +3391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    If b is a dynamic expression, the result is dynamic. At runtime, a is first
             // SPEC:    evaluated. If a is not null, a is converted to a dynamic type, and this becomes
             // SPEC:    the result. Otherwise, b is evaluated, and the outcome becomes the result.
-            // 
+            //
             // Note that there is no runtime dynamic dispatch since comparison with null is not a dynamic operation.
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
@@ -3535,13 +3527,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Unlike a standard null coalescing expression, the resulting type of the expression a ??= b
             // must be A (where A is the type of a), as it is where the result of the assignment will end up. Therefore,
-            // we must ensure that B (where B is the type B) is implicitly convertible to A or A0 (where A0 is the
-            // underlying non-nullable type of A).
+            // we must ensure that B (where B is the type of b) is implicitly convertible to A.
             TypeSymbol leftType = leftOperand.Type;
             Debug.Assert(leftType != null);
 
-            // If A is not a nullable type or reference type, a compile-time error occurs
-            if (!leftType.IsReferenceType && !leftType.IsNullableType())
+            // If A is a non-nullable value type, a compile-time error occurs
+            if (leftType.IsValueType && !leftType.IsNullableType())
             {
                 return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, diagnostics);
             }

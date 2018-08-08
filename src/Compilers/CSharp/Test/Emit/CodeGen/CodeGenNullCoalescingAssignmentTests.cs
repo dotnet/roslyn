@@ -1418,20 +1418,6 @@ public class C
         [Fact]
         public void TypeParameterLHS()
         {
-            CreateCompilation(@"
-class C
-{
-    void M<T>(T t)
-    {
-        t ??= default;
-    }
-}
-").VerifyDiagnostics(
-                // (6,9): error CS0019: Operator '??=' cannot be applied to operands of type 'T' and 'default'
-                //         t ??= default;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "t ??= default").WithArguments("??=", "T", "default").WithLocation(6, 9)
-            );
-
             CompileAndVerify(@"
 using System;
 class C
@@ -1439,12 +1425,19 @@ class C
     static void Main()
     {
         Verify<object>(null, ""Assignment Evaluated"");
+        Verify<int>(default, 10);
     }
-    static void Verify<T>(T t1, T t2) where T : class
+    static void Verify<T>(T t1, T t2)
     {
         Console.WriteLine(t1 ??= t2);
+        Console.WriteLine(t1);
     }
-}", expectedOutput: "Assignment Evaluated");
+}", expectedOutput: @"
+Assignment Evaluated
+Assignment Evaluated
+0
+0
+");
         }
 
         [Fact]
