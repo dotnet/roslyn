@@ -95,9 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Workspace.AdviseSolutionEvents(solution);
             }
 
-            // Ensure services that must be created on the UI thread have been.
-            HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);
-
             LoadComponentsInUIContextOnceSolutionFullyLoaded(cancellationToken);
         }
 
