@@ -2,14 +2,39 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="ERR_BadDynamicMethodArgTypelessNew">
+        <source>Cannot use 'new(...)' as an argument to a dynamically dispatched operation</source>
+        <target state="new">Cannot use 'new(...)' as an argument to a dynamically dispatched operation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalDefaultValueTypeCtor">
+        <source>The default constructor of the value type '{0}' may not be used with 'new(...)'; Use 'default' or a literal expression instead</source>
+        <target state="new">The default constructor of the value type '{0}' may not be used with 'new(...)'; Use 'default' or a literal expression instead</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IllegalTargetType">
+        <source>The type '{0}' may not be used as the target-type of 'new(...)'</source>
+        <target state="new">The type '{0}' may not be used as the target-type of 'new(...)'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="new">An out variable cannot be declared as a ref local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypelessNewInAs">
+        <source>The first operand of an 'as' operator may not be a target-typed 'new'</source>
+        <target state="new">The first operand of an 'as' operator may not be a target-typed 'new'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypelessNewNotValid">
+        <source>Use of 'new(...)' is not valid in this context</source>
+        <target state="new">Use of 'new(...)' is not valid in this context</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTargetTypedNew">
@@ -8763,21 +8788,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultValueTypeCtorInTargetTypedNew">
-        <source>The default constructor of the value type '{0}' may not be used with target-typed 'new'. Consider using 'default' instead.</source>
-        <target state="new">The default constructor of the value type '{0}' may not be used with target-typed 'new'. Consider using 'default' instead.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadTargetTypeForNew">
-        <source>The type '{0}' may not be used as the target-type of 'new'.</source>
-        <target state="new">The type '{0}' may not be used as the target-type of 'new'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewInAs">
-        <source>The first operand of an 'as' operator may not be a target-typed 'new'.</source>
-        <target state="new">The first operand of an 'as' operator may not be a target-typed 'new'.</target>
         <note />
       </trans-unit>
     </body>

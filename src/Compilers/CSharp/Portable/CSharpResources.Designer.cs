@@ -1421,6 +1421,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use new(...) as an argument to a dynamically dispatched operation.
+        /// </summary>
+        internal static string ERR_BadDynamicMethodArgTypelessNew {
+            get {
+                return ResourceManager.GetString("ERR_BadDynamicMethodArgTypelessNew", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Query expressions over source type &apos;dynamic&apos; or with a join sequence of type &apos;dynamic&apos; are not allowed.
         /// </summary>
         internal static string ERR_BadDynamicQuery {
@@ -1966,15 +1975,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadSwitch {
             get {
                 return ResourceManager.GetString("ERR_BadSwitch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; may not be used as the target-type of &apos;new&apos;..
-        /// </summary>
-        internal static string ERR_BadTargetTypeForNew {
-            get {
-                return ResourceManager.GetString("ERR_BadTargetTypeForNew", resourceCulture);
             }
         }
         
@@ -3397,15 +3397,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DefaultValueNotAllowed {
             get {
                 return ResourceManager.GetString("ERR_DefaultValueNotAllowed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The default constructor of the value type &apos;{0}&apos; may not be used with target-typed &apos;new&apos;. Consider using &apos;default&apos; instead..
-        /// </summary>
-        internal static string ERR_DefaultValueTypeCtorInTargetTypedNew {
-            get {
-                return ResourceManager.GetString("ERR_DefaultValueTypeCtorInTargetTypedNew", resourceCulture);
             }
         }
         
@@ -5183,6 +5174,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The default constructor of the value type &apos;{0}&apos; may not be used with new(...); Use &apos;default&apos; or a literal expression instead.
+        /// </summary>
+        internal static string ERR_IllegalDefaultValueTypeCtor {
+            get {
+                return ResourceManager.GetString("ERR_IllegalDefaultValueTypeCtor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unrecognized escape sequence.
         /// </summary>
         internal static string ERR_IllegalEscape {
@@ -5233,6 +5233,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_IllegalStatement {
             get {
                 return ResourceManager.GetString("ERR_IllegalStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; may not be used as the target-type of new(...).
+        /// </summary>
+        internal static string ERR_IllegalTargetType {
+            get {
+                return ResourceManager.GetString("ERR_IllegalTargetType", resourceCulture);
             }
         }
         
@@ -9611,11 +9620,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The first operand of an &apos;as&apos; operator may not be a target-typed &apos;new&apos;..
+        ///   Looks up a localized string similar to The first operand of an &apos;as&apos; operator may not be a new(...) expression.
         /// </summary>
         internal static string ERR_TypelessNewInAs {
             get {
                 return ResourceManager.GetString("ERR_TypelessNewInAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use of new(...) is not valid in this context.
+        /// </summary>
+        internal static string ERR_TypelessNewNotValid {
+            get {
+                return ResourceManager.GetString("ERR_TypelessNewNotValid", resourceCulture);
             }
         }
         
