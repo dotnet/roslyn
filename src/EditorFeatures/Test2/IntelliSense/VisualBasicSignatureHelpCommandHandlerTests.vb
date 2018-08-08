@@ -48,7 +48,7 @@ End Class
         End Function
 
         <WorkItem(544551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29015"), Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestFilterOnNamedParameters2() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>

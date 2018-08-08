@@ -2,8 +2,11 @@
 
 Imports System.Threading.Tasks
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
-
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.OldCompletion
+    ''' <summary>
+    ''' This is a test file corresponding to the old Completion service which we are going to turn off after migration to the new one.
+    ''' We should keep this file up-to-date and on par with the new file until then.
+    ''' </summary>
     <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests_InternalsVisibleTo
 
@@ -276,7 +279,7 @@ Imports System.Reflection
         Public Async Function AssertCompletionListHasItems_IfNamespaceIsFollowing() As Task
             Await AssertCompletionListHasItems("
             <Assembly: InternalsVisibleTo(""$$
-            Namespace A
+            Namespace A             
                 Public Class A
                 End Class
             End Namespace", True)
@@ -481,7 +484,7 @@ Namespace A
 		End Sub
 		Public Const AssemblyName1 As String = "ClassLibrary1"
 	End Class
-End Namespace
+End Namespace                            
                             </Document>
                         </MetadataReferenceFromSource>
                         <Document FilePath="A.vb"><![CDATA[

@@ -3,7 +3,11 @@
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.VisualStudio.Text.Projection
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.OldCompletion
+    ''' <summary>
+    ''' This is a test file corresponding to the old Completion service which we are going to turn off after migration to the new one.
+    ''' We should keep this file up-to-date and on par with the new file until then.
+    ''' </summary>
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_Projections
 
@@ -34,7 +38,7 @@ public override void Execute() {
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27446"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAfterDot() As System.Threading.Tasks.Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -73,7 +77,7 @@ class C
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27446"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInObjectCreationExpression() As System.Threading.Tasks.Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[

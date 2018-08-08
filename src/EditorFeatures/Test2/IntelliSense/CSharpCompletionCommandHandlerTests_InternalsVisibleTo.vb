@@ -275,7 +275,7 @@ using System.Reflection;
         Public Async Function AssertCompletionListHasItems_IfNamespaceIsFollowing() As Task
             Await AssertCompletionListHasItems("
             [assembly: InternalsVisibleTo(""$$
-            namespace A {            
+            namespace A {
                 public class A { }
             }", True)
         End Function

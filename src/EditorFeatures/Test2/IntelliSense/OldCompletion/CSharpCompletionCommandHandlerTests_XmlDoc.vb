@@ -2,20 +2,24 @@
 
 Imports System.Threading.Tasks
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.OldCompletion
+    ''' <summary>
+    ''' This is a test file corresponding to the old Completion service which we are going to turn off after migration to the new one.
+    ''' We should keep this file up-to-date and on par with the new file until then.
+    ''' </summary>
     <[UseExportProvider]>
-    Public Class VisualBasicCompletionCommandHandlerTests_XmlDoc
+    Public Class CSharpCompletionCommandHandlerTests_XmlDoc
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitSummary() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -24,20 +28,20 @@ End Class
                 Await state.AssertSelectedCompletionItem(displayText:="summary")
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
-                Await state.AssertLineTextAroundCaret("    ''' summary", "")
+                Await state.AssertLineTextAroundCaret("    /// summary", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitSummaryOnTab() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -47,21 +51,21 @@ End Class
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' summary$$
-                Await state.AssertLineTextAroundCaret("    ''' summary", "")
+                ' /// summary$$
+                Await state.AssertLineTextAroundCaret("    /// summary", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitSummaryOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -71,21 +75,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' summary>$$
-                Await state.AssertLineTextAroundCaret("    ''' summary>", "")
+                ' /// summary>$$
+                Await state.AssertLineTextAroundCaret("    /// summary>", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitSummary() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -95,21 +99,21 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <summary$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary", "")
+                ' /// <summary$$
+                Await state.AssertLineTextAroundCaret("    /// <summary", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitSummaryOnTab() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -119,21 +123,21 @@ End Class
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <summary$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary", "")
+                ' /// <summary$$
+                Await state.AssertLineTextAroundCaret("    /// <summary", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitSummaryOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -143,21 +147,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <summary>$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary>", "")
+                ' /// <summary>$$
+                Await state.AssertLineTextAroundCaret("    /// <summary>", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitRemarksOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -167,21 +171,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' remarks>$$
-                Await state.AssertLineTextAroundCaret("    ''' remarks>", "")
+                ' /// remarks>$$
+                Await state.AssertLineTextAroundCaret("    /// remarks>", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitRemarksOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -191,21 +195,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <remarks>$$
-                Await state.AssertLineTextAroundCaret("    ''' <remarks>", "")
+                ' /// <remarks>$$
+                Await state.AssertLineTextAroundCaret("    /// <remarks>", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitReturnsOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Function Goo() As Integer
-    End Function
-End Class
+class c
+{
+    /// $$
+    int goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -215,21 +219,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' returns>$$
-                Await state.AssertLineTextAroundCaret("    ''' returns>", "")
+                ' /// returns>$$
+                Await state.AssertLineTextAroundCaret("    /// returns>", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitReturnsOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Function Goo() As Integer
-    End Function
-End Class
+class c
+{
+    /// $$
+    int goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -239,21 +243,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <returns>$$
-                Await state.AssertLineTextAroundCaret("    ''' <returns>", "")
+                ' /// <returns>$$
+                Await state.AssertLineTextAroundCaret("    /// <returns>", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitExampleOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -263,21 +267,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' example>$$
-                Await state.AssertLineTextAroundCaret("    ''' example>", "")
+                ' /// example>$$
+                Await state.AssertLineTextAroundCaret("    /// example>", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitExampleOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -287,21 +291,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <example>$$
-                Await state.AssertLineTextAroundCaret("    ''' <example>", "")
+                ' /// <example>$$
+                Await state.AssertLineTextAroundCaret("    /// <example>", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitExceptionNoOpenAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -311,21 +315,21 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <exception cref="$$"
-                Await state.AssertLineTextAroundCaret("    ''' <exception cref=""", """")
+                ' /// <exception cref="$$"
+                Await state.AssertLineTextAroundCaret("    /// <exception cref=""", """")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitExceptionOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -335,113 +339,115 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <exception cref=">$$"
-                Await state.AssertLineTextAroundCaret("    ''' <exception cref="">", """")
+                ' /// <exception cref=">$$"
+                Await state.AssertLineTextAroundCaret("    /// <exception cref="">", """")
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27654"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitCommentNoOpenAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                ' state.SendSelectCompletionItem("!--")
+                state.SendSelectCompletionItem("!--")
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <!--$$-->
-                Await state.AssertLineTextAroundCaret("    ''' <!--", "-->")
+                ' /// <!--$$-->
+                Await state.AssertLineTextAroundCaret("    /// <!--", "-->")
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27654"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitCommentOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
                 Await state.AssertCompletionSession()
-                ' state.SendSelectCompletionItem("!--")
+                state.SendSelectCompletionItem("!--")
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <!-->$$-->
-                Await state.AssertLineTextAroundCaret("    ''' <!-->", "-->")
+                ' /// <!-->$$-->
+                Await state.AssertLineTextAroundCaret("    /// <!-->", "-->")
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27654"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitCdataNoOpenAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                ' state.SendSelectCompletionItem("![CDATA[")
+                state.SendTypeChars("![CDAT")
+                Await state.AssertSelectedCompletionItem(displayText:="![CDATA[")
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <![CDATA[$$]]>
-                Await state.AssertLineTextAroundCaret("    ''' <![CDATA[", "]]>")
+                ' /// <![CDATA[$$]]>
+                Await state.AssertLineTextAroundCaret("    /// <![CDATA[", "]]>")
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27654"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitCdataOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
                 Await state.AssertCompletionSession()
-                ' state.SendSelectCompletionItem("![CDATA[")
+                state.SendTypeChars("![CDAT")
+                Await state.AssertSelectedCompletionItem(displayText:="![CDATA[")
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <![CDATA[>$$]]>
-                Await state.AssertLineTextAroundCaret("    ''' <![CDATA[>", "]]>")
+                ' /// <![CDATA[>$$]]>
+                Await state.AssertLineTextAroundCaret("    /// <![CDATA[>", "]]>")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitIncludeNoOpenAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -451,21 +457,21 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <include file='$$' path='[@name=""]'/>
-                Await state.AssertLineTextAroundCaret("    ''' <include file='", "' path='[@name=""""]'/>")
+                ' /// <include file='$$' path='[@name=""]'/>
+                Await state.AssertLineTextAroundCaret("    /// <include file='", "' path='[@name=""""]'/>")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitIncludeOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -475,21 +481,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <include file='>$$' path='[@name=""]'/>
-                Await state.AssertLineTextAroundCaret("    ''' <include file='>", "' path='[@name=""""]'/>")
+                ' /// <include file='>$$' path='[@name=""]'/>
+                Await state.AssertLineTextAroundCaret("    /// <include file='>", "' path='[@name=""""]'/>")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitPermissionNoOpenAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -499,21 +505,21 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <permission cref="$$"
-                Await state.AssertLineTextAroundCaret("    ''' <permission cref=""", """")
+                ' /// <permission cref="$$"
+                Await state.AssertLineTextAroundCaret("    /// <permission cref=""", """")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitPermissionOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -523,21 +529,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <permission cref=">$$"
-                Await state.AssertLineTextAroundCaret("    ''' <permission cref="">", """")
+                ' /// <permission cref=">$$"
+                Await state.AssertLineTextAroundCaret("    /// <permission cref="">", """")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitSeeNoOpenAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -547,21 +553,21 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <see cref="$$"/>
-                Await state.AssertLineTextAroundCaret("    ''' <see cref=""", """/>")
+                ' /// <see cref="$$"/>
+                Await state.AssertLineTextAroundCaret("    /// <see cref=""", """/>")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitSeeOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -571,22 +577,48 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <see cref=">$$"/>
-                Await state.AssertLineTextAroundCaret("    ''' <see cref="">", """/>")
+                ' /// <see cref=">$$"/>
+                Await state.AssertLineTextAroundCaret("    /// <see cref="">", """/>")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        Public Async Function InvokeWithOpenAngleCommitSeeOnTab() As Task
+
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class c
+{
+    /// $$
+    void goo() { }
+}
+            ]]></Document>)
+
+                state.SendTypeChars("<")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("se")
+                Await state.AssertSelectedCompletionItem(displayText:="see")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <see cref="$$"/>
+                Await state.AssertLineTextAroundCaret("    /// <see cref=""", """/>")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitSeeOnSpace() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' <summary>
-    ''' $$
-    ''' </summary>
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -595,95 +627,90 @@ End Class
                 Await state.AssertSelectedCompletionItem(displayText:="see")
                 state.SendTypeChars(" ")
 
-                ' ''' <see cref="$$"/>
-                Await state.AssertLineTextAroundCaret("    ''' <see cref=""", """/>")
+                ' /// <see cref="$$"/>
+                Await state.AssertLineTextAroundCaret("    /// <see cref=""", """/>")
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithNothingKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("Nothing")
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithNullKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("null")
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithSharedKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("Shared")
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithStaticKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("static")
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithOverridableKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("Overridable", unique:=False)
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithVirtualKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("virtual")
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithTrueKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("True")
+            Return InvokeWithKeywordCommitSeeLangword("true")
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithFalseKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("False")
+            Return InvokeWithKeywordCommitSeeLangword("false")
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithMustInheritKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("MustInherit")
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithAbstractKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("abstract")
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithNotOverridableKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("NotOverridable")
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithSealedKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("sealed")
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithAsyncKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("Async")
+            Return InvokeWithKeywordCommitSeeLangword("async")
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithAwaitKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("Await")
+            Return InvokeWithKeywordCommitSeeLangword("await")
         End Function
 
-        Private Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, Optional unique As Boolean = True) As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        Private Async Function InvokeWithKeywordCommitSeeLangword(keyword As String) As Task
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' <summary>
-    ''' $$
-    ''' </summary>
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    void goo() { }
+}
             ]]></Document>)
 
                 ' Omit the last letter of the keyword to make it easier to diagnose failures (inserted the wrong text,
                 ' or did not insert text at all).
                 state.SendTypeChars(keyword.Substring(0, keyword.Length - 1))
                 state.SendInvokeCompletionList()
-                If unique Then
-                    state.SendCommitUniqueCompletionListItem()
-                Else
-                    Await state.AssertSelectedCompletionItem(displayText:=keyword)
-                    state.SendTab()
-                End If
+                state.SendCommitUniqueCompletionListItem()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <see langword="keyword"/>$$
-                Await state.AssertLineTextAroundCaret("    ''' <see langword=""" + keyword + """/>", "")
+                ' /// <see langword="keyword"/>$$
+                Await state.AssertLineTextAroundCaret("    /// <see langword=""" + keyword + """/>", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitSeealsoNoOpenAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -693,21 +720,21 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <seealso cref="$$"/>
-                Await state.AssertLineTextAroundCaret("    ''' <seealso cref=""", """/>")
+                ' /// <seealso cref="$$"/>
+                Await state.AssertLineTextAroundCaret("    /// <seealso cref=""", """/>")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitSeealsoOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C
-    ''' $$
-    Sub Goo()
-    End Sub
-End Class
+class c
+{
+    /// $$
+    void goo() { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -717,8 +744,8 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <seealso cref=">$$"/>
-                Await state.AssertLineTextAroundCaret("    ''' <seealso cref="">", """/>")
+                ' /// <seealso cref=">$$"/>
+                Await state.AssertLineTextAroundCaret("    /// <seealso cref="">", """/>")
             End Using
         End Function
 
@@ -726,13 +753,13 @@ End Class
         <WorkItem(746919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitParam() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' <param$$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// <param$$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -741,21 +768,21 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <param name="bar"$$
-                Await state.AssertLineTextAroundCaret("    ''' <param name=""bar""", "")
+                ' /// <param name="bar"$$
+                Await state.AssertLineTextAroundCaret("    /// <param name=""bar""", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitParamNoOpenAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -765,21 +792,21 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' param name="bar"$$
-                Await state.AssertLineTextAroundCaret("    ''' param name=""bar""", "")
+                ' /// param name="bar"$$
+                Await state.AssertLineTextAroundCaret("    /// param name=""bar""", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitParamNoOpenAngleOnTab() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -789,21 +816,21 @@ End Class
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' param name="bar"$$
-                Await state.AssertLineTextAroundCaret("    ''' param name=""bar""", "")
+                ' /// param name="bar"$$
+                Await state.AssertLineTextAroundCaret("    /// param name=""bar""", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitParamNoOpenAngleOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -813,21 +840,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' param name="bar">$$
-                Await state.AssertLineTextAroundCaret("    ''' param name=""bar"">", "")
+                ' /// param name="bar">$$
+                Await state.AssertLineTextAroundCaret("    /// param name=""bar"">", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitParam() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -837,21 +864,21 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <param name="bar"$$
-                Await state.AssertLineTextAroundCaret("    ''' <param name=""bar""", "")
+                ' /// <param name="bar"$$
+                Await state.AssertLineTextAroundCaret("    /// <param name=""bar""", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitParamOnTab() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -861,21 +888,21 @@ End Class
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <param name="bar"$$
-                Await state.AssertLineTextAroundCaret("    ''' <param name=""bar""", "")
+                ' /// <param name="bar"$$
+                Await state.AssertLineTextAroundCaret("    /// <param name=""bar""", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitParamOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -885,21 +912,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <param name="bar">$$
-                Await state.AssertLineTextAroundCaret("    ''' <param name=""bar"">", "")
+                ' /// <param name="bar">$$
+                Await state.AssertLineTextAroundCaret("    /// <param name=""bar"">", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitTypeparamNoOpenAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -909,21 +936,21 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' typeparam name="T"$$
-                Await state.AssertLineTextAroundCaret("    ''' typeparam name=""T""", "")
+                ' /// typeparam name="T"$$
+                Await state.AssertLineTextAroundCaret("    /// typeparam name=""T""", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitTypeparamNoOpenAngleOnTab() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -933,21 +960,21 @@ End Class
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' typeparam name="T"$$
-                Await state.AssertLineTextAroundCaret("    ''' typeparam name=""T""", "")
+                ' /// typeparam name="T"$$
+                Await state.AssertLineTextAroundCaret("    /// typeparam name=""T""", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitTypeparamNoOpenAngleOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -957,21 +984,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' typeparam name="T">$$
-                Await state.AssertLineTextAroundCaret("    ''' typeparam name=""T"">", "")
+                ' /// typeparam name="T">$$
+                Await state.AssertLineTextAroundCaret("    /// typeparam name=""T"">", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitTypeparam() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -981,21 +1008,21 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <typeparam name="T"$$
-                Await state.AssertLineTextAroundCaret("    ''' <typeparam name=""T""", "")
+                ' /// <typeparam name="T"$$
+                Await state.AssertLineTextAroundCaret("    /// <typeparam name=""T""", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitTypeparamOnTab() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -1005,21 +1032,21 @@ End Class
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <typeparam name="T"$$
-                Await state.AssertLineTextAroundCaret("    ''' <typeparam name=""T""", "")
+                ' /// <typeparam name="T"$$
+                Await state.AssertLineTextAroundCaret("    /// <typeparam name=""T""", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitTypeparamOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' $$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// $$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendTypeChars("<")
@@ -1029,23 +1056,23 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <typeparam name="T">$$
-                Await state.AssertLineTextAroundCaret("    ''' <typeparam name=""T"">", "")
+                ' /// <typeparam name="T">$$
+                Await state.AssertLineTextAroundCaret("    /// <typeparam name=""T"">", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitList() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' <summary>
-    ''' $$
-    ''' </summary>
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -1055,23 +1082,23 @@ End Class
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <list type="$$"
-                Await state.AssertLineTextAroundCaret("    ''' <list type=""", """")
+                ' /// <list type="$$"
+                Await state.AssertLineTextAroundCaret("    /// <list type=""", """")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitListOnCloseAngle() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' <summary>
-    ''' $$
-    ''' </summary>
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -1081,22 +1108,22 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <list type=">$$"
-                Await state.AssertLineTextAroundCaret("    ''' <list type="">", """")
+                ' /// <list type=">$$"
+                Await state.AssertLineTextAroundCaret("    /// <list type="">", """")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTagCompletion1() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' <$$
-    ''' </summary>
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// <$$
+    /// </summary>
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -1106,23 +1133,23 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <summary>$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary>", "")
+                ' /// <summary>$$
+                Await state.AssertLineTextAroundCaret("    /// <summary>", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTagCompletion2() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' <$$
-    ''' <remarks></remarks>
-    ''' </summary>
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// <$$
+    /// <remarks></remarks>
+    /// </summary>
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -1132,23 +1159,23 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <summary>$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary>", "")
+                ' /// <summary>$$
+                Await state.AssertLineTextAroundCaret("    /// <summary>", "")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTagCompletion3() As Task
 
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' <$$
-    ''' <remarks>
-    ''' </summary>
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
+class c<T>
+{
+    /// <$$
+    /// <remarks>
+    /// </summary>
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -1158,20 +1185,21 @@ End Class
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
-                ' ''' <summary>$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary>", "")
+                ' /// <summary>$$
+                Await state.AssertLineTextAroundCaret("    /// <summary>", "")
             End Using
         End Function
+
         <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/21481"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AllowTypingDoubleQuote() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' <param$$
-    Sub Goo(Of T)(bar as T)
-    End Sub
-End Class
+class c
+{
+    /// <param$$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -1179,8 +1207,8 @@ End Class
                 Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
                 state.SendTypeChars(" name=""")
 
-                ' ''' <param name="$$
-                Await state.AssertLineTextAroundCaret("    ''' <param name=""", "")
+                ' /// <param name="$$
+                Await state.AssertLineTextAroundCaret("    /// <param name=""", "")
 
                 ' Because the item contains a double quote, the completion list should still be present with the same selection
                 Await state.AssertCompletionSession()
@@ -1189,15 +1217,15 @@ End Class
         End Function
 
         <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AllowTypingSpace() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+            Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-Class C(Of T)
-    ''' <param$$
-    Sub Goo(Of T)(bar as T)
-    End Sub
-End Class
+class c
+{
+    /// <param$$
+    void goo<T>(T bar) { }
+}
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
@@ -1205,8 +1233,8 @@ End Class
                 Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
                 state.SendTypeChars(" ")
 
-                ' ''' <param $$
-                Await state.AssertLineTextAroundCaret("    ''' <param ", "")
+                ' /// <param $$
+                Await state.AssertLineTextAroundCaret("    /// <param ", "")
 
                 ' Because the item contains a space, the completion list should still be present with the same selection
                 Await state.AssertCompletionSession()
