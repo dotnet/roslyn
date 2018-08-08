@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.VisualStudio.Text.Projection
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.NewCompletion
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_Projections
 

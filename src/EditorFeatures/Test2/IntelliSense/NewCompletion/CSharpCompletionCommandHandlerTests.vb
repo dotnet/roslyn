@@ -20,7 +20,7 @@ Imports Microsoft.VisualStudio.Text.Projection
 Imports Microsoft.VisualStudio.Utilities
 Imports Roslyn.Utilities
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.NewCompletion
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests
         <WorkItem(541201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541201")>

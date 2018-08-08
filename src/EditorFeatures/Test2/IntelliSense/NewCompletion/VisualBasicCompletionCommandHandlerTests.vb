@@ -13,7 +13,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Utilities
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.NewCompletion
     <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests
         <WorkItem(546208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>

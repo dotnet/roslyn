@@ -2,7 +2,7 @@
 
 Imports System.Threading.Tasks
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.NewCompletion
     <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests_XmlDoc
 
