@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.CommonCompiler;
 using static Microsoft.CodeAnalysis.Diagnostics.CompilerAnalyzerConfigOptionsProvider;
 using static Roslyn.Test.Utilities.TestHelpers;
 using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
@@ -423,7 +424,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 null
-            }, options.treeOptions);
+            }, options.TreeOptions);
         }
 
         [Fact]
@@ -448,7 +449,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 null
-            }, options.treeOptions);
+            }, options.TreeOptions);
         }
 
         [Fact]
@@ -472,7 +473,7 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress),
                     ("cs001", ReportDiagnostic.Info)),
-            }, options.treeOptions);
+            }, options.TreeOptions);
         }
 
         [Fact]
@@ -486,7 +487,7 @@ dotnet_diagnostic.cs000.severity = suppress
 [test.*]
 dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
 
-            var (treeOptions, _) = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "/test.cs" },
                 configs,
                 messageProvider: null,
@@ -498,7 +499,7 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress),
                     ("cs001", ReportDiagnostic.Info))
-            }, treeOptions);
+            }, options.TreeOptions);
         }
 
         [Fact]
@@ -518,7 +519,7 @@ dotnet_diagnostic.cs000.severity = warn
 [test.cs]
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 
-            var (treeOptions, _) = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "/subdir/test.cs", "/subdir/test.vb" },
                 configs,
                 messageProvider: null,
@@ -533,7 +534,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Warn),
                     ("cs001", ReportDiagnostic.Info))
-            }, treeOptions);
+            }, options.TreeOptions);
         }
 
         [Fact]
@@ -550,7 +551,7 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
 [test.cs]
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 
-            var (treeOptions, _) = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "/test.cs", "/subdir/test.cs", "/subdir/test.vb" },
                 configs,
                 messageProvider: null,
@@ -566,7 +567,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
                     ("cs001", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress))
-            }, treeOptions);
+            }, options.TreeOptions);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
@@ -577,7 +578,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 [*.cs]
 dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
 
-            var (treeOptions, _) = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "Z:\\test.cs" },
                 configs,
                 messageProvider: null,
@@ -588,15 +589,14 @@ dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
             {
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress))
-            }, treeOptions);
+            }, options.TreeOptions);
         }
 
         private void VerifyAnalyzerOptions(
             (string key, string val)[][] expected,
-            (ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>>,
-             ImmutableArray<ImmutableDictionary<string, string>> analyzerOptions) options)
+            AnalyzerConfigOptionsResult options)
         {
-            var analyzerOptions = options.analyzerOptions;
+            var analyzerOptions = options.AnalyzerOptions;
             Assert.Equal(expected.Length, analyzerOptions.Length);
 
             for (int i = 0; i < expected.Length; i++)
@@ -608,8 +608,8 @@ dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
                 else
                 {
                     AssertEx.SetEqual(
-                        analyzerOptions[i],
-                        expected[i].Select(KeyValuePair.ToKeyValuePair));
+                        expected[i].Select(KeyValuePair.ToKeyValuePair),
+                        analyzerOptions[i]);
                 }
             }
         }

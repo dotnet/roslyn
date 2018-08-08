@@ -8,20 +8,20 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Security.Cryptography;
-using Microsoft.CodeAnalysis.PooledObjects;
-using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.Options;
+using AnalyzerOptions = System.Collections.Immutable.ImmutableDictionary<string, string>;
+using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>;
 
 namespace Microsoft.CodeAnalysis
 {
-
     internal struct BuildPaths
     {
         /// <summary>
@@ -253,6 +253,40 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Holds results from <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{EditorConfig}, CommonMessageProvider, DiagnosticBag)"/>.
+        /// </summary>
+        internal struct AnalyzerConfigOptionsResult
+        {
+            /// <summary>
+            /// Options that customize diagnostic severity as reported by the compiler. If there
+            /// are no options for a given source path, that entry in the array is null.
+            /// </summary>
+            /// <remarks>
+            /// The item index corresponds to the input source path to
+            /// <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{EditorConfig}, CommonMessageProvider, DiagnosticBag)"/>.
+            /// </remarks>
+            public ImmutableArray<TreeOptions> TreeOptions { get; }
+
+            /// <summary>
+            /// Options that do not have any special compiler behavior and are passed to analyzers as-is.
+            /// If there are no options for a given source path, that entry in the array is null.
+            /// </summary>
+            /// <remarks>
+            /// The item index corresponds to the input source path to
+            /// <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{EditorConfig}, CommonMessageProvider, DiagnosticBag)"/>.
+            /// </remarks>
+            public ImmutableArray<AnalyzerOptions> AnalyzerOptions { get; }
+
+            public AnalyzerConfigOptionsResult(
+                ImmutableArray<TreeOptions> treeOptions,
+                ImmutableArray<AnalyzerOptions> analyzerOptions)
+            {
+                TreeOptions = treeOptions;
+                AnalyzerOptions = analyzerOptions;
+            }
+        }
+
+        /// <summary>
         /// Takes a list of paths to source files and a list of AnalyzeConfigs and produces a
         /// resultant dictionary of diagnostic configurations for each of the source paths.
         /// Source paths are matched by checking if they are members of the language recognized by
@@ -272,33 +306,27 @@ namespace Microsoft.CodeAnalysis
         /// <param name="messageProvider">Used to produce diagnostics.</param>
         /// <param name="diagnostics">Any produced diagnostics are added to this bag.</param>
         /// <returns>
-        /// A list of diagnostic and analyzer options, where the dictionary index corresponds
-        /// to the options for the source path at the same index. If there are
-        /// no options for the given path, the entry is null. Otherwise, the diagnostic
-        /// options are a map from diagnostic ID to diagnostic severity, and
-        /// correspond to options provided for <see cref="SyntaxTree.DiagnosticOptions"/>.
-        /// The analyzerOptions are an OptionSet consisting of all properties that were not
-        /// diagnostic options.
+        /// Diagnostic and analyzer option arrays, where the array indices correspond
+        /// to the options for the source path at the same index.
         /// </returns>
-        internal static (ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> treeOptions,
-                         ImmutableArray<ImmutableDictionary<string, string>> analyzerOptions)
-            GetAnalyzerConfigOptions(IReadOnlyList<string> sourcePaths,
-                                     IReadOnlyList<EditorConfig> analyzerConfigs,
-                                     CommonMessageProvider messageProvider,
-                                     DiagnosticBag diagnostics)
+        internal static AnalyzerConfigOptionsResult GetAnalyzerConfigOptions(
+            IReadOnlyList<string> sourcePaths,
+            IReadOnlyList<EditorConfig> analyzerConfigs,
+            CommonMessageProvider messageProvider,
+            DiagnosticBag diagnostics)
         {
             // Since paths are compared as ordinal string comparisons, the least nested
             // file will always be the first in sort order
             if (!analyzerConfigs.IsSorted(Comparer<EditorConfig>.Create(
-                (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length))))
+                    (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length))))
             {
                 throw new ArgumentException(
                     "Analyzer config files must be sorted from shortest to longest path",
                     nameof(analyzerConfigs));
             }
 
-            var allTreeOptions = ArrayBuilder<ImmutableDictionary<string, ReportDiagnostic>>.GetInstance(sourcePaths.Count);
-            var allAnalyzerOptions = ArrayBuilder<ImmutableDictionary<string, string>>.GetInstance(sourcePaths.Count);
+            var allTreeOptions = ArrayBuilder<TreeOptions>.GetInstance(sourcePaths.Count);
+            var allAnalyzerOptions = ArrayBuilder<AnalyzerOptions>.GetInstance(sourcePaths.Count);
 
             var allRegexes = PooledDictionary<EditorConfig, ImmutableArray<Regex>>.GetInstance();
             foreach (var config in analyzerConfigs)
@@ -365,12 +393,14 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(allTreeOptions.Count == allAnalyzerOptions.Count);
             Debug.Assert(allTreeOptions.Count == sourcePaths.Count);
 
-            return (allTreeOptions.ToImmutableAndFree(), allAnalyzerOptions.ToImmutableAndFree());
+            return new AnalyzerConfigOptionsResult(
+                allTreeOptions.ToImmutableAndFree(),
+                allAnalyzerOptions.ToImmutableAndFree());
 
             void addOptions(
                 EditorConfig.Section section,
-                ImmutableDictionary<string, ReportDiagnostic>.Builder treeBuilder,
-                ImmutableDictionary<string, string>.Builder analyzerBuilder,
+                TreeOptions.Builder treeBuilder,
+                AnalyzerOptions.Builder analyzerBuilder,
                 string analyzerConfigPath)
             {
                 const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
@@ -842,8 +872,7 @@ namespace Microsoft.CodeAnalysis
             var diagnostics = DiagnosticBag.GetInstance();
 
             ImmutableArray<EditorConfig> sortedAnalyzerConfigs = default;
-            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> treeDiagnosticOptions = default;
-            ImmutableArray<ImmutableDictionary<string, string>> treeAnalyzerOptions = default;
+            AnalyzerConfigOptionsResult analyzerConfigOptions = default;
 
             if (Arguments.AnalyzerConfigPaths.Length > 0)
             {
@@ -854,14 +883,14 @@ namespace Microsoft.CodeAnalysis
                     return Failed;
                 }
 
-                (treeDiagnosticOptions, treeAnalyzerOptions) = GetAnalyzerConfigOptions(
+                analyzerConfigOptions = GetAnalyzerConfigOptions(
                     Arguments.SourceFiles.SelectAsArray(f => f.Path),
                     sortedAnalyzerConfigs,
                     MessageProvider,
                     diagnostics);
             }
 
-            Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, treeDiagnosticOptions);
+            Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, analyzerConfigOptions.TreeOptions);
             if (compilation == null)
             {
                 return Failed;
@@ -890,7 +919,7 @@ namespace Microsoft.CodeAnalysis
                 analyzers,
                 additionalTexts,
                 sortedAnalyzerConfigs,
-                treeAnalyzerOptions,
+                analyzerConfigOptions.AnalyzerOptions,
                 embeddedTexts,
                 diagnostics,
                 cancellationToken,
@@ -1002,11 +1031,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     // PROTOTYPE: The compiler currently doesn't support configuring diagnostic reporting
                     // on additional text files individually.
-                    var (_, additionalFileAnalyzerOptions) = GetAnalyzerConfigOptions(
+                    var additionalFileAnalyzerOptions = GetAnalyzerConfigOptions(
                         additionalTextFiles.SelectAsArray(f => f.Path),
                         sortedAnalyzerConfigs,
                         MessageProvider,
-                        diagnostics);
+                        diagnostics).AnalyzerOptions;
 
                     analyzerConfigProvider = CreateAnalyzerConfigOptionsProvider(
                         compilation.SyntaxTrees,
@@ -1015,7 +1044,7 @@ namespace Microsoft.CodeAnalysis
                         additionalFileAnalyzerOptions);
                 }
 
-                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
+                Diagnostics.AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
                     additionalTextFiles, analyzerConfigProvider);
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
@@ -1274,10 +1303,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         // virtual for testing
-        protected virtual AnalyzerOptions CreateAnalyzerOptions(
+        protected virtual Diagnostics.AnalyzerOptions CreateAnalyzerOptions(
             ImmutableArray<AdditionalText> additionalTextFiles,
             AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
-            => new AnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider);
+            => new Diagnostics.AnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider);
 
         private bool WriteTouchedFiles(DiagnosticBag diagnostics, TouchedFileLogger touchedFilesLogger, string finalXmlFilePath)
         {
