@@ -25170,29 +25170,6 @@ class F : C<F?>, I1<C<B?>>, I2<C<B>?>
         }
 
         [Fact]
-        public void DifferentParseOptions_01()
-        {
-            var source = @"";
-            var optionsWithoutFeature = TestOptions.Regular8;
-            var optionsWithFeature = optionsWithoutFeature.WithNullCheckingFeature(NullableReferenceFlags.None);
-            Assert.Throws<System.ArgumentException>(() => CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithFeature),
-                                                                                                CSharpSyntaxTree.ParseText(source, optionsWithoutFeature) },
-                                                                                        options: TestOptions.ReleaseDll));
-
-            Assert.Throws<System.ArgumentException>(() => CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithoutFeature),
-                                                                                                CSharpSyntaxTree.ParseText(source, optionsWithFeature) },
-                                                                                        options: TestOptions.ReleaseDll));
-
-            CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithFeature),
-                                                  CSharpSyntaxTree.ParseText(source, optionsWithFeature) },
-                                          options: TestOptions.ReleaseDll);
-
-            CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithoutFeature),
-                                                  CSharpSyntaxTree.ParseText(source, optionsWithoutFeature) },
-                                          options: TestOptions.ReleaseDll);
-        }
-
-        [Fact]
         public void NullableAttribute_01()
         {
             var source =
@@ -25406,7 +25383,7 @@ public class C<T> {}
         [Fact(Skip = "[NonNullTypes(true)] is disabled")]
         public void OptOutFromAssembly_01()
         {
-            var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
+            var parseOptions = TestOptions.Regular8;
             CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
@@ -25451,7 +25428,7 @@ class C
         [Fact(Skip = "[NullableOptOutForAssembly] is disabled")]
         public void OptOutFromAssembly_02()
         {
-            var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
+            var parseOptions = TestOptions.Regular8;
             CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
@@ -25512,7 +25489,7 @@ class C
         [Fact(Skip = "[NullableOptOutForAssembly] is disabled")]
         public void OptOutFromAssembly_03()
         {
-            var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
+            var parseOptions = TestOptions.Regular8;
             string source = @"
 [module:System.Runtime.CompilerServices.NullableOptOutForAssembly(null)]
 [module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""invalid, assembly, name"")]
@@ -30516,36 +30493,6 @@ class C
         }
 
         [Fact]
-        public void GetNullableReferenceFlags()
-        {
-            // C# 7
-            Assert.Equal(NullableReferenceFlags.None,
-                TestOptions.Regular7.GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.None,
-                TestOptions.Regular7.WithFeature("staticNullChecking").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.None,
-                TestOptions.Regular7.WithFeature("staticNullChecking", "3").GetNullableReferenceFlags());
-
-            // C# 8
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.WithFeature("staticNullChecking").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "0").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled | NullableReferenceFlags.AllowMemberOptOut | NullableReferenceFlags.AllowAssemblyOptOut,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "12").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled | (NullableReferenceFlags)0x123,
-                TestOptions.Regular8.WithFeature("staticNullChecking", 0x123.ToString()).GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "false").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "true").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "other").GetNullableReferenceFlags());
-        }
-
-        [Fact]
         public void Feature()
         {
             var source =
@@ -30609,7 +30556,7 @@ class C
 
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesAttributesDefinition },
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowMemberOptOut));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.G(object o)'.
                 //         G(o);
@@ -30654,7 +30601,7 @@ class B
 
             var comp1 = CreateCompilation(
                 new[] { source1, NonNullTypesAttributesDefinition },
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut),
+                parseOptions: TestOptions.Regular8,
                 references: new[] { ref0 });
             comp1.VerifyDiagnostics();
 

@@ -30,12 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var flags = ((CSharpParseOptions)node.SyntaxTree.Options).GetNullableReferenceFlags();
-            if ((flags & NullableReferenceFlags.Enabled) == 0)
-            {
-                return;
-            }
-
             if (HasThisConstructorInitializer(method))
             {
                 return;

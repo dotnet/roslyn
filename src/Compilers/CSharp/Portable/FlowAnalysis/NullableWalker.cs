@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt = null)
         {
-            if (method.IsImplicitlyDeclared || method.NonNullTypes == null)
+            if (method.IsImplicitlyDeclared)
             {
                 return;
             }
