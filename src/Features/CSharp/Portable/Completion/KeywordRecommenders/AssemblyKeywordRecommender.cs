@@ -17,19 +17,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var token = context.TargetToken;
 
-            // Note that we pass the token.SpanStart to IsTypeDeclarationContext below. This is a bit subtle,
-            // but we want to be sure that the attribute itself (i.e. the open square bracket, '[') is in a
-            // type declaration context.
             if (token.Kind() != SyntaxKind.OpenBracketToken)
+            {
                 return false;
+            }
+
             if (token.Parent.Kind() == SyntaxKind.AttributeList)
             {
-                var previousSyntax = token.GetPreviousToken().Parent;
-                return previousSyntax == null;
+                var attributeList = token.Parent;
+                var previousSyntax = attributeList.Parent;
+                return previousSyntax is CompilationUnitSyntax || previousSyntax.Parent is CompilationUnitSyntax;
             }
-            var nextSyntax = token.GetNextToken().Parent;
-            var currentSyntax = token.Parent;
-            return nextSyntax is NamespaceDeclarationSyntax || currentSyntax is CompilationUnitSyntax;
+
+            var skipTrivia = token.Parent;
+            return skipTrivia.Parent == null;
         }
     }
 }

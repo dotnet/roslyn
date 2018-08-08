@@ -116,7 +116,21 @@ $$");
             await VerifyKeywordAsync(
 @"[$$");
         }
-        
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestBeforeAttributeNestClass()
+        {
+            await VerifyAbsenceAsync(
+@"class A
+{
+    [$$
+    class B
+    {
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestBeforeAttributeNamespace()
