@@ -166,12 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateNonLazyType(typeSymbol, NonNullTypesTrueContext.Instance, isAnnotated: typeSymbol.IsNullableType(), treatUnconstrainedTypeParameterAsNullable: true, customModifiers.NullToEmpty());
         }
 
-        internal static TypeSymbolWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatUnconstrainedTypeParameterAsNullable, ImmutableArray<CustomModifier> customModifiers)
+        private static TypeSymbolWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatUnconstrainedTypeParameterAsNullable, ImmutableArray<CustomModifier> customModifiers)
         {
             return new TypeSymbolWithAnnotations(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: treatUnconstrainedTypeParameterAsNullable, Extensions.Create(customModifiers));
         }
 
-        internal static TypeSymbolWithAnnotations CreateLazyNullableType(CSharpCompilation compilation, TypeSymbolWithAnnotations underlying)
+        private static TypeSymbolWithAnnotations CreateLazyNullableType(CSharpCompilation compilation, TypeSymbolWithAnnotations underlying)
         {
             return new TypeSymbolWithAnnotations(defaultType: underlying._defaultType, nonNullTypesContext: underlying.NonNullTypesContext, isAnnotated: true, treatUnconstrainedTypeParameterAsNullable: false, Extensions.CreateLazy(compilation, underlying));
         }
@@ -188,7 +188,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
         // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
-        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatUnconstrainedTypeParameterAsNullable, ImmutableArray<CustomModifier> customModifiers)
+        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, ImmutableArray<CustomModifier> customModifiers)
+        {
+            return Create(typeSymbol, nonNullTypesContext, isAnnotated, treatUnconstrainedTypeParameterAsNullable: true, customModifiers);
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
+        // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
+        private static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatUnconstrainedTypeParameterAsNullable, ImmutableArray<CustomModifier> customModifiers)
         {
             Debug.Assert(nonNullTypesContext != null);
             Debug.Assert(!customModifiers.IsDefault);

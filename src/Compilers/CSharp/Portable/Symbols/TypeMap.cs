@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static ImmutableArray<TypeSymbolWithAnnotations> TypeParametersAsTypeSymbolsWithAnnotations(INonNullTypesContext nonNullTypesContext, ImmutableArray<TypeParameterSymbol> typeParameters)
         {
             return typeParameters.SelectAsArray((tp, c) =>
-                TypeSymbolWithAnnotations.Create(tp, nonNullTypesContext: c, isAnnotated: false, treatUnconstrainedTypeParameterAsNullable: false /* PROTOTYPE(NullableReferenceTypes): true? */, customModifiers: ImmutableArray<CustomModifier>.Empty),
+                TypeSymbolWithAnnotations.Create(tp, nonNullTypesContext: c, isAnnotated: false, customModifiers: ImmutableArray<CustomModifier>.Empty),
                 nonNullTypesContext);
         }
 
