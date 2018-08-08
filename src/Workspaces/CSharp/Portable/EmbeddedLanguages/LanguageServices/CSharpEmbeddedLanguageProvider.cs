@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices
     {
         public static IEmbeddedLanguageProvider Instance = new CSharpEmbeddedLanguageProvider();
 
-        private CSharpEmbeddedLanguageProvider()
+        public CSharpEmbeddedLanguageProvider()
             : base((int)SyntaxKind.StringLiteralToken,
                    (int)SyntaxKind.InterpolatedStringTextToken,
                    CSharpSyntaxFactsService.Instance,
