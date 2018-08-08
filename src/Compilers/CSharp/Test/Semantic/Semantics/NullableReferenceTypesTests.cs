@@ -11061,7 +11061,7 @@ public class D
     }
 }
 ";
-            var compilation = CreateCompilationWithIL(NonNullTypesTrue + source + NonNullTypesAttributesDefinition, il, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilationWithIL(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, il, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn 1
@@ -11450,7 +11450,7 @@ public class C
         [Fact]
         public void EnsuresNotNull_WithParamsOnFirstParameter()
         {
-            CSharpCompilation c = CreateCompilationWithIL(NonNullTypesTrue + @"
+            CSharpCompilation c = CreateCompilationWithIL(new[] { @"
 public class D
 {
     static void F(object[]? a, object? b, object? c)
@@ -11461,7 +11461,7 @@ public class D
         c.ToString(); // warn 2
     }
 }
-" + NonNullTypesAttributesDefinition, @"
+", NonNullTypesTrue, NonNullTypesAttributesDefinition }, @"
 .class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableAttribute
     extends [mscorlib]System.Attribute
 {
@@ -33340,8 +33340,8 @@ class C
         c.P.ToString();
         c.F = null;
         c.P = null;
-        c.F.ToString(); // 3
-        c.P.ToString(); // 4
+        c.F.ToString(); // 1
+        c.P.ToString(); // 2
         if (c.F == null) return;
         if (c.P == null) return;
         c.F.ToString();
@@ -33351,10 +33351,10 @@ class C
             var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition }, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         c.F.ToString(); // 3
+                //         c.F.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.F").WithLocation(9, 9),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         c.P.ToString(); // 4
+                //         c.P.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.P").WithLocation(10, 9));
         }
 
