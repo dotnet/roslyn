@@ -76,14 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class StringEscapeFormatDefinition : ClassificationFormatDefinition
+        private class StringEscapeCharacterFormatDefinition : ClassificationFormatDefinition
         {
-            private StringEscapeFormatDefinition()
+            private StringEscapeCharacterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.String_Escape_Character;
                 this.ForegroundColor = s_stringEscapeColor;
-                // this.ForegroundColor = Color.FromRgb(255, 0, 0);
-                // this.IsBold = true;
             }
         }
 
