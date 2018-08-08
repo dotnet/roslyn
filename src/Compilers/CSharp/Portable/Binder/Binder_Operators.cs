@@ -3134,6 +3134,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
                     }
                     break;
+
+                case BoundKind.UnboundObjectCreationExpression:
+                    if (!operand.HasAnyErrors)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_TypelessNewInAs, node);
+                    }
+
+                    return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }
 
             if (operand.HasAnyErrors || targetTypeKind == TypeKind.Error)

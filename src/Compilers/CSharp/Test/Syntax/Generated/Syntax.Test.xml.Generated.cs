@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ObjectCreationExpressionSyntax GenerateObjectCreationExpression()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ObjectCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.NewKeyword), GenerateIdentifierName(), null, null);
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ObjectCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.NewKeyword), null, null, null);
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AnonymousObjectMemberDeclaratorSyntax GenerateAnonymousObjectMemberDeclarator()
@@ -1627,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateObjectCreationExpression();
             
             Assert.Equal(SyntaxKind.NewKeyword, node.NewKeyword.Kind);
-            Assert.NotNull(node.Type);
+            Assert.Null(node.Type);
             Assert.Null(node.ArgumentList);
             Assert.Null(node.Initializer);
             
@@ -9225,7 +9225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static ObjectCreationExpressionSyntax GenerateObjectCreationExpression()
         {
-            return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), GenerateIdentifierName(), default(ArgumentListSyntax), default(InitializerExpressionSyntax));
+            return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), default(TypeSyntax), default(ArgumentListSyntax), default(InitializerExpressionSyntax));
         }
         
         private static AnonymousObjectMemberDeclaratorSyntax GenerateAnonymousObjectMemberDeclarator()
@@ -10591,7 +10591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateObjectCreationExpression();
             
             Assert.Equal(SyntaxKind.NewKeyword, node.NewKeyword.Kind());
-            Assert.NotNull(node.Type);
+            Assert.Null(node.Type);
             Assert.Null(node.ArgumentList);
             Assert.Null(node.Initializer);
             var newNode = node.WithNewKeyword(node.NewKeyword).WithType(node.Type).WithArgumentList(node.ArgumentList).WithInitializer(node.Initializer);

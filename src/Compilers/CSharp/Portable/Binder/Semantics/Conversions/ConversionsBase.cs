@@ -840,6 +840,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ThrowExpression:
                     return Conversion.ImplicitThrow;
+
+                case BoundKind.UnboundObjectCreationExpression:
+                    return Conversion.ImplicitNew;
             }
 
             return Conversion.NoConversion;

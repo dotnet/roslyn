@@ -1970,6 +1970,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; may not be used as the target-type of &apos;new&apos;..
+        /// </summary>
+        internal static string ERR_BadTargetTypeForNew {
+            get {
+                return ResourceManager.GetString("ERR_BadTargetTypeForNew", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Method &apos;{0}&apos; has a parameter modifier &apos;this&apos; which is not on the first parameter.
         /// </summary>
         internal static string ERR_BadThisParam {
@@ -3388,6 +3397,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DefaultValueNotAllowed {
             get {
                 return ResourceManager.GetString("ERR_DefaultValueNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default constructor of the value type &apos;{0}&apos; may not be used with target-typed &apos;new&apos;. Consider using &apos;default&apos; instead..
+        /// </summary>
+        internal static string ERR_DefaultValueTypeCtorInTargetTypedNew {
+            get {
+                return ResourceManager.GetString("ERR_DefaultValueTypeCtorInTargetTypedNew", resourceCulture);
             }
         }
         
@@ -9593,6 +9611,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The first operand of an &apos;as&apos; operator may not be a target-typed &apos;new&apos;..
+        /// </summary>
+        internal static string ERR_TypelessNewInAs {
+            get {
+                return ResourceManager.GetString("ERR_TypelessNewInAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The first operand of an &apos;as&apos; operator may not be a tuple literal without a natural type..
         /// </summary>
         internal static string ERR_TypelessTupleInAs {
@@ -10976,6 +11003,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureSwitchOnBool {
             get {
                 return ResourceManager.GetString("IDS_FeatureSwitchOnBool", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to target-typed new.
+        /// </summary>
+        internal static string IDS_FeatureTargetTypedNew {
+            get {
+                return ResourceManager.GetString("IDS_FeatureTargetTypedNew", resourceCulture);
             }
         }
         

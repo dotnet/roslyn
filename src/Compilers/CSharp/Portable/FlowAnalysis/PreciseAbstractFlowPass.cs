@@ -2328,6 +2328,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitLambda(node.BindForErrorRecovery());
         }
 
+        public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
+        {
+            // The presence of this node suggests an error was detected in an earlier phase.
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method: null);
+            return null;
+        }
+
         public override BoundNode VisitBreakStatement(BoundBreakStatement node)
         {
             Debug.Assert(!this.IsConditionalState);

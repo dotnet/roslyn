@@ -12,6 +12,11 @@
         <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureTargetTypedNew">
+        <source>target-typed new</source>
+        <target state="new">target-typed new</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;NULL&gt;</target>
@@ -8758,6 +8763,21 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultValueTypeCtorInTargetTypedNew">
+        <source>The default constructor of the value type '{0}' may not be used with target-typed 'new'. Consider using 'default' instead.</source>
+        <target state="new">The default constructor of the value type '{0}' may not be used with target-typed 'new'. Consider using 'default' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadTargetTypeForNew">
+        <source>The type '{0}' may not be used as the target-type of 'new'.</source>
+        <target state="new">The type '{0}' may not be used as the target-type of 'new'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypelessNewInAs">
+        <source>The first operand of an 'as' operator may not be a target-typed 'new'.</source>
+        <target state="new">The first operand of an 'as' operator may not be a target-typed 'new'.</target>
         <note />
       </trans-unit>
     </body>
