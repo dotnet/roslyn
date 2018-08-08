@@ -3,7 +3,11 @@
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.VisualStudio.Text.Projection
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.OldCompletion
+    ''' <summary>
+    ''' This is a test file corresponding to the old Completion service which we are going to turn off after migration to the new one.
+    ''' We should keep this file up-to-date and on par with the new file until then.
+    ''' </summary>
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_Projections
 
