@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
-            bool allowDecompilation = false;
+            var allowDecompilation = false;
 
             // Check whether decompilation is supported for the project. We currently only support this for C# projects.
             if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)

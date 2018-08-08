@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     {
                         try
                         {
-                            var decompiledSourceService = temporaryDocument.Project.LanguageServices.GetService<IDecompiledSourceService>();
+                            var decompiledSourceService = temporaryDocument.GetLanguageService<IDecompiledSourceService>();
                             if (decompiledSourceService != null)
                             {
                                 temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);

@@ -15,12 +15,13 @@ using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.CSharp.Transforms;
 using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.Decompiler.TypeSystem;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -29,14 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 {
     internal class CSharpDecompiledSourceService : IDecompiledSourceService
     {
-        private HostLanguageServices provider;
+        private readonly HostLanguageServices provider;
+        private static readonly FileVersionInfo decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
 
         public CSharpDecompiledSourceService(HostLanguageServices provider)
         {
             this.provider = provider;
         }
 
-        public async Task<Document> AddSourceToAsync(Document document, ISymbol symbol, CancellationToken cancellationToken = default)
+        public async Task<Document> AddSourceToAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
             // Get the name of the type the symbol is in
             var containingOrThis = symbol.GetContainingTypeOrThis();
@@ -72,60 +74,73 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             // Decompile
             document = PerformDecompilation(document, fullName, compilation, assemblyLocation);
 
+            document = await AddAssemblyInfoRegionAsync(document, symbol, cancellationToken);
+
             // Convert XML doc comments to regular comments, just like MAS
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
-            document = await ConvertDocCommentsToRegularComments(document, docCommentFormattingService, cancellationToken);
+            document = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken);
 
-            // Parse document
-            var node = await document.GetSyntaxRootAsync();
+            var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
             document = await Formatter.FormatAsync(
                   document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                  options: null, rules: GetFormattingRules(document), cancellationToken: cancellationToken).ConfigureAwait(false);
+                  options: null, Formatter.GetDefaultFormattingRules(document), cancellationToken).ConfigureAwait(false);
 
             return document;
         }
 
-        private static Document PerformDecompilation(Document document, string fullName, Compilation compilation, string assemblyLocation)
+        private Document PerformDecompilation(Document document, string fullName, Compilation compilation, string assemblyLocation)
         {
             // Load the assembly.
-            var pefile = new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
+            var file = new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
 
             // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(pefile, new AssemblyResolver(compilation), new DecompilerSettings());
+            var decompiler = new CSharpDecompiler(file, new AssemblyResolver(compilation), new DecompilerSettings());
             // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
             // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
             decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
 
             var fullTypeName = new FullTypeName(fullName);
 
-            var decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
-
-            // Add header to match output of metadata-only view.
-            // (This also makes debugging easier, because you can see which assembly was decompiled inside VS.)
-            var header = $"#region {FeaturesResources.Assembly} {pefile.FullName}" + Environment.NewLine
-                + $"// {assemblyLocation}" + Environment.NewLine
-                + $"// Decompiled with ICSharpCode.Decompiler {decompilerVersion.FileVersion}" + Environment.NewLine
-                + "#endregion" + Environment.NewLine;
-
             // Try to decompile; if an exception is thrown the caller will handle it
             var text = decompiler.DecompileTypeAsString(fullTypeName);
-            return document.WithText(SourceText.From(header + text));
+            return document.WithText(SourceText.From(text));
         }
 
-        private async Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
+        private async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            string assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            string assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(compilation, symbol.ContainingAssembly);
+
+            var regionTrivia = SyntaxFactory.RegionDirectiveTrivia(true)
+                .WithTrailingTrivia(new[] { SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo) });
+
+            var oldRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newRoot = oldRoot.WithLeadingTrivia(new[]
+                {
+                    SyntaxFactory.Trivia(regionTrivia),
+                    SyntaxFactory.CarriageReturnLineFeed,
+                    SyntaxFactory.Comment("// " + assemblyPath),
+                    SyntaxFactory.CarriageReturnLineFeed,
+                    SyntaxFactory.Comment($"// Decompiled with ICSharpCode.Decompiler {decompilerVersion.FileVersion}"),
+                    SyntaxFactory.CarriageReturnLineFeed,
+                    SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
+                    SyntaxFactory.CarriageReturnLineFeed,
+                    SyntaxFactory.CarriageReturnLineFeed
+                });
+
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        private async Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var newSyntaxRoot = DocCommentConverter.ConvertToRegularComments(syntaxRoot, docCommentFormattingService, cancellationToken);
 
             return document.WithSyntaxRoot(newSyntaxRoot);
-        }
-
-        private IEnumerable<IFormattingRule> GetFormattingRules(Document document)
-        {
-            return Formatter.GetDefaultFormattingRules(document);
         }
 
         private string GetFullReflectionName(INamedTypeSymbol containingType)

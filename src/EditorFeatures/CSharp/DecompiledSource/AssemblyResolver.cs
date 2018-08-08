@@ -60,7 +60,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             string baseDirectory = Path.GetDirectoryName(mainModule.FileName);
             string moduleFileName = Path.Combine(baseDirectory, moduleName);
             if (!File.Exists(moduleFileName))
+            {
                 return null;
+            }
+
             return new PEFile(moduleFileName, PEStreamOptions.PrefetchMetadata);
         }
     }
