@@ -283,26 +283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public bool IsTypeAttributeContextBefore(SyntaxKind syntaxKind, CancellationToken cancellationToken)
-        {
-            // cases:
-            //    [ |
-            //    class C {
-            var token = TargetToken;
-
-            // Note that we pass the token.SpanStart to IsTypeDeclarationContext below. This is a bit subtle,
-            // but we want to be sure that the attribute itself (i.e. the open square bracket, '[') is in a
-            // type declaration context.
-            if (token.Kind() == SyntaxKind.OpenBracketToken &&
-                (token.GetNextToken().Kind() == syntaxKind || token.Parent.Kind() == SyntaxKind.AttributeList) &&
-                SyntaxTree.IsTypeDeclarationContext(
-                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
-            {
-                return true;
-            }
-
-            return false;
-        }
 
         public bool IsTypeDeclarationContext(
             ISet<SyntaxKind> validModifiers = null,
