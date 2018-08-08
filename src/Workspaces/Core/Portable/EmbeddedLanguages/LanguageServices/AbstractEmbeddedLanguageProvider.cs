@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         {
             _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new FallbackEmbeddedLanguage(
-                    this, stringLiteralTokenKind, interpolatedTextTokenKind,
+                    stringLiteralTokenKind, interpolatedTextTokenKind,
                     syntaxFacts, semanticFacts, virtualCharService));
         }
 

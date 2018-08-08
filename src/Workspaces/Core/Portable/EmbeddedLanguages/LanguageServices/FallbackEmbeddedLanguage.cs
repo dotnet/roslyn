@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         public IVirtualCharService VirtualCharService { get; }
 
         public FallbackEmbeddedLanguage(
-            AbstractEmbeddedLanguageProvider languageProvider,
             int stringLiteralTokenKind,
             int interpolatedTextTokenKind,
             ISyntaxFactsService syntaxFacts,
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             SyntaxFacts = syntaxFacts;
             SemanticFacts = semanticFacts;
             VirtualCharService = virtualCharService;
-            Classifier = new FallbackEmbeddedClassifier(languageProvider, this);
+            Classifier = new FallbackEmbeddedClassifier(this);
         }
 
         public IEmbeddedClassifier Classifier { get; }

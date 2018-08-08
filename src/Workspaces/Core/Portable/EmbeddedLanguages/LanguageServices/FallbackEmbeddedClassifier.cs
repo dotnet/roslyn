@@ -6,14 +6,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
     internal class FallbackEmbeddedClassifier : IEmbeddedClassifier
     {
-        private readonly AbstractEmbeddedLanguageProvider _provider;
         private readonly FallbackEmbeddedLanguage _language;
 
-        public FallbackEmbeddedClassifier(
-            AbstractEmbeddedLanguageProvider provider,
-            FallbackEmbeddedLanguage language)
+        public FallbackEmbeddedClassifier(FallbackEmbeddedLanguage language)
         {
-            _provider = provider;
             _language = language;
         }
 
