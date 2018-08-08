@@ -169,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilation: false);
             ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(parameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(parameters, diagnostics, modifyCompilation: false);
+            // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
             if (isVararg)
@@ -235,6 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (returnType.ContainsNullableReferenceTypes())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
+                // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
             }
 
             Debug.Assert(_refKind == RefKind.None
