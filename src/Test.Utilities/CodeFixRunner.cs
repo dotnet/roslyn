@@ -37,23 +37,16 @@ namespace Test.Utilities
                 diags.Where(d => _fixableDiagnosticIds.Contains(d.Id)).ToImmutableArrayOrEmpty();
         }
 
-        public Solution ApplySingleFix(
-            Project project,
-            IEnumerable<TestAdditionalDocument> additionalFiles,
-            int codeFixIndex,
-            int fixableDiagnosticIndex = 0)
+        public Solution ApplySingleFix(Project project, IEnumerable<TestAdditionalDocument> additionalFiles, int codeFixIndex)
         {
             var compilation = project.GetCompilationAsync().Result;
             var analyzerDiagnostics = GetSortedDiagnostics(compilation, additionalFiles: additionalFiles);
             var compilerDiagnostics = compilation.GetDiagnostics();
             var fixableDiagnostics = _getFixableDiagnostics(analyzerDiagnostics.Concat(compilerDiagnostics));
-
-            var actions = new List<CodeAction>();
-            var diagnostic = fixableDiagnostics[fixableDiagnosticIndex];
+            var diagnostic = fixableDiagnostics[0];
             var document = FindDocument(diagnostic, project);
-            var context = new CodeFixContext(document, diagnostic, (a, d) => actions.Add(a), CancellationToken.None);
-            _codeFixProvider.RegisterCodeFixesAsync(context).Wait();
 
+            List<CodeAction> actions = RegisterCodeFixes(document, diagnostic);
             if (!actions.Any())
             {
                 return project.Solution;
@@ -67,36 +60,87 @@ namespace Test.Utilities
             return DiagnosticFixerTestsExtensions.Apply(actions.ElementAt(codeFixIndex));
         }
 
+        private List<CodeAction> RegisterCodeFixes(Document document, Diagnostic diagnostic)
+        {
+            var actions = new List<CodeAction>();
+            var context = new CodeFixContext(document, diagnostic, (a, d) => actions.Add(a), CancellationToken.None);
+            _codeFixProvider.RegisterCodeFixesAsync(context).Wait();
+            return actions;
+        }
+
         public Solution ApplyFixAll(
             Solution solution,
-            IEnumerable<TestAdditionalDocument> additionalFiles,
-            bool allowNewCompilerDiagnostics)
+            FixAllScope fixAllScope,
+            bool allowNewCompilerDiagnostics,
+            int codeFixIndex,
+            IEnumerable<TestAdditionalDocument> additionalFiles = null)
         {
+            additionalFiles = additionalFiles ?? ImmutableArray<TestAdditionalDocument>.Empty;
+
+            Document triggerDocument = null;
+            Diagnostic triggerDiagnostic = null;
+            var allFixableDiagnostics = new List<Diagnostic>();
+            var compilerDiagnosticMap = new Dictionary<ProjectId, ImmutableArray<Diagnostic>>();
             foreach (var projectId in solution.ProjectIds)
             {
                 var project = solution.GetProject(projectId);
                 var compilation = project.GetCompilationAsync().Result;
                 var analyzerDiagnostics = GetSortedDiagnostics(compilation, additionalFiles);
                 var compilerDiagnostics = compilation.GetDiagnostics();
-
-                var fixAllProvider = _codeFixProvider.GetFixAllProvider();
-                var diagnosticProvider = new FixAllDiagnosticProvider(_getFixableDiagnostics(analyzerDiagnostics.Concat(compilerDiagnostics)));
-                var fixAllContext = new FixAllContext(project, _codeFixProvider, FixAllScope.Project, string.Empty, _fixableDiagnosticIds, diagnosticProvider, CancellationToken.None);
-                var codeAction = fixAllProvider.GetFixAsync(fixAllContext).Result;
-
-                if (codeAction != null)
+                compilerDiagnosticMap.Add(project.Id, compilerDiagnostics);
+                var fixableDiagnostics = _getFixableDiagnostics(analyzerDiagnostics.Concat(compilerDiagnostics));
+                allFixableDiagnostics.AddRange(fixableDiagnostics);
+                if (triggerDiagnostic == null)
                 {
-                    solution = DiagnosticFixerTestsExtensions.Apply(codeAction);
+                    triggerDiagnostic = fixableDiagnostics.FirstOrDefault(d => _fixableDiagnosticIds.Contains(d.Id));
+                    if (triggerDiagnostic != null)
+                    {
+                        triggerDocument = FindDocument(triggerDiagnostic, project);
+                    }
                 }
+            }
 
-                compilation = project.GetCompilationAsync().Result;
-                analyzerDiagnostics = GetSortedDiagnostics(compilation, additionalFiles);
+            if (triggerDiagnostic == null || triggerDocument == null)
+            {
+                return solution;
+            }
 
-                project = solution.GetProject(projectId);
-                var updatedCompilerDiagnostics = project.GetCompilationAsync().Result.GetDiagnostics();
-                if (!allowNewCompilerDiagnostics)
+            List<CodeAction> actions = RegisterCodeFixes(triggerDocument, triggerDiagnostic);
+            if (!actions.Any())
+            {
+                return solution;
+            }
+
+            if (codeFixIndex >= actions.Count)
+            {
+                throw new Exception($"Unable to invoke code fix at index '{codeFixIndex}', only '{actions.Count}' code fixes were registered.");
+            }
+
+            var fixAllProvider = _codeFixProvider.GetFixAllProvider();
+            if (fixAllProvider == null)
+            {
+                throw new Exception($"Requested 'testFixAll' but the underlying CodeFixProvider returned 'null' for 'GetFixAllProvider' API.");
+            }
+
+            var diagnosticProvider = new FixAllDiagnosticProvider(allFixableDiagnostics);
+            var equivalenceKey = actions[codeFixIndex].EquivalenceKey;
+            var fixAllContext = new FixAllContext(triggerDocument, _codeFixProvider, fixAllScope, equivalenceKey, _fixableDiagnosticIds, diagnosticProvider, CancellationToken.None);
+            var codeAction = fixAllProvider.GetFixAsync(fixAllContext).Result;
+
+            if (codeAction != null)
+            {
+                solution = DiagnosticFixerTestsExtensions.Apply(codeAction);
+
+                foreach (var kvp in compilerDiagnosticMap)
                 {
-                    CheckNewCompilerDiagnostics(project, compilerDiagnostics, updatedCompilerDiagnostics);
+                    var projectId = kvp.Key;
+                    var compilerDiagnostics = kvp.Value;
+                    var project = solution.GetProject(projectId);
+                    var updatedCompilerDiagnostics = project.GetCompilationAsync().Result.GetDiagnostics();
+                    if (!allowNewCompilerDiagnostics)
+                    {
+                        CheckNewCompilerDiagnostics(project, compilerDiagnostics, updatedCompilerDiagnostics);
+                    }
                 }
             }
 
@@ -106,7 +150,8 @@ namespace Test.Utilities
         public Solution ApplyFixesOneByOne(
             Solution solution,
             IEnumerable<TestAdditionalDocument> additionalFiles,
-            bool allowNewCompilerDiagnostics)
+            bool allowNewCompilerDiagnostics,
+            int codeFixIndex)
         {
             foreach (var projectId in solution.ProjectIds)
             {
@@ -125,12 +170,12 @@ namespace Test.Utilities
                     var context = new CodeFixContext(document, diagnostic, (a, d) => actions.Add(a), CancellationToken.None);
                     _codeFixProvider.RegisterCodeFixesAsync(context).Wait();
 
-                    if (!actions.Any())
+                    if (!actions.Any() || codeFixIndex >= actions.Count)
                     {
                         break;
                     }
 
-                    solution = DiagnosticFixerTestsExtensions.Apply(actions.ElementAt(0));
+                    solution = DiagnosticFixerTestsExtensions.Apply(actions.ElementAt(codeFixIndex));
 
                     project = solution.GetProject(projectId);
                     additionalFiles = project.AdditionalDocuments.Select(a => new TestAdditionalDocument(a));
