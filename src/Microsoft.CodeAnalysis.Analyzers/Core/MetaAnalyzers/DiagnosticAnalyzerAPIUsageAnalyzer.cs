@@ -235,7 +235,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static void AddUsedNamedTypeCore(ITypeSymbol typeOpt, ImmutableHashSet<INamedTypeSymbol>.Builder builder, ref bool hasAccessToTypeFromWorkspaceAssemblies)
         {
-            if (typeOpt is INamedTypeSymbol usedType)
+            if (typeOpt is INamedTypeSymbol usedType &&
+                usedType.TypeKind != TypeKind.Error)
             {
                 builder.Add(usedType);
 

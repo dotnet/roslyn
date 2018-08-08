@@ -33,6 +33,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
+        var x = typeof(I<>);
     }
 }
 
