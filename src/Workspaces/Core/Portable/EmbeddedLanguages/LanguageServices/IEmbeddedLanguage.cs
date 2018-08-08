@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     internal interface IEmbeddedLanguage
     {
         /// <summary>
-        /// A optional classifier that can produce <see cref="ClassifiedSpan"/>s for an embedded language string.
+        /// An optional classifier that can produce <see cref="ClassifiedSpan"/>s for an embedded language string.
         /// </summary>
         IEmbeddedClassifier Classifier { get; }
     }
