@@ -14,18 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_Nullable : CSharpTestBase
     {
-        private const string NonNullTypesAttributesDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
-    public sealed class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
-        private const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
-
         // An empty project should not require System.Attribute.
         [Fact]
         public void EmptyProject_MissingAttribute()
@@ -1405,7 +1393,7 @@ class C
         A.Long._9.ToString(); // 9
     }
 }";
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         A.Nested._1.Item1.ToString(); // 1

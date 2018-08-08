@@ -349,8 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Free();
             }
 
-            var flags = ((CSharpParseOptions)node.SyntaxTree.Options).GetNullableReferenceFlags();
-            if ((flags & NullableReferenceFlags.Enabled) != 0)
+            if (member.NonNullTypes != null)
             {
                 NullableWalker.Analyze(compilation, member, node, diagnostics);
             }

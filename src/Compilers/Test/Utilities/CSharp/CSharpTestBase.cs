@@ -30,6 +30,126 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
+        protected const string NullableAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.Event | // The type of the event is nullable, or has a nullable reference type as one of its constituents
+                    AttributeTargets.Field | // The type of the field is a nullable reference type, or has a nullable reference type as one of its constituents
+                    AttributeTargets.GenericParameter | // The generic parameter is a nullable reference type
+                    AttributeTargets.Module | // Nullable reference types in this module are annotated by means of NullableAttribute applied to other targets in it
+                    AttributeTargets.Parameter | // The type of the parameter is a nullable reference type, or has a nullable reference type as one of its constituents
+                    AttributeTargets.ReturnValue | // The return type is a nullable reference type, or has a nullable reference type as one of its constituents
+                    AttributeTargets.Property | // The type of the property is a nullable reference type, or has a nullable reference type as one of its constituents
+                    AttributeTargets.Class , // Base type has a nullable reference type as one of its constituents
+                   AllowMultiple = false)]
+    public class NullableAttribute : Attribute
+    {
+        public NullableAttribute() { }
+        public NullableAttribute(bool[] transformFlags)
+        {
+        }
+    }
+}
+";
+
+        // PROTOTYPE(NullableReferenceTypes): we should remove NullableOptOutForAssemblyAttribute
+        protected const string NonNullTypesAttributesDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>
+    /// Opt out of nullability warnings that could originate from definitions in the given assembly.
+    /// The attribute is not preserved in metadata and ignored if present in metadata.
+    /// </summary>
+    [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = true)]
+    class NullableOptOutForAssemblyAttribute : Attribute
+    {
+        /// <param name=""assemblyName"">An assembly name - a simple name plus its PublicKey, if any.""/></param>
+        public NullableOptOutForAssemblyAttribute(string assemblyName) { }
+    }
+
+    /// <summary>
+    /// Control whether unannotated reference types are treated as non-null or null-oblivious.
+    /// </summary>
+    [System.AttributeUsage(AttributeTargets.Class |
+                    AttributeTargets.Constructor |
+                    AttributeTargets.Delegate |
+                    AttributeTargets.Enum |
+                    AttributeTargets.Event |
+                    AttributeTargets.Field |
+                    AttributeTargets.Interface |
+                    AttributeTargets.Method |
+                    AttributeTargets.Module |
+                    AttributeTargets.Property |
+                    AttributeTargets.Struct,
+                    AllowMultiple = false)]
+    [System.Obsolete(""The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above)."")]
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+
+        protected const string NotNullWhenTrueAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter,
+                   AllowMultiple = false)]
+    public class NotNullWhenTrueAttribute : Attribute
+    {
+        public NotNullWhenTrueAttribute() { }
+    }
+}
+";
+
+        protected const string NotNullWhenFalseAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter,
+                   AllowMultiple = false)]
+    public class NotNullWhenFalseAttribute : Attribute
+    {
+        public NotNullWhenFalseAttribute() { }
+    }
+}
+";
+
+        protected const string EnsuresNotNullAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter,
+                   AllowMultiple = false)]
+    public class EnsuresNotNullAttribute : Attribute
+    {
+        public EnsuresNotNullAttribute() { }
+    }
+}
+";
+
+        protected const string AssertsTrueAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public class AssertsTrueAttribute : Attribute
+    {
+        public AssertsTrueAttribute () { }
+    }
+}
+";
+
+        protected const string AssertsFalseAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public class AssertsFalseAttribute : Attribute
+    {
+        public AssertsFalseAttribute () { }
+    }
+}
+";
+        protected const string NonNullTypesFalse = "[module: System.Runtime.CompilerServices.NonNullTypes(false)]";
+        protected const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
+
         internal CompilationVerifier CompileAndVerifyWithMscorlib40(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
