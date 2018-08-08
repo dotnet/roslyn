@@ -114,8 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 typeParameterMap: CreateClassifiableDeferredContent(typeParameterMap),
                 anonymousTypes: CreateClassifiableDeferredContent(anonymousTypes),
                 usageText: CreateClassifiableDeferredContent(usageText),
-                exceptionText: CreateClassifiableDeferredContent(exceptionText),
-                capturesText: null);
+                exceptionText: CreateClassifiableDeferredContent(exceptionText));
         }
 
         protected IDeferredQuickInfoContent CreateGlyphDeferredContent(ISymbol symbol)
