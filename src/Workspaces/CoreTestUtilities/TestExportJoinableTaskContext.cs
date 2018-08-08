@@ -1,29 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Test.Utilities;
+using Xunit.Sdk;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     // Starting with 15.3 the editor took a dependency on JoinableTaskContext
-    // in Text.Logic and Intellisense layers as an editor host provided service.
+    // in Text.Logic and IntelliSense layers as an editor host provided service.
+    [Export]
     internal class TestExportJoinableTaskContext
     {
-        private JoinableTaskContext _joinableTaskContext;
-
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestExportJoinableTaskContext()
         {
             var synchronizationContext = SynchronizationContext.Current;
             try
             {
-                SynchronizationContext.SetSynchronizationContext(WpfTestRunner.GetEffectiveSynchronizationContext());
-                _joinableTaskContext = ThreadingContext.CreateJoinableTaskContext();
+                SynchronizationContext.SetSynchronizationContext(GetEffectiveSynchronizationContext());
+                (JoinableTaskContext, SynchronizationContext) = ThreadingContext.CreateJoinableTaskContext();
                 ResetThreadAffinity(JoinableTaskContext.Factory);
             }
             finally
@@ -33,7 +36,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         }
 
         [Export]
-        private JoinableTaskContext JoinableTaskContext => _joinableTaskContext;
+        private JoinableTaskContext JoinableTaskContext
+        {
+            get;
+        }
+
+        internal SynchronizationContext SynchronizationContext
+        {
+            get;
+        }
+
+        internal static SynchronizationContext GetEffectiveSynchronizationContext()
+        {
+            if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
+            {
+                SynchronizationContext innerSynchronizationContext = null;
+                asyncTestSyncContext.Send(
+                    _ =>
+                    {
+                        innerSynchronizationContext = SynchronizationContext.Current;
+                    },
+                    null);
+
+                return innerSynchronizationContext;
+            }
+            else
+            {
+                return SynchronizationContext.Current;
+            }
+        }
 
         /// <summary>
         /// Reset the thread affinity, in particular the designated foreground thread, to the active 

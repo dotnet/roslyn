@@ -7,8 +7,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -128,32 +127,12 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         internal static void RequireWpfFact(string reason)
         {
-            if (!(GetEffectiveSynchronizationContext() is DispatcherSynchronizationContext))
+            if (!(TestExportJoinableTaskContext.GetEffectiveSynchronizationContext() is DispatcherSynchronizationContext))
             {
                 throw new InvalidOperationException($"This test requires {nameof(WpfFactAttribute)} because '{reason}' but is missing {nameof(WpfFactAttribute)}. Either the attribute should be changed, or the reason it needs an STA thread audited.");
             }
 
             s_wpfFactRequirementReason = reason;
-        }
-
-        internal static SynchronizationContext GetEffectiveSynchronizationContext()
-        {
-            if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
-            {
-                SynchronizationContext innerSynchronizationContext = null;
-                asyncTestSyncContext.Send(
-                    _ =>
-                    {
-                        innerSynchronizationContext = SynchronizationContext.Current;
-                    },
-                    null);
-
-                return innerSynchronizationContext;
-            }
-            else
-            {
-                return SynchronizationContext.Current;
-            }
         }
     }
 }

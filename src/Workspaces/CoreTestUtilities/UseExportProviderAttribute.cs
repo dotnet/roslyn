@@ -123,6 +123,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             throw new TimeoutException(messageBuilder.ToString(), ex);
                         }
                     }
+
+                    // Verify the synchronization context was not used incorrectly
+                    var testExportJoinableTaskContext = exportProvider.GetExportedValues<TestExportJoinableTaskContext>().SingleOrDefault();
+                    if (testExportJoinableTaskContext?.SynchronizationContext is ThreadingContext.DenyExecutionSynchronizationContext synchronizationContext)
+                    {
+                        synchronizationContext.ThrowIfSwitchOccurred();
+                    }
                 }
             }
             finally

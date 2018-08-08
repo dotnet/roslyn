@@ -34,30 +34,17 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private readonly IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> _providers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public QuickInfoCommandHandlerAndSourceProvider(
             IThreadingContext threadingContext,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters,
-            [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : this(
-                threadingContext,
-                ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                providers,
-                listenerProvider)
-        {
-        }
-
-        // For testing purposes.
-        public QuickInfoCommandHandlerAndSourceProvider(
-            IThreadingContext threadingContext,
-            IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
             [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
         {
             _providers = ExtensionOrderer.Order(providers);
             _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
-            _presenter = presenter;
+            _presenter = ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault();
         }
 
         private bool TryGetController(EditorCommandArgs args, out Controller controller)
