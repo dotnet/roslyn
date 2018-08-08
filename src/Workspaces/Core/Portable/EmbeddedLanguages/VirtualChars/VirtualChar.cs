@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// process input from any language uniformly, but then also produce trees and diagnostics that
     /// map back properly to the original source text locations that make sense to the user.
     /// </summary>
-    internal struct VirtualChar : IEquatable<VirtualChar>
+    internal readonly struct VirtualChar : IEquatable<VirtualChar>
     {
         public readonly char Char;
         public readonly TextSpan Span;
@@ -58,7 +58,5 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         public static bool operator !=(VirtualChar char1, VirtualChar char2)
             => !(char1 == char2);
-
-        public static implicit operator char(VirtualChar vc) => vc.Char;
     }
 }
