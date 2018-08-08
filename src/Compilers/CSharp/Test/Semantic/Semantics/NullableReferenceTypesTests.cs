@@ -30151,20 +30151,26 @@ class C
             var source =
 @"class C
 {
-    static void F1<T1>()
+    static void F1<T1>(T1 t1)
     {
-        default(T1).ToString();
+        default(T1).ToString(); // 1
         default(T1)!.ToString();
+        t1.ToString(); // 2
+        t1!.ToString();
     }
-    static void F2<T2>() where T2 : class
+    static void F2<T2>(T2 t2) where T2 : class
     {
-        default(T2).ToString();
+        default(T2).ToString(); // 3
         default(T2)!.ToString();
+        t2.ToString();
+        t2!.ToString();
     }
-    static void F3<T3>() where T3 : struct
+    static void F3<T3>(T3 t3) where T3 : struct
     {
         default(T3).ToString();
-        default(T3)!.ToString();
+        default(T3)!.ToString(); // 4
+        t3.ToString();
+        t3!.ToString(); // 5
     }
 }";
             var comp = CreateCompilation(
@@ -30172,21 +30178,26 @@ class C
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
-                //         default(T1).ToString();
+                //         default(T1).ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T1)").WithLocation(5, 9),
-                // (10,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T2' is null
-                //         default(T2).ToString();
-                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T2).ToString").WithArguments("T2").WithLocation(10, 9),
-                // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         default(T2).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(10, 9),
-                // (16,9): error CS8624: The ! operator can only be applied to reference types.
-                //         default(T3)!.ToString();
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(T3)!").WithLocation(16, 9));
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         t1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(7, 9),
+                // (12,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T2' is null
+                //         default(T2).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T2).ToString").WithArguments("T2").WithLocation(12, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         default(T2).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(12, 9),
+                // (20,9): error CS8624: The suppression operator (!) can only be applied to reference types.
+                //         default(T3)!.ToString(); // 4
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(T3)!").WithLocation(20, 9),
+                // (22,9): error CS8624: The suppression operator (!) can only be applied to reference types.
+                //         t3!.ToString(); // 5
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "t3!").WithLocation(22, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Report error for `default!`.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void SuppressNullableWarning_TypeParameters_02()
         {
             var source =
@@ -30208,10 +30219,10 @@ class B2<T> : A<T> where T : struct
 {
     internal override void F<U>(out T t2, out U u2)
     {
-        t2 = default(T)!;
-        t2 = default!;
-        u2 = default(U)!;
-        u2 = default!;
+        t2 = default(T)!; // 1
+        t2 = default!; // 2
+        u2 = default(U)!; // 3
+        u2 = default!; // 4
     }
 }
 class B3<T> : A<T>
@@ -30238,39 +30249,28 @@ class B5 : A<int>
 {
     internal override void F<U>(out int t5, out U u5)
     {
-        t5 = default(int)!;
-        t5 = default!;
-        u5 = default(U)!;
-        u5 = default!;
+        t5 = default(int)!; // 5
+        t5 = default!; // 6
+        u5 = default(U)!; // 7
+        u5 = default!; // 8
     }
 }";
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Report error for `default!`.
             comp.VerifyDiagnostics(
-                // (18,14): error CS8624: The ! operator can only be applied to reference types.
-                //         t2 = default!;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default!").WithLocation(18, 14),
-                // (19,14): error CS8624: The ! operator can only be applied to reference types.
-                //         t2 = default(T)!;
+                // (19,14): error CS8624: The suppression operator (!) can only be applied to reference types.
+                //         t2 = default(T)!; // 1
                 Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(T)!").WithLocation(19, 14),
-                // (20,14): error CS8624: The ! operator can only be applied to reference types.
-                //         u2 = default!;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default!").WithLocation(20, 14),
-                // (21,14): error CS8624: The ! operator can only be applied to reference types.
-                //         u2 = default(U)!;
+                // (21,14): error CS8624: The suppression operator (!) can only be applied to reference types.
+                //         u2 = default(U)!; // 3
                 Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(U)!").WithLocation(21, 14),
-                // (49,14): error CS8624: The ! operator can only be applied to reference types.
-                //         t5 = default(int)!;
+                // (49,14): error CS8624: The suppression operator (!) can only be applied to reference types.
+                //         t5 = default(int)!; // 5
                 Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(int)!").WithLocation(49, 14),
-                // (49,14): error CS8624: The ! operator can only be applied to reference types.
-                //         t5 = default(int)!;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(int)!").WithLocation(49, 14),
-                // (51,14): error CS8624: The ! operator can only be applied to reference types.
-                //         u5 = default(U)!;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(U)!").WithLocation(51, 14),
-                // (51,14): error CS8624: The ! operator can only be applied to reference types.
-                //         u5 = default(U)!;
+                // (51,14): error CS8624: The suppression operator (!) can only be applied to reference types.
+                //         u5 = default(U)!; // 7
                 Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(U)!").WithLocation(51, 14));
         }
 
