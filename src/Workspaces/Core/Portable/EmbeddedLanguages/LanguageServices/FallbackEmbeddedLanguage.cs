@@ -10,22 +10,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// </summary>
     internal class FallbackEmbeddedLanguage : IEmbeddedLanguage
     {
-        public int StringLiteralToken { get; }
-        public int InterpolatedTextToken { get; }
+        public int StringLiteralTokenKind { get; }
+        public int InterpolatedTextTokenKind { get; }
         public ISyntaxFactsService SyntaxFacts { get; }
         public ISemanticFactsService SemanticFacts { get; }
         public IVirtualCharService VirtualCharService { get; }
 
         public FallbackEmbeddedLanguage(
             AbstractEmbeddedLanguageProvider languageProvider,
-            int stringLiteralToken,
-            int interpolatedTextToken,
+            int stringLiteralTokenKind,
+            int interpolatedTextTokenKind,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
         {
-            StringLiteralToken = stringLiteralToken;
-            InterpolatedTextToken = interpolatedTextToken;
+            StringLiteralTokenKind = stringLiteralTokenKind;
+            InterpolatedTextTokenKind = interpolatedTextTokenKind;
             SyntaxFacts = syntaxFacts;
             SemanticFacts = semanticFacts;
             VirtualCharService = virtualCharService;

@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (_language.StringLiteralToken != token.RawKind &&
-                _language.InterpolatedTextToken != token.RawKind)
+            if (_language.StringLiteralTokenKind != token.RawKind &&
+                _language.InterpolatedTextTokenKind != token.RawKind)
             {
                 return;
             }

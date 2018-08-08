@@ -17,15 +17,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         private readonly ImmutableArray<IEmbeddedLanguage> _embeddedLanguages;
          
         protected AbstractEmbeddedLanguageProvider(
-            int stringLiteralToken,
-            int interpolatedTextToken,
+            int stringLiteralTokenKind,
+            int interpolatedTextTokenKind,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
         {
             _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new FallbackEmbeddedLanguage(
-                    this, stringLiteralToken, interpolatedTextToken,
+                    this, stringLiteralTokenKind, interpolatedTextTokenKind,
                     syntaxFacts, semanticFacts, virtualCharService));
         }
 
