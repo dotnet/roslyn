@@ -513,7 +513,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return node.IsKind(SyntaxKind.InvocationExpression) ||
                 node.IsKind(SyntaxKind.ElementAccessExpression) ||
                 node.IsKind(SyntaxKind.SimpleMemberAccessExpression) ||
-                node.IsKind(SyntaxKind.ImplicitElementAccess);
+                node.IsKind(SyntaxKind.ImplicitElementAccess) ||
+                node.IsKind(SyntaxKind.MemberBindingExpression);
         }
 
         protected override ImmutableArray<ArgumentSyntax> GetArguments(ExpressionSyntax expression)
@@ -631,8 +632,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             return !SymbolsAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) ||
                 !TypesAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) ||
-                !SymbolsAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull) ||
-                !TypesAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull);
+                ReplacementChangesSemanticsOfWhenNotNull(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull);
+        }
+
+        private bool ReplacementChangesSemanticsOfWhenNotNull(ExpressionSyntax originalWhenNotNull, ExpressionSyntax newWhenNotNull)
+        {
+            var originalFirstNode = originalWhenNotNull.GetFirstToken().Parent;
+            var newFirstNode = newWhenNotNull.GetFirstToken().Parent;
+
+            return ReplacementChangesSemantics(originalFirstNode, newFirstNode, originalWhenNotNull, false);
         }
 
         private bool ReplacementBreaksInterpolation(InterpolationSyntax interpolation, InterpolationSyntax newInterpolation)
