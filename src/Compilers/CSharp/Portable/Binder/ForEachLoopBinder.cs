@@ -589,6 +589,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_DefaultLiteralNotValid, _syntax.Expression.Location);
                 }
+                else if (collectionExpr.IsTypelessNew())
+                {
+                    diagnostics.Add(ErrorCode.ERR_TypelessNewNotValid, _syntax.Expression.Location);
+                }
                 else
                 {
                     // The null and default literals were caught above, so anything else with a null type is a method group or anonymous function

@@ -1409,7 +1409,7 @@ class C
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(21,33): error CS9366: The type 'IInterface' may not be used as the target-type of 'new'.
                 //         IInterface iinterface = new() /*<bind>*/{ 1, 2, 3 }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadTargetTypeForNew, "new() /*<bind>*/{ 1, 2, 3 }").WithArguments("IInterface").WithLocation(21, 33)
+                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new() /*<bind>*/{ 1, 2, 3 }").WithArguments("IInterface").WithLocation(21, 33)
             };
 
             string expectedOperationTree = @"

@@ -135,6 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression CreateImplicitNewConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
+            Debug.Assert(conversion.IsNew);
+
             var node = (UnboundObjectCreationExpression)source;
 
             TypeSymbol type = destination.StrippedType();
@@ -145,16 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = AnalyzedArguments.GetInstance();
             try
             {
-                arguments.Arguments.AddRange(node.Arguments);
-                if (!node.ArgumentRefKindsOpt.IsDefault)
-                {
-                    arguments.RefKinds.AddRange(node.ArgumentRefKindsOpt);
-                }
-
-                if (!node.ArgumentNamesOpt.IsDefault)
-                {
-                    arguments.Names.AddRange(node.ArgumentNamesOpt);
-                }
+                arguments.Initialize(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
 
                 if (ReportBadTargetType(syntax, type, diagnostics))
                 {
@@ -222,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Enum:
                 case TypeKind.Delegate:
                 case TypeKind.Interface:
-                    Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, type);
+                    Error(diagnostics, ErrorCode.ERR_IllegalTargetType, syntax, type);
                     return true;
 
                 case TypeKind.Pointer:

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -142,6 +143,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             ObjectPool<AnalyzedArguments> pool = null;
             pool = new ObjectPool<AnalyzedArguments>(() => new AnalyzedArguments(), 10);
             return pool;
+        }
+
+        internal void Initialize(
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            ImmutableArray<IdentifierNameSyntax> argumentNamesOpt)
+        {
+            this.Arguments.AddRange(arguments);
+            if (!argumentRefKindsOpt.IsDefault)
+            {
+                this.RefKinds.AddRange(argumentRefKindsOpt);
+            }
+
+            if (!argumentNamesOpt.IsDefault)
+            {
+                this.Names.AddRange(argumentNamesOpt);
+            }
         }
 
         #endregion

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(expressionSyntax, useSiteDiagnostics);
 
-                if (!iDisposableConversion.IsImplicit)
+                if (!iDisposableConversion.IsImplicit || iDisposableConversion.IsNew)
                 {
                     TypeSymbol expressionType = expressionOpt.Type;
                     if ((object)expressionType == null || !expressionType.IsErrorType())
@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
                     diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
+                    Debug.Assert(!iDisposableConversion.IsNew);
                     if (!iDisposableConversion.IsImplicit)
                     {
                         if (!declType.IsErrorType())

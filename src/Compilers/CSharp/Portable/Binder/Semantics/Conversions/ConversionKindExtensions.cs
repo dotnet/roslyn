@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.ImplicitThrow:
+                case ConversionKind.ImplicitNew:
                 case ConversionKind.ImplicitNullable:
                 case ConversionKind.DefaultOrNullLiteral:
                 case ConversionKind.ImplicitReference:
@@ -44,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Deconstruction:
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
-                case ConversionKind.ImplicitNew:
                     return true;
 
                 case ConversionKind.ExplicitNumeric:

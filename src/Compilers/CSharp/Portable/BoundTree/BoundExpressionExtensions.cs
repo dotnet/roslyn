@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == BoundKind.DefaultExpression && node.Syntax.Kind() == SyntaxKind.DefaultLiteralExpression;
         }
 
+        public static bool IsTypelessNew(this BoundExpression node)
+        {
+            return node.Kind == BoundKind.UnboundObjectCreationExpression;
+        }
+
         // returns true when expression has no side-effects and produces
         // default value (null, zero, false, default(T) ...)
         //

@@ -478,6 +478,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArgDefaultLiteral, arg.Syntax);
                         hasErrors = true;
                     }
+                    else if (arg.IsTypelessNew())
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArgTypelessNew, arg.Syntax);
+                        hasErrors = true;
+                    }
                     else
                     {
                         // Lambdas,anonymous methods and method groups are the typeless expressions that

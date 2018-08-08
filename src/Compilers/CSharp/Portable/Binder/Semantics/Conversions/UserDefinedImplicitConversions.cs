@@ -609,9 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitThrow:
-
-                // Added for C# 8.
-                case ConversionKind.ImplicitNew:
                     return true;
 
                 default:

@@ -2271,7 +2271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
-            bool isOperandTypeNull = operand.IsLiteralNull() || operand.IsLiteralDefault();
+            bool isOperandTypeNull = operand.IsLiteralNull() || operand.IsLiteralDefault() || operand.IsTypelessNew();
             if (isOperandTypeNull)
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
@@ -3360,9 +3360,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.NoConversion, CreateErrorType(), hasErrors: true);
             }
 
-            if (leftOperand.IsLiteralDefault())
+            if (leftOperand.IsLiteralDefault() || leftOperand.IsTypelessNew())
             {
-                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
+                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, leftOperand.Display);
 
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
                     Conversion.NoConversion, CreateErrorType(), hasErrors: true);

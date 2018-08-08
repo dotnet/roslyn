@@ -1583,8 +1583,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion8 = 8400,
 
         ERR_TypelessNewInAs = 9365,
-        ERR_BadTargetTypeForNew = 9366,
-        ERR_DefaultValueTypeCtorInTargetTypedNew = 9367,
+        ERR_IllegalTargetType = 9366,
+        ERR_IllegalDefaultValueTypeCtor = 9367,
+        ERR_BadDynamicMethodArgTypelessNew = 9368,
+        ERR_TypelessNewNotValid = 9369,
         #endregion diagnostics introduced for C# 8.0
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)

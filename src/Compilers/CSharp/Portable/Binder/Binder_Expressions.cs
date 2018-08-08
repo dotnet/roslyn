@@ -3557,15 +3557,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)node.Type == null)
             {
-                var analyzedArguments = AnalyzedArguments.GetInstance();
-                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+                var arguments = AnalyzedArguments.GetInstance();
+                BindArgumentsAndNames(node.ArgumentList, diagnostics, arguments, allowArglist: true);
                 var result = new UnboundObjectCreationExpression(
                     node,
-                    analyzedArguments.Arguments.ToImmutable(),
-                    analyzedArguments.Names.ToImmutableOrNull(),
-                    analyzedArguments.RefKinds.ToImmutableOrNull(),
+                    arguments.Arguments.ToImmutable(),
+                    arguments.Names.ToImmutableOrNull(),
+                    arguments.RefKinds.ToImmutableOrNull(),
                     node.Initializer);
-                analyzedArguments.Free();
+                arguments.Free();
                 return result;
             }
 
@@ -4679,7 +4679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (forTargetTypedNew && method.IsDefaultValueTypeConstructor())
                     {
-                        Error(diagnostics, ErrorCode.ERR_DefaultValueTypeCtorInTargetTypedNew, node, type);
+                        Error(diagnostics, ErrorCode.ERR_IllegalDefaultValueTypeCtor, node, type);
                         hasError = true;
                     }
                 }

@@ -10404,8 +10404,7 @@ tryAgain:
             }
 
             isPossibleArrayCreation =
-                scanTypeFlags != ScanTypeFlags.NotType &&
-                tokenAfterType == SyntaxKind.OpenBracketToken;
+                scanTypeFlags != ScanTypeFlags.NotType && tokenAfterType == SyntaxKind.OpenBracketToken;
 
             return !isPossibleArrayCreation && this.CurrentToken.Kind == SyntaxKind.OpenParenToken &&
                 // Allow parsing of nullable tuple creation e.g. new(a, b)?()
