@@ -2,15 +2,13 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
+namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 {
-    // This is a copy of CSharpMetadataAsSourceService.DocCommentConverter
     internal class DocCommentConverter : CSharpSyntaxRewriter
     {
         private readonly IDocumentationCommentFormattingService _formattingService;
