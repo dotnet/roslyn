@@ -95,6 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public readonly bool IsAnnotated;
 
+        /// <summary>
+        /// True if IsNullable should be true when the type is an unconstrained type parameter.
+        /// The field is necessary to allow representing distinct instances for a type parameter
+        /// type (IsNullable=true and IsNullable=false) in flow analysis.
+        /// </summary>
         private readonly bool _treatUnconstrainedTypeParameterAsNullable;
 
         /// <summary>
@@ -382,23 +387,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public string ToDisplayString(SymbolDisplayFormat format = null)
         {
             var str = TypeSymbol.ToDisplayString(format);
-            if (format != null && !IsValueType)
+            if (format != null)
             {
-                switch (IsNullable)
+                if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
+                    !IsNullableType() &&
+                    IsAnnotated)
                 {
-                    case true:
-                        if (IsAnnotated &&
-                            (format.MiscellaneousOptions & SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) != 0)
-                        {
-                            return str + "?";
-                        }
-                        break;
-                    case false:
-                        if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) != 0)
-                        {
-                            return str + "!";
-                        }
-                        break;
+                    return str + "?";
+                }
+                else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
+                    !IsValueType &&
+                    IsNullable == false)
+                {
+                    return str + "!";
                 }
             }
             return str;
