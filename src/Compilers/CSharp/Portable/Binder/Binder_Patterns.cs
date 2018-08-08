@@ -250,13 +250,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
             if (isVar)
             {
-                declType = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, operandType);
+                declType = TypeSymbolWithAnnotations.Create(NonNullTypesContext, operandType);
             }
 
             if (declType.IsNull)
             {
                 Debug.Assert(hasErrors);
-                declType = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, this.CreateErrorType("var"));
+                declType = TypeSymbolWithAnnotations.Create(NonNullTypesContext, this.CreateErrorType("var"));
             }
 
             var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType.TypeSymbol);

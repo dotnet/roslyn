@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (inferenceFailed)
             {
-                type = TypeSymbolWithAnnotations.CreateUnannotated(binderOpt.NonNullTypesContext, binderOpt.CreateErrorType("var"));
+                type = TypeSymbolWithAnnotations.Create(binderOpt.NonNullTypesContext, binderOpt.CreateErrorType("var"));
             }
 
             switch (this.VariableSymbol.Kind)

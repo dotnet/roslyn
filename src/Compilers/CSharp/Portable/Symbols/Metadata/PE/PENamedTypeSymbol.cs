@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if ((object)declaredBase != null)
                 {
                     declaredBase = (NamedTypeSymbol)NullableTypeDecoder.TransformType(
-                        TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, declaredBase), _handle, ContainingPEModule).TypeSymbol;
+                        TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, declaredBase), _handle, ContainingPEModule).TypeSymbol;
                 }
                 Interlocked.CompareExchange(ref _lazyDeclaredBaseTypeWithNullability, declaredBase, ErrorTypeSymbol.UnknownResultType);
             }

@@ -138,72 +138,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
             compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
 
-        // PROTOTYPE(NullableReferenceTypes): consider removing this method and using Create below (which handles nullable value types).
-        internal static TypeSymbolWithAnnotations CreateUnannotated(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers = default)
+        /// <summary>
+        /// Create an instance setting <see cref="IsNullable"/> lazily from
+        /// <see cref="NonNullTypesContext"/> and <see cref="IsAnnotated"/>.
+        /// </summary>
+        /// <remarks>
+        /// Should be used for scenarios where calculating <see cref="IsNullable"/> eagerly
+        /// may result in cycles (when binding member declarations for instance).
+        /// </remarks>
+        internal static TypeSymbolWithAnnotations Create(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, bool isAnnotated = false, ImmutableArray<CustomModifier> customModifiers = default)
         {
-            return Create(typeSymbol, nonNullTypesContext, isAnnotated: false, treatUnconstrainedTypeParameterAsNullable: true, customModifiers.NullToEmpty());
-        }
-
-        internal static TypeSymbolWithAnnotations Create(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers = default)
-        {
-            bool isNullableType = typeSymbol.IsNullableType();
-
+            if (typeSymbol is null)
+            {
+                return default;
+            }
+            if (!isAnnotated && typeSymbol.IsNullableType())
+            {
+                isAnnotated = true;
+            }
             // PROTOTYPE(NullableReferenceTypes): this defaulting logic should be removed. There are many paths that currently don't have an explicit context at the moment.
             nonNullTypesContext = nonNullTypesContext ?? NonNullTypesFalseContext.Instance;
-            return Create(typeSymbol, nonNullTypesContext, isAnnotated: isNullableType, treatUnconstrainedTypeParameterAsNullable: true, customModifiers.NullToEmpty());
+            return CreateNonLazyType(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: true, customModifiers.NullToEmpty());
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
-        // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
-        // PROTOTYPE(NullableReferenceTypes): [Obsolete("Use explicit NonNullTypes context")]
+        // PROTOTYPE(NullableReferenceTypes): Remove this method and rewrite callers to use other overloads.
+        //[Obsolete] 
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers = default)
         {
-            if (typeSymbol is null)
-            {
-                return default;
-            }
-
-            return CreateNonLazyType(typeSymbol, NonNullTypesTrueContext.Instance, isAnnotated: typeSymbol.IsNullableType(), treatUnconstrainedTypeParameterAsNullable: true, customModifiers.NullToEmpty());
-        }
-
-        private static TypeSymbolWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatUnconstrainedTypeParameterAsNullable, ImmutableArray<CustomModifier> customModifiers)
-        {
-            return new TypeSymbolWithAnnotations(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: treatUnconstrainedTypeParameterAsNullable, Extensions.Create(customModifiers));
-        }
-
-        private static TypeSymbolWithAnnotations CreateLazyNullableType(CSharpCompilation compilation, TypeSymbolWithAnnotations underlying)
-        {
-            return new TypeSymbolWithAnnotations(defaultType: underlying._defaultType, nonNullTypesContext: underlying.NonNullTypesContext, isAnnotated: true, treatUnconstrainedTypeParameterAsNullable: false, Extensions.CreateLazy(compilation, underlying));
+            return Create(NonNullTypesTrueContext.Instance, typeSymbol, customModifiers: customModifiers);
         }
 
         // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
         // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
-        // PROTOTYPE(NullableReferenceTypes): [Obsolete("Use explicit NonNullTypes context")]
+
+        /// <summary>
+        /// Create an instance setting <see cref="IsNullable"/> directly.
+        /// </summary>
+        /// <remarks>
+        /// Can be used for scenarios where calculating <see cref="IsNullable"/> eagerly will not
+        /// result in cycles (when binding executable code for instance), or scenarios where
+        /// <see cref="IsNullable"/> is determined by state other than <see cref="IsAnnotated"/>
+        /// (in flow analysis for instance).
+        /// </remarks>
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType, bool treatUnconstrainedTypeParameterAsNullable = true, ImmutableArray<CustomModifier> customModifiers = default)
         {
-            // PROTOTYPE(NullableReferenceTypes): Should be using fine-grained NonNullTypesContext
-            var context = isNullableIfReferenceType == null ? NonNullTypesFalseContext.Instance : NonNullTypesTrueContext.Instance;
-            return Create(typeSymbol, context, isAnnotated: isNullableIfReferenceType == true, treatUnconstrainedTypeParameterAsNullable, customModifiers.NullToEmpty());
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
-        // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
-        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, ImmutableArray<CustomModifier> customModifiers)
-        {
-            return Create(typeSymbol, nonNullTypesContext, isAnnotated, treatUnconstrainedTypeParameterAsNullable: true, customModifiers);
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
-        // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
-        private static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatUnconstrainedTypeParameterAsNullable, ImmutableArray<CustomModifier> customModifiers)
-        {
-            Debug.Assert(nonNullTypesContext != null);
-            Debug.Assert(!customModifiers.IsDefault);
-
             if (typeSymbol is null)
             {
                 return default;
             }
+
+            // PROTOTYPE(NullableReferenceTypes): Should be using fine-grained NonNullTypesContext
+            var context = isNullableIfReferenceType == null ? NonNullTypesFalseContext.Instance : NonNullTypesTrueContext.Instance;
+            bool isAnnotated = isNullableIfReferenceType == true;
 
             // PROTOTYPE(NullableReferenceTypes): See if the if/else can be simplified to:
             //    if (typeSymbol.IsNullableType()) isAnnotated = true;
@@ -232,7 +218,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAnnotated = typeSymbol.IsNullableType();
             }
 
-            return CreateNonLazyType(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: treatUnconstrainedTypeParameterAsNullable, customModifiers);
+            return CreateNonLazyType(typeSymbol, context, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: treatUnconstrainedTypeParameterAsNullable, customModifiers.NullToEmpty());
+        }
+
+        private static TypeSymbolWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatUnconstrainedTypeParameterAsNullable, ImmutableArray<CustomModifier> customModifiers)
+        {
+            return new TypeSymbolWithAnnotations(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: treatUnconstrainedTypeParameterAsNullable, Extensions.Create(customModifiers));
+        }
+
+        private static TypeSymbolWithAnnotations CreateLazyNullableType(CSharpCompilation compilation, TypeSymbolWithAnnotations underlying)
+        {
+            return new TypeSymbolWithAnnotations(defaultType: underlying._defaultType, nonNullTypesContext: underlying.NonNullTypesContext, isAnnotated: true, treatUnconstrainedTypeParameterAsNullable: false, Extensions.CreateLazy(compilation, underlying));
         }
 
         /// <summary>

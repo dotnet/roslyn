@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
 
                 // We start without annotations
-                var type = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, typeSymbol, customModifiersArray);
+                var type = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, typeSymbol, isAnnotated: false, customModifiersArray);
 
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
