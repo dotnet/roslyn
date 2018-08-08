@@ -697,22 +697,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ModuleMetadata GetMetadata() => _module.GetNonDisposableMetadata();
 
-        internal override bool UtilizesNullableReferenceTypes
-        {
-            get
-            {
-                return _module.UtilizesNullableReferenceTypes();
-            }
-        }
-
         public override bool? NonNullTypes
         {
             get
             {
-                // PROTOTYPE(NullableReferenceTypes): We don't need to use UtilizesNullableReferenceTypes and should instead default to false
                 // The default for PE modules is [NonNullTypes(false)]
                 bool nonNullTypes;
-                return _module.HasNonNullTypesAttribute(EntityHandle.ModuleDefinition, out nonNullTypes) ? nonNullTypes : this.UtilizesNullableReferenceTypes;
+                return _module.HasNonNullTypesAttribute(EntityHandle.ModuleDefinition, out nonNullTypes) ? nonNullTypes : false;
             }
         }
     }

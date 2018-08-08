@@ -214,10 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         // PROTOTYPE(NullableReferenceTypes): Test different [NonNullTypes] on method and containing type.
                         var type = TypeSymbolWithAnnotations.Create(_containingSymbol, typeSymbol);
-                        if (moduleSymbol.UtilizesNullableReferenceTypes)
-                        {
-                            type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
-                        }
+                        type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
                         type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, constraintHandle, moduleSymbol);
 
                         symbolsBuilder.Add(type);
@@ -376,12 +373,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (!currentBounds.IsSet(early))
             {
                 var constraintTypes = currentBounds.ConstraintTypes;
-                // PROTOTYPE(NullableReferenceTypes): Update to consider [NonNullTypes].
-                if (!ContainingModule.UtilizesNullableReferenceTypes)
-                {
-                    constraintTypes = constraintTypes.SelectAsArray(t => t.SetUnknownNullabilityForReferenceTypes());
-                }
-
                 var diagnostics = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
                 bool inherited = (_containingSymbol.Kind == SymbolKind.Method) && ((MethodSymbol)_containingSymbol).IsOverride;

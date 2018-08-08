@@ -654,11 +654,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (ReturnType.ContainsNullableReferenceTypes())
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
-                ReportMissingNonNullTypesContextForAnnotation(diagnostics, location);
+                ReportNullableReferenceTypesIfNeeded(diagnostics, location);
             }
             ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(Parameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.ReportMissingNonNullTypesContextForAnnotation(Parameters, diagnostics);
+            ParameterHelpers.ReportNullableReferenceTypesIfNeeded(Parameters, diagnostics);
         }
     }
 }

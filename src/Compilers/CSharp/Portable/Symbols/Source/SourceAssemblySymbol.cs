@@ -875,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return SourceModule.UtilizesNullableReferenceTypes;
+                return SourceModule.NonNullTypes;
             }
         }
 

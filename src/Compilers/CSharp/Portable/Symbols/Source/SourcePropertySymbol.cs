@@ -773,12 +773,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.Type.ContainsNullableReferenceTypes())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
-                ReportMissingNonNullTypesContextForAnnotation(diagnostics, location);
+                ReportNullableReferenceTypesIfNeeded(diagnostics, location);
             }
 
             ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(this.Parameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(this.Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.ReportMissingNonNullTypesContextForAnnotation(this.Parameters, diagnostics);
+            ParameterHelpers.ReportNullableReferenceTypesIfNeeded(this.Parameters, diagnostics);
         }
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics)

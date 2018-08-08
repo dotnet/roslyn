@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.Type.ContainsNullableReferenceTypes())
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
-                ReportMissingNonNullTypesContextForAnnotation(diagnostics, location);
+                ReportNullableReferenceTypesIfNeeded(diagnostics, location);
             }
         }
     }

@@ -20,17 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var source = "";
             var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Do not emit [module: NullableAttribute] if no nullable types,
-            // or change the missing System.Attribute error to a warning in this case.
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1));
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -256,7 +249,7 @@ class C
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
                     "System.Diagnostics.DebuggableAttribute");
             });
-            // C# 8.0: NullableAttribute included always.
+            // C# 8.0: NullableAttribute not included if no ? annotation.
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -264,7 +257,7 @@ class C
                 var type = assembly.GetTypeByMetadataName("C");
                 var field = (FieldSymbol)type.GetMembers("F").Single();
                 AssertNoNullableAttribute(field.GetAttributes());
-                AssertNullableAttribute(module.GetAttributes());
+                AssertNoNullableAttribute(module.GetAttributes());
                 AssertAttributes(assembly.GetAttributes(),
                     "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
@@ -337,8 +330,7 @@ class C
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var assembly = module.ContainingAssembly;
-                // PROTOTYPE(NullableReferenceTypes): The Nullable attribute shouldn't be synthesized
-                Assert.NotNull(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute"));
+                Assert.Null(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute"));
             });
         }
 
@@ -357,7 +349,7 @@ class C
                 var type = assembly.GetTypeByMetadataName("C");
                 var field = (FieldSymbol)type.GetMembers("F").Single();
                 AssertNullableAttribute(field.GetAttributes());
-                AssertNullableAttribute(module.GetAttributes());
+                AssertNoNullableAttribute(module.GetAttributes());
                 AssertAttributes(assembly.GetAttributes(),
                     "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
@@ -404,7 +396,7 @@ public class B1 : A<object>
 public class B2 : A<object?>
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("A`1");
@@ -428,7 +420,7 @@ public class B2 : A<object?>
         F(y, y);
     }
 }";
-            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (8,14): warning CS8620: Nullability of reference types in argument of type 'B1' doesn't match target type 'A<object?>' for parameter 'y' in 'void C.F(A<object> x, A<object?> y)'.
                 //         F(x, x);
@@ -533,9 +525,6 @@ public class B : I<(object X, object? Y)>
 }";
             var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
-                // (8,14): warning CS8620: Nullability of reference types in argument of type 'A' doesn't match target type 'I<(object, object?)>' for parameter 'b' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)'.
-                //         F(a, a);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a").WithArguments("A", "I<(object, object?)>", "b", "void C.F(I<(object, object)> a, I<(object, object?)> b)").WithLocation(8, 14),
                 // (9,11): warning CS8620: Nullability of reference types in argument of type 'B' doesn't match target type 'I<(object, object)>' for parameter 'a' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)'.
                 //         F(b, b);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "b").WithArguments("B", "I<(object, object)>", "a", "void C.F(I<(object, object)> a, I<(object, object?)> b)").WithLocation(9, 11));
@@ -935,7 +924,7 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Use AssertNullableAttribute(method.GetReturnTypeAttributes()). 
-            AssertAttribute(comp);
+            AssertNoNullableAttribute(comp);
         }
 
         [Fact]
@@ -955,7 +944,7 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Use AssertNullableAttribute(method.Parameters[0].GetAttributes()). 
-            AssertAttribute(comp);
+            AssertNoNullableAttribute(comp);
         }
 
         // See https://github.com/dotnet/roslyn/issues/28862.
@@ -983,7 +972,7 @@ class B
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
-            AssertAttribute(comp);
+            AssertNoNullableAttribute(comp);
         }
 
         [Fact]
@@ -1155,11 +1144,7 @@ class C
                 source,
                 references: new[] { ref0 },
                 parseOptions: TestOptions.Regular8);
-            comp.VerifyEmitDiagnostics(
-                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1652,14 +1637,15 @@ public class B<T> :
             AssertEx.SetEqual(actualNames, expectedNames);
         }
 
-        private static void AssertAttribute(CSharpCompilation comp, string attributeName = "NullableAttribute")
+        private static void AssertNoNullableAttribute(CSharpCompilation comp)
         {
+            string attributeName = "NullableAttribute";
             var image = comp.EmitToArray();
             using (var reader = new PEReader(image))
             {
                 var metadataReader = reader.GetMetadataReader();
                 var attributes = metadataReader.GetCustomAttributeRows().Select(metadataReader.GetCustomAttributeName).ToArray();
-                Assert.True(attributes.Contains(attributeName));
+                Assert.False(attributes.Contains(attributeName));
             }
         }
 

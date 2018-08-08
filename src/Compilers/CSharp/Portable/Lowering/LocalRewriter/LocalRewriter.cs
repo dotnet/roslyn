@@ -243,7 +243,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasConstraintsWithNullableReferenceTypes = typeParameters.Any(
                typeParameter => typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
                    typeConstraint => typeConstraint.ContainsNullableReferenceTypes()));
-            if (hasConstraintsWithNullableReferenceTypes)
+            bool hasReturnTypeWithNullableReferenceTypes = node.Symbol.ReturnType.ContainsNullableReferenceTypes();
+            bool hasParametersWithNullableReferenceTypes = node.Symbol.ParameterTypes.Any(parameter => parameter.ContainsNullableReferenceTypes());
+
+            if (hasConstraintsWithNullableReferenceTypes || hasReturnTypeWithNullableReferenceTypes || hasParametersWithNullableReferenceTypes)
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
             }

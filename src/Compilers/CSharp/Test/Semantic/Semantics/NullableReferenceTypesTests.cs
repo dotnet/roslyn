@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         [Fact]
         public void Test0()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            var source = @"
 class C
 {
     static void Main()
@@ -27,15 +27,25 @@ class C
         string? x = null;
     }
 }
-", parseOptions: TestOptions.Regular7);
-
+";
+            var c = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             c.VerifyDiagnostics(
-                 // (6,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                 //         string? x = null;
-                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string?").WithArguments("System.Nullable<T>", "T", "string").WithLocation(6, 9),
-                 // (6,17): warning CS0219: The variable 'x' is assigned but its value is never used
-                 //         string? x = null;
-                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 17)
+                // (6,15): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         string? x = null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("static null checking", "8.0").WithLocation(6, 15),
+                // (6,17): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         string? x = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 17)
+                );
+ 
+            var c2 = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            c2.VerifyDiagnostics(
+                // (6,15): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //         string? x = null;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 15),
+                // (6,17): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         string? x = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 17)
                 );
         }
 
@@ -564,10 +574,7 @@ namespace System
             var comp2 = CreateEmptyCompilation("", references: new[] { comp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp2.VerifyDiagnostics();
 
-            var expected = ImmutableArray.Create(
-"System.String! System.String.Concat(System.String?, System.String?)",
-"System.Runtime.CompilerServices.NullableAttribute.NullableAttribute(System.Boolean[]!)"
-            );
+            var expected = ImmutableArray.Create("System.String! System.String.Concat(System.String?, System.String?)");
             var systemNamespace = comp2.GetMember<NamedTypeSymbol>("System.String").ContainingNamespace;
             VerifyUsesOfNullability(systemNamespace, expected);
         }
@@ -13641,15 +13648,9 @@ class C
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? null : x).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? null : x").WithLocation(5, 10),
-                // (6,10): warning CS8602: Possible dereference of a null reference.
-                //         (b ? null : y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? null : y").WithLocation(6, 10),
                 // (7,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? x: null).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? x: null").WithLocation(7, 10),
-                // (8,10): warning CS8602: Possible dereference of a null reference.
-                //         (b ? y: null).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y: null").WithLocation(8, 10));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? x: null").WithLocation(7, 10));
         }
 
         [Fact]
@@ -13700,6 +13701,12 @@ class C
                 // (11,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? y : x).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y : x").WithLocation(11, 10),
+                // (15,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'UnknownA?' and 'UnknownB?'
+                //         (b ? x : y).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? x : y").WithArguments("UnknownA?", "UnknownB?").WithLocation(15, 10),
+                // (16,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'UnknownB?' and 'UnknownA?'
+                //         (b ? y : x).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? y : x").WithArguments("UnknownB?", "UnknownA?").WithLocation(16, 10),
                 // (15,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? x : y).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? x : y").WithLocation(15, 10),
@@ -14319,8 +14326,8 @@ public class NotNull
     {
         (x1 ?? y1)/*T:!*/.ToString();
         (y1 ?? x1)/*T:!*/.ToString();
-        (null ?? y1)/*T:?*/.ToString();
-        (y1 ?? null)/*T:?*/.ToString();
+        (null ?? y1)/*T:Unknown?*/.ToString();
+        (y1 ?? null)/*T:Unknown?*/.ToString();
     }
     static void F2(C? x2, Unknown y2)
     {
@@ -14332,6 +14339,7 @@ public class NotNull
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
+            // Note: Unkonwn type is treated as a value type
             comp.VerifyDiagnostics(
                 // (3,26): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void F1(C x1, Unknown? y1)
@@ -14339,14 +14347,17 @@ public class NotNull
                 // (10,27): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void F2(C? x2, Unknown y2)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(10, 27),
+                // (5,10): error CS0019: Operator '??' cannot be applied to operands of type 'C' and 'Unknown?'
+                //         (x1 ?? y1)/*T:!*/.ToString();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x1 ?? y1").WithArguments("??", "C", "Unknown?").WithLocation(5, 10),
+                // (6,10): error CS0019: Operator '??' cannot be applied to operands of type 'Unknown?' and 'C'
+                //         (y1 ?? x1)/*T:!*/.ToString();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y1 ?? x1").WithArguments("??", "Unknown?", "C").WithLocation(6, 10),
                 // (5,10): hidden CS8607: Expression is probably never null.
                 //         (x1 ?? y1)/*T:!*/.ToString();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(5, 10),
-                // (7,10): warning CS8602: Possible dereference of a null reference.
-                //         (null ?? y1)/*T:Unknown?*/.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "null ?? y1").WithLocation(7, 10),
                 // (8,10): warning CS8602: Possible dereference of a null reference.
-                //         (y1 ?? null)/*T:?*/.ToString();
+                //         (y1 ?? null)/*T:Unknown?*/.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1 ?? null").WithLocation(8, 10),
                 // (13,10): hidden CS8607: Expression is probably never null.
                 //         (y2 ?? x2)/*T:!*/.ToString();
@@ -16745,12 +16756,18 @@ class C
                 // (3,25): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void F(C x1, Unknown? y1)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(3, 25),
-                // (6,9): warning CS8602: Possible dereference of a null reference.
-                //         a1[0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a1[0]").WithLocation(6, 9),
-                // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         b1[0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1[0]").WithLocation(8, 9),
+                // (5,18): error CS0826: No best type found for implicitly-typed array
+                //         var a1 = new[] { x1, y1 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x1, y1 }").WithLocation(5, 18),
+                // (7,18): error CS0826: No best type found for implicitly-typed array
+                //         var b1 = new[] { y1, x1 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { y1, x1 }").WithLocation(7, 18),
+                // (5,30): warning CS8601: Possible null reference assignment.
+                //         var a1 = new[] { x1, y1 };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(5, 30),
+                // (7,26): warning CS8601: Possible null reference assignment.
+                //         var b1 = new[] { y1, x1 };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(7, 26),
                 // (12,26): warning CS8601: Possible null reference assignment.
                 //         var a2 = new[] { x2, y2 };
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2").WithLocation(12, 26),
@@ -28972,29 +28989,29 @@ class Program
 
             var comp = CreateCompilation(
                 new[] { source },
-                parseOptions: TestOptions.Regular7);
+                parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
-                // (5,11): error CS8107: Feature 'static null checking' is not available in C# 7. Please use language version 8.0 or greater.
+                // (5,11): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         G(null!);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "null!").WithArguments("static null checking", "8.0").WithLocation(5, 11),
-                // (6,11): error CS8107: Feature 'static null checking' is not available in C# 7. Please use language version 8.0 or greater.
+                // (6,11): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         G((null as string)!);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "(null as string)!").WithArguments("static null checking", "8.0").WithLocation(6, 11),
-                // (7,11): error CS8107: Feature 'static null checking' is not available in C# 7. Please use language version 8.0 or greater.
+                // (7,11): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         G(default(string)!);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default(string)!").WithArguments("static null checking", "8.0").WithLocation(7, 11),
-                // (8,11): error CS8107: Feature 'static null checking' is not available in C# 7. Please use language version 8.0 or greater.
+                // (8,11): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         G(default!);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default!").WithArguments("static null checking", "8.0").WithLocation(8, 11),
-                // (8,11): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
+                // (8,11): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         G(default!);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(8, 11),
-                // (9,11): error CS8107: Feature 'static null checking' is not available in C# 7. Please use language version 8.0 or greater.
+                // (9,11): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         G(s!);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "s!").WithArguments("static null checking", "8.0").WithLocation(9, 11),
-                // (3,27): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                // (3,19): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     static void F(string? s)
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "s").WithArguments("System.Nullable<T>", "T", "string").WithLocation(3, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "string? s").WithArguments("static null checking", "8.0").WithLocation(3, 19));
 
             comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
@@ -38978,32 +38995,29 @@ public class A6<T> where T : IEquatable<int?> { }";
 {
     static void Main()
     {
-        new A0<string?>(); // warning
+        new A0<string?>(); // 1
         new A0<string>();
-        new A2<string?>();
-        new A2<string>(); // warning
-        new A5<string?>();
-        new A5<string>(); // warning
+        new A2<string?>(); // 2
+        new A2<string>(); // 3
+        new A5<string?>(); // 4
+        new A5<string>(); // 5
     }
 }";
             // No [NullNullTypes]
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
             var ref0 = comp0.EmitToImageReference();
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report a warning for A0<string?>() and A2<string>().
+            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A0<string?>() and A2<string>().
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A0<string?>(); // warning
+                //         new A0<string?>(); // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
                 // (7,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A2<string?>();
+                //         new A2<string?>(); // 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 22),
                 // (9,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A5<string?>();
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22),
-                // (9,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A5<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
-                //         new A5<string?>();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A5<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(9, 16)
+                //         new A5<string?>(); // 4
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22)
                 );
             verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
@@ -39020,13 +39034,13 @@ public class A6<T> where T : IEquatable<int?> { }";
             // PROTOTYPE(NullableReferenceTypes): Should report same warnings as other two cases.
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A0<string?>(); // warning
+                //         new A0<string?>(); // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
                 // (7,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A2<string?>();
+                //         new A2<string?>(); // 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 22),
                 // (9,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A5<string?>();
+                //         new A5<string?>(); // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22)
                 );
             verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
@@ -39041,19 +39055,19 @@ public class A6<T> where T : IEquatable<int?> { }";
             comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             ref0 = comp0.EmitToImageReference();
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report a warning for A0<string?>() and A2<string>().
+            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A0<string?>() and A2<string>().
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A0<string?>(); // warning
+                //         new A0<string?>(); // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
                 // (7,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A2<string?>();
+                //         new A2<string?>(); // 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 22),
                 // (9,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A5<string?>();
+                //         new A5<string?>(); // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22),
                 // (9,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A5<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
-                //         new A5<string?>();
+                //         new A5<string?>(); // 4
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A5<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(9, 16)
                 );
             verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
@@ -39132,8 +39146,23 @@ class C
 class D
 {
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
+                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10),
+                // (7,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [NonNullTypes(B<A>.True)]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "NonNullTypes(B<A>.True)").WithArguments("8.0").WithLocation(7, 2),
+                // (11,18): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // [NonNullTypes(B<A?>.True)]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("static null checking", "8.0").WithLocation(11, 18),
+                // (11,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [NonNullTypes(B<A?>.True)]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "NonNullTypes(B<A?>.True)").WithArguments("8.0").WithLocation(11, 2));
+
+            var comp2 = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp2.VerifyDiagnostics(
                 // (11,15): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "B<A?>").WithArguments("B<T>", "A", "T", "A?").WithLocation(11, 15));

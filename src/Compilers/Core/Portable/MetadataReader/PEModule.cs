@@ -68,11 +68,6 @@ namespace Microsoft.CodeAnalysis
         private int[] _lazyNoPiaLocalTypeCheckBitMap;
 
         /// <summary>
-        /// Using <see cref="ThreeState"/> as a type for atomicity.
-        /// </summary>
-        private ThreeState _lazyUtilizesNullableReferenceTypes;
-
-        /// <summary>
         /// For each TypeDef that has 1 in m_lazyNoPiaLocalTypeCheckBitMap,
         /// this map stores corresponding TypeIdentifier AttributeInfo. 
         /// </summary>
@@ -115,7 +110,6 @@ namespace Microsoft.CodeAnalysis
             _lazyNamespaceNameCollection = new Lazy<IdentifierCollection>(ComputeNamespaceNameCollection);
             _hashesOpt = (peReader != null) ? new PEHashProvider(peReader) : null;
             _lazyContainsNoPiaLocalTypes = includeEmbeddedInteropTypes ? ThreeState.False : ThreeState.Unknown;
-            _lazyUtilizesNullableReferenceTypes = ThreeState.Unknown;
 
             if (ignoreAssemblyRefs)
             {
@@ -2397,31 +2391,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return _lazyContainsNoPiaLocalTypes == ThreeState.True;
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): This method should be removed
-        internal bool UtilizesNullableReferenceTypes()
-        {
-            if (_lazyUtilizesNullableReferenceTypes == ThreeState.Unknown)
-            {
-                try
-                {
-                    AttributeInfo info = FindTargetAttribute(EntityHandle.ModuleDefinition, AttributeDescription.NullableAttribute);
-                    Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
-
-                    if (info.HasValue && info.SignatureIndex == 0)
-                    {
-                        _lazyUtilizesNullableReferenceTypes = ThreeState.True;
-                        return true;
-                    }
-                }
-                catch (BadImageFormatException)
-                { }
-
-                _lazyUtilizesNullableReferenceTypes = ThreeState.False;
-            }
-
-            return _lazyUtilizesNullableReferenceTypes == ThreeState.True;
         }
 
         internal bool HasNullableAttribute(EntityHandle token, out ImmutableArray<bool> nullableTransforms)

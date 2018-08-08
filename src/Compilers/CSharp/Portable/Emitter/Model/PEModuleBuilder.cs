@@ -85,18 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 _needsGeneratedAttributes_IsFrozen = true;
-                if (Compilation.NeedsGeneratedNullableAttribute || _needsGeneratedNullableAttribute_Value)
-                {
-                    return true;
-                }
-                // PROTOTYPE(NullableReferenceTypes): The call to `SourceModule.UtilizesNullableReferenceTypes`
-                // seems incorrect. `Compilation.NeedsGeneratedNullableAttribute` should be sufficient.
-                if (SourceModule.UtilizesNullableReferenceTypes)
-                {
-                    // Don't report any errors. They should be reported during binding.
-                    return Compilation.CheckIfNullableAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null);
-                }
-                return false;
+                return Compilation.NeedsGeneratedNullableAttribute || _needsGeneratedNullableAttribute_Value;
             }
         }
 

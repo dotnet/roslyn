@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (!onLocalFunction)
                     {
                         // Note: Misuse of ? annotation on declarations of local functions is reported when binding their types (since in executable context)
-                        containingSymbol.ReportMissingNonNullTypesContextForAnnotation(diagnostics, syntax.Location);
+                        containingSymbol.ReportNullableReferenceTypesIfNeeded(diagnostics, syntax.Location);
                     }
                 }
             }
