@@ -14,9 +14,13 @@ using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.MSBuild;
+using Roslyn.Utilities;
 using File = System.IO.File;
 using Path = System.IO.Path;
+using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
+using VisualBasicSyntaxKind = Microsoft.CodeAnalysis.VisualBasic.SyntaxKind;
 
 namespace AnalyzerRunner
 {
@@ -184,7 +188,72 @@ namespace AnalyzerRunner
                 {
                     WriteDiagnosticResults(analysisResult.SelectMany(pair => pair.Value.GetAllDiagnostics().Select(j => Tuple.Create(pair.Key, j))).ToImmutableArray(), options.LogFileName);
                 }
+
+                if (options.FormatCode)
+                {
+                    await FormatFilesInSolutionAsync(solution, cancellationToken).ConfigureAwait(false);
+                }
             }
+        }
+
+        private static async Task FormatFilesInSolutionAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            Console.WriteLine("Formatting code files...");
+
+            foreach (var projectId in solution.ProjectIds)
+            {
+                var project = solution.GetProject(projectId);
+                if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                {
+                    continue;
+                }
+
+                var isCommentTrivia = project.Language == LanguageNames.CSharp
+                    ? (Func<SyntaxTrivia, bool>)IsCSharpCommentTrivia
+                    : IsVisualBasicCommentTrivia;
+
+                foreach (var documentId in project.DocumentIds)
+                {
+                    var document = project.GetDocument(documentId);
+                    if (!document.SupportsSyntaxTree)
+                    {
+                        continue;
+                    }
+
+                    var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    if (GeneratedCodeUtilities.IsGeneratedCode(syntaxTree, isCommentTrivia, cancellationToken))
+                    {
+                        continue;
+                    }
+
+                    var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                    var formattedDocument = await Formatter.FormatAsync(document, documentOptions, cancellationToken).ConfigureAwait(false);
+
+                    var documentText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    solution = solution.WithDocumentText(document.Id, documentText);
+                }
+            }
+
+            if (!solution.Workspace.TryApplyChanges(solution))
+            {
+                WriteLine($"Failed to apply formatting changes.", ConsoleColor.Red);
+            }
+
+            Console.WriteLine("Format complete.");
+        }
+
+        private static bool IsCSharpCommentTrivia(SyntaxTrivia syntaxTrivia)
+        {
+            return syntaxTrivia.IsKind(CSharpSyntaxKind.SingleLineCommentTrivia)
+                || syntaxTrivia.IsKind(CSharpSyntaxKind.MultiLineCommentTrivia)
+                || syntaxTrivia.IsKind(CSharpSyntaxKind.SingleLineDocumentationCommentTrivia)
+                || syntaxTrivia.IsKind(CSharpSyntaxKind.MultiLineDocumentationCommentTrivia);
+        }
+
+        private static bool IsVisualBasicCommentTrivia(SyntaxTrivia syntaxTrivia)
+        {
+            return syntaxTrivia.IsKind(VisualBasicSyntaxKind.CommentTrivia)
+                || syntaxTrivia.IsKind(VisualBasicSyntaxKind.DocumentationCommentTrivia);
         }
 
         private static async Task<DocumentAnalyzerPerformance> TestDocumentPerformanceAsync(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzers, Project project, DocumentId documentId, Options analyzerOptionsInternal, CancellationToken cancellationToken)
@@ -530,6 +599,7 @@ namespace AnalyzerRunner
             Console.WriteLine("/log <logFile>       Write logs into the log file specified");
             Console.WriteLine("/editperf[:<match>]     Test the incremental performance of analyzers to simulate the behavior of editing files. If <match> is specified, only files matching this regular expression are evaluated for editor performance.");
             Console.WriteLine("/edititer:<iterations>  Specifies the number of iterations to use for testing documents with /editperf. When this is not specified, the default value is 10.");
+            Console.WriteLine("/format              Reformat source files on disk after analysis");
         }
 
         private struct DocumentAnalyzerPerformance
