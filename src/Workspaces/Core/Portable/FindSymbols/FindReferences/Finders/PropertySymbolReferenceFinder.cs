@@ -15,12 +15,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IPropertySymbol>
     {
-        public static readonly PropertySymbolReferenceFinder Instance = new PropertySymbolReferenceFinder();
-
-        private PropertySymbolReferenceFinder()
-        {
-        }
-
         protected override bool CanFind(IPropertySymbol symbol)
         {
             return true;
@@ -90,13 +84,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            IPropertySymbol symbol, Document document, SemanticModel semanticModel,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
-        {
-            return FindAllReferencesInDocumentAsync(symbol, document, semanticModel, options, cancellationToken);
-        }
-
-        internal async Task<ImmutableArray<FinderLocation>> FindAllReferencesInDocumentAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {

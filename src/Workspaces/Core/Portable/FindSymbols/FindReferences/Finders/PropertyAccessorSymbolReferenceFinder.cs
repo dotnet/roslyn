@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (symbol.AssociatedSymbol is IPropertySymbol property &&
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
-                var propertyReferences = await PropertySymbolReferenceFinder.Instance.FindAllReferencesInDocumentAsync(
-                    property, document, semanticModel, 
+                var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
+                    new SymbolAndProjectId(property, document.Project.Id), document, semanticModel, 
                     options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
                     cancellationToken).ConfigureAwait(false);
 
