@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = symbol as TypeSymbol;
                 return type is null ?
                     new NamespaceOrTypeOrAliasSymbolWithAnnotations(default, symbol) :
-                    new NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext, type), null);
+                    new NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations.Create(nonNullTypesContext, type), null);
             }
 
             public static implicit operator NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type)

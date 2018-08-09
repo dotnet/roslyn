@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:
-            var voidType = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
+            var voidType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
             // PROTOTYPE(NullableReferenceTypes): Should the 'object' parameter be considered nullable?
-            var objectType = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax));
-            var intPtrType = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax));
+            var objectType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax));
+            var intPtrType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax));
 
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // WinRT delegates don't have Begin/EndInvoke methods
                 !delegateType.IsCompilationOutputWinMdObj())
             {
-                var iAsyncResultType = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_IAsyncResult, diagnostics, syntax));
-                var asyncCallbackType = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_AsyncCallback, diagnostics, syntax));
+                var iAsyncResultType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_IAsyncResult, diagnostics, syntax));
+                var asyncCallbackType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_AsyncCallback, diagnostics, syntax));
 
                 // (3) BeginInvoke
                 symbols.Add(new BeginInvokeMethod(invoke, iAsyncResultType, objectType, asyncCallbackType, syntax));

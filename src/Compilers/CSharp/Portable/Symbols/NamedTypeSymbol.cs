@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // PROTOTYPE(NullableReferenceTypes): Set IsNullable=null always, even in C#8,
             // and set TypeSymbolWithAnnotations.WithCustomModifiers.Is() => false.
-            return this.TypeParameters.SelectAsArray((typeParameter, module) => TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: module, typeParameter), ContainingModule);
+            return this.TypeParameters.SelectAsArray((typeParameter, module) => TypeSymbolWithAnnotations.Create(nonNullTypesContext: module, typeParameter), ContainingModule);
         }
 
         /// <summary>

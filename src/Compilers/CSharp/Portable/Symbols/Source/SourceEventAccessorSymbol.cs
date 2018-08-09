@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // EventRegistrationToken add_E(EventDelegate d);
 
                         // Leave the returns void bit in this.flags false.
-                        _lazyReturnType = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, eventTokenType);
+                        _lazyReturnType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, eventTokenType);
 
                         var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.Type, 0);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
@@ -77,10 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                         Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
-                        _lazyReturnType = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, voidType);
+                        _lazyReturnType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, voidType);
                         this.SetReturnsVoid(returnsVoid: true);
 
-                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, eventTokenType), 0);
+                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, eventTokenType), 0);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                     }
                 }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                     Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
-                    _lazyReturnType = TypeSymbolWithAnnotations.CreateUnannotated(nonNullTypesContext: this, voidType);
+                    _lazyReturnType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, voidType);
                     this.SetReturnsVoid(returnsVoid: true);
 
                     var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.Type, 0);

@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PredefinedType:
                     {
                         var type = BindPredefinedTypeSymbol((PredefinedTypeSyntax)syntax, diagnostics);
-                        return TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, type);
+                        return TypeSymbolWithAnnotations.Create(NonNullTypesContext, type);
                     }
 
                 case SyntaxKind.IdentifierName:
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt: null));
 
                 case SyntaxKind.GenericName:
-                    return TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext,
+                    return TypeSymbolWithAnnotations.Create(NonNullTypesContext,
                         BindGenericSimpleNamespaceOrTypeOrAliasSymbol((GenericNameSyntax)syntax, diagnostics, basesBeingResolved, qualifierOpt: null));
 
                 case SyntaxKind.AliasQualifiedName:
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                type = TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, array);
+                                type = TypeSymbolWithAnnotations.Create(NonNullTypesContext, array);
                             }
                         }
 
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.TupleType:
                     {
-                        return TypeSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, BindTupleType((TupleTypeSyntax)syntax, diagnostics));
+                        return TypeSymbolWithAnnotations.Create(NonNullTypesContext, BindTupleType((TupleTypeSyntax)syntax, diagnostics));
                     }
 
                 case SyntaxKind.RefType:
