@@ -381,6 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void SetType(TypeSymbol newType)
         {
+            Debug.Assert(!(newType is null));
             TypeSymbol originalType = _type;
 
             // In the event that we race to set the type of a local, we should

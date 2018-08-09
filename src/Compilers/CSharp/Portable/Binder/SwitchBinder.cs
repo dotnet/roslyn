@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected TypeSymbol SwitchGoverningType => SwitchGoverningExpression.Type;
 
+        protected uint SwitchGoverningValEscape => GetValEscape(SwitchGoverningExpression, LocalScopeDepth);
+
         protected DiagnosticBag SwitchGoverningDiagnostics
         {
             get
@@ -212,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // bind the pattern, to cause its pattern variables to be inferred if necessary
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
                         var pattern = sectionBinder.BindPattern(
-                            matchLabel.Pattern, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag);
+                            matchLabel.Pattern, SwitchGoverningType, SwitchGoverningValEscape, labelSyntax.HasErrors, tempDiagnosticBag);
                         break;
 
                     default:

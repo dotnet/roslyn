@@ -6558,9 +6558,9 @@ True
 False");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/28633")]
+        [Fact]
         [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
-        public void IsPatternMatchingDoesNotCopyEscapeScopes()
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_01()
         {
             CreateCompilationWithMscorlibAndSpan(@"
 using System;
@@ -6582,9 +6582,9 @@ public class C
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/28633")]
+        [Fact]
         [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
-        public void CasePatternMatchingDoesNotCopyEscapeScopes()
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_01()
         {
             CreateCompilationWithMscorlibAndSpan(@"
 using System;
@@ -6607,6 +6607,236 @@ public class C
                 // (12,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //                 return ref inner[5];
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(12, 28));
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_02()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { Prop: var x }: return x; // error 1
+        }
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { Prop: R x }: return x; // error 2
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (var x, var y): return x; // error 3
+        }
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (R x, R y): return x; // error 4
+        }
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var (x, y): return x; // error 5
+        }
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { } x: return x; // error 6
+        }
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (_, _) x: return x; // error 7
+        }
+    }
+}
+").VerifyDiagnostics(
+                // (16,42): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { Prop: var x }: return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(16, 42),
+                // (24,40): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { Prop: R x }: return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(24, 40),
+                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (var x, var y): return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
+                // (40,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (R x, R y): return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(40, 37),
+                // (48,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var (x, y): return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(48, 37),
+                // (56,32): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { } x: return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(56, 32),
+                // (64,35): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (_, _) x: return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(64, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_02()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { Prop: var x }) return x; // error 1
+        throw null;
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { Prop: R x }) return x; // error 2
+        throw null;
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (var x, var y)) return x; // error 3
+        throw null;
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (R x, R y)) return x; // error 4
+        throw null;
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var (x, y)) return x; // error 5
+        throw null;
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { } x) return x; // error 6
+        throw null;
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (_, _) x) return x; // error 7
+        throw null;
+    }
+}
+").VerifyDiagnostics(
+                // (14,46): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { Prop: var x }) return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 46),
+                // (20,44): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { Prop: R x }) return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 44),
+                // (26,45): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (var x, var y)) return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 45),
+                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (R x, R y)) return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
+                // (38,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 41),
+                // (44,36): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { } x) return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 36),
+                // (50,39): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 39)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void EscapeScopeInSubpatternOfNonRefType()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R RProp => this;
+    public S SProp => new S();
+    public void Deconstruct(out S X, out S Y) => X = Y = new S();
+    public static implicit operator R(Span<int> span) => new R();
+}
+public struct S
+{
+    public R RProp => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { SProp: { RProp: var x }}) return x; // OK
+        throw null;
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { SProp: { RProp: var x }}: return x; // OK
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        if (outer is ({ RProp: var x }, _)) return x; // OK
+        throw null;
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case ({ RProp: var x }, _): return x; // OK
+        }
+    }
+}
+").VerifyDiagnostics(
+                );
         }
     }
 }
