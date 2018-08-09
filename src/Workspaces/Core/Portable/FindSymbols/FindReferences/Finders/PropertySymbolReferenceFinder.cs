@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var accessors = GetReferencedAccessorSymbols(
                         syntaxFacts, semanticFacts, semanticModel, symbol, loc.Node, cancellationToken);
-                    return accessors.Length == 0;
+                    return accessors.IsEmpty;
                 });
             }
 
