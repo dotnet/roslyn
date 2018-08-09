@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                         Dim project = document.Project
                         result = result.Concat(
-                            Await SymbolFinder.FindReferencesAsync(
+                            Await SymbolFinder.TestAccessor.FindReferencesAsync(
                                 symbol, project.Solution,
                                 progress:=Nothing, documents:=scope, options, CancellationToken.None))
                     End If

@@ -71,9 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 FindReferencesSearchOptions.Default, cancellationToken);
         }
 
-        // Internal so both our existing API can call this *as well as* test code that wants
-        // to validate options (but doesn't want to bother with all the progress-goop).
-        internal static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        private static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
             IFindReferencesProgress progress,
@@ -89,6 +87,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution, streamingProgress, documents,
                 options, cancellationToken).ConfigureAwait(false);
             return streamingProgress.GetReferencedSymbols();
+        }
+
+        internal static class TestAccessor
+        {
+            internal static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+                ISymbol symbol,
+                Solution solution,
+                IFindReferencesProgress progress,
+                IImmutableSet<Document> documents,
+                FindReferencesSearchOptions options,
+                CancellationToken cancellationToken)
+            {
+                return SymbolFinder.FindReferencesAsync(symbol, solution, progress, documents, options, cancellationToken);
+            }
         }
     }
 }
