@@ -239,6 +239,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
             }
 
+            if (hasConstraintsWithNullableReferenceTypes(node))
+            {
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
+            }
+
             var oldContainingSymbol = _factory.CurrentFunction;
             try
             {
@@ -248,6 +253,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
+            }
+
+            bool hasConstraintsWithNullableReferenceTypes(BoundLocalFunctionStatement localFunction)
+            {
+                return localFunction.Symbol.TypeParameters.Any(
+                   typeParameter => typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
+                       typeConstraint => typeConstraint.ContainsNullableReferenceTypes()));
             }
         }
 

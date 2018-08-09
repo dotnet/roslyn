@@ -296,6 +296,30 @@ class C
         }
 
         [Fact]
+        public void EmitAttribute_LocalFunctionConstraints_Nested()
+        {
+            var source = @"
+interface I<T> { }
+class C
+{
+    [System.Runtime.CompilerServices.NonNullTypes(true)]
+    void M1()
+    {
+        local(new C());
+        void local<T>(T t) where T : I<C?>
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var assembly = module.ContainingAssembly;
+                Assert.NotNull(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute"));
+            });
+        }
+
+        [Fact]
         public void EmitAttribute_LocalFunctionConstraints_NoAnnotation()
         {
             var source = @"
