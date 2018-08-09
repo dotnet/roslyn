@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class VisualBasicSignatureHelpCommandHandlerTests
 
         Private Shared Function GetAllCompletions() As IEnumerable(Of Object())
-            Return {New Object() {Completions.OldCompletion}}
+            Return TestStateFactory.GetAllCompletions()
         End Function
 
         <WorkItem(544551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>

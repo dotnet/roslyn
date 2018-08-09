@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
 
         Private Shared Function GetAllCompletions() As IEnumerable(Of Object())
-            Return {New Object() {Completions.OldCompletion}}
+            Return TestStateFactory.GetAllCompletions()
         End Function
 
         <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>

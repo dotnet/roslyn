@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests
         Private Shared Function GetAllCompletions() As IEnumerable(Of Object())
-            Return {New Object() {Completions.OldCompletion}}
+            Return TestStateFactory.GetAllCompletions()
         End Function
 
         <WorkItem(546208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
