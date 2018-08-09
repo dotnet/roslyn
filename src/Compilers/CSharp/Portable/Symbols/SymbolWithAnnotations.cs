@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default;
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Should be using fine-grained NonNullTypesContext
+            // PROTOTYPE(NullableReferenceTypes): Use NonNullTypesNullContext.Instance if we still need a non-null context.
             var context = isNullableIfReferenceType == null ? NonNullTypesFalseContext.Instance : NonNullTypesTrueContext.Instance;
             bool isAnnotated = isNullableIfReferenceType == true;
 
