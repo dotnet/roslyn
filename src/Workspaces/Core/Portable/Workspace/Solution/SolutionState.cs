@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -691,7 +692,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            Contract.Requires(this.ContainsProject(projectId));
+            Debug.Assert(this.ContainsProject(projectId));
 
             var oldProject = this.GetProjectState(projectId);
             var newProject = oldProject.UpdateParseOptions(options);
@@ -726,7 +727,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            Contract.Requires(this.ContainsProject(projectId));
+            Debug.Assert(this.ContainsProject(projectId));
 
             return ForkProject(GetProjectState(projectId));
         }
@@ -742,7 +743,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            Contract.Requires(this.ContainsProject(projectId));
+            Debug.Assert(this.ContainsProject(projectId));
 
             var oldProject = this.GetProjectState(projectId);
             var newProject = oldProject.UpdateHasAllInformation(hasAllInformation);
@@ -1214,25 +1215,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            // check to see if this solution has already been branched before with the same doc & text changes.
-            // this helps reduce duplicate parsing when typing, and separate services generating duplicate symbols.
-            if (mode == PreservationMode.PreserveIdentity)
-            {
-                var branch = _firstBranch;
-                if (branch != null && branch.Id == documentId && branch.Text == text)
-                {
-                    return branch.Solution;
-                }
-            }
-
-            var newSolution = this.WithDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
-
-            if (mode == PreservationMode.PreserveIdentity && _firstBranch == null)
-            {
-                Interlocked.CompareExchange(ref _firstBranch, new SolutionBranch(documentId, text, newSolution), null);
-            }
-
-            return newSolution;
+            return this.WithDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
         }
 
         /// <summary>
@@ -1261,22 +1244,6 @@ namespace Microsoft.CodeAnalysis
 
             var newSolution = this.WithTextDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
             return newSolution;
-        }
-
-        private SolutionBranch _firstBranch;
-
-        private class SolutionBranch
-        {
-            public readonly DocumentId Id;
-            public readonly SourceText Text;
-            public readonly SolutionState Solution;
-
-            public SolutionBranch(DocumentId id, SourceText text, SolutionState solution)
-            {
-                this.Id = id;
-                this.Text = text;
-                this.Solution = solution;
-            }
         }
 
         /// <summary>
@@ -1434,7 +1401,7 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState TouchDocument(DocumentId documentId, Func<ProjectState, ProjectState> touchProject)
         {
-            Contract.Requires(this.ContainsDocument(documentId));
+            Debug.Assert(this.ContainsDocument(documentId));
 
             var oldProject = this.GetProjectState(documentId.ProjectId);
             var newProject = touchProject(oldProject);
@@ -1932,7 +1899,7 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckNotContainsDocument(DocumentId documentId)
         {
-            Contract.Requires(!this.ContainsDocument(documentId));
+            Debug.Assert(!this.ContainsDocument(documentId));
 
             if (this.ContainsDocument(documentId))
             {
@@ -1942,7 +1909,7 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckNotContainsAdditionalDocument(DocumentId documentId)
         {
-            Contract.Requires(!this.ContainsAdditionalDocument(documentId));
+            Debug.Assert(!this.ContainsAdditionalDocument(documentId));
 
             if (this.ContainsAdditionalDocument(documentId))
             {
@@ -1952,7 +1919,7 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckContainsDocument(DocumentId documentId)
         {
-            Contract.Requires(this.ContainsDocument(documentId));
+            Debug.Assert(this.ContainsDocument(documentId));
 
             if (!this.ContainsDocument(documentId))
             {
@@ -1962,7 +1929,7 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckContainsAdditionalDocument(DocumentId documentId)
         {
-            Contract.Requires(this.ContainsAdditionalDocument(documentId));
+            Debug.Assert(this.ContainsAdditionalDocument(documentId));
 
             if (!this.ContainsAdditionalDocument(documentId))
             {

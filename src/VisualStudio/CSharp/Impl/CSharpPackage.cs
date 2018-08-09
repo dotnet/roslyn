@@ -3,19 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
+using Task = System.Threading.Tasks.Task;
 
 // NOTE(DustinCa): The EditorFactory registration is in VisualStudioComponents\CSharpPackageRegistration.pkgdef.
 // The reason for this is because the ProvideEditorLogicalView does not allow a name value to specified in addition to
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     // TODO(DustinCa): Put all of this in CSharpPackageRegistration.pkgdef rather than using attributes
     // (See vsproject\cool\coolpkg\pkg\VCSharp_Proj_System_Reg.pkgdef for an example).
     [Guid(Guids.CSharpPackageIdString)]
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideRoslynVersionRegistration(Guids.CSharpPackageIdString, "Microsoft Visual C#", productNameResourceID: 116, detailsResourceID: 117)]
     [ProvideLanguageExtension(typeof(CSharpLanguageService), ".cs")]
     [ProvideLanguageService(Guids.CSharpLanguageServiceIdString, "CSharp", languageResourceID: 101, RequestStockColors = true, ShowDropDownOptions = true)]
@@ -64,24 +65,30 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
     [ProvideAutomationProperties("TextEditor", "CSharp", Guids.TextManagerPackageString, profileNodeLabelId: 101, profileNodeDescriptionId: 106, resourcePackageGuid: Guids.CSharpPackageIdString)]
     [ProvideAutomationProperties("TextEditor", "CSharp-Specific", packageGuid: Guids.CSharpPackageIdString, profileNodeLabelId: 104, profileNodeDescriptionId: 105)]
-    [ProvideService(typeof(CSharpLanguageService), ServiceName = "C# Language Service")]
-    [ProvideService(typeof(ICSharpTempPECompilerService), ServiceName = "C# TempPE Compiler Service")]
+    [ProvideService(typeof(CSharpLanguageService), ServiceName = "C# Language Service", IsAsyncQueryable = true)]
+    [ProvideService(typeof(ICSharpTempPECompilerService), ServiceName = "C# TempPE Compiler Service", IsAsyncQueryable = true)]
     internal class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
     {
         private ObjectBrowserLibraryManager _libraryManager;
         private uint _libraryManagerCookie;
 
-        protected override void Initialize()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             try
             {
-                base.Initialize();
+                await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-                this.RegisterService<ICSharpTempPECompilerService>(() => new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>()));
+                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                RegisterObjectBrowserLibraryManager();
+                this.RegisterService<ICSharpTempPECompilerService>(async ct =>
+                {
+                    await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
+                    return new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>());
+                });
+
+                await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
             }
         }
@@ -93,16 +100,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         protected override void Dispose(bool disposing)
         {
-            UnregisterObjectBrowserLibraryManager();
+            if (disposing)
+            {
+                JoinableTaskFactory.Run(() => UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None));
+            }
 
             base.Dispose(disposing);
         }
 
-        private void RegisterObjectBrowserLibraryManager()
+        private async Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
-            if (this.GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (await GetServiceAsync(typeof(SVsObjectManager)).ConfigureAwait(true) is IVsObjectManager2 objectManager)
             {
-                _libraryManager = new ObjectBrowserLibraryManager(this);
+                _libraryManager = new ObjectBrowserLibraryManager(this, ComponentModel, Workspace);
 
                 if (ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(_libraryManager, out _libraryManagerCookie)))
                 {
@@ -111,11 +123,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
         }
 
-        private void UnregisterObjectBrowserLibraryManager()
+        private async Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             if (_libraryManagerCookie != 0)
             {
-                if (this.GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
+                if (await GetServiceAsync(typeof(SVsObjectManager)).ConfigureAwait(true) is IVsObjectManager2 objectManager)
                 {
                     objectManager.UnregisterLibrary(_libraryManagerCookie);
                     _libraryManagerCookie = 0;

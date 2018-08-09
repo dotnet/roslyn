@@ -641,5 +641,40 @@ End Operator"
             Await TestInClassAsync(code)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape1() As Task
+            Await TestInMethodAsync("dim goo = ""goo""""bar""",
+                Escape(""""""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape2() As Task
+            Await TestInMethodAsync("dim goo = $""goo{{1}}bar""",
+                Escape("{{"),
+                Escape("}}"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape3() As Task
+            Await TestInMethodAsync("dim goo = $""goo""""{{1}}""""bar""",
+                Escape(""""""),
+                Escape("{{"),
+                Escape("}}"),
+                Escape(""""""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape4() As Task
+            Await TestInMethodAsync("dim goo = $""goo""""{1}""""bar""",
+                Escape(""""""),
+                Escape(""""""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape5() As Task
+            Await TestInMethodAsync("dim goo = $""{{goo{1}bar}}""",
+                Escape("{{"),
+                Escape("}}"))
+        End Function
     End Class
 End Namespace

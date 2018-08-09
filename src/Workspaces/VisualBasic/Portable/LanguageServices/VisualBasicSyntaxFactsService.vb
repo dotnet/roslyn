@@ -949,12 +949,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetSyntaxListSpan(Of T As SyntaxNode)(list As SyntaxList(Of T)) As TextSpan
-            Contract.Requires(list.Count > 0)
+            Debug.Assert(list.Count > 0)
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
         Private Function GetSeparatedSyntaxListSpan(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T)) As TextSpan
-            Contract.Requires(list.Count > 0)
+            Debug.Assert(list.Count > 0)
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
@@ -1119,7 +1119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Function GetMethodLevelMemberId(root As SyntaxNode, node As SyntaxNode) As Integer Implements ISyntaxFactsService.GetMethodLevelMemberId
-            Contract.Requires(root.SyntaxTree Is node.SyntaxTree)
+            Debug.Assert(root.SyntaxTree Is node.SyntaxTree)
 
             Dim currentId As Integer = Nothing
             Dim currentNode As SyntaxNode = Nothing
@@ -1607,6 +1607,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsConditionalOr(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalOr
             Return node.Kind() = SyntaxKind.OrElseExpression
         End Function
+
+        Public Function IsTupleExpression(node As syntaxnode) As Boolean Implements ISyntaxFactsService.IsTupleExpression
+            Return node.Kind() = SyntaxKind.TupleExpression
+        End Function
+
+        Public Function IsTupleType(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleType
+            Return node.Kind() = SyntaxKind.TupleType
+        End Function
+
+        Public Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(
+                node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of TArgumentSyntax), ByRef closeParen As SyntaxToken) Implements ISyntaxFactsService.GetPartsOfTupleExpression
+
+            Dim tupleExpr = DirectCast(node, TupleExpressionSyntax)
+            openParen = tupleExpr.OpenParenToken
+            arguments = CType(CType(tupleExpr.Arguments, SeparatedSyntaxList(Of SyntaxNode)), SeparatedSyntaxList(Of TArgumentSyntax))
+            closeParen = tupleExpr.CloseParenToken
+        End Sub
 
         Public Function GetOperandOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetOperandOfPrefixUnaryExpression
             Return DirectCast(node, UnaryExpressionSyntax).Operand
