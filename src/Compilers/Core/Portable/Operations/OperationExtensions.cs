@@ -324,34 +324,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         /// <summary>
-        /// Gets a loop operation that corresponds to the given branch operation.
-        /// </summary>
-        /// <param name="branchOperation">The branch operation for which a corresponding loop is looked up</param>
-        /// <returns>The corresponding loop operation or <c>null</c> in case not found (e.g. no loop syntax or the branch
-        /// belongs to switch instead of loop operation)</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="branchOperation"/> is null</exception>
-        /// <exception cref="InvalidOperationException">The operation is a part of Control Flow Graph or it has an invalid branch kind. 
-        /// Applicable kinds: <see cref="BranchKind.Break"/> and <see cref="BranchKind.Continue"/>.</exception>
-        public static ILoopOperation GetCorrespondingLoop(this IBranchOperation branchOperation)
-        {
-            return GetCorrespondingOperation(branchOperation) as ILoopOperation;
-        }
-
-        /// <summary>
-        /// Gets a switch operation that corresponds to the given branch operation.
-        /// </summary>
-        /// <param name="branchOperation">The branch operation for which a corresponding switch is looked up</param>
-        /// <returns>The corresponding switch operation or <c>null</c> in case not found (e.g. no switch syntax or the branch
-        /// belongs to loop instead of switch operation)</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="branchOperation"/> is null</exception>
-        /// <exception cref="InvalidOperationException">The operation is a part of Control Flow Graph or it has an invalid branch kind. 
-        /// Applicable kinds: <see cref="BranchKind.Break"/>.</exception>
-        public static ISwitchOperation GetCorrespondingSwitch(this IBranchOperation branchOperation)
-        {
-            return GetCorrespondingOperation(branchOperation) as ISwitchOperation;
-        }
-
-        /// <summary>
         /// Gets either a loop or a switch operation that corresponds to the given branch operation.
         /// </summary>
         /// <param name="branchOperation">The branch operation for which a corresponding operation is looked up</param>

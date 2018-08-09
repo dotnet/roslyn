@@ -47,7 +47,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_ForLoopWithExit()
+        Public Sub GetCorrespondingOperation_LoopLookup_ForLoopWithExit()
             AssertOuterIsCorrespondingLoopOfInner(Of ForBlockSyntax, ExitStatementSyntax)(
             <![CDATA[
 Class C
@@ -63,7 +63,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_WhileLoopWithContinue()
+        Public Sub GetCorrespondingOperation_LoopLookup_WhileLoopWithContinue()
             AssertOuterIsCorrespondingLoopOfInner(Of WhileBlockSyntax, ContinueStatementSyntax)(
             <![CDATA[
 Class C
@@ -79,7 +79,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_DoWhileLoopWithExitAndContinue()
+        Public Sub GetCorrespondingOperation_LoopLookup_DoWhileLoopWithExitAndContinue()
             AssertOuterIsCorrespondingLoopOfInner(Of DoLoopBlockSyntax, ContinueStatementSyntax)(
             <![CDATA[
 Class C
@@ -99,7 +99,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_ForEachLoopWithExit()
+        Public Sub GetCorrespondingOperation_LoopLookup_ForEachLoopWithExit()
             AssertOuterIsCorrespondingLoopOfInner(Of ForEachBlockSyntax, ExitStatementSyntax)(
             <![CDATA[
 Class C
@@ -117,7 +117,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_ForEachLoopWithExitAndContinue()
+        Public Sub GetCorrespondingOperation_LoopLookup_ForEachLoopWithExitAndContinue()
             AssertOuterIsCorrespondingLoopOfInner(Of ForEachBlockSyntax, ContinueStatementSyntax)(
             <![CDATA[
 Class C
@@ -137,7 +137,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_NestedLoops()
+        Public Sub GetCorrespondingOperation_LoopLookup_NestedLoops()
             AssertOuterIsCorrespondingLoopOfInner(Of ForBlockSyntax, ExitStatementSyntax)(
             <![CDATA[
 Class C
@@ -155,7 +155,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_NestedLoops2()
+        Public Sub GetCorrespondingOperation_LoopLookup_NestedLoops2()
             AssertOuterIsCorrespondingLoopOfInner(Of ForBlockSyntax, ExitStatementSyntax)(
             <![CDATA[
 Class C
@@ -173,7 +173,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingSwitch_ExitInCase()
+        Public Sub GetCorrespondingOperation_SwitchLookup_ExitInCase()
             AssertOuterIsCorrespondingSwitchOfInner(
             <![CDATA[
 Class C
@@ -190,7 +190,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingSwitch_NestedSelects()
+        Public Sub GetCorrespondingOperation_SwitchLookup_NestedSelects()
             AssertOuterIsCorrespondingSwitchOfInner(
             <![CDATA[
 Class C
@@ -210,7 +210,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingSwitch_NestedSelects2()
+        Public Sub GetCorrespondingOperation_SwitchLookup_NestedSelects2()
             AssertOuterIsCorrespondingSwitchOfInner(
             <![CDATA[
 Class C
@@ -230,7 +230,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_LoopInSelect()
+        Public Sub GetCorrespondingOperation_LoopLookup_LoopInSelect()
             AssertOuterIsCorrespondingLoopOfInner(Of ForBlockSyntax, ExitStatementSyntax)(
             <![CDATA[
 Class C
@@ -249,7 +249,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingSwitch_SelectInLoop()
+        Public Sub GetCorrespondingOperation_SwitchLookup_SelectInLoop()
             AssertOuterIsCorrespondingSwitchOfInner(
             <![CDATA[
 Class C
@@ -268,7 +268,7 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_ContinueNestedInIntermediateSelect()
+        Public Sub GetCorrespondingOperation_LoopLookup_ContinueNestedInIntermediateSelect()
             AssertOuterIsCorrespondingLoopOfInner(Of ForBlockSyntax, ContinueStatementSyntax)(
             <![CDATA[
 Class C
@@ -287,8 +287,8 @@ End Class
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_ExitButNoLoop_ReturnsNull()
-            Dim result = GetOuterOperationAndCorrespondingInnerOperation(Of ForBlockSyntax, ILoopOperation, ExitStatementSyntax)(
+        Public Sub GetCorrespondingOperation_LoopLookup_ExitButNoLoop_ReturnsNull()
+            Dim result = GetOuterOperationAndCorrespondingInnerOperation(Of ForBlockSyntax, ExitStatementSyntax)(
             <![CDATA[
 Class C
     Sub F
@@ -299,16 +299,17 @@ Class C
         Exit For 'BIND2:"Exit For"
     End Sub
 End Class
-]]>.Value, Function(branch) branch.GetCorrespondingLoop())
+]]>.Value)
 
+            Assert.True(TypeOf result.outer Is ILoopOperation)
             Assert.Null(result.corresponding)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingSwitch_ExitButNoSwitch_ReturnsNull()
-            Dim result = GetOuterOperationAndCorrespondingInnerOperation(Of SelectBlockSyntax, ISwitchOperation, ExitStatementSyntax)(
+        Public Sub GetCorrespondingOperation_SwitchLookup_ExitButNoSwitch_ReturnsNull()
+            Dim result = GetOuterOperationAndCorrespondingInnerOperation(Of SelectBlockSyntax, ExitStatementSyntax)(
             <![CDATA[
 Class C
     Sub F
@@ -320,81 +321,36 @@ Class C
         Exit Select 'BIND2:"Exit Select"
     End Sub
 End Class
-]]>.Value, Function(branch) branch.GetCorrespondingSwitch())
+]]>.Value)
 
-            Assert.Null(result.corresponding)
-        End Sub
-
-        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
-        <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
-        <Fact>
-        Public Sub GetCorrespondingLoop_ExitButCorrespondingToSwitch_ReturnsNull()
-            Dim result = GetOuterOperationAndCorrespondingInnerOperation(Of ForBlockSyntax, ILoopOperation, ExitStatementSyntax)(
-            <![CDATA[
-Class C
-    Sub F
-        For i = 0 To 1 'BIND1:"For i = 0 To 1"
-            Select Case 1
-                Case 1
-                    Exit Select 'BIND2:"Exit Select"
-            End Select
-        Next
-    End Sub
-End Class
-]]>.Value, Function(branch) branch.GetCorrespondingLoop())
-
-            Assert.Null(result.corresponding)
-        End Sub
-
-        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
-        <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
-        <Fact>
-        Public Sub GetCorrespondingSwitch_ExitButCorrespondingToLoop_ReturnsNull()
-            Dim result = GetOuterOperationAndCorrespondingInnerOperation(Of ForBlockSyntax, ILoopOperation, ExitStatementSyntax)(
-            <![CDATA[
-Class C
-    Sub F
-        Select Case 1
-            Case 1
-                For i = 0 To 1 'BIND1:"For i = 0 To 1"
-                    Exit For 'BIND2:"Exit For"
-                Next
-        End Select
-    End Sub
-End Class
-]]>.Value, Function(branch) branch.GetCorrespondingSwitch())
-
+            Assert.True(TypeOf result.outer Is ISwitchOperation)
             Assert.Null(result.corresponding)
         End Sub
 
         Private Sub AssertOuterIsCorrespondingLoopOfInner(Of TOuterSyntax As SyntaxNode, TInnerSyntax As SyntaxNode)(source As string)
             Dim result As (expected As IOperation, actual As IOperation)
-            result = GetOuterOperationAndCorrespondingInnerOperation(Of TOuterSyntax, ILoopOperation, TInnerSyntax)(source, Function(branch) branch.GetCorrespondingLoop())
+            result = GetOuterOperationAndCorrespondingInnerOperation(Of TOuterSyntax, TInnerSyntax)(source)
 
             Assert.Equal(result.expected.Syntax, result.actual.Syntax)
         End Sub
 
         Private Sub AssertOuterIsCorrespondingSwitchOfInner(source As string)
             Dim result As (expected As IOperation, actual As IOperation)
-            result = GetOuterOperationAndCorrespondingInnerOperation(Of SelectBlockSyntax, ISwitchOperation, ExitStatementSyntax)(source, Function(branch) branch.GetCorrespondingSwitch())
+            result = GetOuterOperationAndCorrespondingInnerOperation(Of SelectBlockSyntax, ExitStatementSyntax)(source)
 
             Assert.Equal(result.expected.Syntax, result.actual.Syntax)
         End Sub
 
-        Private Function GetOuterOperationAndCorrespondingInnerOperation(Of TOuterSyntax As SyntaxNode, TOuterOp As {Class, IOperation}, TInnerSyntax As SyntaxNode)(
-            source As string, findCorresponding As Func(Of IBranchOperation, IOperation)) As (outer As IOperation, corresponding As IOperation)
+        Private Function GetOuterOperationAndCorrespondingInnerOperation(Of TOuterSyntax As SyntaxNode, TInnerSyntax As SyntaxNode)(
+            source As string) As (outer As IOperation, corresponding As IOperation)
 
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName)
             Dim compilation = CreateEmptyCompilation({syntaxTree})
-
-            Dim holder As (operation As IOperation, node As SyntaxNode)
-            holder = GetOperationAndSyntaxForTest(Of TOuterSyntax)(compilation, fileName, 1)
-            Dim outer = TryCast(holder.operation, TOuterOp)
-            holder = GetOperationAndSyntaxForTest(Of TInnerSyntax)(compilation, fileName, 2)
-            Dim inner = TryCast(holder.operation, IBranchOperation)
-
-            Dim correspondingOfInner = If(inner IsNot Nothing, findCorresponding(inner), Nothing)
+            
+            Dim outer = GetOperationAndSyntaxForTest(Of TOuterSyntax)(compilation, fileName, 1).operation
+            Dim inner = TryCast(GetOperationAndSyntaxForTest(Of TInnerSyntax)(compilation, fileName, 2).operation, IBranchOperation)
+            Dim correspondingOfInner = inner?.GetCorrespondingOperation()
 
             Return (outer, correspondingOfInner)
 
