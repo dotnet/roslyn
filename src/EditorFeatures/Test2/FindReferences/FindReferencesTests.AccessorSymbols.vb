@@ -896,6 +896,40 @@ class D
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_Cref() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IC
+{
+    /// &lt;see cref="Prop"/&gt;
+    int Prop { {|Definition:$$get|}; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_Cref() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IC
+{
+    /// &lt;see cref="Prop"/&gt;
+    int Prop { get; {|Definition:$$set|}; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVBAccessor_Get_Feature1() As Task
             Dim input =
 <Workspace>

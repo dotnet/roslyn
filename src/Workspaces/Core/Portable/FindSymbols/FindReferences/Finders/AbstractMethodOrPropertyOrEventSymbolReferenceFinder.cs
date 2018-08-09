@@ -81,9 +81,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
             else
             {
-                // Wasn't written. This could be a normal read, or used through something
-                // like nameof().
-                return semanticFacts.IsInsideNameOfExpression(model, node, cancellationToken)
+                // Wasn't written. This could be a normal read, or it could be neither a read nor
+                // write. Example of this include:
+                //
+                // 1) referencing through something like nameof().
+                // 2) referencing in a cref in a doc-comment.
+                //
+                // This list is thought to be complete.  However, if new examples are found, they
+                // can be added here.
+                var inNameOf = semanticFacts.IsInsideNameOfExpression(model, node, cancellationToken);
+                var inStructuredTrivia = node.IsPartOfStructuredTrivia();
+
+                return inNameOf || inStructuredTrivia
                     ? ImmutableArray<IMethodSymbol>.Empty
                     : ImmutableArray.Create(property.GetMethod);
             }
