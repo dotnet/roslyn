@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             IAsynchronousOperationListenerProvider listenerProvider) :
                 this(workspace, diagnosticService, registrationService, listenerProvider.GetListener(FeatureAttribute.ErrorList))
         {
-            Contract.Requires(!KnownUIContexts.SolutionBuildingContext.IsActive);
+            Debug.Assert(!KnownUIContexts.SolutionBuildingContext.IsActive);
             KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
         }
 

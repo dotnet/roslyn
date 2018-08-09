@@ -70,7 +70,7 @@ namespace BuildBoss
 
             allGood &= ProcessStructuredLog(configDirectory);
             allGood &= ProcessTargets(repositoryDirectory);
-            allGood &= ProcessCompilerNuGet(repositoryDirectory, configDirectory);
+            allGood &= ProcessPackages(repositoryDirectory, configDirectory);
 
             if (!allGood)
             {
@@ -117,10 +117,10 @@ namespace BuildBoss
             return CheckCore(util, $"Structured log {logFilePath}");
         }
 
-        private static bool ProcessCompilerNuGet(string repositoryDirectory, string configDirectory)
+        private static bool ProcessPackages(string repositoryDirectory, string configDirectory)
         {
-            var util = new CompilerNuGetCheckerUtil(repositoryDirectory, configDirectory);
-            return CheckCore(util, $"Compiler NuGets");
+            var util = new PackageContentsChecker(repositoryDirectory, configDirectory);
+            return CheckCore(util, $"NuPkg and SWR files");
         }
     }
 }

@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     foreach (var finder in documentToFinderList.Value)
                     {
-                        Contract.Requires(set.Add(finder));
+                        Debug.Assert(set.Add(finder));
                     }
                 }
             }
