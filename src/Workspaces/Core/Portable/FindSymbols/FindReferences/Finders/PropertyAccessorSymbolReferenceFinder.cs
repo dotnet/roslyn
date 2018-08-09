@@ -41,19 +41,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol, Project project, IImmutableSet<Document> documents, 
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
+            // First, find any documents with the full name of the accessor (i.e. get_Goo).
+            // This will find explicit calls to the method (which can happen when C# references
+            // a VB parameterized property).
             var result = await FindDocumentsAsync(
                 project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
 
             if (symbol.AssociatedSymbol is IPropertySymbol property &&
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
-                // we want to associate normal property references with the specific 
-                // accessor being referenced.  So we also need to include documents 
-                // with our property's name.
-                result = await ReferenceFinders.Property.DetermineDocumentsToSearchAsync(
+                // we want to associate normal property references with the specific accessor being
+                // referenced.  So we also need to include documents with our property's name. Just
+                // defer to the Property finder to find these docs and combine them with the result.
+                var propertyDocuments = await ReferenceFinders.Property.DetermineDocumentsToSearchAsync(
                     property, project, documents,
                     options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
                     cancellationToken).ConfigureAwait(false);
+
+                result = result.AddRange(propertyDocuments);
             }
 
             return result;
