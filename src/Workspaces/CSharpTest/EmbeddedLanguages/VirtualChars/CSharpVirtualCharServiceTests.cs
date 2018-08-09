@@ -97,6 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         [Fact]
         public void TestReverseInterpolatedVerbatimString()
         {
+            // This will need to be fixed once @$ strings come online.
+            var token = GetStringToken("@$\"{{\"", allowFailure: true);
+            Assert.True(token == default);
+
             TestFailure("@$\"{{\"");
         }
 
