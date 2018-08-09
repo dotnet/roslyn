@@ -348,8 +348,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
                                 // Types created outside executable context should be checked by the responsible symbol (the method symbol checks its return type, for instance).
-
-                                if (!typeArgument.IsValueType && NonNullTypesContext.NonNullTypes != true)
+                                if (Flags.Includes(BinderFlags.SuppressNullableContraintChecks))
+                                {
+                                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(NonNullTypesContext, typeArgument), nullableSyntax.QuestionToken.GetLocation());
+                                }
+                                else if (!typeArgument.IsValueType && NonNullTypesContext.NonNullTypes != true)
                                 {
                                     diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, nullableSyntax.QuestionToken.GetLocation());
                                 }
@@ -1176,10 +1179,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!typeArguments.IsEmpty);
             type = type.Construct(typeArguments);
 
-            if (ShouldCheckConstraints)
+            if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(type))
             {
                 bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
-                type.CheckConstraintsForNonTuple(this.Conversions.WithNullability(includeNullability), typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                var conversions = this.Conversions.WithNullability(includeNullability);
+                if (includeNullability && Flags.Includes(BinderFlags.SuppressNullableContraintChecks))
+                {
+                    diagnostics.Add(new LazyNullableContraintChecksDiagnosticInfo(type, conversions, this.Compilation), typeSyntax.GetLocation());
+                    conversions = conversions.WithNullability(includeNullability: false);
+                }
+                type.CheckConstraintsForNonTuple(conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
 
             type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);

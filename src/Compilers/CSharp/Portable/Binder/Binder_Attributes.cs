@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Bind constructor and named attribute arguments using the attribute binder
             var argumentListOpt = node.ArgumentList;
-            Binder attributeArgumentBinder = this.WithAdditionalFlags(BinderFlags.AttributeArgument);
+            Binder attributeArgumentBinder = this.WithAdditionalFlags(BinderFlags.AttributeArgument | BinderFlags.SuppressNullableContraintChecks);
             AnalyzedAttributeArguments analyzedArguments = attributeArgumentBinder.BindAttributeArguments(argumentListOpt, attributeTypeForBinding, diagnostics);
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;

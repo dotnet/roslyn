@@ -2049,7 +2049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method = InferMethodTypeArguments((BoundCall)node, method, GetArgumentsForMethodTypeInference(arguments, results));
                     parameters = method.Parameters;
                 }
-                if (!method.IsDefinition)
+                if (ConstraintsHelper.RequiresChecking(method))
                 {
                     var syntax = node.Syntax;
                     CheckMethodConstraints((syntax as InvocationExpressionSyntax)?.Expression ?? syntax, method);
