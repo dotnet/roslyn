@@ -55,10 +55,10 @@
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
     <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/373 -->
     <MicrosoftNETTestSdkVersion>15.6.0-dev</MicrosoftNETTestSdkVersion>
-    <MicrosoftNetCompilersVersion>2.10.0-nullable-63202-03</MicrosoftNetCompilersVersion>
+    <MicrosoftNetCompilersVersion>2.10.0-nullable-63209-02</MicrosoftNetCompilersVersion>
     <MicrosoftNetRoslynDiagnosticsVersion>2.6.1-beta1-62702-01</MicrosoftNetRoslynDiagnosticsVersion>
     <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
-    <MicrosoftNETCoreCompilersVersion>2.10.0-nullable-63202-03</MicrosoftNETCoreCompilersVersion>
+    <MicrosoftNETCoreCompilersVersion>2.10.0-nullable-63209-02</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
     <MicrosoftNETCoreAppVersion>2.0.0</MicrosoftNETCoreAppVersion>
     <MicrosoftNETCorePlatformsVersion>2.0.0</MicrosoftNETCorePlatformsVersion>

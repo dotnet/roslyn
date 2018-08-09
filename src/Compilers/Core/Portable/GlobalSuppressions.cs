@@ -14,4 +14,4 @@
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "<Pending>", Scope = "member", Target = "~M:Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.TextReader,System.Int32,System.Text.Encoding,Microsoft.CodeAnalysis.Text.SourceHashAlgorithm)~Microsoft.CodeAnalysis.Text.SourceText")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "<Pending>", Scope = "member", Target = "~M:Microsoft.CodeAnalysis.Text.SourceText.From(System.String,System.Text.Encoding,Microsoft.CodeAnalysis.Text.SourceHashAlgorithm)~Microsoft.CodeAnalysis.Text.SourceText")]
 
-[module: System.Runtime.CompilerServices.NonNullTypes(false)]
+//[module: System.Runtime.CompilerServices.NonNullTypes(false)]

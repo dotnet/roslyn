@@ -25,4 +25,4 @@
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "<Pending>", Scope = "member", Target = "~M:Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax,System.Threading.CancellationToken)~Microsoft.CodeAnalysis.INamedTypeSymbol")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "<Pending>", Scope = "member", Target = "~M:Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax,System.Threading.CancellationToken)~Microsoft.CodeAnalysis.ISymbol")]
 
-[module: System.Runtime.CompilerServices.NonNullTypes(false)]
+//[module: System.Runtime.CompilerServices.NonNullTypes(false)]
