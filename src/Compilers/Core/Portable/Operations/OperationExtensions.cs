@@ -326,42 +326,42 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Gets either a loop or a switch operation that corresponds to the given branch operation.
         /// </summary>
-        /// <param name="branchOperation">The branch operation for which a corresponding operation is looked up</param>
+        /// <param name="operation">The branch operation for which a corresponding operation is looked up</param>
         /// <returns>The corresponding operation or <c>null</c> in case not found (e.g. no loop or switch syntax)</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="branchOperation"/> is null</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="operation"/> is null</exception>
         /// <exception cref="InvalidOperationException">The operation is a part of Control Flow Graph or it has an invalid branch kind. 
         /// Applicable kinds: <see cref="BranchKind.Break"/> and <see cref="BranchKind.Continue"/>.</exception>
-        public static IOperation GetCorrespondingOperation(this IBranchOperation branchOperation)
+        public static IOperation GetCorrespondingOperation(this IBranchOperation operation)
         {
-            if (branchOperation == null)
+            if (operation == null)
             {
-                throw new ArgumentNullException(nameof(branchOperation));
+                throw new ArgumentNullException(nameof(operation));
             }
 
-            if (branchOperation.SemanticModel == null)
+            if (operation.SemanticModel == null)
             {
                 throw new InvalidOperationException(CodeAnalysisResources.OperationMustNotBeControlFlowGraphPart);
             }
             
-            if (branchOperation.BranchKind != BranchKind.Break && branchOperation.BranchKind != BranchKind.Continue)
+            if (operation.BranchKind != BranchKind.Break && operation.BranchKind != BranchKind.Continue)
             {
                 throw new InvalidOperationException(
-                    string.Format(CodeAnalysisResources.InvalidBranchKindForFindingCorrespondingOperation, branchOperation.BranchKind));
+                    string.Format(CodeAnalysisResources.InvalidBranchKindForFindingCorrespondingOperation, operation.BranchKind));
             }
 
-            if (branchOperation.Target == null)
+            if (operation.Target == null)
             {
                 return null;
             }
             
-            for (IOperation current = branchOperation; current.Parent != null; current = current.Parent)
+            for (IOperation current = operation; current.Parent != null; current = current.Parent)
             {
                 switch (current)
                 {
-                    case ILoopOperation correspondingLoop when branchOperation.Target.Equals(correspondingLoop.ExitLabel)
-                                                               || branchOperation.Target.Equals(correspondingLoop.ContinueLabel):
+                    case ILoopOperation correspondingLoop when operation.Target.Equals(correspondingLoop.ExitLabel)
+                                                               || operation.Target.Equals(correspondingLoop.ContinueLabel):
                         return correspondingLoop;
-                    case ISwitchOperation correspondingSwitch when branchOperation.Target.Equals(correspondingSwitch.ExitLabel):
+                    case ISwitchOperation correspondingSwitch when operation.Target.Equals(correspondingSwitch.ExitLabel):
                         return correspondingSwitch;
                 }
             }
