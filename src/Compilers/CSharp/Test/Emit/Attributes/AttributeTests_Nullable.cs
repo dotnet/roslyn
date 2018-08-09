@@ -305,7 +305,6 @@ class C
     [System.Runtime.CompilerServices.NonNullTypes(true)]
     void M1()
     {
-        local(new C());
         void local<T>(T t) where T : I<C?>
         {
         }

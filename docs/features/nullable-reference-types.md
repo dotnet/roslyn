@@ -137,7 +137,7 @@ var x = optionalString!; // x is string!
 var y = obliviousString!; // y is string!
 var z = new [] { optionalString, obliviousString }!; // no change, z is string?[]!
 ```
-An error is reported whenever the `!` operator is applied to a reference type.
+An error is reported whenever the `!` operator is applied to a value type.
 A warning is reported when using the `!` operator absent a `NonNullTypes` context.
 
 _Should `!` suppress warnings for nested nullability?_

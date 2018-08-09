@@ -234,7 +234,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sawLocalFunctions = true;
             CheckRefReadOnlySymbols(node.Symbol);
 
-            if (node.Symbol.TypeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
+            bool hasUnmanagedConstraint = node.Symbol.TypeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint);
+            if (hasUnmanagedConstraint)
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
             }
