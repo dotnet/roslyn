@@ -43,7 +43,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             var result = TryConvertToVirtualCharsWorker(token);
 
-#if DEBUG
+            CheckInvariants(token, result);
+
+            return result;
+        }
+
+        [Conditional("DEBUG")]
+        private void CheckInvariants(SyntaxToken token, ImmutableArray<VirtualChar> result)
+        {
             // Do some invariant checking to make sure we processed the string token the same
             // way the C# and VB compilers did.
             if (!result.IsDefault)
@@ -90,9 +97,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                     }
                 }
             }
-#endif
-
-            return result;
         }
 
         /// <summary>
