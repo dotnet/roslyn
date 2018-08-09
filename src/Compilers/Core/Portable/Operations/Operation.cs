@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis
 
         protected Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
         {
+            // Constant value cannot be "null" for non-nullable value type operations.
+            Debug.Assert(type?.IsValueType != true || ITypeSymbolHelpers.IsNullableType(type) || !constantValue.HasValue || constantValue.Value != null);
+
 #if DEBUG
             if (semanticModel != null)
             {

@@ -61,7 +61,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         Protected Overrides Function GetRootWithInvertIfStatement(document As Document, model As SemanticModel, ifStatement As SyntaxNode, cancellationToken As CancellationToken) As SyntaxNode
 
             Dim generator = SyntaxGenerator.GetGenerator(document)
-            Dim syntaxFacts = GetSyntaxFactsService()
 
             Dim result = UpdateSemanticModel(model, model.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifStatement.WithAdditionalAnnotations(s_ifNodeAnnotation)), cancellationToken)
 
@@ -81,9 +80,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             End If
 
             If (TypeOf ifNode Is SingleLineIfStatementSyntax) Then
-                model = InvertSingleLineIfStatement(document, DirectCast(ifNode, SingleLineIfStatementSyntax), generator, syntaxFacts, result.Model, cancellationToken)
+                model = InvertSingleLineIfStatement(document, DirectCast(ifNode, SingleLineIfStatementSyntax), generator, result.Model, cancellationToken)
             Else
-                model = InvertMultiLineIfBlock(DirectCast(ifNode, MultiLineIfBlockSyntax), document, generator, syntaxFacts, result.Model, cancellationToken)
+                model = InvertMultiLineIfBlock(DirectCast(ifNode, MultiLineIfBlockSyntax), document, generator, result.Model, cancellationToken)
             End If
 
             ' Complexify the inverted if node.
@@ -105,11 +104,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 document As Document,
                 originalIfNode As SingleLineIfStatementSyntax,
                 generator As SyntaxGenerator,
-                syntaxFacts As ISyntaxFactsService,
                 model As SemanticModel,
                 cancellationToken As CancellationToken) As SemanticModel
             Dim root = model.SyntaxTree.GetRoot()
-            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, syntaxFacts, model, cancellationToken)
+            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, model, cancellationToken)
             Dim result = UpdateSemanticModel(model, root.ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
 
             ' Complexify the next statement if there is one.
@@ -137,7 +135,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             ifNode As SingleLineIfStatementSyntax,
             document As Document,
             generator As SyntaxGenerator,
-            syntaxFacts As ISyntaxFactsService,
             semanticModel As SemanticModel,
             cancellationToken As CancellationToken) As SingleLineIfStatementSyntax
 
@@ -166,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                     Dim trailing = singleLineIf.GetTrailingTrivia()
                     If trailing.Any(SyntaxKind.EndOfLineTrivia) Then
                         Dim eol = trailing.Last(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia)
-                        trailing = trailing.Select(Function(t) If(t = eol, SyntaxFactory.ColonTrivia(syntaxFacts.GetText(SyntaxKind.ColonTrivia)), t)).ToSyntaxTriviaList()
+                        trailing = trailing.Select(Function(t) If(t = eol, SyntaxFactory.ColonTrivia(SyntaxFacts.GetText(SyntaxKind.ColonTrivia)), t)).ToSyntaxTriviaList()
                     End If
 
                     Dim withElsePart = singleLineIf.WithTrailingTrivia(trailing).WithElseClause(
@@ -177,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 End If
             End If
 
-            Return ifNode.WithCondition(DirectCast(Negate(ifNode.Condition, generator, syntaxFacts, semanticModel, cancellationToken), ExpressionSyntax)) _
+            Return ifNode.WithCondition(DirectCast(generator.Negate(ifNode.Condition, semanticModel, cancellationToken), ExpressionSyntax)) _
                          .WithStatements(newIfStatements) _
                          .WithElseClause(elseClause.WithStatements(ifNode.Statements).WithTrailingTrivia(elseClause.GetTrailingTrivia()))
         End Function
@@ -209,8 +206,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         End Function
 #End If
 
-        Private Function InvertMultiLineIfBlock(originalIfNode As MultiLineIfBlockSyntax, document As Document, generator As SyntaxGenerator, syntaxFacts As ISyntaxFactsService, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
-            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, syntaxFacts, model, cancellationToken)
+        Private Function InvertMultiLineIfBlock(originalIfNode As MultiLineIfBlockSyntax, document As Document, generator As SyntaxGenerator, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
+            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, model, cancellationToken)
 
             Dim result = UpdateSemanticModel(model, model.SyntaxTree.GetRoot().ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
             Return result.Model
@@ -220,7 +217,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             ifNode As MultiLineIfBlockSyntax,
             document As Document,
             generator As SyntaxGenerator,
-            syntaxFacts As ISyntaxFactsService,
             semanticModel As SemanticModel,
             cancellationToken As CancellationToken) As MultiLineIfBlockSyntax
 
@@ -235,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Dim endifLeadingTrivia = ifNode.EndIfStatement.GetLeadingTrivia()
 
             Return ifNode _
-                .WithIfStatement(ifStatement.WithCondition(DirectCast(Negate(ifStatement.Condition, generator, syntaxFacts, semanticModel, cancellationToken), ExpressionSyntax))) _
+                .WithIfStatement(ifStatement.WithCondition(DirectCast(generator.Negate(ifStatement.Condition, semanticModel, cancellationToken), ExpressionSyntax))) _
                 .WithStatements(elseBlock.Statements) _
                 .WithElseBlock(elseBlock.WithStatements(ifPart.Statements).WithLeadingTrivia(endifLeadingTrivia)) _
                 .WithEndIfStatement(ifNode.EndIfStatement.WithTrailingTrivia(endifTrailingTrivia).WithLeadingTrivia(elseBlockLeadingTrivia)) _

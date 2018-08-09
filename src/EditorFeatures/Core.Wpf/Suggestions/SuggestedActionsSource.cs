@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         var priority = GetSuggestedActionSetPriority(group.Key);
 
                         // diagnostic from things like build shouldn't reach here since we don't support LB for those diagnostics
-                        Contract.Requires(diag.Item1.HasTextSpan);
+                        Debug.Assert(diag.Item1.HasTextSpan);
                         var category = GetFixCategory(diag.Item1.Severity);
                         sets.Add(new SuggestedActionSet(category, group, priority: priority, applicableToSpan: diag.Item1.TextSpan.ToSpan()));
                     }
@@ -656,8 +656,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 foreach (var action in refactoring.Actions)
                 {
-                    refactoringSuggestedActions.Add(new CodeRefactoringSuggestedAction(
-                        _owner, workspace, _subjectBuffer, refactoring.Provider, action));
+                    if (action.NestedCodeActions.Length > 0)
+                    {
+                        var nestedActions = action.NestedCodeActions.SelectAsArray(
+                            na => new CodeRefactoringSuggestedAction(
+                                _owner, workspace, _subjectBuffer, refactoring.Provider, na));
+
+                        var set = new SuggestedActionSet(categoryName: null,
+                            actions: nestedActions, priority: SuggestedActionSetPriority.Medium, applicableToSpan: applicableSpan);
+
+                        refactoringSuggestedActions.Add(new SuggestedActionWithNestedActions(
+                            _owner, workspace, _subjectBuffer,
+                            refactoring.Provider, action, set));
+                    }
+                    else
+                    {
+                        refactoringSuggestedActions.Add(new CodeRefactoringSuggestedAction(
+                            _owner, workspace, _subjectBuffer, refactoring.Provider, action));
+                    }
                 }
 
                 return new SuggestedActionSet(

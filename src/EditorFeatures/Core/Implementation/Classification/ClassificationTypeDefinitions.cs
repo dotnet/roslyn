@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.VerbatimStringLiteral)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition StringVerbatimTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.StringEscapeCharacter)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition StringEscapeCharacterTypeDefinition;
         #endregion
 
         #region User Types - Classes

@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string PreferBuiltInOrFrameworkTypeDiagnosticId = "IDE0049";
 
+        public const string ConvertAnonymousTypeToTupleDiagnosticId = "IDE0050";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
