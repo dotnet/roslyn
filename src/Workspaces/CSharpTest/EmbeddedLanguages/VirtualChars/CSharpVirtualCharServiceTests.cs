@@ -14,27 +14,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
     {
         private const string _statementPrefix = "var v = ";
 
-        private SyntaxToken GetStringToken(string text)
+        private SyntaxToken GetStringToken(string text, bool allowFailure)
         {
             var statement = _statementPrefix + text;
             var parsedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(statement);
             var expression = parsedStatement.Declaration.Variables[0].Initializer.Value;
 
-            var token = expression is LiteralExpressionSyntax literal
-                ? literal.Token
-                : expression is InterpolatedStringExpressionSyntax interpolation
-                    ? ((InterpolatedStringTextSyntax)interpolation.Contents[0]).TextToken
-                    : throw new InvalidOperationException();
-
-            Assert.True(token.Kind() == SyntaxKind.StringLiteralToken ||
-                        token.Kind() == SyntaxKind.InterpolatedStringTextToken);
-
-            return token;
+            if (expression is LiteralExpressionSyntax literal)
+            {
+                return literal.Token;
+            }
+            else if (expression is InterpolatedStringExpressionSyntax interpolation)
+            {
+                return ((InterpolatedStringTextSyntax)interpolation.Contents[0]).TextToken;
+            }
+            else if (allowFailure)
+            {
+                return default;
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
 
         private void Test(string stringText, string expected)
         {
-            var token = GetStringToken(stringText);
+            var token = GetStringToken(stringText, allowFailure: false);
             var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             var actual = ConvertToString(virtualChars);
             Assert.Equal(expected, actual);
@@ -42,7 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
         private void TestFailure(string stringText)
         {
-            var token = GetStringToken(stringText);
+            var token = GetStringToken(stringText, allowFailure: true);
+            if (token == default)
+            {
+                return;
+            }
+
             var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             Assert.True(virtualChars.IsDefault);
         }
@@ -81,6 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         public void TestBracesInInterpolatedVerbatimSimpleString()
         {
             Test("$@\"{{\"", "['{',[3,5]]");
+        }
+
+        [Fact]
+        public void TestReverseInterpolatedVerbatimString()
+        {
+            TestFailure("@$\"{{\"");
         }
 
         [Fact]
@@ -224,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         [Fact]
         public void TestValidButUnsupportedLongEscape1()
         {
-            var token = GetStringToken(@"""\U00010000""");
+            var token = GetStringToken(@"""\U00010000""", allowFailure: false);
             Assert.False(token.ContainsDiagnostics);
             TestFailure(@"""\U00010000""");
         }
