@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 foreach (var ch in trivia.VirtualChars)
                 {
-                    switch (ch)
+                    switch (ch.Char)
                     {
                         case ' ': case '\t':
                             break;

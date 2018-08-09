@@ -108,9 +108,9 @@ Public Class BuildDevDivInsertionFiles
     }
 
     Private ReadOnly VsixesToInstall As String() = {
-        "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
+        "Vsix\Roslyn.VisualStudio.Setup\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
-        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix"
+        "Vsix\Roslyn.VisualStudio.InteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix"
     }
 
     Private Sub DeleteDirContents(dir As String)
@@ -136,7 +136,6 @@ Public Class BuildDevDivInsertionFiles
         Dim dependencies = BuildDependencyMap(_binDirectory)
         GenerateContractsListMsbuild(dependencies)
         GenerateAssemblyVersionList(dependencies)
-        GeneratePortableFacadesSwrFile(dependencies)
         CopyDependencies(dependencies)
 
         ' List of files to add to VS.ExternalAPI.Roslyn.nuspec.
@@ -258,8 +257,8 @@ Public Class BuildDevDivInsertionFiles
         Dim result = New Dictionary(Of String, DependencyInfo)
         Dim objDir = Path.Combine(Path.GetDirectoryName(_binDirectory.TrimEnd(Path.DirectorySeparatorChar)), "Obj")
         Dim files = New List(Of String)
-        files.Add(Path.Combine(objDir, "CompilerExtension\project.assets.json"))
-        files.Add(Path.Combine(objDir, "VisualStudioSetup.Dependencies\project.assets.json"))
+        files.Add(Path.Combine(objDir, "Roslyn.Compilers.Extension\project.assets.json"))
+        files.Add(Path.Combine(objDir, "Roslyn.VisualStudio.Setup.Dependencies\project.assets.json"))
 
         For Each projectLockJson In files
             Dim items = JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson))
@@ -404,41 +403,6 @@ Public Class BuildDevDivInsertionFiles
         Next
     End Sub
 
-    Private Sub GeneratePortableFacadesSwrFile(dependencies As Dictionary(Of String, DependencyInfo))
-        Dim facades = dependencies.Where(Function(e) e.Value.IsFacade).OrderBy(Function(e) e.Key).ToArray()
-
-        Dim swrPath = Path.Combine(_setupDirectory, DevDivVsixDirName, "PortableFacades", "PortableFacades.swr")
-        Dim swrVersion As Version = Nothing
-        Dim swrFiles As IEnumerable(Of String) = Nothing
-        ParseSwrFile(swrPath, swrVersion, swrFiles)
-
-        Dim expectedFiles = New List(Of String)
-        For Each entry In facades
-            Dim dependency = entry.Value
-            Dim fileName = entry.Key
-            Dim implPath = IO.Path.Combine(dependency.PackageName, dependency.PackageVersion, dependency.ImplementationDir, fileName)
-            expectedFiles.Add($"    file source=""$(NuGetPackageRoot)\{implPath}"" vs.file.ngen=yes")
-        Next
-
-        If Not swrFiles.SequenceEqual(expectedFiles) Then
-            Using writer = New StreamWriter(File.Open(swrPath, FileMode.Truncate, FileAccess.Write))
-                writer.WriteLine("use vs")
-                writer.WriteLine()
-                writer.WriteLine($"package name=PortableFacades")
-                writer.WriteLine($"        version={New Version(swrVersion.Major, swrVersion.Minor + 1, 0, 0)}")
-                writer.WriteLine()
-                writer.WriteLine("folder InstallDir:\Common7\IDE\PrivateAssemblies")
-
-                For Each entry In expectedFiles
-                    writer.WriteLine(entry)
-                Next
-            End Using
-
-            Throw New Exception($"The content of file {swrPath} is not up-to-date. The file has been updated to reflect the changes in dependencies made in the repo " &
-                                $"(in files {Path.Combine(_setupDirectory, DevDivPackagesDirName)}\**\project.json). Include this file change in your PR and rebuild.")
-        End If
-    End Sub
-
     Private Sub ParseSwrFile(path As String, <Out> ByRef version As Version, <Out> ByRef files As IEnumerable(Of String))
         Dim lines = File.ReadAllLines(path)
 
@@ -567,44 +531,40 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\InteractiveHost64\InteractiveHost64.exe.config")
         add("Exes\csi\net46\csi.rsp")
         add("Exes\csi\net46\csi.exe.config")
-        add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
-        add("Vsix\VisualStudioSetup\Microsoft.CodeAnalysis.Elfie.dll")
-        add("Vsix\VisualStudioSetup\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
-        add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
-        add("Vsix\VisualStudioSetup\System.Composition.Hosting.dll")
-        add("Vsix\VisualStudioSetup\System.Composition.TypedParts.dll")
-        add("Vsix\VisualStudioSetup\System.Threading.Tasks.Extensions.dll")
-        add("Vsix\VisualStudioSetup\Mono.Cecil.dll")
-        add("Vsix\VisualStudioSetup\Mono.Cecil.Mdb.dll")
-        add("Vsix\VisualStudioSetup\Mono.Cecil.Pdb.dll")
-        add("Vsix\VisualStudioSetup\Mono.Cecil.Rocks.dll")
-        add("Vsix\VisualStudioSetup\ICSharpCode.Decompiler.dll")
-        add("Dlls\BasicExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
-        add("Dlls\BasicResultProvider.Portable\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig")
-        add("Dlls\CSharpExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
-        add("Dlls\CSharpResultProvider.Portable\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.vsdconfig")
-        add("Dlls\FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig")
-        add("Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.vsdconfig")
-        add("Dlls\MSBuildTask\net46\Microsoft.Managed.Core.targets")
-        add("Dlls\MSBuildTask\net46\Microsoft.CSharp.Core.targets")
-        add("Dlls\MSBuildTask\net46\Microsoft.VisualBasic.Core.targets")
-        add("Dlls\CSharpCompilerTestUtilities\Roslyn.Compilers.CSharp.Test.Utilities.dll")
-        add("Dlls\BasicCompilerTestUtilities\Roslyn.Compilers.VisualBasic.Test.Utilities.dll")
-        add("Dlls\CompilerTestResources\\Roslyn.Compilers.Test.Resources.dll")
-        add("Dlls\ExpressionCompilerTestUtilities\Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities.dll")
-        add("Dlls\ResultProviderTestUtilities\Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities.dll")
-        add("Dlls\PdbUtilities\Roslyn.Test.PdbUtilities.dll")
-        add("UnitTests\EditorServicesTest\BasicUndo.dll")
-        add("UnitTests\EditorServicesTest\Moq.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.PortablePdb.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Converter.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Converter.Xml.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Native.amd64.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Native.x86.dll")
+        add("Vsix\Roslyn.VisualStudio.InteractiveComponents\CSharpInteractive.rsp")
+        add("Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.Elfie.dll")
+        add("Vsix\Roslyn.VisualStudio.Setup\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
+        add("Vsix\Roslyn.VisualStudio.Setup\System.Composition.Convention.dll")
+        add("Vsix\Roslyn.VisualStudio.Setup\System.Composition.Hosting.dll")
+        add("Vsix\Roslyn.VisualStudio.Setup\System.Composition.TypedParts.dll")
+        add("Vsix\Roslyn.VisualStudio.Setup\System.Threading.Tasks.Extensions.dll")
+        add("Vsix\Roslyn.VisualStudio.Setup\ICSharpCode.Decompiler.dll")
+        add("Dlls\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
+        add("Dlls\Microsoft.CodeAnalysis.VisualBasic.ResultProvider\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig")
+        add("Dlls\Microsoft.CodeAnalysis.CSharp.ExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
+        add("Dlls\Microsoft.CodeAnalysis.CSharp.ResultProvider\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.vsdconfig")
+        add("Dlls\Microsoft.CodeAnalysis.FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig")
+        add("Dlls\Microsoft.VisualStudio.LanguageServices\Microsoft.VisualStudio.LanguageServices.vsdconfig")
+        add("Dlls\Microsoft.Build.Tasks.CodeAnalysis\net46\Microsoft.Managed.Core.targets")
+        add("Dlls\Microsoft.Build.Tasks.CodeAnalysis\net46\Microsoft.CSharp.Core.targets")
+        add("Dlls\Microsoft.Build.Tasks.CodeAnalysis\net46\Microsoft.VisualBasic.Core.targets")
+        add("Dlls\Microsoft.CodeAnalysis.CSharp.Test.Utilities\Microsoft.CodeAnalysis.CSharp.Test.Utilities.dll")
+        add("Dlls\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.dll")
+        add("Dlls\Microsoft.CodeAnalysis.Compiler.Test.Resources\\Microsoft.CodeAnalysis.Compiler.Test.Resources.dll")
+        add("Dlls\Microsoft.CodeAnalysis.ExpressionCompiler.Utilities\Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.Utilities.dll")
+        add("Dlls\Microsoft.CodeAnalysis.ResultProvider.Utilities\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.Utilities.dll")
+        add("Dlls\Roslyn.Test.PdbUtilities\Roslyn.Test.PdbUtilities.dll")
+        add("UnitTests\Microsoft.CodeAnalysis.EditorFeatures.UnitTests\BasicUndo.dll")
+        add("UnitTests\Microsoft.CodeAnalysis.EditorFeatures.UnitTests\Moq.dll")
+        add("UnitTests\Microsoft.CodeAnalysis.EditorFeatures.UnitTests\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
+        add("UnitTests\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests\net46\Microsoft.DiaSymReader.PortablePdb.dll")
+        add("UnitTests\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests\net46\Microsoft.DiaSymReader.Converter.dll")
+        add("UnitTests\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests\net46\Microsoft.DiaSymReader.Converter.Xml.dll")
+        add("UnitTests\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests\net46\Microsoft.DiaSymReader.dll")
+        add("UnitTests\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests\net46\Microsoft.DiaSymReader.Native.amd64.dll")
+        add("UnitTests\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests\net46\Microsoft.DiaSymReader.Native.x86.dll")
         add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
-        add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
+        add("Vsix\Microsoft.VisualStudio.IntegrationTest.Setup\Microsoft.Diagnostics.Runtime.dll")
         add("Exes\Toolset\System.AppContext.dll")
         add("Exes\Toolset\System.Console.dll")
         add("Exes\Toolset\System.Collections.Immutable.dll")
@@ -626,7 +586,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\Toolset\System.Xml.XmlDocument.dll")
         add("Exes\Toolset\System.Xml.XPath.dll")
         add("Exes\Toolset\System.Xml.XPath.XDocument.dll")
-        add("Vsix\VisualStudioSetup\Humanizer.dll")
+        add("Vsix\Roslyn.VisualStudio.Setup\Humanizer.dll")
         Return map
     End Function
 

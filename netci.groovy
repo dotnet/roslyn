@@ -238,9 +238,10 @@ commitPullList.each { isPr ->
 
 // Loc status check
 commitPullList.each { isPr ->
-  // Only add the check to PR builds for now. At some point we'll change this check
-  // to instead look for particular branch names.
-  if (isPr) {
+  // Add the check for PR builds, and dev15.8.x/dev15.8.x-vs-deps builds.
+  if (isPr
+      || branchName == "dev15.8.x"
+      || branchName == "dev15.8.x-vs-deps") {
     def jobName = Utilities.getFullJobName(projectName, "windows_loc_status", isPr)
     def myJob = job(jobName) {
       description('Check for untranslated resources')
@@ -249,9 +250,31 @@ commitPullList.each { isPr ->
       }
     }
 
-    // For now we'll only run this when explicitly asked.
-    def triggerPhraseOnly = true
+    // Run it automatically on CI builds but only when requested on PR builds.
+    def triggerPhraseOnly = isPr
     def triggerPhraseExtra = "loc"
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+  }
+}
+
+// Loc change check
+commitPullList.each { isPr ->
+  // This job blocks PRs with loc changes, so only activate it for PR builds of
+  // release branches after a loc freeze.
+  if (isPr
+      && (branchName == "dev15.8.x"
+          || branchName == "dev15.8.x-vs-deps")) {
+    def jobName = Utilities.getFullJobName(projectName, "windows_loc_changes", isPr)
+    def myJob = job(jobName) {
+        description('Validate that a PR contains no localization changes')
+        steps {
+            batchFile(""".\\build\\scripts\\check-for-loc-changes.cmd -base origin/${branchName} -head %GIT_COMMIT%""")
+        }
+    }
+
+    def triggerPhraseOnly = false
+    def triggerPhraseExtra = "loc changes"
     Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
     addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
