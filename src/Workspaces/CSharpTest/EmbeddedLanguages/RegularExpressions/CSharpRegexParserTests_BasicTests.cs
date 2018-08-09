@@ -3037,6 +3037,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
+        public void TestControlEscape18()
+        {
+            Test(@"@""\c[""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <ControlEscape>
+        <BackslashToken>\</BackslashToken>
+        <TextToken>c</TextToken>
+        <TextToken>[</TextToken>
+      </ControlEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..13)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestControlEscape19()
+        {
+            Test(@"@""\c\""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <ControlEscape>
+        <BackslashToken>\</BackslashToken>
+        <TextToken>c</TextToken>
+        <TextToken>\</TextToken>
+      </ControlEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..13)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestControlEscape20()
+        {
+            Test(@"@""\c]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <ControlEscape>
+        <BackslashToken>\</BackslashToken>
+        <TextToken>c</TextToken>
+        <TextToken>]</TextToken>
+      </ControlEscape>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..13)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
         public void TestUnknownEscape1()
         {
             Test(@"@""\m""", @"<Tree>
