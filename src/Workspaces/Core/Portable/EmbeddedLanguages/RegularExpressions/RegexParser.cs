@@ -1896,9 +1896,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     ch -= (char)('a' - 'A');
                 }
 
-                ch -= '@';
-
-                if (ch < ' ')
+                if (ch >= '@' && ch <= '_')
                 {
                     var controlToken = ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd).With(kind: RegexKind.TextToken);
                     return new RegexControlEscapeNode(backslashToken, typeToken, controlToken);
