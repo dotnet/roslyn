@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.VirtualChars
@@ -11,9 +12,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
 
         Private Function GetStringToken(text As String) As SyntaxToken
             Dim statement = _statementPrefix + text
-            Dim parsedStatement = SyntaxFactory.ParseExecutableStatement(statement)
-            Dim token = parsedStatement.DescendantTokens().ToArray()(3)
-            Assert.True(token.Kind() = SyntaxKind.StringLiteralToken)
+            Dim parsedStatement = DirectCast(SyntaxFactory.ParseExecutableStatement(statement), LocalDeclarationStatementSyntax)
+            Dim expression = parsedStatement.Declarators(0).Initializer.Value
+
+            Dim token = If(TypeOf expression Is LiteralExpressionSyntax,
+                            DirectCast(expression, LiteralExpressionSyntax).Token,
+                            DirectCast(expression, InterpolatedStringExpressionSyntax).Contents(0).ChildTokens().First())
+            Assert.True(token.Kind() = SyntaxKind.StringLiteralToken OrElse
+                        token.Kind() = SyntaxKind.InterpolatedStringTextToken)
 
             Return token
         End Function
@@ -42,8 +48,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
         End Sub
 
         <Fact>
+        Public Sub TestCurliesInSimpleString()
+            Test("""{{""", "['{',[1,2]]['{',[2,3]]")
+        End Sub
+
+        <Fact>
+        Public Sub TestCurliesInInterpolatedSimpleString()
+            Test("$""{{""", "['{',[2,4]]")
+        End Sub
+
+        <Fact>
+        Public Sub TestCurliesInInterpolatedSimpleString2()
+            Test("$""{{1}}""", "['{',[2,4]]['1',[4,5]]['}',[5,7]]")
+        End Sub
+
+        <Fact>
         Public Sub TestStringWithDoubleQuoteInIt()
             Test("""a""""b""", "['a',[1,2]]['""',[2,4]]['b',[4,5]]")
+        End Sub
+
+        <Fact>
+        Public Sub TestInterpolatedStringWithDoubleQuoteInIt()
+            Test("$""a""""b""", "['a',[2,3]]['""',[3,5]]['b',[5,6]]")
         End Sub
 
         Private Function ConvertToString(virtualChars As ImmutableArray(Of VirtualChar)) As String

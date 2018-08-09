@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 // For example: X?.Y<
                 //
                 // In this case, this could never be a type, and we do not want to try to 
-                // resolve it as such as it can lead to innapropriate classifications.
+                // resolve it as such as it can lead to inappropriate classifications.
                 if (CouldBeGenericType(identifier))
                 {
                     var types = semanticModel.LookupTypeRegardlessOfArity(identifier, cancellationToken);

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -54,6 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static readonly CSharpCompilationOptions UnsafeDebugDll = DebugDll.WithAllowUnsafe(true);
         public static readonly CSharpCompilationOptions UnsafeDebugExe = DebugExe.WithAllowUnsafe(true);
+
+        public static readonly EmitOptions NativePdbEmit = EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb);
 
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {

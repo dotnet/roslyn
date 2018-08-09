@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Roslyn.Utilities;
 using System.Diagnostics;
 
@@ -633,7 +634,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Debug.Assert(false, "checksum not same");
 
-            var map = solution.GetAssetMap();
+            var map = await solution.GetAssetMapAsync(_cancellationToken).ConfigureAwait(false);
             await RemoveDuplicateChecksumsAsync(givenSolutionChecksum, map).ConfigureAwait(false);
 
             foreach (var kv in map.Where(kv => kv.Value is ChecksumWithChildren).ToList())
