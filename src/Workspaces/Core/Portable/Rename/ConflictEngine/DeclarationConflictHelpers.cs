@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                             .OfType<IMethodSymbol>()
                                             .Where(m => !m.Equals(renamedMethod) && m.Arity == renamedMethod.Arity);
 
-            return GetConflictLocations(renamedMethod, potentiallyConfictingMethods,
+            return GetConflictLocations(renamedMethod, potentiallyConfictingMethods, isMethod:true,
                 (method) => GetAllSignatures((method as IMethodSymbol).Parameters, trimOptionalParameters));
         }
 
@@ -29,12 +29,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                             .OfType<IPropertySymbol>()
                                             .Where(m => !m.Equals(renamedProperty) && m.Parameters.Count() == renamedProperty.Parameters.Count());
 
-            return GetConflictLocations(renamedProperty, potentiallyConfictingProperties, 
+            return GetConflictLocations(renamedProperty, potentiallyConfictingProperties, isMethod: false,
                 (property)=>GetAllSignatures((property as IPropertySymbol).Parameters, trimOptionalParameters));
         }
 
         private static ImmutableArray<Location> GetConflictLocations(ISymbol renamedMember, 
             IEnumerable<ISymbol> potentiallyConfictingMembers,
+            bool isMethod,
             Func<ISymbol, ImmutableArray<ImmutableArray<ITypeSymbol>>> getAllSignatures)
         {
             var signatureToConflictingMember = new Dictionary<ImmutableArray<ITypeSymbol>, ISymbol>(ConflictingSignatureComparer.Instance);
@@ -53,7 +54,20 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 if (signatureToConflictingMember.TryGetValue(signature, out var conflictingSymbol))
                 {
-                    builder.AddRange(conflictingSymbol.Locations);
+                    if (isMethod)
+                    {
+                        var conflictingMethod = conflictingSymbol as IMethodSymbol;
+                        var renamedMethod = renamedMember as IMethodSymbol;
+                        if (!(conflictingMethod.PartialDefinitionPart != null && conflictingMethod.PartialDefinitionPart == renamedMethod) &&
+                            !(conflictingMethod.PartialImplementationPart != null && conflictingMethod.PartialImplementationPart == renamedMethod))
+                        {
+                            builder.AddRange(conflictingSymbol.Locations);
+                        }
+                    }
+                    else
+                    {
+                        builder.AddRange(conflictingSymbol.Locations);
+                    }
                 }
             }
 
