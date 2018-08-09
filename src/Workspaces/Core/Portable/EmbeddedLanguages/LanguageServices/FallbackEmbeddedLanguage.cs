@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// A 'fallback' embedded language that can classify normal escape sequences in 
     /// C# or VB strings if no other embedded languages produce results.
     /// </summary>
-    internal class FallbackEmbeddedLanguage : IEmbeddedLanguage
+    internal partial class FallbackEmbeddedLanguage : IEmbeddedLanguage
     {
-        public int StringLiteralTokenKind { get; }
-        public int InterpolatedTextTokenKind { get; }
-        public ISyntaxFactsService SyntaxFacts { get; }
-        public ISemanticFactsService SemanticFacts { get; }
-        public IVirtualCharService VirtualCharService { get; }
+        private readonly int _stringLiteralTokenKind;
+        private readonly int _interpolatedTextTokenKind;
+        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISemanticFactsService _semanticFacts;
+        private readonly IVirtualCharService _virtualCharService;
 
         public FallbackEmbeddedLanguage(
             int stringLiteralTokenKind,
@@ -23,11 +23,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
         {
-            StringLiteralTokenKind = stringLiteralTokenKind;
-            InterpolatedTextTokenKind = interpolatedTextTokenKind;
-            SyntaxFacts = syntaxFacts;
-            SemanticFacts = semanticFacts;
-            VirtualCharService = virtualCharService;
+            _stringLiteralTokenKind = stringLiteralTokenKind;
+            _interpolatedTextTokenKind = interpolatedTextTokenKind;
+            _syntaxFacts = syntaxFacts;
+            _semanticFacts = semanticFacts;
+            _virtualCharService = virtualCharService;
+
             Classifier = new FallbackEmbeddedClassifier(this);
         }
 
