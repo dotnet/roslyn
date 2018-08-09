@@ -14,23 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
-        public void GetCorrespondingLoop_ForNull_ThrowsArgumentNullException()
+        public void GetCorrespondingOperation_ForNull_ThrowsArgumentNullException()
         {
-            Assert.ThrowsAny<ArgumentNullException>(() => OperationExtensions.GetCorrespondingLoop(null));
+            Assert.ThrowsAny<ArgumentNullException>(() => OperationExtensions.GetCorrespondingOperation(null));
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
-        public void GetCorrespondingSwitch_ForNull_ThrowsArgumentNullException()
-        {
-            Assert.ThrowsAny<ArgumentNullException>(() => OperationExtensions.GetCorrespondingSwitch(null));
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
-        [Fact]
-        public void GetCorrespondingLoop_ForGotoBranch_ThrowsInvalidOperationException()
+        public void GetCorrespondingOperation_ForGotoBranch_ThrowsInvalidOperationException()
         {
             var compilation = CreateCompilation(@"
 class C
@@ -47,38 +39,9 @@ begin:
             var (operation, node) = GetOperationAndSyntaxForTest<GotoStatementSyntax>(compilation);
             var branch = operation as IBranchOperation;
 
-            var ex = Assert.ThrowsAny<InvalidOperationException>(() => branch.GetCorrespondingLoop());
-            Assert.Equal("Invalid branch kind. Finding a corresponding loop requires 'break' or 'continue' kinds, " +
+            var ex = Assert.ThrowsAny<InvalidOperationException>(() => branch.GetCorrespondingOperation());
+            Assert.Equal("Invalid branch kind. Finding a corresponding operation requires 'break' or 'continue', " +
                 "but the current branch kind provided is 'GoTo'.", ex.Message);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
-        [Fact]
-        public void GetCorrespondingSwitch_ForContinueBranch_ThrowsInvalidOperationException()
-        {
-            var compilation = CreateCompilation(@"
-class C
-{
-    void F()
-    {
-        for (;;)
-        {
-            switch (1)
-            {
-                case 1:
-                    /*<bind>*/continue;/*</bind>*/
-                    break;
-            }
-        }
-    }
-}");
-            var (operation, node) = GetOperationAndSyntaxForTest<ContinueStatementSyntax>(compilation);
-            var branch = operation as IBranchOperation;
-
-            var ex = Assert.ThrowsAny<InvalidOperationException>(() => branch.GetCorrespondingSwitch());
-            Assert.Equal("Invalid branch kind. Finding a corresponding switch requires 'break' kind, but the current " +
-                "branch kind provided is 'Continue'.", ex.Message);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

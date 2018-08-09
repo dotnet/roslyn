@@ -334,24 +334,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Applicable kinds: <see cref="BranchKind.Break"/> and <see cref="BranchKind.Continue"/>.</exception>
         public static ILoopOperation GetCorrespondingLoop(this IBranchOperation branchOperation)
         {
-            if (branchOperation == null)
-            {
-                throw new ArgumentNullException(nameof(branchOperation));
-            }
-
-            if (branchOperation.SemanticModel == null)
-            {
-                throw new InvalidOperationException(CodeAnalysisResources.OperationMustNotBeControlFlowGraphPart);
-            }
-
-            if (branchOperation.BranchKind != BranchKind.Break && branchOperation.BranchKind != BranchKind.Continue)
-            {
-                throw new InvalidOperationException(
-                    string.Format(CodeAnalysisResources.InvalidBranchKindForFindingCorrespondingLoop, branchOperation.BranchKind));
-            }
-
-            return FindCorrespondingOperation<ILoopOperation>(branchOperation, 
-                op => op is ISwitchOperation && branchOperation.BranchKind == BranchKind.Break);
+            return GetCorrespondingOperation(branchOperation) as ILoopOperation;
         }
 
         /// <summary>
@@ -365,6 +348,19 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Applicable kinds: <see cref="BranchKind.Break"/>.</exception>
         public static ISwitchOperation GetCorrespondingSwitch(this IBranchOperation branchOperation)
         {
+            return GetCorrespondingOperation(branchOperation) as ISwitchOperation;
+        }
+
+        /// <summary>
+        /// Gets either a loop or a switch operation that corresponds to the given branch operation.
+        /// </summary>
+        /// <param name="branchOperation">The branch operation for which a corresponding operation is looked up</param>
+        /// <returns>The corresponding operation or <c>null</c> in case not found (e.g. no loop or switch syntax)</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="branchOperation"/> is null</exception>
+        /// <exception cref="InvalidOperationException">The operation is a part of Control Flow Graph or it has an invalid branch kind. 
+        /// Applicable kinds: <see cref="BranchKind.Break"/> and <see cref="BranchKind.Continue"/>.</exception>
+        public static IOperation GetCorrespondingOperation(this IBranchOperation branchOperation)
+        {
             if (branchOperation == null)
             {
                 throw new ArgumentNullException(nameof(branchOperation));
@@ -374,28 +370,27 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 throw new InvalidOperationException(CodeAnalysisResources.OperationMustNotBeControlFlowGraphPart);
             }
-
-            if (branchOperation.BranchKind != BranchKind.Break)
+            
+            if (branchOperation.BranchKind != BranchKind.Break && branchOperation.BranchKind != BranchKind.Continue)
             {
                 throw new InvalidOperationException(
-                    string.Format(CodeAnalysisResources.InvalidBranchKindForFindingCorrespondingSwitch, branchOperation.BranchKind));
+                    string.Format(CodeAnalysisResources.InvalidBranchKindForFindingCorrespondingOperation, branchOperation.BranchKind));
             }
 
-            return FindCorrespondingOperation<ISwitchOperation>(branchOperation, op => op is ILoopOperation);
-        }
-
-        private static T FindCorrespondingOperation<T>(IOperation operation, Func<IOperation, bool> shouldStopAscending) where T : IOperation
-        {
-            for (var current = operation; current.Parent != null; current = current.Parent)
+            if (branchOperation.Target == null)
             {
-                if (current is T corresponding)
+                return null;
+            }
+            
+            for (IOperation current = branchOperation; current.Parent != null; current = current.Parent)
+            {
+                switch (current)
                 {
-                    return corresponding;
-                }
-
-                if (shouldStopAscending(current))
-                {
-                    return default;
+                    case ILoopOperation correspondingLoop when branchOperation.Target.Equals(correspondingLoop.ExitLabel)
+                                                               || branchOperation.Target.Equals(correspondingLoop.ContinueLabel):
+                        return correspondingLoop;
+                    case ISwitchOperation correspondingSwitch when branchOperation.Target.Equals(correspondingSwitch.ExitLabel):
+                        return correspondingSwitch;
                 }
             }
 

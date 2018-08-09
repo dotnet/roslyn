@@ -624,11 +624,8 @@
   <data name="InvalidOperationBlockForAnalysisContext" xml:space="preserve">
     <value>Given operation block does not belong to the current analysis context.</value>
   </data>
-  <data name="InvalidBranchKindForFindingCorrespondingLoop" xml:space="preserve">
-    <value>Invalid branch kind. Finding a corresponding loop requires 'break' or 'continue' kinds, but the current branch kind provided is '{0}'.</value>
-  </data>
-  <data name="InvalidBranchKindForFindingCorrespondingSwitch" xml:space="preserve">
-    <value>Invalid branch kind. Finding a corresponding switch requires 'break' kind, but the current branch kind provided is '{0}'.</value>
+  <data name="InvalidBranchKindForFindingCorrespondingOperation" xml:space="preserve">
+    <value>Invalid branch kind. Finding a corresponding operation requires 'break' or 'continue', but the current branch kind provided is '{0}'.</value>
   </data>
   <data name="OperationMustNotBeControlFlowGraphPart" xml:space="preserve">
     <value>The provided operation must not be part of a Control Flow Graph.</value>

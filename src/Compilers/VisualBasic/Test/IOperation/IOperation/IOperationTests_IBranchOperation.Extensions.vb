@@ -13,21 +13,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_ForNull_ThrowsArgumentNullException()
-            Assert.ThrowsAny(Of ArgumentNullException)(Function() OperationExtensions.GetCorrespondingLoop(Nothing))
-        End Sub
-        
-        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
-        <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
-        <Fact>
-        Public Sub GetCorrespondingSwitch_ForNull_ThrowsArgumentNullException()
-            Assert.ThrowsAny(Of ArgumentNullException)(Function() OperationExtensions.GetCorrespondingSwitch(Nothing))
+        Public Sub GetCorrespondingOperation_ForNull_ThrowsArgumentNullException()
+            Assert.ThrowsAny(Of ArgumentNullException)(Function() OperationExtensions.GetCorrespondingOperation(Nothing))
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingLoop_ForGotoBranch_ThrowsInvalidOperationException()
+        Public Sub GetCorrespondingOperation_ForGotoBranch_ThrowsInvalidOperationException()
             Dim source = <![CDATA[
 Class C
     Sub F
@@ -46,38 +39,9 @@ End Class
             Dim result = GetOperationAndSyntaxForTest(Of GoToStatementSyntax)(compilation, fileName)
             Dim branch = TryCast(result.operation, IBranchOperation)
 
-            Dim ex = Assert.ThrowsAny(Of InvalidOperationException)(Function() branch.GetCorrespondingLoop())
-            Assert.Equal("Invalid branch kind. Finding a corresponding loop requires 'break' or 'continue' kinds, " +
+            Dim ex = Assert.ThrowsAny(Of InvalidOperationException)(Function() branch.GetCorrespondingOperation())
+            Assert.Equal("Invalid branch kind. Finding a corresponding operation requires 'break' or 'continue', " +
                          "but the current branch kind provided is 'GoTo'.", ex.Message)
-        End Sub
-
-        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
-        <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
-        <Fact>
-        Public Sub GetCorrespondingSwitch_ForContinueBranch_ThrowsInvalidOperationException()
-            Dim source = <![CDATA[
-Class C
-    Sub F
-        For i = 0 To 1
-            Select Case 2
-                Case 2
-                    Continue For 'BIND:"Continue For"
-            End Select
-        Next
-    End Sub
-End Class
-]]>.Value
-
-            Dim fileName = "a.vb"
-            Dim syntaxTree = Parse(source, fileName)
-            Dim compilation = CreateEmptyCompilation({syntaxTree})
-
-            Dim result = GetOperationAndSyntaxForTest(Of ContinueStatementSyntax)(compilation, fileName)
-            Dim branch = TryCast(result.operation, IBranchOperation)
-
-            Dim ex = Assert.ThrowsAny(Of InvalidOperationException)(Function() branch.GetCorrespondingSwitch())
-            Assert.Equal("Invalid branch kind. Finding a corresponding switch requires 'break' kind, but the current " +
-                         "branch kind provided is 'Continue'.", ex.Message)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>

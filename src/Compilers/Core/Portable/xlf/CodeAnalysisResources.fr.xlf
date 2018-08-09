@@ -9,14 +9,9 @@
 '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="InvalidBranchKindForFindingCorrespondingLoop">
-        <source>Invalid branch kind. Finding a corresponding loop requires 'break' or 'continue' kinds, but the current branch kind provided is '{0}'.</source>
-        <target state="new">Invalid branch kind. Finding a corresponding loop requires 'break' or 'continue' kinds, but the current branch kind provided is '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InvalidBranchKindForFindingCorrespondingSwitch">
-        <source>Invalid branch kind. Finding a corresponding switch requires 'break' kind, but the current branch kind provided is '{0}'.</source>
-        <target state="new">Invalid branch kind. Finding a corresponding switch requires 'break' kind, but the current branch kind provided is '{0}'.</target>
+      <trans-unit id="InvalidBranchKindForFindingCorrespondingOperation">
+        <source>Invalid branch kind. Finding a corresponding operation requires 'break' or 'continue', but the current branch kind provided is '{0}'.</source>
+        <target state="new">Invalid branch kind. Finding a corresponding operation requires 'break' or 'continue', but the current branch kind provided is '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
