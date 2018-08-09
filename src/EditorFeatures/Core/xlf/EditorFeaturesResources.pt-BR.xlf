@@ -42,6 +42,11 @@
         <target state="translated">Pontuação</target>
         <note />
       </trans-unit>
+      <trans-unit id="String_Escape_Character">
+        <source>String - Escape Character</source>
+        <target state="new">String - Escape Character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
         <target state="translated">Tipos de Usuário - Classes</target>
