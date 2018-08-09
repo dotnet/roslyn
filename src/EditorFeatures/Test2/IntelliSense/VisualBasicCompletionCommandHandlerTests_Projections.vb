@@ -8,13 +8,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests_Projections
 
-        Private Shared Function GetAllCompletions() As IEnumerable(Of Object())
-            Return TestStateFactory.GetAllCompletions()
-        End Function
+        Public Shared ReadOnly Property AllCompletionImplementations() As IEnumerable(Of Object())
+            Get
+                Return TestStateFactory.GetAllCompletionImplementations()
+            End Get
+        End Property
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSimpleWithJustSubjectBuffer(completion As Completions) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSimpleWithJustSubjectBuffer(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Option Strict Off
 Option Explicit On
@@ -47,9 +49,9 @@ End Namespace
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAfterDot(completion As Completions) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAfterDot(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 {|S2:
 Class C
@@ -84,9 +86,9 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestInObjectCreationExpression(completion As Completions) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInObjectCreationExpression(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 {|S2:
 Class C

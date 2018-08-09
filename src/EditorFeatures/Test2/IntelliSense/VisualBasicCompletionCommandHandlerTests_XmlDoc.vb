@@ -5,15 +5,16 @@ Imports System.Threading.Tasks
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests_XmlDoc
+        Public Shared ReadOnly Property AllCompletionImplementations() As IEnumerable(Of Object())
+            Get
+                Return TestStateFactory.GetAllCompletionImplementations()
+            End Get
+        End Property
 
-        Private Shared Function GetAllCompletions() As IEnumerable(Of Object())
-            Return TestStateFactory.GetAllCompletions()
-        End Function
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitSummary(completionImplementation As CompletionImplementation) As Task
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitSummary(completion As Completions) As Task
-
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -32,10 +33,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitSummaryOnTab(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitSummaryOnTab(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -56,10 +57,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitSummaryOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitSummaryOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -80,10 +81,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitSummary(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitSummary(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -104,10 +105,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitSummaryOnTab(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitSummaryOnTab(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -128,10 +129,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitSummaryOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitSummaryOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -152,10 +153,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitRemarksOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitRemarksOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -176,10 +177,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitRemarksOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitRemarksOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -200,10 +201,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitReturnsOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitReturnsOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -224,10 +225,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitReturnsOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitReturnsOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -248,10 +249,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitExampleOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitExampleOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -272,10 +273,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitExampleOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitExampleOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -296,10 +297,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitExceptionNoOpenAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitExceptionNoOpenAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -320,10 +321,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitExceptionOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitExceptionOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -344,10 +345,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitCommentNoOpenAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitCommentNoOpenAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -367,10 +368,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitCommentOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitCommentOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -390,10 +391,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitCdataNoOpenAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitCdataNoOpenAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -413,10 +414,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitCdataOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitCdataOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -436,10 +437,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitIncludeNoOpenAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitIncludeNoOpenAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -460,10 +461,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitIncludeOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitIncludeOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -484,10 +485,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitPermissionNoOpenAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitPermissionNoOpenAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -508,10 +509,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitPermissionOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitPermissionOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -532,10 +533,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitSeeNoOpenAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitSeeNoOpenAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -556,10 +557,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitSeeOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitSeeOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -580,9 +581,9 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitSeeOnSpace(completion As Completions) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitSeeOnSpace(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' <summary>
@@ -604,53 +605,53 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithNothingKeywordCommitSeeLangword(completion As Completions) As Task
-            Return InvokeWithKeywordCommitSeeLangword(completion, "Nothing")
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithNothingKeywordCommitSeeLangword(completionImplementation As CompletionImplementation) As Task
+            Return InvokeWithKeywordCommitSeeLangword(completionImplementation, "Nothing")
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithSharedKeywordCommitSeeLangword(completion As Completions) As Task
-            Return InvokeWithKeywordCommitSeeLangword(completion, "Shared")
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithSharedKeywordCommitSeeLangword(completionImplementation As CompletionImplementation) As Task
+            Return InvokeWithKeywordCommitSeeLangword(completionImplementation, "Shared")
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithOverridableKeywordCommitSeeLangword(completion As Completions) As Task
-            Return InvokeWithKeywordCommitSeeLangword(completion, "Overridable", unique:=False)
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithOverridableKeywordCommitSeeLangword(completionImplementation As CompletionImplementation) As Task
+            Return InvokeWithKeywordCommitSeeLangword(completionImplementation, "Overridable", unique:=False)
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithTrueKeywordCommitSeeLangword(completion As Completions) As Task
-            Return InvokeWithKeywordCommitSeeLangword(completion, "True")
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithTrueKeywordCommitSeeLangword(completionImplementation As CompletionImplementation) As Task
+            Return InvokeWithKeywordCommitSeeLangword(completionImplementation, "True")
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithFalseKeywordCommitSeeLangword(completion As Completions) As Task
-            Return InvokeWithKeywordCommitSeeLangword(completion, "False")
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithFalseKeywordCommitSeeLangword(completionImplementation As CompletionImplementation) As Task
+            Return InvokeWithKeywordCommitSeeLangword(completionImplementation, "False")
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithMustInheritKeywordCommitSeeLangword(completion As Completions) As Task
-            Return InvokeWithKeywordCommitSeeLangword(completion, "MustInherit")
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithMustInheritKeywordCommitSeeLangword(completionImplementation As CompletionImplementation) As Task
+            Return InvokeWithKeywordCommitSeeLangword(completionImplementation, "MustInherit")
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithNotOverridableKeywordCommitSeeLangword(completion As Completions) As Task
-            Return InvokeWithKeywordCommitSeeLangword(completion, "NotOverridable")
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithNotOverridableKeywordCommitSeeLangword(completionImplementation As CompletionImplementation) As Task
+            Return InvokeWithKeywordCommitSeeLangword(completionImplementation, "NotOverridable")
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithAsyncKeywordCommitSeeLangword(completion As Completions) As Task
-            Return InvokeWithKeywordCommitSeeLangword(completion, "Async")
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithAsyncKeywordCommitSeeLangword(completionImplementation As CompletionImplementation) As Task
+            Return InvokeWithKeywordCommitSeeLangword(completionImplementation, "Async")
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function InvokeWithAwaitKeywordCommitSeeLangword(completion As Completions) As Task
-            Return InvokeWithKeywordCommitSeeLangword(completion, "Await")
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithAwaitKeywordCommitSeeLangword(completionImplementation As CompletionImplementation) As Task
+            Return InvokeWithKeywordCommitSeeLangword(completionImplementation, "Await")
         End Function
 
-        Private Async Function InvokeWithKeywordCommitSeeLangword(completion As Completions, keyword As String, Optional unique As Boolean = True) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+        Private Async Function InvokeWithKeywordCommitSeeLangword(completionImplementation As CompletionImplementation, keyword As String, Optional unique As Boolean = True) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' <summary>
@@ -678,10 +679,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitSeealsoNoOpenAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitSeealsoNoOpenAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -702,10 +703,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitSeealsoOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitSeealsoOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C
     ''' $$
@@ -728,9 +729,9 @@ End Class
 
         <WorkItem(623219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623219")>
         <WorkItem(746919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitParam(completion As Completions) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitParam(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' <param$$
@@ -750,10 +751,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitParamNoOpenAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitParamNoOpenAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -774,10 +775,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitParamNoOpenAngleOnTab(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitParamNoOpenAngleOnTab(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -798,10 +799,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitParamNoOpenAngleOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitParamNoOpenAngleOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -822,10 +823,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitParam(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitParam(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -846,10 +847,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitParamOnTab(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitParamOnTab(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -870,10 +871,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitParamOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitParamOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -894,10 +895,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitTypeparamNoOpenAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitTypeparamNoOpenAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -918,10 +919,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitTypeparamNoOpenAngleOnTab(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitTypeparamNoOpenAngleOnTab(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -942,10 +943,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitTypeparamNoOpenAngleOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitTypeparamNoOpenAngleOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -966,10 +967,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitTypeparam(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitTypeparam(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -990,10 +991,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitTypeparamOnTab(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitTypeparamOnTab(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -1014,10 +1015,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function InvokeWithOpenAngleCommitTypeparamOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithOpenAngleCommitTypeparamOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' $$
@@ -1038,10 +1039,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitList(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitList(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' <summary>
@@ -1064,10 +1065,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitListOnCloseAngle(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitListOnCloseAngle(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' <summary>
@@ -1090,10 +1091,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestTagCompletion1(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTagCompletion1(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' <$$
@@ -1115,10 +1116,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestTagCompletion2(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTagCompletion2(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' <$$
@@ -1141,10 +1142,10 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestTagCompletion3(completion As Completions) As Task
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTagCompletion3(completionImplementation As CompletionImplementation) As Task
 
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' <$$
@@ -1167,9 +1168,9 @@ End Class
             End Using
         End Function
         <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/21481"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AllowTypingDoubleQuote(completion As Completions) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/21481"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AllowTypingDoubleQuote(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' <param$$
@@ -1186,16 +1187,16 @@ End Class
                 ' ''' <param name="$$
                 Await state.AssertLineTextAroundCaret("    ''' <param name=""", "")
 
-                ' Because the item contains a double quote, the completion list should still be present with the same selection
+                ' Because the item contains a double quote, the completionImplementation list should still be present with the same selection
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
             End Using
         End Function
 
         <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
-        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AllowTypingSpace(completion As Completions) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AllowTypingSpace(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
 Class C(Of T)
     ''' <param$$
@@ -1212,7 +1213,7 @@ End Class
                 ' ''' <param $$
                 Await state.AssertLineTextAroundCaret("    ''' <param ", "")
 
-                ' Because the item contains a space, the completion list should still be present with the same selection
+                ' Because the item contains a space, the completionImplementation list should still be present with the same selection
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
             End Using

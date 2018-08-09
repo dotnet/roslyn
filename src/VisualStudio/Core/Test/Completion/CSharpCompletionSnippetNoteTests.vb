@@ -21,15 +21,17 @@ class C
     void M() { }
 }]]></document>
 
-        Private Shared Function GetAllCompletions() As IEnumerable(Of Object())
-            Return TestStateFactory.GetAllCompletions()
-        End Function
+        Public Shared ReadOnly Property AllCompletionImplementations() As IEnumerable(Of Object())
+            Get
+                Return TestStateFactory.GetAllCompletionImplementations()
+            End Get
+        End Property
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch(completion As Completions) As Task
-            Using state = CreateCSharpSnippetExpansionNoteTestState(completion, _markup, "interface")
+        Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch(completionImplementation As CompletionImplementation) As Task
+            Using state = CreateCSharpSnippetExpansionNoteTestState(completionImplementation, _markup, "interface")
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
@@ -38,10 +40,10 @@ class C
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function ColonDoesntTriggerSnippetInTupleLiteral(completion As Completions) As Task
-            Using state = CreateCSharpSnippetExpansionNoteTestState(completion, _markup, "interface")
+        Public Async Function ColonDoesntTriggerSnippetInTupleLiteral(completionImplementation As CompletionImplementation) As Task
+            Using state = CreateCSharpSnippetExpansionNoteTestState(completionImplementation, _markup, "interface")
                 state.SendTypeChars("var t = (interfac")
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(displayText:="interface", isHardSelected:=True)
@@ -50,10 +52,10 @@ class C
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function ColonDoesntTriggerSnippetInTupleLiteralAfterComma(completion As Completions) As Task
-            Using state = CreateCSharpSnippetExpansionNoteTestState(completion, _markup, "interface")
+        Public Async Function ColonDoesntTriggerSnippetInTupleLiteralAfterComma(completionImplementation As CompletionImplementation) As Task
+            Using state = CreateCSharpSnippetExpansionNoteTestState(completionImplementation, _markup, "interface")
                 state.SendTypeChars("var t = (1, interfac")
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(displayText:="interface", isHardSelected:=True)
@@ -63,10 +65,10 @@ class C
         End Function
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing(completion As Completions) As Task
-            Using state = CreateCSharpSnippetExpansionNoteTestState(completion, _markup, "intErfaCE")
+        Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing(completionImplementation As CompletionImplementation) As Task
+            Using state = CreateCSharpSnippetExpansionNoteTestState(completionImplementation, _markup, "intErfaCE")
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(description:=$"{String.Format(FeaturesResources._0_Keyword, "interface")}
@@ -75,10 +77,10 @@ class C
         End Function
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSubstringOfInsertedText(completion As Completions)
-            Using state = CreateCSharpSnippetExpansionNoteTestState(completion, _markup, "interfac")
+        Public Async Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSubstringOfInsertedText(completionImplementation As CompletionImplementation)
+            Using state = CreateCSharpSnippetExpansionNoteTestState(completionImplementation, _markup, "interfac")
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
@@ -88,10 +90,10 @@ class C
         End Sub
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSuperstringOfInsertedText(completion As Completions)
-            Using state = CreateCSharpSnippetExpansionNoteTestState(completion, _markup, "interfaces")
+        Public Async Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSuperstringOfInsertedText(completionImplementation As CompletionImplementation)
+            Using state = CreateCSharpSnippetExpansionNoteTestState(completionImplementation, _markup, "interfaces")
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources._0_Keyword, "interface"))
@@ -99,10 +101,10 @@ class C
         End Sub
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Sub SnippetExpansionNoteAddedToDescription_DisplayTextDoesNotMatchShortcutButInsertionTextDoes(completion As Completions)
-            Using state = CreateCSharpSnippetExpansionNoteTestState(completion, _markup, "InsertionText")
+        Public Async Sub SnippetExpansionNoteAddedToDescription_DisplayTextDoesNotMatchShortcutButInsertionTextDoes(completionImplementation As CompletionImplementation)
+            Using state = CreateCSharpSnippetExpansionNoteTestState(completionImplementation, _markup, "InsertionText")
 
                 state.SendTypeChars("DisplayTex")
                 Await state.AssertCompletionSession()
@@ -110,9 +112,9 @@ class C
             End Using
         End Sub
 
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function SnippetExpansionNoteNotAddedToDescription_Interactive(completion As Completions) As Task
+        Public Async Function SnippetExpansionNoteNotAddedToDescription_Interactive(completionImplementation As CompletionImplementation) As Task
             Dim workspaceXml =
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">
@@ -121,7 +123,7 @@ class C
                 </Workspace>
 
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
-                    completion,
+                    completionImplementation,
                 workspaceXml,
                 New CompletionProvider() {New MockCompletionProvider()},
                 New List(Of Type) From {GetType(TestCSharpSnippetInfoService)},
@@ -140,9 +142,9 @@ class C
             End Using
         End Function
 
-        Private Function CreateCSharpSnippetExpansionNoteTestState(completion As Completions, xElement As XElement, ParamArray snippetShortcuts As String()) As ITestState
+        Private Function CreateCSharpSnippetExpansionNoteTestState(completionImplementation As CompletionImplementation, xElement As XElement, ParamArray snippetShortcuts As String()) As ITestState
             Dim state = TestStateFactory.CreateCSharpTestState(
-                completion,
+                completionImplementation,
                 xElement,
                 New CompletionProvider() {New MockCompletionProvider()},
                 extraExportedTypes:=New List(Of Type) From {GetType(TestCSharpSnippetInfoService)})

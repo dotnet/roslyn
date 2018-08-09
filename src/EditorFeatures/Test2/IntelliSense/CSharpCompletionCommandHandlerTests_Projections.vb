@@ -7,14 +7,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_Projections
 
-        Private Shared Function GetAllCompletions() As IEnumerable(Of Object())
-            Return TestStateFactory.GetAllCompletions()
-        End Function
+        Public Shared ReadOnly Property AllCompletionImplementations() As IEnumerable(Of Object())
+            Get
+                Return TestStateFactory.GetAllCompletionImplementations()
+            End Get
+        End Property
 
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSimpleWithJustSubjectBuffer(completion As Completions) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completion,
+        Public Async Function TestSimpleWithJustSubjectBuffer(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 using System;
 
@@ -39,10 +41,10 @@ public override void Execute() {
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAfterDot(completion As Completions) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completion,
+        Public Async Function TestAfterDot(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 {|S2:
 class C
@@ -79,10 +81,10 @@ class C
             End Using
         End Function
 
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestInObjectCreationExpression(completion As Completions) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completion,
+        Public Async Function TestInObjectCreationExpression(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 {|S2:
 class C
@@ -117,10 +119,10 @@ class C
         End Function
 
         <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
-        <MemberData(NameOf(GetAllCompletions))>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/24846"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestRegionCompletionCommitFormatting(completion As Completions) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completion,
+        Public Async Function TestRegionCompletionCommitFormatting(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 {|S2:
 class C
