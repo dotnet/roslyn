@@ -20,14 +20,12 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         ImmutableArray<int> SyntaxTokenKinds { get; }
 
         /// <summary>
-        /// This method will be called for all nodes that match the types specified by the SyntaxNodeTypes property.
-        /// Implementations should return null (instead of an empty enumerable) if they have no classifications for the provided node.
+        /// This method will be called for all nodes that match the types specified by the <see cref="SyntaxNodeTypes"/> property.
         /// </summary>
         void AddClassifications(Workspace workspace, SyntaxNode node, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
-        /// This method will be called for all nodes that match the types specified by the SyntaxTokenKinds property.
-        /// Implementations should return null (instead of an empty enumerable) if they have no classifications for the provided token.
+        /// This method will be called for all tokens that match the kinds specified by the <see cref="SyntaxTokenKinds"/> property.
         /// </summary>
         void AddClassifications(Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
     }

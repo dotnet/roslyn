@@ -452,7 +452,7 @@ Block[B0] - Entry
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: lockTaken) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'source1 ?? source2')
-                        ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, Constant: null, IsImplicit) (Syntax: 'source1 ?? source2')
+                        ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'source1 ?? source2')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
@@ -498,7 +498,7 @@ Block[B0] - Entry
             Predecessors (0)
             Statements (0)
             Jump if False (Regular) to Block[B9]
-                ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, Constant: null, IsImplicit) (Syntax: 'source1 ?? source2')
+                ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'source1 ?? source2')
 
             Next (Regular) Block[B8]
         Block[B8] - Block
@@ -674,7 +674,7 @@ Block[B0] - Entry
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: lockTaken) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: 'input1')
-                        ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, Constant: null, IsInvalid, IsImplicit) (Syntax: 'input1')
+                        ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'input1')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
@@ -696,7 +696,7 @@ Block[B0] - Entry
             Predecessors (0)
             Statements (0)
             Jump if False (Regular) to Block[B5]
-                ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, Constant: null, IsInvalid, IsImplicit) (Syntax: 'input1')
+                ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'input1')
 
             Next (Regular) Block[B4]
         Block[B4] - Block
@@ -784,7 +784,7 @@ Block[B0] - Entry
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: lockTaken) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'null')
-                        ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, Constant: null, IsImplicit) (Syntax: 'null')
+                        ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'null')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
@@ -806,7 +806,7 @@ Block[B0] - Entry
             Predecessors (0)
             Statements (0)
             Jump if False (Regular) to Block[B5]
-                ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, Constant: null, IsImplicit) (Syntax: 'null')
+                ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'null')
 
             Next (Regular) Block[B4]
         Block[B4] - Block
@@ -982,7 +982,7 @@ Block[B0] - Entry
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: lockTaken) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'input')
-                        ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, Constant: null, IsImplicit) (Syntax: 'input')
+                        ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'input')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
@@ -1004,7 +1004,7 @@ Block[B0] - Entry
             Predecessors (0)
             Statements (0)
             Jump if False (Regular) to Block[B5]
-                ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, Constant: null, IsImplicit) (Syntax: 'input')
+                ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'input')
 
             Next (Regular) Block[B4]
         Block[B4] - Block

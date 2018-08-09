@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
             else
             {
-                Contract.Assert(outcome.HasFlag(RenameLogMessage.UserActionOutcome.Canceled));
+                Debug.Assert(outcome.HasFlag(RenameLogMessage.UserActionOutcome.Canceled));
                 Logger.Log(FunctionId.Rename_InlineSession_Session, RenameLogMessage.Create(
                     _optionSet,
                     outcome,
