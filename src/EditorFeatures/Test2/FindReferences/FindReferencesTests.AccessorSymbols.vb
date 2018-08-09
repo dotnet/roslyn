@@ -930,6 +930,62 @@ interface IC
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_ExpressionTree1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+using System.Linq.Expressions;
+
+interface I
+{
+    int Prop { {|Definition:$$get|}; set; }
+}
+
+class C
+{
+    void M()
+    {
+        Expression&lt;Func&lt;I,int&gt;&gt; e = i => i.[|Prop|];
+        Expression&lt;Action&lt;I&gt;&gt; e = i => i.Prop = 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_ExpressionTree1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+using System.Linq.Expressions;
+
+interface I
+{
+    int Prop { get; {|Definition:$$set|};}
+}
+
+class C
+{
+    void M()
+    {
+        Expression&lt;Func&lt;I,int&gt;&gt; e = i => i.Prop;
+        Expression&lt;Action&lt;I&gt;&gt; e = i => i.[|Prop|] = 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVBAccessor_Get_Feature1() As Task
             Dim input =
 <Workspace>
