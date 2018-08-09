@@ -519,7 +519,10 @@ class C<T> where T : struct
             comp.VerifyDiagnostics(
                 // (10,8): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     T? F3;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F3").WithLocation(10, 8));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F3").WithLocation(10, 8),
+                // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                //     A() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5));
 
             // [NonNullTypes] missing
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
@@ -527,6 +530,8 @@ class C<T> where T : struct
                 // (10,8): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F3").WithLocation(10, 8));
+
+            // PROTOTYPE(NullableReferenceTypes): Test with [NonNullTypes(Warnings=false)].
         }
 
         // PROTOTYPE(NullableReferenceTypes): Test `where T : unmanaged`.

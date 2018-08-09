@@ -90,7 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
                 var fieldType = field.Type;
-                if (fieldType.IsValueType || fieldType.IsNullable != false)
+                if (fieldType.IsValueType)
+                {
+                    continue;
+                }
+                if (fieldType.IsNullable != false && !fieldType.TypeSymbol.IsUnconstrainedTypeParameter())
                 {
                     continue;
                 }

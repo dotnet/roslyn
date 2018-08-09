@@ -1552,13 +1552,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (source.IsNullable == true && target.IsNullable == true)
+            if (isNullableOnly(source) && isNullableOnly(target))
             {
                 ExactOrBoundsInference(kind, source.AsNotNullableReferenceType(), target.AsNotNullableReferenceType(), ref useSiteDiagnostics);
                 return true;
             }
 
             return false;
+
+            // True if the type is nullable but not an unconstrained type parameter.
+            bool isNullableOnly(TypeSymbolWithAnnotations type) => type.IsNullable == true && !type.TypeSymbol.IsUnconstrainedTypeParameter();
         }
 
         private bool ExactNullableInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
