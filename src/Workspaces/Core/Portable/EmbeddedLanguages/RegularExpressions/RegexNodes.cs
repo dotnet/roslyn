@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return Expression;
-            case 1: return EndOfFileToken;
+                case 0: return Expression;
+                case 1: return EndOfFileToken;
             }
 
             throw new InvalidOperationException();
@@ -381,8 +381,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return this.Expression;
-            case 1: return this.AsteriskToken;
+                case 0: return this.Expression;
+                case 1: return this.AsteriskToken;
             }
 
             throw new InvalidOperationException();
@@ -416,8 +416,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return this.Expression;
-            case 1: return this.PlusToken;
+                case 0: return this.Expression;
+                case 1: return this.PlusToken;
             }
 
             throw new InvalidOperationException();
@@ -451,8 +451,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return this.Expression;
-            case 1: return this.QuestionToken;
+                case 0: return this.Expression;
+                case 1: return this.QuestionToken;
             }
 
             throw new InvalidOperationException();
@@ -489,8 +489,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return this.Quantifier;
-            case 1: return this.QuestionToken;
+                case 0: return this.Quantifier;
+                case 1: return this.QuestionToken;
             }
 
             throw new InvalidOperationException();
@@ -542,10 +542,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return Expression;
-            case 1: return OpenBraceToken;
-            case 2: return FirstNumberToken;
-            case 3: return CloseBraceToken;
+                case 0: return Expression;
+                case 1: return OpenBraceToken;
+                case 2: return FirstNumberToken;
+                case 3: return CloseBraceToken;
             }
 
             throw new InvalidOperationException();
@@ -578,11 +578,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return Expression;
-            case 1: return OpenBraceToken;
-            case 2: return FirstNumberToken;
-            case 3: return CommaToken;
-            case 4: return CloseBraceToken;
+                case 0: return Expression;
+                case 1: return OpenBraceToken;
+                case 2: return FirstNumberToken;
+                case 3: return CommaToken;
+                case 4: return CloseBraceToken;
             }
 
             throw new InvalidOperationException();
@@ -618,12 +618,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return Expression;
-            case 1: return OpenBraceToken;
-            case 2: return FirstNumberToken;
-            case 3: return CommaToken;
-            case 4: return SecondNumberToken;
-            case 5: return CloseBraceToken;
+                case 0: return Expression;
+                case 1: return OpenBraceToken;
+                case 2: return FirstNumberToken;
+                case 3: return CommaToken;
+                case 4: return SecondNumberToken;
+                case 5: return CloseBraceToken;
             }
 
             throw new InvalidOperationException();
@@ -690,9 +690,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return Left;
-            case 1: return BarToken;
-            case 2: return Right;
+                case 0: return Left;
+                case 1: return BarToken;
+                case 2: return Right;
             }
 
             throw new InvalidOperationException();
@@ -740,9 +740,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return Expression;
-            case 2: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return Expression;
+                case 2: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -798,10 +798,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return OptionsToken;
-            case 3: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return OptionsToken;
+                case 3: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -836,12 +836,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return OptionsToken;
-            case 3: return ColonToken;
-            case 4: return Expression;
-            case 5: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return OptionsToken;
+                case 3: return ColonToken;
+                case 4: return Expression;
+                case 5: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -857,8 +857,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     internal sealed class RegexNonCapturingGroupingNode : RegexQuestionGroupingNode
     {
         public RegexNonCapturingGroupingNode(
-            RegexToken openParenToken, RegexToken questionToken, RegexToken colonToken, 
-            RegexExpressionNode expression, RegexToken closeParenToken) 
+            RegexToken openParenToken, RegexToken questionToken, RegexToken colonToken,
+            RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.NonCapturingGrouping, openParenToken, questionToken, closeParenToken)
         {
             Debug.Assert(colonToken.Kind == RegexKind.ColonToken);
@@ -876,11 +876,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return ColonToken;
-            case 3: return Expression;
-            case 4: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return ColonToken;
+                case 3: return Expression;
+                case 4: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -915,11 +915,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return EqualsToken;
-            case 3: return Expression;
-            case 4: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return EqualsToken;
+                case 3: return Expression;
+                case 4: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -954,11 +954,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return ExclamationToken;
-            case 3: return Expression;
-            case 4: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return ExclamationToken;
+                case 3: return Expression;
+                case 4: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     internal sealed class RegexPositiveLookbehindGroupingNode : RegexLookbehindGroupingNode
     {
         public RegexPositiveLookbehindGroupingNode(
-            RegexToken openParenToken, RegexToken questionToken,RegexToken lessThanToken,
+            RegexToken openParenToken, RegexToken questionToken, RegexToken lessThanToken,
             RegexToken equalsToken, RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.PositiveLookbehindGrouping, openParenToken, questionToken, lessThanToken, closeParenToken)
         {
@@ -1007,12 +1007,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return LessThanToken;
-            case 3: return EqualsToken;
-            case 4: return Expression;
-            case 5: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return LessThanToken;
+                case 3: return EqualsToken;
+                case 4: return Expression;
+                case 5: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -1047,12 +1047,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return LessThanToken;
-            case 3: return ExclamationToken;
-            case 4: return Expression;
-            case 5: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return LessThanToken;
+                case 3: return ExclamationToken;
+                case 4: return Expression;
+                case 5: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -1087,11 +1087,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return GreaterThanToken;
-            case 3: return Expression;
-            case 4: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return GreaterThanToken;
+                case 3: return Expression;
+                case 4: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -1107,9 +1107,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     internal sealed class RegexCaptureGroupingNode : RegexQuestionGroupingNode
     {
         public RegexCaptureGroupingNode(
-            RegexToken openParenToken, RegexToken questionToken, RegexToken openToken, 
-            RegexToken captureToken, RegexToken closeToken, 
-            RegexExpressionNode expression, RegexToken closeParenToken) 
+            RegexToken openParenToken, RegexToken questionToken, RegexToken openToken,
+            RegexToken captureToken, RegexToken closeToken,
+            RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.CaptureGrouping, openParenToken, questionToken, closeParenToken)
         {
             Debug.Assert(expression != null);
@@ -1130,13 +1130,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return OpenToken;
-            case 3: return CaptureToken;
-            case 4: return CloseToken;
-            case 5: return Expression;
-            case 6: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return OpenToken;
+                case 3: return CaptureToken;
+                case 4: return CloseToken;
+                case 5: return Expression;
+                case 6: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -1180,15 +1180,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return OpenToken;
-            case 3: return FirstCaptureToken;
-            case 4: return MinusToken;
-            case 5: return SecondCaptureToken;
-            case 6: return CloseToken;
-            case 7: return Expression;
-            case 8: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return OpenToken;
+                case 3: return FirstCaptureToken;
+                case 4: return MinusToken;
+                case 5: return SecondCaptureToken;
+                case 6: return CloseToken;
+                case 7: return Expression;
+                case 8: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -1218,9 +1218,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     internal sealed class RegexConditionalCaptureGroupingNode : RegexConditionalGroupingNode
     {
         public RegexConditionalCaptureGroupingNode(
-            RegexToken openParenToken, RegexToken questionToken, 
+            RegexToken openParenToken, RegexToken questionToken,
             RegexToken innerOpenParenToken, RegexToken captureToken, RegexToken innerCloseParenToken,
-            RegexExpressionNode result, RegexToken closeParenToken) 
+            RegexExpressionNode result, RegexToken closeParenToken)
             : base(RegexKind.ConditionalCaptureGrouping, openParenToken, questionToken, result, closeParenToken)
         {
             Debug.Assert(innerOpenParenToken.Kind == RegexKind.OpenParenToken);
@@ -1240,13 +1240,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return InnerOpenParenToken;
-            case 3: return CaptureToken;
-            case 4: return InnerCloseParenToken;
-            case 5: return Result;
-            case 6: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return InnerOpenParenToken;
+                case 3: return CaptureToken;
+                case 4: return InnerCloseParenToken;
+                case 5: return Result;
+                case 6: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -1279,11 +1279,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return OpenParenToken;
-            case 1: return QuestionToken;
-            case 2: return Grouping;
-            case 3: return Result;
-            case 4: return CloseParenToken;
+                case 0: return OpenParenToken;
+                case 1: return QuestionToken;
+                case 2: return Grouping;
+                case 3: return Result;
+                case 4: return CloseParenToken;
             }
 
             throw new InvalidOperationException();
@@ -1338,8 +1338,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return BackslashToken;
-            case 1: return TypeToken;
+                case 0: return BackslashToken;
+                case 1: return TypeToken;
             }
 
             throw new InvalidOperationException();
@@ -1660,11 +1660,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (index)
             {
-            case 0: return BackslashToken;
-            case 1: return TypeToken;
-            case 2: return OpenBraceToken;
-            case 3: return CategoryToken;
-            case 4: return CloseBraceToken;
+                case 0: return BackslashToken;
+                case 1: return TypeToken;
+                case 2: return OpenBraceToken;
+                case 3: return CategoryToken;
+                case 4: return CloseBraceToken;
             }
 
             throw new InvalidOperationException();
