@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         internal VsENCRebuildableProjectImpl(AbstractProject project)
         {
-            Contract.Requires(project != null);
+            Debug.Assert(project != null);
 
             _vsProject = project;
 
@@ -113,12 +113,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             _moduleMetadataProvider = componentModel.GetService<IDebuggeeModuleMetadataProvider>();
             _encService = _debuggingService.EditAndContinueServiceOpt;
 
-            Contract.Requires(_debugEncNotify != null);
-            Contract.Requires(_encService != null);
-            Contract.Requires(_trackingService != null);
-            Contract.Requires(_diagnosticProvider != null);
-            Contract.Requires(_editorAdaptersFactoryService != null);
-            Contract.Requires(_moduleMetadataProvider != null);
+            Debug.Assert(_debugEncNotify != null);
+            Debug.Assert(_encService != null);
+            Debug.Assert(_trackingService != null);
+            Debug.Assert(_diagnosticProvider != null);
+            Debug.Assert(_editorAdaptersFactoryService != null);
+            Debug.Assert(_moduleMetadataProvider != null);
         }
 
         // called from an edit filter if an edit of a read-only buffer is attempted:
@@ -470,7 +470,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     // If pActiveStatements is null the EnC Manager failed to retrieve the module corresponding 
                     // to the project in the debuggee. We won't include such projects in the edit session.
-                    s_breakStateEnteredProjects.Add(KeyValuePair.Create(_vsProject.Id, state));
+                    s_breakStateEnteredProjects.Add(KeyValuePairUtil.Create(_vsProject.Id, state));
                     s_breakStateProjectCount++;
 
                     // EnC service is global, but the debugger calls this for each project.

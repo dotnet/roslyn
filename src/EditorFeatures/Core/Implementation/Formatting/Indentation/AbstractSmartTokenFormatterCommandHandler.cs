@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             }
 
             // okay, it is an empty line with some whitespaces 
-            Contract.Requires(indentation <= lineInSubjectBuffer.Length);
+            Debug.Assert(indentation <= lineInSubjectBuffer.Length);
 
             var offset = GetOffsetFromIndentation(indentation, view.Options);
             view.TryMoveCaretToAndEnsureVisible(lineInSubjectBuffer.Start.Add(offset));

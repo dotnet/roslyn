@@ -631,7 +631,7 @@
     <value>Do you still want to proceed? it will generate broken code.</value>
   </data>
   <data name="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed" xml:space="preserve">
-    <value>We can fix the error by not making struct "out/ref" parameter(s). 
+    <value>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</value>
   </data>
   <data name="Change_Signature_colon" xml:space="preserve">
@@ -805,5 +805,26 @@ Do you want to proceed?</value>
   </data>
   <data name="Smart_Token_Formatter" xml:space="preserve">
     <value>Smart Token Formatter</value>
+  </data>
+  <data name="Code_cleanup_is_not_configured" xml:space="preserve">
+    <value>Code cleanup is not configured</value>
+  </data>
+  <data name="Format_document_performed_additional_cleanup" xml:space="preserve">
+    <value>Format Document performed additional cleanup</value>
+  </data>
+  <data name="Configure_it_now" xml:space="preserve">
+    <value>Configure it now</value>
+  </data>
+  <data name="Do_not_show_this_message_again" xml:space="preserve">
+    <value>Do not show this message again</value>
+  </data>
+  <data name="Applying_changes" xml:space="preserve">
+    <value>Applying changes</value>
+  </data>
+  <data name="String_Escape_Character" xml:space="preserve">
+    <value>String - Escape Character</value>
+  </data>
+  <data name="Change_configuration" xml:space="preserve">
+    <value>Change configuration</value>
   </data>
 </root>

@@ -9,10 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -620,7 +622,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task ValidateChecksumAsync(Checksum givenSolutionChecksum, Solution solution)
         {
             // have this to avoid error on async
-            await SpecializedTasks.EmptyTask.ConfigureAwait(false);
+            await Task.CompletedTask.ConfigureAwait(false);
 
 #if DEBUG
             var currentSolutionChecksum = await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false);
@@ -630,9 +632,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            Contract.Requires(false, "checksum not same");
+            Debug.Assert(false, "checksum not same");
 
-            var map = solution.GetAssetMap();
+            var map = await solution.GetAssetMapAsync(_cancellationToken).ConfigureAwait(false);
             await RemoveDuplicateChecksumsAsync(givenSolutionChecksum, map).ConfigureAwait(false);
 
             foreach (var kv in map.Where(kv => kv.Value is ChecksumWithChildren).ToList())

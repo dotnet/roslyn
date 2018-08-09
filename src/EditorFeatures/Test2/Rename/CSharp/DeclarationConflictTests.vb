@@ -602,5 +602,36 @@ class C
                 result.AssertLabeledSpansAre("origin", "X", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(18566, "https://github.com/dotnet/roslyn/issues/18566")>
+        Public Sub ParameterInPartialMethodDefinitionConflictingWithLocalInPartialMethodImplementation()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+partial class C
+{
+    partial void M(int {|parameter0:$$x|});
+}
+                        </Document>
+                        <Document>
+partial class C
+{
+    partial void M(int {|parameter1:x|})
+    {
+        int {|local0:y|} = 1;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="y")
+
+                result.AssertLabeledSpansAre("parameter0", "y", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("parameter1", "y", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("local0", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
     End Class
 End Namespace

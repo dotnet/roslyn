@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -173,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Function TryGetSpeculativeSemanticModel(oldSemanticModel As SemanticModel, oldNode As SyntaxNode, newNode As SyntaxNode, <Out> ByRef speculativeModel As SemanticModel) As Boolean Implements ISemanticFactsService.TryGetSpeculativeSemanticModel
-            Contract.Requires(oldNode.Kind = newNode.Kind)
+            Debug.Assert(oldNode.Kind = newNode.Kind)
 
             Dim model = oldSemanticModel
 
@@ -251,6 +252,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     info.CurrentProperty,
                     info.DisposeMethod,
                     info.ElementType)
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Function GetGetAwaiterMethod(model As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFactsService.GetGetAwaiterMethod
+            If node.IsKind(SyntaxKind.AwaitExpression) Then
+                Dim awaitExpression = DirectCast(node, AwaitExpressionSyntax)
+                Dim info = model.GetAwaitExpressionInfo(awaitExpression)
+                Return info.GetAwaiterMethod
             End If
 
             Return Nothing
