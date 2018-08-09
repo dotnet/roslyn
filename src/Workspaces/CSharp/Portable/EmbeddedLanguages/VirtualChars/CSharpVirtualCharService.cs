@@ -3,6 +3,8 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -15,37 +17,51 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
     {
         public static readonly IVirtualCharService Instance = new CSharpVirtualCharService();
 
+        protected override bool IsStringLiteralToken(SyntaxToken token)
+            => token.Kind() == SyntaxKind.StringLiteralToken;
+
         protected override ImmutableArray<VirtualChar> TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
             Debug.Assert(!token.ContainsDiagnostics);
-            if (token.Kind() != SyntaxKind.StringLiteralToken)
+            if (token.Kind() == SyntaxKind.StringLiteralToken)
+            {
+                return token.IsVerbatimStringLiteral()
+                    ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
+                    : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
+            }
+            else if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
+            {
+                var interpolatedString = (InterpolatedStringExpressionSyntax)token.Parent.Parent;
+                return interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken
+                    ? TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true)
+                    : TryConvertStringToVirtualChars(token, "", "", escapeBraces: true);
+            }
+            else
             {
                 return default;
             }
-
-            return token.IsVerbatimStringLiteral()
-                ? TryConvertVerbatimStringToVirtualChars(token)
-                : TryConvertStringToVirtualChars(token);
         }
 
-        private ImmutableArray<VirtualChar> TryConvertVerbatimStringToVirtualChars(SyntaxToken token)
-            => TryConvertSimpleDoubleQuoteString(token, "@\"");
+        private ImmutableArray<VirtualChar> TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
+            => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
-        private ImmutableArray<VirtualChar> TryConvertStringToVirtualChars(SyntaxToken token)
+        private ImmutableArray<VirtualChar> TryConvertStringToVirtualChars(
+            SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
-            const string StartDelimeter = "\"";
-            const string EndDelimeter = "\"";
-
             var tokenText = token.Text;
-            if (!tokenText.StartsWith(StartDelimeter) ||
-                !tokenText.EndsWith(EndDelimeter))
+            if (startDelimiter.Length > 0 && !tokenText.StartsWith(startDelimiter))
+            {
+                Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
+                return default;
+            }
+            if (endDelimiter.Length > 0 && !tokenText.EndsWith(endDelimiter))
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                 return default;
             }
 
-            var startIndexInclusive = StartDelimeter.Length;
-            var endIndexExclusive = tokenText.Length - EndDelimeter.Length;
+            var startIndexInclusive = startDelimiter.Length;
+            var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
             var result = ArrayBuilder<VirtualChar>.GetInstance();
             try
@@ -56,6 +72,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     if (tokenText[index] == '\\')
                     {
                         if (!TryAddEscape(result, tokenText, offset, index))
+                        {
+                            return default;
+                        }
+
+                        index += result.Last().Span.Length;
+                    }
+                    else if (escapeBraces &&
+                             (tokenText[index] == '{' || tokenText[index] == '}'))
+                    {
+                        if (!TryAddBraceEscape(result, tokenText, offset, index))
                         {
                             return default;
                         }

@@ -149,10 +149,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
                                              ByRef asClauseOpt As SimpleAsClauseSyntax,
                                              semanticModel As SemanticModel,
                                              position As Integer)
-            Contract.Requires(type IsNot Nothing)
-            Contract.Requires(parameterListOpt IsNot Nothing)
-            Contract.Requires(asClauseOpt Is Nothing)
-            Contract.Requires(semanticModel IsNot Nothing)
+            Debug.Assert(type IsNot Nothing)
+            Debug.Assert(parameterListOpt IsNot Nothing)
+            Debug.Assert(asClauseOpt Is Nothing)
+            Debug.Assert(semanticModel IsNot Nothing)
 
             Dim typeSyntax = SyntaxFactory.ParseTypeName(type.ToMinimalDisplayString(semanticModel, position))
             asClauseOpt = SyntaxFactory.SimpleAsClause(typeSyntax).NormalizeWhitespace()
@@ -173,9 +173,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
 
         ' Pretty list the function with return type "T" to return "genericTypeName(Of T)"
         Private Sub RewriteFunctionAsClause(genericType As INamedTypeSymbol, ByRef asClauseOpt As SimpleAsClauseSyntax, semanticModel As SemanticModel, position As Integer)
-            Contract.Requires(genericType.IsGenericType)
-            Contract.Requires(asClauseOpt IsNot Nothing AndAlso Not asClauseOpt.IsMissing)
-            Contract.Requires(semanticModel IsNot Nothing)
+            Debug.Assert(genericType.IsGenericType)
+            Debug.Assert(asClauseOpt IsNot Nothing AndAlso Not asClauseOpt.IsMissing)
+            Debug.Assert(semanticModel IsNot Nothing)
 
             ' Move the leading and trailing trivia from the existing typeSyntax node to the new AsClause.
             Dim typeSyntax = asClauseOpt.Type

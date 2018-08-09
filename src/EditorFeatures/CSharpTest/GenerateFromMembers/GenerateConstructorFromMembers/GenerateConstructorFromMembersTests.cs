@@ -137,6 +137,101 @@ class Z
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{[|
+    int a;
+    string b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a, string b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelectionUpToExcludedField()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;[|
+    string b;
+    string c;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    string c;
+
+    public Z(string b, string c{|Navigation:)|}
+    {
+        this.b = b;
+        this.c = c;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelectionUpToMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    void Foo() { }[|
+    int a;
+    string b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    void Foo() { }
+    int a;
+    string b;
+
+    public Z(int a, string b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_SelectionIncludingClassOpeningBrace()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+
+class Z
+[|{
+    int a;
+    string b;|]
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSecondField()
         {
             await TestInRegularAndScriptAsync(
@@ -806,7 +901,7 @@ class Z
         this.b = b ?? throw new ArgumentNullException(nameof(b));
     }
 }",
-chosenSymbols: new string[] { "a", "b" }, 
+chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true);
         }
 
