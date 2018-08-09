@@ -63,6 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
 
+        // When https://github.com/dotnet/roslyn/issues/29173 is addressed, this section
+        // can be removed.  Right now it serves as an easy way to recompile while flipping
+        // between different themes.
 #if dark_theme
         private static readonly Color s_stringEscapeColor = Color.FromRgb(0xff, 0xd6, 0x8f);
 #else
