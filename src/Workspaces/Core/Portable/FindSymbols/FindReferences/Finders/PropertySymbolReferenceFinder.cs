@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.Name == WellKnownMemberNames.CurrentPropertyName;
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
