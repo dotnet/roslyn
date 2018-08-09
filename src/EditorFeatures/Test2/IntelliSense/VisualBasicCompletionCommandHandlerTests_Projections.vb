@@ -8,9 +8,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests_Projections
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSimpleWithJustSubjectBuffer() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        Private Shared Function GetAllCompletions() As IEnumerable(Of Object())
+            Return {New Object() {Completions.OldCompletion}}
+        End Function
+
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSimpleWithJustSubjectBuffer(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                 <Document><![CDATA[
 Option Strict Off
 Option Explicit On
@@ -43,9 +47,9 @@ End Namespace
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAfterDot() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAfterDot(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                 <Document><![CDATA[
 {|S2:
 Class C
@@ -80,9 +84,9 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestInObjectCreationExpression() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInObjectCreationExpression(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                 <Document><![CDATA[
 {|S2:
 Class C

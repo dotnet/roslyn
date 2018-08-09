@@ -8,10 +8,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class VisualBasicSignatureHelpCommandHandlerTests
 
+        Private Shared Function GetAllCompletions() As IEnumerable(Of Object())
+            Return {New Object() {Completions.OldCompletion}}
+        End Function
+
         <WorkItem(544551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestFilterOnNamedParameters1() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestFilterOnNamedParameters1(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                               <Document>
 Class C
     Public Sub M(first As Integer, second As Integer)
@@ -32,25 +36,25 @@ End Class
                 state.SendInvokeSignatureHelp()
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("C.M(third As Integer)")
-                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
 
                 state.SendTypeChars(":=")
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
-                Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(1, state.GetSignatureHelpItems().Count)
 
                 ' Now both items are available again, we're sticking with last selection
                 state.SendBackspace()
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
-                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
             End Using
         End Function
 
         <WorkItem(544551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestFilterOnNamedParameters2() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestFilterOnNamedParameters2(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                               <Document>
 Class C
     Public Sub M(first As Integer, second As Integer)
@@ -71,24 +75,24 @@ End Class
                 state.SendInvokeSignatureHelp()
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("C.M(third As Integer)")
-                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
 
                 state.SendTypeChars(":=")
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
-                Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(1, state.GetSignatureHelpItems().Count)
 
                 state.SendTypeChars("0,")
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
-                Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(1, state.GetSignatureHelpItems().Count)
             End Using
         End Function
 
         <WorkItem(539100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539100"), WorkItem(530081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530081")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestSigHelpShowsOnBackspace() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestSigHelpShowsOnBackspace(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                               <Document>
 Module M
     Sub Method(args As String())
@@ -106,9 +110,9 @@ End Module
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestSigHelpInLinkedFiles() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestSigHelpInLinkedFiles(completion As Completions) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completion,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj" PreprocessorSymbols="Proj1=True">
                         <Document FilePath="C.vb">
@@ -146,9 +150,9 @@ End Class
         End Function
 
         <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestSigHelpNotDismissedAfterQuote() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestSigHelpNotDismissedAfterQuote(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                               <Document><![CDATA[
 Class C
     Sub M()
@@ -169,9 +173,9 @@ End Class
         End Function
 
         <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestSigHelpDismissedAfterComment() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestSigHelpDismissedAfterComment(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                               <Document><![CDATA[
 Class C
     Sub M()
@@ -191,9 +195,9 @@ End Class
         End Function
 
         <WorkItem(1082128, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082128")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestSigHelpNotDismissedAfterSpace() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestSigHelpNotDismissedAfterSpace(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                               <Document><![CDATA[
 Class C
     Sub M(a As String, b As String)
@@ -208,9 +212,9 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestGenericNameSigHelpInTypeParameterListAfterConditionalAccess() As System.Threading.Tasks.Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestGenericNameSigHelpInTypeParameterListAfterConditionalAccess(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                               <Document><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
@@ -228,9 +232,9 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestGenericNameSigHelpInTypeParameterListAfterMultipleConditionalAccess() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestGenericNameSigHelpInTypeParameterListAfterMultipleConditionalAccess(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                               <Document><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
@@ -248,9 +252,9 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestGenericNameSigHelpInTypeParameterListMuchAfterConditionalAccess() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestGenericNameSigHelpInTypeParameterListMuchAfterConditionalAccess(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                               <Document><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
@@ -269,9 +273,9 @@ End Class
         End Function
 
         <WorkItem(5174, "https://github.com/dotnet/roslyn/issues/5174")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function DontShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked() As Task
-            Using state = TestState.CreateVisualBasicTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function DontShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked(completion As Completions) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completion,
                               <Document>
 Class C
     Sub M(i As Integer)

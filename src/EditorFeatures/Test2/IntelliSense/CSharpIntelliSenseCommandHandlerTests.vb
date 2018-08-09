@@ -5,9 +5,14 @@ Imports System.Threading.Tasks
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpIntelliSenseCommandHandlerTests
-        <WpfFact>
-        Public Async Function TestOpenParenDismissesCompletionAndBringsUpSignatureHelp1() As Task
-            Using state = TestState.CreateCSharpTestState(
+
+        Private Shared Function GetAllCompletions() As IEnumerable(Of Object())
+            Return {New Object() {Completions.OldCompletion}}
+        End Function
+
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory>
+        Public Async Function TestOpenParenDismissesCompletionAndBringsUpSignatureHelp1(completion As Completions) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completion,
                               <Document>
 class C
 {
@@ -30,9 +35,9 @@ class C
         End Function
 
         <WorkItem(543913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543913")>
-        <WpfFact>
-        Public Async Function TestEscapeDismissesCompletionFirst() As Task
-            Using state = TestState.CreateCSharpTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory>
+        Public Async Function TestEscapeDismissesCompletionFirst(completion As Completions) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completion,
                               <Document>
 class C
 {
@@ -58,9 +63,9 @@ class C
         End Function
 
         <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
-        <WpfFact>
-        Public Async Function TestCutDismissesCompletion() As Task
-            Using state = TestState.CreateCSharpTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory>
+        Public Async Function TestCutDismissesCompletion(completion As Completions) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completion,
                               <Document>
 class C
 {
@@ -81,9 +86,9 @@ class C
         End Function
 
         <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
-        <WpfFact>
-        Public Async Function TestPasteDismissesCompletion() As Task
-            Using state = TestState.CreateCSharpTestState(
+        <MemberData(NameOf(GetAllCompletions))> <WpfTheory>
+        Public Async Function TestPasteDismissesCompletion(completion As Completions) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completion,
                               <Document>
 class C
 {
