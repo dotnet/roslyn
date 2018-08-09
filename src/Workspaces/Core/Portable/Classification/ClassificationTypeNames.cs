@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string PreprocessorText = "preprocessor text";
         public const string Punctuation = "punctuation";
         public const string VerbatimStringLiteral = "string - verbatim";
+        public const string StringEscapeCharacter = "string - escape character";
 
         public const string ClassName = "class name";
         public const string DelegateName = "delegate name";

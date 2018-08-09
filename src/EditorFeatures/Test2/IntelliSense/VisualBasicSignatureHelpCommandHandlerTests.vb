@@ -39,8 +39,7 @@ End Class
                 Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
                 Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
-                ' Keep the same item selected when the colon is deleted, but now both items are
-                ' available again.
+                ' Now both items are available again, we're sticking with last selection
                 state.SendBackspace()
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")

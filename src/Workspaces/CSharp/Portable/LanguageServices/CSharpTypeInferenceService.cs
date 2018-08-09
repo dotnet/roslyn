@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageService(typeof(ITypeInferenceService), LanguageNames.CSharp), Shared]
     internal partial class CSharpTypeInferenceService : AbstractTypeInferenceService<ExpressionSyntax>
     {
+        public static readonly CSharpTypeInferenceService Instance = new CSharpTypeInferenceService();
+
         protected override AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             return new TypeInferrer(semanticModel, cancellationToken);

@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState AddProjectReference(ProjectReference projectReference)
         {
-            Contract.Requires(!this.ProjectReferences.Contains(projectReference));
+            Debug.Assert(!this.ProjectReferences.Contains(projectReference));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithProjectReferences(this.ProjectReferences.ToImmutableArray().Add(projectReference)).WithVersion(this.Version.GetNewerVersion()));
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState RemoveProjectReference(ProjectReference projectReference)
         {
-            Contract.Requires(this.ProjectReferences.Contains(projectReference));
+            Debug.Assert(this.ProjectReferences.Contains(projectReference));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithProjectReferences(this.ProjectReferences.ToImmutableArray().Remove(projectReference)).WithVersion(this.Version.GetNewerVersion()));
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis
             var newProjectRefs = this.ProjectReferences;
             foreach (var projectReference in projectReferences)
             {
-                Contract.Requires(!newProjectRefs.Contains(projectReference));
+                Debug.Assert(!newProjectRefs.Contains(projectReference));
                 newProjectRefs = newProjectRefs.ToImmutableArray().Add(projectReference);
             }
 
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState AddMetadataReference(MetadataReference toMetadata)
         {
-            Contract.Requires(!this.MetadataReferences.Contains(toMetadata));
+            Debug.Assert(!this.MetadataReferences.Contains(toMetadata));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithMetadataReferences(this.MetadataReferences.ToImmutableArray().Add(toMetadata)).WithVersion(this.Version.GetNewerVersion()));
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState RemoveMetadataReference(MetadataReference toMetadata)
         {
-            Contract.Requires(this.MetadataReferences.Contains(toMetadata));
+            Debug.Assert(this.MetadataReferences.Contains(toMetadata));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithMetadataReferences(this.MetadataReferences.ToImmutableArray().Remove(toMetadata)).WithVersion(this.Version.GetNewerVersion()));
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis
             var newMetaRefs = this.MetadataReferences;
             foreach (var metadataReference in metadataReferences)
             {
-                Contract.Requires(!newMetaRefs.Contains(metadataReference));
+                Debug.Assert(!newMetaRefs.Contains(metadataReference));
                 newMetaRefs = newMetaRefs.ToImmutableArray().Add(metadataReference);
             }
 
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState AddAnalyzerReference(AnalyzerReference analyzerReference)
         {
-            Contract.Requires(!this.AnalyzerReferences.Contains(analyzerReference));
+            Debug.Assert(!this.AnalyzerReferences.Contains(analyzerReference));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithAnalyzerReferences(this.AnalyzerReferences.ToImmutableArray().Add(analyzerReference)).WithVersion(this.Version.GetNewerVersion()));
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState RemoveAnalyzerReference(AnalyzerReference analyzerReference)
         {
-            Contract.Requires(this.AnalyzerReferences.Contains(analyzerReference));
+            Debug.Assert(this.AnalyzerReferences.Contains(analyzerReference));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithAnalyzerReferences(this.AnalyzerReferences.ToImmutableArray().Remove(analyzerReference)).WithVersion(this.Version.GetNewerVersion()));
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis
             var newAnalyzerReferences = this.AnalyzerReferences;
             foreach (var analyzerReference in analyzerReferences)
             {
-                Contract.Requires(!newAnalyzerReferences.Contains(analyzerReference));
+                Debug.Assert(!newAnalyzerReferences.Contains(analyzerReference));
                 newAnalyzerReferences = newAnalyzerReferences.ToImmutableArray().Add(analyzerReference);
             }
 
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState AddDocument(DocumentState document)
         {
-            Contract.Requires(!this.DocumentStates.ContainsKey(document.Id));
+            Debug.Assert(!this.DocumentStates.ContainsKey(document.Id));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState AddAdditionalDocument(TextDocumentState document)
         {
-            Contract.Requires(!this.AdditionalDocumentStates.ContainsKey(document.Id));
+            Debug.Assert(!this.AdditionalDocumentStates.ContainsKey(document.Id));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState RemoveDocument(DocumentId documentId)
         {
-            Contract.Requires(this.DocumentStates.ContainsKey(documentId));
+            Debug.Assert(this.DocumentStates.ContainsKey(documentId));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState RemoveAdditionalDocument(DocumentId documentId)
         {
-            Contract.Requires(this.AdditionalDocumentStates.ContainsKey(documentId));
+            Debug.Assert(this.AdditionalDocumentStates.ContainsKey(documentId));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState UpdateDocument(DocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
         {
-            Contract.Requires(this.ContainsDocument(newDocument.Id));
+            Debug.Assert(this.ContainsDocument(newDocument.Id));
 
             var oldDocument = this.GetDocumentState(newDocument.Id);
             if (oldDocument == newDocument)
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState UpdateAdditionalDocument(TextDocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
         {
-            Contract.Requires(this.ContainsAdditionalDocument(newDocument.Id));
+            Debug.Assert(this.ContainsAdditionalDocument(newDocument.Id));
 
             var oldDocument = this.GetAdditionalDocumentState(newDocument.Id);
             if (oldDocument == newDocument)

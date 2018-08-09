@@ -12,9 +12,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 
         Public Shared ReadOnly Instance As IVirtualCharService = New VisualBasicVirtualCharService()
 
+        Protected Overrides Function IsStringLiteralToken(token As SyntaxToken) As Boolean
+            Return token.Kind() = SyntaxKind.StringLiteralToken
+        End Function
+
         Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As ImmutableArray(Of VirtualChar)
             Debug.Assert(Not token.ContainsDiagnostics)
-            Return TryConvertSimpleDoubleQuoteString(token, """")
+
+            If token.Kind() = SyntaxKind.StringLiteralToken Then
+                Return TryConvertSimpleDoubleQuoteString(token, """", """", escapeBraces:=False)
+            ElseIf token.Kind() = SyntaxKind.InterpolatedStringTextToken Then
+                Return TryConvertSimpleDoubleQuoteString(token, "", "", escapeBraces:=True)
+            End If
+
+            Return Nothing
         End Function
     End Class
 End Namespace

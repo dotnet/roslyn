@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         internal VsENCRebuildableProjectImpl(AbstractProject project)
         {
-            Contract.Requires(project != null);
+            Debug.Assert(project != null);
 
             _vsProject = project;
 
@@ -113,12 +113,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             _moduleMetadataProvider = componentModel.GetService<IDebuggeeModuleMetadataProvider>();
             _encService = _debuggingService.EditAndContinueServiceOpt;
 
-            Contract.Requires(_debugEncNotify != null);
-            Contract.Requires(_encService != null);
-            Contract.Requires(_trackingService != null);
-            Contract.Requires(_diagnosticProvider != null);
-            Contract.Requires(_editorAdaptersFactoryService != null);
-            Contract.Requires(_moduleMetadataProvider != null);
+            Debug.Assert(_debugEncNotify != null);
+            Debug.Assert(_encService != null);
+            Debug.Assert(_trackingService != null);
+            Debug.Assert(_diagnosticProvider != null);
+            Debug.Assert(_editorAdaptersFactoryService != null);
+            Debug.Assert(_moduleMetadataProvider != null);
         }
 
         // called from an edit filter if an edit of a read-only buffer is attempted:

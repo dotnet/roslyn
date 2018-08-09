@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
         Private Shared Sub TransferTrivia(Of TSyntaxNode As SyntaxNode)(
             originalList As IList(Of TSyntaxNode),
             finalList As IList(Of TSyntaxNode))
-            Contract.Requires(originalList.Count = finalList.Count)
+            Debug.Assert(originalList.Count = finalList.Count)
 
             If originalList.Count >= 2 Then
                 ' Ok, we wanted to reorder the list.  But we're definitely not done right now. While
