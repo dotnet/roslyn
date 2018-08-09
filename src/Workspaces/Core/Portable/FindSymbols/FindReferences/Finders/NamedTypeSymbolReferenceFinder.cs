@@ -110,17 +110,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             var result = ArrayBuilder<FinderLocation>.GetInstance();
-            foreach (var reference in namedTypeReferences)
+            foreach (var finderLocation in namedTypeReferences)
             {
-                if (Contains(constructorReferences, reference))
+                if (Contains(constructorReferences, finderLocation))
                 {
-                    var localReference = reference;
-                    localReference.Location.IsDuplicateReferenceLocation = true;
-                    result.Add(localReference);
+                    var location = finderLocation.Location;
+                    location.IsDuplicateReferenceLocation = true;
+                    result.Add(finderLocation);
                 }
                 else
                 {
-                    result.Add(reference);
+                    result.Add(finderLocation);
                 }
             }
 
