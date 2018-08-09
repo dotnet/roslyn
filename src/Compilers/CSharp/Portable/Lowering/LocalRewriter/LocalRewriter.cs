@@ -234,13 +234,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sawLocalFunctions = true;
             CheckRefReadOnlySymbols(node.Symbol);
 
-            bool hasUnmanagedConstraint = node.Symbol.TypeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint);
-            if (hasUnmanagedConstraint)
+            var typeParameters = node.Symbol.TypeParameters;
+            if (typeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
             }
 
-            if (hasConstraintsWithNullableReferenceTypes(node))
+            bool hasConstraintsWithNullableReferenceTypes = typeParameters.Any(
+               typeParameter => typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
+                   typeConstraint => typeConstraint.ContainsNullableReferenceTypes()));
+            if (hasConstraintsWithNullableReferenceTypes)
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
             }
@@ -254,13 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
-            }
-
-            bool hasConstraintsWithNullableReferenceTypes(BoundLocalFunctionStatement localFunction)
-            {
-                return localFunction.Symbol.TypeParameters.Any(
-                   typeParameter => typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
-                       typeConstraint => typeConstraint.ContainsNullableReferenceTypes()));
             }
         }
 
