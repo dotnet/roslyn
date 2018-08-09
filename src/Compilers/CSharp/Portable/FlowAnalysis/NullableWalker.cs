@@ -1834,6 +1834,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
         {
             var result = base.VisitConditionalReceiver(node);
+            // PROTOTYPE(NullableReferenceTypes): ConditionalReceiver does not
+            // have a result type. Should this be moved to ConditionalAccess?
             _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false, treatUnconstrainedTypeParameterAsNullable: false);
             return result;
         }
