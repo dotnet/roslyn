@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Xunit;
 
@@ -11,20 +13,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
     public class CSharpVirtualCharServiceTests
     {
         private const string _statementPrefix = "var v = ";
-        
-        private SyntaxToken GetStringToken(string text)
+
+        private SyntaxToken GetStringToken(string text, bool allowFailure)
         {
             var statement = _statementPrefix + text;
-            var parsedStatement = SyntaxFactory.ParseStatement(statement);
-            var token = parsedStatement.DescendantTokens().ToArray()[3];
-            Assert.Equal(token.Kind(), SyntaxKind.StringLiteralToken);
+            var parsedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(statement);
+            var expression = parsedStatement.Declaration.Variables[0].Initializer.Value;
 
-            return token;
+            if (expression is LiteralExpressionSyntax literal)
+            {
+                return literal.Token;
+            }
+            else if (expression is InterpolatedStringExpressionSyntax interpolation)
+            {
+                return ((InterpolatedStringTextSyntax)interpolation.Contents[0]).TextToken;
+            }
+            else if (allowFailure)
+            {
+                return default;
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
 
         private void Test(string stringText, string expected)
         {
-            var token = GetStringToken(stringText);
+            var token = GetStringToken(stringText, allowFailure: false);
             var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             var actual = ConvertToString(virtualChars);
             Assert.Equal(expected, actual);
@@ -32,7 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
         private void TestFailure(string stringText)
         {
-            var token = GetStringToken(stringText);
+            var token = GetStringToken(stringText, allowFailure: true);
+            if (token == default)
+            {
+                return;
+            }
+
             var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             Assert.True(virtualChars.IsDefault);
         }
@@ -53,6 +74,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         public void TestSimpleString()
         {
             Test("\"a\"", "['a',[1,2]]");
+        }
+
+        [Fact]
+        public void TestBracesInSimpleString()
+        {
+            Test("\"{{\"", "['{',[1,2]]['{',[2,3]]");
+        }
+
+        [Fact]
+        public void TestBracesInInterpolatedSimpleString()
+        {
+            Test("$\"{{\"", "['{',[2,4]]");
+        }
+
+        [Fact]
+        public void TestBracesInInterpolatedVerbatimSimpleString()
+        {
+            Test("$@\"{{\"", "['{',[3,5]]");
+        }
+
+        [Fact]
+        public void TestReverseInterpolatedVerbatimString()
+        {
+            // This will need to be fixed once @$ strings come online.
+            // This is tracked with https://github.com/dotnet/roslyn/issues/29172
+            var token = GetStringToken("@$\"{{\"", allowFailure: true);
+            Assert.True(token == default);
+
+            TestFailure("@$\"{{\"");
+        }
+
+        [Fact]
+        public void TestEscapeInInterpolatedSimpleString()
+        {
+            Test("$\"\\n\"", @"['\u000A',[2,4]]");
+        }
+
+        [Fact]
+        public void TestEscapeInInterpolatedVerbatimSimpleString()
+        {
+            Test("$@\"\\n\"", @"['\u005C',[3,4]]['n',[4,5]]");
         }
 
         [Fact]
@@ -184,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         [Fact]
         public void TestValidButUnsupportedLongEscape1()
         {
-            var token = GetStringToken(@"""\U00010000""");
+            var token = GetStringToken(@"""\U00010000""", allowFailure: false);
             Assert.False(token.ContainsDiagnostics);
             TestFailure(@"""\U00010000""");
         }
@@ -202,6 +264,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             => $"[{ConvertToString(vc.Char)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
 
         private string ConvertToString(char c)
-            => char.IsLetterOrDigit(c) && c < 127 ? $"'{c}'" : $"'\\u{((int)c).ToString("X4")}'";
+            => PrintAsUnicodeEscape(c) ? $"'\\u{((int)c).ToString("X4")}'" : $"'{c}'";
+
+        private static bool PrintAsUnicodeEscape(char c)
+        {
+            if (char.IsLetterOrDigit(c) && c < 127)
+            {
+                return false;
+            }
+
+            if (c == '{' || c == '}')
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }
