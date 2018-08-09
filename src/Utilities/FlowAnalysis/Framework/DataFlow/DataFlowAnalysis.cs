@@ -57,12 +57,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var ordinalToBlockMap = new Dictionary<int, BasicBlock>();
             var finallyBlockSuccessorsMap = new Dictionary<int, List<BranchWithInfo>>();
             var catchBlockInputDataMap = new Dictionary<ControlFlowRegion, TAnalysisData>();
+            var inputDataFromInfeasibleBranchesMap = new Dictionary<int, TAnalysisData>();
+            var unreachableBlocks = new HashSet<int>();
 
             // Add each basic block to the result.
             foreach (var block in cfg.Blocks)
             {
                 resultBuilder.Add(block);
                 ordinalToBlockMap.Add(block.Ordinal, block);
+                if (!block.IsReachable)
+                {
+                    unreachableBlocks.Add(block.Ordinal);
+                }
             }
 
             var worklist = new Queue<BasicBlock>();
@@ -78,6 +84,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             while (worklist.Count > 0 || pendingBlocksNeedingAtLeastOnePass.Count > 0)
             {
+                updateUnreachableBlocks();
+
                 // Get the next block to process from the worklist.
                 // If worklist is empty, get any one of the pendingBlocksNeedingAtLeastOnePass, which must be unreachable from Entry block.
                 var block = worklist.Count > 0 ? worklist.Dequeue() : pendingBlocksNeedingAtLeastOnePass.ElementAt(0);
@@ -89,6 +97,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
 
                 var needsAtLeastOnePass = pendingBlocksNeedingAtLeastOnePass.Remove(block);
+                var isUnreachableBlock = unreachableBlocks.Contains(block.Ordinal);
 
                 // Get the input data for the block.
                 var input = GetInput(resultBuilder[block]);
@@ -96,19 +105,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     Debug.Assert(needsAtLeastOnePass);
 
-                    // For catch and filter regions, we track the initial input data in the catchBlockInputDataMap.
-                    ControlFlowRegion enclosingTryAndCatchRegion = GetEnclosingTryAndCatchRegionIfStartsHandler(block);
-                    if (enclosingTryAndCatchRegion != null)
+                    if (isUnreachableBlock &&
+                        inputDataFromInfeasibleBranchesMap.TryGetValue(block.Ordinal, out var currentInfeasibleData))
                     {
-                        Debug.Assert(enclosingTryAndCatchRegion.Kind == ControlFlowRegionKind.TryAndCatch);
-                        Debug.Assert(block.EnclosingRegion.Kind == ControlFlowRegionKind.Catch || block.EnclosingRegion.Kind == ControlFlowRegionKind.Filter);
-                        Debug.Assert(block.EnclosingRegion.FirstBlockOrdinal == block.Ordinal);
-                        input = catchBlockInputDataMap[enclosingTryAndCatchRegion];
+                        // Block is unreachable due to predicate analysis.
+                        // Initialize the input from predecessors to avoid false reports in unreachable code.
+                        input = currentInfeasibleData;
+                        inputDataFromInfeasibleBranchesMap.Remove(block.Ordinal);
                     }
                     else
                     {
-                        input = AnalysisDomain.Bottom;
+                        // For catch and filter regions, we track the initial input data in the catchBlockInputDataMap.
+                        ControlFlowRegion enclosingTryAndCatchRegion = GetEnclosingTryAndCatchRegionIfStartsHandler(block);
+                        if (enclosingTryAndCatchRegion != null)
+                        {
+                            Debug.Assert(enclosingTryAndCatchRegion.Kind == ControlFlowRegionKind.TryAndCatch);
+                            Debug.Assert(block.EnclosingRegion.Kind == ControlFlowRegionKind.Catch || block.EnclosingRegion.Kind == ControlFlowRegionKind.Filter);
+                            Debug.Assert(block.EnclosingRegion.FirstBlockOrdinal == block.Ordinal);
+                            input = catchBlockInputDataMap[enclosingTryAndCatchRegion];
+                        }
                     }
+
+                    input = input ?? AnalysisDomain.Bottom;
 
                     UpdateInput(resultBuilder, block, input);
                 }
@@ -165,7 +183,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     //                                    Currently, these blocks have no branch coming out from it.
 
                     // Flow the current analysis data through the branch.
-                    var newSuccessorInput = OperationVisitor.FlowBranch(block, successorWithAdjustedBranch.successorWithBranch, AnalysisDomain.Clone(output));
+                    (TAnalysisData newSuccessorInput, bool isFeasibleBranch) = OperationVisitor.FlowBranch(block, successorWithAdjustedBranch.successorWithBranch, AnalysisDomain.Clone(output));
+
                     if (successorWithAdjustedBranch.preadjustSuccessorWithBranch != null)
                     {
                         UpdateFinallySuccessorsAndCatchInput(successorWithAdjustedBranch.preadjustSuccessorWithBranch, newSuccessorInput);
@@ -182,10 +201,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     //       Below invocation explicitly drops such data from destination input.
                     newSuccessorInput = OperationVisitor.OnLeavingRegions(successorWithAdjustedBranch.successorWithBranch.LeavingRegions, block, newSuccessorInput);
 
+                    var isBackEdge = block.Ordinal >= successorBlockOpt.Ordinal;
+                    if (isUnreachableBlock && !unreachableBlocks.Contains(successorBlockOpt.Ordinal))
+                    {
+                        // Skip processing successor input for branch from an unreachable block to a reachable block.
+                        continue;
+                    }
+                    else if (!isFeasibleBranch)
+                    {
+                        // Skip processing the successor input for conditional branch that can never be taken.
+                        if (inputDataFromInfeasibleBranchesMap.TryGetValue(successorBlockOpt.Ordinal, out TAnalysisData currentInfeasibleData))
+                        {
+                            newSuccessorInput = OperationVisitor.MergeAnalysisData(currentInfeasibleData, newSuccessorInput, isBackEdge);
+                        }
+
+                        inputDataFromInfeasibleBranchesMap[successorBlockOpt.Ordinal] = newSuccessorInput;
+                        continue;
+                    }
+
                     // Get the current input data for the successor block, and check if it changes after merging the new input data.
                     var currentSuccessorInput = GetInput(resultBuilder[successorBlockOpt]);
                     var mergedSuccessorInput = currentSuccessorInput != null ?
-                        AnalysisDomain.Merge(currentSuccessorInput, newSuccessorInput) :
+                        OperationVisitor.MergeAnalysisData(currentSuccessorInput, newSuccessorInput, isBackEdge) :
                         newSuccessorInput;
 
                     if (currentSuccessorInput != null)
@@ -220,6 +257,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return resultBuilder.ToResult(ToResult, OperationVisitor.GetStateMap(),
                 OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetMergedDataForUnhandledThrowOperations(),
                 cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
+
+            void updateUnreachableBlocks()
+            {
+                if (worklist.Count == 0)
+                {
+                    foreach (var block in pendingBlocksNeedingAtLeastOnePass)
+                    {
+                        unreachableBlocks.Add(block.Ordinal);
+                    }
+                }
+            }
 
             void MergeIntoCatchInputData(ControlFlowRegion tryAndCatchRegion, TAnalysisData dataToMerge)
             {
