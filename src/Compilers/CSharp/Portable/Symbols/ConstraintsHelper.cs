@@ -412,6 +412,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     containingSymbol.CheckConstraintTypeVisibility(syntax.Location, constraintType, diagnostics);
                     constraintTypeBuilder.Add(constraintType);
                 }
+
+                if (constraintType.ContainsNullableReferenceTypes())
+                {
+                    bool onLocalFunction = containingSymbol.Kind == SymbolKind.Method && ((MethodSymbol)containingSymbol).MethodKind == MethodKind.LocalFunction;
+                    containingSymbol.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, syntax.Location, modifyCompilation: !onLocalFunction);
+                    if (!onLocalFunction)
+                    {
+                        containingSymbol.ReportMissingNonNullTypesContextForAnnotation(diagnostics, syntax.Location);
+                    }
+                }
             }
             if (constraintTypeBuilder.Count < n)
             {

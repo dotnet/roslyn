@@ -264,6 +264,9 @@ class C<T> where T : class
                 // (35,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     delegate string? MyDelegate(C<string?> x); // warn 18 and 19
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "C<string?> x").WithLocation(35, 33),
+                // (38,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     class D<T2> where T2 : T? { } // warn 22
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(38, 28),
                 // (39,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     class D2 : C<string?> { } // warn 23
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "D2").WithLocation(39, 11),
@@ -306,9 +309,7 @@ class C<T> where T : class
             };
 
             // PROTOTYPE(NullableReferenceTypes): are annotations on events meaningful/allowed?
-            // PROTOTYPE(NullableReferenceTypes): missing warning 23
             // PROTOTYPE(NullableReferenceTypes): locations aren't great
-            // PROTOTYPE(NullableReferenceTypes): we need to warn on misuse of annotation every place a type could appear (not just in executable code)
 
             var c = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             c.VerifyDiagnostics(expectedDiagnostics);
@@ -3135,13 +3136,13 @@ public struct C<T, NT>
 [NonNullTypes(false)]
 public struct D<T, NT>
     where T : List<S>
-    where NT : List<S?>
+    where NT : List<S?> // warn 3
 {
     public void M(T t, NT nt)
     {
         t.Item /*T:S*/ .ToString();
         t.Item = null;
-        nt.Item /*T:S?*/ .ToString(); // warn 3
+        nt.Item /*T:S?*/ .ToString(); // warn 4
         nt.Item = null;
     }
 }
@@ -3150,8 +3151,11 @@ public struct D<T, NT>
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
+                // (23,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     where NT : List<S?> // warn 3
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "List<S?>").WithLocation(23, 16),
                 // (29,9): warning CS8602: Possible dereference of a null reference.
-                //         nt.Item /*T:S?*/ .ToString(); // warn 3
+                //         nt.Item /*T:S?*/ .ToString(); // warn 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "nt.Item").WithLocation(29, 9),
                 // (14,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         t.Item = null; // warn 1
@@ -38194,7 +38198,14 @@ public class A2<T> { }
 [NonNullTypes(false)] public class B1<T, U> where T : A1 where U : A1? { }
 [NonNullTypes(false)] public class B2<T, U> where T : A2<object> where U : A2<object?> { }";
             var comp0 = CreateCompilation(new[] { source0, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            comp0.VerifyDiagnostics();
+            comp0.VerifyDiagnostics(
+                // (4,68): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // [NonNullTypes(false)] public class B1<T, U> where T : A1 where U : A1? { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "A1?").WithLocation(4, 68),
+                // (5,76): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // [NonNullTypes(false)] public class B2<T, U> where T : A2<object> where U : A2<object?> { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "A2<object?>").WithLocation(5, 76)
+                );
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -38235,7 +38246,14 @@ public abstract class A<T> where T : class
     [NonNullTypes(true)] public abstract void F4<U>() where U : T?, I<T?>;
 }";
             var comp0 = CreateCompilation(new[] { source0, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            comp0.VerifyDiagnostics();
+            comp0.VerifyDiagnostics(
+                // (6,66): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(6, 66),
+                // (6,70): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "I<T?>").WithLocation(6, 70)
+                );
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -38487,22 +38505,25 @@ class D
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (4,23): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // class B1<T> where T : A? { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "A?").WithLocation(4, 23),
                 // (18,8): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
                 //     B4<A?> F9; // 5 and 6
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A?").WithArguments("B4<T>", "A", "T", "A?").WithLocation(18, 8),
-                // (12,12): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                // (12,12): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B1<A?> F3; // 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F3").WithLocation(12, 12),
-                // (14,12): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                // (14,12): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B2<A?> F5; // 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F5").WithLocation(14, 12),
-                // (16,12): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                // (16,12): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B3<A?> F7; // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F7").WithLocation(16, 12),
-                // (18,12): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                // (18,12): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B4<A?> F9; // 5 and 6
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F9").WithLocation(18, 12),
-                // (10,12): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                // (10,12): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B0<A?> F1; // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F1").WithLocation(10, 12),
                 // (32,8): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
@@ -38558,22 +38579,22 @@ class D
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (18,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
-                //     B4<A<object?>> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(18, 8),
-                // (12,20): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                // (4,23): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // class B1<T> where T : A<object?> { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "A<object?>").WithLocation(4, 23),
+                // (12,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B1<A<object?>> F3; // 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F3").WithLocation(12, 20),
-                // (14,20): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                // (14,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B2<A<object?>> F5; // 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F5").WithLocation(14, 20),
-                // (16,20): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                // (16,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B3<A<object?>> F7; // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F7").WithLocation(16, 20),
-                // (18,20): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                // (18,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B4<A<object?>> F9; // 5 and 6
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F9").WithLocation(18, 20),
-                // (10,20): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
+                // (10,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B0<A<object?>> F1; // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F1").WithLocation(10, 20),
                 // (27,8): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B1<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
@@ -38584,7 +38605,10 @@ class D
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B3<T>", "A<object?>", "T", "A<object>").WithLocation(31, 8),
                 // (32,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
                 //     B4<A<object?>> G9; // 9
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(32, 8)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(32, 8),
+                // (18,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
+                //     B4<A<object?>> F9; // 5 and 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(18, 8)
                 );
         }
 
@@ -38602,19 +38626,26 @@ public class A2<T, U>
     where U : class, T?
 {
 }";
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
+            var comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
             var source =
 @"using System.Runtime.CompilerServices;
-class B1<T> where T : A1<T, T?> { }
-class B2<T> where T : A2<T?, T> { }
+class B1<T> where T : A1<T, T?> { } // 1
+class B2<T> where T : A2<T?, T> { } // 2
 [NonNullTypes] class B3<T> where T : A1<T, T?> { }
 [NonNullTypes] class B4<T> where T : A2<T?, T> { }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Should report warnings for each.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,23): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // class B1<T> where T : A1<T, T?> { } // 1
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "A1<T, T?>").WithLocation(2, 23),
+                // (3,23): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // class B2<T> where T : A2<T?, T> { } // 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "A2<T?, T>").WithLocation(3, 23)
+                );
         }
 
         // Boxing conversion.

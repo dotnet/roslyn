@@ -273,6 +273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool? NonNullTypes => ContainingSymbol.NonNullTypes;
+
         private void CheckUnmanagedConstraint(DiagnosticBag diagnostics)
         {
             if (this.HasUnmanagedTypeConstraint)
