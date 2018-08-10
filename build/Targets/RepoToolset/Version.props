@@ -18,6 +18,11 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- TODO: Remove. OfficialBuildId should be set directly by the build definition  -->
+    <OfficialBuildId Condition="'$(OfficialBuild)' == 'true'">$(BUILD_BUILDNUMBER)</OfficialBuildId>
+  </PropertyGroup>
+
   <Choose>
     <When Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">
       <PropertyGroup>
@@ -45,7 +50,7 @@
     
         <VersionSuffixDateStamp>$([MSBuild]::Subtract($([System.Convert]::ToInt32($(_BuildNumberFiveDigitDateStamp))), $([MSBuild]::Multiply($(_BuildNumberFiveDigitDateStampYearsToOffset), 8800))))</VersionSuffixDateStamp>
         <VersionSuffixBuildOfTheDay>$(_BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(1))))</VersionSuffixBuildOfTheDay>
-        <VersionSuffixBuildOfTheDayPadded>$(_BuildNumberBuildOfTheDay.PadLeft($([System.Convert]::ToInt32(2)), $([System.Convert]::ToChar(`0`))))</VersionSuffixBuildOfTheDayPadded>
+        <VersionSuffixBuildOfTheDayPadded>$(VersionSuffixBuildOfTheDay.PadLeft($([System.Convert]::ToInt32(2)), $([System.Convert]::ToChar(`0`))))</VersionSuffixBuildOfTheDayPadded>
 
         <_BuildNumberSuffix Condition="'$(SemanticVersioningV1)' != 'true'">.$(VersionSuffixDateStamp).$(VersionSuffixBuildOfTheDay)</_BuildNumberSuffix>
         <_BuildNumberSuffix Condition="'$(SemanticVersioningV1)' == 'true'">-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_BuildNumberSuffix>

@@ -2555,5 +2555,77 @@ class X
                 TypeParameter("T"),
                 Keyword("unmanaged"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape1()
+        {
+            await TestInMethodAsync(@"var goo = ""goo\r\nbar"";",
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape2()
+        {
+            await TestInMethodAsync(@"var goo = @""goo\r\nbar"";",
+                Keyword("var"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape3()
+        {
+            await TestInMethodAsync(@"var goo = $""goo{{1}}bar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape4()
+        {
+            await TestInMethodAsync(@"var goo = $@""goo{{1}}bar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape5()
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{{1}}\nbar"";",
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"{{"),
+                Escape(@"}}"),
+                Escape(@"\n"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape6()
+        {
+            await TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape7()
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{1}\nbar"";",
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape8()
+        {
+            await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
     }
 }
