@@ -7634,7 +7634,17 @@ unsafe class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                //         { var p = (int*)stackalloc int[1]; }
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(int*)stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 19),
+                // (7,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'void*' is not possible.
+                //         { var p = (void*)stackalloc int[1]; }
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(void*)stackalloc int[1]").WithArguments("int", "void*").WithLocation(7, 19),
+                // (8,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'C' is not possible.
+                //         { var p = (C)stackalloc int[1]; }
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(C)stackalloc int[1]").WithArguments("int", "C").WithLocation(8, 19));
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (6,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //         { var p = (int*)stackalloc int[1]; }
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(int*)stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 19),
@@ -7655,7 +7665,12 @@ unsafe class C
     int* p = stackalloc int[1];
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (4,14): error CS8370: Feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(4, 14)
+            );
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (4,14): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //     int* p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(4, 14)
@@ -7673,7 +7688,6 @@ unsafe class C
     }
 }
 ";
-
             CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,21): error CS1736: Default parameter value for 'p' must be a compile-time constant
                 //     void M(int* p = stackalloc int[1])
@@ -7699,7 +7713,7 @@ unsafe class C
         }
 
         [Fact]
-        public void StackAllocNotExpression_GlobalDeclaration()
+        public void StackAllocNotExpression_GlobalDeclaration_01()
         {
             var text = @"
 unsafe int* p = stackalloc int[1];
@@ -7708,6 +7722,33 @@ unsafe int* p = stackalloc int[1];
                 // (2,17): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 // unsafe int* p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(2, 17)
+            );
+        }
+
+        [Fact]
+        public void StackAllocNotExpression_GlobalDeclaration_02()
+        {
+            var text = @"
+using System;
+Span<int> p = stackalloc int[1];
+";
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (3,1): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
+                // Span<int> p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(3, 1)
+            );
+        }
+
+        [Fact]
+        public void StackAllocNotExpression_GlobalDeclaration_03()
+        {
+            var text = @"
+var p = stackalloc int[1];
+";
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (2,1): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
+                // var p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "var").WithArguments("System.Span<int>").WithLocation(2, 1)
             );
         }
 

@@ -10,20 +10,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundSpillSequence
     {
-        public BoundSpillSequence(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression value, TypeSymbol type, bool hasErrors = false)
+        public BoundSpillSequence(
+            SyntaxNode syntax,
+            ImmutableArray<LocalSymbol> locals,
+            ImmutableArray<BoundExpression> sideEffects,
+            BoundExpression value,
+            TypeSymbol type,
+            bool hasErrors = false)
             : this(syntax, locals, MakeStatements(sideEffects), value, type, hasErrors)
         {
         }
 
         private static ImmutableArray<BoundStatement> MakeStatements(ImmutableArray<BoundExpression> expressions)
         {
-            var builder = ArrayBuilder<BoundStatement>.GetInstance();
-            foreach (var expression in expressions)
-            {
-                builder.Add(new BoundExpressionStatement(expression.Syntax, expression, expression.HasErrors));
-            }
-
-            return builder.ToImmutableAndFree();
+            return expressions.SelectAsArray<BoundExpression, BoundStatement>(
+                expression => new BoundExpressionStatement(expression.Syntax, expression, expression.HasErrors));
         }
     }
 }
