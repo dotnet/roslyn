@@ -438,7 +438,7 @@
   <data name="ERR_BadUnaryOp" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operand of type '{1}'</value>
   </data>
-  <data name="ERR_BadOpOnNullOrDefault" xml:space="preserve">
+  <data name="ERR_BadOpOnTypelessExpression" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operand '{1}'</value>
   </data>
   <data name="ERR_ThisInStaticMeth" xml:space="preserve">
@@ -465,8 +465,8 @@
   <data name="ERR_AmbigBinaryOps" xml:space="preserve">
     <value>Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'</value>
   </data>
-  <data name="ERR_AmbigBinaryOpsOnDefault" xml:space="preserve">
-    <value>Operator '{0}' is ambiguous on operands 'default' and 'default'</value>
+  <data name="ERR_AmbigBinaryOpsOnTypelessExpression" xml:space="preserve">
+    <value>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</value>
   </data>
   <data name="ERR_AmbigUnaryOp" xml:space="preserve">
     <value>Operator '{0}' is ambiguous on an operand of type '{1}'</value>
@@ -5341,9 +5341,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
     <value>An out variable cannot be declared as a ref local</value>
-  </data>
-  <data name="ERR_TypelessNewInAs" xml:space="preserve">
-    <value>The first operand of an 'as' operator may not be a target-typed 'new'</value>
   </data>
   <data name="ERR_IllegalTargetType" xml:space="preserve">
     <value>The type '{0}' may not be used as the target-type of 'new(...)'</value>

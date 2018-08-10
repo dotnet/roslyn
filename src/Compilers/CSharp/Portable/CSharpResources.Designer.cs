@@ -1421,7 +1421,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use new(...) as an argument to a dynamically dispatched operation.
+        ///   Looks up a localized string similar to Cannot use &apos;new(...)&apos; as an argument to a dynamically dispatched operation.
         /// </summary>
         internal static string ERR_BadDynamicMethodArgTypelessNew {
             get {
@@ -1792,9 +1792,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operand &apos;{1}&apos;.
         /// </summary>
-        internal static string ERR_BadOpOnNullOrDefault {
+        internal static string ERR_BadOpOnTypelessExpression {
             get {
-                return ResourceManager.GetString("ERR_BadOpOnNullOrDefault", resourceCulture);
+                return ResourceManager.GetString("ERR_BadOpOnTypelessExpression", resourceCulture);
             }
         }
         
@@ -5174,7 +5174,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The default constructor of the value type &apos;{0}&apos; may not be used with new(...); Use &apos;default&apos; or a literal expression instead.
+        ///   Looks up a localized string similar to The default constructor of the value type &apos;{0}&apos; may not be used with &apos;new(...)&apos;; Use &apos;default&apos; or a literal expression instead.
         /// </summary>
         internal static string ERR_IllegalDefaultValueTypeCtor {
             get {
@@ -5237,7 +5237,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; may not be used as the target-type of new(...).
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; may not be used as the target-type of &apos;new(...)&apos;.
         /// </summary>
         internal static string ERR_IllegalTargetType {
             get {
@@ -9620,16 +9620,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The first operand of an &apos;as&apos; operator may not be a new(...) expression.
-        /// </summary>
-        internal static string ERR_TypelessNewInAs {
-            get {
-                return ResourceManager.GetString("ERR_TypelessNewInAs", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use of new(...) is not valid in this context.
+        ///   Looks up a localized string similar to Use of &apos;new(...)&apos; is not valid in this context.
         /// </summary>
         internal static string ERR_TypelessNewNotValid {
             get {

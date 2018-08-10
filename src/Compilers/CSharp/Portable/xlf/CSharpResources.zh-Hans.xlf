@@ -2,9 +2,19 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="ERR_AmbigBinaryOpsOnTypelessExpression">
+        <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
+        <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArgTypelessNew">
         <source>Cannot use 'new(...)' as an argument to a dynamically dispatched operation</source>
         <target state="new">Cannot use 'new(...)' as an argument to a dynamically dispatched operation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadOpOnTypelessExpression">
+        <source>Operator '{0}' cannot be applied to operand '{1}'</source>
+        <target state="new">Operator '{0}' cannot be applied to operand '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -25,11 +35,6 @@
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="new">An out variable cannot be declared as a ref local</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewInAs">
-        <source>The first operand of an 'as' operator may not be a target-typed 'new'</source>
-        <target state="new">The first operand of an 'as' operator may not be a target-typed 'new'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypelessNewNotValid">
@@ -592,11 +597,6 @@
         <target state="translated">运算符“{0}”无法应用于“{1}”类型的操作数</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadOpOnNullOrDefault">
-        <source>Operator '{0}' cannot be applied to operand '{1}'</source>
-        <target state="translated">运算符“{0}”无法应用于操作数“{1}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ThisInStaticMeth">
         <source>Keyword 'this' is not valid in a static property, static method, or static field initializer</source>
         <target state="translated">关键字 "this" 在静态属性、静态方法或静态字段初始值设定项中无效</target>
@@ -635,11 +635,6 @@
       <trans-unit id="ERR_AmbigBinaryOps">
         <source>Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'</source>
         <target state="translated">运算符“{0}”对于“{1}”和“{2}”类型的操作数具有二义性</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
-        <source>Operator '{0}' is ambiguous on operands 'default' and 'default'</source>
-        <target state="translated">运算符“{0}”在操作数 "default" 和 "default" 上不明确</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigUnaryOp">
