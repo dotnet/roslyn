@@ -7,7 +7,7 @@ using DSR::Microsoft.DiaSymReader;
 
 namespace Roslyn.Test.Utilities
 {
-    internal sealed class NotImplementedSymUnmanagedReader : ISymUnmanagedReader, ISymUnmanagedReader2, ISymUnmanagedReader3
+    public sealed class NotImplementedSymUnmanagedReader : ISymUnmanagedReader5
     {
         public static readonly NotImplementedSymUnmanagedReader Instance = new NotImplementedSymUnmanagedReader();
 
@@ -140,6 +140,33 @@ namespace Roslyn.Test.Utilities
 
         public int UpdateSymbolStore(string filename, IStream stream)
         {
+            return HResult.E_NOTIMPL;
+        }
+
+        public int MatchesModule(Guid guid, uint stamp, int age, out bool result)
+        {
+            result = false;
+            return HResult.E_NOTIMPL;
+        }
+
+        public unsafe int GetPortableDebugMetadata(out byte* metadata, out int size)
+        {
+            metadata = null;
+            size = 0;
+            return HResult.E_NOTIMPL;
+        }
+
+        public unsafe int GetSourceServerData(out byte* data, out int size)
+        {
+            data = null;
+            size = 0;
+            return HResult.E_NOTIMPL;
+        }
+
+        public unsafe int GetPortableDebugMetadataByVersion(int version, out byte* metadata, out int size)
+        {
+            metadata = null;
+            size = 0;
             return HResult.E_NOTIMPL;
         }
     }
