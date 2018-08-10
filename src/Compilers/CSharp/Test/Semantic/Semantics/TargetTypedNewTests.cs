@@ -3069,6 +3069,58 @@ class C
         }
 
         [Fact]
+        public void TestEquality_Tuples_ErrorCases1()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        var v1 = new() == (1, 2L);
+        var v2 = new() != (1, 2L);
+        var v3 = (1, 2L) == new();
+        var v4 = (1, 2L) != new();
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0019: Operator '==' cannot be applied to operands of type 'new(...)' and '(int, long)'
+                //         var v1 = new() == (1, 2L);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() == (1, 2L)").WithArguments("==", "new(...)", "(int, long)").WithLocation(6, 18),
+                // (7,18): error CS0019: Operator '!=' cannot be applied to operands of type 'new(...)' and '(int, long)'
+                //         var v2 = new() != (1, 2L);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() != (1, 2L)").WithArguments("!=", "new(...)", "(int, long)").WithLocation(7, 18),
+                // (8,18): error CS0019: Operator '==' cannot be applied to operands of type '(int, long)' and 'new(...)'
+                //         var v3 = (1, 2L) == new();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(1, 2L) == new()").WithArguments("==", "(int, long)", "new(...)").WithLocation(8, 18),
+                // (9,18): error CS0019: Operator '!=' cannot be applied to operands of type '(int, long)' and 'new(...)'
+                //         var v4 = (1, 2L) != new();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(1, 2L) != new()").WithArguments("!=", "(int, long)", "new(...)").WithLocation(9, 18));
+        }
+
+        [Fact(Skip = "PROTOTYPE(target-typed-new)")]
+        public void TestEquality_Tuples_ErrorCases2()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        var v1 = (new(), new()) == (1, 2L);
+        var v2 = (new(), new()) != (1, 2L);
+        var v3 = (1, 2L) == (new(), new());
+        var v4 = (1, 2L) != (new(), new());
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TestEquality_Class()
         {
             string source = @"
