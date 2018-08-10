@@ -663,13 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.DiscardDesignation:
                     {
-                        //return new BoundDiscardPattern(designation);
-                        // https://github.com/dotnet/roslyn/issues/27751 : this should bind as a discard pattern, but for now we'll bind it as a declaration
-                        // pattern for compatibility with the later phases of the compiler that do not yet handle the discard pattern.
-                        var boundOperandType = new BoundTypeExpression(
-                            syntax: node, aliasOpt: null, type: inputType); // fake a type expression for the variable's type
-                        return new BoundDeclarationPattern(
-                            syntax: designation, variable: null, variableAccess: null, declaredType: boundOperandType, isVar: true, inputType: inputType, hasErrors: hasErrors);
+                        return new BoundDiscardPattern(designation, inputType);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     {
