@@ -210,7 +210,7 @@ function Restore-Packages() {
 function Make-BootstrapBuild() {
     $dir = Join-Path $binariesDir "Bootstrap"
     Write-Host "Building Bootstrap compiler"
-    $bootstrapArgs = "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
+    $bootstrapArgs = "/p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP"
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
     if ($buildCoreClr) {
