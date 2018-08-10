@@ -204,8 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsNamedParameter(SyntaxNode node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
 
-        public SyntaxToken GetNameOfParameter(SyntaxNode node)
-            => (node as ParameterSyntax)?.Identifier ?? default;
+        public SyntaxToken? GetNameOfParameter(SyntaxNode node)
+            => (node as ParameterSyntax)?.Identifier;
 
         public SyntaxNode GetDefaultOfParameter(SyntaxNode node)
             => (node as ParameterSyntax)?.Default;

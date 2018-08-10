@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (!context.Span.IsEmpty)
             {
                 var parameterName = syntaxFacts.GetNameOfParameter(parameterNode);
-                if (parameterName.Span != context.Span)
+                if (parameterName == null || parameterName.Value.Span != context.Span)
                 {
                     return;
                 }

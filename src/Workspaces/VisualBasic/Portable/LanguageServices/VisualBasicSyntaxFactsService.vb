@@ -206,8 +206,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
         End Function
 
-        Public Function GetNameOfParameter(node As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetNameOfParameter
-            Return If(TryCast(node, ParameterSyntax)?.Identifier?.Identifier, New SyntaxToken())
+        Public Function GetNameOfParameter(node As SyntaxNode) As SyntaxToken? Implements ISyntaxFactsService.GetNameOfParameter
+            Return TryCast(node, ParameterSyntax)?.Identifier?.Identifier
         End Function
 
         Public Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetDefaultOfParameter
