@@ -327,10 +327,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Gets either a loop or a switch operation that corresponds to the given branch operation.
         /// </summary>
         /// <param name="operation">The branch operation for which a corresponding operation is looked up</param>
-        /// <returns>The corresponding operation or <c>null</c> in case not found (e.g. no loop or switch syntax)</returns>
+        /// <returns>The corresponding operation or <c>null</c> in case not found (e.g. no loop or switch syntax, or the branch is not a break or continue)</returns>
         /// <exception cref="ArgumentNullException"><paramref name="operation"/> is null</exception>
-        /// <exception cref="InvalidOperationException">The operation is a part of Control Flow Graph or it has an invalid branch kind. 
-        /// Applicable kinds: <see cref="BranchKind.Break"/> and <see cref="BranchKind.Continue"/>.</exception>
+        /// <exception cref="InvalidOperationException">The operation is a part of Control Flow Graph</exception>
         public static IOperation GetCorrespondingOperation(this IBranchOperation operation)
         {
             if (operation == null)
@@ -345,8 +344,7 @@ namespace Microsoft.CodeAnalysis.Operations
             
             if (operation.BranchKind != BranchKind.Break && operation.BranchKind != BranchKind.Continue)
             {
-                throw new InvalidOperationException(
-                    string.Format(CodeAnalysisResources.InvalidBranchKindForFindingCorrespondingOperation, operation.BranchKind));
+                return null;
             }
 
             if (operation.Target == null)
@@ -358,8 +356,8 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 switch (current)
                 {
-                    case ILoopOperation correspondingLoop when operation.Target.Equals(correspondingLoop.ExitLabel)
-                                                               || operation.Target.Equals(correspondingLoop.ContinueLabel):
+                    case ILoopOperation correspondingLoop when operation.Target.Equals(correspondingLoop.ExitLabel) || 
+                                                               operation.Target.Equals(correspondingLoop.ContinueLabel):
                         return correspondingLoop;
                     case ISwitchOperation correspondingSwitch when operation.Target.Equals(correspondingSwitch.ExitLabel):
                         return correspondingSwitch;

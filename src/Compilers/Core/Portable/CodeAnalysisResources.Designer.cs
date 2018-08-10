@@ -695,15 +695,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid branch kind. Finding a corresponding operation requires &apos;break&apos; or &apos;continue&apos;, but the current branch kind provided is &apos;{0}&apos;..
-        /// </summary>
-        internal static string InvalidBranchKindForFindingCorrespondingOperation {
-            get {
-                return ResourceManager.GetString("InvalidBranchKindForFindingCorrespondingOperation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid characters in assembly culture name.
         /// </summary>
         internal static string InvalidCharactersInAssemblyCultureName {

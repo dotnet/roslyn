@@ -20,28 +20,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")>
         <Fact>
-        Public Sub GetCorrespondingOperation_ForGotoBranch_ThrowsInvalidOperationException()
-            Dim source = <![CDATA[
+        Public Sub GetCorrespondingOperation_ForGotoBranch_ReturnsNull()
+            Dim result = GetOuterOperationAndCorrespondingInnerOperation(Of LabelStatementSyntax, GoToStatementSyntax)(
+            <![CDATA[
 Class C
     Sub F
-begin:
+begin: 'BIND1:"begin:"
         For i = 0 To 1
-            GoTo begin 'BIND:"GoTo begin"
+            GoTo begin 'BIND2:"GoTo begin"
         Next
     End Sub
 End Class
-]]>.Value
+]]>.Value)
 
-            Dim fileName = "a.vb"
-            Dim syntaxTree = Parse(source, fileName)
-            Dim compilation = CreateEmptyCompilation({syntaxTree})
-
-            Dim result = GetOperationAndSyntaxForTest(Of GoToStatementSyntax)(compilation, fileName)
-            Dim branch = TryCast(result.operation, IBranchOperation)
-
-            Dim ex = Assert.ThrowsAny(Of InvalidOperationException)(Function() branch.GetCorrespondingOperation())
-            Assert.Equal("Invalid branch kind. Finding a corresponding operation requires 'break' or 'continue', " +
-                         "but the current branch kind provided is 'GoTo'.", ex.Message)
+            Assert.IsAssignableFrom(GetType(ILabeledOperation), result.outer)
+            Assert.Null(result.corresponding)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
@@ -301,7 +294,7 @@ Class C
 End Class
 ]]>.Value)
 
-            Assert.True(TypeOf result.outer Is ILoopOperation)
+            Assert.IsAssignableFrom(GetType(ILoopOperation), result.outer)
             Assert.Null(result.corresponding)
         End Sub
 
@@ -323,7 +316,7 @@ Class C
 End Class
 ]]>.Value)
 
-            Assert.True(TypeOf result.outer Is ISwitchOperation)
+            Assert.IsAssignableFrom(GetType(ISwitchOperation), result.outer)
             Assert.Null(result.corresponding)
         End Sub
 

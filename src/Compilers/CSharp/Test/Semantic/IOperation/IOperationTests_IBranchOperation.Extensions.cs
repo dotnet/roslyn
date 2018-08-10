@@ -22,25 +22,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
-        public void GetCorrespondingOperation_ForGotoBranch_ThrowsInvalidOperationException()
+        public void GetCorrespondingOperation_ForGotoBranch_ReturnsNull()
         {
-            var compilation = CreateCompilation(@"
+            var result = GetOuterOperationAndCorrespondingInnerOperation<LabeledStatementSyntax, GotoStatementSyntax>(@"
 class C
 {
     void F()
     {
-begin:
+/*<bind>*/begin:
         for (;;)
         {
             /*<bind>*/goto begin;/*</bind>*/
-        }
+        }/*</bind>*/
     }
 }");
-            var branch = GetOperationAndSyntaxForTest<GotoStatementSyntax>(compilation).operation as IBranchOperation;
-
-            var ex = Assert.ThrowsAny<InvalidOperationException>(() => branch.GetCorrespondingOperation());
-            Assert.Equal("Invalid branch kind. Finding a corresponding operation requires 'break' or 'continue', " +
-                "but the current branch kind provided is 'GoTo'.", ex.Message);
+            Assert.IsAssignableFrom(typeof(ILabeledOperation), result.outer);
+            Assert.Null(result.corresponding);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
