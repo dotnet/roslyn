@@ -8,6 +8,8 @@ In source, nullable reference types are annotated with `?`.
 string? OptString; // may be null
 Dictionary<string, object?>? OptDictionaryOptValues; // dictionary may be null, values may be null
 ```
+A warning is reported when annotating a reference type or unconstrained generic type with `?` outside a `NonNullTypes(true)` context.
+
 In metadata, nullable reference types are annotated with a `[Nullable]` attribute.
 ```c#
 namespace System.Runtime.CompilerServices
@@ -128,13 +130,16 @@ if (maybeNull == null) return;
 var t = maybeNull; // t is !
 ```
 
-### `!` operator
+### Suppression operator (`!`)
 The postfix `!` operator sets the top-level nullability to non-nullable.
 ```c#
 var x = optionalString!; // x is string!
 var y = obliviousString!; // y is string!
 var z = new [] { optionalString, obliviousString }!; // no change, z is string?[]!
 ```
+An error is reported whenever the `!` operator is applied to a value type.
+A warning is reported when using the `!` operator absent a `NonNullTypes` context.
+
 _Should `!` suppress warnings for nested nullability?_
 _Should `nonNull!` result in a warning for unnecessary `!`?_
 _Should `!!` be an error?_

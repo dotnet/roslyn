@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
         private bool _needsGeneratedIsUnmanagedAttribute_Value;
         private bool _needsGeneratedAttributes_IsFrozen;
+        private bool _needsGeneratedNullableAttribute_Value;
 
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 _needsGeneratedAttributes_IsFrozen = true;
-                if (Compilation.NeedsGeneratedNullableAttribute)
+                if (Compilation.NeedsGeneratedNullableAttribute || _needsGeneratedNullableAttribute_Value)
                 {
                     return true;
                 }
@@ -1601,7 +1602,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal void EnsureNullableAttributeExists()
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
-            // PROTOTYPE(NullableReferenceTypes): Remove method if not needed.
+
+            if (_needsGeneratedNullableAttribute_Value || Compilation.NeedsGeneratedNullableAttribute)
+            {
+                return;
+            }
+
+            // Don't report any errors. They should be reported during binding.
+            if (Compilation.CheckIfNullableAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            {
+                _needsGeneratedNullableAttribute_Value = true;
+            }
         }
     }
 }

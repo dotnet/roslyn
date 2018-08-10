@@ -273,6 +273,76 @@ class C
         }
 
         [Fact]
+        public void EmitAttribute_LocalFunctionConstraints()
+        {
+            var source = @"
+class C
+{
+    [System.Runtime.CompilerServices.NonNullTypes(true)]
+    void M1()
+    {
+        local(new C());
+        void local<T>(T t) where T : C?
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var assembly = module.ContainingAssembly;
+                Assert.NotNull(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute"));
+            });
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunctionConstraints_Nested()
+        {
+            var source = @"
+interface I<T> { }
+class C
+{
+    [System.Runtime.CompilerServices.NonNullTypes(true)]
+    void M1()
+    {
+        void local<T>(T t) where T : I<C?>
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var assembly = module.ContainingAssembly;
+                Assert.NotNull(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute"));
+            });
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunctionConstraints_NoAnnotation()
+        {
+            var source = @"
+class C
+{
+    [System.Runtime.CompilerServices.NonNullTypes(true)]
+    void M1()
+    {
+        local(new C());
+        void local<T>(T t) where T : C
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var assembly = module.ContainingAssembly;
+                // PROTOTYPE(NullableReferenceTypes): The Nullable attribute shouldn't be synthesized
+                Assert.NotNull(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute"));
+            });
+        }
+
+        [Fact]
         public void EmitAttribute_Module()
         {
             var source =
@@ -378,10 +448,13 @@ public class B2 : A<object?>
 public class A : I<object>
 {
 }
+[System.Runtime.CompilerServices.NonNullTypes(false)]
+public class AOblivious : I<object> { }
 public class B : I<object?>
 {
-}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+}
+";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -395,16 +468,20 @@ public class B : I<object?>
             var source2 =
 @"class C
 {
-    static void F(I<object> x, I<object?> y)
-    {
-    }
-    static void G(A x, B y)
+    static void F(I<object> x, I<object?> y) { }
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    static void FOblivious(I<object> x) { }
+    static void G(A x, B y, AOblivious z)
     {
         F(x, x);
         F(y, y);
+        F(z, z);
+        FOblivious(x);
+        FOblivious(y);
+        FOblivious(z);
     }
 }";
-            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (8,14): warning CS8620: Nullability of reference types in argument of type 'A' doesn't match target type 'I<object?>' for parameter 'y' in 'void C.F(I<object> x, I<object?> y)'.
                 //         F(x, x);

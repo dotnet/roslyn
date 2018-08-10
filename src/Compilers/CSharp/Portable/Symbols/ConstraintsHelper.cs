@@ -412,6 +412,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     containingSymbol.CheckConstraintTypeVisibility(syntax.Location, constraintType, diagnostics);
                     constraintTypeBuilder.Add(constraintType);
                 }
+
+                if (constraintType.ContainsNullableReferenceTypes())
+                {
+                    // Note: Local functions register their need for the Nullable attribute on constraints in LocalRewriter
+                    bool onLocalFunction = containingSymbol.Kind == SymbolKind.Method && ((MethodSymbol)containingSymbol).MethodKind == MethodKind.LocalFunction;
+                    containingSymbol.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, syntax.Location, modifyCompilation: !onLocalFunction);
+
+                    if (!onLocalFunction)
+                    {
+                        // Note: Misuse of ? annotation on declarations of local functions is reported when binding their types (since in executable context)
+                        containingSymbol.ReportMissingNonNullTypesContextForAnnotation(diagnostics, syntax.Location);
+                    }
+                }
             }
             if (constraintTypeBuilder.Count < n)
             {
