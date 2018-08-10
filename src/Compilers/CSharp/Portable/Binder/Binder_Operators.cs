@@ -3134,14 +3134,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
                     }
                     break;
-
-                case BoundKind.UnboundObjectCreationExpression:
-                    if (!operand.HasAnyErrors)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_TypelessNewInAs, node);
-                    }
-
-                    return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }
 
             if (operand.HasAnyErrors || targetTypeKind == TypeKind.Error)
@@ -3204,6 +3196,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 operand = new BoundDefaultExpression(defaultLiteral.Syntax, constantValueOpt: ConstantValue.Null,
                     type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
+            }
+            else if (operand.IsTypelessNew())
+            {
+                operand = CreateImplicitNewConversion(operand.Syntax, operand, Conversion.ImplicitNew,
+                    isCast: false, destination: resultType, diagnostics);
             }
 
             var operandType = operand.Type;

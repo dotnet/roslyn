@@ -258,19 +258,54 @@ class C
             var source = @"
 using System;
 
+struct S
+{
+    public S(int i) {}
+}
+
 class C 
 {
     public static void Main()
     {
         Console.Write(new() as C);
+        Console.Write(new(42) as S?);
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
-                // (8,23): error CS9365: The first operand of an 'as' operator may not be a target-typed 'new'
-                //         Console.Write(new() as C);
-                Diagnostic(ErrorCode.ERR_TypelessNewInAs, "new() as C").WithLocation(8, 23)
-                );
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "CS");
+        }
+
+        [Fact]
+        public void TestInAsOperator_ErrorCases()
+        {
+            var source = @"
+using System;
+
+struct S
+{
+    public S(int i) {}
+}
+
+class C 
+{
+    public static void Main()
+    {
+        Console.Write(new() as int?);
+        Console.Write(new() as S?);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (13,23): error CS9367: The default constructor of the value type 'int' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         Console.Write(new() as int?);
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("int").WithLocation(13, 23),
+                // (14,23): error CS9367: The default constructor of the value type 'S' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         Console.Write(new() as S?);
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("S").WithLocation(14, 23));
         }
 
         [Fact]
