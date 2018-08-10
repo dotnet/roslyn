@@ -4425,5 +4425,60 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function InlineVariableAddsCastToConditionallyInvokeHiddenMember() As Task
+            Dim code = "
+Class R
+    Public Sub Yikes()
+    End Sub
+End Class
+
+Class B
+    Public Function Method() As R
+        Return Nothing
+    End Function
+End Class
+
+Class D
+    Inherits B
+    Public Shadows Function Method() As R
+        Return Nothing
+    End Function
+End Class
+
+Class T
+    Sub M()
+        Dim [|b|] As B = New D()
+        b?.Method()?.Yikes()
+    End Sub
+End Class"
+
+            Dim expected = "
+Class R
+    Public Sub Yikes()
+    End Sub
+End Class
+
+Class B
+    Public Function Method() As R
+        Return Nothing
+    End Function
+End Class
+
+Class D
+    Inherits B
+    Public Shadows Function Method() As R
+        Return Nothing
+    End Function
+End Class
+
+Class T
+    Sub M()
+        CType(New D(), B)?.Method()?.Yikes()
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(code, expected)
+        End Function
     End Class
 End Namespace

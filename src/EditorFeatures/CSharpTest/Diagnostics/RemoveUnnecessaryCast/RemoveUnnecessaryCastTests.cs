@@ -4607,5 +4607,29 @@ class Tester
     }
 }");
         }
+
+        [WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastWhenConditionallyAccessingHiddenProperty()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System.Collections.Generic;
+class Fruit
+{
+    public IDictionary<string, object> Properties { get; set; }
+}
+class Apple : Fruit
+{
+    public new IDictionary<string, object> Properties { get; }
+}
+class Tester
+{
+    public void Test()
+    {
+        var a = new Apple();
+        ([|(Fruit)a|])?.Properties[""Color""] = ""Red"";
+    }
+}");
+        }
     }
 }

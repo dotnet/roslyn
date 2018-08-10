@@ -116,6 +116,96 @@ End Class
             </Code>.Value, "b", True)
         End Sub
 
+        <Fact, WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")>
+        Public Sub SpeculationAnalyzerConditionalIndexerPropertyWithRedundantCast()
+            Test(<Code>
+Class Indexer
+    Default Public ReadOnly Property Item(ByVal x As Integer) As Integer
+        Get
+            Return x
+        End Get
+    End Property
+End Class
+Class A
+    Public ReadOnly Property Foo As Indexer
+End Class
+Class B
+    Inherits A
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        Dim y As Integer = [|DirectCast(b, A)|]?.Foo(2)
+    End Sub
+End Class
+            </Code>.Value, "b", False)
+        End Sub
+
+        <Fact, WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")>
+        Public Sub SpeculationAnalyzerConditionalIndexerPropertyWithRequiredCast()
+            Test(<Code>
+Class Indexer
+    Default Public ReadOnly Property Item(ByVal x As Integer) As Integer
+        Get
+            Return x
+        End Get
+    End Property
+End Class
+Class A
+    Public ReadOnly Property Foo As Indexer
+End Class
+Class B
+    Inherits A
+    Public Shadows ReadOnly Property Foo As Indexer
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        Dim y As Integer = [|DirectCast(b, A)|]?.Foo(2)
+    End Sub
+End Class
+            </Code>.Value, "b", True)
+        End Sub
+
+        <Fact, WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")>
+        Public Sub SpeculationAnalyzerConditionalDelegatePropertyWithRedundantCast()
+            Test(<Code>
+Public Delegate Sub MyDelegate()
+Class A
+    Public ReadOnly Property Foo As MyDelegate
+End Class
+Class B
+    Inherits A
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        [|DirectCast(b, A)|]?.Foo.Invoke()
+    End Sub
+End Class
+            </Code>.Value, "b", False)
+        End Sub
+
+        <Fact, WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")>
+        Public Sub SpeculationAnalyzerConditionalDelegatePropertyWithRequiredCast()
+            Test(<Code>
+Public Delegate Sub MyDelegate()
+Class A
+    Public ReadOnly Property Foo As MyDelegate
+End Class
+Class B
+    Inherits A
+    Public Shadows ReadOnly Property Foo As MyDelegate
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        [|DirectCast(b, A)|]?.Foo.Invoke()
+    End Sub
+End Class
+            </Code>.Value, "b", True)
+        End Sub
+
         Protected Overrides Function Parse(text As String) As SyntaxTree
             Return SyntaxFactory.ParseSyntaxTree(text)
         End Function

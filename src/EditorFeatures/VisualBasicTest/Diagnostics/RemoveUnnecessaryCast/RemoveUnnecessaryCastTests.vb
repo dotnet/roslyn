@@ -2986,5 +2986,25 @@ Class Tester
 End Class
 </Code>.Value)
         End Function
+        
+        Public Async Function DontOfferToRemoveCastWhenConditionallyAccessingHiddenProperty() As Task
+            Await TestMissingInRegularAndScriptAsync(
+<Code>
+Imports System.Collections.Generic
+Class Fruit
+    Public Property Properties As IDictionary(Of String, Object)
+End Class
+Class Apple
+    Inherits Fruit
+    Public Shadows Property Properties As IDictionary(Of String, Object)
+End Class
+Class Tester
+    Public Sub Test()
+        Dim a = New Apple()
+        [|CType(a, Fruit)|]?.Properties(""Color"") = ""Red""
+    End Sub
+End Class
+</Code>.Value)
+        End Function
     End Class
 End Namespace

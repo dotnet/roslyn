@@ -490,6 +490,106 @@ class Program
 ", replacementExpression: "b", semanticChanges: true);
         }
 
+        [Fact, WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")]
+        public void SpeculationAnalyzerConditionalIndexerPropertyWithRedundantCast()
+        {
+            Test(code: @"
+class Indexer
+{
+    public int this[int x] { get { return x; } }
+}
+class A
+{
+    public Indexer Foo { get; } = new Indexer();
+}
+class B : A
+{
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        var y = ([|(A)b|])?.Foo[1];
+    }
+}
+", replacementExpression: "b", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")]
+        public void SpeculationAnalyzerConditionalIndexerPropertyWithRequiredCast()
+        {
+            Test(code: @"
+class Indexer
+{
+    public int this[int x] { get { return x; } }
+}
+class A
+{
+    public Indexer Foo { get; } = new Indexer();
+}
+class B : A
+{
+    public new Indexer Foo { get; } = new Indexer();
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        var y = ([|(A)b|])?.Foo[1];
+    }
+}
+", replacementExpression: "b", semanticChanges: true);
+        }
+
+        [Fact, WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")]
+        public void SpeculationAnalyzerConditionalDelegatePropertyWithRedundantCast()
+        {
+            Test(code: @"
+public delegate void MyDelegate();
+class A
+{
+    public MyDelegate Foo { get; }
+}
+class B : A
+{
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        ([|(A)b|])?.Foo();
+    }
+}
+", replacementExpression: "b", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")]
+        public void SpeculationAnalyzerConditionalDelegatePropertyWithRequiredCast()
+        {
+            Test(code: @"
+public delegate void MyDelegate();
+class A
+{
+    public MyDelegate Foo { get; }
+}
+class B : A
+{
+    public new MyDelegate Foo { get; }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        ([|(A)b|])?.Foo();
+    }
+}
+", replacementExpression: "b", semanticChanges: true);
+        }
+
         protected override SyntaxTree Parse(string text)
         {
             return SyntaxFactory.ParseSyntaxTree(text);

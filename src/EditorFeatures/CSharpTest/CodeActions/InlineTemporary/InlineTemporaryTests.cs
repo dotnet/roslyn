@@ -4687,5 +4687,108 @@ class C
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineVariableAddsCastToInvokeHiddenMember()
+        {
+            await TestInRegularAndScriptAsync(@"
+class R
+{
+    public void Yikes() { }
+}
+
+class B
+{
+    public R Method() { return null; }
+}
+
+class D : B
+{
+    public new R Method() { return null; }
+}
+
+class T
+{
+    void M()
+    {
+        B [|b|] = new D();
+        b.Method().Yikes();
+    }
+}", @"
+class R
+{
+    public void Yikes() { }
+}
+
+class B
+{
+    public R Method() { return null; }
+}
+
+class D : B
+{
+    public new R Method() { return null; }
+}
+
+class T
+{
+    void M()
+    {
+        ((B)new D()).Method().Yikes();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineVariableAddsCastToConditionallyInvokeHiddenMember()
+        {
+            await TestInRegularAndScriptAsync(@"
+class R
+{
+    public void Yikes() { }
+}
+
+class B
+{
+    public R Method() { return null; }
+}
+
+class D : B
+{
+    public new R Method() { return null; }
+}
+
+class T
+{
+    void M()
+    {
+        B [|b|] = new D();
+        b?.Method().Yikes();
+    }
+}", @"
+class R
+{
+    public void Yikes() { }
+}
+
+class B
+{
+    public R Method() { return null; }
+}
+
+class D : B
+{
+    public new R Method() { return null; }
+}
+
+class T
+{
+    void M()
+    {
+        ((B)new D())?.Method().Yikes();
+    }
+}");
+        }
+
     }
 }
