@@ -2287,10 +2287,7 @@ class C
             comp.VerifyDiagnostics(
                 // (28,14): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "System.Collections.Generic.IEnumerable<C>? e").WithArguments("static null checking", "8.0").WithLocation(28, 14),
-                // (28,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "System.Collections.Generic.IEnumerable<C>? e").WithLocation(28, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "System.Collections.Generic.IEnumerable<C>? e").WithArguments("static null checking", "8.0").WithLocation(28, 14)
                 );
         }
 

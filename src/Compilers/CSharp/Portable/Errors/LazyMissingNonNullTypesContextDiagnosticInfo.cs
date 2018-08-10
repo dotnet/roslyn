@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override DiagnosticInfo ResolveInfo()
         {
-            return _type.IsValueType ? null : Symbol.ReportMissingNonNullTypesContextForAnnotation(_compilation, _context);
+            return _type.IsValueType ? null : Symbol.ReportNullableReferenceTypesIfNeeded(_compilation, _context);
         }
     }
 }

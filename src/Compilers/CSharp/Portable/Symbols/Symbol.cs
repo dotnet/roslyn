@@ -868,14 +868,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static void ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, INonNullTypesContext nonNullTypesContext, DiagnosticBag diagnostics, Location location)
         {
-            var diagnostic = ReportMissingNonNullTypesContextForAnnotation(compilation, nonNullTypesContext);
+            var diagnostic = ReportNullableReferenceTypesIfNeeded(compilation, nonNullTypesContext);
             if (diagnostic != null)
             {
                 diagnostics.Add(diagnostic, location);
             }
         }
 
-        internal static DiagnosticInfo ReportMissingNonNullTypesContextForAnnotation(CSharpCompilation compilation, INonNullTypesContext nonNullTypesContext)
+        internal static DiagnosticInfo ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, INonNullTypesContext nonNullTypesContext)
         {
             var featureID = MessageID.IDS_FeatureStaticNullChecking;
             if (!compilation.IsFeatureEnabled(featureID))

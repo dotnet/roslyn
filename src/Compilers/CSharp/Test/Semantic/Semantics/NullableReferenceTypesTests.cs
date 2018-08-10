@@ -2052,7 +2052,7 @@ class E
 
             void verifyOblivious(Compilation comp)
             {
-                VerifyNonNullTypes(comp.GetMember("Oblivious"), false);
+                VerifyNonNullTypes(comp.GetMember("Oblivious"), null);
             }
         }
 
@@ -2245,7 +2245,7 @@ class E
 
             void verifyOblivious(Compilation comp)
             {
-                VerifyNonNullTypes((NamedTypeSymbol)comp.GetMember("Oblivious"), false);
+                VerifyNonNullTypes((NamedTypeSymbol)comp.GetMember("Oblivious"), null);
             }
 
             void verifyExternal(Compilation comp)
