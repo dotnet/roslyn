@@ -62,6 +62,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot create constructed generic type from another constructed generic type..
+        /// </summary>
+        internal static string CannotCreateConstructedFromConstructed {
+            get {
+                return ResourceManager.GetString("CannotCreateConstructedFromConstructed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot create constructed generic type from non-generic type..
+        /// </summary>
+        internal static string CannotCreateConstructedFromNongeneric {
+            get {
+                return ResourceManager.GetString("CannotCreateConstructedFromNongeneric", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t reference compilation of type &apos;{0}&apos; from {1} compilation..
         /// </summary>
         internal static string CantReferenceCompilationOf {
