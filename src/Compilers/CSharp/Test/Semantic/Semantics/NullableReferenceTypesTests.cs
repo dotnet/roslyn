@@ -382,6 +382,37 @@ class Client
         }
 
         [Fact]
+        public void AnnotationWithoutNonNullTypes_AttributeArgument()
+        {
+            var source =
+@"class AAttribute : System.Attribute
+{
+    internal AAttribute(object o) { }
+}
+class B<T> { }
+[A(typeof(object?))] // 1
+class C1 { }
+[A(typeof(int?))]
+class C2 { }
+[A(typeof(B<object?>))] // 2
+class C3 { }
+[A(typeof(B<int?>))]
+class C4 { }";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,17): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // [A(typeof(object?))] // 1
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 17),
+                // (10,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // [A(typeof(B<object?>))] // 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 19));
+
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NullableAttribute_NotRequiredCSharp7_01()
         {
             var source =
@@ -39039,6 +39070,118 @@ public class A6<T> where T : IEquatable<int?> { }";
                 var constraintType = type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0];
                 Assert.Equal(expected, constraintType.ToTestDisplayString());
             }
+        }
+
+        [WorkItem(29186, "https://github.com/dotnet/roslyn/issues/29186")]
+        [Fact]
+        public void AttributeArgumentCycle_OtherAttribute()
+        {
+            var source =
+@"using System;
+class AAttribute : Attribute
+{
+    internal AAttribute(object o) { }
+}
+interface IA { }
+interface IB<T> where T : IA { }
+[A(typeof(IB<IA>))]
+class C
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(29186, "https://github.com/dotnet/roslyn/issues/29186")]
+        [Fact]
+        public void AttributeArgumentCycle_NonNullTypes_01()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+class A { }
+class B<T> where T : A { }
+[NonNullTypes(typeof(B<A>))]
+class C
+{
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesFalse, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS1503: Argument 1: cannot convert from 'System.Type' to 'bool'
+                // [NonNullTypes(typeof(B<A>))]
+                Diagnostic(ErrorCode.ERR_BadArgType, "typeof(B<A>)").WithArguments("1", "System.Type", "bool").WithLocation(4, 15));
+        }
+
+        [WorkItem(29186, "https://github.com/dotnet/roslyn/issues/29186")]
+        [Fact]
+        public void AttributeArgumentCycle_NonNullTypes_02()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+class A { }
+class B<T> where T : A
+{
+    internal const bool True = true;
+}
+[NonNullTypes(B<A>.True)]
+class C
+{
+}
+[NonNullTypes(B<A?>.True)]
+class D
+{
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,15): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
+                // [NonNullTypes(B<A?>.True)]
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "B<A?>").WithArguments("B<T>", "A", "T", "A?").WithLocation(11, 15));
+        }
+
+        [WorkItem(29186, "https://github.com/dotnet/roslyn/issues/29186")]
+        [Fact]
+        public void AttributeArgumentCycle_Nullable()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+[module: NonNullTypes]
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public class Type { }
+    public struct Boolean { }
+    public struct Enum { }
+    public class Attribute { }
+    public interface INullable<T> { }
+    public struct Nullable<T> where T : INullable<object> { }
+}
+namespace System.Runtime.CompilerServices
+{
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}";
+            var source =
+@"using System;
+class AAttribute : Attribute
+{
+    internal AAttribute(object o) { }
+}
+struct S : INullable<object?> { }
+[A(typeof(S?))]
+class C
+{
+}";
+            var comp = CreateEmptyCompilation(new[] { source0, source }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,11): warning CS8631: The type 'S' cannot be used as type parameter 'T' in the generic type or method 'Nullable<T>'. Nullability of type argument 'S' doesn't match constraint type 'System.INullable<object>'.
+                // [A(typeof(S?))]
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "S?").WithArguments("System.Nullable<T>", "System.INullable<object>", "T", "S").WithLocation(7, 11));
         }
     }
 }

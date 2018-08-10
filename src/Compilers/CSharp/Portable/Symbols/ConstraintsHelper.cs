@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var underlyingTuple in underlyingTupleTypeChain)
             {
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-                CheckTypeConstraints(underlyingTuple, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+                CheckTypeConstraints(underlyingTuple, conversions, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
                 if (useSiteDiagnosticsBuilder != null)
                 {
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var result = CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -762,11 +762,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static bool CheckTypeConstraints(
+        public static bool CheckTypeConstraints(
             NamedTypeSymbol type,
             ConversionsBase conversions,
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
+            ArrayBuilder<TypeParameterDiagnosticInfo> warningsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
         {
             return CheckConstraints(
@@ -777,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type.TypeArgumentsNoUseSiteDiagnostics,
                 currentCompilation,
                 diagnosticsBuilder,
-                warningsBuilderOpt: conversions.IncludeNullability ? diagnosticsBuilder : null,
+                warningsBuilderOpt,
                 ref useSiteDiagnosticsBuilder);
         }
 
@@ -834,7 +835,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(typeParameters.Length == typeArguments.Length);
             Debug.Assert(typeParameters.Length > 0);
-            Debug.Assert(warningsBuilderOpt == null || conversions.IncludeNullability);
 
             int n = typeParameters.Length;
             bool succeeded = true;
@@ -933,9 +933,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (SatisfiesConstraintType(conversions.WithNullability(false), typeArgument, constraintType, ref useSiteDiagnostics))
                 {
-                    if (warningsBuilderOpt != null)
+                    if (conversions.IncludeNullability && warningsBuilderOpt != null)
                     {
-                        Debug.Assert(conversions.IncludeNullability);
                         if (!SatisfiesConstraintType(conversions, typeArgument, constraintType, ref useSiteDiagnostics))
                         {
                             var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
@@ -1179,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool RequiresChecking(NamedTypeSymbol type)
+        public static bool RequiresChecking(NamedTypeSymbol type)
         {
             if (type.Arity == 0)
             {
@@ -1201,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static bool RequiresChecking(MethodSymbol method)
+        public static bool RequiresChecking(MethodSymbol method)
         {
             if (!method.IsGenericMethod)
             {
