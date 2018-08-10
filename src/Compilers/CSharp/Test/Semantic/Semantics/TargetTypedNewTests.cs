@@ -633,9 +633,9 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,20): error CS0117: 'new(...)' does not contain a definition for 'field'
+                // (6,19): error CS8310: Operator '.' cannot be applied to operand 'new(...)'
                 //        C c = new().field;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("new(...)", "field").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, ".").WithArguments(".", "new(...)").WithLocation(6, 19)
                 );
         }
 
@@ -2661,7 +2661,7 @@ class C
         }
 
         [Fact]
-        public void TestBinaryOperators()
+        public void TestBinaryOperators1()
         {
             string source = @"
 class C
@@ -2750,6 +2750,197 @@ class C
                 // (24,17): error CS8310: Operator '??' cannot be applied to operand 'new(...)'
                 //         var s = new() ?? new();
                 Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() ?? new()").WithArguments("??", "new(...)").WithLocation(24, 17)
+                );
+        }
+
+        [Fact]
+        public void TestBinaryOperators2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var a = new() + 1;
+        var b = new() - 1;
+        var c = new() & 1;
+        var d = new() | 1;
+        var e = new() ^ 1;
+        var f = new() * 1;
+        var g = new() / 1;
+        var h = new() % 1;
+        var i = new() >> 1;
+        var j = new() << 1;
+        var k = new() > 1;
+        var l = new() < 1;
+        var m = new() >= 1;
+        var n = new() <= 1;
+        var o = new() == 1; // ok
+        var p = new() != 1; // ok
+        var q = new() && 1;
+        var r = new() || 1;
+        var s = new() ?? 1;
+        var t = new() ?? default(int?);
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS8310: Operator '+' cannot be applied to operand 'new(...)'
+                //         var a = new() + 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() + 1").WithArguments("+", "new(...)").WithLocation(6, 17),
+                // (7,17): error CS8310: Operator '-' cannot be applied to operand 'new(...)'
+                //         var b = new() - 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() - 1").WithArguments("-", "new(...)").WithLocation(7, 17),
+                // (8,17): error CS8310: Operator '&' cannot be applied to operand 'new(...)'
+                //         var c = new() & 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() & 1").WithArguments("&", "new(...)").WithLocation(8, 17),
+                // (9,17): error CS8310: Operator '|' cannot be applied to operand 'new(...)'
+                //         var d = new() | 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() | 1").WithArguments("|", "new(...)").WithLocation(9, 17),
+                // (10,17): error CS8310: Operator '^' cannot be applied to operand 'new(...)'
+                //         var e = new() ^ 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() ^ 1").WithArguments("^", "new(...)").WithLocation(10, 17),
+                // (11,17): error CS8310: Operator '*' cannot be applied to operand 'new(...)'
+                //         var f = new() * 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() * 1").WithArguments("*", "new(...)").WithLocation(11, 17),
+                // (12,17): error CS8310: Operator '/' cannot be applied to operand 'new(...)'
+                //         var g = new() / 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() / 1").WithArguments("/", "new(...)").WithLocation(12, 17),
+                // (13,17): error CS8310: Operator '%' cannot be applied to operand 'new(...)'
+                //         var h = new() % 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() % 1").WithArguments("%", "new(...)").WithLocation(13, 17),
+                // (14,17): error CS8310: Operator '>>' cannot be applied to operand 'new(...)'
+                //         var i = new() >> 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() >> 1").WithArguments(">>", "new(...)").WithLocation(14, 17),
+                // (15,17): error CS8310: Operator '<<' cannot be applied to operand 'new(...)'
+                //         var j = new() << 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() << 1").WithArguments("<<", "new(...)").WithLocation(15, 17),
+                // (16,17): error CS8310: Operator '>' cannot be applied to operand 'new(...)'
+                //         var k = new() > 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() > 1").WithArguments(">", "new(...)").WithLocation(16, 17),
+                // (17,17): error CS8310: Operator '<' cannot be applied to operand 'new(...)'
+                //         var l = new() < 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() < 1").WithArguments("<", "new(...)").WithLocation(17, 17),
+                // (18,17): error CS8310: Operator '>=' cannot be applied to operand 'new(...)'
+                //         var m = new() >= 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() >= 1").WithArguments(">=", "new(...)").WithLocation(18, 17),
+                // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'new(...)'
+                //         var n = new() <= 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() <= 1").WithArguments("<=", "new(...)").WithLocation(19, 17),
+                // (20,17): error CS9367: The default constructor of the value type 'int' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         var o = new() == 1; // ok
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("int").WithLocation(20, 17),
+                // (21,17): error CS9367: The default constructor of the value type 'int' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         var p = new() != 1; // ok
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("int").WithLocation(21, 17),
+                // (22,17): error CS8310: Operator '&&' cannot be applied to operand 'new(...)'
+                //         var q = new() && 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() && 1").WithArguments("&&", "new(...)").WithLocation(22, 17),
+                // (23,17): error CS8310: Operator '||' cannot be applied to operand 'new(...)'
+                //         var r = new() || 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() || 1").WithArguments("||", "new(...)").WithLocation(23, 17),
+                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'new(...)'
+                //         var s = new() ?? 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() ?? 1").WithArguments("??", "new(...)").WithLocation(24, 17),
+                // (25,17): error CS8310: Operator '??' cannot be applied to operand 'new(...)'
+                //         var t = new() ?? default(int?);
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() ?? default(int?)").WithArguments("??", "new(...)").WithLocation(25, 17)
+                );
+        }
+
+        [Fact]
+        public void TestBinaryOperators3()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var a = 1 + new();
+        var b = 1 - new();
+        var c = 1 & new();
+        var d = 1 | new();
+        var e = 1 ^ new();
+        var f = 1 * new();
+        var g = 1 / new();
+        var h = 1 % new();
+        var i = 1 >> new();
+        var j = 1 << new();
+        var k = 1 > new();
+        var l = 1 < new();
+        var m = 1 >= new();
+        var n = 1 <= new();
+        var o = 1 == new();
+        var p = 1 != new();
+        var q = 1 && new();
+        var r = 1 || new();
+        var s = new object() ?? new(); // ok
+        var t = 1 ?? new();
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS8310: Operator '+' cannot be applied to operand 'new(...)'
+                //         var a = 1 + new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 + new()").WithArguments("+", "new(...)").WithLocation(6, 17),
+                // (7,17): error CS8310: Operator '-' cannot be applied to operand 'new(...)'
+                //         var b = 1 - new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 - new()").WithArguments("-", "new(...)").WithLocation(7, 17),
+                // (8,17): error CS8310: Operator '&' cannot be applied to operand 'new(...)'
+                //         var c = 1 & new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 & new()").WithArguments("&", "new(...)").WithLocation(8, 17),
+                // (9,17): error CS8310: Operator '|' cannot be applied to operand 'new(...)'
+                //         var d = 1 | new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 | new()").WithArguments("|", "new(...)").WithLocation(9, 17),
+                // (10,17): error CS8310: Operator '^' cannot be applied to operand 'new(...)'
+                //         var e = 1 ^ new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 ^ new()").WithArguments("^", "new(...)").WithLocation(10, 17),
+                // (11,17): error CS8310: Operator '*' cannot be applied to operand 'new(...)'
+                //         var f = 1 * new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 * new()").WithArguments("*", "new(...)").WithLocation(11, 17),
+                // (12,17): error CS8310: Operator '/' cannot be applied to operand 'new(...)'
+                //         var g = 1 / new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 / new()").WithArguments("/", "new(...)").WithLocation(12, 17),
+                // (13,17): error CS8310: Operator '%' cannot be applied to operand 'new(...)'
+                //         var h = 1 % new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 % new()").WithArguments("%", "new(...)").WithLocation(13, 17),
+                // (14,17): error CS8310: Operator '>>' cannot be applied to operand 'new(...)'
+                //         var i = 1 >> new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 >> new()").WithArguments(">>", "new(...)").WithLocation(14, 17),
+                // (15,17): error CS8310: Operator '<<' cannot be applied to operand 'new(...)'
+                //         var j = 1 << new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 << new()").WithArguments("<<", "new(...)").WithLocation(15, 17),
+                // (16,17): error CS8310: Operator '>' cannot be applied to operand 'new(...)'
+                //         var k = 1 > new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 > new()").WithArguments(">", "new(...)").WithLocation(16, 17),
+                // (17,17): error CS8310: Operator '<' cannot be applied to operand 'new(...)'
+                //         var l = 1 < new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 < new()").WithArguments("<", "new(...)").WithLocation(17, 17),
+                // (18,17): error CS8310: Operator '>=' cannot be applied to operand 'new(...)'
+                //         var m = 1 >= new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 >= new()").WithArguments(">=", "new(...)").WithLocation(18, 17),
+                // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'new(...)'
+                //         var n = 1 <= new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 <= new()").WithArguments("<=", "new(...)").WithLocation(19, 17),
+                // (20,22): error CS9367: The default constructor of the value type 'int' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         var o = 1 == new();
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("int").WithLocation(20, 22),
+                // (21,22): error CS9367: The default constructor of the value type 'int' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         var p = 1 != new();
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("int").WithLocation(21, 22),
+                // (22,17): error CS8310: Operator '&&' cannot be applied to operand 'new(...)'
+                //         var q = 1 && new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 && new()").WithArguments("&&", "new(...)").WithLocation(22, 17),
+                // (23,17): error CS8310: Operator '||' cannot be applied to operand 'new(...)'
+                //         var r = 1 || new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 || new()").WithArguments("||", "new(...)").WithLocation(23, 17),
+                // (25,17): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'new(...)'
+                //         var t = 1 ?? new();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? new()").WithArguments("??", "int", "new(...)").WithLocation(25, 17)
                 );
         }
 
@@ -2878,35 +3069,320 @@ class C
         }
 
         [Fact]
-        public void BinaryOperator()
+        public void TestEquality_Class()
         {
             string source = @"
+using System;
+
 class C
 {
     static void Main()
     {
-        C x = new C();
-        if (x == new())
-        {
-            System.Console.Write(""0"");
+        Console.WriteLine(new C() == new());
+        Console.WriteLine(new() == new C());
+        Console.WriteLine(new C() != new());
+        Console.WriteLine(new() != new C());
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"
+False
+False
+True
+True");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            validate(1, "new()", type: "System.Object", convertedType: "System.Object", symbol: "System.Object..ctor()", 
+               operatorSymbol: "System.Boolean System.Object.op_Equality(System.Object left, System.Object right)", ConversionKind.Identity);
+
+            validate(2, "new()", type: "System.Object", convertedType: "System.Object", symbol: "System.Object..ctor()",
+                operatorSymbol: "System.Boolean System.Object.op_Equality(System.Object left, System.Object right)", ConversionKind.Identity);
+
+            validate(5, "new()", type: "System.Object", convertedType: "System.Object", symbol: "System.Object..ctor()",
+                operatorSymbol: "System.Boolean System.Object.op_Inequality(System.Object left, System.Object right)", ConversionKind.Identity);
+
+            validate(6, "new()", type: "System.Object", convertedType: "System.Object", symbol: "System.Object..ctor()",
+                operatorSymbol: "System.Boolean System.Object.op_Inequality(System.Object left, System.Object right)", ConversionKind.Identity);
+
+            void validate(int index, string expression, string type, string convertedType, string symbol, string operatorSymbol, ConversionKind conversionKind)
+            {
+                var @new = nodes.OfType<ObjectCreationExpressionSyntax>().ElementAt(index);
+                Assert.Equal(expression, @new.ToString());
+                Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
+                Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
+                Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
+                Assert.Equal(model.GetConversion(@new).Kind, conversionKind);
+                Assert.Equal(operatorSymbol, model.GetSymbolInfo(@new.Parent).Symbol.ToTestDisplayString());
+            }
         }
-        if (new() == x)
+
+        [Fact]
+        public void TestEquality_Class_UserDefinedOperator()
         {
-            System.Console.Write(""1"");
+            string source = @"
+using System;
+
+class C
+{
+    public static bool operator ==(C o1, C o2)
+    {
+        Console.WriteLine(""operator =="");
+        return (object)o1 == (object)o2;
+    }
+    public static bool operator !=(C o1, C o2)
+    {
+        Console.WriteLine(""operator !="");
+        return (object)o1 != (object)o2;
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(new C() == new());
+        Console.WriteLine(new() == new C());
+        Console.WriteLine(new C() != new());
+        Console.WriteLine(new() != new C());
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(0));
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"
+operator ==
+False
+operator ==
+False
+operator !=
+True
+operator !=
+True");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            validate(1, "new()", type: "C", convertedType: "C", symbol: "C..ctor()", 
+                operatorSymbol: "System.Boolean C.op_Equality(C o1, C o2)", ConversionKind.Identity);
+
+            validate(2, "new()", type: "C", convertedType: "C", symbol: "C..ctor()", 
+                operatorSymbol: "System.Boolean C.op_Equality(C o1, C o2)", ConversionKind.Identity);
+
+            validate(5, "new()", type: "C", convertedType: "C", symbol: "C..ctor()", 
+                operatorSymbol: "System.Boolean C.op_Inequality(C o1, C o2)", ConversionKind.Identity);
+
+            validate(6, "new()", type: "C", convertedType: "C", symbol: "C..ctor()", 
+                operatorSymbol: "System.Boolean C.op_Inequality(C o1, C o2)", ConversionKind.Identity);
+
+            void validate(int index, string expression, string type, string convertedType, string symbol, string operatorSymbol, ConversionKind conversionKind)
+            {
+                var @new = nodes.OfType<ObjectCreationExpressionSyntax>().ElementAt(index);
+                Assert.Equal(expression, @new.ToString());
+                Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
+                Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
+                Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
+                Assert.Equal(model.GetConversion(@new).Kind, conversionKind);
+                Assert.Equal(operatorSymbol, model.GetSymbolInfo(@new.Parent).Symbol.ToTestDisplayString());
+            }
         }
+
+        [Fact]
+        public void TestEquality_Class_UserDefinedOperator_ErrorCases()
+        {
+            string source = @"
+using System;
+
+class D
+{
+}
+
+class C
+{
+    public extern static bool operator ==(C o1, C o2);
+    public extern static bool operator !=(C o1, C o2);
+    public extern static bool operator ==(C o1, D o2);
+    public extern static bool operator !=(C o1, D o2);
+
+    static void Main()
+    {
+        Console.WriteLine(new C() == new());
+        Console.WriteLine(new() == new C());
+        Console.WriteLine(new C() != new());
+        Console.WriteLine(new() != new C());
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(0));
+            comp.VerifyDiagnostics(
+                // (17,27): error CS0034: Operator '==' is ambiguous on operands of type 'C' and 'new(...)'
+                //         Console.WriteLine(new C() == new());
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() == new()").WithArguments("==", "C", "new(...)").WithLocation(17, 27),
+                // (19,27): error CS0034: Operator '!=' is ambiguous on operands of type 'C' and 'new(...)'
+                //         Console.WriteLine(new C() != new());
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() != new()").WithArguments("!=", "C", "new(...)").WithLocation(19, 27));
+        }
+
+        [Fact]
+        public void TestEquality_Struct_ErrorCases()
+        {
+            string source = @"
+using System;
+
+struct S
+{
+    static void Main()
+    {
+        Console.WriteLine(new S() == new());
+        Console.WriteLine(new() == new S());
+        Console.WriteLine(new S() != new());
+        Console.WriteLine(new() != new S());
+
+        Console.WriteLine(new S?() == new());
+        Console.WriteLine(new() == new S?());
+        Console.WriteLine(new S?() != new());
+        Console.WriteLine(new() != new S?());
     }
 }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (7,13): error CS0019: Operator '==' cannot be applied to operands of type 'C' and 'new(...)'
-                //         if (x == new())
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == new()").WithArguments("==", "C", "new(...)").WithLocation(7, 13),
-                // (11,13): error CS0019: Operator '==' cannot be applied to operands of type 'new(...)' and 'C'
-                //         if (new() == x)
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() == x").WithArguments("==", "new(...)", "C").WithLocation(11, 13)
+                // (8,27): error CS0019: Operator '==' cannot be applied to operands of type 'S' and 'new(...)'
+                //         Console.WriteLine(new S() == new());
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new S() == new()").WithArguments("==", "S", "new(...)").WithLocation(8, 27),
+                // (9,27): error CS0019: Operator '==' cannot be applied to operands of type 'new(...)' and 'S'
+                //         Console.WriteLine(new() == new S());
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() == new S()").WithArguments("==", "new(...)", "S").WithLocation(9, 27),
+                // (10,27): error CS0019: Operator '!=' cannot be applied to operands of type 'S' and 'new(...)'
+                //         Console.WriteLine(new S() != new());
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new S() != new()").WithArguments("!=", "S", "new(...)").WithLocation(10, 27),
+                // (11,27): error CS0019: Operator '!=' cannot be applied to operands of type 'new(...)' and 'S'
+                //         Console.WriteLine(new() != new S());
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() != new S()").WithArguments("!=", "new(...)", "S").WithLocation(11, 27),
+                // (13,27): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'new(...)'
+                //         Console.WriteLine(new S?() == new());
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new S?() == new()").WithArguments("==", "S?", "new(...)").WithLocation(13, 27),
+                // (14,27): error CS0019: Operator '==' cannot be applied to operands of type 'new(...)' and 'S?'
+                //         Console.WriteLine(new() == new S?());
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() == new S?()").WithArguments("==", "new(...)", "S?").WithLocation(14, 27),
+                // (15,27): error CS0019: Operator '!=' cannot be applied to operands of type 'S?' and 'new(...)'
+                //         Console.WriteLine(new S?() != new());
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new S?() != new()").WithArguments("!=", "S?", "new(...)").WithLocation(15, 27),
+                // (16,27): error CS0019: Operator '!=' cannot be applied to operands of type 'new(...)' and 'S?'
+                //         Console.WriteLine(new() != new S?());
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() != new S?()").WithArguments("!=", "new(...)", "S?").WithLocation(16, 27));
+        }
+
+        [Fact]
+        public void TestEquality_Struct_UserDefinedOperator_ErrorCases()
+        {
+            string source = @"
+using System;
+
+struct S
+{
+    public S(int i) {}
+
+    public extern static bool operator ==(S o1, S o2);
+    public extern static bool operator !=(S o1, S o2);
+
+    static void Main()
+    {
+        Console.WriteLine(new S() == new());
+        Console.WriteLine(new() == new S());
+        Console.WriteLine(new S() != new());
+        Console.WriteLine(new() != new S());
+
+        Console.WriteLine(new S?() == new());
+        Console.WriteLine(new() == new S?());
+        Console.WriteLine(new S?() != new());
+        Console.WriteLine(new() != new S?());
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(0));
+            comp.VerifyDiagnostics(
+                // (13,38): error CS9367: The default constructor of the value type 'S' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         Console.WriteLine(new S() == new());
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("S").WithLocation(13, 38),
+                // (14,27): error CS9367: The default constructor of the value type 'S' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         Console.WriteLine(new() == new S());
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("S").WithLocation(14, 27),
+                // (15,38): error CS9367: The default constructor of the value type 'S' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         Console.WriteLine(new S() != new());
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("S").WithLocation(15, 38),
+                // (16,27): error CS9367: The default constructor of the value type 'S' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         Console.WriteLine(new() != new S());
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("S").WithLocation(16, 27),
+                // (18,39): error CS9367: The default constructor of the value type 'S' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         Console.WriteLine(new S?() == new());
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("S").WithLocation(18, 39),
+                // (19,27): error CS9367: The default constructor of the value type 'S' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         Console.WriteLine(new() == new S?());
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("S").WithLocation(19, 27),
+                // (20,39): error CS9367: The default constructor of the value type 'S' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         Console.WriteLine(new S?() != new());
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("S").WithLocation(20, 39),
+                // (21,27): error CS9367: The default constructor of the value type 'S' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                //         Console.WriteLine(new() != new S?());
+                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("S").WithLocation(21, 27)
                 );
+        }
+
+        [Fact]
+        public void TestEquality_Struct_UserDefinedOperator()
+        {
+            string source = @"
+using System;
+
+struct S
+{
+    private readonly int field;
+    
+    public S(int i)
+    {
+        this.field = i;
+    }
+
+    public static bool operator ==(S o1, S o2) => o1.field == o2.field;
+    public static bool operator !=(S o1, S o2) => o1.field != o2.field;
+
+    static void Main()
+    {
+        Console.WriteLine(new S(42) == new(42));
+        Console.WriteLine(new(42) == new S(42));
+        Console.WriteLine(new S(42) != new(42));
+        Console.WriteLine(new(42) != new S(42));
+
+        Console.WriteLine(new S?(new(42)) == new(42));
+        Console.WriteLine(new(42) == new S?(new(42)));
+        Console.WriteLine(new S?(new(42)) != new(42));
+        Console.WriteLine(new(42) != new S?(new(42)));
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(0));
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"
+True
+True
+False
+False
+True
+True
+False
+False");
         }
 
         [Fact]
