@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (leftDefault || rightDefault)
             {
                 // other than == and !=, binary operators are disallowed on `default` literal
-                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, operatorToken.Text, "default");
+                Error(diagnostics, ErrorCode.ERR_BadOpOnTypelessExpression, node, operatorToken.Text, "default");
                 return;
             }
 
@@ -2276,7 +2276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
                 // (or other typeless expressions).
-                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, operatorText, operand.Display);
+                Error(diagnostics, ErrorCode.ERR_BadOpOnTypelessExpression, node, operatorText, operand.Display);
             }
 
             // If the operand is bad, avoid generating cascading errors.
@@ -3362,7 +3362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (leftOperand.IsLiteralDefault() || leftOperand.IsTypelessNew())
             {
-                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, leftOperand.Display);
+                Error(diagnostics, ErrorCode.ERR_BadOpOnTypelessExpression, node, node.OperatorToken.Text, leftOperand.Display);
 
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
                     Conversion.NoConversion, CreateErrorType(), hasErrors: true);

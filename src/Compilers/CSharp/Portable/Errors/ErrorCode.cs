@@ -1486,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_NoRefOutWhenRefOnly = 8308,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
-        ERR_BadOpOnNullOrDefault = 8310,
+        ERR_BadOpOnTypelessExpression = 8310,
         ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
         ERR_DefaultInSwitch = 8313,

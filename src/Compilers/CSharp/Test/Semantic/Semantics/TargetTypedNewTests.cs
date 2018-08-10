@@ -1565,7 +1565,7 @@ class C
         }
 
         [Fact]
-        public void CannotAwaitDefault()
+        public void CannotAwait()
         {
             string source = @"
 class C
@@ -1738,16 +1738,16 @@ class C
             comp.VerifyDiagnostics(
                 // (6,16): error CS8310: Operator '+' cannot be applied to operand 'new(...)'
                 //         C v1 = +new();
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+new()").WithArguments("+", "new(...)").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "+new()").WithArguments("+", "new(...)").WithLocation(6, 16),
                 // (7,16): error CS8310: Operator '-' cannot be applied to operand 'new(...)'
                 //         C v2 = -new();
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-new()").WithArguments("-", "new(...)").WithLocation(7, 16),
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "-new()").WithArguments("-", "new(...)").WithLocation(7, 16),
                 // (8,16): error CS8310: Operator '~' cannot be applied to operand 'new(...)'
                 //         C v3 = ~new();
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~new()").WithArguments("~", "new(...)").WithLocation(8, 16),
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "~new()").WithArguments("~", "new(...)").WithLocation(8, 16),
                 // (9,16): error CS8310: Operator '!' cannot be applied to operand 'new(...)'
                 //         C v4 = !new();
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!new()").WithArguments("!", "new(...)").WithLocation(9, 16),
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "!new()").WithArguments("!", "new(...)").WithLocation(9, 16),
                 // (10,18): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
                 //         C v5 = ++new();
                 Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "new()").WithLocation(10, 18),
@@ -2254,34 +2254,6 @@ class C
         }
 
         [Fact]
-        public void ConditionalOnDefaultIsFalse()
-        {
-            string source = @"
-class C
-{
-    static void Main()
-    {
-        if (new() == false)
-        {
-        }
-        if (new() == true)
-        {
-        }
-    }
-}
-";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (6,13): error CS9367: The default constructor of the value type 'bool' may not be used with target-typed 'new'. Consider using 'default' instead.
-                //         if (new() == false)
-                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("bool").WithLocation(6, 13),
-                // (9,13): error CS9367: The default constructor of the value type 'bool' may not be used with target-typed 'new'. Consider using 'default' instead.
-                //         if (new() == true)
-                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("bool").WithLocation(9, 13)
-                );
-        }
-
-        [Fact]
         public void InFixed()
         {
             string source = @"
@@ -2673,7 +2645,7 @@ class C
         }
 
         [Fact]
-        public void TestErrorDefaultLiteralCollection()
+        public void InForeach()
         {
             var text = @"
 class C
@@ -2770,7 +2742,7 @@ class Program
             var comp = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (7,32): error CS8310: Operator '??' cannot be applied to operand 'new(...)'
                 //         Func<object> f = () => new() ?? "hello";
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, @"new() ?? ""hello""").WithArguments("??", "new(...)").WithLocation(7, 32)
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, @"new() ?? ""hello""").WithArguments("??", "new(...)").WithLocation(7, 32)
                 );
         }
 
