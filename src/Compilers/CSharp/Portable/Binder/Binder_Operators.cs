@@ -623,7 +623,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool leftDefault = left.IsLiteralDefault();
                     bool rightDefault = right.IsLiteralDefault();
-                    foundOperator = !isObjectEquality || BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull || leftDefault, rightType, rightNull || rightDefault, ref useSiteDiagnostics);
+                    foundOperator = !isObjectEquality || BuiltInOperators.IsValidObjectEquality(Conversions,
+                        leftType, leftNull || leftDefault, left.IsTypelessNew(), rightType, rightNull || rightDefault, right.IsTypelessNew(), ref useSiteDiagnostics);
                     diagnostics.Add(node, useSiteDiagnostics);
                 }
             }
@@ -659,20 +660,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportBinaryOperatorError(ExpressionSyntax node, DiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
-            bool leftDefault = left.IsLiteralDefault();
-            bool rightDefault = right.IsLiteralDefault();
-            if ((operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken))
+            bool leftDefaultOrNew = left.IsLiteralDefault() || left.IsTypelessNew();
+            bool rightDefaultOrNew = right.IsLiteralDefault() || right.IsTypelessNew();
+            if (operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken)
             {
-                if (leftDefault && rightDefault)
+                if (leftDefaultOrNew && rightDefaultOrNew)
                 {
-                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefault, node, operatorToken.Text);
+                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, node, operatorToken.Text, left.Display, right.Display);
                     return;
                 }
             }
-            else if (leftDefault || rightDefault)
+            else if (leftDefaultOrNew || rightDefaultOrNew)
             {
-                // other than == and !=, binary operators are disallowed on `default` literal
-                Error(diagnostics, ErrorCode.ERR_BadOpOnTypelessExpression, node, operatorToken.Text, "default");
+                // other than == and !=, binary operators are disallowed on `default` literal or new()
+                Error(diagnostics, ErrorCode.ERR_BadOpOnTypelessExpression, node, operatorToken.Text, leftDefaultOrNew ? left.Display : right.Display);
                 return;
             }
 
@@ -1074,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BinaryOperatorAnalysisResult BinaryOperatorOverloadResolution(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, CSharpSyntaxNode node, DiagnosticBag diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
         {
-            if (!IsDefaultLiteralAllowedInBinaryOperator(kind, left, right))
+            if (!IsTypelessExpressionAllowedInBinaryOperator(kind, left, right))
             {
                 resultKind = LookupResultKind.OverloadResolutionFailure;
                 originalUserDefinedOperators = default(ImmutableArray<MethodSymbol>);
@@ -1131,16 +1132,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return possiblyBest;
         }
 
-        private bool IsDefaultLiteralAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
+        private bool IsTypelessExpressionAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
         {
             bool isEquality = kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual;
             if (isEquality)
             {
-                return !left.IsLiteralDefault() || !right.IsLiteralDefault();
+                return !(left.IsLiteralDefault() && right.IsLiteralDefault() && left.IsTypelessNew() && right.IsTypelessNew());
             }
             else
             {
-                return !left.IsLiteralDefault() && !right.IsLiteralDefault();
+                return !(left.IsLiteralDefault() || right.IsLiteralDefault() || left.IsTypelessNew() || right.IsTypelessNew());
             }
         }
 

@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNullOrDefault, TypeSymbol rightType, bool rightIsNullOrDefault, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNullOrDefault, bool leftIsNew, TypeSymbol rightType, bool rightIsNullOrDefault, bool rightIsNew, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: The predefined reference type equality operators require one of the following:
 
@@ -760,12 +760,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var leftIsReferenceType = ((object)leftType != null) && leftType.IsReferenceType;
+            if (leftIsReferenceType && rightIsNew)
+            {
+                return true;
+            }
+
+            var rightIsReferenceType = ((object)rightType != null) && rightType.IsReferenceType;
+            if (rightIsReferenceType && leftIsNew)
+            {
+                return true;
+            }
+
             if (!leftIsReferenceType && !leftIsNullOrDefault)
             {
                 return false;
             }
 
-            var rightIsReferenceType = ((object)rightType != null) && rightType.IsReferenceType;
             if (!rightIsReferenceType && !rightIsNullOrDefault)
             {
                 return false;

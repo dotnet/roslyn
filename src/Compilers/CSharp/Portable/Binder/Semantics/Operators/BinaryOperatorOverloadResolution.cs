@@ -510,7 +510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We consider the `null` literal, but not the `default` literal, since the latter does not require a reference equality
             return
-                BuiltInOperators.IsValidObjectEquality(Conversions, left.Type, left.IsLiteralNull(), right.Type, right.IsLiteralNull(), ref useSiteDiagnostics) &&
+                BuiltInOperators.IsValidObjectEquality(Conversions,
+                    left.Type, left.IsLiteralNull(), left.IsTypelessNew(), right.Type, right.IsLiteralNull(), right.IsTypelessNew(), ref useSiteDiagnostics) &&
                 ((object)left.Type == null || (!left.Type.IsDelegateType() && left.Type.SpecialType != SpecialType.System_String && left.Type.SpecialType != SpecialType.System_Delegate)) &&
                 ((object)right.Type == null || (!right.Type.IsDelegateType() && right.Type.SpecialType != SpecialType.System_String && right.Type.SpecialType != SpecialType.System_Delegate));
         }

@@ -2580,9 +2580,9 @@ enum E : byte
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,9): error CS9367: The default constructor of the value type 'int' may not be used with 'new(...)'; Use 'default' or a literal expression instead
+                // (5,9): error CS8310: Operator '+' cannot be applied to operand 'new(...)'
                 //     B = new() + 1
-                Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("int").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() + 1").WithArguments("+", "new(...)").WithLocation(5, 9),
                 // (4,9): error CS9367: The default constructor of the value type 'byte' may not be used with 'new(...)'; Use 'default' or a literal expression instead
                 //     A = new(),
                 Diagnostic(ErrorCode.ERR_IllegalDefaultValueTypeCtor, "new()").WithArguments("byte").WithLocation(4, 9)
@@ -2659,23 +2659,95 @@ class C
         }
 
         [Fact]
-        public void AmigBinaryOperator()
+        public void TestBinaryOperators()
         {
             string source = @"
 class C
 {
     static void Main()
     {
-        var x = new() == new();
+        var a = new() + new();
+        var b = new() - new();
+        var c = new() & new();
+        var d = new() | new();
+        var e = new() ^ new();
+        var f = new() * new();
+        var g = new() / new();
+        var h = new() % new();
+        var i = new() >> new();
+        var j = new() << new();
+        var k = new() > new();
+        var l = new() < new();
+        var m = new() >= new();
+        var n = new() <= new();
+        var o = new() == new(); // ambigous
+        var p = new() != new(); // ambigous
+        var q = new() && new();
+        var r = new() || new();
+        var s = new() ?? new();
     }
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,17): error CS0034: Operator '==' is ambiguous on operands of type 'new(...)' and 'new(...)'
-                //         var x = new() == new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new() == new()").WithArguments("==", "new(...)", "new(...)").WithLocation(6, 17)
+                // (6,17): error CS8310: Operator '+' cannot be applied to operand 'new(...)'
+                //         var a = new() + new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() + new()").WithArguments("+", "new(...)").WithLocation(6, 17),
+                // (7,17): error CS8310: Operator '-' cannot be applied to operand 'new(...)'
+                //         var b = new() - new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() - new()").WithArguments("-", "new(...)").WithLocation(7, 17),
+                // (8,17): error CS8310: Operator '&' cannot be applied to operand 'new(...)'
+                //         var c = new() & new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() & new()").WithArguments("&", "new(...)").WithLocation(8, 17),
+                // (9,17): error CS8310: Operator '|' cannot be applied to operand 'new(...)'
+                //         var d = new() | new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() | new()").WithArguments("|", "new(...)").WithLocation(9, 17),
+                // (10,17): error CS8310: Operator '^' cannot be applied to operand 'new(...)'
+                //         var e = new() ^ new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() ^ new()").WithArguments("^", "new(...)").WithLocation(10, 17),
+                // (11,17): error CS8310: Operator '*' cannot be applied to operand 'new(...)'
+                //         var f = new() * new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() * new()").WithArguments("*", "new(...)").WithLocation(11, 17),
+                // (12,17): error CS8310: Operator '/' cannot be applied to operand 'new(...)'
+                //         var g = new() / new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() / new()").WithArguments("/", "new(...)").WithLocation(12, 17),
+                // (13,17): error CS8310: Operator '%' cannot be applied to operand 'new(...)'
+                //         var h = new() % new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() % new()").WithArguments("%", "new(...)").WithLocation(13, 17),
+                // (14,17): error CS8310: Operator '>>' cannot be applied to operand 'new(...)'
+                //         var i = new() >> new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() >> new()").WithArguments(">>", "new(...)").WithLocation(14, 17),
+                // (15,17): error CS8310: Operator '<<' cannot be applied to operand 'new(...)'
+                //         var j = new() << new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() << new()").WithArguments("<<", "new(...)").WithLocation(15, 17),
+                // (16,17): error CS8310: Operator '>' cannot be applied to operand 'new(...)'
+                //         var k = new() > new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() > new()").WithArguments(">", "new(...)").WithLocation(16, 17),
+                // (17,17): error CS8310: Operator '<' cannot be applied to operand 'new(...)'
+                //         var l = new() < new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() < new()").WithArguments("<", "new(...)").WithLocation(17, 17),
+                // (18,17): error CS8310: Operator '>=' cannot be applied to operand 'new(...)'
+                //         var m = new() >= new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() >= new()").WithArguments(">=", "new(...)").WithLocation(18, 17),
+                // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'new(...)'
+                //         var n = new() <= new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() <= new()").WithArguments("<=", "new(...)").WithLocation(19, 17),
+                // (20,17): error CS8315: Operator '==' is ambiguous on operands 'new(...)' and 'new(...)'
+                //         var o = new() == new(); // ambigous
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() == new()").WithArguments("==", "new(...)", "new(...)").WithLocation(20, 17),
+                // (21,17): error CS8315: Operator '!=' is ambiguous on operands 'new(...)' and 'new(...)'
+                //         var p = new() != new(); // ambigous
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() != new()").WithArguments("!=", "new(...)", "new(...)").WithLocation(21, 17),
+                // (22,17): error CS8310: Operator '&&' cannot be applied to operand 'new(...)'
+                //         var q = new() && new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() && new()").WithArguments("&&", "new(...)").WithLocation(22, 17),
+                // (23,17): error CS8310: Operator '||' cannot be applied to operand 'new(...)'
+                //         var r = new() || new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() || new()").WithArguments("||", "new(...)").WithLocation(23, 17),
+                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'new(...)'
+                //         var s = new() ?? new();
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() ?? new()").WithArguments("??", "new(...)").WithLocation(24, 17)
                 );
         }
 
