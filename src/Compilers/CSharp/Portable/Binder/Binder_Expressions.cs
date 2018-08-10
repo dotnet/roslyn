@@ -5387,10 +5387,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, boundLeft);
             }
 
-            // No member accesses on default
-            if (boundLeft.IsLiteralDefault())
+            // No member accesses on default or new()
+            if (boundLeft.IsLiteralDefault() || boundLeft.IsTypelessNew())
             {
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), "default");
+                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadOpOnTypelessExpression, SyntaxFacts.GetText(operatorToken.Kind()), boundLeft.Display);
                 diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
                 return BadExpression(node, boundLeft);
             }

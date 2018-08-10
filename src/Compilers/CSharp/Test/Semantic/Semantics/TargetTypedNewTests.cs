@@ -871,7 +871,8 @@ class C
             var source = @"
 using System;
 
-struct S {
+struct S
+{
     static void M1<T>() where T : struct
     {
         Console.Write(new T());
@@ -881,7 +882,8 @@ struct S {
         Console.Write(new T());
     }
 
-    public static void Main() {
+    public static void Main()
+    {
         M1<S>();
         M2<S>();
     }
@@ -1899,9 +1901,9 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,15): error CS0117: 'new(...)' does not contain a definition for 'ToString'
+                // (6,14): error CS8310: Operator '.' cannot be applied to operand 'new(...)'
                 //         new().ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "ToString").WithArguments("new(...)", "ToString").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, ".").WithArguments(".", "new(...)").WithLocation(6, 14),
                 // (7,9): error CS0021: Cannot apply indexing with [] to an expression of type 'new(...)'
                 //         new()[0].ToString();
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "new()[0]").WithArguments("new(...)").WithLocation(7, 9)

@@ -573,9 +573,9 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,16): error CS0023: Operator '.' cannot be applied to operand of type 'default'
+                // (6,16): error CS8310: Operator '.' cannot be applied to operand 'default'
                 //         default.ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, ".").WithArguments(".", "default").WithLocation(6, 16),
                 // (7,9): error CS0021: Cannot apply indexing with [] to an expression of type 'default'
                 //         default[0].ToString();
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "default[0]").WithArguments("default").WithLocation(7, 9),
