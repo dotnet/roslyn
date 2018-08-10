@@ -5,6 +5,9 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// A lazily calculated diagnostic for constraint check nullability.
+    /// </summary>
     internal sealed class LazyNullableContraintChecksDiagnosticInfo : LazyDiagnosticInfo
     {
         private readonly NamedTypeSymbol _type;
@@ -30,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnosticsBuilder,
                 warningsBuilder,
                 ref useSiteDiagnosticsBuilder);
+            // If there are multiple constraint check warnings, we'll report the first one only.
             var diagnostic = (warningsBuilder.Count == 0) ? null : warningsBuilder[0].DiagnosticInfo;
             useSiteDiagnosticsBuilder?.Free();
             warningsBuilder.Free();

@@ -103,11 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         InContextualAttributeBinder = 1 << 29,
 
-        /// <summary>
-        /// Suppress nullability mismatch warnings on constraints.
-        /// </summary>
-        SuppressNullableContraintChecks = 1 << 30,
-
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,

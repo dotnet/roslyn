@@ -858,10 +858,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void ReportMissingNonNullTypesContextForAnnotation(DiagnosticBag diagnostics, Location location)
         {
-            if (this.NonNullTypes != true)
+            ReportMissingNonNullTypesContextForAnnotation(this, diagnostics, location);
+        }
+
+        internal static void ReportMissingNonNullTypesContextForAnnotation(INonNullTypesContext context, DiagnosticBag diagnostics, Location location)
+        {
+            var diagnostic = ReportMissingNonNullTypesContextForAnnotation(context);
+            if (diagnostic != null)
             {
-                diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, location);
+                diagnostics.Add(diagnostic, location);
             }
+        }
+
+        internal static DiagnosticInfo ReportMissingNonNullTypesContextForAnnotation(INonNullTypesContext context)
+        {
+            return context.NonNullTypes == true ?
+                null :
+                new CSDiagnosticInfo(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation);
         }
 
         internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()

@@ -39074,7 +39074,7 @@ public class A6<T> where T : IEquatable<int?> { }";
 
         [WorkItem(29186, "https://github.com/dotnet/roslyn/issues/29186")]
         [Fact]
-        public void AttributeArgumentCycle_01()
+        public void AttributeArgumentCycle_OtherAttribute()
         {
             var source =
 @"using System;
@@ -39096,7 +39096,7 @@ class C
 
         [WorkItem(29186, "https://github.com/dotnet/roslyn/issues/29186")]
         [Fact]
-        public void AttributeArgumentCycle_02()
+        public void AttributeArgumentCycle_NonNullTypes_01()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -39115,7 +39115,7 @@ class C
 
         [WorkItem(29186, "https://github.com/dotnet/roslyn/issues/29186")]
         [Fact]
-        public void AttributeArgumentCycle_03()
+        public void AttributeArgumentCycle_NonNullTypes_02()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -39137,6 +39137,51 @@ class D
                 // (11,15): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "B<A?>").WithArguments("B<T>", "A", "T", "A?").WithLocation(11, 15));
+        }
+
+        [WorkItem(29186, "https://github.com/dotnet/roslyn/issues/29186")]
+        [Fact]
+        public void AttributeArgumentCycle_Nullable()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+[module: NonNullTypes]
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public class Type { }
+    public struct Boolean { }
+    public struct Enum { }
+    public class Attribute { }
+    public interface INullable<T> { }
+    public struct Nullable<T> where T : INullable<object> { }
+}
+namespace System.Runtime.CompilerServices
+{
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}";
+            var source =
+@"using System;
+class AAttribute : Attribute
+{
+    internal AAttribute(object o) { }
+}
+struct S : INullable<object?> { }
+[A(typeof(S?))]
+class C
+{
+}";
+            var comp = CreateEmptyCompilation(new[] { source0, source }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,11): warning CS8631: The type 'S' cannot be used as type parameter 'T' in the generic type or method 'Nullable<T>'. Nullability of type argument 'S' doesn't match constraint type 'System.INullable<object>'.
+                // [A(typeof(S?))]
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "S?").WithArguments("System.Nullable<T>", "System.INullable<object>", "T", "S").WithLocation(7, 11));
         }
     }
 }

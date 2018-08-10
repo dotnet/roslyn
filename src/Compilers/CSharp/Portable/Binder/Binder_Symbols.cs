@@ -342,19 +342,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSyntax typeArgumentSyntax = nullableSyntax.ElementType;
                         TypeSymbolWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
                         TypeSymbolWithAnnotations constructedType;
-                        if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking))
+                        bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
+                        if (includeNullability)
                         {
                             if (InExecutableBinder)
                             {
                                 // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
                                 // Types created outside executable context should be checked by the responsible symbol (the method symbol checks its return type, for instance).
-                                if (Flags.Includes(BinderFlags.SuppressNullableContraintChecks))
+                                if (!ShouldCheckConstraintsNullability)
                                 {
                                     diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(NonNullTypesContext, typeArgument), nullableSyntax.QuestionToken.GetLocation());
                                 }
-                                else if (!typeArgument.IsValueType && NonNullTypesContext.NonNullTypes != true)
+                                else if (!typeArgument.IsValueType)
                                 {
-                                    diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, nullableSyntax.QuestionToken.GetLocation());
+                                    Symbol.ReportMissingNonNullTypesContextForAnnotation(NonNullTypesContext, diagnostics, nullableSyntax.QuestionToken.GetLocation());
                                 }
                             }
 
@@ -372,7 +373,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (ShouldCheckConstraints && constructedType.IsNullableType())
                         {
                             ReportUseSiteDiagnostics(constructedType.TypeSymbol.OriginalDefinition, diagnostics, syntax);
-                            ((NamedTypeSymbol)constructedType.TypeSymbol).CheckConstraints(this.Compilation, this.Conversions, syntax.Location, diagnostics);
+                            var type = (NamedTypeSymbol)constructedType.TypeSymbol;
+                            var location = syntax.Location;
+                            var conversions = this.Conversions.WithNullability(includeNullability);
+                            if (includeNullability && !ShouldCheckConstraintsNullability)
+                            {
+                                diagnostics.Add(new LazyNullableContraintChecksDiagnosticInfo(type, conversions, this.Compilation), location);
+                                conversions = conversions.WithNullability(includeNullability: false);
+                            }
+                            type.CheckConstraints(this.Compilation, conversions, location, diagnostics);
                         }
                         return constructedType;
                     }
@@ -1183,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
                 var conversions = this.Conversions.WithNullability(includeNullability);
-                if (includeNullability && Flags.Includes(BinderFlags.SuppressNullableContraintChecks))
+                if (includeNullability && !ShouldCheckConstraintsNullability)
                 {
                     diagnostics.Add(new LazyNullableContraintChecksDiagnosticInfo(type, conversions, this.Compilation), typeSyntax.GetLocation());
                     conversions = conversions.WithNullability(includeNullability: false);
@@ -1205,6 +1214,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return !this.Flags.Includes(BinderFlags.SuppressConstraintChecks);
+            }
+        }
+
+        private bool ShouldCheckConstraintsNullability
+        {
+            get
+            {
+                return ShouldCheckConstraints && !this.Flags.Includes(BinderFlags.AttributeArgument);
             }
         }
 

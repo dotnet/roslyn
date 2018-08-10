@@ -4,6 +4,9 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// A lazily calculated diagnostic for missing [NonNullTypes(true)].
+    /// </summary>
     internal sealed class LazyMissingNonNullTypesContextDiagnosticInfo : LazyDiagnosticInfo
     {
         private readonly INonNullTypesContext _context;
@@ -17,11 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override DiagnosticInfo ResolveInfo()
         {
-            if (!_type.IsValueType && _context.NonNullTypes != true)
-            {
-                return new CSDiagnosticInfo(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation);
-            }
-            return null;
+            return _type.IsValueType ? null : Symbol.ReportMissingNonNullTypesContextForAnnotation(_context);
         }
     }
 }

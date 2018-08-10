@@ -862,10 +862,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="typeArguments">The immediate type arguments to be replaced for type
         /// parameters in the type.</param>
-        public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments)
+        public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments, INonNullTypesContext nonNullTypesContext = null)
         {
             // PROTOTYPE(NullableReferenceTypes): We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments, false, nonNullTypesContext: null);
+            return ConstructWithoutModifiers(typeArguments, false, nonNullTypesContext);
         }
 
         /// <summary>

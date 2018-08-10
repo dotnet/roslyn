@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var underlyingTuple in underlyingTupleTypeChain)
             {
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-                CheckTypeConstraints(underlyingTuple, conversions, currentCompilation, diagnosticsBuilder, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+                CheckTypeConstraints(underlyingTuple, conversions, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
                 if (useSiteDiagnosticsBuilder != null)
                 {
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var result = CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
