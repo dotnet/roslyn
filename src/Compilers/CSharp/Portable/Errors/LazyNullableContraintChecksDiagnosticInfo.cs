@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var warningsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+            // CheckTypeConstraints should only add nullability warnings to warningsBuilder.
             ConstraintsHelper.CheckTypeConstraints(
                 _type,
                 _conversions,
