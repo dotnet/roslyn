@@ -220,11 +220,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                         IMethodSymbol targetMethod = null;
                         if (operation.Parent is IInvocationOperation invocation)
                         {
-                            targetMethod = invocation.TargetMethod;
+                            targetMethod = invocation.TargetMethod.OriginalDefinition;
                         }
                         else if (operation.Parent is IObjectCreationOperation objectCreation)
                         {
-                            targetMethod = objectCreation.Constructor;
+                            targetMethod = objectCreation.Constructor.OriginalDefinition;
                         }
 
                         if (targetMethod != null &&
@@ -273,9 +273,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                                     if (invokedMethodLocationAnalysisResult != null)
                                     {
                                         Debug.Assert(hazardousParameterUsagesInInvokedMethod != null);
+                                        var operationParameter = operation.Parameter.OriginalDefinition;
 
                                         // Non-validated argument passed to private/internal methods might be hazardous.
-                                        if (hazardousParameterUsagesInInvokedMethod.ContainsKey(operation.Parameter))
+                                        if (hazardousParameterUsagesInInvokedMethod.ContainsKey(operationParameter))
                                         {
                                             if (_hazardousParameterUsageBuilderOpt != null && !targetMethod.IsExternallyVisible())
                                             {
@@ -293,7 +294,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                                                 Debug.Assert(parameterLocation.SymbolOpt is IParameterSymbol invokedMethodParameter && invokedMethodParameter.ContainingSymbol == targetMethod);
 
                                                 // Check if the matching parameter was validated by the invoked method.
-                                                if ((IParameterSymbol)parameterLocation.SymbolOpt == operation.Parameter &&
+                                                if ((IParameterSymbol)parameterLocation.SymbolOpt == operationParameter &&
                                                     parameterValue == ParameterValidationAbstractValue.Validated)
                                                 {
                                                     SetAbstractValue(notValidatedLocations, ParameterValidationAbstractValue.Validated);

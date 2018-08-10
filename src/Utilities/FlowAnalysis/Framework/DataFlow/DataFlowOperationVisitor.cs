@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 owningSymbol.Kind == SymbolKind.Field ||
                 owningSymbol.Kind == SymbolKind.Property ||
                 owningSymbol.Kind == SymbolKind.Event);
+            Debug.Assert(owningSymbol.OriginalDefinition == owningSymbol);
             Debug.Assert(wellKnownTypeProvider != null);
 
             ValueDomain = valueDomain;
