@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -12,19 +11,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// A cache of metadata blobs loaded into processes being debugged.
     /// Thread safe.
     /// </summary>
-    internal sealed class DebuggeeModuleMetadataCache
+    internal sealed class DebuggeeModuleInfoCache
     {
         // Maps MVIDs to metadata blobs loaded to specific processes
-        private Dictionary<Guid, ModuleMetadata> _lazyCache;
+        private Dictionary<Guid, DebuggeeModuleInfo> _lazyCache;
 
         /// <summary>
         /// May return null if the provider returns null.
         /// </summary>
-        public ModuleMetadata GetOrAdd(Guid mvid, Func<Guid, ModuleMetadata> provider)
+        public DebuggeeModuleInfo GetOrAdd(Guid mvid, Func<Guid, DebuggeeModuleInfo> provider)
         {
             if (_lazyCache == null)
             {
-                Interlocked.CompareExchange(ref _lazyCache, new Dictionary<Guid, ModuleMetadata>(), null);
+                Interlocked.CompareExchange(ref _lazyCache, new Dictionary<Guid, DebuggeeModuleInfo>(), null);
             }
 
             var cache = _lazyCache;
@@ -37,22 +36,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            var newMetadata = provider(mvid);
-            if (newMetadata == null)
+            var newInfo = provider(mvid);
+            if (newInfo == null)
             {
-                return null;
+                return default;
             }
 
             lock (cache)
             {
                 if (cache.TryGetValue(mvid, out var existing))
                 {
-                    newMetadata.Dispose();
+                    newInfo.Dispose();
                     return existing;
                 }
 
-                cache.Add(mvid, newMetadata);
-                return newMetadata;
+                cache.Add(mvid, newInfo);
+                return newInfo;
             }
         }
 
