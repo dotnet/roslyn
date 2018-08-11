@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages
         Inherits AbstractEmbeddedLanguageCodeFixProvider
 
         Public Sub New()
-            MyBase.New(VisualBasicEmbeddedLanguageProvider.Instance)
+            MyBase.New(VisualBasicEmbeddedLanguagesProvider.Instance)
         End Sub
     End Class
 End Namespace

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages
     internal class CSharpEmbeddedLanguageCodeFixProvider : AbstractEmbeddedLanguageCodeFixProvider
     {
         public CSharpEmbeddedLanguageCodeFixProvider()
-            : base(CSharpEmbeddedLanguageProvider.Instance)
+            : base(CSharpEmbeddedLanguagesProvider.Instance)
         {
         }
     }
