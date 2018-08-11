@@ -544,6 +544,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Colorize JSON strings.
+        /// </summary>
+        internal static string Colorize_JSON_strings {
+            get {
+                return ResourceManager.GetString("Colorize_JSON_strings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Colorize regular expressions.
         /// </summary>
         internal static string Colorize_regular_expressions {
@@ -695,6 +704,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Deselect_All {
             get {
                 return ResourceManager.GetString("Deselect_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Detect and offer editor features for likely JSON strings.
+        /// </summary>
+        internal static string Detect_and_offer_editor_features_for_likely_JSON_strings {
+            get {
+                return ResourceManager.GetString("Detect_and_offer_editor_features_for_likely_JSON_strings", resourceCulture);
             }
         }
         
@@ -1259,6 +1277,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Invalid_access {
             get {
                 return ResourceManager.GetString("Invalid_access", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON strings.
+        /// </summary>
+        internal static string JSON_strings {
+            get {
+                return ResourceManager.GetString("JSON_strings", resourceCulture);
             }
         }
         
@@ -2148,6 +2175,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Reorder {
             get {
                 return ResourceManager.GetString("Reorder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Report invalid JSON strings.
+        /// </summary>
+        internal static string Report_invalid_JSON_strings {
+            get {
+                return ResourceManager.GetString("Report_invalid_JSON_strings", resourceCulture);
             }
         }
         

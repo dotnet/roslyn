@@ -217,5 +217,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Highlight_related_components_under_cursor As String =
             ServicesVSResources.Highlight_related_components_under_cursor
+
+        Public ReadOnly Property Option_JSON_strings As String =
+            ServicesVSResources.JSON_strings
+
+        Public ReadOnly Property Option_Detect_and_offer_editor_features_for_likely_JSON_strings As String =
+            ServicesVSResources.Detect_and_offer_editor_features_for_likely_JSON_strings
+
+        Public ReadOnly Property Option_Colorize_JSON_strings As String =
+            ServicesVSResources.Colorize_JSON_strings
+
+        Public ReadOnly Property Option_Report_invalid_JSON_strings As String =
+            ServicesVSResources.Report_invalid_JSON_strings
     End Module
 End Namespace

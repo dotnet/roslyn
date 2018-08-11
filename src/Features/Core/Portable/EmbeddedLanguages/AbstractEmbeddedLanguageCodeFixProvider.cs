@@ -22,21 +22,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
     /// </summary>
     internal abstract class AbstractEmbeddedLanguageCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        private readonly IEmbeddedLanguageProvider _embeddedLanguageProvider;
+        private readonly IEmbeddedLanguagesProvider _embeddedLanguagesProvider;
         private readonly Dictionary<string, IEmbeddedCodeFixProvider> _diagnosticIdToCodeFixProvider;
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
 
         protected AbstractEmbeddedLanguageCodeFixProvider(
-            IEmbeddedLanguageProvider embeddedLanguageProvider)
+            IEmbeddedLanguagesProvider embeddedLanguagesProvider)
         {
-            _embeddedLanguageProvider = embeddedLanguageProvider;
+            _embeddedLanguagesProvider = embeddedLanguagesProvider;
             _diagnosticIdToCodeFixProvider = new Dictionary<string, IEmbeddedCodeFixProvider>();
 
             // Create a mapping from each IEmbeddedCodeFixProvider.FixableDiagnosticIds back to the
             // IEmbeddedCodeFixProvider itself.  That way, when we hear about diagnostics, we know
             // which provider to actually do the fixing.
-            foreach (var language in embeddedLanguageProvider.GetEmbeddedLanguages())
+            foreach (var language in embeddedLanguagesProvider.GetEmbeddedLanguages())
             {
                 var codeFixProvider = language.CodeFixProvider;
                 if (codeFixProvider != null)

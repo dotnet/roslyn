@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         private readonly ImmutableArray<IEmbeddedDiagnosticAnalyzer> _analyzers;
 
         protected AbstractEmbeddedLanguageDiagnosticAnalyzer(
-            IEmbeddedLanguageProvider embeddedLanguageProvider)
+            IEmbeddedLanguagesProvider embeddedLanguagesProvider)
         {
             var supportedDiagnostics = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
 
             var analyzers = ArrayBuilder<IEmbeddedDiagnosticAnalyzer>.GetInstance();
 
-            foreach (var language in embeddedLanguageProvider.GetEmbeddedLanguages())
+            foreach (var language in embeddedLanguagesProvider.GetEmbeddedLanguages())
             {
                 var analyzer = language.DiagnosticAnalyzer;
                 if (analyzer != null)

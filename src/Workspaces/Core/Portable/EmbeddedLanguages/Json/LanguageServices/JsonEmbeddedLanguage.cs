@@ -4,16 +4,16 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 {
-    internal class RegexEmbeddedLanguage : IEmbeddedLanguage
+    internal class JsonEmbeddedLanguage : IEmbeddedLanguage
     {
         public int StringLiteralKind { get; }
         public ISyntaxFactsService SyntaxFacts { get; }
         public ISemanticFactsService SemanticFacts { get; }
         public IVirtualCharService VirtualCharService { get; }
 
-        public RegexEmbeddedLanguage(
+        public JsonEmbeddedLanguage(
             AbstractEmbeddedLanguagesProvider languagesProvider,
             int stringLiteralKind,
             ISyntaxFactsService syntaxFacts,
@@ -25,16 +25,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             SemanticFacts = semanticFacts;
             VirtualCharService = virtualCharService;
 
-            BraceMatcher = new RegexEmbeddedBraceMatcher(this);
-            Classifier = new RegexEmbeddedClassifier(this);
-            Highlighter = new RegexEmbeddedHighlighter(this);
-            DiagnosticAnalyzer = new RegexDiagnosticAnalyzer(this);
+            BraceMatcher = new JsonEmbeddedBraceMatcher(this);
+            Classifier = new JsonEmbeddedClassifier(this);
+            DiagnosticAnalyzer = new AggregateEmbeddedDiagnosticAnalyzer(
+                new JsonDiagnosticAnalyzer(this),
+                new JsonDetectionAnalyzer(this));
+            CodeFixProvider = new JsonEmbeddedCodeFixProvider(languagesProvider, this);
         }
 
         public IEmbeddedBraceMatcher BraceMatcher { get; }
         public IEmbeddedClassifier Classifier { get; }
-        public IEmbeddedHighlighter Highlighter { get; }
         public IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer { get; }
         public IEmbeddedCodeFixProvider CodeFixProvider { get; }
+
+        // No document-highlights for embedded json currently.
+        public IEmbeddedHighlighter Highlighter => null;
     }
 }

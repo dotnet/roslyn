@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages
     internal class CSharpEmbeddedLanguageDiagnosticAnalyzer : AbstractEmbeddedLanguageDiagnosticAnalyzer
     {
         public CSharpEmbeddedLanguageDiagnosticAnalyzer()
-            : base(CSharpEmbeddedLanguageProvider.Instance)
+            : base(CSharpEmbeddedLanguagesProvider.Instance)
         {
         }
     }

@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var embeddedLanguageProvider = document.GetLanguageService<IEmbeddedLanguageProvider>();
-            foreach (var language in embeddedLanguageProvider.GetEmbeddedLanguages())
+            var embeddedLanguagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
+            foreach (var language in embeddedLanguagesProvider.GetEmbeddedLanguages())
             {
                 var highlighter = language.Highlighter;
                 if (highlighter != null)
