@@ -90,17 +90,30 @@ namespace Roslyn.Diagnostics.Analyzers
                 var symbolDisplayFormat = compilationContext.Compilation.Language == LanguageNames.CSharp
                     ? SymbolDisplayFormat.CSharpShortErrorMessageFormat
                     : SymbolDisplayFormat.VisualBasicShortErrorMessageFormat;
-                compilationContext.RegisterOperationAction(oac => AnalyzeOperation(oac, bannedApis.ToImmutable(), symbolDisplayFormat), OperationKind.ObjectCreation);
+                compilationContext.RegisterOperationAction(
+                    oac => AnalyzeOperation(oac, bannedApis.ToImmutable(), symbolDisplayFormat),
+                    OperationKind.ObjectCreation,
+                    OperationKind.Invocation);
             }
         }
 
         private static void AnalyzeOperation(OperationAnalysisContext oac, ImmutableHashSet<ISymbol> bannedSymbols, SymbolDisplayFormat symbolDisplayFormat)
         {
-            var objectCreation = (IObjectCreationOperation)oac.Operation;
-            var type = objectCreation.Type.OriginalDefinition;
-            if (bannedSymbols.Contains(type))
+            ITypeSymbol type = null;
+            switch (oac.Operation)
             {
-                oac.ReportDiagnostic(Diagnostic.Create(SymbolIsBannedRule, objectCreation.Syntax.GetLocation(), type.ToDisplayString(symbolDisplayFormat)));
+                case IObjectCreationOperation objectCreation:
+                    type = objectCreation.Type.OriginalDefinition;
+                    break;
+
+                case IInvocationOperation invocation:
+                    type = invocation.TargetMethod.ContainingType.OriginalDefinition;
+                    break;
+            }
+
+            if (!(type is null) && bannedSymbols.Contains(type))
+            {
+                oac.ReportDiagnostic(Diagnostic.Create(SymbolIsBannedRule, oac.Operation.Syntax.GetLocation(), type.ToDisplayString(symbolDisplayFormat)));
             }
         }
 

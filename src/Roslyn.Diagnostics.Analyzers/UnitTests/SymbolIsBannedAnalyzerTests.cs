@@ -137,6 +137,28 @@ C+Nested";
             VerifyCSharp(source, bannedText, GetCSharpResultAt(7, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested"));
         }
 
+        [Fact]
+        public void InvocationOfMethodOnInterface()
+        {
+            var source = @"
+interface I
+{
+    void M();
+}
+
+class C
+{
+    void M()
+    {
+        I i = null;
+        i.M();
+    }
+}";
+            var bannedText = @"I";
+
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(12, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I"));
+        }
+
         #endregion
     }
 }
