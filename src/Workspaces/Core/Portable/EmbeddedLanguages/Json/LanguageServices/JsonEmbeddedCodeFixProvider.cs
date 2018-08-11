@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
     /// </summary>
     internal class JsonEmbeddedCodeFixProvider : IEmbeddedCodeFixProvider
     {
-        private readonly AbstractEmbeddedLanguageProvider _provider;
+        private readonly AbstractEmbeddedLanguagesProvider _provider;
         private readonly JsonEmbeddedLanguage _language;
 
         public JsonEmbeddedCodeFixProvider(
-            AbstractEmbeddedLanguageProvider provider,
+            AbstractEmbeddedLanguagesProvider provider,
             JsonEmbeddedLanguage language)
         {
             _provider = provider;

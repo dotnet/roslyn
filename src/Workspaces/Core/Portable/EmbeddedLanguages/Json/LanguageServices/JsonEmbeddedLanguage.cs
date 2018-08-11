@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         public IVirtualCharService VirtualCharService { get; }
 
         public JsonEmbeddedLanguage(
-            AbstractEmbeddedLanguageProvider languageProvider,
+            AbstractEmbeddedLanguagesProvider languagesProvider,
             int stringLiteralKind,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             DiagnosticAnalyzer = new AggregateEmbeddedDiagnosticAnalyzer(
                 new JsonDiagnosticAnalyzer(this),
                 new JsonDetectionAnalyzer(this));
-            CodeFixProvider = new JsonEmbeddedCodeFixProvider(languageProvider, this);
+            CodeFixProvider = new JsonEmbeddedCodeFixProvider(languagesProvider, this);
         }
 
         public IEmbeddedBraceMatcher BraceMatcher { get; }

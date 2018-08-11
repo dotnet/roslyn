@@ -31,5 +31,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 
         public ImmutableArray<IEmbeddedLanguage> GetEmbeddedLanguages()
             => _embeddedLanguages;
+
+        /// <summary>
+        /// Helper method used by the VB and C# <see cref="IEmbeddedCodeFixProvider"/>s so they can
+        /// add special comments to string literals to convey that language services should light up
+        /// for them.
+        /// </summary>
+        internal abstract void AddComment(
+            SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents);
     }
 }
