@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -271,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             SyntaxNode subsequentSingleExitPointOpt,
             CancellationToken cancellationToken)
         {
+            var generator = document.GetLanguageService<SyntaxGenerator>();
             return Task.FromResult(
                 document.WithSyntaxRoot(
                     GetRootWithInvertIfStatement(
@@ -278,10 +278,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         ifNode,
                         invertIfStyle,
                         subsequentSingleExitPointOpt,
-                        negatedExpression: Negate(
+                        negatedExpression: generator.Negate(
                             GetCondition(ifNode),
-                            document.GetLanguageService<SyntaxGenerator>(),
-                            document.GetLanguageService<ISyntaxFactsService>(),
                             semanticModel,
                             cancellationToken))));
         }
