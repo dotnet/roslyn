@@ -32,6 +32,11 @@
         <target state="translated">Автоматическая в_ставка членов Interface и MustOverride</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
+        <source>Prefer 'Is Nothing' for reference equality checks</source>
+        <target state="new">Prefer 'Is Nothing' for reference equality checks</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">_Показывать разделительные линии процедур</target>
@@ -260,11 +265,6 @@
       <trans-unit id="Fade_out_unused_imports">
         <source>Fade out unused imports</source>
         <target state="translated">Скрывать неиспользуемые импорты</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_Is_Nothing_over_ReferenceEquals">
-        <source>Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</source>
-        <target state="translated">Предпочитать "Is Nothing" методу "Object.ReferenceEquals(..., Nothing)"</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">

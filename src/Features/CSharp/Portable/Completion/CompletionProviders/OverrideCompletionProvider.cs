@@ -193,17 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             else if (caretTarget is MethodDeclarationSyntax methodDeclaration)
             {
-                // abstract override blah(); : move to the end of the line
-                if (methodDeclaration.Body == null)
-                {
-                    return methodDeclaration.GetLocation().SourceSpan.End;
-                }
-                else
-                {
-                    // move to the end of the last statement in the method
-                    var lastStatement = methodDeclaration.Body.Statements.Last();
-                    return lastStatement.GetLocation().SourceSpan.End;
-                }
+                return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration);
             }
             else if (caretTarget is BasePropertyDeclarationSyntax propertyDeclaration)
             {

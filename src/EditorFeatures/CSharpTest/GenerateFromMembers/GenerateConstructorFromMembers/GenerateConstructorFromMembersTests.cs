@@ -59,7 +59,7 @@ class Z
 
     public Z(int a{|Navigation:)|} => this.a = a;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -80,7 +80,7 @@ class Z
 
     public Z(int a{|Navigation:)|} => this.a = a;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -107,7 +107,7 @@ class Z
         this.b = b;
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -133,6 +133,101 @@ class Z
         this.a = a;
         this.b = b;
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{[|
+    int a;
+    string b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a, string b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelectionUpToExcludedField()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;[|
+    string b;
+    string c;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    string c;
+
+    public Z(string b, string c{|Navigation:)|}
+    {
+        this.b = b;
+        this.c = c;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelectionUpToMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    void Foo() { }[|
+    int a;
+    string b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    void Foo() { }
+    int a;
+    string b;
+
+    public Z(int a, string b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_SelectionIncludingClassOpeningBrace()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+
+class Z
+[|{
+    int a;
+    string b;|]
 }");
         }
 
@@ -806,7 +901,7 @@ class Z
         this.b = b ?? throw new ArgumentNullException(nameof(b));
     }
 }",
-chosenSymbols: new string[] { "a", "b" }, 
+chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true);
         }
 
@@ -847,7 +942,7 @@ class Z
 chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
-    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithNoneEnforcement)));
+    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]

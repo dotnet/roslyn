@@ -198,15 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node is AnonymousMethodExpressionSyntax;
         }
 
-        public bool IsLocalFunction(SyntaxNode node)
-        {
-            return node is LocalFunctionStatementSyntax;
-        }
-
         public bool IsGenericName(SyntaxNode node)
-        {
-            return node is GenericNameSyntax;
-        }
+            => node is GenericNameSyntax;
 
         public bool IsNamedParameter(SyntaxNode node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
@@ -1122,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node)
         {
-            Contract.Requires(root.SyntaxTree == node.SyntaxTree);
+            Debug.Assert(root.SyntaxTree == node.SyntaxTree);
 
             int currentId = 0;
             Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => n == node, ref currentId, out var currentNode));
@@ -1592,6 +1585,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node != null && (node.Parent as InvocationExpressionSyntax)?.Expression == node;
         }
 
+        public bool IsAwaitExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.AwaitExpression);
+
         public bool IsExpressionOfAwaitExpression(SyntaxNode node)
         {
             return node != null && (node.Parent as AwaitExpressionSyntax)?.Expression == node;
@@ -1659,6 +1655,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsConditionalOr(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalOrExpression;
+
+        public bool IsTupleExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.TupleExpression;
+
+        public bool IsTupleType(SyntaxNode node)
+            => node.Kind() == SyntaxKind.TupleType;
+
+        public void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
+            out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode
+        {
+            var tupleExpression = (TupleExpressionSyntax)node;
+            openParen = tupleExpression.OpenParenToken;
+            arguments = (SeparatedSyntaxList<TArgumentSyntax>)(SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
+            closeParen = tupleExpression.CloseParenToken;
+        }
 
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;

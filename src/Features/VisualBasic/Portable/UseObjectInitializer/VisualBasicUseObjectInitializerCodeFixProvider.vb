@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 Dim initializer = SyntaxFactory.NamedFieldInitializer(
                     keyKeyword:=Nothing,
                     dotToken:=match.MemberAccessExpression.OperatorToken,
-                    name:=DirectCast(match.MemberAccessExpression.Name, IdentifierNameSyntax),
+                    name:=SyntaxFactory.IdentifierName(match.MemberName),
                     equalsToken:=match.Statement.OperatorToken,
                     expression:=rightValue).WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
 

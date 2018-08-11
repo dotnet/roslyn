@@ -4898,7 +4898,7 @@ class C4
         return d(ref o, 2);
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, references: new[] { CSharpRef });
             var bytes = compilation.EmitToArray();
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {

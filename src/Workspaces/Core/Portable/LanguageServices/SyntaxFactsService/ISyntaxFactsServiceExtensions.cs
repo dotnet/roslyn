@@ -9,6 +9,29 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal static class ISyntaxFactsServiceExtensions
     {
+        public static bool IsLegalIdentifier(this ISyntaxFactsService syntaxFacts, string name)
+        {
+            if (name.Length == 0)
+            {
+                return false;
+            }
+
+            if (!syntaxFacts.IsIdentifierStartCharacter(name[0]))
+            {
+                return false;
+            }
+
+            for (int i = 1; i < name.Length; i++)
+            {
+                if (!syntaxFacts.IsIdentifierPartCharacter(name[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public static bool IsWord(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
         {
             return syntaxFacts.IsIdentifier(token)
@@ -111,5 +134,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             syntaxFacts.GetPartsOfBinaryExpression(node, out _, out var token, out _);
             return token;
         }
+
+        public static bool IsAnonymousOrLocalFunctionStatement(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+            => syntaxFacts.IsAnonymousFunction(node) ||
+               syntaxFacts.IsLocalFunctionStatement(node);
+
     }
 }

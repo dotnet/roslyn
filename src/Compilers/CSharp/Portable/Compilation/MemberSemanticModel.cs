@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal abstract partial class MemberSemanticModel : CSharpSemanticModel
     {
-        private readonly CSharpCompilation _compilation;
         private readonly Symbol _memberSymbol;
         private readonly CSharpSyntaxNode _root;
         private readonly DiagnosticBag _ignoredDiagnostics = new DiagnosticBag();
@@ -30,24 +29,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal readonly Binder RootBinder;
 
+        /// <summary>
+        /// Field specific to a non-speculative MemberSemanticModel that must have a containing semantic model.
+        /// </summary>
+        private readonly SyntaxTreeSemanticModel _containingSemanticModelOpt;
+
         // Fields specific to a speculative MemberSemanticModel.
         private readonly SyntaxTreeSemanticModel _parentSemanticModelOpt;
         private readonly int _speculatedPosition;
 
         private readonly Lazy<CSharpOperationFactory> _operationFactory;
 
-        protected MemberSemanticModel(CSharpCompilation compilation, CSharpSyntaxNode root, Symbol memberSymbol, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt, int speculatedPosition)
+        protected MemberSemanticModel(
+            CSharpSyntaxNode root,
+            Symbol memberSymbol,
+            Binder rootBinder,
+            SyntaxTreeSemanticModel containingSemanticModelOpt,
+            SyntaxTreeSemanticModel parentSemanticModelOpt,
+            int speculatedPosition)
         {
-            Debug.Assert(compilation != null);
             Debug.Assert(root != null);
             Debug.Assert((object)memberSymbol != null);
+            Debug.Assert(parentSemanticModelOpt == null ^ containingSemanticModelOpt == null);
+            Debug.Assert(containingSemanticModelOpt == null || !containingSemanticModelOpt.IsSpeculativeSemanticModel);
             Debug.Assert(parentSemanticModelOpt == null || !parentSemanticModelOpt.IsSpeculativeSemanticModel, CSharpResources.ChainingSpeculativeModelIsNotSupported);
 
-            _compilation = compilation;
             _root = root;
             _memberSymbol = memberSymbol;
 
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
+            _containingSemanticModelOpt = containingSemanticModelOpt;
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _speculatedPosition = speculatedPosition;
 
@@ -58,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _compilation;
+                return (_containingSemanticModelOpt ?? _parentSemanticModelOpt).Compilation;
             }
         }
 
@@ -81,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override bool IsSpeculativeSemanticModel
+        public sealed override bool IsSpeculativeSemanticModel
         {
             get
             {
@@ -89,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override int OriginalPositionForSpeculation
+        public sealed override int OriginalPositionForSpeculation
         {
             get
             {
@@ -97,11 +108,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override CSharpSemanticModel ParentModel
+        public sealed override CSharpSemanticModel ParentModel
         {
             get
             {
                 return _parentSemanticModelOpt;
+            }
+        }
+
+        internal sealed override SemanticModel ContainingModelOrSelf
+        {
+            get
+            {
+                return _containingSemanticModelOpt ?? (SemanticModel)this;
             }
         }
 
@@ -854,7 +873,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var boundConversion = boundDeconstruction.Right;
-            Debug.Assert(boundConversion != null || boundDeconstruction.HasAnyErrors);
+            Debug.Assert(boundConversion != null);
+            if (boundConversion is null)
+            {
+                return default;
+            }
 
             return new DeconstructionInfo(boundConversion.Conversion);
         }
@@ -869,6 +892,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var boundDeconstruction = boundForEach.DeconstructionOpt;
             Debug.Assert(boundDeconstruction != null || boundForEach.HasAnyErrors);
+            if (boundDeconstruction is null)
+            {
+                return default;
+            }
 
             return new DeconstructionInfo(boundDeconstruction.DeconstructionAssignment.Right.Conversion);
         }

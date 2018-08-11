@@ -8534,7 +8534,7 @@
                                   컴파일러에서 소스 경로 이름 출력에 대한
                                   매핑을 지정합니다.
 /platform:&lt;string&gt;                이 코드를 실행할 수 있는 플랫폼을 
-                                  x86, x64, Itanium, arm,
+                                  x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred 또는 anycpu(기본값)로 제한합니다.
 /preferreduilang                  기본 출력 언어 이름을 지정합니다.
 /sdkpath:&lt;path&gt;                   .NET Framework SDK 디렉터리의 

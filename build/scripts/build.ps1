@@ -34,6 +34,7 @@ param (
     [string]$signType = "",
     [switch]$skipBuildExtras = $false,
     [switch]$skipAnalyzers = $false,
+    [switch]$checkLoc = $false,
 
     # Test options
     [switch]$test32 = $false,
@@ -67,6 +68,7 @@ function Print-Usage() {
     Write-Host "  -procdump                 Monitor test runs with procdump"
     Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
     Write-Host "  -skipBuildExtras          Do not build insertion items"
+    Write-Host "  -checkLoc                 Check that all resources are localized"
     Write-Host ""
     Write-Host "Test options"
     Write-Host "  -test32                   Run unit tests in the 32-bit runner"
@@ -133,12 +135,18 @@ function Process-Arguments() {
     $script:debug = -not $release
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$useDotnetBuild = $false) {
+function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$useDotnetBuild = $false, [switch]$summary = $true) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal;summary /p:Configuration=$buildConfiguration";
+    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /p:Configuration=$buildConfiguration";
+
+    if ($summary) {
+        $args += " /consoleloggerparameters:Verbosity=minimal;summary"
+    } else {        
+        $args += " /consoleloggerparameters:Verbosity=minimal"
+    }
 
     if ($parallel) {
         $args += " /m"
@@ -181,21 +189,17 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
 function Restore-Packages() {
     Write-Host "Restore using dotnet at $dotnet"
 
-    $all = @(
-        "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
-        "Roslyn:Roslyn.sln")
+    Write-Host "Restoring Roslyn Toolset"
+    $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RoslynToolset.binlog" } else { "" }
+    Restore-Project $dotnet "build\ToolsetPackages\RoslynToolset.csproj" $logFilePath
 
-    foreach ($cur in $all) {
-        $both = $cur.Split(':')
-        Write-Host "Restoring $($both[0])"
-        $projectFilePath = $both[1]
-        $projectFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
-        $logFilePath = ""
-        if ($binaryLog) {
-            $logFilePath = Join-Path $logsDir "Restore-$($projectFileName).binlog"
-        }
-        Restore-Project $dotnet $both[1] $logFilePath
-    }
+    Write-Host "Restoring RepoToolset"
+    $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RepoToolset.binlog" } else { "" }
+    Run-MSBuild "build\Targets\RepoToolset\Build.proj" "/p:Restore=true /bl:$logFilePath" -summary:$false
+
+    Write-Host "Restoring Roslyn"
+    $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-Roslyn.binlog" } else { "" }
+    Restore-Project $dotnet "Roslyn.sln" $logFilePath
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build
@@ -206,7 +210,7 @@ function Restore-Packages() {
 function Make-BootstrapBuild() {
     $dir = Join-Path $binariesDir "Bootstrap"
     Write-Host "Building Bootstrap compiler"
-    $bootstrapArgs = "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
+    $bootstrapArgs = "/p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP"
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
     if ($buildCoreClr) {
@@ -215,7 +219,7 @@ function Make-BootstrapBuild() {
             'src/Compilers/CSharp/csc/csc.csproj',
             'src/Compilers/VisualBasic/vbc/vbc.csproj',
             'src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj',
-            'src/Compilers/Core/MSBuildTask/MSBuildTask.csproj'
+            'src/Compilers/Core/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.csproj'
         )
 
         foreach ($projectFilePath in $projectFiles) {
@@ -289,8 +293,8 @@ function Build-ExtraSignArtifacts() {
         Run-MSBuild "..\Compilers\VisualBasic\vbc\vbc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
         Write-Host "Publishing VBCSCompiler"
         Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
-        Write-Host "Publishing MSBuildTask"
-        Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Publishing Microsoft.Build.Tasks.CodeAnalysis"
+        Run-MSBuild "..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
         Write-Host "Building PortableFacades Swix"
         Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.swixproj"
         Write-Host "Building CompilersCodeAnalysis Swix"
@@ -333,7 +337,7 @@ function Build-InsertionItems() {
     Push-Location $setupDir
     try {
         Create-PerfTests
-        Exec-Console (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $repoDir $(Get-PackagesDir)"
+        Exec-Console (Join-Path $configDir "Exes\Roslyn.BuildDevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $repoDir $(Get-PackagesDir)"
 
         # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
         # matter, just that it's provided some value.
@@ -365,14 +369,16 @@ function Build-InsertionItems() {
 function Build-Installer () {
     #  Copying Artifacts
     $installerDir = Join-Path $configDir "Installer"
+    if (Test-Path $installerDir) {
+        Remove-Item -Path $installerDir -Recurse -Force
+    }
     Create-Directory $installerDir
 
     $intermidateDirectory = Join-Path $env:TEMP "InstallerTemp"
-    if(Test-Path $intermidateDirectory)
-    {
+    if (Test-Path $intermidateDirectory) {
         Remove-Item -Path $intermidateDirectory -Recurse -Force
     }
-    New-Item -ItemType Directory -Force -Path $intermidateDirectory
+    Create-Directory $intermidateDirectory
 
     ## Copying VsixExpInstaller.exe
     $vsixExpInstallerDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
@@ -401,7 +407,7 @@ function Build-Installer () {
     if (-not (Test-Path $vsixDirDestination)) {
         New-Item -ItemType Directory -Force -Path $vsixDirDestination
     }
-    $RoslynDeploymentVsix = Join-Path $vsixDir "Roslyn\RoslynDeployment.vsix"
+    $RoslynDeploymentVsix = Join-Path $vsixDir "RoslynDeployment\RoslynDeployment.vsix"
     Copy-Item $RoslynDeploymentVsix -Destination $vsixDirDestination
 
     #  Zip Folder
@@ -433,6 +439,8 @@ function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packag
         $packArgs = "$packArgs /p:OfficialBuild=true"
     }
 
+    Write-Host $dotnet $packArgs
+
     if ($useConsole) {
         Exec-Console $dotnet $packArgs
     }
@@ -456,10 +464,6 @@ function Build-NuGetPackages() {
     try {
         $extraArgs = ""
 
-        if ($official) {
-            $extraArgs += " /p:UseRealCommit=true"
-        }
-
         # Empty directory for packing explicit empty items in the nuspec
         $emptyDir = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())
         Create-Directory $emptyDir
@@ -479,6 +483,10 @@ function Build-NuGetPackages() {
 
 function Build-DeployToSymStore() {
     Run-MSBuild "Roslyn.sln" "/t:DeployToSymStore" -logFileName "RoslynDeployToSymStore"
+}
+
+function Build-CheckLocStatus() {
+    Run-MSBuild "Roslyn.sln" "/t:CheckLocStatus" -logFileName "RoslynCheckLocStatus"
 }
 
 # These are tests that don't follow our standard restore, build, test pattern. They customize
@@ -567,14 +575,14 @@ function Test-XUnit() {
             $dlls = Get-ChildItem -re -in "*.UnitTests.dll" $unitDir
         }
         else {
-            $dlls = Get-ChildItem -re -in "*.UnitTests.dll" -ex "*Roslyn.Interactive*" $unitDir
+            $dlls = Get-ChildItem -re -in "*.UnitTests.dll" -ex "*InteractiveHost*" $unitDir
         }
     }
     elseif ($testVsi) {
         # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
         # integration tests in CI.
         if ($cibuild) {
-            $dlls += @(Get-Item (Join-Path $unitDir "Workspaces.MSBuild.Test\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
+            $dlls += @(Get-Item (Join-Path $unitDir "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
         }
 
         $dlls += @(Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir)
@@ -592,8 +600,8 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
     if ($cibuild -or $official) {
-        # Use a 50 minute timeout on CI
-        $args += " -xml -timeout:50"
+        # Use a 75 minute timeout on CI
+        $args += " -xml -timeout:75"
     }
 
     if ($procdump) {
@@ -632,12 +640,12 @@ function Deploy-VsixViaTool() {
     Write-Host "Using VS Instance $vsId at `"$vsDir`""
     $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
     $all = @(
-        "Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix",
-        "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
-        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
+        "Vsix\Roslyn.Compilers.Extension\Roslyn.Compilers.Extension.vsix",
+        "Vsix\Roslyn.VisualStudio.Setup\Roslyn.VisualStudio.Setup.vsix",
+        "Vsix\Roslyn.VisualStudio.InteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
-        "Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
-        "Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
+        "Vsix\Roslyn.VisualStudio.DiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
+        "Vsix\Microsoft.VisualStudio.IntegrationTest.Setup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
     Write-Host "Uninstalling old Roslyn VSIX"
 
@@ -721,6 +729,7 @@ function Redirect-Temp() {
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.rsp") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\NuGet.Config") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }
@@ -799,6 +808,10 @@ try {
 
     if ($build -or $pack) {
         Build-Artifacts
+    }
+
+    if ($checkLoc) {
+        Build-CheckLocStatus
     }
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore -or $testIOperation) {
