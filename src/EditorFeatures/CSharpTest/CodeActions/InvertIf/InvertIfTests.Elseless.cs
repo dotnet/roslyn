@@ -310,7 +310,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
                 {
                     return 1;
                 }
-
                 return 2;
         }
     }
