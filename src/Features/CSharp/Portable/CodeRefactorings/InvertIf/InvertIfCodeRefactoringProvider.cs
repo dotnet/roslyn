@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.InvertIf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -174,8 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             StatementSyntax trueStatement = null,
             StatementSyntax falseStatement = null)
         {
-            if (trueStatement != null && falseStatement != null &&
-                sourceText.AreOnSameLine(ifNode.GetFirstToken(), ifNode.GetLastToken()))
+            var isSingleLine = sourceText.AreOnSameLine(ifNode.GetFirstToken(), ifNode.GetLastToken());
+            if (trueStatement != null && falseStatement != null && isSingleLine)
             {
                 // If statement is on a single line, and we're swapping the true/false parts.
                 // In that case, try to swap the trailing trivia between the true/false parts.
@@ -206,7 +207,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 updatedIf = updatedIf.WithElse(elseClause);
             }
 
-            return updatedIf;
+            // If this is multiline, format things after we swap around the if/else.  Because 
+            // of all the different types of rewriting, we may need indentation fixed up and
+            // whatnot.  Don't do this with single-line because we want to ensure as closely
+            // as possible that we've kept things on that single line.
+            return isSingleLine
+                ? updatedIf
+                : updatedIf.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         protected override SyntaxNode WithStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)

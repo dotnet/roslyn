@@ -529,12 +529,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
 {
     void Goo()
     {
-        if (!foo) {
-           y();
-           y();
-        } else {
-           x();
-           x();
+        if (!foo)
+        {
+            y();
+            y();
+        }
+        else
+        {
+            x();
+            x();
         }
     }
 }");
