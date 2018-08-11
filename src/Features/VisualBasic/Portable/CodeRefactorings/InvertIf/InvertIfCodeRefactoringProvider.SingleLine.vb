@@ -42,16 +42,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 sourceText As SourceText,
                 ifNode As SingleLineIfStatementSyntax,
                 condition As SyntaxNode,
-                Optional trueStatement As SyntaxList(Of StatementSyntax) = Nothing,
-                Optional falseStatement As SyntaxList(Of StatementSyntax) = Nothing) As SyntaxNode
-            Dim updatedIf = ifNode.WithCondition(DirectCast(condition, ExpressionSyntax))
+                Optional trueStatements As SyntaxList(Of StatementSyntax) = Nothing,
+                Optional falseStatements As SyntaxList(Of StatementSyntax) = Nothing) As SyntaxNode
 
-            If Not trueStatement.IsEmpty Then
-                updatedIf = updatedIf.WithStatements(trueStatement)
+            Dim isSingleLine = sourceText.AreOnSameLine(ifNode.GetFirstToken(), ifNode.GetLastToken())
+            If trueStatements.Count > 0 AndAlso falseStatements.Count > 0 AndAlso isSingleLine Then
+                ' If statement Is on a single line, And we're swapping the true/false parts.
+                ' In that case, try to swap the trailing trivia between the true/false parts.
+                ' That way the trailing comments/newlines at the end of the 'if' stay there,
+                ' And the spaces after the true-part stay where they are.
+
+                Dim lastTrue = trueStatements.Last()
+                Dim lastFalse = falseStatements.Last()
+
+                Dim newLastTrue = lastTrue.WithTrailingTrivia(lastFalse.GetTrailingTrivia())
+                Dim newLastFalse = lastFalse.WithTrailingTrivia(lastTrue.GetTrailingTrivia())
+
+                trueStatements = trueStatements.Replace(lastTrue, newLastTrue)
+                falseStatements = falseStatements.Replace(lastFalse, newLastFalse)
             End If
 
-            If Not falseStatement.IsEmpty Then
-                updatedIf = updatedIf.WithElseClause(SyntaxFactory.SingleLineElseClause(falseStatement))
+            Dim updatedIf = ifNode.WithCondition(DirectCast(condition, ExpressionSyntax))
+
+            If trueStatements.Count <> 0 Then
+                updatedIf = updatedIf.WithStatements(trueStatements)
+            End If
+
+            If falseStatements.Count <> 0 Then
+                Dim elseClause =
+                    If(updatedIf.ElseClause IsNot Nothing,
+                       updatedIf.ElseClause.WithStatements(falseStatements),
+                       SyntaxFactory.SingleLineElseClause(falseStatements))
+
+                updatedIf = updatedIf.WithElseClause(elseClause)
             End If
 
             Return updatedIf
