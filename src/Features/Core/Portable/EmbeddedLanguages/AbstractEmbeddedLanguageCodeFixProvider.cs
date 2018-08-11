@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
@@ -22,7 +21,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
     /// </summary>
     internal abstract class AbstractEmbeddedLanguageCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        private readonly IEmbeddedLanguagesProvider _embeddedLanguagesProvider;
         private readonly Dictionary<string, IEmbeddedCodeFixProvider> _diagnosticIdToCodeFixProvider;
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
@@ -30,7 +28,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         protected AbstractEmbeddedLanguageCodeFixProvider(
             IEmbeddedLanguagesProvider embeddedLanguagesProvider)
         {
-            _embeddedLanguagesProvider = embeddedLanguagesProvider;
             _diagnosticIdToCodeFixProvider = new Dictionary<string, IEmbeddedCodeFixProvider>();
 
             // Create a mapping from each IEmbeddedCodeFixProvider.FixableDiagnosticIds back to the

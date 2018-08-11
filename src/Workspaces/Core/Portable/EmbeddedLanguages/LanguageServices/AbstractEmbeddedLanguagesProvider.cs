@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             IVirtualCharService virtualCharService)
         {
             _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>(
-                new RegexEmbeddedLanguage(this, stringLiteralTokenKind, syntaxFacts, semanticFacts, virtualCharService),
+                new RegexEmbeddedLanguage(stringLiteralTokenKind, syntaxFacts, semanticFacts, virtualCharService),
                 new JsonEmbeddedLanguage(this, stringLiteralTokenKind, syntaxFacts, semanticFacts, virtualCharService),
                 new FallbackEmbeddedLanguage(stringLiteralTokenKind, interpolatedTextTokenKind, syntaxFacts, semanticFacts, virtualCharService));
         }

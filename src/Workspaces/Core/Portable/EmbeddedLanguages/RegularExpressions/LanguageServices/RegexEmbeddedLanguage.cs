@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         public IVirtualCharService VirtualCharService { get; }
 
         public RegexEmbeddedLanguage(
-            AbstractEmbeddedLanguagesProvider languagesProvider,
             int stringLiteralKind,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,

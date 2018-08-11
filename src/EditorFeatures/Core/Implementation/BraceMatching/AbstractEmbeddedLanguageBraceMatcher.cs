@@ -16,16 +16,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             Document document, int position, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
-            foreach (var language in languagesProvider.GetEmbeddedLanguages())
+            if (languagesProvider != null)
             {
-                var braceMatcher = language.BraceMatcher;
-                if (braceMatcher != null)
+                foreach (var language in languagesProvider.GetEmbeddedLanguages())
                 {
-                    var result = await braceMatcher.FindBracesAsync(
-                        document, position, cancellationToken).ConfigureAwait(false);
-                    if (result != null)
+                    var braceMatcher = language.BraceMatcher;
+                    if (braceMatcher != null)
                     {
-                        return new BraceMatchingResult(result.Value.LeftSpan, result.Value.RightSpan);
+                        var result = await braceMatcher.FindBracesAsync(
+                            document, position, cancellationToken).ConfigureAwait(false);
+                        if (result != null)
+                        {
+                            return new BraceMatchingResult(result.Value.LeftSpan, result.Value.RightSpan);
+                        }
                     }
                 }
             }
