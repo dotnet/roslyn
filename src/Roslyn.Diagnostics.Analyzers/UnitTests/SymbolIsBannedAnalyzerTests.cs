@@ -78,8 +78,65 @@ System.Console";
                     "(3,1)", "(2,1)"));
         }
 
+        [Fact]
+        public void DiagnosticReportedForTypeInSource()
+        {
+            var source = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = new Banned();
+        }
+    }
+}";
+
+            var bannedText = @"
+N.Banned";
+
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned"));
+        }
+
+        [Fact]
+        public void DiagnosticReportedForGenericTypeFromMetadata()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var c = new System.Collections.Generic.List<string>();
+    }
+}";
+
+            var bannedText = @"
+System.Collections.Generic.List`1";
+
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(6, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List<T>"));
+        }
+
+        [Fact]
+        public void DiagnosticReportedForNestedType()
+        {
+            var source = @"
+class C
+{
+    class Nested { }
+    void M()
+    {
+        var n = new Nested();
+    }
+}";
+
+            var bannedText = @"
+C+Nested";
+
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(7, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested"));
+        }
 
         #endregion
-
     }
 }

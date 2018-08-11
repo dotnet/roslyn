@@ -97,7 +97,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static void AnalyzeOperation(OperationAnalysisContext oac, ImmutableHashSet<ISymbol> bannedSymbols, SymbolDisplayFormat symbolDisplayFormat)
         {
             var objectCreation = (IObjectCreationOperation)oac.Operation;
-            var type = objectCreation.Type;
+            var type = objectCreation.Type.OriginalDefinition;
             if (bannedSymbols.Contains(type))
             {
                 oac.ReportDiagnostic(Diagnostic.Create(SymbolIsBannedRule, objectCreation.Syntax.GetLocation(), type.ToDisplayString(symbolDisplayFormat)));
