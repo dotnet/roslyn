@@ -2,6 +2,36 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="DuplicateBannedSymbolDescription">
+        <source>The list of banned symbols contains a duplicate.</source>
+        <target state="new">The list of banned symbols contains a duplicate.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateBannedSymbolMessage">
+        <source>The symbol '{0}' is listed multiple times in the list of banned APIs</source>
+        <target state="new">The symbol '{0}' is listed multiple times in the list of banned APIs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateBannedSymbolTitle">
+        <source>The list of banned symbols contains a duplicate</source>
+        <target state="new">The list of banned symbols contains a duplicate</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedDescription">
+        <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
+        <target state="new">The symbol has been marked as banned in this project, and an alternate should be used instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedMessage">
+        <source>The symbol '{0}' is banned in this project</source>
+        <target state="new">The symbol '{0}' is banned in this project</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedTitle">
+        <source>Do not used banned APIs</source>
+        <target state="new">Do not used banned APIs</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
         <source>Use SpecializedCollections.EmptyEnumerable()</source>
         <target state="translated">使用 SpecializedCollections.EmptyEnumerable()</target>
