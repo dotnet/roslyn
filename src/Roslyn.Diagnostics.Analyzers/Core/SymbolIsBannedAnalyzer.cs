@@ -93,7 +93,11 @@ namespace Roslyn.Diagnostics.Analyzers
                 compilationContext.RegisterOperationAction(
                     oac => AnalyzeOperation(oac, bannedApis.ToImmutable(), symbolDisplayFormat),
                     OperationKind.ObjectCreation,
-                    OperationKind.Invocation);
+                    OperationKind.Invocation,
+                    OperationKind.EventReference,
+                    OperationKind.FieldReference,
+                    OperationKind.MethodReference,
+                    OperationKind.PropertyReference);
             }
         }
 
@@ -108,6 +112,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
                 case IInvocationOperation invocation:
                     type = invocation.TargetMethod.ContainingType.OriginalDefinition;
+                    break;
+
+                case IMemberReferenceOperation memberReference:
+                    type = memberReference.Member.ContainingType.OriginalDefinition;
                     break;
             }
 
