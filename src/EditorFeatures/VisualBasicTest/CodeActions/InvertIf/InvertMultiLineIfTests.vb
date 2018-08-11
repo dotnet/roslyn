@@ -391,10 +391,9 @@ End Module",
     Sub Main()
         If Not a Then
             bMethod()
-
-
         Else
             aMethod()
+
 
         End If
     End Sub
