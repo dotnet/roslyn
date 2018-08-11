@@ -67,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if /*0*/(/*1*/!/*1b*/a/*2*/)/*3*/ { a(); } else { b(); }",
-@"if /*0*/(/*1*/a/*2*/)/*3*/ { b(); } else { a(); }");
+@"if /*0*/(/*1*/a/*2*/)/*3*/ { b(); }
+        else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -83,7 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (a != b) { a(); } else { b(); }",
-@"if (a == b) { b(); } else { a(); }");
+@"if (a == b) { b(); }
+        else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -139,7 +141,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (/*1*/(a)/*2*/) { a(); } else { b(); }",
-@"if (/*1*/!a/*2*/) { b(); } else { a(); }");
+@"if (/*1*/!a/*2*/) { b(); }
+        else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -155,7 +158,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (a is Goo) { a(); } else { b(); }",
-@"if (!(a is Goo)) { b(); } else { a(); }");
+@"if (!(a is Goo)) { b(); }
+        else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -171,7 +175,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (a || b) { a(); } else { b(); }",
-@"if (!a && !b) { b(); } else { a(); }");
+@"if (!a && !b) { b(); }
+        else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -179,7 +184,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (!a || !b) { a(); } else { b(); }",
-@"if (a && b) { b(); } else { a(); }");
+@"if (a && b) { b(); }
+        else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -211,7 +217,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (!a && !b) { a(); } else { b(); }",
-@"if (a || b) { b(); } else { a(); }");
+@"if (a || b) { b(); }
+        else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -236,7 +243,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (a && b || c) { a(); } else { b(); }",
-@"if ((!a || !b) && !c) { b(); } else { a(); }");
+@"if ((!a || !b) && !c) { b(); }
+        else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -252,7 +260,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (true) { a(); } else { b(); }",
-@"if (false) { b(); } else { a(); }");
+@"if (false) { b(); }
+        else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -292,7 +301,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (a) a(); else b();",
-@"if (!a) b(); else a();");
+@"if (!a) b();
+        else a();");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -308,7 +318,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (a) a(); else { b(); }",
-@"if (!a) { b(); } else a();");
+@"if (!a) { b(); }
+        else a();");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -462,7 +473,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         if (!a)
         {
             if (b)
-            {
+        {
                 b();
             }
             else
