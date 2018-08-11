@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             private readonly ArrayBuilder<string> _captureNames;
             private int _autoNumber;
 
-            public CaptureInfoAnalyzer(ImmutableArray<VirtualChar> text)
+            private CaptureInfoAnalyzer(ImmutableArray<VirtualChar> text)
             {
                 _text = text;
                 _captureNumberToSpan = ImmutableDictionary.CreateBuilder<int, TextSpan>();
@@ -42,7 +42,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 _captureNumberToSpan.Add(0, text.IsEmpty ? default : GetSpan(text));
             }
 
-            public (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(
+            public static (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(
+                ImmutableArray<VirtualChar> text, RegexCompilationUnit root, RegexOptions options)
+            {
+                var analyzer = new CaptureInfoAnalyzer(text);
+                return analyzer.Analyze(root, options);
+            }
+
+            private (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(
                 RegexCompilationUnit root, RegexOptions options)
             {
                 CollectCaptures(root, options);

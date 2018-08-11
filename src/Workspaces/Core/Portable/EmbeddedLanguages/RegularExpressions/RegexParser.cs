@@ -126,8 +126,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     ImmutableDictionary<string, TextSpan>.Empty,
                     ImmutableDictionary<int, TextSpan>.Empty).ParseTree();
 
-                var analyzer = new CaptureInfoAnalyzer(text);
-                var (captureNames, captureNumbers) = analyzer.Analyze(tree1.Root, options);
+                var (captureNames, captureNumbers) = CaptureInfoAnalyzer.Analyze(text, tree1.Root, options);
 
                 var tree2 = new RegexParser(
                     text, options, captureNames, captureNumbers).ParseTree();
@@ -1896,9 +1895,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     ch -= (char)('a' - 'A');
                 }
 
-                ch -= '@';
-
-                if (ch < ' ')
+                if (ch >= '@' && ch <= '_')
                 {
                     var controlToken = ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd).With(kind: RegexKind.TextToken);
                     return new RegexControlEscapeNode(backslashToken, typeToken, controlToken);
