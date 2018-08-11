@@ -38,7 +38,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return ifNode.ElseClause.Statements
         End Function
 
-        Protected Overrides Function UpdateIf(ifNode As SingleLineIfStatementSyntax, condition As SyntaxNode, Optional trueStatement As SyntaxList(Of StatementSyntax) = Nothing, Optional falseStatement As SyntaxList(Of StatementSyntax) = Nothing) As SyntaxNode
+        Protected Overrides Function UpdateIf(
+                sourceText As SourceText,
+                ifNode As SingleLineIfStatementSyntax,
+                condition As SyntaxNode,
+                Optional trueStatement As SyntaxList(Of StatementSyntax) = Nothing,
+                Optional falseStatement As SyntaxList(Of StatementSyntax) = Nothing) As SyntaxNode
             Dim updatedIf = ifNode.WithCondition(DirectCast(condition, ExpressionSyntax))
 
             If Not trueStatement.IsEmpty Then

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.InvertIf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -167,11 +168,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         }
 
         protected override SyntaxNode UpdateIf(
+            SourceText sourceText,
             IfStatementSyntax ifNode,
             SyntaxNode condition,
             StatementSyntax trueStatement = null,
             StatementSyntax falseStatement = null)
         {
+            if (trueStatement != null && falseStatement != null &&
+                sourceText.AreOnSameLine(ifNode.GetFirstToken(), ifNode.GetLastToken()))
+            {
+                // If statement is on a single line, and we're swapping the true/false parts.
+                // In that case, try to swap the trailing trivia between the true/false parts.
+                // That way the trailing comments/newlines at the end of hte 'if' stay there,
+                // and the spaces after the true-part stay where they are.
+
+                (trueStatement, falseStatement) =
+                    (trueStatement.WithTrailingTrivia(falseStatement.GetTrailingTrivia()),
+                     falseStatement.WithTrailingTrivia(trueStatement.GetTrailingTrivia()));
+            }
+
             var updatedIf = ifNode.WithCondition((ExpressionSyntax)condition);
 
             if (trueStatement != null)
@@ -184,7 +199,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
             if (falseStatement != null)
             {
-                updatedIf = updatedIf.WithElse(SyntaxFactory.ElseClause(falseStatement));
+                var elseClause = updatedIf.Else != null
+                    ? updatedIf.Else.WithStatement(falseStatement)
+                    : SyntaxFactory.ElseClause(falseStatement);
+
+                updatedIf = updatedIf.WithElse(elseClause);
             }
 
             return updatedIf;

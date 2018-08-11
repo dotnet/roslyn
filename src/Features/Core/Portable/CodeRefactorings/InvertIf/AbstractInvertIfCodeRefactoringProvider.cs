@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                    subsequentStatementRanges[0].IsSingleStatement;
         }
 
-        private Task<Document> InvertIfAsync(
+        private async Task<Document> InvertIfAsync(
             SyntaxNode root,
             Document document,
             SemanticModel semanticModel,
@@ -270,18 +270,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             SyntaxNode subsequentSingleExitPointOpt,
             CancellationToken cancellationToken)
         {
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetLanguageService<SyntaxGenerator>();
-            return Task.FromResult(
-                document.WithSyntaxRoot(
-                    GetRootWithInvertIfStatement(
-                        root,
-                        ifNode,
-                        invertIfStyle,
-                        subsequentSingleExitPointOpt,
-                        negatedExpression: generator.Negate(
-                            GetCondition(ifNode),
-                            semanticModel,
-                            cancellationToken))));
+            return document.WithSyntaxRoot(
+                GetRootWithInvertIfStatement(
+                    sourceText,
+                    root,
+                    ifNode,
+                    invertIfStyle,
+                    subsequentSingleExitPointOpt,
+                    negatedExpression: generator.Negate(
+                        GetCondition(ifNode),
+                        semanticModel,
+                        cancellationToken)));
         }
 
         private static void AnalyzeSubsequentControlFlow(
@@ -430,6 +431,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             IEnumerable<SyntaxNode> newStatements);
 
         protected abstract SyntaxNode UpdateIf(
+            SourceText text,
             TIfStatementSyntax ifNode,
             SyntaxNode condition,
             TEmbeddedStatement trueStatement = default,
@@ -440,6 +442,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             IEnumerable<SyntaxNode> statements);
 
         private SyntaxNode GetRootWithInvertIfStatement(
+            SourceText text,
             SyntaxNode root,
             TIfStatementSyntax ifNode,
             InvertIfStyle invertIfStyle,
@@ -451,10 +454,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 case InvertIfStyle.IfWithElse_SwapIfBodyWithElseBody:
                     {
                         var updatedIf = UpdateIf(
-                           ifNode: ifNode,
-                           condition: negatedExpression,
-                           trueStatement: GetElseBody(ifNode),
-                           falseStatement: GetIfBody(ifNode));
+                            text,
+                            ifNode: ifNode,
+                            condition: negatedExpression,
+                            trueStatement: GetElseBody(ifNode),
+                            falseStatement: GetIfBody(ifNode));
 
                         return root.ReplaceNode(ifNode, updatedIf);
                     }
@@ -464,6 +468,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         var ifBody = GetIfBody(ifNode);
 
                         var updatedIf = UpdateIf(
+                            text,
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: GetEmptyEmbeddedStatement(),
@@ -475,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 case InvertIfStyle.IfWithoutElse_WithNegatedCondition:
                     {
                         var updatedIf = UpdateIf(
+                            text,
                             ifNode: ifNode,
                             condition: negatedExpression);
 
@@ -493,6 +499,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         var ifBody = GetIfBody(ifNode);
 
                         var updatedIf = UpdateIf(
+                            text,
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: AsEmbeddedStatement(ifBody, statementsAfterIf));
@@ -514,6 +521,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         var newIfBody = GetJumpStatement(GetNearmostParentJumpStatementRawKind(ifNode));
 
                         var updatedIf = UpdateIf(
+                            text,
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: AsEmbeddedStatement(ifBody, new[] { newIfBody }));
@@ -537,6 +545,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         var newIfBody = subsequentSingleExitPointOpt;
 
                         var updatedIf = UpdateIf(
+                            text,
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: AsEmbeddedStatement(ifBody, new[] { newIfBody }));
@@ -561,6 +570,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         var ifBody = GetIfBody(ifNode);
 
                         var updatedIf = UpdateIf(
+                            text,
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: AsEmbeddedStatement(ifBody, statementsAfterIf));
@@ -584,6 +594,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         var ifBody = GetIfBody(ifNode);
 
                         var updatedIf = UpdateIf(
+                            text,
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: AsEmbeddedStatement(ifBody, statementsAfterIf),
