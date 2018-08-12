@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             // Keep the subsequent exit-point to be used in case (5) below.
             SyntaxNode subsequentSingleExitPointOpt = null;
 
-            var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var invertIfStyle = IsElseless(ifNode)
                 ? GetInvertIfStyle(
                     ifNode,
