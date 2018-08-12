@@ -19056,9 +19056,9 @@ class C
                 // (21,26): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //                     p2 = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(21, 26),
-                // (22,28): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (22,28): warning CS8603: Possible null reference return.
                 //                     return null; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 28)
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(22, 28)
                 );
         }
 
@@ -28930,30 +28930,30 @@ class Program
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,27): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (10,27): warning CS8603: Possible null reference return.
                 //     static string F1() => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 27),
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(10, 27),
                 // (11,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //     static string F2() => (string)null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(11, 27),
-                // (11,27): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (11,27): warning CS8603: Possible null reference return.
                 //     static string F2() => (string)null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string)null").WithLocation(11, 27),
-                // (12,27): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(string)null").WithLocation(11, 27),
+                // (12,27): warning CS8603: Possible null reference return.
                 //     static string F3() => (string?)null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string?)null").WithLocation(12, 27),
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(string?)null").WithLocation(12, 27),
                 // (13,27): warning CS8603: Possible null reference return.
                 //     static string F4() => null as string;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null as string").WithLocation(13, 27),
                 // (14,27): warning CS8603: Possible null reference return.
                 //     static string F5() => null as string?;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null as string?").WithLocation(14, 27),
-                // (15,27): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (15,27): warning CS8603: Possible null reference return.
                 //     static string F6() => default(string);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(15, 27),
-                // (16,27): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(string)").WithLocation(15, 27),
+                // (16,27): warning CS8603: Possible null reference return.
                 //     static string F7() => default;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(16, 27),
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(16, 27),
                 // (17,36): hidden CS8605: Result of the comparison is possibly always true.
                 //     static string F8(Person p) => (p != null) ? p.MiddleName : null;
                 Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "p != null").WithLocation(17, 36),
@@ -30501,9 +30501,9 @@ End Class";
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (3,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (3,17): warning CS8603: Possible null reference return.
                 //     object P => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 17));
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(3, 17));
         }
 
         [Fact]
@@ -30700,9 +30700,9 @@ class C
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking"));
             comp.VerifyDiagnostics(
-                // (3,26): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (3,26): warning CS8603: Possible null reference return.
                 //     static object F() => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 26),
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(3, 26),
                 // (4,35): warning CS8603: Possible null reference return.
                 //     static object F(object? o) => o;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
@@ -30711,9 +30711,9 @@ class C
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "0"));
             comp.VerifyDiagnostics(
-                // (3,26): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (3,26): warning CS8603: Possible null reference return.
                 //     static object F() => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 26),
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(3, 26),
                 // (4,35): warning CS8603: Possible null reference return.
                 //     static object F(object? o) => o;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
@@ -30722,9 +30722,9 @@ class C
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "1"));
             comp.VerifyDiagnostics(
-                // (3,26): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (3,26): warning CS8603: Possible null reference return.
                 //     static object F() => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 26),
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(3, 26),
                 // (4,35): warning CS8603: Possible null reference return.
                 //     static object F(object? o) => o;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
@@ -31600,9 +31600,9 @@ class A : System.Attribute
                 // (1,2): error CS1729: 'A' does not contain a constructor that takes 1 arguments
                 // [A(P)]
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "A(P)").WithArguments("A", "1").WithLocation(1, 2),
-                // (4,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (4,17): warning CS8603: Possible null reference return.
                 //     string P => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 17));
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(4, 17));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Should not report warning for
@@ -32020,27 +32020,27 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (4,25): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (4,25): warning CS8603: Possible null reference return.
                 //     static Task F0() => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 25),
-                // (5,33): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(4, 25),
+                // (5,33): warning CS8603: Possible null reference return.
                 //     static Task<string> F1() => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 33),
-                // (6,40): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(5, 33),
+                // (6,40): warning CS8603: Possible null reference return.
                 //     static Task<string?> F2() { return null; }
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 40),
-                // (7,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 40),
+                // (7,37): warning CS8603: Possible null reference return.
                 //     static Task<T> F3<T>() { return default; }
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(7, 37),
-                // (8,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(7, 37),
+                // (8,37): warning CS8603: Possible null reference return.
                 //     static Task<T> F4<T>() { return default(Task<T>); }
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(Task<T>)").WithLocation(8, 37),
-                // (9,53): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(Task<T>)").WithLocation(8, 37),
+                // (9,53): warning CS8603: Possible null reference return.
                 //     static Task<T> F5<T>() where T : class { return null; }
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 53),
-                // (10,48): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(9, 53),
+                // (10,48): warning CS8603: Possible null reference return.
                 //     static Task<T?> F6<T>() where T : class => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 48));
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(10, 48));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullAsNonNullable for F0.
@@ -32070,27 +32070,27 @@ class C
                 // (5,30): error CS1997: Since 'C.F0()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
                 //     static async Task F0() { return null; }
                 Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F0()").WithLocation(5, 30),
-                // (5,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (5,37): warning CS8603: Possible null reference return.
                 //     static async Task F0() { return null; }
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 37),
-                // (6,39): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(5, 37),
+                // (6,39): warning CS8603: Possible null reference return.
                 //     static async Task<string> F1() => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 39),
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 39),
                 // (8,43): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static async Task<T> F3<T>() { return default; }
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(8, 43),
                 // (9,43): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static async Task<T> F4<T>() { return default(T); }
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T)").WithLocation(9, 43),
-                // (10,59): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (10,59): warning CS8603: Possible null reference return.
                 //     static async Task<T> F5<T>() where T : class { return null; }
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 59),
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(10, 59),
                 // (12,31): error CS1997: Since 'C.G0()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
                 //     static async Task? G0() { return null; }
                 Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.G0()").WithLocation(12, 31),
-                // (13,40): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (13,40): warning CS8603: Possible null reference return.
                 //     static async Task<string>? G1() => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 40),
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(13, 40),
                 // (14,44): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static async Task<T>? G3<T>() { return default; }
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(14, 44));
@@ -36509,48 +36509,48 @@ class A
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             // PROTOTYPE(NullableReferenceTypes): missing warnings
             comp.VerifyDiagnostics(
-                // (14,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //     static T2 F1() => default; // warn: return type T2 may be non-null
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(14, 23),
-                // (24,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //     static T3 F1() => default; // warn: return type T3 may be non-null
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(24, 23),
-                // (25,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //     static T3 F2() => default(T3); // warn: return type T3 may be non-null
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T3)").WithLocation(25, 23),
-                // (15,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //     static T2 F2() => default(T2); // warn: return type T2 may be non-null
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T2)").WithLocation(15, 23),
+                // (45,23): warning CS8603: Possible null reference return.
+                //     static T5 F1() => default; // warn: return type T5 may be non-null
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(45, 23),
                 // (35,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static T4 F1() => default; // warn: return type T4 may be non-null
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(35, 23),
-                // (18,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         T2 t2 = (T2)NullableObject(); // warn: T2 may be non-null
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T2)NullableObject()").WithLocation(18, 17),
-                // (18,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         T2 t2 = (T2)NullableObject(); // warn: T2 may be non-null
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T2)NullableObject()").WithLocation(18, 17),
-                // (45,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //     static T5 F1() => default; // warn: return type T5 may be non-null
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(45, 23),
-                // (46,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //     static T5 F2() => default(T5); // warn: return type T5 may be non-null
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T5)").WithLocation(46, 23),
+                // (24,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static T3 F1() => default; // warn: return type T3 may be non-null
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(24, 23),
+                // (14,23): warning CS8603: Possible null reference return.
+                //     static T2 F1() => default; // warn: return type T2 may be non-null
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(14, 23),
                 // (4,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static T1 F1() => default; // warn: return type T1 may be non-null
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(4, 23),
+                // (46,23): warning CS8603: Possible null reference return.
+                //     static T5 F2() => default(T5); // warn: return type T5 may be non-null
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(T5)").WithLocation(46, 23),
+                // (25,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static T3 F2() => default(T3); // warn: return type T3 may be non-null
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T3)").WithLocation(25, 23),
+                // (36,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static T4 F2() => default(T4); // warn: return type T4 may be non-null
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T4)").WithLocation(36, 23),
                 // (5,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static T1 F2() => default(T1); // warn: return type T1 may be non-null
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T1)").WithLocation(5, 23),
+                // (15,23): warning CS8603: Possible null reference return.
+                //     static T2 F2() => default(T2); // warn: return type T2 may be non-null
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(T2)").WithLocation(15, 23),
                 // (49,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T5 t5 = (T5)NullableObject(); // warn: T5 may be non-null
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T5)NullableObject()").WithLocation(49, 17),
                 // (49,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T5 t5 = (T5)NullableObject(); // warn: T5 may be non-null
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T5)NullableObject()").WithLocation(49, 17),
-                // (36,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //     static T4 F2() => default(T4); // warn: return type T4 may be non-null
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T4)").WithLocation(36, 23)
+                // (18,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T2 t2 = (T2)NullableObject(); // warn: T2 may be non-null
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T2)NullableObject()").WithLocation(18, 17),
+                // (18,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T2 t2 = (T2)NullableObject(); // warn: T2 may be non-null
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T2)NullableObject()").WithLocation(18, 17)
             );
         }
 
