@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             var innerStatement = ifNode;
             foreach (var node in ifNode.Ancestors())
             {
-                var nextStatement = GetNextExecutableStatement(innerStatement);
+                var nextStatement = GetNextStatement(innerStatement);
                 if (nextStatement != null && IsStatementContainer(node))
                 {
                     builder.Add(new StatementRange(nextStatement, GetStatements(node).Last()));
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         protected abstract string GetTitle();
 
         protected abstract SyntaxList<SyntaxNode> GetStatements(SyntaxNode node);
-        protected abstract SyntaxNode GetNextExecutableStatement(SyntaxNode node);
+        protected abstract SyntaxNode GetNextStatement(SyntaxNode node);
 
         protected abstract SyntaxNode GetJumpStatement(int rawKind);
         protected abstract int GetJumpStatementRawKind(SyntaxNode node);
@@ -465,14 +465,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 
                 case InvertIfStyle.IfWithoutElse_MoveIfBodyToElseClause:
                     {
-                        var ifBody = GetIfBody(ifNode);
-
                         var updatedIf = UpdateIf(
                             text,
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: GetEmptyEmbeddedStatement(),
-                            falseStatement: ifBody);
+                            falseStatement: GetIfBody(ifNode));
 
                         return root.ReplaceNode(ifNode, updatedIf);
                     }

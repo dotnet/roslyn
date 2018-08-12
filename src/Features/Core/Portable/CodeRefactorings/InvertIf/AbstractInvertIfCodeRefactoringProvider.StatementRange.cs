@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             public readonly SyntaxNode FirstStatement;
             public readonly SyntaxNode LastStatement;
 
-            public static readonly StatementRange Empty = new StatementRange();
-
             public StatementRange(SyntaxNode firstStatement, SyntaxNode lastStatement)
             {
                 Debug.Assert(firstStatement != null);

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         protected override bool IsStatement(SyntaxNode node)
             => node is StatementSyntax;
 
-        protected override SyntaxNode GetNextExecutableStatement(SyntaxNode node)
+        protected override SyntaxNode GetNextStatement(SyntaxNode node)
             => CSharpSyntaxFactsService.Instance.GetNextExecutableStatement(node);
 
         protected override StatementSyntax GetIfBody(IfStatementSyntax ifNode)

@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
@@ -14,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
 
         Protected NotOverridable Overrides Function GetIfBodyStatementRange(ifNode As TIfStatementSyntax) As StatementRange
             Dim statements = ifNode.GetStatements()
-            Return If(statements.Count = 0, StatementRange.Empty, New StatementRange(statements.First(), statements.Last()))
+            Return If(statements.Count = 0, Nothing, New StatementRange(statements.First(), statements.Last()))
         End Function
 
-        Protected Overrides Function CanControlFlowOut(node As SyntaxNode) As Boolean
+        Protected NotOverridable Overrides Function CanControlFlowOut(node As SyntaxNode) As Boolean
             Return TypeOf node IsNot MethodBlockBaseSyntax AndAlso
                    TypeOf node IsNot CaseBlockSyntax AndAlso
                    TypeOf node IsNot DoLoopBlockSyntax AndAlso
@@ -59,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return node.GetStatements()
         End Function
 
-        Protected NotOverridable Overrides Function GetNextExecutableStatement(node As SyntaxNode) As SyntaxNode
+        Protected NotOverridable Overrides Function GetNextStatement(node As SyntaxNode) As SyntaxNode
             Dim parent = node.Parent
             Dim statements = parent.GetStatements
             Dim nextIndex = 1 + statements.IndexOf(DirectCast(node, StatementSyntax))
