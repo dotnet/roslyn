@@ -1889,6 +1889,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             unchecked
             {
+                // From: https://github.com/dotnet/corefx/blob/80e220fc7009de0f0611ee6b52d4d5ffd25eb6c7/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L1450
+
+                // Note: Roslyn accepts a control escape that current .Net parser does not.
+                // Specifically: \c[
+                //
+                // It is a bug that the .Net parser does not support this construct.  The bug was
+                // reported at: https://github.com/dotnet/corefx/issues/26501 and was fixed for
+                // CoreFx with https://github.com/dotnet/corefx/commit/80e220fc7009de0f0611ee6b52d4d5ffd25eb6c7
+                //
+                // Because it was a bug, we follow the correct behavior.  That means we will not
+                // report a diagnostic for a Regex that someone might run on a previous version of
+                // .Net that ends up throwing at runtime.  That's acceptable.  Our goal is to match
+                // the latest .Net 'correct' behavior.  Not intermediary points with bugs that have
+                // since been fixed.
+
                 // \ca interpreted as \cA
                 if (ch >= 'a' && ch <= 'z')
                 {
