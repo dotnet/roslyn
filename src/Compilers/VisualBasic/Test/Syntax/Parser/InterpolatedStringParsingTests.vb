@@ -922,4 +922,22 @@ BC30648: String constants must end with a double quote.
 
     End Sub
 
+    <Fact>
+    Public Sub Test_KeywordExpression()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As Integer
+  Public Overrides Function ToString() As String
+    Return $""{End.ToString()})""
+  End Function
+End Class"
+        Dim result = Parse(code)
+        Dim diagnostics = result.GetDiagnostics.ToImmutableListOrEmpty
+        result.AssertTheseDiagnostics(
+        <expected>
+BC30183: Keyword is not valid as an identifier.
+    Return $"{End.ToString()})"
+              ~~~
+</expected>)
+    End Sub
 End Class

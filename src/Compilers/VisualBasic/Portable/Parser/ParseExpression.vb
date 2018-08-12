@@ -9,7 +9,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         Friend Function ParseExpression(
             Optional pendingPrecedence As OperatorPrecedence = OperatorPrecedence.PrecedenceNone,
@@ -46,7 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '    bool BailIfFirstTokenRejected                 // bail (return NULL) if the first token isn't a valid expression-starter, rather than reporting an error or setting ErrorInConstruct
         Private Function ParseExpressionCore(
             Optional pendingPrecedence As OperatorPrecedence = OperatorPrecedence.PrecedenceNone,
-            Optional bailIfFirstTokenRejected As Boolean = False
+            Optional bailIfFirstTokenRejected As Boolean = False,
+            Optional PrevTerm As ExpressionSyntax = Nothing
         ) As ExpressionSyntax
 
             Try
@@ -107,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         expression = SyntaxFactory.AddressOfExpression(startToken, Operand)
 
                     Case Else
-                        expression = ParseTerm(bailIfFirstTokenRejected)
+                        expression = ParseTerm(bailIfFirstTokenRejected, PrevTerm:=PrevTerm)
 
                         If expression Is Nothing Then
                             Return Nothing
@@ -157,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         'Binary.Opcode = Opcode
 
                         'Binary.Left = Expr
-                        Dim rightOperand As ExpressionSyntax = ParseExpressionCore(precedence)
+                        Dim rightOperand As ExpressionSyntax = ParseExpressionCore(precedence, PrevTerm:=PrevTerm)
 
                         expression = SyntaxFactory.BinaryExpression(GetBinaryOperatorHelper([operator]), expression, [operator], rightOperand)
 
@@ -175,7 +176,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseTerm(
             Optional BailIfFirstTokenRejected As Boolean = False,
-            Optional RedimOrNewParent As Boolean = False
+            Optional RedimOrNewParent As Boolean = False,
+            Optional PrevTerm As ExpressionSyntax = Nothing
         ) As ExpressionSyntax
 
             '// Note: this function will only ever return NULL if the flag "BailIfFirstTokenIsRejected" is set,
@@ -232,10 +234,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     term = ParseSimpleNameExpressionAllowingKeywordAndTypeArguments()
 
                 Case SyntaxKind.ExclamationToken
-                    term = ParseQualifiedExpr(Nothing)
+                    term = ParseQualifiedExpr(PrevTerm)
 
                 Case SyntaxKind.DotToken
-                    term = ParseQualifiedExpr(Nothing)
+                    term = ParseQualifiedExpr(PrevTerm)
 
                 Case SyntaxKind.GlobalKeyword
                     ' NB. GetNextToken has the side-effect of advancing CurrentToken.
@@ -410,9 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.DollarSignDoubleQuoteToken
 
                     term = ParseInterpolatedStringExpression()
-
                 Case Else
-
                     If start.Kind = SyntaxKind.QuestionToken AndAlso CanStartConsequenceExpression(Me.PeekToken(1).Kind, qualified:=False) Then
                         ' This looks like ?. or ?! 
 
@@ -421,7 +421,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         GetNextToken()
                         term = SyntaxFactory.ConditionalAccessExpression(term, qToken, ParsePostFixExpression(RedimOrNewParent, term:=Nothing))
+                    ElseIf start.IsKeyword Then
+                        ' Is it in the form : [keyword] [qualifier] [identifier]
+                        ' If so treat the keyword as an identifier and continue to parse.
+                        Dim _NextToken_ = PeekNextToken()
+                        If _NextToken_.Kind = SyntaxKind.DotToken OrElse _NextToken_.Kind = SyntaxKind.QuestionToken Then
+                            Dim _KeywordAsIdentifier_ = ParseSimpleNameExpressionAllowingKeywordAndTypeArguments()
+                            _KeywordAsIdentifier_ = ReportSyntaxError(_KeywordAsIdentifier_, ERRID.ERR_InvalidUseOfKeyword)
+                            Dim _InvocationExpression_ = ParseExpressionCore(PrevTerm:=_KeywordAsIdentifier_)
+                            If _InvocationExpression_.Kind = SyntaxKind.InvocationExpression Then
+                                Return _InvocationExpression_
+                            End If
+                        End If
+                        GoTo MissingExpression
                     Else
+MissingExpression:
                         If BailIfFirstTokenRejected Then
                             Return Nothing
                         End If
