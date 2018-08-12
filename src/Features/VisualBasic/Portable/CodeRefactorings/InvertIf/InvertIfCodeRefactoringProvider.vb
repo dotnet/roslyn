@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
     Friend MustInherit Class VisualBasicInvertIfCodeRefactoringProvider(Of TIfStatementSyntax As ExecutableStatementSyntax)
-        Inherits AbstractInvertIfCodeRefactoringProvider(Of TIfStatementSyntax, SyntaxList(Of StatementSyntax))
+        Inherits AbstractInvertIfCodeRefactoringProvider(Of TIfStatementSyntax, SyntaxList(Of StatementSyntax)?)
 
         Protected NotOverridable Overrides Function GetTitle() As String
             Return VBFeaturesResources.Invert_If
@@ -94,15 +94,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return TypeOf node Is ExecutableStatementSyntax
         End Function
 
-        Protected NotOverridable Overrides Function UnwrapBlock(ifBody As SyntaxList(Of StatementSyntax)) As IEnumerable(Of SyntaxNode)
+        Protected NotOverridable Overrides Function UnwrapBlock(ifBody As SyntaxList(Of StatementSyntax)?) As IEnumerable(Of SyntaxNode)
             Return ifBody
         End Function
 
-        Protected NotOverridable Overrides Function GetEmptyEmbeddedStatement() As SyntaxList(Of StatementSyntax)
+        Protected NotOverridable Overrides Function GetEmptyEmbeddedStatement() As SyntaxList(Of StatementSyntax)?
             Return SyntaxFactory.List(Of StatementSyntax)
         End Function
 
-        Protected NotOverridable Overrides Function AsEmbeddedStatement(originalStatement As SyntaxList(Of StatementSyntax), newStatements As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)
+        Protected NotOverridable Overrides Function AsEmbeddedStatement(originalStatement As SyntaxList(Of StatementSyntax)?, newStatements As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)?
             Return SyntaxFactory.List(newStatements)
         End Function
 

@@ -28,11 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return ifNode.IfStatement.Condition
         End Function
 
-        Protected Overrides Function GetIfBody(ifNode As MultiLineIfBlockSyntax) As SyntaxList(Of StatementSyntax)
+        Protected Overrides Function GetIfBody(ifNode As MultiLineIfBlockSyntax) As SyntaxList(Of StatementSyntax)?
             Return ifNode.Statements
         End Function
 
-        Protected Overrides Function GetElseBody(ifNode As MultiLineIfBlockSyntax) As SyntaxList(Of StatementSyntax)
+        Protected Overrides Function GetElseBody(ifNode As MultiLineIfBlockSyntax) As SyntaxList(Of StatementSyntax)?
             Return ifNode.ElseBlock.Statements
         End Function
 
@@ -40,16 +40,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 sourceText As SourceText,
                 ifNode As MultiLineIfBlockSyntax,
                 condition As SyntaxNode,
-                Optional trueStatement As SyntaxList(Of StatementSyntax) = Nothing,
-                Optional falseStatement As SyntaxList(Of StatementSyntax) = Nothing) As SyntaxNode
+                Optional trueStatement As SyntaxList(Of StatementSyntax)? = Nothing,
+                Optional falseStatement As SyntaxList(Of StatementSyntax)? = Nothing) As SyntaxNode
             Dim updatedIf = ifNode.WithIfStatement(ifNode.IfStatement.WithCondition(DirectCast(condition, ExpressionSyntax)))
 
-            If Not trueStatement.IsEmpty Then
-                updatedIf = updatedIf.WithStatements(trueStatement)
+            If trueStatement IsNot Nothing Then
+                updatedIf = updatedIf.WithStatements(trueStatement.Value)
             End If
 
-            If Not falseStatement.IsEmpty Then
-                updatedIf = updatedIf.WithElseBlock(SyntaxFactory.ElseBlock(falseStatement))
+            If falseStatement IsNot Nothing Then
+                updatedIf = updatedIf.WithElseBlock(SyntaxFactory.ElseBlock(falseStatement.Value))
             End If
 
             Return updatedIf
