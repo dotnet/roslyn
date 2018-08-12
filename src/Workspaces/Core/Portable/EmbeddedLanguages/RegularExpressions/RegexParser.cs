@@ -62,6 +62,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// 
     /// This parser was based off the corefx RegexParser based at:
     /// https://github.com/dotnet/corefx/blob/f759243d724f462da0bcef54e86588f8a55352c6/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L1
+    /// 
+    /// Note3: The .Net parser itself changes over time (for example to fix behavior that even it 
+    /// thinks is buggy).  When this happens, we have to make a choice as to which behavior to follow.
+    /// In general, the overall principle is that we should follow the more lenient behavior.  If we
+    /// end up taking the more strict interpretation we risk giving people an error during design time
+    /// that they would not get at runtime.  It's far worse to have that than to not report an error,
+    /// even though one might happen later.
     /// </remarks>
     internal partial struct RegexParser
     {
