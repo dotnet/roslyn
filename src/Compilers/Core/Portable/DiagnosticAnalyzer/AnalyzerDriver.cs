@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     task = task.ContinueWith(t =>
                         {
                             AnalyzerManager.VerifyAllSymbolEndActionsExecuted();
-                        }, cancellationToken);
+                        }, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
                 }
 #endif
 
