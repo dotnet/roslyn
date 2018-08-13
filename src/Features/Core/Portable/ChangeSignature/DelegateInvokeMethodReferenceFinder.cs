@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         if (convertedType != null)
                         {
                             convertedType =
-                                SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult(cancellationToken)
+                                SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken)
                                     ?? convertedType;
                         }
 
