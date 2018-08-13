@@ -25,23 +25,6 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-#if NETCOREAPP2_0
-        [Fact]
-        public void TestPresenceOfITupleInNetcore2()
-        {
-            var source =
-@"using System.Runtime.CompilerServices;
-public class C : ITuple
-{
-    public int Length => 0;
-    public object this[int i] => null;
-}
-";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
-            compilation.VerifyDiagnostics();
-        }
-#endif
-
         [Fact]
         public void ITupleFromObject_01()
         {
