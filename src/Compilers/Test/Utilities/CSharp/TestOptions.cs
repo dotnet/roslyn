@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // document every public member of every test input.
         // PROTOTYPE(NullableReferenceTypes): Use default for LanguageVersion rather than LanguageVersion.CSharp7.3.
         public static readonly CSharpParseOptions RegularDefault = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse);
-        public static readonly CSharpParseOptions Regular = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7_3);
+        public static readonly CSharpParseOptions Regular = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp8);
         public static readonly CSharpParseOptions ScriptDefault = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.Parse);
-        public static readonly CSharpParseOptions Script = ScriptDefault.WithLanguageVersion(LanguageVersion.CSharp7_3);
+        public static readonly CSharpParseOptions Script = ScriptDefault.WithLanguageVersion(LanguageVersion.CSharp8);
         public static readonly CSharpParseOptions Regular6 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions Regular7 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7);
         public static readonly CSharpParseOptions Regular7_1 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7_1);

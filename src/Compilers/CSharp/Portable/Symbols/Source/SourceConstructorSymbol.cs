@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(Parameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.ReportMissingNonNullTypesContextForAnnotation(Parameters, diagnostics);
+            ParameterHelpers.ReportNullableReferenceTypesIfNeeded(Parameters, diagnostics);
         }
 
         internal ConstructorDeclarationSyntax GetSyntax()

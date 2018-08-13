@@ -856,25 +856,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportMissingNonNullTypesContextForAnnotation(DiagnosticBag diagnostics, Location location)
+        internal void ReportNullableReferenceTypesIfNeeded(DiagnosticBag diagnostics, Location location)
         {
-            ReportMissingNonNullTypesContextForAnnotation(this, diagnostics, location);
+            ReportNullableReferenceTypesIfNeeded(this.DeclaringCompilation, nonNullTypesContext: this, diagnostics, location);
         }
 
-        internal static void ReportMissingNonNullTypesContextForAnnotation(INonNullTypesContext context, DiagnosticBag diagnostics, Location location)
+        /// <summary>
+        /// A `?` annotation on a type that isn't a value type causes:
+        /// - an error before C# 8.0
+        /// - a warning outside of a NonNullTypes context
+        /// </summary>
+        internal static void ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, INonNullTypesContext nonNullTypesContext, DiagnosticBag diagnostics, Location location)
         {
-            var diagnostic = ReportMissingNonNullTypesContextForAnnotation(context);
+            var diagnostic = ReportNullableReferenceTypesIfNeeded(compilation, nonNullTypesContext);
             if (diagnostic != null)
             {
                 diagnostics.Add(diagnostic, location);
             }
         }
 
-        internal static DiagnosticInfo ReportMissingNonNullTypesContextForAnnotation(INonNullTypesContext context)
+        internal static DiagnosticInfo ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, INonNullTypesContext nonNullTypesContext)
         {
-            return context.NonNullTypes == true ?
-                null :
-                new CSDiagnosticInfo(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation);
+            var featureID = MessageID.IDS_FeatureStaticNullChecking;
+            if (!compilation.IsFeatureEnabled(featureID))
+            {
+                LanguageVersion availableVersion = compilation.LanguageVersion;
+                LanguageVersion requiredVersion = featureID.RequiredVersion();
+
+                return new CSDiagnosticInfo(availableVersion.GetErrorCode(), featureID.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+            }
+            else if (nonNullTypesContext.NonNullTypes != true)
+            {
+                return new CSDiagnosticInfo(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation);
+            }
+
+            return null;
         }
 
         internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()

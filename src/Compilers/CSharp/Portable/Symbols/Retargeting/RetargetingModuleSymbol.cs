@@ -271,15 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-
-        internal override bool UtilizesNullableReferenceTypes
-        {
-            get
-            {
-                return _underlyingModule.UtilizesNullableReferenceTypes;
-            }
-        }
-
         internal override CharSet? DefaultMarshallingCharSet
         {
             get

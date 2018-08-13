@@ -5605,12 +5605,24 @@ class B : A
 } 
 ";
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (4,23): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                // (4,20): error CS8627: A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public virtual T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T"),
-                // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(4, 20),
+                // (4,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public virtual T? Goo<T>()
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(4, 20),
+                // (12,21): error CS8627: A nullable type parameter must be known to be a value or reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public override T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T"));
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(12, 21),
+                // (12,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public override T? Goo<T>()
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(12, 21),
+                // (6,16): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                //         return null; 
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(6, 16),
+                // (14,16): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                //         return null;
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(14, 16));
         }
 
         [WorkItem(543710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543710")]
@@ -6328,17 +6340,13 @@ public struct S
  
 public class E { }
 ";
-
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,5): error CS0453: The type 'E' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                // (4,10): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     E?[] eNullableArr;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "E?").WithArguments("System.Nullable<T>", "T", "E"),
-                // (6,28): error CS0453: The type 'E' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
-                //     public void Test() {   DoSomething(this.eNullableArr);  }
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "DoSomething").WithArguments("System.Nullable<T>", "T", "E"),
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "eNullableArr").WithLocation(4, 10),
                 // (4,10): warning CS0649: Field 'S.eNullableArr' is never assigned to, and will always have its default value null
                 //     E?[] eNullableArr;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "eNullableArr").WithArguments("S.eNullableArr", "null"));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "eNullableArr").WithArguments("S.eNullableArr", "null").WithLocation(4, 10));
         }
 
         [WorkItem(575455, "DevDiv")]

@@ -3204,44 +3204,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool ShouldSuppressNullableAnnotations(Symbol definition)
-        {
-            Debug.Assert(definition.IsDefinition);
-            var symbolContainingModule = definition.ContainingModule;
-
-            if ((object)symbolContainingModule != null && symbolContainingModule.UtilizesNullableReferenceTypes)
-            {
-                var symbolContainingAssembly = symbolContainingModule.ContainingAssembly;
-
-                if ((object)symbolContainingAssembly != null && !HaveNullableOptOutForAssembly(symbolContainingAssembly) &&
-                       !HaveNullableOptOutForDefinition(definition))
-                {
-                    // All annotations should be accepted as is
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Checking [NullableOptOutForAssembly] can result
-        // in cycle decoding attributes. See NullableReferenceTypesTests.AllowAssemblyOptOut.
-        private bool HaveNullableOptOutForAssembly(AssemblySymbol assembly)
-        {
-            //return ((SourceModuleSymbol)SourceModule).IsNullableOptOutForAssembly(assembly) &&
-            //    (this.GetNullableReferenceFlags() & NullableReferenceFlags.AllowAssemblyOptOut) != 0;
-            return false;
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Checking [NullableOptOut] can result in cycle
-        // decoding attributes. See NullableReferenceTypesTests.NullableOptOut_DecodeAttributeCycle_02.
-        private bool HaveNullableOptOutForDefinition(Symbol definition)
-        {
-            //return definition.NullableOptOut &&
-            //    (this.GetNullableReferenceFlags() & NullableReferenceFlags.AllowMemberOptOut) != 0;
-            return false;
-        }
-
         private abstract class AbstractSymbolSearcher
         {
             private readonly PooledDictionary<Declaration, NamespaceOrTypeSymbol> _cache;

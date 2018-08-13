@@ -9,18 +9,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LazyMissingNonNullTypesContextDiagnosticInfo : LazyDiagnosticInfo
     {
+        private readonly CSharpCompilation _compilation;
         private readonly INonNullTypesContext _context;
         private readonly TypeSymbolWithAnnotations _type;
 
-        internal LazyMissingNonNullTypesContextDiagnosticInfo(INonNullTypesContext context, TypeSymbolWithAnnotations type)
+        internal LazyMissingNonNullTypesContextDiagnosticInfo(CSharpCompilation compilation, INonNullTypesContext context, TypeSymbolWithAnnotations type)
         {
+            _compilation = compilation;
             _context = context;
             _type = type;
         }
 
         protected override DiagnosticInfo ResolveInfo()
         {
-            return _type.IsValueType ? null : Symbol.ReportMissingNonNullTypesContextForAnnotation(_context);
+            return _type.IsValueType ? null : Symbol.ReportNullableReferenceTypesIfNeeded(_compilation, _context);
         }
     }
 }

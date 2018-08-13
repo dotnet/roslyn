@@ -342,41 +342,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSyntax typeArgumentSyntax = nullableSyntax.ElementType;
                         TypeSymbolWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
                         TypeSymbolWithAnnotations constructedType;
-                        bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
-                        if (includeNullability)
+                        if (typeArgument.TypeKind != TypeKind.TypeParameter && (typeArgument.IsValueType || typeArgument.IsErrorType()))
+                        {
+                            NamedTypeSymbol nullableT = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, syntax);
+                            constructedType = TypeSymbolWithAnnotations.Create(nullableT.Construct(ImmutableArray.Create(typeArgument)));
+                        }
+                        else
                         {
                             if (InExecutableBinder)
                             {
                                 // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
                                 // Types created outside executable context should be checked by the responsible symbol (the method symbol checks its return type, for instance).
+                                // We still need to delay that check when binding in an attribute argument
                                 if (!ShouldCheckConstraintsNullability)
                                 {
-                                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(NonNullTypesContext, typeArgument), nullableSyntax.QuestionToken.GetLocation());
+                                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), nullableSyntax.QuestionToken.GetLocation());
                                 }
                                 else if (!typeArgument.IsValueType)
                                 {
-                                    Symbol.ReportMissingNonNullTypesContextForAnnotation(NonNullTypesContext, diagnostics, nullableSyntax.QuestionToken.GetLocation());
+                                    Symbol.ReportNullableReferenceTypesIfNeeded(Compilation, NonNullTypesContext, diagnostics, nullableSyntax.QuestionToken.GetLocation());
                                 }
                             }
-
                             constructedType = typeArgument.SetIsAnnotated(Compilation);
                             if (!ShouldCheckConstraints)
                             {
                                 diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
                             }
                         }
-                        else
-                        {
-                            NamedTypeSymbol nullableT = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, syntax);
-                            constructedType = TypeSymbolWithAnnotations.Create(nullableT.Construct(ImmutableArray.Create(typeArgument)));
-                        }
+
                         if (ShouldCheckConstraints && constructedType.IsNullableType())
                         {
                             ReportUseSiteDiagnostics(constructedType.TypeSymbol.OriginalDefinition, diagnostics, syntax);
                             var type = (NamedTypeSymbol)constructedType.TypeSymbol;
                             var location = syntax.Location;
-                            var conversions = this.Conversions.WithNullability(includeNullability);
-                            if (includeNullability && !ShouldCheckConstraintsNullability)
+                            var conversions = this.Conversions.WithNullability(includeNullability: true);
+                            if (!ShouldCheckConstraintsNullability)
                             {
                                 diagnostics.Add(new LazyNullableContraintChecksDiagnosticInfo(type, conversions, this.Compilation), location);
                                 conversions = conversions.WithNullability(includeNullability: false);

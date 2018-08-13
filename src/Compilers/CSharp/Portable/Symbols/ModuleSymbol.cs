@@ -197,14 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return this.UtilizesNullableReferenceTypes;
-            }
-        }
-
         /// <summary>
         /// Returns an array of assembly identities for assemblies referenced by this module.
         /// Items at the same position from ReferencedAssemblies and from ReferencedAssemblySymbols 
@@ -327,10 +319,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if there is any applied RuntimeCompatibilityAttribute assembly attribute for this module.
         /// </summary>
         internal abstract bool HasAssemblyRuntimeCompatibilityAttribute { get; }
-
-        // PROTOTYPE(NullableReferenceTypes): Remove property if all implementations return true.
-        // PROTOTYPE(NullableReferenceTypes): Consider consolidating property into NonNullTypes 
-        internal abstract bool UtilizesNullableReferenceTypes { get; }
 
         /// <summary>
         /// Default char set for contained types, or null if not specified.

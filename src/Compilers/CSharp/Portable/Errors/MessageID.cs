@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // C# 8 features.
-                case MessageID.IDS_FeatureStaticNullChecking:
+                case MessageID.IDS_FeatureStaticNullChecking: // syntax and semantic check
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

@@ -238,7 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeSymbolWithAnnotations SetIsAnnotated(CSharpCompilation compilation)
         {
-            Debug.Assert(compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking));
             Debug.Assert(CustomModifiers.IsEmpty);
 
             var typeSymbol = this.TypeSymbol;
@@ -253,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
+                    // PROTOTYPE(NullableReferenceTypes): what if the Nullable<T> type is missing? (are we missing diagnostics?)
                     return Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol), NonNullTypesContext));
                 }
             }
@@ -902,7 +902,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public LazyNullableTypeParameter(CSharpCompilation compilation, TypeSymbolWithAnnotations underlying)
             {
-                Debug.Assert(compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking));
                 Debug.Assert(!underlying.IsAnnotated);
                 Debug.Assert(underlying.TypeKind == TypeKind.TypeParameter);
                 Debug.Assert(underlying.CustomModifiers.IsEmpty);
