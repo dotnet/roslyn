@@ -2,10 +2,12 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
@@ -167,8 +169,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         {
             var tree = syntaxContext.Node.SyntaxTree;
 
-            var properties = ImmutableDictionary<string, string>.Empty.Add(
-                Constants.Kind, kind);
+            var properties = ImmutableDictionary.CreateBuilder<string, string>();
+            properties[Constants.Kind] = kind;
+            var name = CSharpCodeStyleOptions.PreferConditionalDelegateCall.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
+            if (name != null)
+            {
+                properties["OptionName"] = name.KeyName;
+                properties["OptionCurrent"] = severity.ToString();
+            }
 
             var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();
             var nextToken = expressionStatement.GetLastToken().GetNextToken();
@@ -183,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 Descriptor,
                 expressionStatement.GetLocation(),
                 severity,
-                additionalLocations, properties));
+                additionalLocations, properties.ToImmutable()));
 
             // If the if-statement extends past the expression statement, then fade out the rest.
             if (nextToken.Span.Start < ifStatement.Span.End)

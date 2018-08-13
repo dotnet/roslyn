@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.LanguageServices;
+using System.Linq;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.OrderModifiers
 {
@@ -82,10 +84,29 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                 }
                 else
                 {
+                    var properties = ImmutableDictionary.CreateBuilder<string, string>();
+                    var name = _option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<string>>>().FirstOrDefault();
+                    if (name != null)
+                    {
+                        properties["OptionName"] = name.KeyName;
+                        var cancellationToken = context.CancellationToken;
+                        var syntaxTree = context.Tree;
+                        var root = syntaxTree.GetRoot(cancellationToken);
+
+                        var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+                        var option = optionSet.GetOption(_option);
+                        properties["OptionCurrent"] = option.Value.ToString().ToLowerInvariant();
+                    }
+
                     // If the Severity is not hidden, then just put the user visible portion on the
                     // first token.  That way we don't 
                     context.ReportDiagnostic(
-                        DiagnosticHelper.Create(Descriptor, modifiers.First().GetLocation(), severity, additionalLocations: null, properties: null));
+                        DiagnosticHelper.Create(
+                            Descriptor,
+                            modifiers.First().GetLocation(),
+                            severity,
+                            additionalLocations: null,
+                            properties: properties.ToImmutable()));
                 }
             }
         }

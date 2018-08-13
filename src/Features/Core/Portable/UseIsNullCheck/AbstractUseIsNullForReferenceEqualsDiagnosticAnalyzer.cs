@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.UseIsNullCheck
 {
@@ -141,12 +142,21 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 properties = properties.Add(AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider.Negated, "");
             }
 
+            var editorconfigName = CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
+            if (editorconfigName != null)
+            {
+                properties = properties.Add("OptionName", editorconfigName.KeyName);
+                properties = properties.Add("OptionCurrent", option.Value.ToString().ToLowerInvariant());
+            }
+
             var severity = option.Notification.Severity;
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
-                    Descriptor, nameNode.GetLocation(),
+                    Descriptor,
+                    nameNode.GetLocation(),
                     severity,
-                    additionalLocations, properties));
+                    additionalLocations,
+                    properties));
         }
 
         private static ITypeParameterSymbol GetGenericParameterSymbol(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)

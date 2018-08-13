@@ -12,6 +12,7 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

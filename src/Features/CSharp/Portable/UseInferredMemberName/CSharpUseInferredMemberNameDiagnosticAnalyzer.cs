@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
@@ -46,14 +48,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
+            var option = optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language);
+            var properties = ImmutableDictionary.CreateBuilder<string, string>();
+            var name = CodeStyleOptions.PreferInferredTupleNames.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
+            if (name != null)
+            {
+                properties["OptionName"] = name.KeyName;
+                properties["OptionCurrent"] = option.Value.ToString().ToLowerInvariant();
+            }
+
             // Create a normal diagnostic
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor,
                     nameColon.GetLocation(),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Severity,
+                    option.Notification.Severity,
                     additionalLocations: null,
-                    properties: null));
+                    properties: properties.ToImmutable()));
 
             // Also fade out the part of the name-colon syntax
             var fadeSpan = TextSpan.FromBounds(nameColon.Name.SpanStart, nameColon.ColonToken.Span.End);
@@ -77,14 +88,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
+            var option = optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language);
+            var properties = ImmutableDictionary.CreateBuilder<string, string>();
+            var name = CodeStyleOptions.PreferInferredAnonymousTypeMemberNames.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
+            if (name != null)
+            {
+                properties["OptionName"] = name.KeyName;
+                properties["OptionCurrent"] = option.Value.ToString().ToLowerInvariant();
+            }
+
             // Create a normal diagnostic
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor,
                     nameEquals.GetLocation(),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Severity,
+                    option.Notification.Severity,
                     additionalLocations: null,
-                    properties: null));
+                    properties: properties.ToImmutable()));
 
             // Also fade out the part of the name-equals syntax
             var fadeSpan = TextSpan.FromBounds(nameEquals.Name.SpanStart, nameEquals.EqualsToken.Span.End);

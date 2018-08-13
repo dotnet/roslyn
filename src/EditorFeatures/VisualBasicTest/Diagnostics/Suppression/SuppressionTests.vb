@@ -3,6 +3,7 @@
 Option Strict Off
 Imports System.Collections.Immutable
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
@@ -27,6 +28,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
                 initialMarkup,
                 parameters.parseOptions,
                 If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        End Function
+
+        Protected Overrides Function MassageActions(ByVal actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
+            Return actions(0).NestedCodeActions
         End Function
 
         Protected Overrides Function GetLanguage() As String

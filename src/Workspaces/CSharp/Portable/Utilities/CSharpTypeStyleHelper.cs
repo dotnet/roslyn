@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
@@ -30,9 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         /// convert things quickly, even if it's going against their stated style.</para>
         /// </remarks>
         public readonly bool IsStylePreferred;
+        public readonly TypeStylePreference GetTypeStylePreferences;
         public readonly ReportDiagnostic Severity;
 
-        public TypeStyleResult(CSharpTypeStyleHelper helper, TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, bool isStylePreferred, ReportDiagnostic severity, CancellationToken cancellationToken) : this()
+        public TypeStyleResult(CSharpTypeStyleHelper helper, TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, bool isStylePreferred, TypeStylePreference getTypeStylePreferences, ReportDiagnostic severity, CancellationToken cancellationToken) : this()
         {
             _helper = helper;
             _typeName = typeName;
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             _cancellationToken = cancellationToken;
 
             IsStylePreferred = isStylePreferred;
+            GetTypeStylePreferences = getTypeStylePreferences;
             Severity = severity;
         }
 
@@ -52,6 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
     {
         protected abstract bool IsStylePreferred(
             SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
+
+        protected abstract TypeStylePreference GetTypeStylePreferences(State state);
 
         public virtual TypeStyleResult AnalyzeTypeName(
             TypeSyntax typeName, SemanticModel semanticModel,
@@ -68,10 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var state = State.Generate(
                 declaration, semanticModel, optionSet, cancellationToken);
             var isStylePreferred = this.IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
+            var getTypeStylePreferences = this.GetTypeStylePreferences(state);
             var severity = state.GetDiagnosticSeverityPreference();
 
             return new TypeStyleResult(
-                this, typeName, semanticModel, optionSet, isStylePreferred, severity, cancellationToken);
+                this, typeName, semanticModel, optionSet, isStylePreferred, getTypeStylePreferences, severity, cancellationToken);
         }
 
         internal abstract bool TryAnalyzeVariableDeclaration(

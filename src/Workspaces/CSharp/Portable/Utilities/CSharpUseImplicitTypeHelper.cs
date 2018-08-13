@@ -91,6 +91,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
         }
 
+        protected override TypeStylePreference GetTypeStylePreferences(State state)
+        {
+            var stylePreferences = state.TypeStylePreference;
+            if (state.IsInIntrinsicTypeContext)
+            {
+                return TypeStylePreference.ImplicitTypeForIntrinsicTypes;
+            }
+            else if (state.IsTypeApparentInContext)
+            {
+                return TypeStylePreference.ImplicitTypeWhereApparent;
+            }
+            else
+            {
+                return TypeStylePreference.ImplicitTypeWherePossible;
+            }
+        }
+
         internal override bool TryAnalyzeVariableDeclaration(
             TypeSyntax typeName, SemanticModel semanticModel,
             OptionSet optionSet, CancellationToken cancellationToken)

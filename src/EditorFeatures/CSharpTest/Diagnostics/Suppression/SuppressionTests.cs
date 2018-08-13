@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp;
@@ -27,6 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
     public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest
     {
         protected override ParseOptions GetScriptOptions() => Options.Script;
+
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        {
+            return actions[0].NestedCodeActions;
+        }
 
         protected override string GetLanguage() => LanguageNames.CSharp;
 
