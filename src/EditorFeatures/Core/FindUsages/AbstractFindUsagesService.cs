@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -15,6 +16,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService : IFindUsagesService
     {
+        private readonly IThreadingContext _threadingContext;
+
+        protected AbstractFindUsagesService(IThreadingContext threadingContext)
+        {
+            _threadingContext = threadingContext;
+        }
+
         public async Task FindImplementationsAsync(
             Document document, int position, IFindUsagesContext context)
         {
@@ -120,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             await FindSymbolReferencesAsync(
+                _threadingContext,
                 context, symbolAndProject?.symbol, symbolAndProject?.project, cancellationToken).ConfigureAwait(false);
         }
 
@@ -128,11 +137,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// and want to push all the references to it into the Streaming-Find-References window.
         /// </summary>
         public static async Task FindSymbolReferencesAsync(
+            IThreadingContext threadingContext,
             IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
-            var progressAdapter = new FindReferencesProgressAdapter(project.Solution, context);
+            var progressAdapter = new FindReferencesProgressAdapter(threadingContext, project.Solution, context);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
