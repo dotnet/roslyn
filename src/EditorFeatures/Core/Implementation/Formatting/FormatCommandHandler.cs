@@ -47,9 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FormatCommandHandler(
+            IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             IWaitIndicator waitIndicator)
+            : base(threadingContext)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
