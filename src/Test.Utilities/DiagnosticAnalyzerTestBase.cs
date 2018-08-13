@@ -209,7 +209,7 @@ namespace Test.Utilities
             foreach (string str in locationStrings)
             {
                 string[] tokens = str.Split('(', ',', ')');
-                Assert.True(tokens.Length == 4, "Location string must be of the format 'FileName.cs(line,column)' or just 'line,column' to use " + defaultPath + " as the file name.");
+                Assert.True(tokens.Length == 4, "Location string must be of the format 'FileName.cs(line,column)' or just '(line,column)' to use " + defaultPath + " as the file name.");
 
                 string path = tokens[0].Length == 0 ? defaultPath : tokens[0];
 
