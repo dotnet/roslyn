@@ -127,9 +127,15 @@ namespace Roslyn.Diagnostics.Analyzers
                     break;
             }
 
-            if (!(type is null) && bannedSymbols.Contains(type))
+            while (!(type is null))
             {
-                oac.ReportDiagnostic(Diagnostic.Create(SymbolIsBannedRule, oac.Operation.Syntax.GetLocation(), type.ToDisplayString(symbolDisplayFormat)));
+                if (bannedSymbols.Contains(type))
+                {
+                    oac.ReportDiagnostic(Diagnostic.Create(SymbolIsBannedRule, oac.Operation.Syntax.GetLocation(), type.ToDisplayString(symbolDisplayFormat)));
+                    break;
+                }
+
+                type = type.ContainingType;
             }
         }
 

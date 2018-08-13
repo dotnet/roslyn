@@ -126,6 +126,31 @@ C+Nested";
         }
 
         [Fact]
+        public void CSharp_DiagnosticReportedForNestedType2()
+        {
+            var source = @"
+class C
+{
+    public static class Nested
+    {
+        public static void M() { }
+    }
+}
+
+class D
+{
+    void M2()
+    {
+        C.Nested.M();
+    }
+}";
+            var bannedText = @"
+C";
+
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(14, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+        }
+
+        [Fact]
         public void CSharp_InvocationOfMethodOnInterface()
         {
             var source = @"
@@ -278,6 +303,28 @@ End Class";
 C+Nested";
 
             VerifyBasic(source, bannedText, GetBasicResultAt(5, 18, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested"));
+        }
+
+        [Fact]
+        public void VisualBasic_DiagnosticReportedForNestedType2()
+        {
+            var source = @"
+Class C
+    Public Class Nested
+        Public Shared Sub M() : End Sub
+    End Class
+End Class
+
+Class D
+    Sub M2()
+        C.Nested.M()
+    End Sub
+End Class
+";
+            var bannedText = @"
+C";
+
+            VerifyBasic(source, bannedText, GetBasicResultAt(10, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
         }
 
         [Fact]
