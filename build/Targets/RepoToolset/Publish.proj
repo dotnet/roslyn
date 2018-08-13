@@ -35,11 +35,11 @@
   </PropertyGroup>
 
   <!-- TODO: Roslyn specific -->
-  <ItemGroup>
+  <PropertyGroup>
     <PublishPackagesDir Condition="'$(PublishStableVersions)' == 'false'">$(ArtifactsPackagesDir)PerBuildPreRelease</PublishPackagesDir>
     <PublishPackagesDir Condition="'$(PublishStableVersions)' == 'true' and '$(VersionStampToPublish)' == ''">$(ArtifactsPackagesDir)Release</PublishPackagesDir>
     <PublishPackagesDir Condition="'$(PublishStableVersions)' == 'true' and '$(VersionStampToPublish)' != ''">$(ArtifactsPackagesDir)PreRelease</PublishPackagesDir>
-</ItemGroup>
+  </PropertyGroup>
 
   <Import Project="$(NuGetPackageRoot)microsoft.dotnet.build.tasks.feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" Condition="$(PublishToAzure)"/>
   <Import Project="$(NuGetPackageRoot)microsoft.symboluploader.build.task\$(MicrosoftSymbolUploaderBuildTaskVersion)\build\PublishSymbols.targets" Condition="$(PublishToSymbolServer)"/>
