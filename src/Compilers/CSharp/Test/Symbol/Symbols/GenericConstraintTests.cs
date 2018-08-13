@@ -6340,7 +6340,6 @@ public struct S
  
 public class E { }
 ";
-            // Note: error types are assumed to be value types when annotated with `?`
             CreateCompilation(source).VerifyDiagnostics(
                 // (4,10): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     E?[] eNullableArr;
