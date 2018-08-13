@@ -10,7 +10,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Friend Class Parser
+    Friend Partial Class Parser
 
         Private Function ParseInterpolatedStringExpression() As InterpolatedStringExpressionSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.DollarSignDoubleQuoteToken, "ParseInterpolatedStringExpression called on the wrong token.")
@@ -279,7 +279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 indexOfFirstColon = 0
                 newTrailingTrivia = Nothing
                 excessText = Nothing
-            ElseIf triviaList(0).Kind = SyntaxKind.ColonTrivia Then
+            ElseIf triviaList(0).Kind = SyntaxKind.ColonTrivia
                 indexOfFirstColon = 0
                 newTrailingTrivia = Nothing
                 excessText = triviaList.GetEndOfTrivia(1).Node.ToFullString()

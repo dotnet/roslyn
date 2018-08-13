@@ -417,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' peeking current token is strange, but ok. Note that it ignores the state.
             If tokenOffset = 0 Then
-                Debug.Assert(_currentToken.State = state, $"_CurrentToken.State:={_currentToken.State} state:={state}")
+                Debug.Assert(_currentToken.State = state)
 
                 Return GetCurrentToken()
             End If
