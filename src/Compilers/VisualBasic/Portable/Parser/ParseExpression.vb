@@ -420,22 +420,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         qToken = CheckFeatureAvailability(Feature.NullPropagatingOperator, qToken)
 
                         GetNextToken()
-                        term = SyntaxFactory.ConditionalAccessExpression(term, qToken, ParsePostFixExpression(redimOrNewParent, term:=Nothing))
+                        term = SyntaxFactory.ConditionalAccessExpression(prevTerm, qToken, ParsePostFixExpression(redimOrNewParent, term:=Nothing))
                     Else
                         If start.IsKeyword Then
 
                             ' Is it in the form : [keyword] [qualifier] [identifier]
                             ' If so treat the keyword as an identifier and continue to parse.
                             Dim nextToken = PeekNextToken()
-                            If nextToken.Kind = SyntaxKind.DotToken OrElse nextToken.Kind = SyntaxKind.QuestionToken Then
-                                Dim keywordAsIdentifier = ParseSimpleNameExpressionAllowingKeywordAndTypeArguments()
-                                keywordAsIdentifier = ReportSyntaxError(keywordAsIdentifier, ERRID.ERR_InvalidUseOfKeyword)
-                                Dim _InvocationExpression_ = ParseExpressionCore(prevTerm:=keywordAsIdentifier)
-                                If _InvocationExpression_.Kind = SyntaxKind.InvocationExpression Then
-                                    Return _InvocationExpression_
-                                End If
-                            End If
 
+                            Select Case nextToken.Kind
+                                Case SyntaxKind.DotToken,
+                                     SyntaxKind.QuestionToken,
+                                     SyntaxKind.ExclamationToken
+
+                                    Dim keywordAsIdentifier = ParseSimpleNameExpressionAllowingKeywordAndTypeArguments()
+                                    keywordAsIdentifier = ReportSyntaxError(keywordAsIdentifier, ERRID.ERR_InvalidUseOfKeyword)
+                                    term = ParseExpressionCore(prevTerm:=keywordAsIdentifier)
+                                    Return term
+                            End Select
                         End If
 
                         If bailIfFirstTokenRejected Then
