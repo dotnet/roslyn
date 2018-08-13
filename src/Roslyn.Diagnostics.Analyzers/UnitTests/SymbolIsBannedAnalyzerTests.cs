@@ -55,14 +55,14 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         {
             var source = @"";
             var bannedText = @"
-System.Console
-System.Console";
+T:System.Console
+T:System.Console";
 
             VerifyCSharp(source, bannedText,
                 GetResultAt(
                     SymbolIsBannedAnalyzer.BannedSymbolsFileName,
                     SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule.Id,
-                    string.Format(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule.MessageFormat.ToString(), "System.Console"),
+                    string.Format(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule.MessageFormat.ToString(), "T:System.Console"),
                     "(3,1)", "(2,1)"));
         }
 
@@ -83,7 +83,7 @@ namespace N
 }";
 
             var bannedText = @"
-N.Banned";
+T:N.Banned";
 
             VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned"));
         }
@@ -101,7 +101,7 @@ class C
 }";
 
             var bannedText = @"
-System.Collections.Generic.List`1";
+T:System.Collections.Generic.List`1";
 
             VerifyCSharp(source, bannedText, GetCSharpResultAt(6, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List<T>"));
         }
@@ -120,7 +120,7 @@ class C
 }";
 
             var bannedText = @"
-C+Nested";
+T:C.Nested";
 
             VerifyCSharp(source, bannedText, GetCSharpResultAt(7, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested"));
         }
@@ -145,7 +145,7 @@ class D
     }
 }";
             var bannedText = @"
-C";
+T:C";
 
             VerifyCSharp(source, bannedText, GetCSharpResultAt(14, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
         }
@@ -167,7 +167,7 @@ class C
         i.M();
     }
 }";
-            var bannedText = @"I";
+            var bannedText = @"T:I";
 
             VerifyCSharp(source, bannedText, GetCSharpResultAt(12, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I"));
         }
@@ -184,7 +184,7 @@ class C
         P = P;
     }
 }";
-            var bannedText = @"C";
+            var bannedText = @"T:C";
 
             VerifyCSharp(source, bannedText,
                 GetCSharpResultAt(7, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
@@ -203,7 +203,7 @@ class C
         F = F;
     }
 }";
-            var bannedText = @"C";
+            var bannedText = @"T:C";
 
             VerifyCSharp(source, bannedText,
                 GetCSharpResultAt(7, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
@@ -226,7 +226,7 @@ class C
         E(null, EventArgs.Empty);
     }
 }";
-            var bannedText = @"C";
+            var bannedText = @"T:C";
 
             VerifyCSharp(source, bannedText,
                 GetCSharpResultAt(9, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
@@ -247,7 +247,7 @@ class C
     }
 }
 ";
-            var bannedText = @"C";
+            var bannedText = @"T:C";
 
             VerifyCSharp(source, bannedText,
                 GetCSharpResultAt(7, 15, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
@@ -267,7 +267,7 @@ Namespace N
 End Namespace";
 
             var bannedText = @"
-N.Banned";
+T:N.Banned";
 
             VerifyBasic(source, bannedText, GetBasicResultAt(6, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned"));
         }
@@ -283,7 +283,7 @@ Class C
 End Class";
 
             var bannedText = @"
-System.Collections.Generic.List`1";
+T:System.Collections.Generic.List`1";
 
             VerifyBasic(source, bannedText, GetBasicResultAt(4, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List(Of T)"));
         }
@@ -300,7 +300,7 @@ Class C
 End Class";
 
             var bannedText = @"
-C+Nested";
+T:C.Nested";
 
             VerifyBasic(source, bannedText, GetBasicResultAt(5, 18, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested"));
         }
@@ -322,7 +322,7 @@ Class D
 End Class
 ";
             var bannedText = @"
-C";
+T:C";
 
             VerifyBasic(source, bannedText, GetBasicResultAt(10, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
         }
@@ -341,7 +341,7 @@ Class C
         i.M()
     End Sub
 End Class";
-            var bannedText = @"I";
+            var bannedText = @"T:I";
 
             VerifyBasic(source, bannedText, GetBasicResultAt(9, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I"));
         }
@@ -356,7 +356,7 @@ Class C
         P = P
     End Sub
 End Class";
-            var bannedText = @"C";
+            var bannedText = @"T:C";
 
             VerifyBasic(source, bannedText,
                 GetBasicResultAt(5, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
@@ -373,7 +373,7 @@ Class C
         F = F
     End Sub
 End Class";
-            var bannedText = @"C";
+            var bannedText = @"T:C";
 
             VerifyBasic(source, bannedText,
                 GetBasicResultAt(5, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
@@ -394,7 +394,7 @@ Class C
         RaiseEvent E(Me, EventArgs.Empty)
     End Sub
 End Class";
-            var bannedText = @"C";
+            var bannedText = @"T:C";
 
             VerifyBasic(source, bannedText,
                 GetBasicResultAt(7, 20, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
@@ -412,7 +412,7 @@ Class C
         Dim d as D = AddressOf M
     End Sub
 End Class";
-            var bannedText = @"C";
+            var bannedText = @"T:C";
 
             VerifyBasic(source, bannedText,
                 GetBasicResultAt(5, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));

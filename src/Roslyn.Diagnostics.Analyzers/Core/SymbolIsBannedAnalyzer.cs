@@ -98,10 +98,10 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var symbol = compilation.GetTypeByMetadataName(apiString.Text);
-                if (!(symbol is null))
+                var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(apiString.Text, compilation);
+                if (!symbols.IsDefaultOrEmpty)
                 {
-                    bannedApisBuilder.Add(symbol);
+                    bannedApisBuilder.UnionWith(symbols);
                 }
             }
 
