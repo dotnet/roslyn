@@ -1023,5 +1023,34 @@ class MyClass
     }
 }");
         }
+
+        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldInTypeWithGeneratedCode()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    [|private int i;|]
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("""", """")]
+    private int j;
+
+    void M()
+    {
+    }
+}",
+@"class C
+{
+    private readonly int i;
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("""", """")]
+    private int j;
+
+    void M()
+    {
+    }
+}");
+        }
     }
 }

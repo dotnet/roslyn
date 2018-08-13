@@ -281,7 +281,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     var removed = pendingMemberSymbols.Remove(processedMemberSymbol);
-                    Debug.Assert(removed);
 
                     if (pendingMemberSymbols.Count > 0 ||
                         _lazyPendingSymbolEndActionsOpt == null ||

@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     var members = ((INamedTypeSymbol)symbolEndContext.Symbol).GetMembers();
                     foreach (var member in members)
                     {
-                        if (member is IFieldSymbol field && !field.IsImplicitlyDeclared)
+                        if (member is IFieldSymbol field && fieldStateMap.TryRemove(field, out var value))
                         {
-                            (bool isCandidate, bool written) = fieldStateMap[field];
+                            (bool isCandidate, bool written) = value;
                             if (isCandidate && !written)
                             {
                                 var option = GetCodeStyleOption(field, symbolEndContext.Options, symbolEndContext.CancellationToken);
