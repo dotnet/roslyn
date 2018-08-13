@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             context.RegisterCompilationStartAction(compilationStartContext =>
             {
                 // State map for fields:
-                //  'isCandidate' : Indicates whether the field is a candidate to be made readonly based on it's declaration and options.
+                //  'isCandidate' : Indicates whether the field is a candidate to be made readonly based on it's options.
                 //  'written'     : Indicates if there are any writes to the field outside the constructor and field initializer.
                 var fieldStateMap = new ConcurrentDictionary<IFieldSymbol, (bool isCandidate, bool written)>();
 
@@ -121,6 +121,11 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 // Method to get or initialize the field state.
                 (bool isCandidate, bool written) TryGetOrInitializeFieldState(IFieldSymbol fieldSymbol, AnalyzerOptions options, CancellationToken cancellationToken)
                 {
+                    if (!IsCandidateField(fieldSymbol))
+                    {
+                        return default;
+                    }
+
                     if (fieldStateMap.TryGetValue(fieldSymbol, out var result))
                     {
                         return result;
@@ -133,10 +138,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 // Method to compute the initial field state.
                 (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
                 {
-                    if (!IsCandidateField(field))
-                    {
-                        return default;
-                    }
+                    Debug.Assert(IsCandidateField(field));
 
                     var option = GetCodeStyleOption(field, options, cancellationToken);
                     if (option == null || !option.Value)
