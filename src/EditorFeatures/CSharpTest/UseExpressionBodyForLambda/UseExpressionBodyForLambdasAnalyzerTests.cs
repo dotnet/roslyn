@@ -1058,6 +1058,36 @@ class C
 {
     void Goo()
     {
+        Func<int, Func<int, string>> f = a =>
+        {
+            return b {|FixAllInDocument:=>|}
+            {
+                return b.ToString();
+            };
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a => b => b.ToString();
+    }
+}", options: UseExpressionBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task FixAllNested3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
         Func<int, Func<int, string>> f = a {|FixAllInDocument:=>|} b => b.ToString();
     }
 }",
@@ -1075,7 +1105,37 @@ class C
             };
         };
     }
-}", options: UseExpressionBody);
+}", options: UseBlockBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task FixAllNested4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a => b {|FixAllInDocument:=>|} b.ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a =>
+        {
+            return b =>
+            {
+                return b.ToString();
+            };
+        };
+    }
+}", options: UseBlockBody);
         }
     }
 }
