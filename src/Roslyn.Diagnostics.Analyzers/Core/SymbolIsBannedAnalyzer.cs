@@ -75,23 +75,14 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
-            var bannedApis = ImmutableHashSet.CreateBuilder<ISymbol>();
-            foreach (var apiString in apiData.ApiList)
-            {
-                var symbol = compilationContext.Compilation.GetTypeByMetadataName(apiString.Text);
-                if (!(symbol is null))
-                {
-                    bannedApis.Add(symbol);
-                }
-            }
-
+            var bannedApis = ResolveBannedApis(compilationContext.Compilation, apiData, compilationContext.CancellationToken);
             if (bannedApis.Count > 0)
             {
                 var symbolDisplayFormat = compilationContext.Compilation.Language == LanguageNames.CSharp
                     ? SymbolDisplayFormat.CSharpShortErrorMessageFormat
                     : SymbolDisplayFormat.VisualBasicShortErrorMessageFormat;
                 compilationContext.RegisterOperationAction(
-                    oac => AnalyzeOperation(oac, bannedApis.ToImmutable(), symbolDisplayFormat),
+                    oac => AnalyzeOperation(oac, bannedApis, symbolDisplayFormat),
                     OperationKind.ObjectCreation,
                     OperationKind.Invocation,
                     OperationKind.EventReference,
@@ -99,6 +90,24 @@ namespace Roslyn.Diagnostics.Analyzers
                     OperationKind.MethodReference,
                     OperationKind.PropertyReference);
             }
+        }
+
+        private static ImmutableHashSet<ISymbol> ResolveBannedApis(Compilation compilation, ApiData apiData, CancellationToken cancellationToken)
+        {
+            var bannedApisBuilder = ImmutableHashSet.CreateBuilder<ISymbol>();
+            foreach (var apiString in apiData.ApiList)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var symbol = compilation.GetTypeByMetadataName(apiString.Text);
+                if (!(symbol is null))
+                {
+                    bannedApisBuilder.Add(symbol);
+                }
+            }
+
+            var bannedApis = bannedApisBuilder.ToImmutable();
+            return bannedApis;
         }
 
         private static void AnalyzeOperation(OperationAnalysisContext oac, ImmutableHashSet<ISymbol> bannedSymbols, SymbolDisplayFormat symbolDisplayFormat)
