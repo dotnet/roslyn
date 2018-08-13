@@ -647,6 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.Interpolation:
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.LockStatement:
+                case SyntaxKind.ElementAccessExpression:
                     // Direct parent kind checks.
                     return true;
             }
