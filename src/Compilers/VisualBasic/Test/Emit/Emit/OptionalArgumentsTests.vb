@@ -814,7 +814,7 @@ Class P
         Report(C.F6())
     End Sub
     Shared Sub Report(o As Object)
-        Dim value As Object = If (TypeOf o is Date, DirectCast(o, Date).ToString("MM/dd/yyyy HH:mm:ss"), o)
+        Dim value As Object = If (TypeOf o is Date, DirectCast(o, Date).ToString("MM'/'dd'/'yyyy HH':'mm':'ss"), o)
         System.Console.WriteLine("{0}: {1}", o.GetType(), value)
     End Sub
 End Class
