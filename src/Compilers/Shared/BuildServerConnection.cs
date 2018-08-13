@@ -68,8 +68,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
-        internal static bool IsCompilerServerSupported => 
-            GetPipeNameForPathOpt("") != null;
+        internal static bool IsCompilerServerSupported(string tempPath)
+        {
+            var pipeName = GetPipeNameForPathOpt("");
+            return pipeName != null && !IsPipePathTooLong(pipeName, tempPath);
+        }
 
         public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
@@ -310,6 +313,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             NamedPipeClientStream pipeStream;
             try
             {
+                // If the pipe path would be too long, there cannot be a server at the other end.
+                // We're not using a saved temp path here because pipes are created with
+                // Path.GetTempPath() in corefx NamedPipeClientStream and we want to replicate that behavior.
+                if (IsPipePathTooLong(pipeName, Path.GetTempPath()))
+                {
+                    return null;
+                }
+
                 // Machine-local named pipes are named "\\.\pipe\<pipename>".
                 // We use the SHA1 of the directory the compiler exes live in as the pipe name.
                 // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
@@ -548,6 +559,27 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
         }
 
+        /// <summary>
+        /// Check if our constructed path is too long. On some Unix machines the pipe is a
+        /// real file in the temp directory, and there is a limit on how long the path can
+        /// be. This will never be true on Windows.
+        /// </summary>
+        internal static bool IsPipePathTooLong(string pipeName, string tempPath)
+        {
+            if (PlatformInformation.IsUnix)
+            {
+                // This is the maximum path length of Unix Domain Sockets on a number of systems.
+                // Since CoreFX implements named pipes using Unix Domain Sockets, if we exceed this
+                // length than the pipe will fail.
+                // This number is considered the smallest known max length according to
+                // http://man7.org/linux/man-pages/man7/unix.7.html
+                const int MaxPipePathLength = 92;
+                const int PrefixLength = 11; // "CoreFxPipe_".Length
+                return (tempPath.Length + PrefixLength + pipeName.Length) > MaxPipePathLength;
+            }
+            return false;
+        }
+
         internal static string GetBasePipeName(string compilerExeDirectory)
         {
             // Normalize away trailing slashes.  File APIs include / exclude this with no 
@@ -560,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
                 basePipeName = Convert.ToBase64String(bytes)
-                    .Substring(0, 25) // We only have ~50 total characters on Mac, so strip this down
+                    .Substring(0, 10) // We only have ~50 total characters on Mac, so strip this down
                     .Replace("/", "_")
                     .Replace("=", string.Empty);
             }

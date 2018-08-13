@@ -809,6 +809,9 @@ Do you want to proceed?</value>
   <data name="Code_cleanup_is_not_configured" xml:space="preserve">
     <value>Code cleanup is not configured</value>
   </data>
+  <data name="Format_document_performed_additional_cleanup" xml:space="preserve">
+    <value>Format Document performed additional cleanup</value>
+  </data>
   <data name="Configure_it_now" xml:space="preserve">
     <value>Configure it now</value>
   </data>
@@ -817,5 +820,11 @@ Do you want to proceed?</value>
   </data>
   <data name="Applying_changes" xml:space="preserve">
     <value>Applying changes</value>
+  </data>
+  <data name="String_Escape_Character" xml:space="preserve">
+    <value>String - Escape Character</value>
+  </data>
+  <data name="Change_configuration" xml:space="preserve">
+    <value>Change configuration</value>
   </data>
 </root>

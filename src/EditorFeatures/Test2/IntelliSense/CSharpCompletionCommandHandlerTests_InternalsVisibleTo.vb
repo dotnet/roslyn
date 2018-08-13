@@ -7,9 +7,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_InternalsVisibleTo
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionContainsOtherAssembliesOfSolution() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        Public Shared ReadOnly Property AllCompletionImplementations() As IEnumerable(Of Object())
+            Get
+                Return TestStateFactory.GetAllCompletionImplementations()
+            End Get
+        End Property
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionContainsOtherAssembliesOfSolution(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary2"/>
@@ -26,9 +33,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionContainsOtherAssemblyIfAttributeSuffixIsPresent() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionContainsOtherAssemblyIfAttributeSuffixIsPresent(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -43,9 +51,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionIsTriggeredWhenDoubleQuoteIsEntered() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIsTriggeredWhenDoubleQuoteIsEntered(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -61,9 +70,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionIsEmptyUntilDoubleQuotesAreEntered() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIsEmptyUntilDoubleQuotesAreEntered(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -87,9 +97,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionIsTriggeredWhenCharacterIsEnteredAfterOpeningDoubleQuote() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIsTriggeredWhenCharacterIsEnteredAfterOpeningDoubleQuote(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -105,9 +116,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionIsNotTriggeredWhenCharacterIsEnteredThatIsNotRightBesideTheOpeniningDoubleQuote() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIsNotTriggeredWhenCharacterIsEnteredThatIsNotRightBesideTheOpeniningDoubleQuote(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -122,9 +134,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionIsNotTriggeredWhenDoubleQuoteIsEnteredAtStartOfFile() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIsNotTriggeredWhenDoubleQuoteIsEnteredAtStartOfFile(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -139,9 +152,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionIsNotTriggeredByArrayElementAccess() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIsNotTriggeredByArrayElementAccess(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -178,8 +192,8 @@ namespace A
             End Using
         End Function
 
-        Private Async Function AssertCompletionListHasItems(code As String, hasItems As Boolean) As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        Private Async Function AssertCompletionListHasItems(completionImplementation As CompletionImplementation, code As String, hasItems As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -201,88 +215,103 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasItems_AfterSingleDoubleQuoteAndClosing() As Task
-            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""$$)]", True)
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_AfterSingleDoubleQuoteAndClosing(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "[assembly: InternalsVisibleTo(""$$)]", True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasItems_AfterText() As Task
-            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""Test$$)]", True)
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_AfterText(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "[assembly: InternalsVisibleTo(""Test$$)]", True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasItems_IfCursorIsInSecondParameter() As Task
-            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""Test"", ""$$", True)
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfCursorIsInSecondParameter(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "[assembly: InternalsVisibleTo(""Test"", ""$$", True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasNoItems_IfCursorIsClosingDoubleQuote1() As Task
-            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""Test""$$", False)
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasNoItems_IfCursorIsClosingDoubleQuote1(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "[assembly: InternalsVisibleTo(""Test""$$", False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasNoItems_IfCursorIsClosingDoubleQuote2() As Task
-            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""""$$", False)
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasNoItems_IfCursorIsClosingDoubleQuote2(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "[assembly: InternalsVisibleTo(""""$$", False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasItems_IfNamedParameterIsPresent() As Task
-            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""$$, AllInternalsVisible = true)]", True)
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfNamedParameterIsPresent(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "[assembly: InternalsVisibleTo(""$$, AllInternalsVisible = true)]", True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasItems_IfNamedParameterAndNamedPositionalParametersArePresent() As Task
-            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(assemblyName: ""$$, AllInternalsVisible = true)]", True)
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfNamedParameterAndNamedPositionalParametersArePresent(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "[assembly: InternalsVisibleTo(assemblyName: ""$$, AllInternalsVisible = true)]", True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasNoItems_IfNumberIsEntered() As Task
-            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(1$$2)]", False)
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasNoItems_IfNumberIsEntered(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "[assembly: InternalsVisibleTo(1$$2)]", False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasNoItems_IfNotInternalsVisibleToAttribute() As Task
-            Await AssertCompletionListHasItems("[assembly: AssemblyVersion(""$$"")]", False)
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasNoItems_IfNotInternalsVisibleToAttribute(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "[assembly: AssemblyVersion(""$$"")]", False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasItems_IfOtherAttributeIsPresent1() As Task
-            Await AssertCompletionListHasItems("[assembly: AssemblyVersion(""1.0.0.0""), InternalsVisibleTo(""$$", True)
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfOtherAttributeIsPresent1(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "[assembly: AssemblyVersion(""1.0.0.0""), InternalsVisibleTo(""$$", True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasItems_IfOtherAttributeIsPresent2() As Task
-            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""$$""), AssemblyVersion(""1.0.0.0"")]", True)
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfOtherAttributeIsPresent2(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "[assembly: InternalsVisibleTo(""$$""), AssemblyVersion(""1.0.0.0"")]", True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasItems_IfOtherAttributesAreAhead() As Task
-            Await AssertCompletionListHasItems("
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfOtherAttributesAreAhead(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "
                 [assembly: AssemblyVersion(""1.0.0.0"")]
                 [assembly: InternalsVisibleTo(""$$", True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasItems_IfOtherAttributesAreFollowing() As Task
-            Await AssertCompletionListHasItems("
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfOtherAttributesAreFollowing(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "
             [assembly: InternalsVisibleTo(""$$
             [assembly: AssemblyVersion(""1.0.0.0"")]
             [assembly: AssemblyCompany(""Test"")]", True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function AssertCompletionListHasItems_IfNamespaceIsFollowing() As Task
-            Await AssertCompletionListHasItems("
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfNamespaceIsFollowing(completionImplementation As CompletionImplementation) As Task
+            Await AssertCompletionListHasItems(completionImplementation, "
             [assembly: InternalsVisibleTo(""$$
             namespace A {            
                 public class A { }
             }", True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionHasItemsIfInteralVisibleToIsReferencedByTypeAlias() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionHasItemsIfInteralVisibleToIsReferencedByTypeAlias(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -298,9 +327,10 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionDoesNotContainCurrentAssembly() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionDoesNotContainCurrentAssembly(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -315,9 +345,10 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionInsertsAssemblyNameOnCommit() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionInsertsAssemblyNameOnCommit(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
                     </Project>
@@ -335,9 +366,10 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionInsertsPublicKeyOnCommit() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionInsertsPublicKeyOnCommit(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
@@ -358,9 +390,10 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionContainsPublicKeyIfKeyIsSpecifiedByAttribute() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionContainsPublicKeyIfKeyIsSpecifiedByAttribute(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
@@ -383,9 +416,10 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionContainsPublicKeyIfDelayedSigningIsEnabled() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionContainsPublicKeyIfDelayedSigningIsEnabled(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
@@ -407,9 +441,10 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionListIsEmptyIfAttributeIsNotTheBCLAttribute() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionListIsEmptyIfAttributeIsNotTheBCLAttribute(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -434,9 +469,10 @@ namespace Test
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVT() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVT(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary2"/>
@@ -457,9 +493,10 @@ namespace Test
         End Function
 
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTIfAssemblyNameIsAConstant() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTIfAssemblyNameIsAConstant(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary2"/>
@@ -489,9 +526,10 @@ namespace A {
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTForDifferentSyntax() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTForDifferentSyntax(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary2"/>
@@ -532,9 +570,10 @@ namespace A {
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTWithSyntaxError() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTWithSyntaxError(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
@@ -554,9 +593,10 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTWithMoreThanOneDocument() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTWithMoreThanOneDocument(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary2"/>
@@ -578,6 +618,25 @@ using System.Reflection;
                 Await state.AssertCompletionSession()
                 Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
                 Assert.True(state.CompletionItemsContainsAll({"ClassLibrary2"}))
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIgnoresUnsupportedProjectTypes(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="NoCompilation" AssemblyName="ClassLibrary1"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+using System.Runtime.CompilerServices;
+using System.Reflection;
+[assembly: InternalsVisibleTo("$$
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertNoCompletionSession()
             End Using
         End Function
     End Class

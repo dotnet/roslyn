@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Function TryGetSpeculativeSemanticModel(oldSemanticModel As SemanticModel, oldNode As SyntaxNode, newNode As SyntaxNode, <Out> ByRef speculativeModel As SemanticModel) As Boolean Implements ISemanticFactsService.TryGetSpeculativeSemanticModel
-            Contract.Requires(oldNode.Kind = newNode.Kind)
+            Debug.Assert(oldNode.Kind = newNode.Kind)
 
             Dim model = oldSemanticModel
 
@@ -275,10 +275,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ImmutableArray(Of IMethodSymbol).Empty
         End Function
 
-        Public Function IsNameOfContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNameOfContext
-            Return semanticModel.SyntaxTree.IsNameOfContext(position, cancellationToken)
-        End Function
-
         Public Function IsNamespaceDeclarationNameContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNamespaceDeclarationNameContext
             Return semanticModel.SyntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken)
         End Function
@@ -318,6 +314,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ISemanticFactsService_GenerateUniqueLocalName(
             semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueLocalName
             Return MyBase.GenerateUniqueLocalName(semanticModel, location, containerOpt, baseName, cancellationToken)
+        End Function
+
+        Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInsideNameOfExpression
+            Return node.FirstAncestorOrSelf(Of NameOfExpressionSyntax) IsNot Nothing
         End Function
     End Class
 End Namespace

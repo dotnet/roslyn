@@ -86,6 +86,10 @@
         "Dlls\\Microsoft.CodeAnalysis.Workspaces\\*\\Microsoft.CodeAnalysis.Workspaces.resources.dll",
         "Dlls\\Microsoft.VisualStudio.LanguageServices.Xaml\\Microsoft.VisualStudio.LanguageServices.Xaml.dll",
         "Dlls\\Microsoft.VisualStudio.LanguageServices.Xaml\\*\\Microsoft.VisualStudio.LanguageServices.Xaml.resources.dll",
+        "Dlls\\Roslyn.Services.Test.Utilities\\Roslyn.Services.Test.Utilities.dll",
+        "Dlls\\Roslyn.Test.Utilities\\net46\\Roslyn.Test.Utilities.dll",
+        "Dlls\\Microsoft.VisualStudio.IntegrationTest.Utilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll",
+        "Dlls\\Microsoft.VisualStudio.IntegrationTest.IntegrationService\\Microsoft.VisualStudio.IntegrationTest.IntegrationService.dll",
         "Exes\\InteractiveHost32\\InteractiveHost32.exe",
         "Exes\\InteractiveHost64\\InteractiveHost64.exe",
         "Exes\\VBCSCompiler\\net46\\VBCSCompiler.exe",
@@ -101,17 +105,7 @@
         "Vsix\\Roslyn.Compilers.Extension\\Roslyn.Compilers.Extension.dll",
         "Vsix\\Roslyn.VisualStudio.DiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.dll",
         "Vsix\\Roslyn.VisualStudio.DiagnosticsWindow\\*\\Roslyn.VisualStudio.DiagnosticsWindow.resources.dll",
-        "Vsix\\Roslyn.VisualStudio.InteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll"
-      ]
-    },
-    {
-      "certificate": "MicrosoftSHA2",
-      "strongName": null,
-      "values": [
-        "Dlls\\Roslyn.Services.Test.Utilities\\Roslyn.Services.Test.Utilities.dll",
-        "Dlls\\Roslyn.Test.Utilities\\net46\\Roslyn.Test.Utilities.dll",
-        "Dlls\\Microsoft.VisualStudio.IntegrationTest.Utilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll",
-        "Dlls\\Microsoft.VisualStudio.IntegrationTest.IntegrationService\\Microsoft.VisualStudio.IntegrationTest.IntegrationService.dll",
+        "Vsix\\Roslyn.VisualStudio.InteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll",
         "Vsix\\Microsoft.VisualStudio.IntegrationTest.Setup\\Microsoft.VisualStudio.IntegrationTest.Setup.dll"
       ]
     },
@@ -191,10 +185,6 @@
     "Microsoft.VisualStudio.Threading.resources.dll",
     "Microsoft.VisualStudio.Validation.dll",
     "Microsoft.Win32.Primitives.dll",
-    "Mono.Cecil.dll",
-    "Mono.Cecil.Mdb.dll",
-    "Mono.Cecil.Pdb.dll",
-    "Mono.Cecil.Rocks.dll",
     "Nerdbank.FullDuplexStream.dll",
     "Newtonsoft.Json.dll",
     "NuGet.CommandLine.2.8.5.nupkg",

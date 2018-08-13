@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private bool AreEquivalentWorker(ISymbol x, ISymbol y, SymbolKind k, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
-                Contract.Requires(x.Kind == y.Kind && x.Kind == k);
+                Debug.Assert(x.Kind == y.Kind && x.Kind == k);
                 switch (k)
                 {
                     case SymbolKind.ArrayType:
@@ -558,11 +558,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private bool TypeParametersAreEquivalent(ITypeParameterSymbol x, ITypeParameterSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
-                Contract.Requires(
+                Debug.Assert(
                     (x.TypeParameterKind == TypeParameterKind.Method && IsConstructedFromSelf(x.DeclaringMethod)) ||
                     (x.TypeParameterKind == TypeParameterKind.Type && IsConstructedFromSelf(x.ContainingType)) ||
                     x.TypeParameterKind == TypeParameterKind.Cref);
-                Contract.Requires(
+                Debug.Assert(
                     (y.TypeParameterKind == TypeParameterKind.Method && IsConstructedFromSelf(y.DeclaringMethod)) ||
                     (y.TypeParameterKind == TypeParameterKind.Type && IsConstructedFromSelf(y.ContainingType)) ||
                     y.TypeParameterKind == TypeParameterKind.Cref);
