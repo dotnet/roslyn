@@ -2,9 +2,8 @@
 
 using System;
 using System.Threading;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
@@ -12,7 +11,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract class AbstractPackage : AsyncPackage
     {
-        protected ForegroundThreadAffinitizedObject ForegroundObject;
+        protected ForegroundThreadAffinitizedObject ForegroundObject
+        {
+            get;
+            private set;
+        }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -20,21 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // Assume that we are being initialized on the UI thread at this point, and setup our foreground state
-            var kind = ForegroundThreadDataInfo.CreateDefault(ForegroundThreadDataKind.ForcedByPackageInitialize);
-
-            // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
-            // So instead of using the default priority which is above user input, we use Background priority which is 1 level
-            // below user input.
-            var taskScheduler = new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
-
-            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(Thread.CurrentThread, taskScheduler, kind);
-            ForegroundObject = new ForegroundThreadAffinitizedObject();
+            var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel));
+            ForegroundObject = new ForegroundThreadAffinitizedObject(componentModel.GetService<IThreadingContext>());
         }
 
         protected void LoadComponentsInUIContextOnceSolutionFullyLoaded(CancellationToken cancellationToken)
         {
-            ForegroundObject.AssertIsForeground();
+            ThreadHelper.ThrowIfNotOnUIThread();
 
             if (KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
             {
@@ -50,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private void OnSolutionExistsAndFullyLoadedContext(object sender, UIContextChangedEventArgs e)
         {
-            ForegroundObject.AssertIsForeground();
+            ThreadHelper.ThrowIfNotOnUIThread();
 
             if (e.Activated)
             {

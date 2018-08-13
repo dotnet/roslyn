@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         // invoked on UI thread
         private readonly Action<DocumentId, SessionReadOnlyReason, ProjectReadOnlyReason> _onReadOnlyDocumentEditAttempt;
 
-        public ReadOnlyDocumentTracker(IEditAndContinueService encService, Action<DocumentId, SessionReadOnlyReason, ProjectReadOnlyReason> onReadOnlyDocumentEditAttempt)
-            : base(assertIsForeground: true)
+        public ReadOnlyDocumentTracker(IThreadingContext threadingContext, IEditAndContinueService encService, Action<DocumentId, SessionReadOnlyReason, ProjectReadOnlyReason> onReadOnlyDocumentEditAttempt)
+            : base(threadingContext, assertIsForeground: true)
         {
             Debug.Assert(encService.DebuggingSession != null);
 
