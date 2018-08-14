@@ -1161,6 +1161,98 @@ class C3
 }");
         }
 
+        [Fact]
+        public void UsingPatternExtensionMethodTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+}
+
+static class C2
+{
+    public static void Dispose(this C1 c1) { }
+}
+
+class C3
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C3.Main()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (C1 V_0) //c
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  leave.s    IL_0012
+  }
+  finally
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  brfalse.s  IL_0011
+    IL_000b:  ldloc.0
+    IL_000c:  call       ""void C2.Dispose(C1)""
+    IL_0011:  endfinally
+  }
+  IL_0012:  ret
+}");
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodResolutionTest()
+        {
+            var source = @"
+class C1
+{
+    public void Dispose() { }
+}
+
+static class C2
+{
+    public static void Dispose(this C1 c1) { }
+}
+
+class C3
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C3.Main()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (C1 V_0) //c
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  leave.s    IL_0012
+  }
+  finally
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  brfalse.s  IL_0011
+    IL_000b:  ldloc.0
+    IL_000c:  callvirt   ""void C1.Dispose()""
+    IL_0011:  endfinally
+  }
+  IL_0012:  ret
+}");
+        }
+
         // The object could be created outside the "using" statement 
         [Fact]
         public void ObjectCreateOutsideUsing()
