@@ -1289,18 +1289,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             switch (component.Kind)
             {
                 case RegexKind.SimpleEscape:
-                    ch = ((RegexSimpleEscapeNode)component).TypeToken.VirtualChars[0];
-                    switch (ch)
-                    {
-                        case 'a': ch = '\u0007'; break; // bell
-                        case 'b': ch = '\b'; break;     // backspace
-                        case 'e': ch = '\u001B'; break; // escape
-                        case 'f': ch = '\f'; break;     // form feed
-                        case 'n': ch = '\n'; break;     // new line
-                        case 'r': ch = '\r'; break;     // carriage return
-                        case 't': ch = '\t'; break;     // tab
-                        case 'v': ch = '\u000B'; break; // vertical tab
-                    }
+                    var escapeNode = (RegexSimpleEscapeNode)component;
+                    ch = MapEscapeChar(escapeNode.TypeToken.VirtualChars[0]);
                     return true;
 
                 case RegexKind.ControlEscape:
