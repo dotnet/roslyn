@@ -515,7 +515,7 @@ $@"class C
             await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
-    static void Foo(System.Activator bar)
+    static void Goo(System.Activator bar)
     {
     }
 
@@ -528,7 +528,7 @@ $@"class C
         }
         else
         {
-            Foo(b);
+            Goo(b);
         }
     }
 }");
@@ -539,11 +539,11 @@ $@"class C
         public async Task TestWrittenExpressionBeforeNullCheck()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Foo
+@"class Goo
 {
     object Data { get; set; }
 
-    void DoFoo()
+    void DoGoo()
     {
         [|var|] oldData = this.Data as string;
 
@@ -939,11 +939,11 @@ public static class C
         [|var|] ae = e as C;
         if (fe != null)
         {
-            M(fe);
+            M(fe); // fe is used
         }
         else if (ae != null)
         {
-            M(ae);
+            M(ae); // ae is used
         }
     }
 }",
@@ -954,11 +954,11 @@ public static class C
         var fe = e as C;
         if (fe != null)
         {
-            M(fe);
+            M(fe); // fe is used
         }
         else if (e is C ae)
         {
-            M(ae);
+            M(ae); // ae is used
         }
     }
 }");
@@ -977,11 +977,11 @@ public static class C
         [|var|] ae = e as C;
         if (fe != null)
         {
-            M(ae);
+            M(ae); // ae is used
         }
         else if (ae != null)
         {
-            M(ae);
+            M(ae); // ae is used
         }
     }
 }");
@@ -1123,7 +1123,7 @@ public static class C
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void M(object e, C x)
+    void M(object e)
     {
         [|var|] c = e as C;
         M(c != null ? c : null, c);
@@ -1137,7 +1137,7 @@ public static class C
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void M(object e, C x)
+    void M(object e)
     {
         [|var|] c = e as C;
         for (;(c)!=null;) {}

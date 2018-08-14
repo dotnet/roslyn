@@ -14,17 +14,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
             private readonly SemanticModel _semanticModel;
             private readonly ILocalSymbol _localSymbol;
-            private readonly SyntaxNode _comparison;
-            private readonly SyntaxNode _operand;
+            private readonly BinaryExpressionSyntax _comparison;
+            private readonly ExpressionSyntax _operand;
             private readonly SyntaxNode _localStatement;
             private readonly SyntaxNode _enclosingBlock;
             private readonly CancellationToken _cancellationToken;
 
-            public Analyzer(
+            private Analyzer(
                 SemanticModel semanticModel,
                 ILocalSymbol localSymbol,
-                SyntaxNode comparison,
-                SyntaxNode operand,
+                BinaryExpressionSyntax comparison,
+                ExpressionSyntax operand,
                 SyntaxNode localStatement,
                 SyntaxNode enclosingBlock,
                 CancellationToken cancellationToken)
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 Debug.Assert(localSymbol != null);
                 Debug.Assert(comparison != null);
                 Debug.Assert(operand != null);
-                Debug.Assert(localStatement != null);
-                Debug.Assert(enclosingBlock != null);
+                Debug.Assert(localStatement.IsKind(SyntaxKind.LocalDeclarationStatement));
+                Debug.Assert(enclosingBlock.IsKind(SyntaxKind.Block));
 
                 _semanticModel = semanticModel;
                 _comparison = comparison;
@@ -43,6 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 _localStatement = localStatement;
                 _enclosingBlock = enclosingBlock;
                 _cancellationToken = cancellationToken;
+            }
+
+            public static bool CanSafelyConvertToPatternMatching(
+                SemanticModel semanticModel,
+                ILocalSymbol localSymbol,
+                BinaryExpressionSyntax comparison,
+                ExpressionSyntax operand,
+                SyntaxNode localStatement,
+                SyntaxNode enclosingBlock,
+                CancellationToken cancellationToken)
+            {
+                var analyzer = new Analyzer(semanticModel, localSymbol, comparison, operand, localStatement, enclosingBlock, cancellationToken);
+                return analyzer.CanSafelyConvertToPatternMatching();
             }
 
             // To convert a null-check to pattern-matching, we should make sure of a few things:
@@ -72,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             //          }
             //
             // We walk up the tree from the point of null-check and see if any of the above is violated.
-            public bool CanSafelyConvertToPatternMatching()
+            private bool CanSafelyConvertToPatternMatching()
             {
                 // Keep track of whether the pattern variable is definitely assigned when false/true.
                 // We start by the null-check itself, if it's compared with '==', the pattern variable
@@ -81,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
                 foreach (var current in _comparison.Ancestors())
                 {
+                    // Checking for any conditional statement or expression that could possibly
+                    // affect or determine the state of definite-assignment of the pattern variable.
                     switch (current.Kind())
                     {
                         case SyntaxKind.LogicalAndExpression when !defAssignedWhenTrue:
@@ -212,8 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                             return CheckStatement(statement);
                     }
 
-                    // We shouldn't normally get here but if we do
-                    // it's either an error or an unhandled case.
+                    // We shouldn't normally get here but if we do, it's
+                    // either an error in the code or an unhandled case.
+                    Debug.Assert(false, "unhandled case.");
                     break;
                 }
 

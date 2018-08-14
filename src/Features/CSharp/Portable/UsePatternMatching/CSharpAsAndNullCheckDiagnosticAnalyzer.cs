@@ -168,22 +168,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
                         identifierName.Identifier.ValueText == symbolName &&
                         asOperand.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol) &&
-                        identifierName.IsOnlyWrittenTo())
+                        identifierName.IsWrittenTo())
                     {
                         return;
                     }
                 }
             }
 
-            var analyzer = new Analyzer(
-                semanticModel,
-                localSymbol,
-                comparison,
-                operand,
-                localStatement,
-                enclosingBlock,
-                cancellationToken);
-            if (!analyzer.CanSafelyConvertToPatternMatching())
+            if (!Analyzer.CanSafelyConvertToPatternMatching(
+                semanticModel, localSymbol, comparison, operand,
+                localStatement, enclosingBlock, cancellationToken))
             {
                 return;
             }
