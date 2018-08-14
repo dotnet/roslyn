@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal MethodSymbol TryFindDisposePatternMethod(TypeSymbol exprType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             LookupResult lookupResult = LookupResult.GetInstance();
-
+            
             MethodSymbol disposeMethod = FindPatternMethod(exprType, WellKnownMemberNames.DisposeMethodName, lookupResult, syntaxNode, searchExtensionMethods: true, warningsOnly: true, diagnostics, syntaxNode.SyntaxTree, MessageID.IDS_Disposable);
             lookupResult.Free();
 
@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert((object)declTypeOpt != null);
-
+            
             if (kind == LocalDeclarationKind.FixedVariable)
             {
                 // NOTE: this is an error, but it won't prevent further binding.
@@ -1267,13 +1267,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 BoundExpression patternMethodCall = BindMethodGroupInvocation(
-                    initializer.Syntax,
-                    initializer.Syntax,
-                    methodName,
-                    (BoundMethodGroup)boundAccess,
-                    analyzedArguments,
-                    bindingDiagnostics,
-                    queryClause: null,
+                    initializer.Syntax, 
+                    initializer.Syntax, 
+                    methodName, 
+                    (BoundMethodGroup)boundAccess, 
+                    analyzedArguments, 
+                    bindingDiagnostics, 
+                    queryClause: null, 
                     allowUnexpandedForm: false);
 
                 analyzedArguments.Free();
@@ -1326,11 +1326,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// information it needs (e.g. conversions, helper methods).
         /// </summary>
         private BoundExpression GetFixedLocalCollectionInitializer(
-            BoundExpression initializer,
-            TypeSymbol elementType,
-            TypeSymbol declType,
+            BoundExpression initializer, 
+            TypeSymbol elementType, 
+            TypeSymbol declType, 
             MethodSymbol patternMethodOpt,
-            bool hasErrors,
+            bool hasErrors, 
             DiagnosticBag diagnostics)
         {
             Debug.Assert(initializer != null);
@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression op2,
             bool isRef,
             DiagnosticBag diagnostics)
-        {
+        {                      
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
 
@@ -1483,7 +1483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Event assignment is a call to void WindowsRuntimeMarshal.AddEventHandler<T>().
                 type = this.GetSpecialType(SpecialType.System_Void, diagnostics, node);
-            }
+            } 
             else
             {
                 type = op1.Type;
@@ -1498,19 +1498,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expr.Kind)
             {
                 case BoundKind.PropertyAccess:
-                {
-                    var propertyAccess = (BoundPropertyAccess)expr;
-                    receiver = propertyAccess.ReceiverOpt;
-                    propertySymbol = propertyAccess.PropertySymbol;
-                }
-                break;
+                    {
+                        var propertyAccess = (BoundPropertyAccess)expr;
+                        receiver = propertyAccess.ReceiverOpt;
+                        propertySymbol = propertyAccess.PropertySymbol;
+                    }
+                    break;
                 case BoundKind.IndexerAccess:
-                {
-                    var indexerAccess = (BoundIndexerAccess)expr;
-                    receiver = indexerAccess.ReceiverOpt;
-                    propertySymbol = indexerAccess.Indexer;
-                }
-                break;
+                    {
+                        var indexerAccess = (BoundIndexerAccess)expr;
+                        receiver = indexerAccess.ReceiverOpt;
+                        propertySymbol = indexerAccess.Indexer;
+                    }
+                    break;
                 default:
                     receiver = null;
                     propertySymbol = null;
@@ -2059,91 +2059,91 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (operand.Kind)
             {
                 case BoundKind.BadExpression:
-                {
-                    return;
-                }
+                    {
+                        return;
+                    }
                 case BoundKind.UnboundLambda:
-                {
-                    GenerateAnonymousFunctionConversionError(diagnostics, syntax, (UnboundLambda)operand, targetType);
-                    return;
-                }
+                    {
+                        GenerateAnonymousFunctionConversionError(diagnostics, syntax, (UnboundLambda)operand, targetType);
+                        return;
+                    }
                 case BoundKind.TupleLiteral:
-                {
-                    var tuple = (BoundTupleLiteral)operand;
-                    var targetElementTypes = default(ImmutableArray<TypeSymbol>);
-
-                    // If target is a tuple or compatible type with the same number of elements,
-                    // report errors for tuple arguments that failed to convert, which would be more useful.
-                    if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
-                        targetElementTypes.Length == tuple.Arguments.Length)
                     {
-                        GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
-                        return;
-                    }
+                        var tuple = (BoundTupleLiteral)operand;
+                        var targetElementTypes = default(ImmutableArray<TypeSymbol>);
 
-                    // target is not compatible with source and source does not have a type
-                    if ((object)tuple.Type == null)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_ConversionNotTupleCompatible, syntax, tuple.Arguments.Length, targetType);
-                        return;
-                    }
+                        // If target is a tuple or compatible type with the same number of elements,
+                        // report errors for tuple arguments that failed to convert, which would be more useful.
+                        if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
+                            targetElementTypes.Length == tuple.Arguments.Length)
+                        {
+                            GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
+                            return;
+                        }
 
-                    // Otherwise it is just a regular conversion failure from T1 to T2.
-                    break;
-                }
+                        // target is not compatible with source and source does not have a type
+                        if ((object)tuple.Type == null)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_ConversionNotTupleCompatible, syntax, tuple.Arguments.Length, targetType);
+                            return;
+                        }
+
+                        // Otherwise it is just a regular conversion failure from T1 to T2.
+                        break;
+                    }
                 case BoundKind.MethodGroup:
-                {
-                    var methodGroup = (BoundMethodGroup)operand;
-                    if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
                     {
-                        var nodeForSquiggle = syntax;
-                        while (nodeForSquiggle.Kind() == SyntaxKind.ParenthesizedExpression)
+                        var methodGroup = (BoundMethodGroup)operand;
+                        if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
                         {
-                            nodeForSquiggle = ((ParenthesizedExpressionSyntax)nodeForSquiggle).Expression;
+                            var nodeForSquiggle = syntax;
+                            while (nodeForSquiggle.Kind() == SyntaxKind.ParenthesizedExpression)
+                            {
+                                nodeForSquiggle = ((ParenthesizedExpressionSyntax)nodeForSquiggle).Expression;
+                            }
+
+                            if (nodeForSquiggle.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForSquiggle.Kind() == SyntaxKind.PointerMemberAccessExpression)
+                            {
+                                nodeForSquiggle = ((MemberAccessExpressionSyntax)nodeForSquiggle).Name;
+                            }
+
+                            var location = nodeForSquiggle.Location;
+
+                            if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, location))
+                            {
+                                return;
+                            }
+
+                            Error(diagnostics,
+                                targetType.IsDelegateType() ? ErrorCode.ERR_MethDelegateMismatch : ErrorCode.ERR_MethGrpToNonDel,
+                                location, methodGroup.Name, targetType);
                         }
 
-                        if (nodeForSquiggle.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForSquiggle.Kind() == SyntaxKind.PointerMemberAccessExpression)
-                        {
-                            nodeForSquiggle = ((MemberAccessExpressionSyntax)nodeForSquiggle).Name;
-                        }
-
-                        var location = nodeForSquiggle.Location;
-
-                        if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, location))
-                        {
-                            return;
-                        }
-
-                        Error(diagnostics,
-                            targetType.IsDelegateType() ? ErrorCode.ERR_MethDelegateMismatch : ErrorCode.ERR_MethGrpToNonDel,
-                            location, methodGroup.Name, targetType);
+                        return;
                     }
-
-                    return;
-                }
                 case BoundKind.Literal:
-                {
-                    if (operand.IsLiteralNull())
                     {
-                        if (targetType.TypeKind == TypeKind.TypeParameter)
+                        if (operand.IsLiteralNull())
                         {
-                            Error(diagnostics, ErrorCode.ERR_TypeVarCantBeNull, syntax, targetType);
-                            return;
+                            if (targetType.TypeKind == TypeKind.TypeParameter)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_TypeVarCantBeNull, syntax, targetType);
+                                return;
+                            }
+                            if (targetType.IsValueType)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_ValueCantBeNull, syntax, targetType);
+                                return;
+                            }
                         }
-                        if (targetType.IsValueType)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_ValueCantBeNull, syntax, targetType);
-                            return;
-                        }
+                        break;
                     }
-                    break;
-                }
                 case BoundKind.StackAllocArrayCreation:
-                {
-                    var stackAllocExpression = (BoundStackAllocArrayCreation)operand;
-                    Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
-                    return;
-                }
+                    {
+                        var stackAllocExpression = (BoundStackAllocArrayCreation)operand;
+                        Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
+                        return;
+                    }
             }
 
             var sourceType = operand.Type;
@@ -2904,7 +2904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : ErrorCode.WRN_FilterIsConstantFalse;
 
                 // Since the expression is a constant, the name can be retrieved from the first token
-                Error(diagnostics, errorCode, filter.FilterExpression);
+                Error(diagnostics, errorCode, filter.FilterExpression);                
             }
 
             return boundFilter;
@@ -3132,8 +3132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
                                                   constructor.Initializer == null ? null : bodyBinder.BindConstructorInitializer(constructor.Initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
-                                                  constructor.ExpressionBody == null ?
-                                                      null :
+                                                  constructor.ExpressionBody == null ? 
+                                                      null : 
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : new DiagnosticBag()));
         }
@@ -3158,9 +3158,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundNonConstructorMethodBody(declaration,
                                                      blockBody == null ? null : (BoundBlock)BindStatement(blockBody, diagnostics),
-                                                     expressionBody == null ?
-                                                         null :
-                                                         BindExpressionBodyAsBlock(expressionBody,
+                                                     expressionBody == null ? 
+                                                         null : 
+                                                         BindExpressionBodyAsBlock(expressionBody, 
                                                                                    blockBody == null ? diagnostics : new DiagnosticBag()));
         }
 
@@ -3381,7 +3381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string memberName, SyntaxNode expression,
             bool warningsOnly, DiagnosticBag diagnostics,
             MessageID messageID)
-        {
+        { 
             if (lookupResult.Symbols.Any())
             {
                 if (warningsOnly)
