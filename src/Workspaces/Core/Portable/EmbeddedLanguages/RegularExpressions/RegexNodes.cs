@@ -501,7 +501,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     }
 
     /// <summary>
-    /// ```a{...}```
+    /// Base type of all regex numeric quantifier nodes.  i.e.  
+    /// ```a{5}```,  ```a{5,}``` and ```a{5,10}```
     /// </summary>
     internal abstract class RegexNumericQuantifierNode : RegexQuantifierNode
     {
