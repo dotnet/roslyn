@@ -1,0 +1,79 @@
+stages:
+- build
+- set_exe_bit
+- collate
+
+# Build
+build_win:
+  stage: build
+  when: manual
+  tags:
+  - windows
+  script:
+  - external\unity\build-roslyn.bat
+  artifacts:
+    paths:
+    - Artifacts/Builds
+    expire_in: 1 week
+# Important! Do not remove this after_script!!
+  after_script:
+    - C:\Users\builduser\post_build_script.bat
+
+set_exe_bit_linux:
+  stage: set_exe_bit
+  when: manual
+  tags:
+  - linux
+  dependencies:
+  - build_win
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - chmod -v +x Artifacts/Builds/Binaries/Linux/csc
+  - ls -l Artifacts/Builds/Binaries/Linux/csc
+  - chmod -v +x Artifacts/Builds/Binaries/Linux/VBCSCompiler
+  - ls -l Artifacts/Builds/Binaries/Linux/VBCSCompiler
+  artifacts:
+    paths:
+    - Artifacts/Builds/Binaries/Linux
+    expire_in: 1 week
+    
+set_exe_bit_osx:
+  stage: set_exe_bit
+  when: manual
+  tags:
+  - darwin
+  dependencies:
+  - build_win
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - chmod -v +x Artifacts/Builds/Binaries/Mac/csc
+  - ls -l Artifacts/Builds/Binaries/Mac/csc
+  - chmod -v +x Artifacts/Builds/Binaries/Mac/VBCSCompiler
+  - ls -l Artifacts/Builds/Binaries/Mac/VBCSCompiler
+  artifacts:
+    paths:
+    - Artifacts/Builds/Binaries/Mac
+    expire_in: 1 week
+    
+collate_builds:
+  image: ubuntu:latest
+  stage: collate
+  when: manual
+  dependencies:
+  - build_win
+  - set_exe_bit_linux
+  - set_exe_bit_osx
+  variables:
+    GIT_STRATEGY: none
+  before_script:
+  - apt-get update -qy && apt-get -qy upgrade
+  - apt-get install -y p7zip-full p7zip-rar
+  script:
+  - cd Artifacts/Builds
+  - 7z a ../../builds.7z *
+  artifacts:
+    paths:
+    - builds.7z
+    expire_in: 1 week
