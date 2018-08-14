@@ -2051,16 +2051,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var expr = BindExpression(node.Operand, diagnostics);
             var type = expr.Type;
-            if ((object)type != null)
+            if (type?.IsValueType == true)
             {
-                // Report diagnostic if the type consists of no reference types.
+                // Report diagnostic if the type is a value type.
                 // PROTOTYPE(NullableReferenceTypes): Rather than checking for reference types,
                 // check whether the suppression is necessary (in NullableWalker) and warn if not.
-                if ((object)type.VisitType((t, a, c) => t.IsErrorType() || !t.IsValueType, (object)null, canDigThroughNullable: true) == null)
-                {
-                    // PROTOTYPE(NullableReferenceTypes): Should be a warning, not an error.
-                    Error(diagnostics, ErrorCode.ERR_NotNullableOperatorNotReferenceType, node);
-                }
+                // PROTOTYPE(NullableReferenceTypes): Should be a warning, not an error.
+                Error(diagnostics, ErrorCode.ERR_NotNullableOperatorNotReferenceType, node);
             }
             return new BoundSuppressNullableWarningExpression(node, expr, type);
         }

@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// IsReferenceType and IsValueType both return true. However, for an unconstrained type
         /// parameter, IsReferenceType and IsValueType will both return false.
         /// </summary>
-        public override bool IsValueType
+        public sealed override bool IsValueType
         {
             get { return false; }
         }
