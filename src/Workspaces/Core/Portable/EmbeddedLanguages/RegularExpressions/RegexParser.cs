@@ -1280,14 +1280,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     ch = ((RegexSimpleEscapeNode)component).TypeToken.VirtualChars[0];
                     switch (ch)
                     {
-                        case 'a': ch = '\u0007'; break;
-                        case 'b': ch = '\b'; break;
-                        case 'e': ch = '\u001B'; break;
-                        case 'f': ch = '\f'; break;
-                        case 'n': ch = '\n'; break;
-                        case 'r': ch = '\r'; break;
-                        case 't': ch = '\t'; break;
-                        case 'v': ch = '\u000B'; break;
+                        case 'a': ch = '\u0007'; break; // bell
+                        case 'b': ch = '\b'; break;     // backspace
+                        case 'e': ch = '\u001B'; break; // escape
+                        case 'f': ch = '\f'; break;     // form feed
+                        case 'n': ch = '\n'; break;     // new line
+                        case 'r': ch = '\r'; break;     // carriage return
+                        case 't': ch = '\t'; break;     // tab
+                        case 'v': ch = '\u000B'; break; // vertical tab
                     }
                     return true;
 
