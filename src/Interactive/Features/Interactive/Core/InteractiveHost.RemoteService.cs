@@ -62,7 +62,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private async void ProcessExitedHandler(object _, EventArgs __)
+            private void ProcessExitedHandler(object sender, EventArgs e)
+            {
+                _ = ProcessExitedHandlerAsync();
+            }
+
+            private async Task ProcessExitedHandlerAsync()
             {
                 try
                 {
