@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
             if (!option)
             {
-                return default;
+                return null;
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
