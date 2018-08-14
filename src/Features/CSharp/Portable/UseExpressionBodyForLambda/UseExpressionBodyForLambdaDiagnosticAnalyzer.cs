@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             SemanticModel semanticModel, OptionSet optionSet,
             LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
-            var preferExpressionBodiedOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions);
+            var preferExpressionBodiedOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas);
             var severity = preferExpressionBodiedOption.Notification.Severity;
 
             if (CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: true))

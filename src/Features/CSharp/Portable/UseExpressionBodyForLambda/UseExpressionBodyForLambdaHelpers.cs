@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         public static bool CanOfferUseExpressionBody(
             OptionSet optionSet, LambdaExpressionSyntax declaration, bool forAnalyzer)
         {
-            var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions);
+            var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas);
             var preference = currentOptionValue.Value;
             var userPrefersExpressionBodies = preference != ExpressionBodyPreference.Never;
             var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             LambdaExpressionSyntax declaration, bool forAnalyzer,
             CancellationToken cancellationToken)
         {
-            var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions);
+            var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas);
             var preference = currentOptionValue.Value;
             var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
             var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
