@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
-            public FindReferencesProgressAdapter(Solution solution, IFindUsagesContext context)
+            public FindReferencesProgressAdapter(IThreadingContext threadingContext, Solution solution, IFindUsagesContext context)
+                : base(threadingContext)
             {
                 _solution = solution;
                 _context = context;

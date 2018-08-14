@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -18,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionCommandHandler(IAsyncCompletionService completionService)
-            : base(completionService)
+        public CompletionCommandHandler(IThreadingContext threadingContext, IAsyncCompletionService completionService)
+            : base(threadingContext, completionService)
         {
         }
     }
