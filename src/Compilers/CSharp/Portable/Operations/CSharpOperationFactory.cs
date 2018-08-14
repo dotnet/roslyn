@@ -254,7 +254,26 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.DiscardExpression:
                     return CreateDiscardExpressionOperation((BoundDiscardExpression)boundNode);
 
-                default:
+                case BoundKind.Attribute:
+                case BoundKind.ArgList:
+                case BoundKind.ArgListOperator:
+                case BoundKind.ConvertedStackAllocExpression:
+                case BoundKind.FixedLocalCollectionInitializer:
+                case BoundKind.GlobalStatementInitializer:
+                case BoundKind.HostObjectMemberReference:
+                case BoundKind.MakeRefOperator:
+                case BoundKind.MethodGroup:
+                case BoundKind.NamespaceExpression:
+                case BoundKind.PointerElementAccess:
+                case BoundKind.PointerIndirectionOperator:
+                case BoundKind.PreviousSubmissionReference:
+                case BoundKind.RefTypeOperator:
+                case BoundKind.RefValueOperator:
+                case BoundKind.Sequence:
+                case BoundKind.StackAllocArrayCreation:
+                case BoundKind.TypeExpression:
+                case BoundKind.TypeOrValueExpression:
+
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -269,6 +288,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     }
 
                     return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode), isImplicit: isImplicit);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(boundNode.Kind); 
             }
         }
 

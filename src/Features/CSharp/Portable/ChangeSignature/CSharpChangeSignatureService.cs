@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                             if (convertedType != null)
                             {
-                                convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult(cancellationToken) ?? convertedType;
+                                convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken) ?? convertedType;
                             }
 
                             return convertedType == symbol.ContainingType;

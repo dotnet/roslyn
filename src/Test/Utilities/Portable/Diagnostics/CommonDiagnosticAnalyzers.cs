@@ -598,7 +598,9 @@ namespace Microsoft.CodeAnalysis
                 context.RegisterCompilationAction(AsyncAction);
             }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
             private async void AsyncAction(CompilationAnalysisContext context)
+#pragma warning restore VSTHRD100 // Avoid async void methods
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
                 await Task.FromResult(true);
@@ -619,7 +621,9 @@ namespace Microsoft.CodeAnalysis
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
             public override void Initialize(AnalysisContext context)
             {
+#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
                 context.RegisterCompilationAction(async (compilationContext) =>
+#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
                 {
                     compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
                     await Task.FromResult(true);

@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
             var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
-            return Formatter.GetFormattedTextChanges(root,
+            return await Formatter.GetFormattedTextChangesAsync(root,
                 SpecializedCollections.SingletonEnumerable(formattingSpan),
-                document.Project.Solution.Workspace, options, cancellationToken);
+                document.Project.Solution.Workspace, options, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
             var formatter = new SmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 
-            var changes = formatter.FormatRange(document.Project.Solution.Workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
+            var changes = await formatter.FormatRangeAsync(document.Project.Solution.Workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken).ConfigureAwait(false);
             return changes;
         }
 
