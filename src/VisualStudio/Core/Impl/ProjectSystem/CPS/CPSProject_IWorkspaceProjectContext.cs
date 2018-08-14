@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -39,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     _foregroundTaskQueue = _foregroundTaskQueue.SafeContinueWithFromAsync(
                         async _ =>
                         {
-                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
+                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                             // since execution is now technically asynchronous
                             // only execute action if project is not disconnected and currently being tracked.
