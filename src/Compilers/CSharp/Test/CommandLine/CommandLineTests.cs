@@ -4979,6 +4979,14 @@ public class CS1698_a {}
                 {
                     return;
                 }
+
+                // The icacls command fails on our Helix machines and it appears to be related to the use of the $ in 
+                // the username. 
+                // https://github.com/dotnet/roslyn/issues/28836
+                if (StringComparer.OrdinalIgnoreCase.Equals(Environment.UserDomainName, "WORKGROUP"))
+                {
+                    return;
+                }
             }
 
             var folder = Temp.CreateDirectory();

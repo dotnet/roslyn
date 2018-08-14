@@ -2120,7 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors)
                 {
                     Symbol accessedLocalOrParameterOpt;
-                    if (ExpressionRequiresFixing(operand, out accessedLocalOrParameterOpt) != isFixedStatementAddressOfExpression)
+                    if (IsMoveableVariable(operand, out accessedLocalOrParameterOpt) != isFixedStatementAddressOfExpression)
                     {
                         Error(diagnostics, isFixedStatementAddressOfExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedNeeded, node);
                         hasErrors = true;
@@ -2135,9 +2135,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAddressOfOperator(node, operand, pointerType, hasErrors);
         }
 
-        // Basically a port of ExpressionBinder::isFixedExpression, which basically implements spec section 18.3.
-        // NOTE: internal to allow using in tests.
-        internal bool ExpressionRequiresFixing(BoundExpression expr, out Symbol accessedLocalOrParameterOpt)
+        /// <summary>
+        /// Checks to see whether an expression is a "moveable" variable according to the spec. Moveable
+        /// variables have underlying memory which may be moved by the runtime. The spec defines anything
+        /// not fixed as moveable and specifies the expressions which are fixed.
+        /// </summary>
+
+        internal bool IsMoveableVariable(BoundExpression expr, out Symbol accessedLocalOrParameterOpt)
         {
             accessedLocalOrParameterOpt = null;
 
@@ -2233,22 +2237,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundKind.PointerElementAccess:
                         {
-                            // When using pointers in unsafe code, it is generally left for the user to make sure memory is fixed/pinned correctly.
-                            // Except for fixed fields, we want to produce appropriate diagnostics if field is not fixed before access.
+                            // C# 7.3:
+                            // a variable resulting from a... pointer_element_access of the form P[E] [is fixed] if P
+                            // is not a fixed size buffer expression, or if the expression is a fixed size buffer
+                            // member_access of the form E.I and E is a fixed variable
                             BoundExpression underlyingExpr = ((BoundPointerElementAccess)expr).Expression;
-                            if (underlyingExpr.Kind == BoundKind.FieldAccess)
+                            if (underlyingExpr is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
                             {
-                                FieldSymbol field = ((BoundFieldAccess)underlyingExpr).FieldSymbol;
-                                if (field.IsFixed)
-                                {
-                                    return true;
-                                }
+                                expr = fieldAccess.ReceiverOpt;
+                                continue;
                             }
 
                             return false;
                         }
-                    case BoundKind.PropertyAccess: // Never a variable.
-                    case BoundKind.IndexerAccess: // Never a variable.
+                    case BoundKind.PropertyAccess: // Never fixed
+                    case BoundKind.IndexerAccess: // Never fixed
                     default:
                         {
                             return true;

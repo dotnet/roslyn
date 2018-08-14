@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Test.Utilities;
@@ -4784,6 +4786,48 @@ namespace A
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestExactMatchNoGlyph()
+        {
+            await TestSmartTagGlyphTagsAsync(
+@"namespace VS
+{
+    interface Other
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|Other|] b;
+    }
+}
+", ImmutableArray<string>.Empty);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestFuzzyMatchGlyph()
+        {
+            await TestSmartTagGlyphTagsAsync(
+@"namespace VS
+{
+    interface Other
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|Otter|] b;
+    }
+}
+", WellKnownTagArrays.Namespace);
         }
     }
 }

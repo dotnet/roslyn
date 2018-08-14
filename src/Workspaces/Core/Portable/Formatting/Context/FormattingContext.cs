@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode, endToken);
+            var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode);
             var results = initialContextFinder.Do(startToken, endToken);
 
             if (results.indentOperations != null)
@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                                                 formattingRules,
                                                 this.OptionSet.GetOption(FormattingOptions.TabSize, _language),
                                                 this.OptionSet.GetOption(FormattingOptions.IndentationSize, _language),
-                                                _tokenStream,
-                                                endToken);
+                                                _tokenStream);
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
                     initialOperation,
@@ -266,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             List<SuppressOperation> operations,
             CancellationToken cancellationToken)
         {
-            var valuePairs = new (SuppressOperation operation, bool shouldSuppress, bool onSameLine)[operations.Count];
+            var valuePairs = new(SuppressOperation operation, bool shouldSuppress, bool onSameLine)[operations.Count];
 
             // TODO: think about a way to figure out whether it is already suppressed and skip the expensive check below.
             _engine.TaskExecutor.For(0, operations.Count, i =>

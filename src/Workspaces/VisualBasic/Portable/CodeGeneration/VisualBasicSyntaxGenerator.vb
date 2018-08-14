@@ -5,6 +5,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -20,6 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
 
         Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
+
+        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFactsService = VisualBasicSyntaxFactsService.Instance
 
         Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
             Return SyntaxFactory.EndOfLine(text)

@@ -1932,6 +1932,11 @@ namespace Microsoft.CodeAnalysis.Operations
         private IDeclarationPatternOperation CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
         {
             ISymbol variable = boundDeclarationPattern.Variable;
+            if (variable == null && boundDeclarationPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
+            {
+                variable = ((BoundDiscardExpression)boundDeclarationPattern.VariableAccess).ExpressionSymbol;
+            }
+
             SyntaxNode syntax = boundDeclarationPattern.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);

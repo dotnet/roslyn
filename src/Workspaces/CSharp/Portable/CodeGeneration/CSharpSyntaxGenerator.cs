@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxTrivia CarriageReturnLineFeed => SyntaxFactory.CarriageReturnLineFeed;
 
         internal override bool RequiresExplicitImplementationForInterfaceMembers => false;
+
+        internal override ISyntaxFactsService SyntaxFacts => CSharpSyntaxFactsService.Instance;
 
         internal override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
@@ -2646,7 +2649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
                 var rewrittenToken = base.VisitToken(token);
-                if (!rewrittenToken.IsMissing || !SyntaxFacts.IsPunctuationOrKeyword(token.Kind()))
+                if (!rewrittenToken.IsMissing || !CSharp.SyntaxFacts.IsPunctuationOrKeyword(token.Kind()))
                 {
                     return rewrittenToken;
                 }
@@ -3563,7 +3566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode NameOfExpression(SyntaxNode expression)
         {
             return this.InvocationExpression(
-                this.IdentifierName(SyntaxFacts.GetText(SyntaxKind.NameOfKeyword)),
+                this.IdentifierName(CSharp.SyntaxFacts.GetText(SyntaxKind.NameOfKeyword)),
                 expression);
         }
 

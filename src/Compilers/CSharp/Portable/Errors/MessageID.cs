@@ -160,7 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExpressionVariablesInQueriesAndInitializers = MessageBase + 12742,
         IDS_FeatureExtensibleFixedStatement = MessageBase + 12743,
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
-        IDS_FeatureRecursivePatterns = MessageBase + 12745,
+
+        IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
+        IDS_FeatureRecursivePatterns = MessageBase + 12746,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -218,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // C# 8.0 features.
+                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
                 case MessageID.IDS_FeatureRecursivePatterns:
                     return LanguageVersion.CSharp8;
 
@@ -325,7 +328,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Special C# 2 feature: only a warning in C# 1.
                 case MessageID.IDS_FeatureModuleAttrLoc:
-                    Debug.Assert(false, "Should be handled specially");
                     return LanguageVersion.CSharp1;
 
                 default:
