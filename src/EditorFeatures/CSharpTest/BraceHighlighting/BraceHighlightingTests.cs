@@ -268,6 +268,23 @@ class C
 {
     void Goo()
     {
+        var r = new Regex(@""$$[|(|]a[|)|]"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexBracket2()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
         var r = new Regex(@""[|(|]a[|)|]$$"");
     }
 }";
