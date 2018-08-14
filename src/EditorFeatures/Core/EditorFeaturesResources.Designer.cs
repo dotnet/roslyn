@@ -1675,6 +1675,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to String - Escape Character.
+        /// </summary>
+        internal static string String_Escape_Character {
+            get {
+                return ResourceManager.GetString("String_Escape_Character", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to String - Verbatim.
         /// </summary>
         internal static string String_Verbatim {
