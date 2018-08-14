@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     internal enum RegexKind
     {
-        None,
+        None = 0,
         EndOfFile,
         Sequence,
         CompilationUnit,
