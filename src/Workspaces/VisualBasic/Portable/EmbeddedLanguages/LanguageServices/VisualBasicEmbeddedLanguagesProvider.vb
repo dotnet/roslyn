@@ -21,20 +21,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
                        VisualBasicSemanticFactsService.Instance,
                        VisualBasicVirtualCharService.Instance)
         End Sub
-
-        Friend Overrides Sub AddComment(editor As SyntaxEditor, stringLiteral As SyntaxToken, commentContents As String)
-            Dim trivia = SyntaxFactory.TriviaList(
-                SyntaxFactory.CommentTrivia($"' {commentContents}"),
-                SyntaxFactory.ElasticCarriageReturnLineFeed)
-
-            Dim containingStatement = stringLiteral.Parent.GetAncestor(Of StatementSyntax)
-
-            Dim leadingBlankLines = containingStatement.GetLeadingBlankLines()
-
-            Dim newStatement = containingStatement.GetNodeWithoutLeadingBlankLines().
-                                                   WithPrependedLeadingTrivia(leadingBlankLines.AddRange(trivia))
-
-            editor.ReplaceNode(containingStatement, newStatement)
-        End Sub
     End Class
 End Namespace

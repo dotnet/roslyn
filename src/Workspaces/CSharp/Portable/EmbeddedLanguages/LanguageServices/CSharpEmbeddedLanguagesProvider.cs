@@ -21,17 +21,5 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices
                    CSharpVirtualCharService.Instance)
         {
         }
-
-        internal override void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents)
-        {
-            var triviaList = SyntaxFactory.TriviaList(
-                SyntaxFactory.Comment($"/*{commentContents}*/"),
-                SyntaxFactory.ElasticSpace);
-
-            var newStringLiteral = stringLiteral.WithLeadingTrivia(
-                stringLiteral.LeadingTrivia.AddRange(triviaList));
-
-            editor.ReplaceNode(stringLiteral.Parent, stringLiteral.Parent.ReplaceToken(stringLiteral, newStringLiteral));
-        }
     }
 }
