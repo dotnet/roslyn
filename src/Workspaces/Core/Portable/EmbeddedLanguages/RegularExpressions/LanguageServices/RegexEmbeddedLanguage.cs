@@ -13,6 +13,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         public ISemanticFactsService SemanticFacts { get; }
         public IVirtualCharService VirtualCharService { get; }
 
+        public IEmbeddedBraceMatcher BraceMatcher { get; }
+        public IEmbeddedClassifier Classifier { get; }
+        public IEmbeddedHighlighter Highlighter { get; }
+        public IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer { get; }
+        public IEmbeddedCodeFixProvider CodeFixProvider { get; }
+
         public RegexEmbeddedLanguage(
             int stringLiteralKind,
             ISyntaxFactsService syntaxFacts,
@@ -29,11 +35,5 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             Highlighter = new RegexEmbeddedHighlighter(this);
             DiagnosticAnalyzer = new RegexDiagnosticAnalyzer(this);
         }
-
-        public IEmbeddedBraceMatcher BraceMatcher { get; }
-        public IEmbeddedClassifier Classifier { get; }
-        public IEmbeddedHighlighter Highlighter { get; }
-        public IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer { get; }
-        public IEmbeddedCodeFixProvider CodeFixProvider { get; }
     }
 }
