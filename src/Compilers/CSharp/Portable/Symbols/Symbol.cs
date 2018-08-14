@@ -843,9 +843,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Not valid to call on non-definitions.
         ///
         /// To avoid cycles, this property should not be accessed directly, except in its overrides (fall back to parent).
-        /// It can be accessed indirectly via <see cref="TypeSymbolWithAnnotations.IsNullable"/> and
-        /// <see cref="TypeSymbolWithAnnotations.IsAnnotatedWithNonNullTypesContext"/>, which delay its evaluation using
-        /// <see cref="INonNullTypesContext"/>.
+        /// It can be accessed indirectly via <see cref="TypeSymbolWithAnnotations.IsNullable"/>
+        /// which delays its evaluation using <see cref="INonNullTypesContext"/>.
         /// </summary>
         public virtual bool? NonNullTypes
         {

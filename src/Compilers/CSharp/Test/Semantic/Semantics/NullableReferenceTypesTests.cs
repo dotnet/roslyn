@@ -3260,32 +3260,31 @@ class C3
                 //     string? F2() => throw null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "string?").WithLocation(15, 5));
 
-            verify("C1.F1", "System.String", isAnnotated: false, isNullable: null, isAnnotatedWithContext: null);
-            verify("C1.F2", "System.String?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C1.F3", "System.Int32", isAnnotated: false, isNullable: false, isAnnotatedWithContext: null);
-            verify("C1.F4", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C1.F5", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C2.F1", "System.String", isAnnotated: false, isNullable: null, isAnnotatedWithContext: null);
-            verify("C2.F2", "System.String?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C2.F3", "System.Int32", isAnnotated: false, isNullable: false, isAnnotatedWithContext: null);
-            verify("C2.F4", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C2.F5", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C3.F1", "System.String!", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
-            verify("C3.F2", "System.String?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C3.F3", "System.Int32", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
-            verify("C3.F4", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C3.F5", "System.Int32?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C1.F1", "System.String", isAnnotated: false, isNullable: null);
+            verify("C1.F2", "System.String?", isAnnotated: true, isNullable: true);
+            verify("C1.F3", "System.Int32", isAnnotated: false, isNullable: false);
+            verify("C1.F4", "System.Int32?", isAnnotated: true, isNullable: true);
+            verify("C1.F5", "System.Int32?", isAnnotated: true, isNullable: true);
+            verify("C2.F1", "System.String", isAnnotated: false, isNullable: null);
+            verify("C2.F2", "System.String?", isAnnotated: true, isNullable: true);
+            verify("C2.F3", "System.Int32", isAnnotated: false, isNullable: false);
+            verify("C2.F4", "System.Int32?", isAnnotated: true, isNullable: true);
+            verify("C2.F5", "System.Int32?", isAnnotated: true, isNullable: true);
+            verify("C3.F1", "System.String!", isAnnotated: false, isNullable: false);
+            verify("C3.F2", "System.String?", isAnnotated: true, isNullable: true);
+            verify("C3.F3", "System.Int32", isAnnotated: false, isNullable: false);
+            verify("C3.F4", "System.Int32?", isAnnotated: true, isNullable: true);
+            verify("C3.F5", "System.Int32?", isAnnotated: true, isNullable: true);
 
             // PROTOTYPE(NullableReferenceTypes): Test nested nullability.
 
-            void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable, bool? isAnnotatedWithContext)
+            void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable)
             {
                 var method = comp.GetMember<MethodSymbol>(methodName);
                 var type = method.ReturnType;
                 Assert.Equal(displayName, type.ToTestDisplayString(true));
                 Assert.Equal(isAnnotated, type.IsAnnotated);
                 Assert.Equal(isNullable, type.IsNullable);
-                Assert.Equal(isAnnotatedWithContext, type.IsAnnotatedWithNonNullTypesContext);
             }
         }
 
@@ -3351,39 +3350,38 @@ class C3
                 //     T? F4<T>() where T : class => throw null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(19, 5));
 
-            verify("C1.F1", "T", isAnnotated: false, isNullable: null, isAnnotatedWithContext: null);
-            verify("C1.F2", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C1.F3", "T", isAnnotated: false, isNullable: null, isAnnotatedWithContext: null);
-            verify("C1.F4", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C1.F5", "T", isAnnotated: false, isNullable: false, isAnnotatedWithContext: null);
-            verify("C1.F6", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C1.F7", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C2.F1", "T", isAnnotated: false, isNullable: null, isAnnotatedWithContext: null);
-            verify("C2.F2", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C2.F3", "T", isAnnotated: false, isNullable: null, isAnnotatedWithContext: null);
-            verify("C2.F4", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C2.F5", "T", isAnnotated: false, isNullable: false, isAnnotatedWithContext: null);
-            verify("C2.F6", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C2.F7", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C3.F1", "T", isAnnotated: false, isNullable: true, isAnnotatedWithContext: false);
-            verify("C3.F2", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C3.F3", "T!", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
-            verify("C3.F4", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C3.F5", "T", isAnnotated: false, isNullable: false, isAnnotatedWithContext: false);
-            verify("C3.F6", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
-            verify("C3.F7", "T?", isAnnotated: true, isNullable: true, isAnnotatedWithContext: true);
+            verify("C1.F1", "T", isAnnotated: false, isNullable: null);
+            verify("C1.F2", "T?", isAnnotated: true, isNullable: true);
+            verify("C1.F3", "T", isAnnotated: false, isNullable: null);
+            verify("C1.F4", "T?", isAnnotated: true, isNullable: true);
+            verify("C1.F5", "T", isAnnotated: false, isNullable: false);
+            verify("C1.F6", "T?", isAnnotated: true, isNullable: true);
+            verify("C1.F7", "T?", isAnnotated: true, isNullable: true);
+            verify("C2.F1", "T", isAnnotated: false, isNullable: null);
+            verify("C2.F2", "T?", isAnnotated: true, isNullable: true);
+            verify("C2.F3", "T", isAnnotated: false, isNullable: null);
+            verify("C2.F4", "T?", isAnnotated: true, isNullable: true);
+            verify("C2.F5", "T", isAnnotated: false, isNullable: false);
+            verify("C2.F6", "T?", isAnnotated: true, isNullable: true);
+            verify("C2.F7", "T?", isAnnotated: true, isNullable: true);
+            verify("C3.F1", "T", isAnnotated: false, isNullable: true);
+            verify("C3.F2", "T?", isAnnotated: true, isNullable: true);
+            verify("C3.F3", "T!", isAnnotated: false, isNullable: false);
+            verify("C3.F4", "T?", isAnnotated: true, isNullable: true);
+            verify("C3.F5", "T", isAnnotated: false, isNullable: false);
+            verify("C3.F6", "T?", isAnnotated: true, isNullable: true);
+            verify("C3.F7", "T?", isAnnotated: true, isNullable: true);
 
             // PROTOTYPE(NullableReferenceTypes): Test nested nullability.
             // PROTOTYPE(NullableReferenceTypes): Test all combinations of overrides.
 
-            void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable, bool? isAnnotatedWithContext)
+            void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable)
             {
                 var method = comp.GetMember<MethodSymbol>(methodName);
                 var type = method.ReturnType;
                 Assert.Equal(displayName, type.ToTestDisplayString(true));
                 Assert.Equal(isAnnotated, type.IsAnnotated);
                 Assert.Equal(isNullable, type.IsNullable);
-                Assert.Equal(isAnnotatedWithContext, type.IsAnnotatedWithNonNullTypesContext);
             }
         }
 
@@ -36882,7 +36880,7 @@ class C
 ";
 
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition, NonNullTypesTrue });
-            // PROTOTYPE(NullableReferenceTypes): Should not report warnings after `if (u == null) throw null;`.
+            // PROTOTYPE(NullableReferenceTypes): Should not report warning for `x6.ToString()`.
             comp.VerifyDiagnostics(
                 // (29,9): error CS0411: The type arguments for method 'C.CopyOutInherit<T1, T2>(T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         CopyOutInherit(u, out var x7);
@@ -36896,12 +36894,6 @@ class C
                 // (16,9): warning CS8602: Possible dereference of a null reference.
                 //         x3.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x3").WithLocation(16, 9),
-                // (21,9): warning CS8602: Possible dereference of a null reference.
-                //         x4.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(21, 9),
-                // (24,9): warning CS8602: Possible dereference of a null reference.
-                //         x5.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x5").WithLocation(24, 9),
                 // (27,9): warning CS8602: Possible dereference of a null reference.
                 //         x6.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x6").WithLocation(27, 9));
