@@ -43,13 +43,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// same error.  Note: there is only one time we do this in this parser (see the deviation
     /// documented in <see cref="ParsePossibleEcmascriptBackreferenceEscape"/>).
     ///
-    /// Note1: the above invariants make life difficult at times.  This happens due to the fact that
+    /// Note1: "report the same error" means that we will attempt to report the error using the same
+    /// text the .net regex parser uses for its error messages.  This is so that the user is not
+    /// confused when they use the IDE vs running the regex by getting different messages for the
+    /// same issue.
+    ///
+    /// Note2: the above invariants make life difficult at times.  This happens due to the fact that
     /// the .net parser is multi-pass.  Meaning it does a first scan (which may report errors), then
     /// does the full parse.  This means that it might report an error in a later location during
     /// the initial scan than it would during the parse.  We replicate that behavior to follow the
     /// second invariant.
     ///
-    /// Note2: It would be nice if we could check these invariants at runtime, so we could control
+    /// Note3: It would be nice if we could check these invariants at runtime, so we could control
     /// our behavior by the behavior of the real .net regex engine.  For example, if the .net regex
     /// engine did not report any issues, we could suppress any diagnostics we generated and we
     /// could log an NFW to record which pattern we deviated on so we could fix the issue for a
@@ -59,16 +64,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// engine is not just a parser, but something that builds an actual recognizer using techniques
     /// that are not necessarily bounded.  As such, while we test ourselves around it during our
     /// tests, we cannot do the same at runtime as part of the IDE.
-    /// 
+    ///
     /// This parser was based off the corefx RegexParser based at:
     /// https://github.com/dotnet/corefx/blob/f759243d724f462da0bcef54e86588f8a55352c6/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L1
-    /// 
-    /// Note3: The .Net parser itself changes over time (for example to fix behavior that even it 
-    /// thinks is buggy).  When this happens, we have to make a choice as to which behavior to follow.
-    /// In general, the overall principle is that we should follow the more lenient behavior.  If we
-    /// end up taking the more strict interpretation we risk giving people an error during design time
-    /// that they would not get at runtime.  It's far worse to have that than to not report an error,
-    /// even though one might happen later.
+    ///
+    /// Note4: The .Net parser itself changes over time (for example to fix behavior that even it
+    /// thinks is buggy).  When this happens, we have to make a choice as to which behavior to
+    /// follow. In general, the overall principle is that we should follow the more lenient
+    /// behavior.  If we end up taking the more strict interpretation we risk giving people an error
+    /// during design time that they would not get at runtime.  It's far worse to have that than to
+    /// not report an error, even though one might happen later.
     /// </remarks>
     internal partial struct RegexParser
     {
