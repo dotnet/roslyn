@@ -102,8 +102,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (containingTypeOpt != null && containingTypeOpt.TypeKind == TypeKind.Struct)
             {
                 // Special case.  If we're generating a struct constructor, then we'll need
-                // to initialize all fields in the struct, not just the ones we're creating.  To
-                // do that, we call the default constructor.
+                // to initialize all fields in the struct, not just the ones we're creating.
+                // If there is any field or auto-property not being set by a parameter, we
+                // call the default constructor.
 
                 return containingTypeOpt.GetMembers()
                     .OfType<IFieldSymbol>()
