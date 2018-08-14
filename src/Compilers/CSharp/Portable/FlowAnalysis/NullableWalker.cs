@@ -1836,7 +1836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitConditionalReceiver(node);
             // PROTOTYPE(NullableReferenceTypes): ConditionalReceiver does not
             // have a result type. Should this be moved to ConditionalAccess?
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false, treatUnconstrainedTypeParameterAsNullable: false);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
             return result;
         }
 
@@ -2667,7 +2667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool? isNullable = !this.State[slot];
                 if (isNullable != type.IsNullable)
                 {
-                    return TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable, treatUnconstrainedTypeParameterAsNullable: isNullable == true);
+                    return TypeSymbolWithAnnotations.Create(type.TypeSymbol, isNullable);
                 }
             }
             return type;
@@ -3084,7 +3084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType, treatUnconstrainedTypeParameterAsNullable: isNullableIfReferenceType == true);
+            return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType);
         }
 
         private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundNode node, TypeSymbol targetType, TypeSymbolWithAnnotations operandType)
@@ -3786,7 +3786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
             var result = base.VisitDefaultExpression(node);
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: true, treatUnconstrainedTypeParameterAsNullable: true);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: true);
             return result;
         }
 
@@ -4049,7 +4049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitNewT(BoundNewT node)
         {
             var result = base.VisitNewT(node);
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false, treatUnconstrainedTypeParameterAsNullable: false);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
             return result;
         }
 

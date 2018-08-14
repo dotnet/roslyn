@@ -180,38 +180,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <see cref="IsNullable"/> is determined by state other than <see cref="IsAnnotated"/>
         /// (in flow analysis for instance).
         /// </remarks>
-        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType, bool treatUnconstrainedTypeParameterAsNullable = true, ImmutableArray<CustomModifier> customModifiers = default)
+        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType, ImmutableArray<CustomModifier> customModifiers = default)
         {
             if (typeSymbol is null)
             {
                 return default;
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Use NonNullTypesNullContext.Instance if we still need a non-null context.
             var context = isNullableIfReferenceType == null ? NonNullTypesFalseContext.Instance : NonNullTypesTrueContext.Instance;
             bool isAnnotated = isNullableIfReferenceType == true;
+            bool treatUnconstrainedTypeParameterAsNullable = false;
 
-            // PROTOTYPE(NullableReferenceTypes): See if the if/else can be simplified to:
-            //    if (typeSymbol.IsNullableType()) isAnnotated = true;
-            // Currently, that results in test failures for nullable values of unconstrained
-            // type parameters in UnconstrainedTypeParameter_Return_03.
-
-            if ((!isAnnotated && typeSymbol is TypeParameterSymbol) ||
-                (isAnnotated && typeSymbol.IsReferenceType && !typeSymbol.IsNullableType()))
+            if (isAnnotated && !typeSymbol.IsValueType)
             {
                 // string? (leave annotated)
-                Debug.Assert(!typeSymbol.IsNullableType());
+                // T? where T : class (leave annotated)
+                if (typeSymbol.IsUnconstrainedTypeParameter())
+                {
+                    // T? (leave unannotated)
+                    isAnnotated = false;
+                    treatUnconstrainedTypeParameterAsNullable = true;
+                }
             }
             else
             {
-                // PROTOTYPE(NullableReferenceTypes): Investigate whether we can bind unconstrained type
-                // parameters as annotated during initial binding without causing cycles.
-
-                // Initial binding leaves unconstrained type parameters unannotated, NullableWalker will
-                // set treatUnconstrainedTypeParameterAsNullable where appropriate
-                // T (leave unannotated when treatUnconstrainedTypeParameterAsNullable is false)
-                // T (add annotation when treatUnconstrainedTypeParameterAsNullable is true)
-                // T? where T : class (leave annotated)
                 // string, int (leave unannotated)
                 // int?, T? where T : struct (add annotation)
                 // int? (error type)
@@ -319,38 +311,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns:
-        /// true if annotated;
-        /// false if unannotated and [NonNullTypes(true)] and
-        /// null if unannotated and [NonNullTypes(false)].
-        /// </summary>
-        /// <remarks>
-        /// This property considers IsAnnotated and NonNullTypes only. Compare with
-        /// IsNullable that also considers IsValueType. (Specifically, IsNullable==false
-        /// for an unannotated value type, regardless of [NonNullTypes].)
-        /// </remarks>
-        internal bool? IsAnnotatedWithNonNullTypesContext
-        {
-            get
-            {
-                if (_defaultType is null)
-                {
-                    return null;
-                }
-                if (IsAnnotated)
-                {
-                    return true;
-                }
-                // A null NonNullTypes (ie. no attribute) means the same as NonNullTypes(false).
-                if (NonNullTypesContext.NonNullTypes == true)
-                {
-                    return false;
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
         /// </summary>
         public bool IsNullableType() => TypeSymbol.IsNullableType();
@@ -438,12 +398,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((comparison & TypeCompareKind.CompareNullableModifiersForReferenceTypes) != 0)
             {
-                var thisIsAnnotated = IsAnnotatedWithNonNullTypesContext;
-                var otherIsAnnotated = other.IsAnnotatedWithNonNullTypesContext;
-                if (otherIsAnnotated != thisIsAnnotated)
+                var thisIsNullable = IsNullable;
+                var otherIsNullable = other.IsNullable;
+                if (otherIsNullable != thisIsNullable)
                 {
                     if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0 ||
-                        (thisIsAnnotated != null && otherIsAnnotated != null))
+                        (thisIsNullable != null && otherIsNullable != null))
                     {
                         return false;
                     }
