@@ -532,7 +532,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(count);
             var locationsBuilder = ArrayBuilder<Location>.GetInstance(count);
             var namesBuilder = ArrayBuilder<string>.GetInstance(count);
-            bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
 
             foreach (var variable in variables)
             {
@@ -548,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     namesBuilder.Add(ExtractDeconstructResultElementName(value));
                 }
                 valuesBuilder.Add(value);
-                typesBuilder.Add(value.GetTypeAndNullability(includeNullability));
+                typesBuilder.Add(value.GetTypeAndNullability());
                 locationsBuilder.Add(variable.Syntax.Location);
             }
             ImmutableArray<BoundExpression> arguments = valuesBuilder.ToImmutableAndFree();

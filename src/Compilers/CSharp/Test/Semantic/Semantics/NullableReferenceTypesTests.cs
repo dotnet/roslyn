@@ -16774,19 +16774,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x1, y1 }").WithLocation(5, 18),
                 // (7,18): error CS0826: No best type found for implicitly-typed array
                 //         var b1 = new[] { y1, x1 };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { y1, x1 }").WithLocation(7, 18),
-                // (5,30): warning CS8601: Possible null reference assignment.
-                //         var a1 = new[] { x1, y1 };
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(5, 30),
-                // (7,26): warning CS8601: Possible null reference assignment.
-                //         var b1 = new[] { y1, x1 };
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(7, 26),
-                // (12,26): warning CS8601: Possible null reference assignment.
-                //         var a2 = new[] { x2, y2 };
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2").WithLocation(12, 26),
-                // (14,30): warning CS8601: Possible null reference assignment.
-                //         var b2 = new[] { y2, x2 };
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2").WithLocation(14, 30));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { y1, x1 }").WithLocation(7, 18));
         }
 
         [Fact]
@@ -33091,9 +33079,9 @@ class C
     static void F(object? x)
     {
         var y = (x, x);
-        y.F1.ToString();
-        y.P1.ToString();
-        y.E2?.Invoke().ToString();
+        y.F1.ToString(); // 1
+        y.P1.ToString(); // 2
+        y.E2?.Invoke().ToString(); // 3
         if (x == null) return;
         var z = (x, x);
         z.F1.ToString();
@@ -33101,27 +33089,21 @@ class C
         z.E2?.Invoke().ToString();
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): Should not report warnings for `z.E2?.Invoke()`.
+            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullReferenceReceiver for `y.E2?.Invoke()`.
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, targetFramework: TargetFramework.Mscorlib46);
             comp.VerifyDiagnostics(
-                // (27,11): error CS0070: The event '(object?, object?).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object?, object?)')
-                //         y.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.ERR_BadEventUsage, "E2").WithArguments("(object?, object?).E2", "(object?, object?)").WithLocation(27, 11),
-                // (32,11): error CS0070: The event '(object?, object?).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object?, object?)')
+                // (27,11): error CS0070: The event '(object, object).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object, object)')
+                //         y.E2?.Invoke().ToString(); // 3
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E2").WithArguments("(object, object).E2", "(object, object)").WithLocation(27, 11),
+                // (32,11): error CS0070: The event '(object, object).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object, object)')
                 //         z.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.ERR_BadEventUsage, "E2").WithArguments("(object?, object?).E2", "(object?, object?)").WithLocation(32, 11),
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E2").WithArguments("(object, object).E2", "(object, object)").WithLocation(32, 11),
                 // (25,9): warning CS8602: Possible dereference of a null reference.
-                //         y.F1.ToString();
+                //         y.F1.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F1").WithLocation(25, 9),
                 // (26,9): warning CS8602: Possible dereference of a null reference.
-                //         y.P1.ToString();
+                //         y.P1.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.P1").WithLocation(26, 9),
-                // (27,14): warning CS8602: Possible dereference of a null reference.
-                //         y.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Invoke()").WithLocation(27, 14),
-                // (32,14): warning CS8602: Possible dereference of a null reference.
-                //         z.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Invoke()").WithLocation(32, 14),
                 // (17,31): warning CS0414: The field 'ValueTuple<T1, T2>.E2' is assigned but its value is never used
                 //         internal event D<T2>? E2;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E2").WithArguments("System.ValueTuple<T1, T2>.E2").WithLocation(17, 31));

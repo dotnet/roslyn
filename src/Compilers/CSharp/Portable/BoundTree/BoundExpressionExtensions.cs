@@ -209,19 +209,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)receiverType != null && receiverType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)receiverType).IsComImport;
         }
 
-        internal static TypeSymbolWithAnnotations GetTypeAndNullability(this BoundExpression expr, bool includeNullability)
+        // PROTOTYPE(NullableReferenceTypes): Remove this method. Initial binding should not infer nullability.
+        internal static TypeSymbolWithAnnotations GetTypeAndNullability(this BoundExpression expr)
         {
             var type = expr.Type;
             if ((object)type == null)
             {
                 return default;
             }
-            // PROTOTYPE(NullableReferenceTypes): Could we track nullability always,
-            // even in C#7, but only report warnings when the feature is enabled?
-            var isNullable = includeNullability ? expr.IsNullable() : null;
+            var isNullable = expr.IsNullableInternal();
             return TypeSymbolWithAnnotations.Create(type, isNullable);
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Remove this method. Initial binding should not infer nullability.
         /// <summary>
         /// Returns the top-level nullability of the expression if the nullability can be determined statically,
         /// and returns null otherwise. (May return null even in cases where the nullability is explicit,
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method is not a replacement for the actual calculation of nullability through flow analysis
         /// which is handled in NullableWalker.
         /// </summary>
-        internal static bool? IsNullable(this BoundExpression expr)
+        private static bool? IsNullableInternal(this BoundExpression expr)
         {
             switch (expr.Kind)
             {
@@ -256,8 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.NullCoalescingOperator:
                     {
                         var op = (BoundNullCoalescingOperator)expr;
-                        var left = op.LeftOperand.IsNullable();
-                        var right = op.RightOperand.IsNullable();
+                        var left = op.LeftOperand.IsNullableInternal();
+                        var right = op.RightOperand.IsNullableInternal();
                         return (left == true) ? right : left;
                     }
                 case BoundKind.ThisReference:
@@ -278,8 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ExpressionWithNullability:
                     return ((BoundExpressionWithNullability)expr).IsNullable;
                 default:
-                    // PROTOTYPE(NullableReferenceTypes): Handle all expression kinds.
-                    //Debug.Assert(false, "Unhandled expression: " + expr.Kind);
                     break;
             }
 

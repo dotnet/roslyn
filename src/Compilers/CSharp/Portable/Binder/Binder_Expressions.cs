@@ -749,7 +749,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
             var elementTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(arguments.Count);
             var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
-            bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
 
             // prepare names
             var (elementNames, inferredPositions, hasErrors) = ExtractTupleElementNames(arguments, diagnostics);
@@ -780,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 boundArguments.Add(boundArgument);
 
-                var elementType = boundArgument.GetTypeAndNullability(includeNullability);
+                var elementType = TypeSymbolWithAnnotations.Create(boundArgument.Type, isNullableIfReferenceType: null);
                 elementTypes.Add(elementType);
 
                 if (elementType.IsNull)
@@ -2704,26 +2703,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hadMultipleCandidates;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var bestType = BestTypeInferrer.InferBestType(
-                boundInitializerExpressions,
-                this.Conversions,
-                hadMultipleCandidates: out hadMultipleCandidates,
-                useSiteDiagnostics: ref useSiteDiagnostics);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            if (bestType.IsNull || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
+            if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
             {
                 Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, node);
-                bestType = TypeSymbolWithAnnotations.Create(CreateErrorType());
+                bestType = CreateErrorType();
             }
 
             if (bestType.IsRestrictedType())
             {
                 // CS0611: Array elements cannot be of type '{0}'
-                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType.TypeSymbol);
+                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
             }
 
-            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, bestType, rank);
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: null), rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }
@@ -2734,25 +2729,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: 1);
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbolWithAnnotations bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out bool hadMultipleCandidates, ref useSiteDiagnostics);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out bool hadMultipleCandidates, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            if (bestType.IsNull || bestType.SpecialType == SpecialType.System_Void)
+            if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void)
             {
                 Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, node);
-                bestType = TypeSymbolWithAnnotations.Create(CreateErrorType());
+                bestType = CreateErrorType();
             }
 
             if (!bestType.IsErrorType() && bestType.IsManagedType)
             {
-                Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, bestType.TypeSymbol);
+                Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, bestType);
             }
 
             return BindStackAllocWithInitializer(
                 node,
                 initializer,
-                type: GetStackAllocType(node, bestType, diagnostics, out bool hasErrors),
-                elementType: bestType.TypeSymbol,
+                type: GetStackAllocType(node, TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: null), diagnostics, out bool hasErrors),
+                elementType: bestType,
                 sizeOpt: null,
                 diagnostics,
                 hasErrors: hasErrors,

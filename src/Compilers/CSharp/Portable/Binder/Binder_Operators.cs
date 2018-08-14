@@ -3642,15 +3642,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool hadMultipleCandidates;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(
-                    trueExpr,
-                    falseExpr,
-                    this.Conversions,
-                    hadMultipleCandidates: out hadMultipleCandidates,
-                    useSiteDiagnostics: ref useSiteDiagnostics);
+                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
 
-                if (bestType.IsNull)
+                if ((object)bestType == null)
                 {
                     // CONSIDER: Dev10 suppresses ERR_InvalidQM unless the following is true for both trueType and falseType
                     // (!T->type->IsErrorType() || T->type->AsErrorType()->HasTypeParent() || T->type->AsErrorType()->HasNSParent())
@@ -3680,7 +3675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (bestType.IsErrorType())
                 {
-                    type = bestType.TypeSymbol;
+                    type = bestType;
                     hasErrors = true;
                 }
                 else if (isRef)
@@ -3693,15 +3688,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType.TypeSymbol));
-                        Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType.TypeSymbol));
-                        type = bestType.TypeSymbol;
+                        Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType));
+                        Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType));
+                        type = bestType;
                     }
                 }
                 else
                 {
-                    trueExpr = GenerateConversionForAssignment(bestType.TypeSymbol, trueExpr, diagnostics);
-                    falseExpr = GenerateConversionForAssignment(bestType.TypeSymbol, falseExpr, diagnostics);
+                    trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
+                    falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
 
                     if (trueExpr.HasAnyErrors || falseExpr.HasAnyErrors)
                     {
@@ -3712,7 +3707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        type = bestType.TypeSymbol;
+                        type = bestType;
                     }
                 }
             }

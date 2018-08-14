@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var initializerOpt = this._initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
                 return initializerOpt == null ?
                     default :
-                    initializerOpt.GetTypeAndNullability(_initializer.IsFeatureStaticNullCheckingEnabled());
+                    initializerOpt.GetTypeAndNullability();
             }
 
             internal override SyntaxNode ForbiddenZone => _initializer;
