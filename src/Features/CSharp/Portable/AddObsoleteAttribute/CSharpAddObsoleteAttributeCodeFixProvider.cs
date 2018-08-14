@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute
             ImmutableArray.Create(
                 "CS0612", //  'C' is obsolete 
                 "CS0618", //  'C' is obsolete (msg)
-                "CS0672"  // Member 'D.F()' overrides obsolete member 'C.F()'
+                "CS0672", // Member 'D.F()' overrides obsolete member 'C.F()'
+                "CS1062", // The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer element is obsolete. (msg)
+                "CS1064"  // The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer element is obsolete"
             );
 
         public CSharpAddObsoleteAttributeCodeFixProvider() 
