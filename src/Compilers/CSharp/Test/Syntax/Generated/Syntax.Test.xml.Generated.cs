@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DiscardPatternSyntax GenerateDiscardPattern()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DiscardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Identifier("UnderscoreToken"));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DiscardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.UnderscoreToken));
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DeclarationPatternSyntax GenerateDeclarationPattern()
@@ -1959,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateDiscardPattern();
             
-            Assert.Equal(SyntaxKind.IdentifierToken, node.UnderscoreToken.Kind);
+            Assert.Equal(SyntaxKind.UnderscoreToken, node.UnderscoreToken.Kind);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -9689,7 +9689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static DiscardPatternSyntax GenerateDiscardPattern()
         {
-            return SyntaxFactory.DiscardPattern(SyntaxFactory.Identifier("UnderscoreToken"));
+            return SyntaxFactory.DiscardPattern(SyntaxFactory.Token(SyntaxKind.UnderscoreToken));
         }
         
         private static DeclarationPatternSyntax GenerateDeclarationPattern()
@@ -11267,7 +11267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateDiscardPattern();
             
-            Assert.Equal(SyntaxKind.IdentifierToken, node.UnderscoreToken.Kind());
+            Assert.Equal(SyntaxKind.UnderscoreToken, node.UnderscoreToken.Kind());
             var newNode = node.WithUnderscoreToken(node.UnderscoreToken);
             Assert.Equal(node, newNode);
         }

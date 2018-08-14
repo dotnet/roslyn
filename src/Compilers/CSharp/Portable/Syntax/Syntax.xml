@@ -1758,7 +1758,7 @@
   <Node Name="DiscardPatternSyntax" Base="PatternSyntax">
     <Kind Name="DiscardPattern" />
     <Field Name="UnderscoreToken" Type="SyntaxToken">
-      <Kind Name="IdentifierToken"/>
+      <Kind Name="UnderscoreToken"/>
     </Field>
   </Node>
   <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
