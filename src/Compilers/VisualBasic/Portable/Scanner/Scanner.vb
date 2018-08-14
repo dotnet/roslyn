@@ -591,7 +591,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
                 End If
             Else
-                ' We don't have a space or '
+                ' We don't have a space or ' but we might have an EOF after _ and that is not an error
                 If CanGet(Here) Then
                     ch = Peek(Here)
                 End If
