@@ -189,22 +189,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var context = isNullableIfReferenceType == null ? NonNullTypesFalseContext.Instance : NonNullTypesTrueContext.Instance;
             bool isAnnotated = isNullableIfReferenceType == true;
-            bool isNullableType = typeSymbol.IsNullableType();
 
-            if (isAnnotated && typeSymbol.IsReferenceType && !isNullableType)
+            if (isAnnotated && !typeSymbol.IsValueType)
             {
-                // string? (leave annotated)
+                // string?, T? (leave annotated)
             }
             else
             {
-                // Initial binding treats unconstrained type parameters as annotated.
-                // NullableWalker may set to unannotated.
-                // T (annotated iff isNullableIfReferenceType == true)
-                // T? where T : class (leave annotated)
                 // string, int (leave unannotated)
                 // int?, T? where T : struct (add annotation)
                 // int? (error type)
-                isAnnotated = isNullableType;
+                isAnnotated = typeSymbol.IsNullableType();
             }
 
             return CreateNonLazyType(typeSymbol, context, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: isNullableIfReferenceType == true, customModifiers.NullToEmpty());
