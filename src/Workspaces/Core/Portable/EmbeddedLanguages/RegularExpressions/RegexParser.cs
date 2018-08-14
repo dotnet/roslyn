@@ -733,8 +733,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
             else
             {
-                // If its a capture name, it's ok if it that capture doesn't exist.  In that
-                // case we will just treat this as an conditional expression.
+                // If it's a capture name, it's ok if that capture doesn't exist.  In that case we
+                // will just treat this as an conditional expression.
                 if (!HasCapture((string)capture.Value))
                 {
                     _lexer.Position = afterInnerOpenParen;
