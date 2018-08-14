@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     /// <summary>
     /// Analyzer that reports diagnostics in strings that we know are regex text.
     /// </summary>
-    internal class RegexDiagnosticAnalyzer : IEmbeddedDiagnosticAnalyzer
+    internal sealed class RegexDiagnosticAnalyzer : IEmbeddedDiagnosticAnalyzer
     {
         public const string DiagnosticId = "RE001";
 
