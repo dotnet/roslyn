@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IInlineRenameInfo _renameInfo;
 
         public InlineRenameSession(
+            IThreadingContext threadingContext,
             InlineRenameService renameService,
             Workspace workspace,
             SnapshotSpan triggerSpan,
@@ -99,7 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            IAsynchronousOperationListener asyncListener) : base(assertIsForeground: true)
+            IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, assertIsForeground: true)
         {
             // This should always be touching a symbol since we verified that upon invocation
             _renameInfo = renameInfo;
@@ -262,11 +265,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var asyncToken = _asyncListener.BeginAsyncOperation("UpdateReferencesTask");
             _allRenameLocationsTask = allRenameLocationsTask;
-            allRenameLocationsTask.SafeContinueWith(
-                t => RaiseSessionSpansUpdated(t.Result.Locations.ToImmutableArray()),
+            allRenameLocationsTask.SafeContinueWithFromAsync(
+                async t =>
+                {
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
+                    RaiseSessionSpansUpdated(t.Result.Locations.ToImmutableArray());
+                },
                 _cancellationTokenSource.Token,
-                TaskContinuationOptions.OnlyOnRanToCompletion,
-                ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
+                TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
 
             UpdateConflictResolutionTask();
             QueueApplyReplacements();
@@ -448,7 +455,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             else
             {
                 // When responding to a text edit, we delay propagating the edit until the first transaction completes.
-                Dispatcher.CurrentDispatcher.BeginInvoke(propagateEditAction, DispatcherPriority.Send, null);
+                ThreadingContext.JoinableTaskFactory.WithPriority(Dispatcher.CurrentDispatcher, DispatcherPriority.Send).RunAsync(async () =>
+                {
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
+                    propagateEditAction();
+                });
             }
         }
 
@@ -498,11 +509,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     TaskContinuationOptions.OnlyOnRanToCompletion,
                     TaskScheduler.Default)
                 .Unwrap()
-                .SafeContinueWith(
-                    t => ApplyReplacements(t.Result.replacementInfo, t.Result.mergeResult, _conflictResolutionTaskCancellationSource.Token),
+                .SafeContinueWithFromAsync(
+                    async t =>
+                    {
+                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _conflictResolutionTaskCancellationSource.Token);
+                        ApplyReplacements(t.Result.replacementInfo, t.Result.mergeResult, _conflictResolutionTaskCancellationSource.Token);
+                    },
                     _conflictResolutionTaskCancellationSource.Token,
-                    TaskContinuationOptions.OnlyOnRanToCompletion,
-                    ForegroundTaskScheduler)
+                    TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default)
                 .CompletesAsyncOperation(asyncToken);
         }
 

@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             RoslynTelemetrySetup.Initialize(this);
 
             // set workspace output pane
-            _outputPane = new WorkspaceFailureOutputPane(this, _workspace);
+            _outputPane = new WorkspaceFailureOutputPane(_componentModel.GetService<IThreadingContext>(), this, _workspace);
 
             InitializeColors();
 

@@ -4,11 +4,11 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         private const string InteractiveResponseFile = "CSharpInteractive.rsp";
 
         public CSharpInteractiveEvaluator(
+            IThreadingContext threadingContext,
             HostServices hostServices,
             IViewClassifierAggregatorService classifierAggregator,
             IInteractiveWindowCommandsFactory commandsFactory,
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
             string responseFileDirectory,
             string initialWorkingDirectory)
             : base(
+                threadingContext,
                 contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType),
                 hostServices,
                 classifierAggregator,

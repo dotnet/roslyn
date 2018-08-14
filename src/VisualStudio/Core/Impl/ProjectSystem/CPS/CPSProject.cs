@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             // Now hook up the project to the project tracker.
             projectTracker.AddProject(this);
 
-            ProjectCodeModel = new ProjectCodeModel(this.Id, new CPSCodeModelInstanceFactory(this), (VisualStudioWorkspaceImpl)this.Workspace, ServiceProvider);
+            ProjectCodeModel = new ProjectCodeModel(projectTracker.ThreadingContext, this.Id, new CPSCodeModelInstanceFactory(this), (VisualStudioWorkspaceImpl)this.Workspace, ServiceProvider);
         }
 
         private void NormalizeAndSetBinOutputPathAndRelatedData(string binOutputPath)

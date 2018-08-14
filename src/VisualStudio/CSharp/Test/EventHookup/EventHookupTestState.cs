@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
@@ -26,10 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
             : base(workspaceElement, excludedTypes: null, GetExtraParts(), false)
         {
+            _commandHandler = new EventHookupCommandHandler(
+                Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                Workspace.GetService<IInlineRenameService>(),
 #pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-            _commandHandler = new EventHookupCommandHandler(Workspace.GetService<IInlineRenameService>(), Workspace.GetService<IQuickInfoBroker>(),
-                prematureDismissalPreventer: null, Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+                Workspace.GetService<IQuickInfoBroker>(),
 #pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
+                prematureDismissalPreventer: null,
+                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             _testSessionHookupMutex = new Mutex(false);
             _commandHandler.TESTSessionHookupMutex = _testSessionHookupMutex;
