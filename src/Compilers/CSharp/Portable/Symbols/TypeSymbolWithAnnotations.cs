@@ -189,10 +189,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var context = isNullableIfReferenceType == null ? NonNullTypesFalseContext.Instance : NonNullTypesTrueContext.Instance;
             bool isAnnotated = isNullableIfReferenceType == true;
+            bool treatUnconstrainedTypeParameterAsNullable = false;
 
             if (isAnnotated && !typeSymbol.IsValueType)
             {
-                // string?, T? (leave annotated)
+                // string? (leave annotated)
+                // T? (leave unannotated)
+                // T? where T : class (leave annotated)
+                if (typeSymbol.IsUnconstrainedTypeParameter())
+                {
+                    isAnnotated = false;
+                    treatUnconstrainedTypeParameterAsNullable = true;
+                }
             }
             else
             {
@@ -202,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAnnotated = typeSymbol.IsNullableType();
             }
 
-            return CreateNonLazyType(typeSymbol, context, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: isNullableIfReferenceType == true, customModifiers.NullToEmpty());
+            return CreateNonLazyType(typeSymbol, context, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: treatUnconstrainedTypeParameterAsNullable, customModifiers.NullToEmpty());
         }
 
         private static TypeSymbolWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatUnconstrainedTypeParameterAsNullable, ImmutableArray<CustomModifier> customModifiers)
