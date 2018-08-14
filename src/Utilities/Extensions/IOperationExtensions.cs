@@ -319,6 +319,9 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsInsideCatchClause(this IOperation operation)
             => operation.GetAncestor<ICatchClauseOperation>(OperationKind.CatchClause) != null;
 
+        public static bool IsInsideAnonymousFunction(this IOperation operation)
+            => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null;
+
         public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, Func<IOperation, bool> predicate)
         {
             foreach (var operationBlock in operationBlocks)
