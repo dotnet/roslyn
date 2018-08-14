@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (name)
             {
                 case "CompareTo":
-                case "Deconstruct":
+                case WellKnownMemberNames.DeconstructMethodName:
                 case "Equals":
                 case "GetHashCode":
                 case "Rest":

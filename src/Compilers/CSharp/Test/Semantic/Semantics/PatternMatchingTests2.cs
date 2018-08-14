@@ -1076,9 +1076,7 @@ class Frog
         public void OvereagerSubsumption()
         {
             var source =
-@"using System;
-
-class Program2
+@"class Program2
 {
     public static int Main() => 0;
     public static void M(object o)
@@ -1093,15 +1091,15 @@ class Program2
     }
 }
 ";
-            var compilation = CreatePatternCompilation(source);
+            var compilation = CreateCompilationWithMscorlib45(source); // doesn't have ITuple
             // Two errors below instead of one due to https://github.com/dotnet/roslyn/issues/25533
             compilation.VerifyDiagnostics(
-                // (10,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (8,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 2):
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(10, 18),
-                // (10,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(8, 18),
+                // (8,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 2):
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(8, 18)
                 );
         }
 

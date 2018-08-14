@@ -285,8 +285,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundRecursivePattern recursive:
                     MakeTestsAndBindings(input, recursive, tests, bindings);
                     break;
+                case BoundITuplePattern iTuple:
+                    MakeTestsAndBindings(input, iTuple, tests, bindings);
+                    break;
                 default:
                     throw new NotImplementedException(pattern.Kind.ToString());
+            }
+        }
+
+        private void MakeTestsAndBindings(
+            BoundDagTemp input,
+            BoundITuplePattern pattern,
+            ArrayBuilder<BoundDagTest> tests,
+            ArrayBuilder<BoundPatternBinding> bindings)
+        {
+            var syntax = pattern.Syntax;
+            var patternLength = pattern.Subpatterns.Length;
+            var objectType = this._compilation.GetSpecialType(SpecialType.System_Object);
+            var getLengthProperty = (PropertySymbol)pattern.GetLengthMethod.AssociatedSymbol;
+            Debug.Assert(getLengthProperty.Type.SpecialType == SpecialType.System_Int32);
+            var getItemProperty = (PropertySymbol)pattern.GetItemMethod.AssociatedSymbol;
+            var iTupleType = getLengthProperty.ContainingType;
+            Debug.Assert(iTupleType.Name == "ITuple");
+
+            tests.Add(new BoundDagTypeTest(syntax, iTupleType, input));
+            var valueAsITupleEvaluation = new BoundDagTypeEvaluation(syntax, iTupleType, input);
+            tests.Add(valueAsITupleEvaluation);
+            var valueAsITuple = new BoundDagTemp(syntax, iTupleType, valueAsITupleEvaluation, 0);
+
+            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, valueAsITuple);
+            tests.Add(lengthEvaluation);
+            var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation, 0);
+            tests.Add(new BoundDagValueTest(syntax, ConstantValue.Create(patternLength), lengthTemp));
+
+            for (int i = 0; i < patternLength; i++)
+            {
+                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, valueAsITuple);
+                tests.Add(indexEvaluation);
+                var indexTemp = new BoundDagTemp(syntax, objectType, indexEvaluation, 0);
+                MakeTestsAndBindings(indexTemp, pattern.Subpatterns[i].Pattern, tests, bindings);
             }
         }
 

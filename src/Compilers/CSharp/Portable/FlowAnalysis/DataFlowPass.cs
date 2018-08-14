@@ -1558,6 +1558,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Assign(pat, null, false, false);
                         break;
                     }
+                case BoundKind.ITuplePattern:
+                    {
+                        var pat = (BoundITuplePattern)pattern;
+                        foreach (var subpat in pat.Subpatterns)
+                        {
+                            AssignPatternVariables(subpat.Pattern);
+                        }
+                        break;
+                    }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }

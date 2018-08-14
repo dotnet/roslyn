@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case BoundWhenDecisionDagNode node:
-                        result.AppendLine($"  WhenClause: " + node.WhenExpression.Syntax);
+                        result.AppendLine($"  WhenClause: " + node.WhenExpression?.Syntax);
                         if (node.WhenTrue != null)
                         {
                             result.AppendLine($"  WhenTrue: {stateIdentifierMap[node.WhenTrue]}");
@@ -253,6 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundLeafDecisionDagNode node:
                         result.AppendLine($"  Case: " + node.Syntax);
                         break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(state);
                 }
             }
 
@@ -265,15 +267,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (d)
                 {
                     case BoundDagTypeEvaluation a:
-                        return $"t{tempIdentifier(a)}={a.Kind}({a.Type.ToString()})";
+                        return $"t{tempIdentifier(a)}={a.Kind} {tempName(d.Input)} as {a.Type.ToString()}";
+                    case BoundDagPropertyEvaluation e:
+                        return $"t{tempIdentifier(e)}={e.Kind} {tempName(d.Input)}.{e.Property.Name}";
+                    case BoundDagIndexEvaluation i:
+                        return $"t{tempIdentifier(i)}={i.Kind} {tempName(d.Input)}[{i.Index}]";
                     case BoundDagEvaluation e:
-                        return $"t{tempIdentifier(e)}={e.Kind}";
+                        return $"t{tempIdentifier(e)}={e.Kind}, {tempName(d.Input)}";
                     case BoundDagTypeTest b:
-                        return $"?{d.Kind}({b.Type.ToString()}, {tempName(d.Input)})";
+                        return $"?{d.Kind} {tempName(d.Input)} is {b.Type.ToString()}";
                     case BoundDagValueTest v:
-                        return $"?{d.Kind}({v.Value.ToString()}, {tempName(d.Input)})";
+                        return $"?{d.Kind} {v.Value.ToString()} == {tempName(d.Input)}";
                     default:
-                        return $"?{d.Kind}({tempName(d.Input)})";
+                        throw ExceptionUtilities.UnexpectedValue(d);
                 }
             }
         }
