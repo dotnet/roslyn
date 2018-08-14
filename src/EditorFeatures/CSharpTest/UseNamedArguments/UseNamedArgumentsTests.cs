@@ -307,7 +307,7 @@ class C
 
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-        public async Task TestNotMissingWhenInsideSingleLineArgument2()
+        public async Task TestNotMissingWhenInsideSingleLineArgument2_WithCSharp7()
         {
             await TestInRegularAndScript1Async(
 @"class C
@@ -319,6 +319,22 @@ class C
 {
     void M(int arg1, int arg2) 
         => M(arg1: 1 + 2, arg2: 2);
+}", parameters: new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestNotMissingWhenInsideSingleLineArgument2()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int arg1, int arg2)
+        => M(1 [||]+ 2, 2);
+}",
+@"class C
+{
+    void M(int arg1, int arg2)
+        => M(arg1: 1 + 2, 2);
 }");
         }
 
