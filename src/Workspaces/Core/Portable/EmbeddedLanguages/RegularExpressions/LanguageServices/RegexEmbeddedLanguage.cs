@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    internal class RegexEmbeddedLanguage : IEmbeddedLanguage
+    internal sealed class RegexEmbeddedLanguage : IEmbeddedLanguage
     {
         public int StringLiteralKind { get; }
         public ISyntaxFactsService SyntaxFacts { get; }
