@@ -553,55 +553,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim atNewLine As Boolean
             ' Line continuation is valid at the end of the line, or at the end of the file, or followed by a trailing comment.
             ' Eg.  LineContinuation ( EndOfLine | EndOfFile | LineContinuationComment)
-            If CanGet(Here) AndAlso (IsWhitespace(Peek(Here)) OrElse IsSingleQuote(Peek(Here))) Then
-                While CanGet(Here)
+            'If CanGet(Here) AndAlso (IsWhitespace(Peek(Here)) OrElse IsSingleQuote(Peek(Here))) Then
+            While CanGet(Here)
                     ch = Peek(Here)
                     If IsWhitespace(ch) Then
                         Here += 1
                     Else
                         Exit While
                     End If
-                End While
-                If CanGet(Here) AndAlso IsSingleQuote(Peek(Here)) Then
-                    tList.Add(MakeLineContinuationTrivia(GetText(1)))
-                    If Here > 1 Then
-                        tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
-                    End If
-                    Dim comment As SyntaxTrivia = ScanComment()
-                    If Not CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
-                        ' PROTOTYPE Need correct error here
-                        comment = DirectCast(comment.SetDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_LineContWithCommentPreV161,
+            End While
+            If CanGet(Here) AndAlso IsSingleQuote(Peek(Here)) Then
+                tList.Add(MakeLineContinuationTrivia(GetText(1)))
+                If Here > 1 Then
+                    tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
+                End If
+                Dim comment As SyntaxTrivia = ScanComment()
+                If Not CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
+                    comment = DirectCast(comment.SetDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1,
                                                                                                 New VisualBasicRequiredLanguageVersion(Feature.CommentsAfterLineContinuation.GetLanguageVersion()))}), SyntaxTrivia)
-                    End If
-                    tList.Add(comment)
-                    ch = Peek()
-                    atNewLine = IsNewLine(ch)
-                Else
-                    ' If you get her you have a Line Continuation without comment, so process as V15.5 below
-                    If Not CanGet(Here) Then
-                        Return False
-                    End If
-                    atNewLine = IsNewLine(Peek(Here))
-                    If Not atNewLine Then
-                        Return False
-                    End If
-                    tList.Add(MakeLineContinuationTrivia(GetText(1)))
-
-                    If Here > 1 Then
-                        tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
-                    End If
                 End If
-            Else
-                ' We don't have a space or '
-                If CanGet(Here) Then
-                    ch = Peek(Here)
-                End If
+                tList.Add(comment)
+                ch = Peek()
                 atNewLine = IsNewLine(ch)
-                If Not atNewLine AndAlso CanGet(Here) Then
+            Else
+                ' If you get her you have a Line Continuation without comment, so process as V15.5 below
+                If Not CanGet(Here) Then
+                    Return False
+                End If
+                atNewLine = IsNewLine(Peek(Here))
+                If Not atNewLine Then
                     Return False
                 End If
                 tList.Add(MakeLineContinuationTrivia(GetText(1)))
+
+                If Here > 1 Then
+                    tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
+                End If
             End If
+            'Else
+            '    ' We don't have a space or '
+            '    If CanGet(Here) Then
+            '        ch = Peek(Here)
+            '    End If
+            '    atNewLine = IsNewLine(ch)
+            '    If Not atNewLine AndAlso CanGet(Here) Then
+            '        Return False
+            '    End If
+            '    tList.Add(MakeLineContinuationTrivia(GetText(1)))
+            'End If
 
             If atNewLine AndAlso CanGet() Then
                 Dim newLine = SkipLineBreak(ch, 0)

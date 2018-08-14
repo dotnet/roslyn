@@ -2378,6 +2378,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Please use language version {0} or greater to use comments after line continuation character..
+        '''</summary>
+        Friend ReadOnly Property ERR_CommentsAfterLineContinuationNotAvailable1() As String
+            Get
+                Return ResourceManager.GetString("ERR_CommentsAfterLineContinuationNotAvailable1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Conditional compilation constant &apos;{1}&apos; is not valid: {0}.
         '''</summary>
         Friend ReadOnly Property ERR_ConditionalCompilationConstantNotValid() As String
@@ -6816,15 +6825,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_LineContWithCommentOrNoPrecSpace() As String
             Get
                 Return ResourceManager.GetString("ERR_LineContWithCommentOrNoPrecSpace", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Please use language version {0} or greater to use comments after line continuation character..
-        '''</summary>
-        Friend ReadOnly Property ERR_LineContWithCommentPreV161() As String
-            Get
-                Return ResourceManager.GetString("ERR_LineContWithCommentPreV161", resourceCulture)
             End Get
         End Property
         
