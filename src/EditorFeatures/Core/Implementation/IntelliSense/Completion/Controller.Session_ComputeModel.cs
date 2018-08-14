@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     CompletionTrigger trigger,
                     ImmutableHashSet<string> roles,
                     OptionSet options)
+                    : base(session.ThreadingContext)
                 {
                     _session = session;
                     _completionService = completionService;
