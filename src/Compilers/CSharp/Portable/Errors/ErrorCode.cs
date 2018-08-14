@@ -1578,6 +1578,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 7.3
         WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
         ERR_OutVariableCannotBeByRef = 8388,
+
+        #region diagnostics introduced for C# 8.0
+        ERR_FeatureNotAvailableInVersion8 = 8400,
+        ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
+        #endregion diagnostics introduced for C# 8.0
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }
