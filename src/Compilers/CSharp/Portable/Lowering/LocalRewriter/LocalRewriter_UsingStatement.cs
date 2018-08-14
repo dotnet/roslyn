@@ -293,7 +293,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             
             if ((!(methodOpt is null)) || Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out methodOpt))
             {
-                disposeCall = BoundCall.Synthesized(syntax, disposedExpression, methodOpt);
+                if (methodOpt.IsExtensionMethod)
+                {
+                    disposeCall = BoundCall.Synthesized(syntax, disposedExpression, methodOpt, local);
+                }
+                else
+                {
+                    disposeCall = BoundCall.Synthesized(syntax, disposedExpression, methodOpt);
+                }
             }
             else
             {

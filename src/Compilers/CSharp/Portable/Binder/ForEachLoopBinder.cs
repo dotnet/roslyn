@@ -777,8 +777,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             LookupResult lookupResult = LookupResult.GetInstance();
             MethodSymbol getEnumeratorMethod = FindPatternMethod(collectionExprType, GetEnumeratorMethodName, lookupResult,
-                                                                 _syntax.Expression, warningsOnly: true, diagnostics: diagnostics,
-                                                                 _syntax.SyntaxTree, MessageID.IDS_Collection);
+                                                     _syntax.Expression, searchExtensionMethods:false, warningsOnly: true, diagnostics: diagnostics,
+                                                     _syntax.SyntaxTree, MessageID.IDS_Collection);
             lookupResult.Free();
 
             builder.GetEnumeratorMethod = getEnumeratorMethod;
@@ -881,8 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lookupResult.Clear(); // Reuse the same LookupResult
 
                 MethodSymbol moveNextMethodCandidate = FindPatternMethod(enumeratorType, MoveNextMethodName, lookupResult, _syntax.Expression,
-                                                                        warningsOnly: false, diagnostics, _syntax.SyntaxTree, MessageID.IDS_Collection);
-
+                                                                        searchExtensionMethods:false, warningsOnly: false, diagnostics, _syntax.SyntaxTree, MessageID.IDS_Collection);
                 // SPEC VIOLATION: Dev10 checks the return type of the original definition, rather than the return type of the actual method.
 
                 if ((object)moveNextMethodCandidate == null ||
