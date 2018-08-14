@@ -52,7 +52,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             projectTracker.AddProject(Me)
 
-            ProjectCodeModel = New ProjectCodeModel(Me.Id, New VisualBasicCodeModelInstanceFactory(Me), visualStudioWorkspaceOpt, serviceProvider)
+            ProjectCodeModel = New ProjectCodeModel(projectTracker.ThreadingContext, Me.Id, New VisualBasicCodeModelInstanceFactory(Me), visualStudioWorkspaceOpt, serviceProvider)
         End Sub
 
         Public Sub AddApplicationObjectVariable(wszClassName As String, wszMemberName As String) Implements IVbCompilerProject.AddApplicationObjectVariable

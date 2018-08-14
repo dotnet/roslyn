@@ -624,4 +624,7 @@
   <data name="InvalidOperationBlockForAnalysisContext" xml:space="preserve">
     <value>Given operation block does not belong to the current analysis context.</value>
   </data>
+  <data name="OperationMustNotBeControlFlowGraphPart" xml:space="preserve">
+    <value>The provided operation must not be part of a Control Flow Graph.</value>
+  </data>
 </root>

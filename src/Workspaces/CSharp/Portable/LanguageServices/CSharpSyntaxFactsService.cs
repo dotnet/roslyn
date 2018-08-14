@@ -657,11 +657,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node)
             => (node as ConditionalAccessExpressionSyntax)?.Expression;
 
-        public SyntaxNode GetExpressionOfElementAccessExpression(SyntaxNode node)
-            => (node as ElementAccessExpressionSyntax)?.Expression;
-
-        public SyntaxNode GetArgumentListOfElementAccessExpression(SyntaxNode node)
-            => (node as ElementAccessExpressionSyntax)?.ArgumentList;
+        public void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
+        {
+            var elementAccess = node as ElementAccessExpressionSyntax;
+            expression = elementAccess?.Expression;
+            argumentList = elementAccess?.ArgumentList;
+        }
 
         public SyntaxNode GetExpressionOfInterpolation(SyntaxNode node)
             => (node as InterpolationSyntax)?.Expression;
