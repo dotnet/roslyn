@@ -194,10 +194,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isAnnotated && !typeSymbol.IsValueType)
             {
                 // string? (leave annotated)
-                // T? (leave unannotated)
                 // T? where T : class (leave annotated)
                 if (typeSymbol.IsUnconstrainedTypeParameter())
                 {
+                    // T? (leave unannotated)
                     isAnnotated = false;
                     treatUnconstrainedTypeParameterAsNullable = true;
                 }
