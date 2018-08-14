@@ -563,8 +563,10 @@ namespace System
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
-                    // Not yet in the platform.
+                        // Not yet in the platform.
+                        continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
+                    case WellKnownType.System_Runtime_CompilerServices_ITuple:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -874,6 +876,8 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
+                    case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
                         // Not always available.
                         continue;
                 }

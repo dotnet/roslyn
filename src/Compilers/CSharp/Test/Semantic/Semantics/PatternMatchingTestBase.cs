@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTestBase : CSharpTestBase
     {
         #region helpers
-        protected static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
-
         protected IEnumerable<SingleVariableDesignationSyntax> GetPatternDeclarations(SyntaxTree tree, string v)
         {
             return GetPatternDeclarations(tree).Where(d => d.Identifier.ValueText == v);
@@ -367,8 +365,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected CSharpCompilation CreatePatternCompilation(string source, CSharpCompilationOptions options = null)
         {
-            return CreateCompilation(source, options: options ?? TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            return CreateCompilation(new[] { source, _iTupleSource }, options: options ?? TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
         }
+
+        private const string _iTupleSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public interface ITuple
+    {
+        int Length { get; }
+        object this[int index] { get; }
+    }
+}
+";
 
         #endregion helpers
     }

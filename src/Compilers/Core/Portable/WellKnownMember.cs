@@ -442,6 +442,9 @@ namespace Microsoft.CodeAnalysis
         System_Math__FloorDouble,
         System_Math__TruncateDouble,
 
+        System_Runtime_CompilerServices_ITuple__get_Item,
+        System_Runtime_CompilerServices_ITuple__get_Length,
+
         Count
     }
 }
