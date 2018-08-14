@@ -189,12 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            var newLocals = RewriteLocals(node.Locals);
-            BoundMultipleLocalDeclarations declarationsOpt = (BoundMultipleLocalDeclarations)this.Visit(node.DeclarationsOpt);
-            BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
-            BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            Conversion disposableConversion = RewriteConversion(node.IDisposableConversion);
-            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body);
+            // Using statements have been lowered away before the lambda and async rewriters
+            throw ExceptionUtilities.Unreachable;
         }
 
         private Conversion RewriteConversion(Conversion conversion)
@@ -368,7 +364,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(expression, VisitMethodSymbol(node.GetAwaiter), VisitPropertySymbol(node.IsCompleted), VisitMethodSymbol(node.GetResult), type);
+
+            AwaitableInfo info = node.AwaitableInfo;
+            return node.Update(
+                expression,
+                info.Update(VisitMethodSymbol(info.GetAwaiter), VisitPropertySymbol(info.IsCompleted), VisitMethodSymbol(info.GetResult)),
+                type);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
