@@ -243,16 +243,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             var list = ArrayBuilder<RegexExpressionNode>.GetInstance();
 
-            if (ShouldConsumeSequenceElement(consumeCloseParen))
+            while (ShouldConsumeSequenceElement(consumeCloseParen))
             {
-                do
-                {
-                    var last = list.Count == 0 ? null : list.Last();
-                    list.Add(ParsePrimaryExpressionAndQuantifiers(last));
+                var last = list.Count == 0 ? null : list.Last();
+                list.Add(ParsePrimaryExpressionAndQuantifiers(last));
 
-                    TryMergeLastTwoNodes(list);
-                }
-                while (ShouldConsumeSequenceElement(consumeCloseParen));
+                TryMergeLastTwoNodes(list);
             }
 
             return new RegexSequenceNode(list.ToImmutableAndFree());
