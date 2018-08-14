@@ -135,10 +135,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             if (length > 0x100000)
             {
                 Log("Request is over 1MB in length, cancelling read.");
-                // PROTOTYPE(NullableDogfood): no need for suppression. See https://github.com/dotnet/roslyn/issues/26614
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 return null;
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference or unconstrained type parameter.
             }
 
             cancellationToken.ThrowIfCancellationRequested();

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.CompilerServices;
 using Microsoft.Build.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -55,8 +56,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 if (IsCliHost(out string? pathToDotnet))
                 {
-                    // PROTOTYPE(NullableDogfood): TryGetValue pattern
-                    return pathToDotnet!;
+                    return pathToDotnet;
                 }
                 else
                 {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected sealed override string ToolName
             => $"{ToolNameWithoutExtension}.{(CoreClrShim.IsRunningOnCoreClr ? "dll" : "exe")}";
 
-        private static bool IsCliHost(out string? pathToDotnet)
+        private static bool IsCliHost([NotNullWhenTrue] out string? pathToDotnet)
         {
             if (CoreClrShim.IsRunningOnCoreClr)
             {

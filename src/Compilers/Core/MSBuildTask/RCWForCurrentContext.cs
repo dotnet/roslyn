@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             else
             {
                 _shouldReleaseRCW = true;
-                _rcwForCurrentCtx = (objInCurrentCtx as T);
+                _rcwForCurrentCtx = objInCurrentCtx as T;
             }
         }
 

@@ -13,6 +13,9 @@ using Microsoft.Build.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
 
+// PROTOTYPE(NullableDogfood): Where should we place this?
+[module: System.Runtime.CompilerServices.NonNullTypes(true)]
+
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
@@ -385,17 +388,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // Map explicit platform of "AnyCPU" or the default platform (null or ""), since it is commonly understood in the
         // managed build process to be equivalent to "AnyCPU", to platform "AnyCPU32BitPreferred" if the Prefer32Bit
         // property is set.
-        internal string PlatformWith32BitPreference
+        internal string? PlatformWith32BitPreference
         {
             get
             {
                 string? platform = Platform;
-                // PROTOTYPE(NullableDogfood): need contract on IsNullOrEmpty
-                if ((string.IsNullOrEmpty(platform) || platform!.Equals("anycpu", StringComparison.OrdinalIgnoreCase)) && Prefer32Bit)
+                if ((string.IsNullOrEmpty(platform) || platform.Equals("anycpu", StringComparison.OrdinalIgnoreCase)) && Prefer32Bit)
                 {
                     platform = "anycpu32bitpreferred";
                 }
-                return platform!;
+                return platform;
             }
         }
 
@@ -1052,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        internal void InitializeHostObjectSupportForNewSwitches(ITaskHost hostObject, ref string param)
+        internal void InitializeHostObjectSupportForNewSwitches(ITaskHost? hostObject, ref string param)
         {
             var compilerOptionsHostObject = hostObject as ICompilerOptionsHostObject;
 
@@ -1109,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// which is only used during IDE builds.
         /// </summary>
         /// <returns>the path to the win32 manifest to provide to the host object</returns>
-        internal string GetWin32ManifestSwitch
+        internal string? GetWin32ManifestSwitch
         (
             bool noDefaultWin32Manifest,
             string? win32Manifest
@@ -1157,8 +1159,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            // PROTOTYPE(NullableDogfood): IsNullOrEmpty needs an annotation
-            return win32Manifest!;
+            return win32Manifest;
         }
     }
 }

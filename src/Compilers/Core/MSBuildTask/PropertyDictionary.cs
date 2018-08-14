@@ -6,12 +6,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 {
     internal class PropertyDictionary : Dictionary<string, object?>
     {
-        public T? GetOrDefault<T>(string name, T @default)
+        public T GetOrDefault<T>(string name, T @default)
         {
             object? value;
             if (this.TryGetValue(name, out value))
             {
-                return (T?)value;
+                return (T)value;
             }
             return @default;
         }

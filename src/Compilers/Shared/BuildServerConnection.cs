@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string? keepAlive,
             string libEnvVariable,
             int? timeoutOverride,
-            Func<string?, string, bool> tryCreateServerFunc,
+            Func<string, string, bool> tryCreateServerFunc,
             CancellationToken cancellationToken)
 #else
         internal static async Task<BuildResponse> RunServerCompilationCore(
@@ -198,12 +198,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
                 {
-#if USES_ANNOTATIONS
-                    // PROTOTYPE(NullableDogfood): Workaround async issue
                     pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
-#else
-                    pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
-#endif
                 }
             }
             finally
@@ -397,7 +392,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
             {
-                LogException(e, "Exception while connecting to process");
+                // PROTOTYPE(NullableDogfood): Filed https://github.com/dotnet/roslyn/issues/29295
+                LogException(e!, "Exception while connecting to process");
                     return null;
             }
         }

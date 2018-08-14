@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // empty, just to trigger static ctor
         }
 
-        internal static Assembly? ResolveAssembly(string assemblyDisplayName, Assembly requestingAssemblyOpt)
+        internal static Assembly? ResolveAssembly(string assemblyDisplayName, Assembly? requestingAssemblyOpt)
         {
             var name = new AssemblyName(assemblyDisplayName);
             try

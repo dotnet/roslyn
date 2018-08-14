@@ -193,15 +193,27 @@ namespace Roslyn.Utilities
 
             private sealed class AssemblyResolveWrapper
             {
+#if USES_ANNOTATIONS
+                private readonly Func<string, Assembly?, Assembly?> _handler;
+#else
                 private readonly Func<string, Assembly, Assembly> _handler;
+#endif
                 private static readonly MethodInfo s_stubInfo = typeof(AssemblyResolveWrapper).GetTypeInfo().GetDeclaredMethod("Stub");
 
+#if USES_ANNOTATIONS
+                public AssemblyResolveWrapper(Func<string, Assembly?, Assembly?> handler)
+#else
                 public AssemblyResolveWrapper(Func<string, Assembly, Assembly> handler)
+#endif
                 {
                     _handler = handler;
                 }
 
+#if USES_ANNOTATIONS
+                private Assembly? Stub(object sender, object resolveEventArgs)
+#else
                 private Assembly Stub(object sender, object resolveEventArgs)
+#endif
                 {
                     var name = (string)_ResolveEventArgs.get_Name.Invoke(resolveEventArgs, Array.Empty<object>());
                     var requestingAssembly = (Assembly)_ResolveEventArgs.get_RequestingAssembly.Invoke(resolveEventArgs, Array.Empty<object>());
@@ -228,7 +240,11 @@ namespace Roslyn.Utilities
                 return _AppDomain.get_CurrentDomain.Invoke(null, Array.Empty<object>());
             }
 
+#if USES_ANNOTATIONS
+            internal static void GetOrRemoveAssemblyResolveHandler(Func<string, Assembly?, Assembly?> handler, MethodInfo handlerOperation)
+#else
             internal static void GetOrRemoveAssemblyResolveHandler(Func<string, Assembly, Assembly> handler, MethodInfo handlerOperation)
+#endif
             {
                 if (_AppDomain.add_AssemblyResolve == null)
                 {
@@ -241,12 +257,20 @@ namespace Roslyn.Utilities
                 handlerOperation.Invoke(currentAppDomain, new[] { resolveEventHandler });
             }
 
+#if USES_ANNOTATIONS
+            internal static void AddAssemblyResolveHandler(Func<string, Assembly?, Assembly?> handler)
+#else
             internal static void AddAssemblyResolveHandler(Func<string, Assembly, Assembly> handler)
+#endif
             {
                 GetOrRemoveAssemblyResolveHandler(handler, _AppDomain.add_AssemblyResolve);
             }
 
+#if USES_ANNOTATIONS
+            internal static void RemoveAssemblyResolveHandler(Func<string, Assembly?, Assembly?> handler)
+#else
             internal static void RemoveAssemblyResolveHandler(Func<string, Assembly, Assembly> handler)
+#endif
             {
                 GetOrRemoveAssemblyResolveHandler(handler, _AppDomain.remove_AssemblyResolve);
             }

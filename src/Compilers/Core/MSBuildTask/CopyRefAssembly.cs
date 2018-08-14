@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public CopyRefAssembly()
         {
             TaskResources = ErrorString.ResourceManager;
-            SourcePath = null!; // MSBuild required
-            DestinationPath = null!; // MSBuild required
+            SourcePath = null!; // PROTOTYPE(NullableDogfood): MSBuild required
+            DestinationPath = null!; // PROTOTYPE(NullableDogfood): MSBuild required
         }
 
         public override bool Execute()

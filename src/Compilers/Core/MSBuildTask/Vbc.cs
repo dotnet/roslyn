@@ -284,7 +284,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         internal void MovePdbFileIfNecessary(string? outputAssembly)
         {
-            // PROTOTYPE(NullableDogfood): Annotate string.IsNullOrEmpty
             // Get the name of the output assembly because the pdb will be written beside it and will have the same name
             if (String.IsNullOrEmpty(PdbFile) || String.IsNullOrEmpty(outputAssembly))
             {
@@ -297,8 +296,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 FileInfo actualPdbInfo = new FileInfo(actualPdb);
 
-                // PROTOTYPE(NullableDogfood): Annotate string.IsNullOrEmpty
-                string desiredLocation = PdbFile!;
+                string desiredLocation = PdbFile;
                 if (!desiredLocation.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
                 {
                     desiredLocation += ".pdb";

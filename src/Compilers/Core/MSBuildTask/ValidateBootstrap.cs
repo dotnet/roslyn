@@ -89,16 +89,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private static string? NormalizePath(string? path)
         {
-            // PROTOTYPE(NullableDogfood): string.IsNullOrEmpty needs annotation
             if (string.IsNullOrEmpty(path))
             {
                 return path;
             }
 
-            var c = path![path!.Length - 1];
+            var c = path[path.Length - 1];
             if (c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar)
             {
-                path = path!.Substring(0, path!.Length - 1);
+                path = path.Substring(0, path.Length - 1);
             }
 
             return path;

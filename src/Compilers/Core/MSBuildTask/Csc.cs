@@ -557,8 +557,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     }
                 }
 
+                // PROTOTYPE(NullableDogfood): Why does flow analysis think cscHostObject might be null here?!
                 // This must come after Win32Manifest
-                CheckHostObjectSupport(param = nameof(Win32Resource), cscHostObject.SetWin32Resource(Win32Resource));
+                CheckHostObjectSupport(param = nameof(Win32Resource), cscHostObject!.SetWin32Resource(Win32Resource));
 
                 if (cscHostObject is ICscHostObject3)
                 {

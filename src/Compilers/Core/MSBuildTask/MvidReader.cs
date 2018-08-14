@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -89,7 +90,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             for (int i = 0; i < count; i++)
             {
-                // PROTOTYPE(NullableDogfood): ReadBytes follows a pattern like TryGetValue. Having annotation on Debug.Assert would also help.
                 // Section: Name (8)
 #if USES_ANNOTATIONS
                 if (!ReadBytes(reader, 8, out byte[]? name))
@@ -100,13 +100,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return s_empty;
                 }
 
-#if USES_ANNOTATIONS
-                if (name!.Length == 8 && name![0] == '.' &&
-                    name![1] == 'm' && name![2] == 'v' && name![3] == 'i' && name![4] == 'd' && name![5] == '\0')
-#else
                 if (name.Length == 8 && name[0] == '.' &&
                     name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == '\0')
-#endif
                 {
                     // Section: VirtualSize (4)
                     if (!ReadUInt32(reader, out uint virtualSize) || virtualSize != 16)
@@ -189,7 +184,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
 #if USES_ANNOTATIONS
-        private static bool ReadBytes(BinaryReader reader, int count, out byte[]? output)
+        private static bool ReadBytes(BinaryReader reader, int count, [NotNullWhenTrue] out byte[]? output)
 #else
         private static bool ReadBytes(BinaryReader reader, int count, out byte[] output)
 #endif
