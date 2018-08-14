@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
             if (foregroundTaskScheduler != null)
             {
-                Task.Factory.SafeStartNew(() => StartTimer(continueOnCapturedContext: true), CancellationToken.None, foregroundTaskScheduler);
+                Task.Factory.SafeStartNew(() => StartTimerAsync(continueOnCapturedContext: true), CancellationToken.None, foregroundTaskScheduler);
             }
             else
             {
-                StartTimer(continueOnCapturedContext: false);
+                _ = StartTimerAsync(continueOnCapturedContext: false);
             }
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _lastSetTime = Environment.TickCount;
         }
 
-        private async void StartTimer(bool continueOnCapturedContext)
+        private async Task StartTimerAsync(bool continueOnCapturedContext)
         {
             do
             {

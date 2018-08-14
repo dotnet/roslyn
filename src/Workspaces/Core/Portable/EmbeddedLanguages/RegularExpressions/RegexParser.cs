@@ -1601,7 +1601,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
-            var ch = _currentToken.VirtualChars[0].Char;
             switch (_currentToken.VirtualChars[0].Char)
             {
                 case 'b': case 'B': case 'A': case 'G': case 'Z': case 'z':
