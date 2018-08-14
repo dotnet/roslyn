@@ -431,12 +431,19 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsLambdaOrLocalFunctionOrDelegateReference(this IMethodReferenceOperation operation)
             => operation.Method.IsLambdaOrLocalFunctionOrDelegate();
 
-        public static ControlFlowGraph GetEnclosingControlFlowGraph(this IOperation operation)
+        public static IOperation GetRoot(this IOperation operation)
         {
-            while(operation.Parent != null)
+            while (operation.Parent != null)
             {
                 operation = operation.Parent;
             }
+
+            return operation;
+        }
+
+        public static ControlFlowGraph GetEnclosingControlFlowGraph(this IOperation operation)
+        {
+            operation = operation.GetRoot();
 
             switch (operation)
             {
@@ -461,6 +468,16 @@ namespace Analyzer.Utilities.Extensions
                 default:
                     throw new NotSupportedException($"Unexpected root operation kind: {operation.Kind.ToString()}");
             }
+        }
+
+        public static bool IsLockOperation(this IInvocationOperation invocation, INamedTypeSymbol systemThreadingMonitor)
+        {
+            // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
+            return invocation.TargetMethod.Name == "Enter" &&
+                invocation.TargetMethod.ContainingType.Equals(systemThreadingMonitor) &&
+                invocation.TargetMethod.ReturnsVoid &&
+                invocation.TargetMethod.Parameters.Length >= 1 &&
+                invocation.TargetMethod.Parameters[0].Type.SpecialType == SpecialType.System_Object;
         }
     }
 }
