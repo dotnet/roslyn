@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             Action<string, NotificationSeverity> errorHandler,
             CancellationToken cancellationToken)
         {
-            var typeAnalysisResult = AnalyzeTypeAtPositionAsync(documentWithTypeToExtractFrom, position, TypeDiscoveryRule.TypeDeclaration, cancellationToken).WaitAndGetResult(cancellationToken);
+            var typeAnalysisResult = AnalyzeTypeAtPositionAsync(documentWithTypeToExtractFrom, position, TypeDiscoveryRule.TypeDeclaration, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             if (!typeAnalysisResult.CanExtractInterface)
             {
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         {
             var solutionWithInterfaceDocument = solution.AddDocument(interfaceDocumentId, name, text: "", folders: folders);
             var interfaceDocument = solutionWithInterfaceDocument.GetDocument(interfaceDocumentId);
-            var interfaceDocumentSemanticModel = interfaceDocument.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var interfaceDocumentSemanticModel = interfaceDocument.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             var namespaceParts = containingNamespaceDisplay.Split('.').Where(s => !string.IsNullOrEmpty(s));
             var unformattedInterfaceDocument = CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 interfaceDocumentSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 extractedInterfaceSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
                 options: new CodeGenerationOptions(interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
-                cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                cancellationToken: cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             return unformattedInterfaceDocument;
         }
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var formattedRoot = Formatter.Format(unformattedInterfaceDocument.GetSyntaxRootSynchronously(cancellationToken),
                 unformattedInterfaceDocument.Project.Solution.Workspace, cancellationToken: cancellationToken);
             var rootToSimplify = formattedRoot.WithAdditionalAnnotations(Simplifier.Annotation);
-            var finalInterfaceDocument = Simplifier.ReduceAsync(unformattedInterfaceDocument.WithSyntaxRoot(rootToSimplify), cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var finalInterfaceDocument = Simplifier.ReduceAsync(unformattedInterfaceDocument.WithSyntaxRoot(rootToSimplify), cancellationToken: cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             solutionWithInterfaceDocument = finalInterfaceDocument.Project.Solution;
             return solutionWithInterfaceDocument;
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 var formattedDoc = Formatter.FormatAsync(
                     formattedSolution.GetDocument(docId),
                     Formatter.Annotation,
-                    cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                    cancellationToken: cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
                 formattedSolution = formattedDoc.Project.Solution;
             }

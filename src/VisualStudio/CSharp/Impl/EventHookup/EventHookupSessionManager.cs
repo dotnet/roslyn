@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         // For test purposes only!
         internal FrameworkElement TEST_MostRecentQuickInfoContent { get; set; }
 
-        internal EventHookupSessionManager(IHACK_EventHookupDismissalOnBufferChangePreventerService prematureDismissalPreventer, IQuickInfoBroker quickInfoBroker)
+        internal EventHookupSessionManager(IThreadingContext threadingContext, IHACK_EventHookupDismissalOnBufferChangePreventerService prematureDismissalPreventer, IQuickInfoBroker quickInfoBroker)
+            : base(threadingContext)
         {
             _prematureDismissalPreventer = prematureDismissalPreventer;
             _quickInfoBroker = quickInfoBroker;

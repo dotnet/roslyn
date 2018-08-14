@@ -3,6 +3,7 @@
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Roslyn.Test.Utilities
@@ -17,8 +18,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
             End Get
         End Property
 
-        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider) As AbstractObjectBrowserLibraryManager
-            Return New ObjectBrowserLibraryManager(serviceProvider)
+        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace) As AbstractObjectBrowserLibraryManager
+            Return New ObjectBrowserLibraryManager(serviceProvider, componentModel, workspace)
         End Function
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
@@ -1352,7 +1353,7 @@ $"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
 using System.Runtime.InteropServices;
 class C
 {
-    [DllImport("User32.dll", CharSet=CharSet.Unicode)] 
+    [DllImport("User32.dll", CharSet=CharSet.Unicode)]
     public static extern int MessageBox(System.IntPtr h, string m, string c, int type);
 }
 </Code>

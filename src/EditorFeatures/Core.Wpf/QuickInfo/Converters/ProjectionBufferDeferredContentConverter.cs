@@ -5,10 +5,10 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
@@ -16,16 +16,20 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
     [QuickInfoConverterMetadata(typeof(ProjectionBufferDeferredContent))]
     class ProjectionBufferDeferredContentConverter : IDeferredQuickInfoContentToFrameworkElementConverter
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectionBufferDeferredContentConverter(
+            IThreadingContext threadingContext,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextEditorFactoryService textEditorFactoryService)
         {
+            _threadingContext = threadingContext;
             _projectionBufferFactoryService = projectionBufferFactoryService;
             _editorOptionsFactoryService = editorOptionsFactoryService;
             _textEditorFactoryService = textEditorFactoryService;
@@ -42,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             var view = _textEditorFactoryService.CreateTextView(
                 buffer, deferredContent.RoleSet ?? _textEditorFactoryService.NoRoles);
 
-            view.SizeToFit();
+            view.SizeToFit(_threadingContext);
             view.Background = Brushes.Transparent;
 
             // Zoom out a bit to shrink the text.

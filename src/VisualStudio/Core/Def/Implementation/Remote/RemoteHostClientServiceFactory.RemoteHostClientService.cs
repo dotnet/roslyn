@@ -39,10 +39,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private Task<RemoteHostClient> _remoteClientTask;
 
             public RemoteHostClientService(
+                IThreadingContext threadingContext,
                 IAsynchronousOperationListener listener,
                 Workspace workspace,
-                IDiagnosticAnalyzerService analyzerService) :
-                base()
+                IDiagnosticAnalyzerService analyzerService)
+                : base(threadingContext)
             {
                 _gate = new object();
 

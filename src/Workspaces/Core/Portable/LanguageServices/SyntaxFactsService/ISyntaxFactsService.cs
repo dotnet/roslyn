@@ -165,8 +165,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
 
-        SyntaxNode GetExpressionOfElementAccessExpression(SyntaxNode node);
-        SyntaxNode GetArgumentListOfElementAccessExpression(SyntaxNode node);
+        void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);

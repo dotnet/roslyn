@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
@@ -123,10 +124,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        internal static new int RunServer(string pipeName, IClientConnectionHost clientConnectionHost = null, IDiagnosticListener listener = null, TimeSpan? keepAlive = null, CancellationToken cancellationToken = default(CancellationToken))
+        internal static new int RunServer(
+            string pipeName,
+            string tempPath,
+            IClientConnectionHost clientConnectionHost = null,
+            IDiagnosticListener listener = null,
+            TimeSpan? keepAlive = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             BuildServerController controller = new DesktopBuildServerController(new NameValueCollection());
-            return controller.RunServer(pipeName, clientConnectionHost, listener, keepAlive, cancellationToken);
+            return controller.RunServer(pipeName, tempPath, clientConnectionHost, listener, keepAlive, cancellationToken);
         }
     }
 }

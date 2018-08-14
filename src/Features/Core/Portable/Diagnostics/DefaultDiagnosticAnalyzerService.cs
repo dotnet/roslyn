@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var diagnostics = tree.GetDiagnostics(cancellationToken);
 
-                Contract.Requires(document.Project.Solution.Workspace == _workspace);
+                Debug.Assert(document.Project.Solution.Workspace == _workspace);
 
                 var diagnosticData = diagnostics == null ? ImmutableArray<DiagnosticData>.Empty : diagnostics.Select(d => DiagnosticData.Create(document, d)).ToImmutableArrayOrEmpty();
 
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var diagnostics = model.GetMethodBodyDiagnostics(span: null, cancellationToken: cancellationToken).Concat(
                                     model.GetDeclarationDiagnostics(span: null, cancellationToken: cancellationToken));
 
-                Contract.Requires(document.Project.Solution.Workspace == _workspace);
+                Debug.Assert(document.Project.Solution.Workspace == _workspace);
 
                 var diagnosticData = diagnostics == null ? ImmutableArray<DiagnosticData>.Empty : diagnostics.Select(d => DiagnosticData.Create(document, d)).ToImmutableArrayOrEmpty();
 

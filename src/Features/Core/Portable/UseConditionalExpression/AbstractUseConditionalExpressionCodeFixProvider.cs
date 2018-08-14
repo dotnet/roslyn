@@ -81,10 +81,27 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             bool isRef, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var condition = ifOperation.Condition.Syntax;
+            if (!isRef)
+            {
+                // If we are going to generate "expr ? true : false" then just generate "expr"
+                // instead.
+                if (IsBooleanLiteral(trueValue, true) && IsBooleanLiteral(falseValue, false))
+                {
+                    return (TExpressionSyntax)condition.WithoutTrivia();
+                }
+
+                // If we are going to generate "expr ? false : true" then just generate "!expr"
+                // instead.
+                if (IsBooleanLiteral(trueValue, false) && IsBooleanLiteral(falseValue, true))
+                {
+                    return (TExpressionSyntax)generator.Negate(
+                        condition, semanticModel, cancellationToken).WithoutTrivia();
+                }
+            }
+
             var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
                 condition.WithoutTrivia(),
                 MakeRef(generator, isRef, CastValueIfNecessary(generator, trueValue)),
@@ -101,6 +118,17 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             return MakeRef(generator, isRef, conditionalExpression);
+        }
+
+        private static bool IsBooleanLiteral(IOperation trueValue, bool val)
+        {
+            if (trueValue is ILiteralOperation)
+            {
+                var constant = trueValue.ConstantValue;
+                return constant.HasValue && constant.Value is bool b && b == val;
+            }
+
+            return false;
         }
 
         private TExpressionSyntax MakeRef(SyntaxGenerator generator, bool isRef, TExpressionSyntax syntaxNode)
