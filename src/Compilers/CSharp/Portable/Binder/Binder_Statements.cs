@@ -759,7 +759,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression expression = BindValue(initializer, diagnostics, valueKind);
 
-            if (expression is BoundStackAllocArrayCreation boundStackAlloc)
+            if (expression is BoundStackAllocArrayCreation boundStackAlloc &&
+                initializer.IsLocalVariableDeclarationInitializationForPointerStackalloc() &&
+                (initializer.Kind() == SyntaxKind.StackAllocArrayCreationExpression || initializer.Kind() == SyntaxKind.ImplicitStackAllocArrayCreationExpression))
             {
                 var type = new PointerTypeSymbol(boundStackAlloc.ElementType);
                 expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, isRefAssignment: refKind != RefKind.None);
