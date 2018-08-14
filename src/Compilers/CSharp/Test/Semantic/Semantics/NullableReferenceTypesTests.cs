@@ -88,15 +88,15 @@ class C
                 // (2,22): error CS8624: The suppression operator (!) can only be applied to reference types.
                 // [System.Obsolete("", true!)] // 1, 2
                 Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "true!").WithLocation(2, 22),
-                // (6,33): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                // (6,37): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //     static void Main(string z = null!) // 5
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "null!").WithLocation(6, 33),
-                // (5,16): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 37),
+                // (5,20): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //     string x = null!; // 3, 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "null!").WithLocation(5, 16),
-                // (8,20): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(5, 20),
+                // (8,24): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         string y = null!; // 6, 7
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "null!").WithLocation(8, 20),
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(8, 24),
                 // (8,16): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         string y = null!; // 6, 7
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(8, 16),
@@ -29007,7 +29007,41 @@ class Program
                 parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
                 // (5,11): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "s!").WithLocation(9, 11));
+                //         G(null!); // 2, 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "null!").WithArguments("static null checking", "8.0").WithLocation(5, 11),
+                // (6,11): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         G((null as string)!); // 4, 5
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "(null as string)!").WithArguments("static null checking", "8.0").WithLocation(6, 11),
+                // (7,11): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         G(default(string)!); // 6, 7
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default(string)!").WithArguments("static null checking", "8.0").WithLocation(7, 11),
+                // (8,11): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         G(default!); // 8, 9, 10
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default!").WithArguments("static null checking", "8.0").WithLocation(8, 11),
+                // (8,11): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
+                //         G(default!); // 8, 9, 10
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(8, 11),
+                // (9,11): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         G(s!); // 11, 12
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "s!").WithArguments("static null checking", "8.0").WithLocation(9, 11),
+                // (3,19): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //     static void F(string? s) // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "string? s").WithArguments("static null checking", "8.0").WithLocation(3, 19),
+                // (5,15): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                //         G(null!); // 2, 3
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(5, 15),
+                // (6,27): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                //         G((null as string)!); // 4, 5
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 27),
+                // (7,26): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                //         G(default(string)!); // 6, 7
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 26),
+                // (8,18): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                //         G(default!); // 8, 9, 10
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(8, 18),
+                // (9,12): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                //         G(s!); // 11, 12
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(9, 12));
 
             comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
@@ -30036,21 +30070,21 @@ class C
                 // (7,11): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         G(default(S)!);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default(S)!").WithArguments("static null checking", "8.0").WithLocation(7, 11),
-                // (5,11): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                // (5,12): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         G(1!);
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "1!").WithLocation(5, 11),
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(5, 12),
                 // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(1!);
                 Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "1!").WithLocation(5, 11),
-                // (6,11): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                // (6,23): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         G(((int?)null)!);
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "((int?)null)!").WithLocation(6, 11),
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 23),
                 // (6,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(((int?)null)!);
                 Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
-                // (7,11): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                // (7,21): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         G(default(S)!);
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "default(S)!").WithLocation(7, 11),
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 21),
                 // (7,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(default(S)!);
                 Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(S)!").WithLocation(7, 11));
@@ -30844,9 +30878,9 @@ F(v).ToString();";
                 // (8,13): error CS8197: Cannot infer the type of implicitly-typed out variable 'v'.
                 // d.F(out var v);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "v").WithArguments("v").WithLocation(8, 13),
-                // (7,13): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                // (7,17): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 // dynamic d = null!;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "null!").WithLocation(7, 13));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 17));
         }
 
         /// <summary>
@@ -38431,9 +38465,9 @@ class C
                 // (29,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //             T? x = t; // warn 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(29, 14),
-                // (30,13): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                // (30,14): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //             x!.ToString(); // warn 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "x!").WithLocation(30, 13)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(30, 14)
                 );
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);

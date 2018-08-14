@@ -2046,7 +2046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (NonNullTypesContext.NonNullTypes == null)
             {
-                diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContext, node.GetLocation());
+                diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContext, node.OperatorToken.GetLocation());
             }
 
             var expr = BindExpression(node.Operand, diagnostics);
