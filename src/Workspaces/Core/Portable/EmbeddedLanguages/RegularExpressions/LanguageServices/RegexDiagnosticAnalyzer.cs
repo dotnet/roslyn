@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var options = context.Options;
 
             var option = optionSet.GetOption(RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
             if (!option)
