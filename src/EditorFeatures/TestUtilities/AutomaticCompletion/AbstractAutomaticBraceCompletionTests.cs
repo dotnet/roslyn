@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Operations;
@@ -14,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 {
+    [UseExportProvider]
     public abstract class AbstractAutomaticBraceCompletionTests
     {
         internal void CheckStart(IBraceCompletionSession session, bool expectValidSession = true)
@@ -139,6 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         internal Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey, object> changedOptionSet = null)
         {
+            var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
             var undoManager = workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>();
             var editorOperationsFactoryService = workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>();
 
@@ -155,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
             var document = workspace.Documents.First();
 
-            var provider = new BraceCompletionSessionProvider(undoManager, editorOperationsFactoryService);
+            var provider = new BraceCompletionSessionProvider(threadingContext, undoManager, editorOperationsFactoryService);
             var openingPoint = new SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value);
             if (provider.TryCreateSession(document.GetTextView(), openingPoint, opening, closing, out var session))
             {

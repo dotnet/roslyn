@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -16,7 +17,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.TextManager.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
-    Partial Friend MustInherit Class VisualBasicProject
+    Partial Friend NotInheritable Class VisualBasicProject
         Inherits AbstractLegacyProject
         Implements IVbCompilerProject
 
@@ -50,6 +51,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             _compilerHost = compilerHost
 
             projectTracker.AddProject(Me)
+
+            ProjectCodeModel = New ProjectCodeModel(projectTracker.ThreadingContext, Me.Id, New VisualBasicCodeModelInstanceFactory(Me), visualStudioWorkspaceOpt, serviceProvider)
         End Sub
 
         Public Sub AddApplicationObjectVariable(wszClassName As String, wszMemberName As String) Implements IVbCompilerProject.AddApplicationObjectVariable
@@ -166,7 +169,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Function AdviseBuildStatusCallback(pIVbBuildStatusCallback As IVbBuildStatusCallback) As UInteger Implements IVbCompilerProject.AdviseBuildStatusCallback
             Try
-                Contract.Requires(_buildStatusCallback Is Nothing, "IVbBuildStatusCallback already set")
+                Debug.Assert(_buildStatusCallback Is Nothing, "IVbBuildStatusCallback already set")
 
                 _buildStatusCallback = pIVbBuildStatusCallback
 
@@ -184,15 +187,32 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Function
 
         Public Sub UnadviseBuildStatusCallback(dwCookie As UInteger) Implements IVbCompilerProject.UnadviseBuildStatusCallback
-            Contract.Requires(dwCookie = 0, "Bad cookie")
+            Debug.Assert(dwCookie = 0, "Bad cookie")
 
             _buildStatusCallback = Nothing
         End Sub
 
 #End Region
+        Public Function CreateCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppCodeModel As EnvDTE.CodeModel) As Integer Implements IVbCompilerProject.CreateCodeModel
+            ppCodeModel = ProjectCodeModel.GetOrCreateRootCodeModel(pProject)
 
-        Public MustOverride Function CreateCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppCodeModel As EnvDTE.CodeModel) As Integer Implements IVbCompilerProject.CreateCodeModel
-        Public MustOverride Function CreateFileCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppFileCodeModel As EnvDTE.FileCodeModel) As Integer Implements IVbCompilerProject.CreateFileCodeModel
+            Return VSConstants.S_OK
+        End Function
+
+        Public Function CreateFileCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppFileCodeModel As EnvDTE.FileCodeModel) As Integer Implements IVbCompilerProject.CreateFileCodeModel
+            ppFileCodeModel = Nothing
+
+            If pProjectItem IsNot Nothing Then
+                Dim fileName = pProjectItem.FileNames(1)
+
+                If Not String.IsNullOrWhiteSpace(fileName) Then
+                    ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, pProjectItem)
+                    Return VSConstants.S_OK
+                End If
+            End If
+
+            Return VSConstants.E_INVALIDARG
+        End Function
 
         Public Sub DeleteAllImports() Implements IVbCompilerProject.DeleteAllImports
             Try
@@ -386,7 +406,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Protected Overrides Function CreateCompilationOptions(commandLineArguments As CommandLineArguments, newParseOptions As ParseOptions) As CompilationOptions
             Dim baseCompilationOptions = DirectCast(MyBase.CreateCompilationOptions(commandLineArguments, newParseOptions), VisualBasicCompilationOptions)
             Dim vbParseOptions = DirectCast(newParseOptions, VisualBasicParseOptions)
-            Return VisualBasicProjectOptionsHelper.CreateCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, RuleSetFile)
+            Return VisualBasicProjectOptionsHelper.CreateCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, RuleSetFile?.Target)
         End Function
 
         Protected Overrides Function CreateParseOptions(commandLineArguments As CommandLineArguments) As ParseOptions

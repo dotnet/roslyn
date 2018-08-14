@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -11,6 +12,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
     using static CSharpHelpers;
 
+    [UseExportProvider]
     public class CSharpReferenceTests
     {
         [WpfFact]

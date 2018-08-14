@@ -6,8 +6,6 @@ namespace Roslyn.Utilities
 {
     internal static class DateTimeUtilities
     {
-        internal const string DateTimeDateDataFieldName = "dateData";
-
         // From DateTime.cs.
         private const long TicksMask = 0x3FFFFFFFFFFFFFFF;
 
@@ -16,14 +14,6 @@ namespace Roslyn.Utilities
             // This mechanism for getting the tick count from the underlying ulong field is copied
             // from System.DateTime.InternalTicks (ndp\clr\src\BCL\System\DateTime.cs).
             var tickCount = BitConverter.DoubleToInt64Bits(raw) & TicksMask;
-            return new DateTime(tickCount);
-        }
-
-        internal static DateTime ToDateTime(ulong raw)
-        {
-            // This mechanism for getting the tick count from the underlying ulong field is copied
-            // from System.DateTime.InternalTicks (ndp\clr\src\BCL\System\DateTime.cs).
-            var tickCount = unchecked((long)raw) & TicksMask;
             return new DateTime(tickCount);
         }
     }

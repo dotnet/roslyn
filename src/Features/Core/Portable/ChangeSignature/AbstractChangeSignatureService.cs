@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     documents,
                     ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
                     streamingProgress,
+                    FindReferencesSearchOptions.Default,
                     cancellationToken);
 
                 await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
@@ -378,7 +379,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             var root = tree.GetRoot();
             SyntaxNode node = root.FindNode(location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-            var updater = document.Project.LanguageServices.GetService<AbstractChangeSignatureService>();
+            var updater = document.GetLanguageService<AbstractChangeSignatureService>();
             nodeToUpdate = updater.FindNodeToUpdate(document, node);
 
             return nodeToUpdate != null;

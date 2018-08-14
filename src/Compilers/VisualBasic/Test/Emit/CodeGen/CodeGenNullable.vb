@@ -1744,7 +1744,7 @@ End Module
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2180,7 +2180,8 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(544946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544946")>
+        <WorkItem(544946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544946")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub LiftedBinaryConcatLikeWithNothingLiteral()
             Dim source =
                 <compilation>
@@ -3415,7 +3416,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
 
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ConstAsNonConstant, "Boolean?"),
                                         Diagnostic(ERRID.ERR_ConstAsNonConstant, "ULong?"),
@@ -3464,7 +3465,7 @@ End Module
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotMember2, "ns.field").WithArguments("field", "S?"))
         End Sub
 
@@ -3612,7 +3613,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3811,7 +3812,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
 
             AssertTheseDiagnostics(compilation,
 <expected>

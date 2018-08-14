@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         void IIntellisenseBuildTarget.SetIntellisenseBuildResult(bool succeeded, string reason)
         {
-            SetIntellisenseBuildResultAndNotifyWorkspaceHosts(succeeded);
+            SetIntellisenseBuildResultAndNotifyWorkspace(succeeded);
 
             UpdateIntellisenseBuildFailureDiagnostic(succeeded, reason);
         }

@@ -14,10 +14,13 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.Indent, ContentTypeNames.CSharpContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(PredefinedCommandHandlerNames.Indent)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
     internal class SmartTokenFormatterCommandHandler :

@@ -2,6 +2,36 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="Applying_changes">
+        <source>Applying changes</source>
+        <target state="new">Applying changes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_configuration">
+        <source>Change configuration</source>
+        <target state="new">Change configuration</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_cleanup_is_not_configured">
+        <source>Code cleanup is not configured</source>
+        <target state="new">Code cleanup is not configured</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_it_now">
+        <source>Configure it now</source>
+        <target state="new">Configure it now</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_show_this_message_again">
+        <source>Do not show this message again</source>
+        <target state="new">Do not show this message again</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document_performed_additional_cleanup">
+        <source>Format Document performed additional cleanup</source>
+        <target state="new">Format Document performed additional cleanup</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">Ön İşlemci Metni</target>
@@ -10,6 +40,11 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">Noktalama İşareti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="String_Escape_Character">
+        <source>String - Escape Character</source>
+        <target state="new">String - Escape Character</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -858,9 +893,9 @@
         <note />
       </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s). 
+        <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz. 
+        <target state="needs-review-translation">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz. 
 Devam etmek istiyor musunuz?</target>
         <note />
       </trans-unit>
@@ -1082,6 +1117,71 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Inline_Rename_Field_Text">
         <source>Inline Rename Field Text</source>
         <target state="translated">Satır İçi Alan Metnini Yeniden Adlandır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_Comment_Editing">
+        <source>Block Comment Editing</source>
+        <target state="translated">Açıklama Düzenlemeyi Engelle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comment_Uncomment_Selection">
+        <source>Comment/Uncomment Selection</source>
+        <target state="translated">Seçimi Açıklama Satırı Yap/Seçimin Açıklamasını Kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_Completion">
+        <source>Code Completion</source>
+        <target state="translated">Kod Tamamlama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Execute_In_Interactive">
+        <source>Execute In Interactive</source>
+        <target state="translated">Etkileşimli Pencerede Yürüt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface</source>
+        <target state="translated">Arabirimi Ayıkla</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Adjacent_Member">
+        <source>Go To Adjacent Member</source>
+        <target state="translated">Bitişik Üyeye Git</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interactive">
+        <source>Interactive</source>
+        <target state="translated">Etkileşimli</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_To_Highlight_Reference">
+        <source>Navigate To Highlighted Reference</source>
+        <target state="translated">Vurgulanan Başvuruya Git</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Outlining">
+        <source>Outlining</source>
+        <target state="translated">Ana Hat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Tracking_Cancellation">
+        <source>Rename Tracking Cancellation</source>
+        <target state="translated">İzleme İptal Etmeyi Yeniden Adlandır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Signature_Help">
+        <source>Signature Help</source>
+        <target state="translated">İmza Yardımı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Smart_Token_Formatter">
+        <source>Smart Token Formatter</source>
+        <target state="translated">Akıllı Belirteç Biçimlendirici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Etkileşimli Pencereye Yapıştır</target>
         <note />
       </trans-unit>
     </body>

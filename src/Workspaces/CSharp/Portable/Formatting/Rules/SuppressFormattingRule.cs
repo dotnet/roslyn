@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Suppress Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 
             AddInitializerSuppressOperations(list, node);
 
-            AddBraceSuppressOperations(list, node, lastToken);
+            AddBraceSuppressOperations(list, node);
 
             AddStatementExceptBlockSuppressOperations(list, node);
 
@@ -127,8 +127,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node is AnonymousFunctionExpressionSyntax ||
                 node is LocalFunctionStatementSyntax)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(
-                    list, node.GetFirstToken(includeZeroWidth: true), node.GetLastToken(includeZeroWidth: true));
+                AddSuppressWrappingIfOnSingleLineOperation(list,
+                    node.GetFirstToken(includeZeroWidth: true),
+                    node.GetLastToken(includeZeroWidth: true),
+                    SuppressOption.IgnoreElastic);
                 return;
             }
 

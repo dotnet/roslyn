@@ -7,9 +7,12 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
-    <ExportCommandHandler(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.VisualBasicContentType)>
+    <Export(GetType(VSCommanding.ICommandHandler))>
+    <ContentType(ContentTypeNames.VisualBasicContentType)>
+    <Name(PredefinedCommandHandlerNames.DocumentationComments)>
     <Order(After:=PredefinedCommandHandlerNames.Rename)>
     <Order(After:=PredefinedCommandHandlerNames.Completion)>
     Friend Class DocumentationCommentCommandHandler

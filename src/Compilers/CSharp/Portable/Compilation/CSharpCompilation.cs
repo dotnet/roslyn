@@ -12,17 +12,17 @@ using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
-using static Microsoft.CodeAnalysis.CSharp.Binder;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -617,8 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new bool ContainsSyntaxTree(SyntaxTree syntaxTree)
         {
-            var cstree = syntaxTree as SyntaxTree;
-            return cstree != null && _syntaxAndDeclarations.GetLazyState().RootNamespaces.ContainsKey(cstree);
+            return syntaxTree != null && _syntaxAndDeclarations.GetLazyState().RootNamespaces.ContainsKey(syntaxTree);
         }
 
         /// <summary>
@@ -735,10 +734,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
                     if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(tree, loadedSyntaxTreeMap))
                     {
-                        throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, tree), $"{nameof(trees)}[{i}]");
+                        throw new ArgumentException(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, $"{nameof(trees)}[{i}]");
                     }
 
-                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, tree), $"{nameof(trees)}[{i}]");
+                    throw new ArgumentException(CSharpResources.SyntaxTreeNotFoundToRemove, $"{nameof(trees)}[{i}]");
                 }
 
                 removeSet.Add(tree);
@@ -803,10 +802,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
                 if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(oldTree, loadedSyntaxTreeMap))
                 {
-                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, oldTree), nameof(oldTree));
+                    throw new ArgumentException(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, nameof(oldTree));
                 }
 
-                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, oldTree), nameof(oldTree));
+                throw new ArgumentException(CSharpResources.SyntaxTreeNotFoundToRemove, nameof(oldTree));
             }
 
             if (externalSyntaxTrees.Contains(newTree))
@@ -1277,6 +1276,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Assembly.GetSpecialTypeMember(specialMember);
         }
 
+        internal override ISymbol CommonGetSpecialTypeMember(SpecialMember specialMember)
+        {
+            return GetSpecialTypeMember(specialMember);
+        }
+
         internal TypeSymbol GetTypeByReflectionType(Type type, DiagnosticBag diagnostics)
         {
             var result = Assembly.GetTypeByReflectionType(type, includeReferences: true);
@@ -1442,13 +1446,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return null;
                     }
 
-                    EntryPointCandidateFinder.FindCandidatesInSingleType(mainType, entryPointCandidates, cancellationToken);
+                    AddEntryPointCandidates(entryPointCandidates, mainType.GetMembersUnordered());
                 }
                 else
                 {
                     mainType = null;
 
-                    EntryPointCandidateFinder.FindCandidatesInNamespace(globalNamespace, entryPointCandidates, cancellationToken);
+                    AddEntryPointCandidates(
+                        entryPointCandidates,
+                        this.GetSymbolsWithName(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken));
 
                     // Global code is the entry point, ignore all other Mains.
                     var scriptClass = this.ScriptClass;
@@ -1597,6 +1603,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static void AddEntryPointCandidates(
+            ArrayBuilder<MethodSymbol> entryPointCandidates, IEnumerable<ISymbol> members)
+        {
+            foreach (var member in members)
+            {
+                if (member is MethodSymbol method &&
+                    method.IsEntryPointCandidate)
+                {
+                    entryPointCandidates.Add(method);
+                }
+            }
+        }
+
         internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, DiagnosticBag diagnostics)
         {
             // Common case optimization
@@ -1733,6 +1752,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
+        /// to this compilation's programming language.
+        /// </summary>
+        /// <param name="source">Source type of value to be converted</param>
+        /// <param name="destination">Destination type of value to be converted</param>
+        /// <returns>A <see cref="CommonConversion"/> that classifies the conversion from the
+        /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
+        public override CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination)
+        {
+            return ClassifyConversion(source, destination).ToCommonConversion();
+        }
+
+        internal override IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue)
+        {
+            constantValue = default;
+
+            if (destination is null)
+            {
+                return Conversion.NoConversion;
+            }
+
+            ITypeSymbol sourceType = source.Type;
+
+            if (sourceType is null)
+            {
+                if (source.ConstantValue.HasValue && source.ConstantValue.Value is null && destination.IsReferenceType)
+                {
+                    constantValue = source.ConstantValue;
+                    return Conversion.DefaultOrNullLiteral;
+                }
+
+                return Conversion.NoConversion;
+            }
+
+            Conversion result = ClassifyConversion(sourceType, destination);
+
+            if (result.IsReference && source.ConstantValue.HasValue && source.ConstantValue.Value is null)
+            {
+                constantValue = source.ConstantValue;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
         /// COR Library in this Compilation.
         /// </summary>
@@ -1775,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!_syntaxAndDeclarations.GetLazyState().RootNamespaces.ContainsKey(syntaxTree))
             {
-                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, syntaxTree), nameof(syntaxTree));
+                throw new ArgumentException(CSharpResources.SyntaxTreeNotFound, nameof(syntaxTree));
             }
 
             return new SyntaxTreeSemanticModel(this, (SyntaxTree)syntaxTree, ignoreAccessibility);
@@ -1870,14 +1934,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void ReportUnusedImports(SyntaxTree filterTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
-            if (_lazyImportInfos != null)
+            if (_lazyImportInfos != null && filterTree?.Options.DocumentationMode != DocumentationMode.None)
             {
                 foreach (ImportInfo info in _lazyImportInfos)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     SyntaxTree infoTree = info.Tree;
-                    if (filterTree == null || filterTree == infoTree)
+                    if ((filterTree == null || filterTree == infoTree) && infoTree.Options.DocumentationMode != DocumentationMode.None)
                     {
                         TextSpan infoSpan = info.Span;
                         if (!this.IsImportDirectiveUsed(infoTree, infoSpan.Start))
@@ -3033,8 +3097,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
             }
 
-            return new SymbolSearcher(this).GetSymbolsWithName(predicate, filter, cancellationToken);
+            return new PredicateSymbolSearcher(this, filter, predicate, cancellationToken).GetSymbolsWithName();
         }
+
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Return true if there is a source declaration symbol name that matches the provided name.
+        /// This will be faster than <see cref="ContainsSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
+        /// when predicate is just a simple string check.
+        /// </summary>
+        public override bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (filter == SymbolFilter.None)
+            {
+                throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
+            }
+
+            return DeclarationTable.ContainsName(this.MergedRootDeclaration, name, filter, cancellationToken);
+        }
+
+        /// <summary>
+        /// Return source declaration symbols whose name matches the provided name.  This will be
+        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter,
+        /// CancellationToken)"/> when predicate is just a simple string check.  <paramref
+        /// name="name"/> is case sensitive.
+        /// </summary>
+        public override IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (filter == SymbolFilter.None)
+            {
+                throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
+            }
+
+            return new NameSymbolSearcher(this, filter, name, cancellationToken).GetSymbolsWithName();
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         #endregion
 
@@ -3096,38 +3203,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private class SymbolSearcher
+        private abstract class AbstractSymbolSearcher
         {
-            private readonly Dictionary<Declaration, NamespaceOrTypeSymbol> _cache;
+            private readonly PooledDictionary<Declaration, NamespaceOrTypeSymbol> _cache;
             private readonly CSharpCompilation _compilation;
+            private readonly bool _includeNamespace;
+            private readonly bool _includeType;
+            private readonly bool _includeMember;
+            private readonly CancellationToken _cancellationToken;
 
-            public SymbolSearcher(CSharpCompilation compilation)
+            protected AbstractSymbolSearcher(
+                CSharpCompilation compilation, SymbolFilter filter, CancellationToken cancellationToken)
             {
-                _cache = new Dictionary<Declaration, NamespaceOrTypeSymbol>();
+                _cache = PooledDictionary<Declaration, NamespaceOrTypeSymbol>.GetInstance();
+
                 _compilation = compilation;
+
+                _includeNamespace = (filter & SymbolFilter.Namespace) == SymbolFilter.Namespace;
+                _includeType = (filter & SymbolFilter.Type) == SymbolFilter.Type;
+                _includeMember = (filter & SymbolFilter.Member) == SymbolFilter.Member;
+
+                _cancellationToken = cancellationToken;
             }
 
-            public IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+            protected abstract bool Matches(string name);
+            protected abstract bool ShouldCheckTypeForMembers(MergedTypeDeclaration current);
+
+            public IEnumerable<ISymbol> GetSymbolsWithName()
             {
                 var result = new HashSet<ISymbol>();
-                var spine = new List<MergedNamespaceOrTypeDeclaration>();
+                var spine = ArrayBuilder<MergedNamespaceOrTypeDeclaration>.GetInstance();
 
-                AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, predicate, filter, result, cancellationToken);
+                AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, result);
 
+                spine.Free();
+                _cache.Free();
                 return result;
             }
 
             private void AppendSymbolsWithName(
-                List<MergedNamespaceOrTypeDeclaration> spine, MergedNamespaceOrTypeDeclaration current,
-                Func<string, bool> predicate, SymbolFilter filter, HashSet<ISymbol> set, CancellationToken cancellationToken)
+                ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine, MergedNamespaceOrTypeDeclaration current,
+                HashSet<ISymbol> set)
             {
-                var includeNamespace = (filter & SymbolFilter.Namespace) == SymbolFilter.Namespace;
-                var includeType = (filter & SymbolFilter.Type) == SymbolFilter.Type;
-                var includeMember = (filter & SymbolFilter.Member) == SymbolFilter.Member;
-
                 if (current.Kind == DeclarationKind.Namespace)
                 {
-                    if (includeNamespace && predicate(current.Name))
+                    if (_includeNamespace && Matches(current.Name))
                     {
                         var container = GetSpineSymbol(spine);
                         var symbol = GetSymbol(container, current);
@@ -3139,7 +3259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (includeType && predicate(current.Name))
+                    if (_includeType && Matches(current.Name))
                     {
                         var container = GetSpineSymbol(spine);
                         var symbol = GetSymbol(container, current);
@@ -3149,25 +3269,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    if (includeMember)
+                    if (_includeMember)
                     {
-                        AppendMemberSymbolsWithName(spine, current, predicate, set, cancellationToken);
+                        var typeDeclaration = (MergedTypeDeclaration)current;
+                        if (ShouldCheckTypeForMembers(typeDeclaration))
+                        {
+                            AppendMemberSymbolsWithName(spine, typeDeclaration, set);
+                        }
                     }
                 }
 
                 spine.Add(current);
 
-                foreach (var child in current.Children.OfType<MergedNamespaceOrTypeDeclaration>())
+                foreach (var child in current.Children)
                 {
-                    if (includeMember || includeType)
+                    if (child is MergedNamespaceOrTypeDeclaration mergedNamespaceOrType)
                     {
-                        AppendSymbolsWithName(spine, child, predicate, filter, set, cancellationToken);
-                        continue;
-                    }
-
-                    if (child.Kind == DeclarationKind.Namespace)
-                    {
-                        AppendSymbolsWithName(spine, child, predicate, filter, set, cancellationToken);
+                        if (_includeMember || _includeType || child.Kind == DeclarationKind.Namespace)
+                        {
+                            AppendSymbolsWithName(spine, mergedNamespaceOrType, set);
+                        }
                     }
                 }
 
@@ -3176,9 +3297,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private void AppendMemberSymbolsWithName(
-                List<MergedNamespaceOrTypeDeclaration> spine, MergedNamespaceOrTypeDeclaration current,
-                Func<string, bool> predicate, HashSet<ISymbol> set, CancellationToken cancellationToken)
+                ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine, MergedTypeDeclaration current, HashSet<ISymbol> set)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 spine.Add(current);
 
                 var container = GetSpineSymbol(spine);
@@ -3188,7 +3309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!member.IsTypeOrTypeAlias() &&
                             (member.CanBeReferencedByName || member.IsExplicitInterfaceImplementation() || member.IsIndexer()) &&
-                            predicate(member.Name))
+                            Matches(member.Name))
                         {
                             set.Add(member);
                         }
@@ -3198,7 +3319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 spine.RemoveAt(spine.Count - 1);
             }
 
-            private NamespaceOrTypeSymbol GetSpineSymbol(List<MergedNamespaceOrTypeDeclaration> spine)
+            protected NamespaceOrTypeSymbol GetSpineSymbol(ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine)
             {
                 if (spine.Count == 0)
                 {
@@ -3211,7 +3332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return symbol;
                 }
 
-                var current = _compilation.GlobalNamespace as NamespaceOrTypeSymbol;
+                NamespaceOrTypeSymbol current = _compilation.GlobalNamespace;
                 for (var i = 1; i < spine.Count; i++)
                 {
                     current = GetSymbol(current, spine[i]);
@@ -3221,15 +3342,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private NamespaceOrTypeSymbol GetCachedSymbol(MergedNamespaceOrTypeDeclaration declaration)
-            {
-                NamespaceOrTypeSymbol symbol;
-                if (_cache.TryGetValue(declaration, out symbol))
-                {
-                    return symbol;
-                }
-
-                return null;
-            }
+                => _cache.TryGetValue(declaration, out NamespaceOrTypeSymbol symbol)
+                        ? symbol
+                        : null;
 
             private NamespaceOrTypeSymbol GetSymbol(NamespaceOrTypeSymbol container, MergedNamespaceOrTypeDeclaration declaration)
             {
@@ -3275,6 +3390,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private class PredicateSymbolSearcher : AbstractSymbolSearcher
+        {
+            private readonly Func<string, bool> _predicate;
+
+            public PredicateSymbolSearcher(
+                CSharpCompilation compilation, SymbolFilter filter, Func<string, bool> predicate, CancellationToken cancellationToken) 
+                : base(compilation, filter, cancellationToken)
+            {
+                _predicate = predicate;
+            }
+
+            protected override bool ShouldCheckTypeForMembers(MergedTypeDeclaration current)
+            {
+                // Note: this preserves the behavior the compiler has always had when a predicate
+                // is passed in.  We could potentially be smarter by checking the predicate
+                // against the list of member names in the type declaration first.
+                return true;
+            }
+
+            protected override bool Matches(string name)
+                => _predicate(name);
+        }
+
+        private class NameSymbolSearcher : AbstractSymbolSearcher
+        {
+            private readonly string _name;
+
+            public NameSymbolSearcher(
+                CSharpCompilation compilation, SymbolFilter filter, string name, CancellationToken cancellationToken)
+                : base(compilation, filter, cancellationToken)
+            {
+                _name = name;
+            }
+
+            protected override bool ShouldCheckTypeForMembers(MergedTypeDeclaration current)
+            {
+                foreach (SingleTypeDeclaration typeDecl in current.Declarations)
+                {
+                    if (typeDecl.MemberNames.Contains(_name))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            protected override bool Matches(string name)
+                => _name == name;
         }
     }
 }

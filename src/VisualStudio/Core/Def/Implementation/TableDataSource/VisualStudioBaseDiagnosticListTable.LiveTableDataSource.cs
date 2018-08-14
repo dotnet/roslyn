@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -190,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (diagnostic == null)
                 {
                     // guard us from wrong provider that gives null diagnostic
-                    Contract.Requires(false, "Let's see who does this");
+                    Debug.Assert(false, "Let's see who does this");
                     return false;
                 }
 
@@ -555,7 +556,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
             {
                 var id = e.Id.ToString();
-                if (e.Id is AnalyzerUpdateArgsId analyzer)
+                if (e.Id is LiveDiagnosticUpdateArgsId live)
+                {
+                    id = $"{live.Analyzer.ToString()}/{live.Kind}";
+                }
+                else if (e.Id is AnalyzerUpdateArgsId analyzer)
                 {
                     id = analyzer.Analyzer.ToString();
                 }

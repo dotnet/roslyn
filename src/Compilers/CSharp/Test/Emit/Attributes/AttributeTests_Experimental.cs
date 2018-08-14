@@ -59,7 +59,7 @@ namespace N
     }
     [Experimental] public enum E { A }
 }";
-            var comp1 = CreateStandardCompilation(new[] { Parse(ExperimentalAttributeSource), Parse(source1) });
+            var comp1 = CreateCompilation(new[] { Parse(ExperimentalAttributeSource), Parse(source1) });
             comp1.VerifyDiagnostics(
                 // (11,17): warning CS8305: 'N.A<T>.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //             new B();
@@ -82,7 +82,7 @@ class C
         e = E.A;
     }
 }";
-            var comp2A = CreateStandardCompilation(source2, new[] { comp1.EmitToImageReference() });
+            var comp2A = CreateCompilation(source2, new[] { comp1.EmitToImageReference() });
             comp2A.VerifyDiagnostics(
                 // (8,24): warning CS8305: 'N.A<int>.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         object o = new B();
@@ -97,7 +97,7 @@ class C
                 //         e = E.A;
                 Diagnostic(ErrorCode.WRN_Experimental, "E").WithArguments("N.E").WithLocation(11, 13));
 
-            var comp2B = CreateStandardCompilation(source2, new[] { new CSharpCompilationReference(comp1) });
+            var comp2B = CreateCompilation(source2, new[] { new CSharpCompilationReference(comp1) });
             comp2B.VerifyDiagnostics(
                 // (8,24): warning CS8305: 'N.A<int>.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         object o = new B();
@@ -157,7 +157,7 @@ class Program
         ((I)o).F();     // warning CS8305: 'I.F()' is for evaluation purposes only
     }
 }";
-            var comp1 = CreateStandardCompilation(source1, new[] { ref0 });
+            var comp1 = CreateCompilation(source1, new[] { ref0 });
             comp1.VerifyDiagnostics(
                 // (7,13): warning CS8305: 'E.A' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         e = E.A;        // warning CS8305: 'F.A' is for evaluation purposes only
@@ -200,7 +200,7 @@ class C
         (new A.B()).ToString();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(DeprecatedAttributeSource), Parse(ExperimentalAttributeSource), Parse(source) });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(DeprecatedAttributeSource), Parse(ExperimentalAttributeSource), Parse(source) });
             comp.VerifyDiagnostics(
                 // (20,19): warning CS8305: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
                 //     static void F(A a)
@@ -260,7 +260,7 @@ class C
         (new A.B()).ToString();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(DeprecatedAttributeSource), Parse(ExperimentalAttributeSource), Parse(source) });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(DeprecatedAttributeSource), Parse(ExperimentalAttributeSource), Parse(source) });
             comp.VerifyDiagnostics(
                 // (23,9): warning CS0618: 'A.F1()' is obsolete: ''
                 //         a.F1();
@@ -302,7 +302,7 @@ class B
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(DeprecatedAttributeSource), Parse(ExperimentalAttributeSource), Parse(source) });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(DeprecatedAttributeSource), Parse(ExperimentalAttributeSource), Parse(source) });
             comp.VerifyDiagnostics();
         }
 
@@ -322,7 +322,7 @@ class C
     [Obsolete("""", false)]
     static object FB() => new B();
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
             comp.VerifyDiagnostics(
                 // (7,31): warning CS8305: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
                 //     static object FA() => new A();
@@ -351,7 +351,7 @@ class B
 {
     A F() => null;
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
             comp.VerifyDiagnostics(
                 // (8,2): warning CS0612: 'MyAttribute' is obsolete
                 // [MyAttribute]
@@ -380,7 +380,7 @@ class B
 {
     A F() => null;
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
             comp.VerifyDiagnostics(
                 // (8,2): warning CS8305: 'MyAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
                 // [MyAttribute]
@@ -411,7 +411,7 @@ class BAttribute : Attribute
 class C
 {
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
             comp.VerifyDiagnostics(
                 // (9,2): warning CS8305: 'AAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
                 // [A]
@@ -448,7 +448,7 @@ class BAttribute : Attribute
 class C
 {
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
             comp.VerifyDiagnostics(
                 // (9,2): warning CS0612: 'AAttribute' is obsolete
                 // [A]
@@ -487,7 +487,7 @@ using Windows.Foundation.Metadata;
 [Experimental,                                   Obsolete(""ON"", true)]                          public enum EN { }
 [Experimental,                                   Deprecated(""DO"", DeprecationType.Deprecate, 0)]public enum EO { }
 [Experimental,                                   Deprecated(""DP"", DeprecationType.Remove, 0)]   public enum EP { }";
-            var comp1 = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(DeprecatedAttributeSource), Parse(ExperimentalAttributeSource), Parse(source1) });
+            var comp1 = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(DeprecatedAttributeSource), Parse(ExperimentalAttributeSource), Parse(source1) });
             comp1.VerifyDiagnostics();
 
             var source2 =
@@ -513,7 +513,7 @@ using Windows.Foundation.Metadata;
         F(default(EP));
     }
 }";
-            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, references: new[] { comp1.EmitToImageReference() });
+            var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2, references: new[] { comp1.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (6,19): warning CS0618: 'SA' is obsolete: 'DA'
                 //         F(default(SA));
@@ -588,7 +588,7 @@ class P
         o = default(CD);
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
             comp.VerifyDiagnostics(
                 // (19,21): warning CS0612: 'B' is obsolete
                 //         o = default(CB);

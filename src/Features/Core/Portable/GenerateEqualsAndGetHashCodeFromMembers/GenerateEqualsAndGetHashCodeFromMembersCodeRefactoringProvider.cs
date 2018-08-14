@@ -19,11 +19,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, 
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers), Shared]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
                     Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
-    internal abstract partial class AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
         public const string GenerateOperatorsId = nameof(GenerateOperatorsId);
         public const string ImplementIEquatableId = nameof(ImplementIEquatableId);
@@ -33,12 +33,15 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private readonly IPickMembersService _pickMembersService_forTestingPurposes;
 
-        protected AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService)
+        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider() 
+            : this(pickMembersService: null)
+        {
+        }
+
+        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService)
         {
             _pickMembersService_forTestingPurposes = pickMembersService;
         }
-
-        protected abstract ImmutableArray<SyntaxNode> WrapWithUnchecked(ImmutableArray<SyntaxNode> statements);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             // Find all the possible instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.
-            var viableMembers = containingType.GetMembers().WhereAsArray(IsViableInstanceFieldOrProperty);
+            var viableMembers = containingType.GetMembers().WhereAsArray(IsReadableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
                 return;
@@ -177,7 +180,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 var info = await this.GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 if (info != null &&
-                    info.SelectedMembers.All(IsViableInstanceFieldOrProperty))
+                    info.SelectedMembers.All(IsReadableInstanceFieldOrProperty))
                 {
                     if (info.ContainingType != null && info.ContainingType.TypeKind != TypeKind.Interface)
                     {
@@ -249,7 +252,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             else
             {
                 return new GenerateEqualsAndGetHashCodeAction(
-                    this, document, textSpan, containingType, members,
+                    document, textSpan, containingType, members,
                     generateEquals, generateGetHashCode,
                     implementIEquatable: false, generateOperators: false);
             }

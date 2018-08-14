@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -55,8 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
             public class CSharpFixMultiplePragmaWarningSuppressionTests : CSharpFixMultipleSuppressionTests
             {
-                private string FixMultipleActionEquivalenceKey => FeaturesResources.in_Source;
-
                 [Fact]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
@@ -155,7 +154,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixMultipleActionEquivalenceKey);
+                    await TestInRegularAndScriptAsync(input, expected);
                 }
             }
 

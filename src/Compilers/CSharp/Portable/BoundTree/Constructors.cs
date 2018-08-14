@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundFieldAccess)receiver).IsByValue;
 
                 case BoundKind.Local:
-                    return !((BoundLocal)receiver).LocalSymbol.IsWritable;
+                    return !((BoundLocal)receiver).LocalSymbol.IsWritableVariable;
 
                 default:
                     return false;
@@ -560,6 +560,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundDeclarationPattern(SyntaxNode syntax, LocalSymbol localSymbol, BoundTypeExpression declaredType, bool isVar, bool hasErrors = false)
             : this(syntax, localSymbol, localSymbol == null ? new BoundDiscardExpression(syntax, declaredType.Type) : (BoundExpression)new BoundLocal(syntax, localSymbol, null, declaredType.Type), declaredType, isVar, hasErrors)
+        {
+        }
+    }
+
+    internal partial class BoundAddressOfOperator
+    {
+        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
+             : this(syntax, operand, isManaged: false, type, hasErrors)
+        {
+        }  
+    }
+
+    internal partial class BoundForEachStatement
+    {
+        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false) :
+            this(syntax, enumeratorInfoOpt, elementConversion, iterationVariableType, iterationVariables, iterationErrorExpressionOpt: null, expression, deconstructionOpt, body, @checked, breakLabel, continueLabel, hasErrors)
         {
         }
     }

@@ -8,12 +8,12 @@ Imports System.Windows.Controls
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Common
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -23,6 +23,7 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
+    <[UseExportProvider]>
     Public Class DiagnosticTableDataSourceTests
         <Fact>
         Public Sub TestCreation()
@@ -616,7 +617,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Using workspace = TestWorkspace.Create(markup)
 
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim service = New DiagnosticService(listenerProvider)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -664,7 +665,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Using workspace = TestWorkspace.Create(markup)
 
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
                 Dim service = New DiagnosticService(listenerProvider)

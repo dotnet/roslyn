@@ -102,6 +102,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property Machine As System.Reflection.PortableExecutable.Machine
             Get
                 Select Case DeclaringCompilation.Options.Platform
+                    Case Platform.Arm64
+                        ' Use real enum instead of casting value https://github.com/dotnet/roslyn/issues/25185
+                        Return CType(CInt(&HAA64), System.Reflection.PortableExecutable.Machine)
                     Case Platform.Arm
                         Return System.Reflection.PortableExecutable.Machine.ArmThumb2
                     Case Platform.X64

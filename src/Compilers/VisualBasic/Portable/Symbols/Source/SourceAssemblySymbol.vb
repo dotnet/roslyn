@@ -451,8 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Me._lazyNetModuleAttributesBag.IsSealed)
             Debug.Assert(index >= 0)
             Debug.Assert(index < Me.GetAttributes().Length)
-            Debug.Assert(Me._lazyDuplicateAttributeIndices Is Nothing OrElse
-                         Not Me.DeclaringCompilation.Options.OutputKind.IsNetModule())
+            Debug.Assert(Me._lazyDuplicateAttributeIndices Is Nothing OrElse Not IsNetModule)
 
             Return Me._lazyDuplicateAttributeIndices IsNot Nothing AndAlso Me._lazyDuplicateAttributeIndices.Contains(index)
         End Function
@@ -1186,7 +1185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 'strong name key settings are not validated when building netmodules.
                 'They are validated when the netmodule is added to an assembly.
-                If StrongNameKeys.DiagnosticOpt IsNot Nothing AndAlso Not DeclaringCompilation.Options.OutputKind.IsNetModule() Then
+                If StrongNameKeys.DiagnosticOpt IsNot Nothing AndAlso Not IsNetModule Then
                     diagnostics.Add(StrongNameKeys.DiagnosticOpt)
                 End If
 
@@ -1200,7 +1199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 If DeclaringCompilation.Options.PublicSign Then
-                    If DeclaringCompilation.Options.OutputKind.IsNetModule() Then
+                    If IsNetModule Then
                         diagnostics.Add(ERRID.ERR_PublicSignNetModule, NoLocation.Singleton)
                     ElseIf Not Identity.HasPublicKey Then
                         diagnostics.Add(ERRID.ERR_PublicSignNoKey, NoLocation.Singleton)
@@ -1605,8 +1604,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-
-            Return MakeFinalIVTDetermination(potentialGiverOfAccess) = IVTConclusion.Match
+            Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(potentialGiverOfAccess)
+            Return conclusion = IVTConclusion.Match
+            ' Note that C#, for error recovery, includes OrElse conclusion = IVTConclusion.OneSignedOneNot
         End Function
 
         Friend ReadOnly Property StrongNameKeys As StrongNameKeys

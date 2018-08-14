@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 AddEdits(editor, diagnostic, cancellationToken);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private static ExpressionSyntax GetCondition(SyntaxNode node)
@@ -76,12 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var targetStatement = (StatementSyntax)targetStatementLocation.FindNode(cancellationToken);
             var conditionPart = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
+            var newIdentifier = localDeclaration.Declaration.Variables[0].Identifier
+                .WithoutTrivia().WithTrailingTrivia(conditionPart.Right.GetTrailingTrivia());
 
             ExpressionSyntax updatedConditionPart = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
-                    SyntaxFactory.SingleVariableDesignation(
-                        localDeclaration.Declaration.Variables[0].Identifier.WithoutTrivia())));
+                    SyntaxFactory.SingleVariableDesignation(newIdentifier)));
 
             // We should negate the is-expression if we have something like "x == null"
             if (conditionPart.IsKind(SyntaxKind.EqualsExpression))

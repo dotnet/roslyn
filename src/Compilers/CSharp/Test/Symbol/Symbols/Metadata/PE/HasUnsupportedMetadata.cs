@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 ";
 
 
-            var compilation1 = CreateCompilationWithCustomILSource("", iLSource);
+            var compilation1 = CreateCompilationWithILAndMscorlib40("", iLSource);
 
             var c3 = compilation1.GetTypeByMetadataName("C3");
 
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 ";
 
 
-            var compilation1 = CreateCompilationWithCustomILSource("", iLSource);
+            var compilation1 = CreateCompilationWithILAndMscorlib40("", iLSource);
 
             var c3 = compilation1.GetTypeByMetadataName("C3");
 

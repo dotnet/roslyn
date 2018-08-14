@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string PreprocessorText = "preprocessor text";
         public const string Punctuation = "punctuation";
         public const string VerbatimStringLiteral = "string - verbatim";
+        public const string StringEscapeCharacter = "string - escape character";
 
         public const string ClassName = "class name";
         public const string DelegateName = "delegate name";
@@ -26,6 +27,16 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string ModuleName = "module name";
         public const string StructName = "struct name";
         public const string TypeParameterName = "type parameter name";
+
+        public const string FieldName = "field name";
+        public const string EnumMemberName = "enum member name";
+        public const string ConstantName = "constant name";
+        public const string LocalName = "local name";
+        public const string ParameterName = "parameter name";
+        public const string MethodName = "method name";
+        public const string ExtensionMethodName = "extension method name";
+        public const string PropertyName = "property name";
+        public const string EventName = "event name";
 
         public const string XmlDocCommentAttributeName = "xml doc comment - attribute name";
         public const string XmlDocCommentAttributeQuotes = "xml doc comment - attribute quotes";

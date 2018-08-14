@@ -34,6 +34,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public ManagedCompiler()
         {
             TaskResources = ErrorString.ResourceManager;
+
+            // If there is a crash, the runtime error is output to stderr and
+            // we want MSBuild to print it out regardless of verbosity.
+            LogStandardErrorAsError = true;
         }
 
         #region Properties
@@ -451,9 +455,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
+                var workingDir = CurrentDirectoryToUse();
+                string tempDir = BuildServerConnection.GetTempPath(workingDir);
+
                 if (!UseSharedCompilation ||
                     HasToolBeenOverridden ||
-                    !BuildServerConnection.IsCompilerServerSupported)
+                    !BuildServerConnection.IsCompilerServerSupported(tempDir))
                 {
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
@@ -471,13 +478,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // we'll just print our own message that contains the real client location
                     Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
 
-                    var workingDir = CurrentDirectoryToUse();
                     var buildPaths = new BuildPathsAlt(
                         clientDir: clientDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
                         workingDir: workingDir,
-                        tempDir: BuildServerConnection.GetTempPath(workingDir));
+                        tempDir: tempDir);
 
                     // Note: using ToolArguments here (the property) since
                     // commandLineCommands (the parameter) may have been mucked with
@@ -625,7 +631,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static void LogErrorOutput(string output, TaskLoggingHelper log)
         {
-            string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            string[] lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
                 string trimmedMessage = line.Trim();

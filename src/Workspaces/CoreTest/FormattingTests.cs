@@ -10,6 +10,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public partial class FormattingTests : TestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestCSharpDefaultRules()
         {
-            var rules = Formatter.GetDefaultFormattingRules(new TestWorkspace(), LanguageNames.CSharp);
+            var rules = Formatter.GetDefaultFormattingRules(new AdhocWorkspace(), LanguageNames.CSharp);
 
             Assert.NotNull(rules);
             Assert.NotEmpty(rules);
@@ -50,7 +51,7 @@ End Class
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestVisualBasicDefaultFormattingRules()
         {
-            var rules = Formatter.GetDefaultFormattingRules(new TestWorkspace(), LanguageNames.VisualBasic);
+            var rules = Formatter.GetDefaultFormattingRules(new AdhocWorkspace(), LanguageNames.VisualBasic);
 
             Assert.NotNull(rules);
             Assert.NotEmpty(rules);
@@ -70,7 +71,7 @@ End Class
 
         private async Task AssertFormatAsync(string expected, SyntaxTree tree)
         {
-            using (var workspace = new TestWorkspace())
+            using (var workspace = new AdhocWorkspace())
             {
                 var formattedRoot = await Formatter.FormatAsync(tree.GetRoot(), workspace);
                 var actualFormattedText = formattedRoot.ToFullString();

@@ -143,10 +143,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Overrides Function CloneOperationCore(operation As IOperation) As IOperation
-            Return VisualBasicOperationCloner.Instance.Visit(operation)
-        End Function
-
         ''' <summary>
         ''' Returns what symbol(s), if any, the given expression syntax bound to in the program.
         '''
@@ -984,7 +980,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If useOfLocalBeforeDeclaration AndAlso Not type.IsErrorType() Then
                                 conversion = New Conversion(Conversions.ClassifyConversion(type, convertedType, Nothing))
                             Else
-                                conversion = New Conversion(KeyValuePair.Create(conversionNode.ConversionKind,
+                                conversion = New Conversion(KeyValuePairUtil.Create(conversionNode.ConversionKind,
                                                                                 TryCast(conversionNode.ExpressionSymbol, MethodSymbol)))
                             End If
                         End If
@@ -3430,11 +3426,11 @@ _Default:
             Return False
         End Function
 
-        Friend Overrides Sub ComputeDeclarationsInSpan(span As TextSpan, getSymbol As Boolean, builder As List(Of DeclarationInfo), cancellationToken As CancellationToken)
+        Friend Overrides Sub ComputeDeclarationsInSpan(span As TextSpan, getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), cancellationToken As CancellationToken)
             VisualBasicDeclarationComputer.ComputeDeclarationsInSpan(Me, span, getSymbol, builder, cancellationToken)
         End Sub
 
-        Friend Overrides Sub ComputeDeclarationsInNode(node As SyntaxNode, getSymbol As Boolean, builder As List(Of DeclarationInfo), cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
+        Friend Overrides Sub ComputeDeclarationsInNode(node As SyntaxNode, getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
             VisualBasicDeclarationComputer.ComputeDeclarationsInNode(Me, node, getSymbol, builder, cancellationToken)
         End Sub
 

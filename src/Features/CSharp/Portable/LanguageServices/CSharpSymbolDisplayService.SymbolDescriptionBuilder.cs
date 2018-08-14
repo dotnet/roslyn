@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -181,6 +183,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 AddToGroup(SymbolDescriptionGroups.AwaitableUsageText,
                     method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position));
+            }
+
+            protected override void AddCaptures(ISymbol symbol)
+            {
+                if (symbol is IMethodSymbol method && method.ContainingSymbol.IsKind(SymbolKind.Method))
+                {
+                    var syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+                    if (syntax.IsKind(SyntaxKind.LocalFunctionStatement) || syntax is AnonymousFunctionExpressionSyntax)
+                    {
+                        AddCaptures(syntax);
+                    }
+                }
             }
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;

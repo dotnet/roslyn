@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
                 ' can with Syntax.  This approach is capable of providing parity with the pre-Roslyn implementation.
                 Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
                 Dim root = Await tree.GetRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim syntaxFactsService = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
+                Dim syntaxFactsService = document.GetLanguageService(Of ISyntaxFactsService)()
                 Dim memberDeclaration = TryCast(syntaxFactsService.GetContainingMemberDeclaration(root, position, useFullSpan:=True), DeclarationStatementSyntax)
 
                 ' Unlike C#, VB doesn't show field names.

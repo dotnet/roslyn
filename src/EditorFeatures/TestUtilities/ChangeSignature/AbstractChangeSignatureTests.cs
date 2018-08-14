@@ -38,12 +38,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     optionsService.IsCancelled = isCancelled;
                     optionsService.UpdatedSignature = updatedSignature;
 
-                    var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, testOptions);
-                    await TestActionsAsync(workspace, expectedCode, index, codeIssueOrRefactoring.Actions,
+                    var refactoring = await GetCodeRefactoringAsync(workspace, testOptions);
+                    await TestActionAsync(workspace, expectedCode, refactoring.Actions[index],
                         conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
                         warningSpans: ImmutableArray<TextSpan>.Empty, 
-                        navigationSpans: ImmutableArray<TextSpan>.Empty);
+                        navigationSpans: ImmutableArray<TextSpan>.Empty,
+                        parameters: default);
                 }
             }
             else

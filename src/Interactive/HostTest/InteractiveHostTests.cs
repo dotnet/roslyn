@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Traits = Roslyn.Test.Utilities.Traits;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public InteractiveHostTests()
         {
-            _host = new InteractiveHost(typeof(CSharpReplServiceProvider), GetInteractiveHostPath(), ".", millisecondsTimeout: -1);
+            _host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1);
 
             RedirectOutput();
 
@@ -93,8 +92,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _synchronizedOutput = new SynchronizedStringWriter();
             _synchronizedErrorOutput = new SynchronizedStringWriter();
             ClearOutput();
-            _host.Output = _synchronizedOutput;
-            _host.ErrorOutput = _synchronizedErrorOutput;
+            _host.SetOutput(_synchronizedOutput);
+            _host.SetErrorOutput(_synchronizedErrorOutput);
+        }
+
+        private static ImmutableArray<string> SplitLines(string text)
+        {
+            return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
         }
 
         private bool LoadReference(string reference)
@@ -164,7 +168,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         private static CompiledFile CompileLibrary(TempDirectory dir, string fileName, string assemblyName, string source, params MetadataReference[] references)
         {
             var file = dir.CreateFile(fileName);
-            var compilation = CreateCompilation(
+            var compilation = CreateEmptyCompilation(
                 new[] { source },
                 assemblyName: assemblyName,
                 references: references.Concat(new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) }),
@@ -493,7 +497,7 @@ WriteLine(5);
             Assert.True(Execute("new System.Data.DataSet()"));
         }
 
-        [ConditionalFact(typeof(Framework35Installed), Skip = "https://github.com/dotnet/roslyn/issues/5167")]
+        [ConditionalFact(typeof(Framework35Installed), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/5167")]
         public void AddReference_VersionUnification1()
         {
             // V3.5 unifies with the current Framework version:
@@ -659,7 +663,7 @@ WriteLine(5);
             var dir = Temp.CreateDirectory();
 
             var source1 = "public class C { public int X = 1; }";
-            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
+            var c1 = CreateCompilation(source1, assemblyName: "C");
             var file = dir.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             // use:
@@ -671,7 +675,7 @@ new C().X
 
             // update:
             var source2 = "public class D { public int Y = 2; }";
-            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
+            var c2 = CreateCompilation(source2, assemblyName: "C");
             file.WriteAllBytes(c2.EmitToArray());
 
             // add the reference again:
@@ -698,11 +702,11 @@ new D().Y
             var dir2 = dir.CreateDirectory("2");
 
             var source1 = "public class C1 { }";
-            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
+            var c1 = CreateCompilation(source1, assemblyName: "C");
             var file1 = dir1.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             var source2 = "public class C2 { }";
-            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
+            var c2 = CreateCompilation(source2, assemblyName: "C");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
 
             Execute($@"
@@ -732,11 +736,11 @@ new D().Y
             var dir2 = dir.CreateDirectory("2");
 
             var source1 = @"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C1 { }";
-            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
+            var c1 = CreateCompilation(source1, assemblyName: "C");
             var file1 = dir1.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             var source2 = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C2 { }";
-            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
+            var c2 = CreateCompilation(source2, assemblyName: "C");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
 
             Execute($@"
@@ -1170,6 +1174,22 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             AssertEx.AssertEqualToleratingWhitespaceDifferences("Bang!", error);
         }
 
+        [Fact]
+        public async Task Bitness()
+        {
+            await _host.ExecuteAsync(@"System.IntPtr.Size");
+            await _host.ResetAsync(new InteractiveHostOptions(initializationFile: null, culture: CultureInfo.InvariantCulture, is64Bit: true));
+            await _host.ExecuteAsync(@"System.IntPtr.Size");
+            await _host.ResetAsync(new InteractiveHostOptions(initializationFile: null, culture: CultureInfo.InvariantCulture, is64Bit: false));
+            await _host.ExecuteAsync(@"System.IntPtr.Size");
+
+            var output = ReadOutputToEnd();
+            var error = ReadErrorOutputToEnd();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("4\r\n8\r\n4\r\n", output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
+        }
+
         #region Submission result printing - null/void/value.
 
         [Fact]
@@ -1211,10 +1231,5 @@ goo()
         }
 
         #endregion
-
-        private static ImmutableArray<string> SplitLines(string text)
-        {
-            return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
-        }
     }
 }

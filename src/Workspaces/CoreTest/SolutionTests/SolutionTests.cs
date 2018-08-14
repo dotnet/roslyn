@@ -6,14 +6,12 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -21,6 +19,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -29,11 +28,10 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public partial class SolutionTests : TestBase
     {
         private static readonly MetadataReference s_mscorlib = TestReferences.NetFx.v4_0_30319.mscorlib;
-
-        public static byte[] GetResourceBytes(string fileName) => SolutionTestUtilities.GetResourceBytes(fileName);
 
         private Solution CreateSolution()
         {
@@ -303,7 +301,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestAddMetadataReferencesAsync()
         {
-            var csharpReference = MetadataReference.CreateFromImage(GetResourceBytes(@"CSharpProject.dll"));
+            var csharpReference = MetadataReference.CreateFromImage(Resources.Dlls.CSharpProject);
             var solution = CreateSolution();
             var project1 = ProjectId.CreateNewId();
             solution = solution.AddProject(project1, "goo", "goo.dll", LanguageNames.CSharp);
@@ -636,7 +634,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private Solution CreateNotKeptAliveSolution()
         {
-            var workspace = new AdhocWorkspace(TestHost.Services, "NotKeptAlive");
+            var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), "NotKeptAlive");
             workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
             return workspace.CurrentSolution;
         }
@@ -1119,7 +1117,6 @@ End Class";
         public void TestCommandLineProjectWithRelativePathOutsideProjectCone()
         {
             string commandLine = @"..\goo.cs";
-            var ws = new AdhocWorkspace();
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var docInfo = info.Documents.First();
@@ -1130,11 +1127,13 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestWorkspaceLanguageServiceOverride()
         {
-            var ws = new AdhocWorkspace(TestHost.Services, ServiceLayer.Host);
+            var hostServices = MefHostServices.Create(TestHost.Assemblies);
+
+            var ws = new AdhocWorkspace(hostServices, ServiceLayer.Host);
             var service = ws.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ITestLanguageService>();
             Assert.NotNull(service as TestLanguageServiceA);
 
-            var ws2 = new AdhocWorkspace(TestHost.Services, "Quasimodo");
+            var ws2 = new AdhocWorkspace(hostServices, "Quasimodo");
             var service2 = ws2.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ITestLanguageService>();
             Assert.NotNull(service2 as TestLanguageServiceB);
         }
@@ -1423,7 +1422,7 @@ public class C : A {
         {
             // set max file length to 1 bytes
             var maxLength = 1;
-            var workspace = new AdhocWorkspace(TestHost.Services, ServiceLayer.Host);
+            var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), ServiceLayer.Host);
             workspace.Options = workspace.Options.WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength);
 
             using (var root = new TempRoot())

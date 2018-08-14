@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         private bool CheckAllLower(string name, TextSpan nameSpan, out string reason)
             => CheckAllWords(
                 name, nameSpan, s_wordIsAllLowerCase,
-                WorkspacesResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
+                WorkspacesResources.These_words_cannot_contain_upper_case_characters_colon_0, out reason);
 
         private bool CheckFirstAndRestWords(
             string name, TextSpan nameSpan,
@@ -318,10 +318,44 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CreateCompliantNameReusingPartialPrefixesAndSuffixes(string name)
         {
+            name = StripCommonPrefixes(name);
             name = EnsurePrefix(name);
             name = EnsureSuffix(name);
 
             return FinishFixingName(name);
+        }
+
+        private static string StripCommonPrefixes(string name)
+        {
+            var index = 0;
+            while (index + 1 < name.Length)
+            {
+                switch (char.ToLowerInvariant(name[index]))
+                {
+                    case 'm':
+                    case 's':
+                    case 't':
+                        if (index + 2 < name.Length && name[index + 1] == '_')
+                        {
+                            index += 2;
+                            continue;
+                        }
+
+                        break;
+
+                    case '_':
+                        index++;
+                        continue;
+
+                    default:
+                        break;
+                }
+
+                // If we reach this point, the current iteration did not strip any additional characters
+                break;
+            }
+
+            return name.Substring(index);
         }
 
         private string FinishFixingName(string name)

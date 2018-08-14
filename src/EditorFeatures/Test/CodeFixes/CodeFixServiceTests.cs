@@ -9,18 +9,20 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 {
+    [UseExportProvider]
     public class CodeFixServiceTests
     {
         [Fact]
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             {
                 var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetService<IErrorLoggerService>()));
                 var fixService = new CodeFixService(
+                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                     diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
 
                 var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
@@ -145,7 +148,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
             var errorLogger = logger.First().Value;
             var fixService = new CodeFixService(
-                    diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
             return Tuple.Create(workspace, diagnosticService, fixService, errorLogger);
         }
 
@@ -181,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 Called = true;
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 

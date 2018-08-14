@@ -5,22 +5,22 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
-    using static AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
+    using static GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
 
     public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
+            => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField()
@@ -554,7 +554,7 @@ class Program
     public override int GetHashCode() => 165851236 + i.GetHashCode();
 }",
 index: 1,
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -950,7 +950,7 @@ chosenSymbols: new string[] { });
 
         [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestWithDialogNoBackingFields()
+        public async Task TestWithDialogNoBackingField()
         {
             await TestWithPickMembersDialogAsync(
 @"
@@ -969,6 +969,62 @@ class Program
         var program = obj as Program;
         return program != null &&
                F == program.F;
+    }
+}",
+chosenSymbols: null);
+        }
+
+        [WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialogNoIndexer()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int P => 0;
+    public int this[int index] => 0;
+    [||]
+}",
+@"
+class Program
+{
+    public int P => 0;
+    public int this[int index] => 0;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               P == program.P;
+    }
+}",
+chosenSymbols: null);
+        }
+
+        [WorkItem(25707, "https://github.com/dotnet/roslyn/issues/25707")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialogNoSetterOnlyProperty()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int P => 0;
+    public int S { set { } }
+    [||]
+}",
+@"
+class Program
+{
+    public int P => 0;
+    public int S { set { } }
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               P == program.P;
     }
 }",
 chosenSymbols: null);
@@ -1046,7 +1102,7 @@ class Program
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: new TestParameters(
-    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement)));
+    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]

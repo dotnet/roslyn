@@ -531,7 +531,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (_lazyCustomAttributes.IsDefault)
             {
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-                containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
+
+                ImmutableArray<CSharpAttributeData> attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
+                      _handle,
+                      out _,
+                      this.RefKind == RefKind.RefReadOnly ? AttributeDescription.IsReadOnlyAttribute : default);
+
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
             }
             return _lazyCustomAttributes;
         }

@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         internal TextBlock AnonymousTypes { get; }
         internal TextBlock UsageText { get; }
         internal TextBlock ExceptionText { get; }
+        internal TextBlock CapturesText { get; }
 
         public QuickInfoDisplayPanel(
             FrameworkElement symbolGlyph,
@@ -26,7 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             FrameworkElement typeParameterMap,
             FrameworkElement anonymousTypes,
             FrameworkElement usageText,
-            FrameworkElement exceptionText)
+            FrameworkElement exceptionText,
+            FrameworkElement capturesText)
         {
             this.MainDescription = (TextBlock)mainDescription;
             this.Documentation = (TextBlock)documentation;
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             this.AnonymousTypes = (TextBlock)anonymousTypes;
             this.UsageText = (TextBlock)usageText;
             this.ExceptionText = (TextBlock)exceptionText;
+            this.CapturesText = (TextBlock)capturesText;
 
             this.Orientation = Orientation.Vertical;
 
@@ -94,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             this.Children.Add(typeParameterMap);
             this.Children.Add(anonymousTypes);
             this.Children.Add(exceptionText);
+            this.Children.Add(capturesText);
         }
 
         public override string ToString()
@@ -130,6 +134,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             {
                 sb.AppendLine();
                 BuildStringFromInlineCollection(this.ExceptionText.Inlines, sb);
+            }
+
+            if (this.CapturesText.Inlines.Count > 0)
+            {
+                sb.AppendLine();
+                BuildStringFromInlineCollection(this.CapturesText.Inlines, sb);
             }
 
             return sb.ToString();

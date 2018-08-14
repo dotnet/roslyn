@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -192,19 +193,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             result = IVTConclusion.NoRelationshipClaimed;
 
-            //EDMAURER returns an empty list if there was no IVT attribute at all for the given name
-            //A name w/o a key is represented by a list with an entry that is empty
+            // returns an empty list if there was no IVT attribute at all for the given name
+            // A name w/o a key is represented by a list with an entry that is empty
             IEnumerable<ImmutableArray<byte>> publicKeys = potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(this.Name);
 
-            //EDMAURER look for one that works, if none work, then return the failure for the last one examined.
+            // We have an easy out here. Suppose the assembly wanting access is 
+            // being compiled as a module. You can only strong-name an assembly. So we are going to optimistically 
+            // assume that it is going to be compiled into an assembly with a matching strong name, if necessary.
+            if (publicKeys.Any() && this.IsNetModule())
+            {
+                return IVTConclusion.Match;
+            }
+
+            // look for one that works, if none work, then return the failure for the last one examined.
             foreach (var key in publicKeys)
             {
+                // We pass the public key of this assembly explicitly so PerformIVTCheck does not need
+                // to get it from this.Identity, which would trigger an infinite recursion.
+                result = potentialGiverOfAccess.Identity.PerformIVTCheck(this.PublicKey, key);
+                Debug.Assert(result != IVTConclusion.NoRelationshipClaimed);
+
                 if (result == IVTConclusion.Match || result == IVTConclusion.OneSignedOneNot)
                 {
                     break;
                 }
-                result = PerformIVTCheck(key, potentialGiverOfAccess.Identity);
-                Debug.Assert(result != IVTConclusion.NoRelationshipClaimed);
             }
 
             AssembliesToWhichInternalAccessHasBeenDetermined.TryAdd(potentialGiverOfAccess, result);

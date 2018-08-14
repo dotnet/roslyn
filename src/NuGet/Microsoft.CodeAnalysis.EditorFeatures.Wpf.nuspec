@@ -23,13 +23,17 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlNonRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
-    <file src="Dlls\EditorFeatures.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" target="lib\net46" />
-    <file src="Dlls\EditorFeatures.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.xml" target="lib\net46" />
+    <file src="Dlls\Microsoft.CodeAnalysis.EditorFeatures.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" target="lib\net46" />
+    <file src="Dlls\Microsoft.CodeAnalysis.EditorFeatures.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.xml" target="lib\net46" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\Microsoft.CodeAnalysis.EditorFeatures.Wpf\**\Microsoft.CodeAnalysis.EditorFeatures.Wpf.resources.dll" target="lib\net46" />
   </files>
 </package>

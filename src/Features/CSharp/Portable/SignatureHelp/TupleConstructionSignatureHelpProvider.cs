@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var typeInferrer = document.Project.LanguageServices.GetService<ITypeInferenceService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
             var inferredTypes = FindNearestTupleConstructionWithInferrableType(root, semanticModel, position, triggerInfo,
                 typeInferrer, syntaxFacts, cancellationToken, out var targetExpression);
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 .ToList();
 
             var state = GetCurrentArgumentState(root, position, syntaxFacts, targetExpression.FullSpan, cancellationToken);
-            return CreateSignatureHelpItems(items, targetExpression.Span, state);
+            return CreateSignatureHelpItems(items, targetExpression.Span, state, selectedItem: null);
         }
 
         SignatureHelpItem Convert(INamedTypeSymbol tupleType, ImmutableArray<TaggedText> prefixParts, ImmutableArray<TaggedText> suffixParts,

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -15,12 +16,12 @@ using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 namespace Microsoft.CodeAnalysis.Remote
 {
     // root level service for all Roslyn services
-    internal partial class CodeAnalysisService
+    internal partial class CodeAnalysisService : IRemoteDiagnosticAnalyzerService
     {
         /// <summary>
-        /// This is top level entry point for diagnostic calculation from client (VS).
-        /// 
-        /// This will be called by ServiceHub/JsonRpc framework
+        /// Calculate dignostics. this works differently than other ones such as todo comments or designer attribute scanner
+        /// since in proc and out of proc runs quite differently due to concurrency and due to possible amount of data
+        /// that needs to pass through between processes
         /// </summary>
         public Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName, CancellationToken cancellationToken)
         {
@@ -49,6 +50,25 @@ namespace Microsoft.CodeAnalysis.Remote
                         // direct stream to send over result has closed before we
                         // had chance to check cancellation
                     }
+                }
+            }, cancellationToken);
+        }
+
+        public void ReportAnalyzerPerformance(List<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken)
+        {
+            RunService(token =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_ReportAnalyzerPerformance, token))
+                {
+                    token.ThrowIfCancellationRequested();
+
+                    var service = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
+                    if (service == null)
+                    {
+                        return;
+                    }
+
+                    service.AddSnapshot(snapshot, unitCount);
                 }
             }, cancellationToken);
         }

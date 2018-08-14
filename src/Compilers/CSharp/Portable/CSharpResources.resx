@@ -216,6 +216,9 @@
   <data name="IDS_FeaturePrivateProtected" xml:space="preserve">
     <value>private protected</value>
   </data>
+  <data name="IDS_FeatureTupleEquality" xml:space="preserve">
+    <value>tuple equality</value>
+  </data>
   <data name="IDS_FeatureNullable" xml:space="preserve">
     <value>nullable types</value>
   </data>
@@ -895,7 +898,7 @@
     <value>Property or indexer '{0}' cannot be assigned to -- it is read only</value>
   </data>
   <data name="ERR_IllegalStatement" xml:space="preserve">
-    <value>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</value>
+    <value>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</value>
   </data>
   <data name="ERR_BadGetEnumerator" xml:space="preserve">
     <value>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</value>
@@ -926,6 +929,9 @@
   </data>
   <data name="ERR_FixedNotNeeded" xml:space="preserve">
     <value>You cannot use the fixed statement to take the address of an already fixed expression</value>
+  </data>
+  <data name="ERR_ExprCannotBeFixed" xml:space="preserve">
+    <value>The given expression cannot be used in a fixed statement</value>
   </data>
   <data name="ERR_UnsafeNeeded" xml:space="preserve">
     <value>Pointers and fixed size buffers may only be used in an unsafe context</value>
@@ -1117,7 +1123,7 @@
     <value>Type does not implement the collection pattern; member has the wrong signature</value>
   </data>
   <data name="ERR_FriendRefNotEqualToThis" xml:space="preserve">
-    <value>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</value>
+    <value>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</value>
   </data>
   <data name="ERR_FriendRefSigningMismatch" xml:space="preserve">
     <value>Friend access was granted by '{0}', but the strong name signing state of the output assembly does not match that of the granting assembly.</value>
@@ -1329,6 +1335,9 @@
   <data name="ERR_RefValBoundWithClass" xml:space="preserve">
     <value>'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint</value>
   </data>
+  <data name="ERR_UnmanagedBoundWithClass" xml:space="preserve">
+    <value>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</value>
+  </data>
   <data name="ERR_NewBoundWithVal" xml:space="preserve">
     <value>The 'new()' constraint cannot be used with the 'struct' constraint</value>
   </data>
@@ -1473,7 +1482,6 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
-    <!-- We need a specific error code for ValueTuple as an IDE codefix depends on it (AddNuget) -->
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeAmbiguous3" xml:space="preserve">
@@ -1738,7 +1746,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Array initializers can only be used in a variable or field initializer. Try using a new expression instead.</value>
   </data>
   <data name="ERR_MissingStructOffset" xml:space="preserve">
-    <value>'{0}': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</value>
+    <value>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</value>
   </data>
   <data name="WRN_ExternMethodNoImplementation" xml:space="preserve">
     <value>Method, operator, or accessor '{0}' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.</value>
@@ -1934,6 +1942,12 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="WRN_TypeParameterSameAsOuterTypeParameter_Title" xml:space="preserve">
     <value>Type parameter has the same name as the type parameter from outer type</value>
+  </data>
+  <data name="WRN_TypeParameterSameAsOuterMethodTypeParameter" xml:space="preserve">
+    <value>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</value>
+  </data>
+  <data name="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title" xml:space="preserve">
+    <value>Type parameter has the same type as the type parameter from outer method.</value>
   </data>
   <data name="ERR_TypeVariableSameAsParent" xml:space="preserve">
     <value>Type parameter '{0}' has the same name as the containing type, or method</value>
@@ -2172,6 +2186,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_ExpressionTreeContainsBaseAccess" xml:space="preserve">
     <value>An expression tree may not contain a base access</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsTupleBinOp" xml:space="preserve">
+    <value>An expression tree may not contain a tuple == or != operator</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsAssignment" xml:space="preserve">
     <value>An expression tree may not contain an assignment operator</value>
   </data>
@@ -2204,9 +2221,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_RecursivelyTypedVariable" xml:space="preserve">
     <value>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</value>
-  </data>
-  <data name="ERR_ExplicitLayoutAndAutoImplementedProperty" xml:space="preserve">
-    <value>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</value>
   </data>
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
     <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
@@ -2376,7 +2390,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The operand of an increment or decrement operator must be a variable, property or indexer</value>
   </data>
   <data name="ERR_NoSuchMemberOrExtension" xml:space="preserve">
-    <value>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</value>
+    <value>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</value>
   </data>
   <data name="ERR_NoSuchMemberOrExtensionNeedUsing" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive for '{2}'?)</value>
@@ -2610,7 +2624,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>#r is only allowed in scripts</value>
   </data>
   <data name="ERR_ForEachMissingMember" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
   </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
@@ -2742,7 +2756,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.</value>
   </data>
   <data name="ERR_BadIteratorArgType" xml:space="preserve">
-    <value>Iterators cannot have ref or out parameters</value>
+    <value>Iterators cannot have ref, in or out parameters</value>
   </data>
   <data name="ERR_BadIteratorReturn" xml:space="preserve">
     <value>The body of '{0}' cannot be an iterator block because '{1}' is not an iterator interface type</value>
@@ -2757,7 +2771,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Expression expected after yield return</value>
   </data>
   <data name="ERR_AnonDelegateCantUse" xml:space="preserve">
-    <value>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, or query expression</value>
+    <value>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</value>
   </data>
   <data name="ERR_IllegalInnerUnsafe" xml:space="preserve">
     <value>Unsafe code may not appear in iterators</value>
@@ -2877,7 +2891,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot convert {0} to type '{1}' because it is not a delegate type</value>
   </data>
   <data name="ERR_CantConvAnonMethParams" xml:space="preserve">
-    <value>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</value>
+    <value>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</value>
   </data>
   <data name="ERR_CantConvAnonMethReturns" xml:space="preserve">
     <value>Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type</value>
@@ -2919,7 +2933,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>A namespace declaration cannot have modifiers or attributes</value>
   </data>
   <data name="ERR_BadPlatformType" xml:space="preserve">
-    <value>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium or x64</value>
+    <value>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</value>
   </data>
   <data name="ERR_ThisStructNotInAnonMeth" xml:space="preserve">
     <value>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</value>
@@ -3091,6 +3105,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_DoNotUseFixedBufferAttr" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute. Use the 'fixed' field modifier instead.</value>
+  </data>
+  <data name="ERR_DoNotUseFixedBufferAttrOnProperty" xml:space="preserve">
+    <value>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</value>
   </data>
   <data name="WRN_AssignmentToSelf" xml:space="preserve">
     <value>Assignment made to same variable; did you mean to assign something else?</value>
@@ -3264,7 +3281,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The best overloaded Add method '{0}' for the collection initializer has some invalid arguments</value>
   </data>
   <data name="ERR_ByRefParameterInExpressionTree" xml:space="preserve">
-    <value>An expression tree lambda may not contain an out or ref parameter</value>
+    <value>An expression tree lambda may not contain a ref, in or out parameter</value>
   </data>
   <data name="ERR_VarArgsInExpressionTree" xml:space="preserve">
     <value>An expression tree lambda may not contain a method with variable arguments</value>
@@ -3354,7 +3371,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="FTL_InvalidTarget" xml:space="preserve">
     <value>Invalid target type for /target: must specify 'exe', 'winexe', 'library', or 'module'</value>
   </data>
-  <data name="FTL_InputFileNameTooLong" xml:space="preserve">
+  <data name="FTL_InvalidInputFileName" xml:space="preserve">
     <value>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</value>
   </data>
   <data name="WRN_NoConfigNotOnCommandLine" xml:space="preserve">
@@ -3601,7 +3618,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Async methods cannot have unsafe parameters or return types</value>
   </data>
   <data name="ERR_BadAsyncArgType" xml:space="preserve">
-    <value>Async methods cannot have ref or out parameters</value>
+    <value>Async methods cannot have ref, in or out parameters</value>
   </data>
   <data name="ERR_BadAwaitWithoutAsync" xml:space="preserve">
     <value>The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier</value>
@@ -4270,6 +4287,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefConditional" xml:space="preserve">
     <value>ref conditional expression</value>
   </data>
+  <data name="IDS_FeatureRefReassignment" xml:space="preserve">
+    <value>ref reassignment</value>
+  </data>
+  <data name="IDS_FeatureRefFor" xml:space="preserve">
+    <value>ref for-loop variables</value>
+  </data>
+  <data name="IDS_FeatureRefForEach" xml:space="preserve">
+    <value>ref foreach iteration variables</value>
+  </data>
+  <data name="IDS_FeatureExtensibleFixedStatement" xml:space="preserve">
+    <value>extensible fixed statement</value>
+  </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
   </data>
@@ -4294,8 +4323,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="SubmissionCanHaveAtMostOne" xml:space="preserve">
     <value>Submission can have at most one syntax tree.</value>
   </data>
-  <data name="SyntaxTreeNotFoundTo" xml:space="preserve">
-    <value>SyntaxTree '{0}' not found to remove</value>
+  <data name="SyntaxTreeNotFoundToRemove" xml:space="preserve">
+    <value>SyntaxTree is not part of the compilation, so it cannot be removed</value>
   </data>
   <data name="TreeMustHaveARootNodeWith" xml:space="preserve">
     <value>tree must have a root node with SyntaxKind.CompilationUnit</value>
@@ -4449,146 +4478,146 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_CSCHelp" xml:space="preserve">
     <value>
-                              Visual C# Compiler Options
+                             Visual C# Compiler Options
 
-                        - OUTPUT FILES -
- /out:&lt;file&gt;                   Specify output file name (default: base name of
-                               file with main class or first file)
- /target:exe                   Build a console executable (default) (Short
-                               form: /t:exe)
- /target:winexe                Build a Windows executable (Short form:
-                               /t:winexe)
- /target:library               Build a library (Short form: /t:library)
- /target:module                Build a module that can be added to another
-                               assembly (Short form: /t:module)
- /target:appcontainerexe       Build an Appcontainer executable (Short form:
-                               /t:appcontainerexe)
- /target:winmdobj              Build a Windows Runtime intermediate file that
-                               is consumed by WinMDExp (Short form: /t:winmdobj)
- /doc:&lt;file&gt;                   XML Documentation file to generate
- /refout:&lt;file&gt;                Reference assembly output to generate
- /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred, or
-                               anycpu. The default is anycpu.
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
+                              -t:winexe)
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
+                              -t:appcontainerexe)
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                        - INPUT FILES -
- /recurse:&lt;wildcard&gt;           Include all files in the current directory and
-                               subdirectories according to the wildcard
-                               specifications
- /reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
-                               file using the given alias (Short form: /r)
- /reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                               files (Short form: /r)
- /addmodule:&lt;file list&gt;        Link the specified modules into this assembly
- /link:&lt;file list&gt;             Embed metadata from the specified interop
-                               assembly files (Short form: /l)
- /analyzer:&lt;file list&gt;         Run the analyzers from this assembly
-                               (Short form: /a)
- /additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
-                               generation but may be used by analyzers for producing
-                               errors or warnings.
- /embed                        Embed all source files in the PDB.
- /embed:&lt;file list&gt;            Embed specific files in the PDB
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB
 
-                        - RESOURCES -
- /win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
- /win32icon:&lt;file&gt;             Use this icon for the output
- /win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
- /nowin32manifest              Do not include the default Win32 manifest
- /resource:&lt;resinfo&gt;           Embed the specified resource (Short form: /res)
- /linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
-                               (Short form: /linkres) Where the resinfo format
-                               is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                        - CODE GENERATION -
- /debug[+|-]                   Emit debugging information
- /debug:{full|pdbonly|portable|embedded}
-                               Specify debugging type ('full' is default,
-                               'portable' is a cross-platform format,
-                               'embedded' is a cross-platform format embedded into
-                               the target .dll or .exe)
- /optimize[+|-]                Enable optimizations (Short form: /o)
- /deterministic                Produce a deterministic assembly
-                               (including module version GUID and timestamp)
- /refonly                      Produce a reference assembly in place of the main output
- /instrument:TestCoverage      Produce an assembly instrumented to collect
-                               coverage information
- /sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
+-debug:{full|pdbonly|portable|embedded}
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
-                        - ERRORS AND WARNINGS -
- /warnaserror[+|-]             Report all warnings as errors
- /warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
- /warn:&lt;n&gt;                     Set warning level (0-4) (Short form: /w)
- /nowarn:&lt;warn list&gt;           Disable specific warning messages
- /ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
-                               diagnostics.
- /errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
-                               diagnostics.
- /reportanalyzer               Report additional analyzer information, such as
-                               execution time.
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+-warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
+-errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+                              diagnostics.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
 
-                        - LANGUAGE -
- /checked[+|-]                 Generate overflow checks
- /unsafe[+|-]                  Allow 'unsafe' code
- /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
-                               form: /d)
- /langversion:?                Display the allowed values for language version
- /langversion:&lt;string&gt;         Specify language version such as
-                               `default` (latest major version), or
-                               `latest` (latest version, including minor versions),
-                               or specific versions like `6` or `7.1`
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `default` (latest major version), or
+                              `latest` (latest version, including minor versions),
+                              or specific versions like `6` or `7.1`
 
-                        - SECURITY -
- /delaysign[+|-]               Delay-sign the assembly using only the public
-                               portion of the strong name key
- /publicsign[+|-]              Public-sign the assembly using only the public
-                               portion of the strong name key
- /keyfile:&lt;file&gt;               Specify a strong name key file
- /keycontainer:&lt;string&gt;        Specify a strong name key container
- /highentropyva[+|-]           Enable high-entropy ASLR
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                        - MISCELLANEOUS -
- @&lt;file&gt;                       Read response file for more options
- /help                         Display this usage message (Short form: /?)
- /nologo                       Suppress compiler copyright message
- /noconfig                     Do not auto include CSC.RSP file
- /parallel[+|-]                Concurrent build.
- /version                      Display the compiler version number and exit.
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                        - ADVANCED -
- /baseaddress:&lt;address&gt;        Base address for the library to be built
- /checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
-                               checksum stored in PDB. Supported values are:
-                               SHA1 (default) or SHA256.
- /codepage:&lt;n&gt;                 Specify the codepage to use when opening source
-                               files
- /utf8output                   Output compiler messages in UTF-8 encoding
- /main:&lt;type&gt;                  Specify the type that contains the entry point
-                               (ignore all other possible entry points) (Short
-                               form: /m)
- /fullpaths                    Compiler generates fully qualified paths
- /filealign:&lt;n&gt;                Specify the alignment used for output file
-                               sections
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Specify a mapping for source path names output by
-                               the compiler.
- /pdb:&lt;file&gt;                   Specify debug information file name (default:
-                               output file name with .pdb extension)
- /errorendlocation             Output line and column of the end location of
-                               each error
- /preferreduilang              Specify the preferred output language name.
- /nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
- /subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
- /lib:&lt;file list&gt;              Specify additional directories to search in for
-                               references
- /errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
-                               prompt, send, queue, or none. The default is
-                               queue.
- /appconfig:&lt;file&gt;             Specify an application configuration file
-                               containing assembly binding settings
- /moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
-                               a part of
- /modulename:&lt;string&gt;          Specify the name of the source module
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 (default) or SHA256.
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
 </value>
     <comment>Visual C# Compiler Options</comment>
   </data>
@@ -4786,7 +4815,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>File path referenced in source (#load) could not be resolved.</comment>
   </data>
   <data name="SyntaxTreeFromLoadNoRemoveReplace" xml:space="preserve">
-    <value>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</value>
+    <value>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</value>
   </data>
   <data name="ERR_SourceFileReferencesNotSupported" xml:space="preserve">
     <value>Source file references are not supported.</value>
@@ -4915,10 +4944,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use ref local '{0}' inside an anonymous method, lambda expression, or query expression</value>
   </data>
   <data name="ERR_BadIteratorLocalType" xml:space="preserve">
-    <value>Iterators cannot have by reference locals</value>
+    <value>Iterators cannot have by-reference locals</value>
   </data>
   <data name="ERR_BadAsyncLocalType" xml:space="preserve">
-    <value>Async methods cannot have by reference locals</value>
+    <value>Async methods cannot have by-reference locals</value>
   </data>
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
@@ -5028,6 +5057,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
     <value>The tuple element name is ignored because a different name or no name is specified by the assignment target.</value>
   </data>
+  <data name="WRN_TupleBinopLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</value>
+  </data>
+  <data name="WRN_TupleBinopLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</value>
+  </data>
   <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
     <value>Predefined type '{0}' must be a struct.</value>
   </data>
@@ -5067,14 +5102,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
   </data>
+  <data name="ERR_InvalidHashAlgorithmName" xml:space="preserve">
+    <value>Invalid hash algorithm name: '{0}'</value>
+  </data>
   <data name="ERR_VarInvocationLvalueReserved" xml:space="preserve">
     <value>The syntax 'var (...)' as an lvalue is reserved.</value>
-  </data>
-  <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
-    <value>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</value>
-  </data>
-  <data name="ERR_ExpressionVariableInQueryClause" xml:space="preserve">
-    <value>Out variable and pattern variable declarations are not allowed within a query clause.</value>
   </data>
   <data name="ERR_SemiOrLBraceOrArrowExpected" xml:space="preserve">
     <value>{ or ; or =&gt; expected</value>
@@ -5136,6 +5168,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion7_2" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.2. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion7_3" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_LanguageVersionCannotHaveLeadingZeroes" xml:space="preserve">
     <value>Specified language version '{0}' cannot have leading zeroes</value>
   </data>
@@ -5156,6 +5191,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
     <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
+  </data>
+  <data name="WRN_AttributesOnBackingFieldsNotAvailable" xml:space="preserve">
+    <value>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</value>
+  </data>
+  <data name="WRN_AttributesOnBackingFieldsNotAvailable_Title" xml:space="preserve">
+    <value>Field-targeted attributes on auto-properties are not supported in this version of the language.</value>
   </data>
   <data name="ERR_DefaultInSwitch" xml:space="preserve">
     <value>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</value>
@@ -5214,9 +5255,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_StackAllocConversionNotPossible" xml:space="preserve">
     <value>Conversion of a stackalloc expression of type '{0}' to type '{1}' is not possible.</value>
   </data>
-  <data name="IDS_StackAllocExpression" xml:space="preserve">
-    <value>stackalloc {0}[{1}]</value>
-  </data>
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
   </data>
@@ -5246,5 +5284,65 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InDynamicMethodArg" xml:space="preserve">
     <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
+  </data>
+  <data name="ERR_TupleSizesMismatchForBinOps" xml:space="preserve">
+    <value>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
+  </data>
+  <data name="ERR_RefLocalOrParamExpected" xml:space="preserve">
+    <value>The left-hand side of a ref assignment must be a ref local or parameter.</value>
+  </data>
+  <data name="ERR_RefAssignNarrower" xml:space="preserve">
+    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</value>
+  </data>
+  <data name="IDS_FeatureEnumGenericTypeConstraint" xml:space="preserve">
+    <value>enum generic type constraints</value>
+  </data>
+  <data name="IDS_FeatureDelegateGenericTypeConstraint" xml:space="preserve">
+    <value>delegate generic type constraints</value>
+  </data>
+  <data name="IDS_FeatureUnmanagedGenericTypeConstraint" xml:space="preserve">
+    <value>unmanaged generic type constraints</value>
+  </data>
+  <data name="ERR_NewBoundWithUnmanaged" xml:space="preserve">
+    <value>The 'new()' constraint cannot be used with the 'unmanaged' constraint</value>
+  </data>
+  <data name="ERR_UnmanagedConstraintMustBeFirst" xml:space="preserve">
+    <value>The 'unmanaged' constraint must come before any other constraints</value>
+  </data>
+  <data name="ERR_UnmanagedConstraintNotSatisfied" xml:space="preserve">
+    <value>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</value>
+  </data>
+  <data name="ERR_ConWithUnmanagedCon" xml:space="preserve">
+    <value>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</value>
+  </data>
+  <data name="ERR_InvalidObjectCreation" xml:space="preserve">
+    <value>Invalid object creation</value>
+  </data>
+  <data name="IDS_FeatureStackAllocInitializer" xml:space="preserve">
+    <value>stackalloc initializer</value>
+  </data>
+  <data name="ERR_InvalidStackAllocArray" xml:space="preserve">
+    <value>"Invalid rank specifier: expected ']'</value>
+  </data>
+  <data name="IDS_FeatureExpressionVariablesInQueriesAndInitializers" xml:space="preserve">
+    <value>declaration of expression variables in member initializers and queries</value>
+  </data>
+  <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
+    <value>indexing movable fixed buffers</value>
+  </data>
+  <data name="ERR_CantUseInOrOutInArglist" xml:space="preserve">
+    <value>__arglist cannot have an argument passed by 'in' or 'out'</value>
+  </data>
+  <data name="SyntaxTreeNotFound" xml:space="preserve">
+    <value>SyntaxTree is not part of the compilation</value>
+  </data>
+  <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
+    <value>An out variable cannot be declared as a ref local</value>
+  </data>
+  <data name="CannotCreateConstructedFromConstructed" xml:space="preserve">
+    <value>Cannot create constructed generic type from another constructed generic type.</value>
+  </data>
+  <data name="CannotCreateConstructedFromNongeneric" xml:space="preserve">
+    <value>Cannot create constructed generic type from non-generic type.</value>
   </data>
 </root>

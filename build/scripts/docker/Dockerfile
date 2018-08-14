@@ -15,6 +15,7 @@ RUN rm -rf rm -rf /var/lib/apt/lists/* && \
             git \
             curl \
             tar \
+            unzip \
             sudo && \
     apt-get clean
 
@@ -35,7 +36,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E03280
     (echo "deb http://download.mono-project.com/repo/ubuntu stable-xenial main" | \
     tee /etc/apt/sources.list.d/mono-official.list) && \
     apt-get update && \
-    apt-get install -y mono-devel=5.8.0.108-0xamarin1+ubuntu1604b1 && \
+    apt-get install -y mono-devel && \
     apt-get clean
 
 # Setup User to match Host User, and give superuser permissions

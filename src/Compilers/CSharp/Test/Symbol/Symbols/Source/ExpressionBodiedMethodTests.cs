@@ -52,7 +52,7 @@ expectedOutput: "test");
         public void Syntax01()
         {
             // Feature is enabled by default
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public int M() => 1;

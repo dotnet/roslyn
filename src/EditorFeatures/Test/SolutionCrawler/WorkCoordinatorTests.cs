@@ -6,19 +6,23 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 {
+    [UseExportProvider]
     public class WorkCoordinatorTests
     {
         private const string SolutionCrawler = nameof(SolutionCrawler);
@@ -60,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
                 service.Register(workspace);
 
-                var provider = new AnalyzerProvider(new Analyzer());
+                var worker = new Analyzer();
+                var provider = new AnalyzerProvider(worker);
                 service.AddAnalyzerProvider(provider, Metadata.Crawler);
 
                 // wait for everything to settle
@@ -69,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
                 service.Unregister(workspace);
 
                 // check whether everything ran as expected
-                Assert.Equal(10, provider.Analyzer.SyntaxDocumentIds.Count);
-                Assert.Equal(10, provider.Analyzer.DocumentIds.Count);
+                Assert.Equal(10, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(10, worker.DocumentIds.Count);
             }
         }
 
@@ -846,6 +851,96 @@ End Class";
             }
         }
 
+        [Fact]
+        [WorkItem(26244, "https://github.com/dotnet/roslyn/issues/26244")]
+        public async Task FileFromSameProjectTogetherTest()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+            var projectId3 = ProjectId.CreateNewId();
+
+            var solution = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create(),
+                projects: new[]
+                {
+                    ProjectInfo.Create(projectId1, VersionStamp.Create(), "P1", "P1", LanguageNames.CSharp,
+                        documents: GetDocuments(projectId1, count: 5)),
+                    ProjectInfo.Create(projectId2, VersionStamp.Create(), "P2", "P2", LanguageNames.CSharp,
+                        documents: GetDocuments(projectId2, count: 5)),
+                    ProjectInfo.Create(projectId3, VersionStamp.Create(), "P3", "P3", LanguageNames.CSharp,
+                        documents: GetDocuments(projectId3, count: 5))
+                });
+
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                // add analyzer
+                var worker = new Analyzer2();
+                var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
+
+                // enable solution crawler
+                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+                service.Register(workspace);
+
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                // we want to test order items processed by solution crawler.
+                // but since everything async, lazy and cancellable, order is not 100% deterministic. an item might 
+                // start to be processed, and get cancelled due to newly enqueued item requiring current work to be re-processed 
+                // (ex, new file being added).
+                // this behavior is expected in real world, but it makes testing hard. so to make ordering deterministic
+                // here we first block solution crawler from processing any item using global operation.
+                // and then make sure all delayed work item enqueue to be done through waiters. work item enqueue is async
+                // and delayed since one of responsibility of solution cralwer is aggregating workspace events to fewer
+                // work items.
+                // once we are sure everything is stablized, we let solution crawler to process by releasing global operation.
+                // what this test is interested in is the order solution crawler process the pending works. so this should
+                // let the test not care about cancellation or work not enqueued yet.
+
+                // block solution cralwer from processing.
+                var globalOperation = workspace.Services.GetService<IGlobalOperationNotificationService>();
+                using (var operation = globalOperation.Start("Block SolutionCrawler"))
+                {
+                    // make sure global operaiton is actually started
+                    // otherwise, solution crawler might processed event we are later waiting for
+                    var operationWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.GlobalOperation);
+                    await operationWaiter.CreateWaitTask();
+
+                    // mutate solution
+                    workspace.OnSolutionAdded(solution);
+
+                    // wait for workspace events to be all processed
+                    var workspaceWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.Workspace);
+                    await workspaceWaiter.CreateWaitTask();
+
+                    // now wait for semantic processor to finish
+                    var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
+
+                    // first, wait for first work to be queued.
+                    //
+                    // since asyncToken doesn't distinguish whether (1) certain event is happened but all processed or (2) it never happened yet,
+                    // to check (1), we must wait for first item, and then wait for all items to be processed.
+                    await crawlerListener.WaitUntilConditionIsMetAsync(
+                        pendingTokens => pendingTokens.Any(token => token.Tag == (object)SolutionCrawlerRegistrationService.EnqueueItem));
+
+                    // and then wait them to be processed
+                    await crawlerListener.WaitUntilConditionIsMetAsync(pendingTokens => pendingTokens.Where(token => token.Tag == workspace).IsEmpty());
+
+                    // let analyzer to process
+                    operation.Done();
+                }
+
+                // wait analyzers to finish process
+                await WaitAsync(service, workspace);
+
+                Assert.Equal(1, worker.DocumentIds.Take(5).Select(d => d.ProjectId).Distinct().Count());
+                Assert.Equal(1, worker.DocumentIds.Skip(5).Take(5).Select(d => d.ProjectId).Distinct().Count());
+                Assert.Equal(1, worker.DocumentIds.Skip(10).Take(5).Select(d => d.ProjectId).Distinct().Count());
+
+                service.Unregister(workspace);
+            }
+        }
+
         private async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
             using (var workspace = TestWorkspace.Create(
@@ -966,24 +1061,18 @@ End Class";
                         projects: new[]
                         {
                             ProjectInfo.Create(projectId1, VersionStamp.Create(), "P1", "P1", LanguageNames.CSharp,
-                                documents: new[]
-                                {
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "D1"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "D2"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "D3"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "D4"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "D5")
-                                }),
+                                documents: GetDocuments(projectId1, count: 5)),
                             ProjectInfo.Create(projectId2, VersionStamp.Create(), "P2", "P2", LanguageNames.CSharp,
-                                documents: new[]
-                                {
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "D1"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "D2"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "D3"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "D4"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "D5")
-                                })
+                                documents: GetDocuments(projectId2, count: 5))
                         });
+        }
+
+        private static IEnumerable<DocumentInfo> GetDocuments(ProjectId projectId, int count)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                yield return DocumentInfo.Create(DocumentId.CreateNewId(projectId), $"D{i + 1}");
+            }
         }
 
         private static AsynchronousOperationListenerProvider GetListenerProvider(ExportProvider provider)
@@ -1008,7 +1097,7 @@ End Class";
             private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;
 
             public WorkCoordinatorWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
-                : base(EditorServicesUtil.CreateExportProvider(), workspaceKind, disablePartialSolutions)
+                : base(EditorServicesUtil.ExportProvider, workspaceKind, disablePartialSolutions)
             {
                 _workspaceWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.Workspace);
                 _solutionCrawlerWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.SolutionCrawler);
@@ -1030,9 +1119,9 @@ End Class";
 
         private class AnalyzerProvider : IIncrementalAnalyzerProvider
         {
-            public readonly Analyzer Analyzer;
+            public readonly IIncrementalAnalyzer Analyzer;
 
-            public AnalyzerProvider(Analyzer analyzer)
+            public AnalyzerProvider(IIncrementalAnalyzer analyzer)
             {
                 Analyzer = analyzer;
             }
@@ -1082,7 +1171,7 @@ End Class";
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.ProjectIds.Add(project.Id);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -1092,14 +1181,14 @@ End Class";
                     this.DocumentIds.Add(document.Id);
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.SyntaxDocumentIds.Add(document.Id);
                 Process(document.Id, cancellationToken);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void RemoveDocument(DocumentId documentId)
@@ -1139,23 +1228,46 @@ End Class";
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
+            #endregion
+        }
+
+        private class Analyzer2 : IIncrementalAnalyzer
+        {
+            public readonly List<DocumentId> DocumentIds = new List<DocumentId>();
+
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            {
+                this.DocumentIds.Add(document.Id);
+                return Task.CompletedTask;
+            }
+
+            #region unused 
+            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e) => false;
+            public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task DocumentResetAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
+            public void RemoveDocument(DocumentId documentId) { }
+            public void RemoveProject(ProjectId projectId) { }
             #endregion
         }
 

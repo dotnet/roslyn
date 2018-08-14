@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -24,19 +25,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private JsonRpcDisconnectedEventArgs _debuggingLastDisconnectReason;
         private string _debuggingLastDisconnectCallstack;
 
-        public JsonRpcEx(TraceSource logger, Stream stream, object callbackTarget, bool useThisAsCallback)
+        public JsonRpcEx(Workspace workspace, TraceSource logger, Stream stream, object callbackTarget, bool useThisAsCallback)
         {
-            Contract.Requires(logger != null);
-            Contract.Requires(stream != null);
+            Debug.Assert(workspace != null);
+            Debug.Assert(logger != null);
+            Debug.Assert(stream != null);
 
             var target = useThisAsCallback ? this : callbackTarget;
 
+            Workspace = workspace;
             _logger = logger;
 
             _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             _rpc.Disconnected += OnDisconnected;
+        }
+
+        public Workspace Workspace
+        {
+            get;
         }
 
         protected abstract void Dispose(bool disposing);
@@ -150,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private void ThrowSoftCrashException(Exception ex, CancellationToken token)
         {
-            RemoteHostCrashInfoBar.ShowInfoBar();
+            RemoteHostCrashInfoBar.ShowInfoBar(Workspace);
 
             // log disconnect information before throw
             LogDisconnectInfo(_debuggingLastDisconnectReason, _debuggingLastDisconnectCallstack);

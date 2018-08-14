@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -18,6 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
+    [UseExportProvider]
     public class StructureTaggerTests
     {
         [WpfFact(Skip="https://github.com/dotnet/roslyn/issues/22345"), Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -169,6 +171,7 @@ End Module";
             var projectionService = workspace.GetService<IProjectionBufferFactoryService>();
 
             var provider = new VisualStudio14StructureTaggerProvider(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                 textService, editorService, projectionService,
                 AsynchronousOperationListenerProvider.NullProvider);

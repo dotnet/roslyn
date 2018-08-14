@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 Workspace workspace,
                 IEnumerable<Document> documents,
                 ITextBufferFactoryService textBufferFactoryService)
+                : base(session.ThreadingContext)
             {
                 _session = session;
                 _subjectBuffer = subjectBuffer;
@@ -242,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // additions of "one" and "three").
                     var boundingIntersectionSpan = Span.FromBounds(intersectionSpans.First().Start, intersectionSpans.Last().End);
                     var trackingSpansTouched = GetEditableSpansForSnapshot(args.After).Where(ss => ss.IntersectsWith(boundingIntersectionSpan));
-                    Contract.Assert(trackingSpansTouched.Count() == 1);
+                    Debug.Assert(trackingSpansTouched.Count() == 1);
 
                     var singleTrackingSpanTouched = trackingSpansTouched.Single();
                     _activeSpan = _referenceSpanToLinkedRenameSpanMap.Where(kvp => kvp.Value.TrackingSpan.GetSpan(args.After).Contains(boundingIntersectionSpan)).Single().Key;

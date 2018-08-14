@@ -863,9 +863,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal NamedTypeSymbol Construct(ImmutableArray<TypeWithModifiers> arguments, bool unbound)
         {
-            if (!ReferenceEquals(this, ConstructedFrom) || this.Arity == 0)
+            if (!ReferenceEquals(this, ConstructedFrom))
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(CSharpResources.CannotCreateConstructedFromConstructed);
+            }
+
+            if (this.Arity == 0)
+            {
+                throw new InvalidOperationException(CSharpResources.CannotCreateConstructedFromNongeneric);
             }
 
             if (arguments.IsDefault)
@@ -919,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// True if this is a reference to an <em>unbound</em> generic type.  These occur only
-        /// within a <code>typeof</code> expression.  A generic type is considered <em>unbound</em>
+        /// within a <c>typeof</c> expression.  A generic type is considered <em>unbound</em>
         /// if all of the type argument lists in its fully qualified name are empty.
         /// Note that the type arguments of an unbound generic type will be returned as error
         /// types because they do not really have type arguments.  An unbound generic type
@@ -1209,7 +1214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// True if the type is serializable (has Serializable metadata flag).
         /// </summary>
-        internal abstract bool IsSerializable { get; }
+        public abstract bool IsSerializable { get; }
 
         /// <summary>
         /// Type layout information (ClassLayout metadata and layout kind flags).

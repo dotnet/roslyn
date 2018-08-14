@@ -18,7 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                                    anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                    normalType As INamedTypeSymbol,
                                                    within As ISymbol,
-                                                   cancellationToken As CancellationToken) As IList(Of SignatureHelpItem)
+                                                   cancellationToken As CancellationToken) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
+
             Dim accessibleConstructors = normalType.InstanceConstructors.
                                                     WhereAsArray(Function(c) c.IsAccessibleWithin(within)).
                                                     FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
@@ -28,9 +29,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
-            Return accessibleConstructors.Select(
+            Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
+
+            Dim items = accessibleConstructors.Select(
                 Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList()
+
+            Dim currentConstructor = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken)
+            Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, currentConstructor)
+
+            Return (items, selectedItem)
         End Function
 
         Private Function ConvertNormalTypeConstructor(constructor As IMethodSymbol, objectCreationExpression As ObjectCreationExpressionSyntax, semanticModel As SemanticModel,

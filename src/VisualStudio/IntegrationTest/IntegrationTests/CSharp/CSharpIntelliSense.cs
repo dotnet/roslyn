@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -18,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AtNamespaceLevel()
         {
             SetUpEditor(@"$$");
@@ -30,7 +31,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.Verify.CurrentLineText("using$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SpeculativeTInList()
         {
             SetUpEditor(@"
@@ -58,7 +59,7 @@ class C
 assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void VerifyCompletionListMembersOnStaticTypesAndCompleteThem()
         {
             SetUpEditor(@"
@@ -83,7 +84,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CurrentLineText("NavigateTo.Search$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpace()
         {
             VisualStudio.Workspace.SetUseSuggestionMode(false);
@@ -104,7 +105,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CurrentLineText("System.Console.writeline();$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpaceOption()
         {
             VisualStudio.Workspace.SetUseSuggestionMode(false);
@@ -119,7 +120,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CurrentLineText("nam Goo$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlSpace()
         {
             SetUpEditor("class c { void M() {$$ } }");
@@ -127,7 +128,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CompletionItemsExist("System");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NavigatingWithDownKey()
         {
             SetUpEditor("class c { void M() {$$ } }");
@@ -140,7 +141,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CompletionItemsExist("char");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void XmlDocCommentIntelliSense()
         {
             SetUpEditor(@"
@@ -160,7 +161,7 @@ class Class1
             VisualStudio.Editor.Verify.CurrentLineText("///<see cref=\"$$\"/>", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void XmlTagCompletion()
         {
             SetUpEditor(@"
@@ -180,7 +181,7 @@ class C { }
             VisualStudio.Editor.Verify.CurrentLineText("/// <summary></summary>$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SignatureHelpShowsUp()
         {
             SetUpEditor(@"
@@ -200,7 +201,7 @@ class Class1
             VisualStudio.Editor.Verify.CurrentParameter("args", "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletion()
         {
             SetUpEditor(@"
@@ -231,7 +232,7 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitOnShiftEnter()
         {
             SetUpEditor(@"
@@ -260,7 +261,7 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitOnLeftCurly()
         {
             SetUpEditor(@"
@@ -281,7 +282,7 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void EnsureTheCaretIsVisibleAfterALongEdit()
         {
             SetUpEditor(@"
@@ -303,7 +304,7 @@ public class Program
             Assert.True(VisualStudio.Editor.IsCaretOnScreen());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DismissOnSelect()
         {
             SetUpEditor(@"$$");

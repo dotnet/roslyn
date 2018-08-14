@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Not format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandNullable) Then
-                    If IsNullableType(symbol) AndAlso symbol IsNot symbol.OriginalDefinition Then
+                    If ITypeSymbolHelpers.IsNullableType(symbol) AndAlso symbol IsNot symbol.OriginalDefinition Then
                         symbol.TypeArguments(0).Accept(Me.NotFirstVisitor())
                         AddPunctuation(SyntaxKind.QuestionToken)
                         Return
@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not element.IsImplicitlyDeclared Then
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name, noEscaping:=False))
                     AddSpace()
-                    AddPunctuation(SyntaxKind.AsKeyword)
+                    AddKeyword(SyntaxKind.AsKeyword)
                     AddSpace()
                 End If
 
@@ -552,8 +552,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Shared Function IsNullableType(symbol As INamedTypeSymbol) As Boolean
-            Return symbol.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T
-        End Function
     End Class
 End Namespace

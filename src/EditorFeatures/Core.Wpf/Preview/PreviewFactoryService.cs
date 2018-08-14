@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -39,7 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         private readonly IWpfDifferenceViewerFactoryService _differenceViewerService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PreviewFactoryService(
+            IThreadingContext threadingContext,
             ITextBufferFactoryService textBufferFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
@@ -48,8 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             ITextDifferencingSelectorService differenceSelectorService,
             IDifferenceBufferFactoryService differenceBufferService,
             IWpfDifferenceViewerFactoryService differenceViewerService)
+            : base(threadingContext)
         {
-            Contract.ThrowIfTrue(this.ForegroundKind == ForegroundThreadDataKind.Unknown);
+            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
 
             _textBufferFactoryService = textBufferFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;
@@ -197,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 changeSummary = new SolutionChangeSummary(oldSolution, newSolution, solutionChanges);
             }
 
-            return new SolutionPreviewResult(previewItems, changeSummary);
+            return new SolutionPreviewResult(ThreadingContext, previewItems, changeSummary);
         }
 
         private bool ProjectReferencesChanged(ProjectChanges projectChanges)
@@ -539,7 +543,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             cancellationToken.ThrowIfCancellationRequested();
 
             // is it okay to create buffer from threads other than UI thread?
-            var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
+            var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
             return _textBufferFactoryService.CreateTextBuffer(
@@ -621,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             AssertIsForeground();
 
             // We use ConfigureAwait(true) to stay on the UI thread.
-            await diffViewer.SizeToFitAsync().ConfigureAwait(true);
+            await diffViewer.SizeToFitAsync(ThreadingContext).ConfigureAwait(true);
 
             leftWorkspace?.EnableDiagnostic();
             rightWorkspace?.EnableDiagnostic();

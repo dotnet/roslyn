@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <WorkItem(11795, "https://github.com/dotnet/roslyn/issues/11795")>
         Public Sub ResolutionScopeNilRef()
             Dim options = TestOptions.ReleaseDll.WithDeterministic(True)
-            Dim comp1 = CreateCompilationWithMscorlib(
+            Dim comp1 = CreateCompilationWithMscorlib40(
 {"Public Class A
 End Class"},
                 options:=options,
@@ -444,7 +444,7 @@ End Class"},
             Dim bytes1 = comp1.EmitToArray()
             Dim ref1 = AssemblyMetadata.CreateFromImage(bytes1).GetReference()
 
-            Dim comp2 = CreateCompilationWithMscorlib(
+            Dim comp2 = CreateCompilationWithMscorlib40(
 {"Public Class B
     Inherits A
 End Class"},
@@ -470,7 +470,7 @@ End Class"
 
             Dim invalidAssemblyRefTypeRef As Byte() = {2, 0, 82, 0, 0, 0} ' 2 is (AssemblyRef << 2 | 2)
             Dim ref2 = AssemblyMetadata.CreateFromImage(ReplaceBytes(bytes2, validAssemblyRefTypeRef, invalidAssemblyRefTypeRef)).GetReference()
-            Dim comp3 = CreateCompilationWithMscorlib({source3}, options:=options, references:={ref2})
+            Dim comp3 = CreateCompilationWithMscorlib40({source3}, options:=options, references:={ref2})
             comp3.VerifyDiagnostics()
             Dim tree = comp3.SyntaxTrees(0)
             Dim model = comp3.GetSemanticModel(comp3.SyntaxTrees(0))
@@ -483,7 +483,7 @@ End Class"
             ' As above but with nil ModuleRef.
             Dim invalidModuleRefTypeRef As Byte() = {1, 0, 82, 0, 0, 0} ' 1 is (ModuleRef << 2 | 1)
             ref2 = AssemblyMetadata.CreateFromImage(ReplaceBytes(bytes2, validAssemblyRefTypeRef, invalidModuleRefTypeRef)).GetReference()
-            comp3 = CreateCompilationWithMscorlib({source3}, options:=options, references:={ref2})
+            comp3 = CreateCompilationWithMscorlib40({source3}, options:=options, references:={ref2})
             comp3.VerifyDiagnostics()
             tree = comp3.SyntaxTrees(0)
             model = comp3.GetSemanticModel(tree)
@@ -496,7 +496,7 @@ End Class"
             ' As above but with nil TypeRef.
             Dim invalidTypeRefTypeRef As Byte() = {3, 0, 82, 0, 0, 0} ' 3 is (TypeRef << 2 | 3)
             ref2 = AssemblyMetadata.CreateFromImage(ReplaceBytes(bytes2, validAssemblyRefTypeRef, invalidTypeRefTypeRef)).GetReference()
-            comp3 = CreateCompilationWithMscorlib({source3}, options:=options, references:={ref2})
+            comp3 = CreateCompilationWithMscorlib40({source3}, options:=options, references:={ref2})
             comp3.VerifyDiagnostics()
             tree = comp3.SyntaxTrees(0)
             model = comp3.GetSemanticModel(tree)

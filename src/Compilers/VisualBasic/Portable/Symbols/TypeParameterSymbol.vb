@@ -314,6 +314,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public MustOverride ReadOnly Property HasValueTypeConstraint As Boolean Implements ITypeParameterSymbol.HasValueTypeConstraint
 
+        Private ReadOnly Property HasUnmanagedTypeConstraint As Boolean Implements ITypeParameterSymbol.HasUnmanagedTypeConstraint
+            Get
+                Return False
+            End Get
+        End Property
+
         Public MustOverride ReadOnly Property Variance As VarianceKind Implements ITypeParameterSymbol.Variance
 
         ''' <summary>

@@ -4,13 +4,13 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CaseCorrection
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
+    <[UseExportProvider]>
     Public Class CaseCorrectionServiceTests
         Private Async Function TestAsync(input As XElement, expected As XElement, Optional interProject As Boolean = False) As Tasks.Task
             If (interProject) Then

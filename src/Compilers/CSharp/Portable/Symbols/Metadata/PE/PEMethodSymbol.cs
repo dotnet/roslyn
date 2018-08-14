@@ -20,7 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEMethodSymbol : MethodSymbol
     {
-        private class SignatureData
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal class SignatureData
         {
             public readonly SignatureHeader Header;
             public readonly ImmutableArray<ParameterSymbol> Parameters;
@@ -555,7 +558,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
-        private SignatureData Signature => _lazySignature ?? LoadSignature();
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal SignatureData Signature => _lazySignature ?? LoadSignature();
 
         private SignatureData LoadSignature()
         {
@@ -602,9 +608,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Dynamify object type if necessary
             var returnType = paramInfo[0].Type.AsDynamicIfNoPia(_containingType);
-
-            // Check for tuple type
-            returnType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(returnType, paramInfo[0].Handle, moduleSymbol);
 
             paramInfo[0].Type = returnType;
 

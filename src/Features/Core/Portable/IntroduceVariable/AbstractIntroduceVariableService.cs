@@ -18,12 +18,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax> : IIntroduceVariableService
-        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax>
+    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax> : IIntroduceVariableService
+        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
         where TExpressionSyntax : SyntaxNode
         where TTypeSyntax : TExpressionSyntax
         where TTypeDeclarationSyntax : SyntaxNode
         where TQueryExpressionSyntax : TExpressionSyntax
+        where TNameSyntax : TTypeSyntax
     {
         protected abstract bool IsInNonFirstQueryClause(TExpressionSyntax expression);
         protected abstract bool IsInFieldInitializer(TExpressionSyntax expression);
@@ -194,15 +195,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         protected static SyntaxToken GenerateUniqueFieldName(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             TExpressionSyntax expression,
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
 
-            var semanticModel = document.SemanticModel;
+            var semanticModel = semanticDocument.SemanticModel;
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, isConstant, cancellationToken);
 
@@ -215,26 +216,20 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         protected static SyntaxToken GenerateUniqueLocalName(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             TExpressionSyntax expression,
             bool isConstant,
-            SyntaxNode container,
+            SyntaxNode containerOpt,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var semanticModel = semanticDocument.SemanticModel;
 
-            var semanticModel = document.SemanticModel;
-            var existingSymbols = semanticModel.GetExistingSymbols(container, cancellationToken);
-
+            var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
-            var reservedNames = semanticModel.LookupSymbols(expression.SpanStart)
-                                             .Select(s => s.Name)
-                                             .Concat(existingSymbols.Select(s => s.Name));
 
-            return syntaxFacts.ToIdentifierToken(
-                NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
+            return semanticFacts.GenerateUniqueLocalName(
+                semanticModel, expression, containerOpt, baseName, cancellationToken);
         }
 
         protected ISet<TExpressionSyntax> FindMatches(
@@ -277,7 +272,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 if (allOccurrences &&
                     this.CanReplace(nodeInCurrent))
                 {
-                    return SemanticEquivalence.AreSemanticallyEquivalent(
+                    return SemanticEquivalence.AreEquivalent(
                         originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent);
                 }
             }

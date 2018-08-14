@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
+    <[UseExportProvider]>
     Public Class TodoCommentTests
         <Fact>
         Public Async Function TestSingleLineTodoComment_Colon() As Task

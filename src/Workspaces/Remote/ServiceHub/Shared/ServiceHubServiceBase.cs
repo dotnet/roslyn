@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (_lazyRoslynServices == null)
                 {
-                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage);
+                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
                 }
 
                 return _lazyRoslynServices;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
-            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage);
+            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
             return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
         }
 

@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Threading;
 using System.IO.Pipes;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -144,6 +146,31 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     Assert.True(ranLocal);
                 }
             }
+
+#if NET46
+            [Fact]
+            public void TestMutexConstructorException()
+            {
+                using (var outer = new Mutex(initiallyOwned: true, name: BuildServerConnection.GetClientMutexName(_pipeName), out bool createdNew))
+                {
+                    Assert.True(createdNew);
+                    var mutexSecurity = outer.GetAccessControl();
+                    mutexSecurity.AddAccessRule(new MutexAccessRule(WindowsIdentity.GetCurrent().Owner, MutexRights.FullControl, AccessControlType.Deny));
+                    outer.SetAccessControl(mutexSecurity);
+
+                    var ranLocal = false;
+                    var client = CreateClient(
+                        compileFunc: delegate
+                        {
+                            ranLocal = true;
+                            return 0;
+                        });
+                    var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
+                    Assert.Equal(0, exitCode);
+                    Assert.True(ranLocal);
+                }
+            }
+#endif
 
             [Fact]
             public async Task ConnectToPipe()

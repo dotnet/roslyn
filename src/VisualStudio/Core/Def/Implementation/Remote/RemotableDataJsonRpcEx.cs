@@ -28,8 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly IRemotableDataService _remotableDataService;
         private readonly CancellationTokenSource _shutdownCancellationSource;
 
-        public RemotableDataJsonRpc(Microsoft.CodeAnalysis.Workspace workspace, TraceSource logger, Stream stream)
-            : base(logger, stream, callbackTarget: null, useThisAsCallback: true)
+        public RemotableDataJsonRpc(Workspace workspace, TraceSource logger, Stream stream)
+            : base(workspace, logger, stream, callbackTarget: null, useThisAsCallback: true)
         {
             _remotableDataService = workspace.Services.GetService<IRemotableDataService>();
 
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private Task WriteNoAssetAsync(ObjectWriter writer)
         {
             writer.WriteInt32(0);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private async Task WriteOneAssetAsync(ObjectWriter writer, int scopeId, Checksum checksum, CancellationToken cancellationToken)

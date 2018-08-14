@@ -4,9 +4,9 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -535,7 +535,7 @@ class C
 /// <summary>
 /// This is <see cref=""MyDelegate""/>, which has these methods:
 ///     <see cref=""MyDelegate.MyDelegate(object, IntPtr)""/>
-///     <see cref=""MyDelegate.Invoke( bool, string)""/>
+///     <see cref=""MyDelegate.Invoke(bool, string)""/>
 ///     <see cref=""MyDelegate.EndInvoke(IAsyncResult)""/>
 ///     <see cref=""MyDelegate.BeginInvoke(int, string, bool, AsyncCallback, object)""/>
 /// </summary>

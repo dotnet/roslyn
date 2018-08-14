@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -83,24 +85,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw new ArgumentException($"No module found with MVID '{moduleVersionId}'", nameof(moduleVersionId));
         }
 
-        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataBlock> metadataBlocks)
-        {
-            var references = metadataBlocks.MakeAssemblyReferences(default(Guid), identityComparer: null);
-            return references.ToCompilation();
-        }
-
         internal static CSharpCompilation ToCompilationReferencedModulesOnly(this ImmutableArray<MetadataBlock> metadataBlocks, Guid moduleVersionId)
         {
-            var references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer);
-            return references.ToCompilation();
+            return ToCompilation(metadataBlocks, moduleVersionId, kind: MakeAssemblyReferencesKind.DirectReferencesOnly);
         }
 
-        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataReference> references)
+        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataBlock> metadataBlocks, Guid moduleVersionId, MakeAssemblyReferencesKind kind)
         {
+            var references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer, kind, out var referencesBySimpleName);
+            var options = s_compilationOptions;
+            if (referencesBySimpleName != null)
+            {
+                Debug.Assert(kind == MakeAssemblyReferencesKind.AllReferences);
+                var resolver = new EEMetadataReferenceResolver(IdentityComparer, referencesBySimpleName);
+                options = options.WithMetadataReferenceResolver(resolver);
+            }
             return CSharpCompilation.Create(
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
                 references: references,
-                options: s_compilationOptions);
+                options: options);
         }
 
         internal static ReadOnlyCollection<byte> GetCustomTypeInfoPayload(

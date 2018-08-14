@@ -26,23 +26,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public IServiceProvider ServiceProvider { get; }
             public IVsUIShellOpenDocument ShellOpenDocumentService { get; }
 
-            public DeferredInitializationState(VisualStudioWorkspaceImpl workspace, IServiceProvider serviceProvider)
-                : base(assertIsForeground: true)
+            public DeferredInitializationState(IThreadingContext threadingContext, VisualStudioWorkspaceImpl workspace, IServiceProvider serviceProvider, LinkedFileUtilities linkedFileUtilities)
+                : base(threadingContext, assertIsForeground: true)
             {
                 ServiceProvider = serviceProvider;
                 ShellOpenDocumentService = (IVsUIShellOpenDocument)serviceProvider.GetService(typeof(SVsUIShellOpenDocument));
-                ProjectTracker = new VisualStudioProjectTracker(serviceProvider, workspace.Services);
+                ProjectTracker = new VisualStudioProjectTracker(threadingContext, serviceProvider, workspace, linkedFileUtilities);
 
                 // Ensure the document tracking service is initialized on the UI thread
                 var documentTrackingService = (VisualStudioDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
-                var documentProvider = new DocumentProvider(ProjectTracker, serviceProvider, documentTrackingService);
+                var documentProvider = new DocumentProvider(ProjectTracker, serviceProvider, documentTrackingService, linkedFileUtilities);
                 var metadataReferenceProvider = workspace.Services.GetService<VisualStudioMetadataReferenceManager>();
                 var ruleSetFileProvider = workspace.Services.GetService<VisualStudioRuleSetManager>();
                 ProjectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider);
-
-                var workspaceHost = new VisualStudioWorkspaceHost(workspace);
-                ProjectTracker.RegisterWorkspaceHost(workspaceHost);
-                ProjectTracker.StartSendingEventsToWorkspaceHost(workspaceHost);
 
                 var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
                 var saveEventsService = componentModel.GetService<SaveEventsService>();

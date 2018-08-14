@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         public ObservableCollection<INamingStylesInfoDialogViewModel> Items { get; set; }
         public string LanguageName { get; private set; }
 
-        public string DialogTitle => "Manage Specifications";
+        public string DialogTitle => ServicesVSResources.Manage_specifications;
 
         public ManageSymbolSpecificationsDialogViewModel(
             ObservableCollection<SymbolSpecification> specifications, 

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// <summary>
     /// Information related to pinned solution
     /// </summary>
-    internal class PinnedSolutionInfo
+    internal sealed class PinnedSolutionInfo
     {
         /// <summary>
         /// Unique ID for this pinned solution
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// Add asset that is not part of solution to be part of this snapshot.
         /// 
-        /// TODO: currently, this asset must be something <see cref="Serializer"/> can understand
+        /// TODO: currently, this asset must be something <see cref="ISerializerService"/> can understand
         ///       this should be changed so that custom serializer can be discoverable by <see cref="RemotableData.Kind"/> 
         /// </summary>
         public void AddAdditionalAsset(CustomAsset asset)

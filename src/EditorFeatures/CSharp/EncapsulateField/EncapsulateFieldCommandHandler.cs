@@ -3,24 +3,25 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.EncapsulateField, ContentTypeNames.CSharpContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(PredefinedCommandHandlerNames.EncapsulateField)]
     [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
     internal class EncapsulateFieldCommandHandler : AbstractEncapsulateFieldCommandHandler
     {
         [ImportingConstructor]
         public EncapsulateFieldCommandHandler(
-            IWaitIndicator waitIndicator,
             ITextBufferUndoManagerProvider undoManager,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(waitIndicator, undoManager, listenerProvider)
+            : base(undoManager, listenerProvider)
         {
         }
     }

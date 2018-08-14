@@ -367,7 +367,7 @@ class C
 {
     void M()
     {
-        System.Action a = (() => { });
+        System.Action a = () => { };
     }
 }
 </code>
@@ -401,13 +401,12 @@ class C
     void M()
     {
         System.Action a = null;
-        a = (() => { });
+        a = () => { };
     }
 }
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -435,7 +434,7 @@ class C
 {
     void M()
     {
-        Goo((() => "Goo"));
+        Goo(() => "Goo");
     }
 
     void Goo&lt;T&gt;(System.Func&lt;T&gt; f) { }
@@ -471,7 +470,7 @@ class C
 {
     void M()
     {
-        Goo(f: (() => "Goo"));
+        Goo(f: () => "Goo");
     }
 
     void Goo&lt;T&gt;(System.Func&lt;T&gt; f) { }
@@ -3207,7 +3206,7 @@ static class Program
 {
     static void Main()
     {
-        new Action<string>((y => Goo(1)))(null);
+        new Action<string>(y => Goo(1))(null);
     }
  
     static void Goo(this object x) { Console.WriteLine(1); }
@@ -3254,7 +3253,7 @@ static class Program
 {
     static void Main()
     {
-        new Action<string>(((y) => { string x = y; x.Goo(); }))(null);
+        new Action<string>((y) => { string x = y; x.Goo(); })(null);
     }
  
     static void Goo(this object x) { Console.WriteLine(1); }
@@ -3397,7 +3396,7 @@ static class Program
 {
     static void Main()
     {
-        new Action<string, object>(((y, z) => { object x = y; z.Goo(); }))(null, null);
+        new Action<string, object>((y, z) => { object x = y; z.Goo(); })(null, null);
     }
 
     static void Goo(this object x) { Console.WriteLine(1); }
@@ -3533,7 +3532,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<Exception> f = (() => new ArgumentException());
+        Func<Exception> f = () => new ArgumentException();
     }
 }
 ]]>

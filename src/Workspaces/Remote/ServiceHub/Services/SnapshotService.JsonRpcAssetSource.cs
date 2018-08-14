@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _owner = owner;
             }
 
-            public override async Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, CancellationToken callerCancellation)
+            public override async Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken callerCancellation)
             {
                 using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, callerCancellation))
                 {
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         {
                             return _owner.Rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                                 new object[] { scopeId, checksums.ToArray() },
-                                (s, c) => ReadAssets(s, scopeId, checksums, c), cancellationToken);
+                                (s, c) => ReadAssets(s, scopeId, checksums, serializerService, c), cancellationToken);
                         }, callerCancellation).ConfigureAwait(false);
                     }
                     catch (Exception ex) when (ReportUnlessCanceled(ex, callerCancellation))
@@ -63,7 +63,11 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             private IList<(Checksum, object)> ReadAssets(
-                Stream stream, int scopeId, ISet<Checksum> checksums, CancellationToken cancellationToken)
+                Stream stream,
+                int scopeId,
+                ISet<Checksum> checksums,
+                ISerializerService serializerService,
+                CancellationToken cancellationToken)
             {
                 var results = new List<(Checksum, object)>();
 
@@ -87,7 +91,7 @@ This data should always be correct as we're never persisting the data between se
                         var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 
                         // in service hub, cancellation means simply closed stream
-                        var @object = AssetService.Deserialize<object>(kind, reader, cancellationToken);
+                        var @object = serializerService.Deserialize<object>(kind, reader, cancellationToken);
 
                         results.Add((responseChecksum, @object));
                     }
