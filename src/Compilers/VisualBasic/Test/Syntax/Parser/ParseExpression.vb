@@ -2917,4 +2917,146 @@ End Module]]>.Value)
         Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
     End Sub
 
+    <Fact>
+    Public Sub Test_KeywordExpr_0()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As Integer
+  Public Function Result() As String
+    Return End
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+<expected>
+BC30201: Expression expected.
+    Return End
+           ~
+</expected>)
+    End Sub
+
+    <Fact>
+    Public Sub Test_KeywordExpr_1()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As Integer
+  Public Function Result() As String
+    Return End.
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+<expected>
+BC30183: Keyword is not valid as an identifier.
+    Return End.
+           ~~~
+BC30203: Identifier expected.
+    Return End.
+               ~
+</expected>)
+    End Sub
+
+    <Fact>
+    Public Sub Test_KeywordExpr_2()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As Integer
+  Public Function Result() As String
+    Return Async.
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+<expected>
+BC30203: Identifier expected.
+    Return Async.
+                 ~
+</expected>)
+    End Sub
+
+    <Fact>
+    Public Sub Test_KeywordExpr_3()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As Integer
+  Public Function Result() As String
+    Return Async
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+<expected>
+</expected>)
+    End Sub
+
+    <Fact>
+    Public Sub Test_KeywordExpr_4()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As Integer
+  Public Function Result() As String
+    Return Await.
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+<expected>
+BC30203: Identifier expected.
+    Return Await.
+                 ~
+</expected>)
+    End Sub
+
+    <Fact>
+    Public Sub Test_KeywordExpr_5()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As Integer
+  Public Function Result() As String
+    Return Await
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+<expected>
+</expected>)
+    End Sub
+
+    <Fact>
+    Public Sub Test_KeywordExpr_6()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As DateTime? = DateTime.Now
+  Public Overrides Function ToString() As String
+    Return End?.Day
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+                    <expected>
+BC30183: Keyword is not valid as an identifier.
+    Return End?.Day
+           ~~~
+</expected>
+        )
+    End Sub
+
+    <Fact>
+    Public Sub Test_KeywordExpr_7()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As New System.Collections.Generic.Dictionary(Of String,Integer) From {{""A"", 1},{""B"",2}}
+  Public Overrides Function ToString() As String
+    Return End!A
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+                    <expected>
+BC30183: Keyword is not valid as an identifier.
+    Return End!A
+           ~~~
+</expected>
+        )
+    End Sub
 End Class
