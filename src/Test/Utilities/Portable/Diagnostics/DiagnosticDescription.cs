@@ -509,6 +509,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 if (x == null)
                 {
+                    if (y == null)
+                    {
+                        return 0;
+                    }
                     return -1;
                 }
 
