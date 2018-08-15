@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -52,38 +54,47 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
+            // Use an actual stack object so that we don't blow the actual stack through recursion.
             var root = syntaxTree.GetRoot(cancellationToken);
-            Analyze(context, detector, root, cancellationToken);
-        }
+            var stack = new Stack<SyntaxNodeOrToken>();
+            stack.Push(root);
 
-        private void Analyze(
-            SemanticModelAnalysisContext context, RegexPatternDetector detector,
-            SyntaxNode node, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            foreach (var child in node.ChildNodesAndTokens())
+            while (stack.Count != 0)
             {
-                if (child.IsNode)
+                cancellationToken.ThrowIfCancellationRequested();
+                var current = stack.Pop();
+
+                if (current.IsNode)
                 {
-                    Analyze(context, detector, child.AsNode(), cancellationToken);
+                    var node = current.AsNode();
+
+                    foreach (var child in node.ChildNodesAndTokens())
+                    {
+                        stack.Push(child);
+                    }
                 }
                 else
                 {
-                    var token = child.AsToken();
-                    if (token.RawKind == _language.StringLiteralKind)
+                    AnalyzeToken(context, detector, current.AsToken(), cancellationToken);
+                }
+            }
+        }
+
+        private void AnalyzeToken(
+            SemanticModelAnalysisContext context, RegexPatternDetector detector, 
+            SyntaxToken token, CancellationToken cancellationToken)
+        {
+            if (token.RawKind == _language.StringLiteralKind)
+            {
+                var tree = detector.TryParseRegexPattern(token, cancellationToken);
+                if (tree != null)
+                {
+                    foreach (var diag in tree.Diagnostics)
                     {
-                        var tree = detector.TryParseRegexPattern(token, cancellationToken);
-                        if (tree != null)
-                        {
-                            foreach (var diag in tree.Diagnostics)
-                            {
-                                context.ReportDiagnostic(Diagnostic.Create(
-                                    _descriptor,
-                                    Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
-                                    diag.Message));
-                            }
-                        }
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            _descriptor,
+                            Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
+                            diag.Message));
                     }
                 }
             }
