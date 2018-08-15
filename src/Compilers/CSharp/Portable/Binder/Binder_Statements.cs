@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, localSymbol.RefKind, declarator);
 
                 // If we got a good result then swap the inferred type for the "var" 
-                var initializerType = initializerOpt?.Type;
+                TypeSymbol initializerType = initializerOpt?.Type;
                 if ((object)initializerType != null)
                 {
                     declTypeOpt = TypeSymbolWithAnnotations.Create(initializerType, isNullableIfReferenceType: null);
