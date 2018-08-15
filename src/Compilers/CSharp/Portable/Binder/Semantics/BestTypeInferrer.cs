@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return default;
             }
-            return TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: GetIsNullable(types));
+            return TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: conversions.IncludeNullability ? GetIsNullable(types) : null);
         }
 
         private static bool? GetIsNullable(ImmutableArray<TypeSymbolWithAnnotations> types)
