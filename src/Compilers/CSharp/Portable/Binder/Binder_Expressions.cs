@@ -2718,6 +2718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
             }
 
+            // Element type nullability will be inferred in flow analysis and does not need to be set here.
             var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: null), rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);

@@ -11,7 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static TypeSymbolWithAnnotations InferBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var bestType = GetBestType(types.SelectAsArray(t => t.TypeSymbol), conversions, ref useSiteDiagnostics);
+            var builder = ArrayBuilder<TypeSymbol>.GetInstance(types.Length);
+            foreach (var type in types)
+            {
+                builder.Add(type.TypeSymbol);
+            }
+            var bestType = GetBestType(builder, conversions, ref useSiteDiagnostics);
+            builder.Free();
             if ((object)bestType == null)
             {
                 return default;
@@ -89,7 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             hadMultipleCandidates = candidateTypes.Count > 1;
 
             // Perform best type inference on candidate types.
-            return GetBestType(candidateTypes.AsImmutableOrEmpty(), conversions, ref useSiteDiagnostics);
+            var builder = ArrayBuilder<TypeSymbol>.GetInstance(candidateTypes.Count);
+            builder.AddRange(candidateTypes);
+            var result = GetBestType(builder, conversions, ref useSiteDiagnostics);
+            builder.Free();
+            return result;
         }
 
         /// <remarks>
@@ -108,47 +118,51 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // A type is a candidate if all expressions are convertible to that type.
             ArrayBuilder<TypeSymbol> candidateTypes = ArrayBuilder<TypeSymbol>.GetInstance();
-
-            TypeSymbol type1 = expr1.Type;
-
-            if ((object)type1 != null)
+            try
             {
-                if (type1.IsErrorType())
+                TypeSymbol type1 = expr1.Type;
+
+                if ((object)type1 != null)
                 {
-                    candidateTypes.Free();
-                    hadMultipleCandidates = false;
-                    return type1;
+                    if (type1.IsErrorType())
+                    {
+                        hadMultipleCandidates = false;
+                        return type1;
+                    }
+
+                    if (conversions.ClassifyImplicitConversionFromExpression(expr2, type1, ref useSiteDiagnostics).Exists)
+                    {
+                        candidateTypes.Add(type1);
+                    }
                 }
 
-                if (conversions.ClassifyImplicitConversionFromExpression(expr2, type1, ref useSiteDiagnostics).Exists)
+                TypeSymbol type2 = expr2.Type;
+
+                if ((object)type2 != null)
                 {
-                    candidateTypes.Add(type1);
+                    if (type2.IsErrorType())
+                    {
+                        hadMultipleCandidates = false;
+                        return type2;
+                    }
+
+                    if (conversions.ClassifyImplicitConversionFromExpression(expr1, type2, ref useSiteDiagnostics).Exists)
+                    {
+                        candidateTypes.Add(type2);
+                    }
                 }
+
+                hadMultipleCandidates = candidateTypes.Count > 1;
+
+                return GetBestType(candidateTypes, conversions, ref useSiteDiagnostics);
             }
-
-            var type2 = expr2.Type;
-
-            if ((object)type2 != null)
+            finally
             {
-                if (type2.IsErrorType())
-                {
-                    candidateTypes.Free();
-                    hadMultipleCandidates = false;
-                    return type2;
-                }
-
-                if (conversions.ClassifyImplicitConversionFromExpression(expr1, type2, ref useSiteDiagnostics).Exists)
-                {
-                    candidateTypes.Add(type2);
-                }
+                candidateTypes.Free();
             }
-
-            hadMultipleCandidates = candidateTypes.Count > 1;
-
-            return GetBestType(candidateTypes.ToImmutableAndFree(), conversions, ref useSiteDiagnostics);
         }
 
-        private static TypeSymbol GetBestType(ImmutableArray<TypeSymbol> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static TypeSymbol GetBestType(ArrayBuilder<TypeSymbol> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // This code assumes that the types in the list are unique. 
 
@@ -157,18 +171,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might be intransitive?
 
             // Short-circuit some common cases.
-            if (types.IsEmpty)
+            switch (types.Count)
             {
-                return null;
-            }
-            else if (types.Length == 1)
-            {
-                return types[0];
+                case 0:
+                    return null;
+                case 1:
+                    return types[0];
             }
 
             TypeSymbol best = null;
             int bestIndex = -1;
-            for(int i = 0; i < types.Length; i++)
+            for(int i = 0; i < types.Count; i++)
             {
                 TypeSymbol type = types[i];
                 if ((object)best == null)

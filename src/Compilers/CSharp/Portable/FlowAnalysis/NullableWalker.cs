@@ -1285,6 +1285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // Mark the error type as null-oblivious.
                     bestType = TypeSymbolWithAnnotations.Create(bestType.TypeSymbol, isNullableIfReferenceType: null);
                 }
                 // PROTOTYPE(NullableReferenceTypes): Report a special ErrorCode.WRN_NoBestNullabilityArrayElements
@@ -1688,6 +1689,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Return top-level nullability for the expression. This method should be called on a limited
+        /// set of expressions only. It should not be called on expressions tracked by flow analysis
+        /// other than <see cref="BoundKind.ExpressionWithNullability"/> which is an expression
+        /// specifically created in NullableWalker to represent the flow analysis state.
+        /// </summary>
         private static bool? GetIsNullable(BoundExpression expr)
         {
             switch (expr.Kind)
@@ -1711,8 +1718,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.ExpressionWithNullability:
                     return ((BoundExpressionWithNullability)expr).IsNullable;
-                default:
+                case BoundKind.UnboundLambda:
                     return null;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expr.Kind);
             }
         }
 
