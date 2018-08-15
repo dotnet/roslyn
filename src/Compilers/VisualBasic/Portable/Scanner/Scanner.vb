@@ -534,7 +534,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
             Return MakeEndOfLineTrivia(GetNextChar)
         End Function
-
+        ''' <summary>
+        ''' This function handles scanning _ and _ Comments that start with '
+        ''' </summary>
+        ''' <param name="tList">A list of trivia starting with _ if returning True
+        ''' or Nothing if returning False</param>
+        ''' <returns>
+        ''' False on errors including
+        ''' EOF, Whitespace is missing before _, first character is not _
+        ''' True on space _ or _ followed by 0 or more spaces ' Comment even if feature not supported
+        ''' If feature is not support error is added to trivia
+        ''' </returns>
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
             If Not CanGet() Then
                 Return False
@@ -563,6 +573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
                 End While
                 If CanGet(Here) AndAlso IsSingleQuote(Peek(Here)) Then
+                    ' If you get here you have a Line Continuation with have 0 or more spaces followed by a  comment
                     tList.Add(MakeLineContinuationTrivia(GetText(1)))
                     If Here > 1 Then
                         tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
@@ -576,7 +587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ch = Peek()
                     atNewLine = IsNewLine(ch)
                 Else
-                    ' If you get her you have a Line Continuation without comment, so process as V15.5 below
+                    ' If you get her you have a Line Continuation without comment but have 0 or more spaces after _, so process as V15.5
                     If Not CanGet(Here) Then
                         Return False
                     End If
@@ -585,20 +596,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return False
                     End If
                     tList.Add(MakeLineContinuationTrivia(GetText(1)))
-
+                    ' Leading Whitespace on line after _
                     If Here > 1 Then
                         tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
                     End If
                 End If
             Else
                 ' We don't have a space or ' but we might have an EOF after _ and that is not an error
+                ' This case if different then above because we don't want to skip whitespace after _
                 If CanGet(Here) Then
                     ch = Peek(Here)
                 End If
                 atNewLine = IsNewLine(ch)
                 If Not atNewLine AndAlso CanGet(Here) Then
+                    ' If we get here we have an error, return trivia is Nothing
                     Return False
                 End If
+                ' If we get here the line ends in valid newline or EOF and there is no whitespace after _
                 tList.Add(MakeLineContinuationTrivia(GetText(1)))
             End If
 
