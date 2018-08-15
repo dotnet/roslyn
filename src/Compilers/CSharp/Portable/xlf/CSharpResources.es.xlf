@@ -7,6 +7,16 @@
         <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotCreateConstructedFromConstructed">
+        <source>Cannot create constructed generic type from another constructed generic type.</source>
+        <target state="new">Cannot create constructed generic type from another constructed generic type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateConstructedFromNongeneric">
+        <source>Cannot create constructed generic type from non-generic type.</source>
+        <target state="new">Cannot create constructed generic type from non-generic type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="new">An out variable cannot be declared as a ref local</target>

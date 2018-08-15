@@ -49,6 +49,7 @@ abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(s
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameExpression(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol namespaceOrTypeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object (forwarded, contained in Microsoft.CodeAnalysis)
 abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet (forwarded, contained in Microsoft.CodeAnalysis)
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.StringEscapeCharacter = "string - escape character" -> string
 const Microsoft.CodeAnalysis.WorkspaceKind.MSBuild = "MSBuildWorkspace" -> string
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.get -> Microsoft.CodeAnalysis.ReportDiagnostic
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.set -> void
