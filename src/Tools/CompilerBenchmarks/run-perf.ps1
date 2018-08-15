@@ -1,4 +1,6 @@
-﻿[CmdletBinding(PositionalBinding=$false)]
+﻿# Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+[CmdletBinding(PositionalBinding=$false)]
 param (
     # By default, the Roslyn dir is expected to be next to this dir
     [string]$roslynDir = "$PSScriptRoot/../../.."
