@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
@@ -164,7 +165,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             catch (ArgumentException ex)
             {
                 Assert.NotEmpty(tree.Diagnostics);
-                Assert.True(tree.Diagnostics.Any(d => ex.Message.Contains(d.Message)));
+
+                // Ensure the diagnostic we emit is the same as the .Net one.  Note: we can only
+                // do this in en-US as that's the only culture where we control the text exactly
+                // and can ensure it exactly matches Regex.  We depend on localization to do a 
+                // good enough job here for other languages.
+                if (Thread.CurrentThread.CurrentCulture.Name == "en-US")
+                {
+                    Assert.True(tree.Diagnostics.Any(d => ex.Message.Contains(d.Message)));
+                }
 
                 return tree;
             }
