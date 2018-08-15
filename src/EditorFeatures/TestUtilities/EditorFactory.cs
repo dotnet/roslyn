@@ -2,7 +2,6 @@
 
 using System.Text;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -44,7 +43,6 @@ namespace Roslyn.Test.EditorUtilities
             ExportProvider exportProvider,
             params string[] lines)
         {
-            TestWorkspace.ResetThreadAffinity();
             WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(EditorFactory)}.{nameof(CreateView)}");
 
             var buffer = CreateBuffer(contentType, exportProvider, lines);
