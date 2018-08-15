@@ -176,6 +176,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             => syntaxFacts.IsLiteralExpression(token.Parent) &&
                syntaxFacts.IsArgument(token.Parent.Parent);
 
+        /// <summary>
+        /// Finds public, static methods in <see cref="Regex"/> that have a parameter called
+        /// 'pattern'.  These are helpers (like <see cref="Regex.Replace(string, string, string)"/> 
+        /// where at least one (but not necessarily more) of the parameters should be treated as a
+        /// pattern.
+        /// </summary>
         private static HashSet<string> GetMethodNamesOfInterest(INamedTypeSymbol regexType, ISyntaxFactsService syntaxFacts)
         {
             var result = syntaxFacts.IsCaseSensitive
