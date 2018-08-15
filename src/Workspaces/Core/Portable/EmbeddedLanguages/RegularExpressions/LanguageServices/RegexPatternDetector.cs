@@ -143,6 +143,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         {
             if (syntaxFacts.IsRegularComment(trivia))
             {
+                // Note: ToString on SyntaxTrivia is non-allocating.  It will just return the
+                // underlying text that the trivia is already pointing to.
                 var text = trivia.ToString();
                 var match = s_languageCommentDetector.Match(text);
                 if (match.Success)
