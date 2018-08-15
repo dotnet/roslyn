@@ -886,9 +886,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, localSymbol.RefKind, declarator);
 
                 // If we got a good result then swap the inferred type for the "var" 
-                if ((object)initializerOpt?.Type != null)
+                TypeSymbol initializerType = initializerOpt?.Type;
+                if ((object)initializerType != null)
                 {
-                    declTypeOpt = initializerOpt.GetTypeAndNullability(declarator.IsFeatureStaticNullCheckingEnabled());
+                    declTypeOpt = TypeSymbolWithAnnotations.Create(initializerType, isNullableIfReferenceType: null);
 
                     if (declTypeOpt.SpecialType == SpecialType.System_Void)
                     {
@@ -901,7 +902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (declTypeOpt.IsStatic)
                         {
-                            Error(localDiagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, initializerOpt.Type);
+                            Error(localDiagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, initializerType);
                             hasErrors = true;
                         }
                     }

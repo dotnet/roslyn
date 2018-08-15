@@ -1283,6 +1283,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     bestType = BestTypeInferrer.InferBestType(resultTypes, _conversions, useSiteDiagnostics: ref useSiteDiagnostics);
                 }
+                else
+                {
+                    // Mark the error type as null-oblivious.
+                    bestType = TypeSymbolWithAnnotations.Create(bestType.TypeSymbol, isNullableIfReferenceType: null);
+                }
                 // PROTOTYPE(NullableReferenceTypes): Report a special ErrorCode.WRN_NoBestNullabilityArrayElements
                 // when InferBestType fails, and avoid reporting conversion warnings for each element in those cases.
                 // (See similar code for conditional expressions: ErrorCode.WRN_NoBestNullabilityConditionalExpression.)
@@ -1661,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _resultType = TypeSymbolWithAnnotations.Create(resultType, resultIsNullable);
             return null;
 
-            bool? getIsNullable(BoundExpression e, TypeSymbolWithAnnotations t) => t.IsNull ? e.IsNullable() : t.IsNullable;
+            bool? getIsNullable(BoundExpression e, TypeSymbolWithAnnotations t) => t.IsNull ? GetIsNullable(e) : t.IsNullable;
             TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
             {
                 // If there was an identity conversion between the two operands (in short, if there
@@ -1681,6 +1686,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
                 return rightType;
+            }
+        }
+
+        /// <summary>
+        /// Return top-level nullability for the expression. This method should be called on a limited
+        /// set of expressions only. It should not be called on expressions tracked by flow analysis
+        /// other than <see cref="BoundKind.ExpressionWithNullability"/> which is an expression
+        /// specifically created in NullableWalker to represent the flow analysis state.
+        /// </summary>
+        private static bool? GetIsNullable(BoundExpression expr)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.DefaultExpression:
+                case BoundKind.Literal:
+                    {
+                        var constant = expr.ConstantValue;
+                        if (constant != null)
+                        {
+                            if (constant.IsNull)
+                            {
+                                return true;
+                            }
+                            if (expr.Type?.IsReferenceType == true)
+                            {
+                                return false;
+                            }
+                        }
+                        return null;
+                    }
+                case BoundKind.ExpressionWithNullability:
+                    return ((BoundExpressionWithNullability)expr).IsNullable;
+                case BoundKind.MethodGroup:
+                case BoundKind.UnboundLambda:
+                    return null;
+                default:
+                    Debug.Assert(false); // unexpected value
+                    return null;
             }
         }
 
@@ -1759,10 +1802,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isNullableIfReferenceType = (getIsNullableIfReferenceType(consequence, consequenceResult) | getIsNullableIfReferenceType(alternative, alternativeResult));
             }
 
-            TypeSymbolWithAnnotations resultType;
+            TypeSymbol resultType;
             if (node.HasErrors)
             {
-                resultType = default;
+                resultType = null;
             }
             else
             {
@@ -1781,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _conversions,
                     out _,
                     ref useSiteDiagnostics);
-                if (resultType.IsNull)
+                if (resultType is null)
                 {
                     ReportDiagnostic(
                         ErrorCode.WRN_NoBestNullabilityConditionalExpression,
@@ -1790,9 +1833,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetTypeAsDiagnosticArgument(alternativeResult.TypeSymbol));
                 }
             }
-            resultType = TypeSymbolWithAnnotations.Create(resultType.TypeSymbol ?? node.Type.SetUnknownNullabilityForReferenceTypes(), isNullableIfReferenceType);
 
-            _resultType = resultType;
+            _resultType = TypeSymbolWithAnnotations.Create(resultType ?? node.Type.SetUnknownNullabilityForReferenceTypes(), isNullableIfReferenceType);
             return null;
 
             bool? getIsNullableIfReferenceType(BoundExpression expr, TypeSymbolWithAnnotations type)
@@ -2489,7 +2531,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterTypes,
                 parameterRefKinds,
                 arguments,
-                ref useSiteDiagnostics);
+                ref useSiteDiagnostics,
+                getIsNullableOpt: expr => GetIsNullable(expr));
             if (result.Success)
             {
                 return definition.Construct(result.InferredTypeArguments);
