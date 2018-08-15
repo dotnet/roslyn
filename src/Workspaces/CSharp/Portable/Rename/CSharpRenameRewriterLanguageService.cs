@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         isNamespaceDeclarationReference = true;
                     }
 
-                    var isMemberGroupReference = _semanticFactsService.IsNameOfContext(_semanticModel, token.Span.Start, _cancellationToken);
+                    var isMemberGroupReference = _semanticFactsService.IsInsideNameOfExpression(_semanticModel, token.Parent, _cancellationToken);
 
                     var renameAnnotation =
                             new RenameActionAnnotation(
