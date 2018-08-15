@@ -2745,6 +2745,162 @@ Regex.Quantifier("?"),
 Regex.Anchor("^"));
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex4()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */@""$\a(?#comment)"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex5()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regexp */@""$\a(?#comment)"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex6()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regexp */@""$\a(?#comment) # not end of line comment"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(" # not end of line comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex7()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regexp,ignorepatternwhitespace */@""$\a(?#comment) # is end of line comment"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex8()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang = regexp , ignorepatternwhitespace */@""$\a(?#comment) # is end of line comment"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex9()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = new Regex(@""$\a(?#comment) # is end of line comment"", RegexOptions.IgnorePatternWhitespace);
+    }
+}",
+Keyword("var"),
+Class("Regex"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"),
+Enum("RegexOptions"),
+EnumMember("IgnorePatternWhitespace"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex10()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = new Regex(@""$\a(?#comment) # is not end of line comment"");
+    }
+}",
+Keyword("var"),
+Class("Regex"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(" # is not end of line comment"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestUnmanagedConstraint_LocalFunction_Keyword()
         {
