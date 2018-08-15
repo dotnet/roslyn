@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Roslyn.Utilities
@@ -93,7 +94,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                Contract.Requires(_forwardMap.Count == _backwardMap.Count);
+                Debug.Assert(_forwardMap.Count == _backwardMap.Count);
                 return _backwardMap.Count;
             }
         }

@@ -6,9 +6,9 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Nonshipping>true</Nonshipping>
     <TargetFramework>netstandard1.3</TargetFramework>
     <NoStdLib>true</NoStdLib>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -22,10 +22,10 @@
     <ProjectReference Include="..\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />

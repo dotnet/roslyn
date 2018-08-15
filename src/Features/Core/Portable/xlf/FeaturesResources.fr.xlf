@@ -22,6 +22,11 @@
         <target state="translated">Les actions ne peuvent pas être vides.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_query">
+        <source>Convert to query</source>
+        <target state="new">Convert to query</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_to_0">
         <source>Add to '{0}'</source>
         <target state="new">Add to '{0}'</target>
@@ -47,9 +52,19 @@
         <target state="new">Fix typo '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Formatting_document">
+        <source>Formatting document</source>
+        <target state="new">Formatting document</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
         <target state="new">Related method signatures found in metadata will not be updated.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="new">Use interpolated verbatim string</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

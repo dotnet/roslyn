@@ -16,20 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Suppress Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 
             AddInitializerSuppressOperations(list, node);
 
-            AddBraceSuppressOperations(list, node, lastToken);
+            AddBraceSuppressOperations(list, node);
 
             AddStatementExceptBlockSuppressOperations(list, node);
 
-            AddSpecificNodesSuppressOperations(list, node, lastToken);
+            AddSpecificNodesSuppressOperations(list, node);
         }
 
-        private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken)
+        private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             if (node is IfStatementSyntax ifStatementNode)
             {

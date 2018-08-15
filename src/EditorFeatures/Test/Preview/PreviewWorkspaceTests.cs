@@ -251,7 +251,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Trait(Traits.Editor, Traits.Editors.Preview)]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [ConditionalFact(typeof(x86))]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.

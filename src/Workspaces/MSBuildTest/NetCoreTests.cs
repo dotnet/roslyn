@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "https://github.com/dotnet/roslyn/issues/28104")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/28104")]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM()
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "https://github.com/dotnet/roslyn/issues/28104")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/28104")]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM_ProjectReference()
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             await AssertNetCoreMultiTFMProject(projectFilePath);
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip ="https://github.com/dotnet/roslyn/issues/28104")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip ="https://github.com/dotnet/roslyn/issues/28104")]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM_ProjectReferenceWithReversedTFMs()

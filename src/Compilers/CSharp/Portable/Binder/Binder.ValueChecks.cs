@@ -1516,6 +1516,11 @@ moreArguments:
                     return ErrorCode.ERR_RefLocalOrParamExpected;
             }
 
+            if (RequiresReferenceToLocation(kind))
+            {
+                return ErrorCode.ERR_RefLvalueExpected;
+            }
+
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 

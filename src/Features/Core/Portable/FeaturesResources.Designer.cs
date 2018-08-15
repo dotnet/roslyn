@@ -934,6 +934,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to query.
+        /// </summary>
+        internal static string Convert_to_query {
+            get {
+                return ResourceManager.GetString("Convert_to_query", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Convert to struct.
         /// </summary>
         internal static string Convert_to_struct {
@@ -1338,6 +1347,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Format_string_contains_invalid_placeholder {
             get {
                 return ResourceManager.GetString("Format_string_contains_invalid_placeholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Formatting document.
+        /// </summary>
+        internal static string Formatting_document {
+            get {
+                return ResourceManager.GetString("Formatting_document", resourceCulture);
             }
         }
         
@@ -3730,6 +3748,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_inferred_member_name {
             get {
                 return ResourceManager.GetString("Use_inferred_member_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use interpolated verbatim string.
+        /// </summary>
+        internal static string Use_interpolated_verbatim_string {
+            get {
+                return ResourceManager.GetString("Use_interpolated_verbatim_string", resourceCulture);
             }
         }
         
