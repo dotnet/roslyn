@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         /// Option names are the values from the <see cref="RegexOptions"/> enum.
         /// </summary>
         private static readonly Regex s_languageCommentDetector = 
-            new Regex(@"language\s*=\s*regex(p)?((\s*,\s*)(?<option>[a-zA-Z]+))*",
+            new Regex(@"lang(uage)?\s*=\s*regex(p)?((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private static readonly Dictionary<string, RegexOptions> s_nameToOption =
@@ -89,9 +89,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
         public static bool IsDefinitelyNotPattern(SyntaxToken token, ISyntaxFactsService syntaxFacts)
         {
-            // We only support string literals passed in arguments to something.
-            // In the future we could support any string literal, as long as it has
-            // some marker (like a comment on it) stating it's a regex.
             if (!syntaxFacts.IsStringLiteral(token))
             {
                 return true;
