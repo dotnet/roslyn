@@ -1718,10 +1718,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.ExpressionWithNullability:
                     return ((BoundExpressionWithNullability)expr).IsNullable;
+                case BoundKind.MethodGroup:
                 case BoundKind.UnboundLambda:
                     return null;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(expr.Kind);
+                    Debug.Assert(false); // unexpected value
+                    return null;
             }
         }
 
