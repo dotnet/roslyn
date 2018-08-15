@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
-            public FindReferencesProgressAdapter(Solution solution, IFindUsagesContext context)
+            public FindReferencesProgressAdapter(IThreadingContext threadingContext, Solution solution, IFindUsagesContext context)
+                : base(threadingContext)
             {
                 _solution = solution;
                 _context = context;
@@ -73,10 +74,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
-            public Task OnStartedAsync() => SpecializedTasks.EmptyTask;
-            public Task OnCompletedAsync() => SpecializedTasks.EmptyTask;
-            public Task OnFindInDocumentStartedAsync(Document document) => SpecializedTasks.EmptyTask;
-            public Task OnFindInDocumentCompletedAsync(Document document) => SpecializedTasks.EmptyTask;
+            public Task OnStartedAsync() => Task.CompletedTask;
+            public Task OnCompletedAsync() => Task.CompletedTask;
+            public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
+            public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
 
             // Simple context forwarding functions.
             public Task ReportProgressAsync(int current, int maximum) =>

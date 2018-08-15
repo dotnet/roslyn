@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -49,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>> _analyzerExecutionTimeMapOpt;
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
         private readonly CancellationToken _cancellationToken;
+
+        private ConcurrentDictionary<IOperation, ControlFlowGraph> _lazyControlFlowGraphMap;
 
         /// <summary>
         /// Creates <see cref="AnalyzerExecutor"/> to execute analyzer actions with given arguments
@@ -583,7 +586,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerStateOpt, operationAction))
             {
-                var operationContext = new OperationAnalysisContext(operation, containingSymbol, semanticModel.Compilation, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken);
+                var operationContext = new OperationAnalysisContext(operation, containingSymbol, semanticModel.Compilation,
+                    _analyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, _cancellationToken);
                 ExecuteAndCatchIfThrows(
                     operationAction.Analyzer,
                     data => data.action(data.context),
@@ -776,7 +780,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 var operationBlockEndActions = blockEndActions as PooledHashSet<OperationBlockAnalyzerAction>;
                                 var operationBlockScope = new HostOperationBlockStartAnalysisScope();
                                 var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(startAction.Analyzer,
-                                    operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, _analyzerOptions, _cancellationToken);
+                                    operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, _analyzerOptions, GetControlFlowGraph, _cancellationToken);
 
                                 // Catch Exception from the start action.
                                 ExecuteAndCatchIfThrows(
@@ -860,7 +864,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var operationBlockAction = blockAction as OperationBlockAnalyzerAction;
                         if (operationBlockAction != null)
                         {
-                            var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken);
+                            var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
+                                _analyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, _cancellationToken);
 
                             ExecuteAndCatchIfThrows(
                                 operationBlockAction.Analyzer,
@@ -898,7 +903,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            var tuples = nodeActionsByKind.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
+            var tuples = nodeActionsByKind.Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
             var map = ImmutableDictionary.CreateRange(tuples);
             nodeActionsByKind.Free();
             return map;
@@ -1040,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            var tuples = operationActionsByKind.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
+            var tuples = operationActionsByKind.Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
             var map = ImmutableDictionary.CreateRange(tuples);
             operationActionsByKind.Free();
             return map;
@@ -1627,6 +1632,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return TimeSpan.FromTicks(executionTime.Value);
+        }
+
+        private ControlFlowGraph GetControlFlowGraph(IOperation operation)
+        {
+            Debug.Assert(operation != null);
+            Debug.Assert(operation.Parent == null);
+
+            if (_lazyControlFlowGraphMap == null)
+            {
+                Interlocked.CompareExchange(ref _lazyControlFlowGraphMap, new ConcurrentDictionary<IOperation, ControlFlowGraph>(), null);
+            }
+
+            return _lazyControlFlowGraphMap.GetOrAdd(operation, op => ControlFlowGraphBuilder.Create(op));
         }
     }
 }

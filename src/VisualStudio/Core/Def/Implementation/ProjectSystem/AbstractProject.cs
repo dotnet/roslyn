@@ -120,6 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
             ICommandLineParserService commandLineParserServiceOpt = null)
+            : base(projectTracker.ThreadingContext)
         {
             Contract.ThrowIfNull(projectSystemName);
 
@@ -505,7 +506,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private static string GetAssemblyNameFromPath(string outputPath)
         {
-            Contract.Requires(outputPath != null);
+            Debug.Assert(outputPath != null);
 
             // dev11 sometimes gives us output path w/o extension, so removing extension becomes problematic
             if (outputPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||
@@ -722,13 +723,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // efforts to listen to file changes can lead to a deadlock situation.
             // Postponing the VisualStudioAnalyzer operations gives this thread the opportunity
             // to release the lock.
-            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() =>
+            ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                VisualStudioAnalyzer analyzer = (VisualStudioAnalyzer)sender;
+                await Task.Yield();
+
+                var analyzer = (VisualStudioAnalyzer)sender;
 
                 RemoveAnalyzerReference(analyzer.FullPath);
                 AddAnalyzerReference(analyzer.FullPath);
-            }));
+            });
         }
 
         // Internal for unit testing
@@ -959,7 +962,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filename,
             SourceCodeKind sourceCodeKind,
             Func<IVisualStudioHostDocument, bool> getIsCurrentContext,
-            Func<uint, IReadOnlyList<string>> getFolderNames)
+            ImmutableArray<string> folderNames)
         {
             AssertIsForeground();
 
@@ -969,7 +972,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this,
                 filePath: filename,
                 sourceCodeKind: sourceCodeKind,
-                getFolderNames: getFolderNames,
+                folderNames: folderNames,
                 canUseTextBuffer: CanUseTextBuffer,
                 updatedOnDiskHandler: s_documentUpdatedOnDiskEventHandler,
                 openedHandler: s_documentOpenedEventHandler,
@@ -1536,9 +1539,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         #region FolderNames
         private readonly List<string> _tmpFolders = new List<string>();
-        private readonly Dictionary<uint, IReadOnlyList<string>> _folderNameMap = new Dictionary<uint, IReadOnlyList<string>>();
+        private readonly Dictionary<uint, ImmutableArray<string>> _folderNameMap = new Dictionary<uint, ImmutableArray<string>>();
 
-        public IReadOnlyList<string> GetFolderNamesFromHierarchy(uint documentItemID)
+        public ImmutableArray<string> GetFolderNamesFromHierarchy(uint documentItemID)
         {
             AssertIsForeground();
 
@@ -1551,10 +1554,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            return SpecializedCollections.EmptyReadOnlyList<string>();
+            return ImmutableArray<string>.Empty;
         }
 
-        private IReadOnlyList<string> GetFolderNamesForFolder(uint folderItemID)
+        private ImmutableArray<string> GetFolderNamesForFolder(uint folderItemID)
         {
             AssertIsForeground();
 

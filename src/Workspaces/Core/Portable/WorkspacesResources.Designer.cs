@@ -1215,6 +1215,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Refactoring Only.
+        /// </summary>
+        internal static string Refactoring_Only {
+            get {
+                return ResourceManager.GetString("Refactoring_Only", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to reference to undefined group.
         /// </summary>
         internal static string Reference_to_undefined_group {

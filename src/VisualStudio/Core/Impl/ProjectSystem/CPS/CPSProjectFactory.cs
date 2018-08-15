@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
@@ -31,11 +32,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             });
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CPSProjectFactory(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspace,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
-            base(assertIsForeground: false)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            : base(threadingContext, assertIsForeground: false)
         {
             _serviceProvider = serviceProvider;
             _visualStudioWorkspace = visualStudioWorkspace;
@@ -126,6 +129,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     break;
                 case LanguageNames.VisualBasic:
                     shell.LoadPackage(Guids.VisualBasicPackageId, out unused);
+                    break;
+                case LanguageNames.FSharp:
+                    shell.LoadPackage(Guids.FSharpPackageId, out unused);
                     break;
                 default:
                     // by default, load roslyn package for things like typescript and etc

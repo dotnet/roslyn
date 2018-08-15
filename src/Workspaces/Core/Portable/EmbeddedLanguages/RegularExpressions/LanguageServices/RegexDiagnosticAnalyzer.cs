@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     /// <summary>
     /// Analyzer that reports diagnostics in strings that we know are regex text.
     /// </summary>
-    internal class RegexDiagnosticAnalyzer : IEmbeddedDiagnosticAnalyzer
+    internal sealed class RegexDiagnosticAnalyzer : IEmbeddedDiagnosticAnalyzer
     {
         public const string DiagnosticId = "RE0001";
 
@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var options = context.Options;
 
             var option = optionSet.GetOption(RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
             if (!option)

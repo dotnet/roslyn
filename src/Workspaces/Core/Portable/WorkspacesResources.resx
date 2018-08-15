@@ -1521,4 +1521,7 @@ x 	Exclude unescaped white space from the pattern, and enable comments after a n
   <data name="regex_inline_options_short" xml:space="preserve">
     <value>inline options</value>
   </data>
+  <data name="Refactoring_Only" xml:space="preserve">
+    <value>Refactoring Only</value>
+  </data>
 </root>

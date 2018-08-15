@@ -148,6 +148,7 @@ function Ensure-DotnetSdk() {
         Create-Directory $cliDir
         Create-Directory $toolsDir
         $destFile = Join-Path $toolsDir "dotnet-install.ps1"
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $webClient = New-Object -TypeName "System.Net.WebClient"
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
         Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
@@ -324,7 +325,7 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 # Locate the xcopy version of MSBuild
 function Get-MSBuildDirXCopy() {
     $p = Ensure-BasicTool "RoslynTools.MSBuild"
-    $p = Join-Path $p "tools\msbuild"
+    $p = Join-Path $p "tools\MSBuild\15.0\Bin"
     return $p
 }
 

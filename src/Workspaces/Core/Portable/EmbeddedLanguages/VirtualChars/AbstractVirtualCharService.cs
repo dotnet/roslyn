@@ -10,7 +10,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
+        protected abstract bool IsStringLiteralToken(SyntaxToken token);
         protected abstract ImmutableArray<VirtualChar> TryConvertToVirtualCharsWorker(SyntaxToken token);
+
+        protected static bool TryAddBraceEscape(
+            ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
+        {
+            if (index + 1 < tokenText.Length)
+            {
+                var ch = tokenText[index];
+                var next = tokenText[index + 1];
+                if ((ch == '{' && next == '{') ||
+                    (ch == '}' && next == '}'))
+                {
+                    result.Add(new VirtualChar(ch, new TextSpan(offset + index, 2)));
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public ImmutableArray<VirtualChar> TryConvertToVirtualChars(SyntaxToken token)
         {
@@ -24,22 +43,41 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             var result = TryConvertToVirtualCharsWorker(token);
 
-#if DEBUG
+            CheckInvariants(token, result);
+
+            return result;
+        }
+
+        [Conditional("DEBUG")]
+        private void CheckInvariants(SyntaxToken token, ImmutableArray<VirtualChar> result)
+        {
             // Do some invariant checking to make sure we processed the string token the same
             // way the C# and VB compilers did.
             if (!result.IsDefault)
             {
                 // Ensure that we properly broke up the token into a sequence of characters that
                 // matches what the compiler did.
-                var expectedValueText = token.ValueText;
-                var actualValueText = result.CreateString();
-                Debug.Assert(expectedValueText == actualValueText);
+                if (IsStringLiteralToken(token))
+                {
+                    var expectedValueText = token.ValueText;
+                    var actualValueText = result.CreateString();
+                    Debug.Assert(expectedValueText == actualValueText);
+                }
 
                 if (result.Length > 0)
                 {
                     var currentVC = result[0];
-                    Debug.Assert(currentVC.Span.Start > token.SpanStart, "First span has to start after the start of the string token (including its delimeter)");
-                    Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 || currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
+                    Debug.Assert(currentVC.Span.Start >= token.SpanStart, "First span has to start after the start of the string token");
+                    if (IsStringLiteralToken(token))
+                    {
+                        Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 ||
+                                     currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
+                    }
+                    else
+                    {
+                        Debug.Assert(currentVC.Span.Start == token.SpanStart, "First span should start on the first char of the string.");
+                    }
+
                     for (var i = 1; i < result.Length; i++)
                     {
                         var nextVC = result[i];
@@ -48,12 +86,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                     }
 
                     var lastVC = result.Last();
-                    Debug.Assert(lastVC.Span.End == token.Span.End - 1, "Last span has to end right before the end of the string token (including its trailing delimeter).");
+
+                    if (IsStringLiteralToken(token))
+                    {
+                        Debug.Assert(lastVC.Span.End == token.Span.End - 1, "Last span has to end right before the end of the string token.");
+                    }
+                    else
+                    {
+                        Debug.Assert(lastVC.Span.End == token.Span.End, "Last span has to end right before the end of the string token.");
+                    }
                 }
             }
-#endif
-
-            return result;
         }
 
         /// <summary>
@@ -62,14 +105,25 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         /// <param name="startDelimiter">The start characters string.  " in VB and @" in C#</param>
         protected static ImmutableArray<VirtualChar> TryConvertSimpleDoubleQuoteString(
-            SyntaxToken token, string startDelimiter)
+            SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
             Debug.Assert(!token.ContainsDiagnostics);
-            const string endDelimiter = "\"";
+
+            if (escapeBraces)
+            {
+                Debug.Assert(startDelimiter == "");
+                Debug.Assert(endDelimiter == "");
+            }
 
             var tokenText = token.Text;
-            if (!tokenText.StartsWith(startDelimiter) ||
-                !tokenText.EndsWith(endDelimiter))
+
+            if (startDelimiter.Length > 0 && !tokenText.StartsWith(startDelimiter))
+            {
+                Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
+                return default;
+            }
+
+            if (endDelimiter.Length > 0 && !tokenText.EndsWith(endDelimiter))
             {
                 Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
                 return default;
@@ -88,6 +142,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 {
                     result.Add(new VirtualChar('"', new TextSpan(offset + index, 2)));
                     index += 2;
+                }
+                else if (escapeBraces &&
+                         (tokenText[index] == '{' || tokenText[index] == '}'))
+                {
+                    if (!TryAddBraceEscape(result, tokenText, offset, index))
+                    {
+                        return default;
+                    }
+
+                    index += result.Last().Span.Length;
                 }
                 else
                 {

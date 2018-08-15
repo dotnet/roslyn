@@ -888,9 +888,9 @@ CodeStyleOptions.QualifyEventAccess);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyMemberAccessNotPresentOnNotificationOptionNone()
+        public async Task QualifyMemberAccessOnNotificationOptionSilent()
         {
-            await TestMissingAsyncWithOptionAndNotificationOption(
+            await TestAsyncWithOptionAndNotificationOption(
 @"class Class
 {
     int Property { get; set; };
@@ -900,7 +900,16 @@ CodeStyleOptions.QualifyEventAccess);
         [|Property|] = 1;
     }
 }",
-CodeStyleOptions.QualifyPropertyAccess, NotificationOption.None);
+@"class Class
+{
+    int Property { get; set; };
+
+    void M()
+    {
+        this.Property = 1;
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Silent);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
@@ -1276,6 +1285,111 @@ CodeStyleOptions.QualifyPropertyAccess);
             [|Foo|] = string.Empty
         };
     }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInAttribute1()
+        {
+            await TestMissingAsyncWithOption(
+@"
+using System;
+
+class MyAttribute : Attribute 
+{
+    public MyAttribute(string name) { }
+}
+
+[My(nameof([|Goo|]))]
+class Program
+{
+    int Goo { get; set; }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInAttribute2()
+        {
+            await TestMissingAsyncWithOption(
+@"
+using System;
+
+class MyAttribute : Attribute 
+{
+    public MyAttribute(string name) { }
+}
+
+class Program
+{
+    [My(nameof([|Goo|]))]
+    int Goo { get; set; }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInAttribute3()
+        {
+            await TestMissingAsyncWithOption(
+@"
+using System;
+
+class MyAttribute : Attribute 
+{
+    public MyAttribute(string name) { }
+}
+
+class Program
+{
+    [My(nameof([|Goo|]))]
+    public int Bar = 0 ;
+    public int Goo { get; set; }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInAttribute4()
+        {
+            await TestMissingAsyncWithOption(
+@"
+using System;
+
+class MyAttribute : Attribute 
+{
+    public MyAttribute(string name) { }
+}
+
+class Program
+{
+    int Goo { [My(nameof([|Goo|]))]get; set; }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInAttribute5()
+        {
+            await TestMissingAsyncWithOption(
+@"
+using System;
+
+class MyAttribute : Attribute 
+{
+    public MyAttribute(string name) { }
+}
+
+class Program
+{
+    int Goo { get; set; }
+    void M([My(nameof([|Goo|]))]int i) { }
 }",
 CodeStyleOptions.QualifyPropertyAccess);
         }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -28,31 +29,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         private IList<IQuickInfoProvider> _providers;
 
         public Controller(
+            IThreadingContext threadingContext,
             ITextView textView,
             ITextBuffer subjectBuffer,
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
             IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> allProviders)
-            : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "QuickInfo")
+            : base(threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "QuickInfo")
         {
             _allProviders = allProviders;
         }
 
         // For testing purposes
         internal Controller(
+            IThreadingContext threadingContext,
             ITextView textView,
             ITextBuffer subjectBuffer,
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
             IList<IQuickInfoProvider> providers)
-            : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "QuickInfo")
+            : base(threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "QuickInfo")
         {
             _providers = providers;
         }
 
         internal static Controller GetInstance(
+            IThreadingContext threadingContext,
             EditorCommandArgs args,
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener,
@@ -61,10 +65,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
             return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_quickInfoPropertyKey,
-                (v, b) => new Controller(v, b,
+                (v, b) => new Controller(threadingContext, v, b,
                     presenter,
                     asyncListener,
-                    new DocumentProvider(),
+                    new DocumentProvider(threadingContext),
                     allProviders));
         }
 
@@ -102,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
-            this.sessionOpt = new Session<Controller, Model, IQuickInfoPresenterSession>(this, new ModelComputation<Model>(this, TaskScheduler.Default),
+            this.sessionOpt = new Session<Controller, Model, IQuickInfoPresenterSession>(this, new ModelComputation<Model>(ThreadingContext, this, TaskScheduler.Default),
                 this.Presenter.CreateSession(this.TextView, this.SubjectBuffer, augmentSession));
 
             this.sessionOpt.Computation.ChainTaskAndNotifyControllerWhenFinished(

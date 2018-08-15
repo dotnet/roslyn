@@ -9,22 +9,30 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    internal class RegexEmbeddedLanguage : IEmbeddedLanguage
+    internal sealed class RegexEmbeddedLanguage : IEmbeddedLanguage
     {
-        public AbstractEmbeddedLanguageProvider LanguageProvider { get; }
+        private readonly AbstractEmbeddedLanguagesProvider _languagesProvider;
+
         public int StringLiteralKind { get; }
         public ISyntaxFactsService SyntaxFacts { get; }
         public ISemanticFactsService SemanticFacts { get; }
         public IVirtualCharService VirtualCharService { get; }
 
+        public IEmbeddedBraceMatcher BraceMatcher { get; }
+        public IEmbeddedClassifier Classifier { get; }
+        public IEmbeddedCompletionProvider CompletionProvider { get; }
+        public IEmbeddedHighlighter Highlighter { get; }
+        public IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer { get; }
+        public IEmbeddedCodeFixProvider CodeFixProvider { get; }
+
         public RegexEmbeddedLanguage(
-            AbstractEmbeddedLanguageProvider languageProvider,
+            AbstractEmbeddedLanguagesProvider languagesProvider,
             int stringLiteralKind,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
         {
-            LanguageProvider = languageProvider;
+            _languagesProvider = languagesProvider;
             StringLiteralKind = stringLiteralKind;
             SyntaxFacts = syntaxFacts;
             SemanticFacts = semanticFacts;
@@ -37,15 +45,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             CompletionProvider = new RegexEmbeddedCompletionProvider(this);
         }
 
-        public IEmbeddedBraceMatcher BraceMatcher { get; }
-        public IEmbeddedClassifier Classifier { get; }
-        public IEmbeddedHighlighter Highlighter { get; }
-        public IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer { get; }
-        public IEmbeddedCodeFixProvider CodeFixProvider { get; }
-        public IEmbeddedCompletionProvider CompletionProvider { get; }
-
         public string EscapeText(string text, SyntaxToken token)
-            => LanguageProvider.EscapeText(text, token);
+            => _languagesProvider.EscapeText(text, token);
 
         internal async Task<(RegexTree tree, SyntaxToken token)?> TryGetTreeAndTokenAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)

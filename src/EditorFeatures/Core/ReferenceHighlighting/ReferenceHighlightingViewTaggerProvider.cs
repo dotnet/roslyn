@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -9,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
@@ -42,10 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 
         [ImportingConstructor]
         public ReferenceHighlightingViewTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             ISemanticChangeNotificationService semanticChangeNotificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting), notificationService)
         {
             _semanticChangeNotificationService = semanticChangeNotificationService;
         }
@@ -82,26 +83,26 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             // don't generate all the tags then the user will cycle through an incorrect subset.
             if (context.CaretPosition == null)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             var caretPosition = context.CaretPosition.Value;
             if (!Workspace.TryGetWorkspace(caretPosition.Snapshot.AsText().Container, out var workspace))
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             // GetSpansToTag may have produced no actual spans to tag.  Be resilient to that.
             var document = context.SpansToTag.FirstOrDefault(vt => vt.SnapshotSpan.Snapshot == caretPosition.Snapshot).Document;
             if (document == null)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             // Don't produce tags if the feature is not enabled.
             if (!workspace.Options.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             // See if the user is just moving their caret around in an existing tag.  If so, we don't
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             if (!existingTags.IsEmpty())
             {
                 context.SetSpansTagged(SpecializedCollections.EmptyEnumerable<DocumentSnapshotSpan>());
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             // Otherwise, we need to go produce all tags.

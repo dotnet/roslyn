@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -18,21 +16,42 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
-        internal readonly SemanticModel SemanticModel;
+        private static readonly IOperation s_unset = new EmptyStatement(null, null, null, default, isImplicit: true);
+        private readonly SemanticModel _owningSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once
         // but once initialized, will never change
         private IOperation _parentDoNotAccessDirectly;
 
-        public Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        protected Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
         {
-            SemanticModel = semanticModel;
+            // Constant value cannot be "null" for non-nullable value type operations.
+            Debug.Assert(type?.IsValueType != true || ITypeSymbolHelpers.IsNullableType(type) || !constantValue.HasValue || constantValue.Value != null);
+
+#if DEBUG
+            if (semanticModel != null)
+            {
+                Debug.Assert(semanticModel.ContainingModelOrSelf != null);
+                if (semanticModel.IsSpeculativeSemanticModel)
+                {
+                    Debug.Assert(semanticModel.ContainingModelOrSelf == semanticModel);
+                }
+                else
+                {
+                    Debug.Assert(semanticModel.ContainingModelOrSelf != semanticModel);
+                    Debug.Assert(semanticModel.ContainingModelOrSelf.ContainingModelOrSelf == semanticModel.ContainingModelOrSelf);
+                }
+            }
+#endif
+            _owningSemanticModelOpt = semanticModel;
 
             Kind = kind;
             Syntax = syntax;
             Type = type;
             ConstantValue = constantValue;
             IsImplicit = isImplicit;
+
+            _parentDoNotAccessDirectly = s_unset;
         }
 
         /// <summary>
@@ -42,7 +61,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_parentDoNotAccessDirectly == null)
+                if (_parentDoNotAccessDirectly == s_unset)
                 {
                     SetParentOperation(SearchParentOperation());
                 }
@@ -90,19 +109,30 @@ namespace Microsoft.CodeAnalysis
 
         public abstract IEnumerable<IOperation> Children { get; }
 
+        SemanticModel IOperation.SemanticModel => _owningSemanticModelOpt?.ContainingModelOrSelf;
+
+        /// <summary>
+        /// Gets the owning semantic model for this operation node.
+        /// Note that this may be different than <see cref="IOperation.SemanticModel"/>, which
+        /// is the semantic model on which <see cref="SemanticModel.GetOperation(SyntaxNode, CancellationToken)"/> was invoked
+        /// to create this node.
+        /// </summary>
+        internal SemanticModel OwningSemanticModel => _owningSemanticModelOpt;
+
         public abstract void Accept(OperationVisitor visitor);
 
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
 
         protected void SetParentOperation(IOperation parent)
         {
-            var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, null);
+            var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, s_unset);
 
             // tree must belong to same semantic model if parent is given
-            Debug.Assert(parent == null || ((Operation)parent).SemanticModel == SemanticModel);
+            Debug.Assert(parent == null || ((Operation)parent).OwningSemanticModel == OwningSemanticModel ||
+                ((Operation)parent).OwningSemanticModel == null || OwningSemanticModel == null);
 
             // make sure given parent and one we already have is same if we have one already
-            Debug.Assert(result == null || result == parent);
+            Debug.Assert(result == s_unset || result == parent);
         }
 
         /// <summary>
@@ -112,7 +142,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit)
         {
-            return new NoneOperation(semanticModel, node, constantValue, getChildren, isImplicit);
+            return new LazyNoneOperation(getChildren, semanticModel, node, constantValue, isImplicit);
+        }
+
+        public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, ImmutableArray<IOperation> children, bool isImplicit)
+        {
+            return new NoneOperation(children, semanticModel, node, constantValue, isImplicit);
         }
 
         public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation
@@ -135,7 +170,7 @@ namespace Microsoft.CodeAnalysis
             // .Parent going through slower path of SearchParentOperation()
             // explicit cast is not allowed, so using "as" instead
             // invalid expression can have null element in the array
-            if ((operations[0] as Operation)?._parentDoNotAccessDirectly != null)
+            if ((operations[0] as Operation)?._parentDoNotAccessDirectly != s_unset)
             {
                 // most likely already initialized. if not, due to a race or invalid expression,
                 // operation.Parent will take slower path but still return correct Parent.
@@ -151,25 +186,11 @@ namespace Microsoft.CodeAnalysis
             return operations;
         }
 
-        public static T ResetParentOperation<T>(T operation) where T : IOperation
+        private abstract class BaseNoneOperation : Operation
         {
-            if (operation == null)
+            protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+                base(OperationKind.None, semanticModel, syntax, type: null, constantValue, isImplicit)
             {
-                return operation;
-            }
-
-            Interlocked.Exchange(ref (operation as Operation)._parentDoNotAccessDirectly, null);
-            return operation;
-        }
-
-        private class NoneOperation : Operation
-        {
-            private readonly Lazy<ImmutableArray<IOperation>> _lazyChildren;
-
-            public NoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit) :
-                base(OperationKind.None, semanticModel, node, type: null, constantValue: constantValue, isImplicit: isImplicit)
-            {
-                _lazyChildren = new Lazy<ImmutableArray<IOperation>>(getChildren);
             }
 
             public override void Accept(OperationVisitor visitor)
@@ -181,22 +202,30 @@ namespace Microsoft.CodeAnalysis
             {
                 return visitor.VisitNoneOperation(this, argument);
             }
+        }
 
-            public override IEnumerable<IOperation> Children
+        private class NoneOperation : BaseNoneOperation
+        {
+            public NoneOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+                base(semanticModel, syntax, constantValue, isImplicit)
             {
-                get
-                {
-                    foreach (var child in _lazyChildren.Value)
-                    {
-                        if (child == null)
-                        {
-                            continue;
-                        }
-
-                        yield return Operation.SetParentOperation(child, this);
-                    }
-                }
+                Children = SetParentOperation(children, this);
             }
+
+            public override IEnumerable<IOperation> Children { get; }
+        }
+
+        private class LazyNoneOperation : BaseNoneOperation
+        {
+            private readonly Lazy<ImmutableArray<IOperation>> _lazyChildren;
+
+            public LazyNoneOperation(Func<ImmutableArray<IOperation>> getChildren, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
+                base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
+            {
+                _lazyChildren = new Lazy<ImmutableArray<IOperation>>(getChildren);
+            }
+
+            public override IEnumerable<IOperation> Children => SetParentOperation(_lazyChildren.Value, this);
         }
 
         private static readonly ObjectPool<Queue<IOperation>> s_queuePool =
@@ -261,7 +290,7 @@ namespace Microsoft.CodeAnalysis
         {
             var operationAlreadyProcessed = PooledHashSet<IOperation>.GetInstance();
 
-            if (SemanticModel.Root == Syntax)
+            if (OwningSemanticModel.Root == Syntax)
             {
                 // this is the root
                 return null;
@@ -274,7 +303,7 @@ namespace Microsoft.CodeAnalysis
                 while (currentCandidate != null)
                 {
                     // get operation
-                    var tree = SemanticModel.GetOperation(currentCandidate);
+                    var tree = OwningSemanticModel.GetOperation(currentCandidate);
                     if (tree != null)
                     {
                         // walk down operation tree to see whether this tree contains parent of this operation
@@ -285,7 +314,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    if (SemanticModel.Root == currentCandidate)
+                    if (OwningSemanticModel.Root == currentCandidate)
                     {
                         // reached top of parent chain
                         break;

@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 result = result.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Insufficient_hexadecimal_digits,
-                    TextSpan.FromBounds(Text[beforeSlash].Span.Start, Text[Position - 1].Span.End)));
+                    GetTextSpan(beforeSlash, Position)));
             }
 
             return result;

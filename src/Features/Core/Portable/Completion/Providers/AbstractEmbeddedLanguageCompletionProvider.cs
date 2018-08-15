@@ -25,24 +25,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));                                    
 
 
-        private readonly IEmbeddedLanguageProvider _languageProvider;
+        private readonly IEmbeddedLanguagesProvider _languagesProvider;
 
-        protected AbstractEmbeddedLanguageCompletionProvider(IEmbeddedLanguageProvider languageProvider)
+        protected AbstractEmbeddedLanguageCompletionProvider(IEmbeddedLanguagesProvider languagesProvider)
         {
-            _languageProvider = languageProvider;
+            _languagesProvider = languagesProvider;
         }
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            foreach (var language in _languageProvider.GetEmbeddedLanguages())
+            if (_languagesProvider != null)
             {
-                var completionProvider = language.CompletionProvider;
-                if (completionProvider != null)
+                foreach (var language in _languagesProvider.GetEmbeddedLanguages())
                 {
-                    if (completionProvider.ShouldTriggerCompletion(
-                            text, caretPosition, Convert(trigger), options))
+                    var completionProvider = language.CompletionProvider;
+                    if (completionProvider != null)
                     {
-                        return true;
+                        if (completionProvider.ShouldTriggerCompletion(
+                                text, caretPosition, Convert(trigger), options))
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -55,56 +58,59 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            foreach (var language in _languageProvider.GetEmbeddedLanguages())
+            if (_languagesProvider != null)
             {
-                var completionProvider = language.CompletionProvider;
-                if (completionProvider != null)
+                foreach (var language in _languagesProvider.GetEmbeddedLanguages())
                 {
-                    var embeddedContext = new EmbeddedCompletionContext(
-                        context.Document,
-                        context.Position,
-                        context.CompletionListSpan,
-                        Convert(context.Trigger),
-                        context.Options,
-                        context.CancellationToken);
-                    await completionProvider.ProvideCompletionsAsync(embeddedContext).ConfigureAwait(false);
-
-                    if (embeddedContext.Items.Count > 0)
+                    var completionProvider = language.CompletionProvider;
+                    if (completionProvider != null)
                     {
-                        var index = 0;
-                        foreach (var embeddedItem in embeddedContext.Items)
+                        var embeddedContext = new EmbeddedCompletionContext(
+                            context.Document,
+                            context.Position,
+                            context.CompletionListSpan,
+                            Convert(context.Trigger),
+                            context.Options,
+                            context.CancellationToken);
+                        await completionProvider.ProvideCompletionsAsync(embeddedContext).ConfigureAwait(false);
+
+                        if (embeddedContext.Items.Count > 0)
                         {
-                            var change = embeddedItem.Change;
-                            var textChange = change.TextChange;
-
-                            var properties = ImmutableDictionary.CreateBuilder<string, string>();
-                            properties.Add(StartKey, textChange.Span.Start.ToString());
-                            properties.Add(LengthKey, textChange.Span.Length.ToString());
-                            properties.Add(NewTextKey, textChange.NewText);
-                            properties.Add(DescriptionKey, embeddedItem.Description);
-
-                            if (change.NewPosition != null)
+                            var index = 0;
+                            foreach (var embeddedItem in embeddedContext.Items)
                             {
-                                properties.Add(NewPositionKey, change.NewPosition.ToString());
+                                var change = embeddedItem.Change;
+                                var textChange = change.TextChange;
+
+                                var properties = ImmutableDictionary.CreateBuilder<string, string>();
+                                properties.Add(StartKey, textChange.Span.Start.ToString());
+                                properties.Add(LengthKey, textChange.Span.Length.ToString());
+                                properties.Add(NewTextKey, textChange.NewText);
+                                properties.Add(DescriptionKey, embeddedItem.Description);
+
+                                if (change.NewPosition != null)
+                                {
+                                    properties.Add(NewPositionKey, change.NewPosition.ToString());
+                                }
+
+                                // Keep everything sorted in the order the underlying embedded
+                                // language provided it.
+                                var sortText = index.ToString("0000");
+
+                                var item = CompletionItem.Create(
+                                    embeddedItem.DisplayText,
+                                    sortText: sortText,
+                                    properties: properties.ToImmutable(),
+                                    rules: s_rules);
+
+                                context.AddItem(item);
+                                index++;
                             }
 
-                            // Keep everything sorted in the order the underlying embedded
-                            // language provided it.
-                            var sortText = index.ToString("0000");
-
-                            var item = CompletionItem.Create(
-                                embeddedItem.DisplayText,
-                                sortText: sortText,
-                                properties: properties.ToImmutable(),
-                                rules: s_rules);
-
-                            context.AddItem(item);
-                            index++;
+                            context.CompletionListSpan = embeddedContext.CompletionListSpan;
+                            context.IsExclusive = true;
+                            return;
                         }
-
-                        context.CompletionListSpan = embeddedContext.CompletionListSpan;
-                        context.IsExclusive = true;
-                        return;
                     }
                 }
             }

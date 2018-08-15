@@ -11,12 +11,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    using RegexToken = EmbeddedSyntaxToken<RegexKind>;
-
     /// <summary>
     /// Brace matching impl for embedded regex strings.
     /// </summary>
-    internal class RegexEmbeddedBraceMatcher : IEmbeddedBraceMatcher
+    internal sealed class RegexEmbeddedBraceMatcher : IEmbeddedBraceMatcher
     {
         private readonly RegexEmbeddedLanguage _language;
 
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
             if (!option)
             {
-                return default;
+                return null;
             }
 
             var tree = await _language.TryGetTreeAtPositionAsync(

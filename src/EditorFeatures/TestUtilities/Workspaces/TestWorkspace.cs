@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public TestWorkspace(ExportProvider exportProvider, string workspaceKind = null, bool disablePartialSolutions = true)
             : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceKind.Test)
         {
-            ResetThreadAffinity();
-
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
             this.ExportProvider = exportProvider;
             this.Projects = new List<TestHostProject>();
@@ -67,30 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _backgroundParser.Start();
 
             _metadataAsSourceFileService = exportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
-        }
-
-        /// <summary>
-        /// Reset the thread affinity, in particular the designated foreground thread, to the active 
-        /// thread.  
-        /// </summary>
-        internal static void ResetThreadAffinity(ForegroundThreadData foregroundThreadData = null)
-        {
-            foregroundThreadData = foregroundThreadData ?? ForegroundThreadAffinitizedObject.CurrentForegroundThreadData;
-
-            // HACK: When the platform team took over several of our components they created a copy
-            // of ForegroundThreadAffinitizedObject.  This needs to be reset in the same way as our copy
-            // does.  Reflection is the only choice at the moment. 
-            foreach (var assembly in System.AppDomain.CurrentDomain.GetAssemblies())
-            {
-                var type = assembly.GetType("Microsoft.VisualStudio.Language.Intellisense.Implementation.ForegroundThreadAffinitizedObject", throwOnError: false);
-                if (type != null)
-                {
-                    type.GetField("foregroundThread", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, foregroundThreadData.Thread);
-                    type.GetField("ForegroundTaskScheduler", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, foregroundThreadData.TaskScheduler);
-
-                    break;
-                }
-            }
         }
 
         protected internal override bool PartialSemanticsEnabled

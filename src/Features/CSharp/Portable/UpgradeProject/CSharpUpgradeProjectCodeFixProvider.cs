@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out string requiredVersion) &&
-                    requiredVersion.TryParse(out var required))
+                    LanguageVersionFacts.TryParse(requiredVersion, out var required))
                 {
                     max = max > required ? max : required;
                 }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             var parseOptions = (CSharpParseOptions)project.ParseOptions;
             if (IsUpgrade(parseOptions, newVersion))
             {
-                Contract.ThrowIfFalse(newVersion.TryParse(out var parsedNewVersion));
+                Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
                 return project.Solution.WithProjectParseOptions(project.Id, parseOptions.WithLanguageVersion(parsedNewVersion));
             }
             else
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         public override bool IsUpgrade(ParseOptions projectOptions, string newVersion)
         {
             var parseOptions = (CSharpParseOptions)projectOptions;
-            Contract.ThrowIfFalse(newVersion.TryParse(out var parsedNewVersion));
+            Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
 
             // treat equivalent versions (one generic and one specific) to be a valid upgrade
             return parsedNewVersion.MapSpecifiedToEffectiveVersion() >= parseOptions.LanguageVersion &&

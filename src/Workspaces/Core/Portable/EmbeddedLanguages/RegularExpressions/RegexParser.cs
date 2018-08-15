@@ -43,13 +43,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// same error.  Note: there is only one time we do this in this parser (see the deviation
     /// documented in <see cref="ParsePossibleEcmascriptBackreferenceEscape"/>).
     ///
-    /// Note1: the above invariants make life difficult at times.  This happens due to the fact that
+    /// Note1: "report the same error" means that we will attempt to report the error using the same
+    /// text the .net regex parser uses for its error messages.  This is so that the user is not
+    /// confused when they use the IDE vs running the regex by getting different messages for the
+    /// same issue.
+    ///
+    /// Note2: the above invariants make life difficult at times.  This happens due to the fact that
     /// the .net parser is multi-pass.  Meaning it does a first scan (which may report errors), then
     /// does the full parse.  This means that it might report an error in a later location during
     /// the initial scan than it would during the parse.  We replicate that behavior to follow the
     /// second invariant.
     ///
-    /// Note2: It would be nice if we could check these invariants at runtime, so we could control
+    /// Note3: It would be nice if we could check these invariants at runtime, so we could control
     /// our behavior by the behavior of the real .net regex engine.  For example, if the .net regex
     /// engine did not report any issues, we could suppress any diagnostics we generated and we
     /// could log an NFW to record which pattern we deviated on so we could fix the issue for a
@@ -59,9 +64,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// engine is not just a parser, but something that builds an actual recognizer using techniques
     /// that are not necessarily bounded.  As such, while we test ourselves around it during our
     /// tests, we cannot do the same at runtime as part of the IDE.
-    /// 
+    ///
     /// This parser was based off the corefx RegexParser based at:
     /// https://github.com/dotnet/corefx/blob/f759243d724f462da0bcef54e86588f8a55352c6/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L1
+    ///
+    /// Note4: The .Net parser itself changes over time (for example to fix behavior that even it
+    /// thinks is buggy).  When this happens, we have to make a choice as to which behavior to
+    /// follow. In general, the overall principle is that we should follow the more lenient
+    /// behavior.  If we end up taking the more strict interpretation we risk giving people an error
+    /// during design time that they would not get at runtime.  It's far worse to have that than to
+    /// not report an error, even though one might happen later.
     /// </remarks>
     internal partial struct RegexParser
     {
@@ -126,8 +138,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     ImmutableDictionary<string, TextSpan>.Empty,
                     ImmutableDictionary<int, TextSpan>.Empty).ParseTree();
 
-                var analyzer = new CaptureInfoAnalyzer(text);
-                var (captureNames, captureNumbers) = analyzer.Analyze(tree1.Root, options);
+                var (captureNames, captureNumbers) = CaptureInfoAnalyzer.Analyze(text, tree1.Root, options);
 
                 var tree2 = new RegexParser(
                     text, options, captureNames, captureNumbers).ParseTree();
@@ -244,16 +255,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             var list = ArrayBuilder<RegexExpressionNode>.GetInstance();
 
-            if (ShouldConsumeSequenceElement(consumeCloseParen))
+            while (ShouldConsumeSequenceElement(consumeCloseParen))
             {
-                do
-                {
-                    var last = list.Count == 0 ? null : list.Last();
-                    list.Add(ParsePrimaryExpressionAndQuantifiers(last));
+                var last = list.Count == 0 ? null : list.Last();
+                list.Add(ParsePrimaryExpressionAndQuantifiers(last));
 
-                    TryMergeLastTwoNodes(list);
-                }
-                while (ShouldConsumeSequenceElement(consumeCloseParen));
+                TryMergeLastTwoNodes(list);
             }
 
             return new RegexSequenceNode(list.ToImmutableAndFree());
@@ -727,8 +734,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
             else
             {
-                // If its a capture name, it's ok if it that capture doesn't exist.  In that
-                // case we will just treat this as an conditional expression.
+                // If it's a capture name, it's ok if that capture doesn't exist.  In that case we
+                // will just treat this as an conditional expression.
                 if (!HasCapture((string)capture.Value))
                 {
                     _lexer.Position = afterInnerOpenParen;
@@ -1282,18 +1289,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             switch (component.Kind)
             {
                 case RegexKind.SimpleEscape:
-                    ch = ((RegexSimpleEscapeNode)component).TypeToken.VirtualChars[0];
-                    switch (ch)
-                    {
-                        case 'a': ch = '\u0007'; break;
-                        case 'b': ch = '\b'; break;
-                        case 'e': ch = '\u001B'; break;
-                        case 'f': ch = '\f'; break;
-                        case 'n': ch = '\n'; break;
-                        case 'r': ch = '\r'; break;
-                        case 't': ch = '\t'; break;
-                        case 'v': ch = '\u000B'; break;
-                    }
+                    var escapeNode = (RegexSimpleEscapeNode)component;
+                    ch = MapEscapeChar(escapeNode.TypeToken.VirtualChars[0]);
                     return true;
 
                 case RegexKind.ControlEscape:
@@ -1594,7 +1591,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
-            var ch = _currentToken.VirtualChars[0].Char;
             switch (_currentToken.VirtualChars[0].Char)
             {
                 case 'b': case 'B': case 'A': case 'G': case 'Z': case 'z':
@@ -1890,15 +1886,28 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             unchecked
             {
+                // From: https://github.com/dotnet/corefx/blob/80e220fc7009de0f0611ee6b52d4d5ffd25eb6c7/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L1450
+
+                // Note: Roslyn accepts a control escape that current .Net parser does not.
+                // Specifically: \c[
+                //
+                // It is a bug that the .Net parser does not support this construct.  The bug was
+                // reported at: https://github.com/dotnet/corefx/issues/26501 and was fixed for
+                // CoreFx with https://github.com/dotnet/corefx/commit/80e220fc7009de0f0611ee6b52d4d5ffd25eb6c7
+                //
+                // Because it was a bug, we follow the correct behavior.  That means we will not
+                // report a diagnostic for a Regex that someone might run on a previous version of
+                // .Net that ends up throwing at runtime.  That's acceptable.  Our goal is to match
+                // the latest .Net 'correct' behavior.  Not intermediary points with bugs that have
+                // since been fixed.
+
                 // \ca interpreted as \cA
                 if (ch >= 'a' && ch <= 'z')
                 {
                     ch -= (char)('a' - 'A');
                 }
 
-                ch -= '@';
-
-                if (ch < ' ')
+                if (ch >= '@' && ch <= '_')
                 {
                     var controlToken = ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd).With(kind: RegexKind.TextToken);
                     return new RegexControlEscapeNode(backslashToken, typeToken, controlToken);

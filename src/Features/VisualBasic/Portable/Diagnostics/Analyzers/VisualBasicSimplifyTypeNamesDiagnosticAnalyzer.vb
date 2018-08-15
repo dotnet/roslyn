@@ -4,8 +4,8 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -53,17 +53,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Return s_kindsOfInterest.Contains(node.Kind)
         End Function
 
-        Friend Shared Function IsCandidate(node As SyntaxNode) As Boolean
+        Friend Overrides Function IsCandidate(node As SyntaxNode) As Boolean
             Return node IsNot Nothing AndAlso IsNodeKindInteresting(node)
         End Function
 
-        Protected Overrides Function CanSimplifyTypeNameExpressionCore(model As SemanticModel, node As SyntaxNode, optionSet As OptionSet, ByRef issueSpan As TextSpan, ByRef diagnosticId As String, cancellationToken As CancellationToken) As Boolean
-            Return CanSimplifyTypeNameExpression(model, node, optionSet, issueSpan, diagnosticId, cancellationToken)
+        Protected Overrides Function CanSimplifyTypeNameExpressionCore(
+                model As SemanticModel, node As SyntaxNode, optionSet As OptionSet,
+                ByRef issueSpan As TextSpan, ByRef diagnosticId As String, ByRef inDeclaration As Boolean,
+                cancellationToken As CancellationToken) As Boolean
+            Return CanSimplifyTypeNameExpression(
+                model, node, optionSet, issueSpan, diagnosticId, inDeclaration, cancellationToken)
         End Function
 
-        Friend Shared Function CanSimplifyTypeNameExpression(model As SemanticModel, node As SyntaxNode, optionSet As OptionSet, ByRef issueSpan As TextSpan, ByRef diagnosticId As String, cancellationToken As CancellationToken) As Boolean
+        Friend Overrides Function CanSimplifyTypeNameExpression(
+                model As SemanticModel, node As SyntaxNode, optionSet As OptionSet,
+                ByRef issueSpan As TextSpan, ByRef diagnosticId As String, ByRef inDeclaration As Boolean,
+                cancellationToken As CancellationToken) As Boolean
             issueSpan = Nothing
             diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId
+
+            Dim memberAccess = TryCast(node, MemberAccessExpressionSyntax)
+            If memberAccess IsNot Nothing AndAlso memberAccess.Expression.IsKind(SyntaxKind.MeExpression) Then
+                ' don't bother analyzing "me.Goo" expressions.  They will be analyzed by
+                ' the VisualBasicSimplifyThisOrMeDiagnosticAnalyzer.
+                Return False
+            End If
 
             Dim expression = DirectCast(node, ExpressionSyntax)
             If expression.ContainsDiagnostics Then
@@ -77,11 +91,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
             ' set proper diagnostic ids.
             If replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)) Then
-                diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId
+                inDeclaration = True
+                diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId
             ElseIf replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)) Then
-                diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId
+                inDeclaration = False
+                diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId
             ElseIf expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
                 Dim method = model.GetMemberGroup(expression)
                 If method.Length = 1 Then
                     Dim symbol = method.First()
@@ -89,9 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                         Return False
                     End If
                 End If
-                diagnosticId = If(memberAccess.Expression.Kind = SyntaxKind.MeExpression,
-                    IDEDiagnosticIds.RemoveQualificationDiagnosticId,
-                    IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
+
+                diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
             End If
 
             Return True

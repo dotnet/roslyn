@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal class CSharpEmbeddedLanguageCompletionProvider : AbstractEmbeddedLanguageCompletionProvider
     {
         public CSharpEmbeddedLanguageCompletionProvider() 
-            : base(CSharpEmbeddedLanguageProvider.Instance)
+            : base(CSharpEmbeddedLanguagesProvider.Instance)
         {
         }
     }
