@@ -43,7 +43,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.OpenSolution(path, saveExistingSolutionIfExists);
 
         public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
-            => _inProc.AddProject(projectName.Name, projectTemplate, languageName);
+        {
+            _inProc.AddProject(projectName.Name, projectTemplate, languageName);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
         public void AddProjectReference(ProjectUtils.Project fromProjectName, ProjectUtils.ProjectReference toProjectName)
         {
