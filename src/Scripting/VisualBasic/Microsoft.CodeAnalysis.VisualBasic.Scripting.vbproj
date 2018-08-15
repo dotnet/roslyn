@@ -34,12 +34,12 @@
     <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <!-- /TODO -->
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.TestUtilities" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.TestUtilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

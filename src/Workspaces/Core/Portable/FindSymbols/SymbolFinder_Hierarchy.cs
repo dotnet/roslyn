@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -591,7 +592,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // compilation from definition project must already exist.
             if (!definitionProject.TryGetCompilation(out definingCompilation))
             {
-                Contract.Requires(false, "How can compilation not exist?");
+                Debug.Assert(false, "How can compilation not exist?");
                 return false;
             }
 

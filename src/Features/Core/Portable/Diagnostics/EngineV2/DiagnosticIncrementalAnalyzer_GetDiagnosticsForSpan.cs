@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var list = new List<DiagnosticData>();
             var result = await getter.TryGetAsync(list, cancellationToken).ConfigureAwait(false);
-            Contract.Requires(result);
+            Debug.Assert(result);
 
             return list;
         }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     // if we are blocked for data, then we should always have full result.
-                    Contract.Requires(!_blockForData || containsFullResult);
+                    Debug.Assert(!_blockForData || containsFullResult);
                     return containsFullResult;
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

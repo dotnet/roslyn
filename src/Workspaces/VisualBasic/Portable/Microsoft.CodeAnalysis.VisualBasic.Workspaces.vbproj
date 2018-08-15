@@ -23,16 +23,16 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
-    <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding.Tests" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
+    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding.Tests" Key="$(MonoDevelopKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
+    <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="VBWorkspaceResources.Designer.vb">

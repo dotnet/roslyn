@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertAnonymousTypeToClass = "CodeActions.ConvertAnonymousTypeToClass";
             public const string CodeActionsConvertAnonymousTypeToTuple = "CodeActions.ConvertAnonymousTypeToTuple";
             public const string CodeActionsConvertNumericLiteral = "CodeActions.ConvertNumericLiteral";
+            public const string CodeActionsConvertLocalFunctionToMethod = "CodeActions.ConvertLocalFunctionToMethod";
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
             public const string CodeActionsConvertForToForEach = "CodeActions.ConvertForToForEach";
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertIfToSwitch = "CodeActions.ConvertIfToSwitch";
             public const string CodeActionsConvertTupleToStruct = "CodeActions.ConvertTupleToStruct";
             public const string CodeActionsConvertQueryToForEach = "CodeActions.ConvertQueryToForEach";
+            public const string CodeActionsConvertForEachToQuery = "CodeActions.ConvertForEachToQuery";
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";
@@ -111,9 +113,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
             public const string CodeActionsRemoveUnreachableCode = "CodeActions.RemoveUnreachableCode";
             public const string CodeActionsResolveConflictMarker = "CodeActions.ResolveConflictMarker";
+            public const string CodeActionsSimplifyThisOrMe = "CodeActions.SimplifyThisOrMe";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
+            public const string CodeActionsUseInterpolatedVerbatimString = "CodeActions.UseInterpolatedVerbatimString";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
             public const string CodeActionsUseCollectionInitializer = "CodeActions.UseCollectionInitializer";

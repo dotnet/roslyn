@@ -1052,6 +1052,9 @@ This version used in: {2}</value>
   <data name="Use_pattern_matching" xml:space="preserve">
     <value>Use pattern matching</value>
   </data>
+  <data name="Use_interpolated_verbatim_string" xml:space="preserve">
+    <value>Use interpolated verbatim string</value>
+  </data>
   <data name="Use_expression_body_for_methods" xml:space="preserve">
     <value>Use expression body for methods</value>
   </data>
@@ -1376,6 +1379,9 @@ This version used in: {2}</value>
   <data name="Convert_to_conditional_expression" xml:space="preserve">
     <value>Convert to conditional expression</value>
   </data>
+  <data name="Convert_to_query" xml:space="preserve">
+    <value>Convert to query</value>
+  </data>
   <data name="Convert_to_tuple" xml:space="preserve">
     <value>Convert to tuple</value>
   </data>
@@ -1396,5 +1402,8 @@ This version used in: {2}</value>
   </data>
   <data name="updating_usages_in_dependent_projects" xml:space="preserve">
     <value>updating usages in dependent projects</value>
+  </data>
+  <data name="Formatting_document" xml:space="preserve">
+    <value>Formatting document</value>
   </data>
 </root>

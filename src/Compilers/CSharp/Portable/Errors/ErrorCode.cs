@@ -1580,33 +1580,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics introduced for C# 8.0
         ERR_FeatureNotAvailableInVersion8 = 8400,
+        ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 
         #region diagnostics introduced for recursive patterns
-        ERR_InferredRecursivePatternType = 8401,
-        ERR_WrongNumberOfSubpatterns = 8402,
-        ERR_PropertyPatternNameMissing = 8403,
-        ERR_MissingPattern = 8404,
-        ERR_DefaultPattern = 8405,
-        ERR_SwitchExpressionNoBestType = 8406,
-        ERR_SingleElementPositionalPatternRequiresType = 8407,
-        ERR_VarMayNotBindToType = 8408,
-        WRN_SwitchExpressionNotExhaustive = 8409,
-        ERR_SwitchArmSubsumed = 8410,
-        ERR_UnderscoreDeclaredAndDiscardPattern = 8411,
-        ERR_ConstantPatternNamedUnderscore = 8412,
-        WRN_IsTypeNamedUnderscore = 8413,
-        ERR_ExpressionTreeContainsSwitchExpression = 8414,
-        ERR_SwitchGoverningExpressionRequiresParens = 8415,
-        ERR_TupleElementNameMismatch = 8416,
-        ERR_DeconstructParameterNameMismatch = 8417,
-        ERR_IsPatternImpossible = 8418,
-        WRN_GivenExpressionNeverMatchesPattern = 8419,
-        WRN_GivenExpressionAlwaysMatchesConstant = 8420,
-        ERR_PointerTypeInPatternMatching = 8421,
-        ERR_ArgumentNameInITuplePattern = 8422,
+        ERR_InferredRecursivePatternType = 8501,
+        ERR_WrongNumberOfSubpatterns = 8502,
+        ERR_PropertyPatternNameMissing = 8503,
+        ERR_MissingPattern = 8504,
+        ERR_DefaultPattern = 8505,
+        ERR_SwitchExpressionNoBestType = 8506,
+        ERR_SingleElementPositionalPatternRequiresType = 8507,
+        ERR_VarMayNotBindToType = 8508,
+        WRN_SwitchExpressionNotExhaustive = 8509,
+        ERR_SwitchArmSubsumed = 8510,
+        ERR_UnderscoreDeclaredAndDiscardPattern = 8511,
+        ERR_ConstantPatternNamedUnderscore = 8512,
+        WRN_IsTypeNamedUnderscore = 8513,
+        ERR_ExpressionTreeContainsSwitchExpression = 8514,
+        ERR_SwitchGoverningExpressionRequiresParens = 8515,
+        ERR_TupleElementNameMismatch = 8516,
+        ERR_DeconstructParameterNameMismatch = 8517,
+        ERR_IsPatternImpossible = 8518,
+        WRN_GivenExpressionNeverMatchesPattern = 8519,
+        WRN_GivenExpressionAlwaysMatchesConstant = 8520,
+        ERR_PointerTypeInPatternMatching = 8521,
+        ERR_ArgumentNameInITuplePattern = 8522,
         #endregion diagnostics introduced for recursive patterns
 
     }
