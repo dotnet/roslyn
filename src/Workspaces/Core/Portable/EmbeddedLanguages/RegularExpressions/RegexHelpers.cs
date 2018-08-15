@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// Maps an escaped character to the actual character it was escaping.  For something like
         /// 'a' this will map to actual '\a' char (the bell character).  However, for something like
         /// '(' this will just map to '(' as that's all that \( does in a regex.
-        ///
+        /// </summary>
         public static char MapEscapeChar(char ch)
         {
             switch (ch)
