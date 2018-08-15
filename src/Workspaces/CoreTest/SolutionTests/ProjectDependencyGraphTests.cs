@@ -122,12 +122,6 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         #region Helpers
 
-        private ProjectDependencyGraph CreateGraph(string projectReferences)
-        {
-            var solution = CreateSolutionFromReferenceMap(projectReferences);
-            return solution.GetProjectDependencyGraph();
-        }
-
         private Solution CreateSolutionFromReferenceMap(string projectReferences)
         {
             Solution solution = CreateSolution();
