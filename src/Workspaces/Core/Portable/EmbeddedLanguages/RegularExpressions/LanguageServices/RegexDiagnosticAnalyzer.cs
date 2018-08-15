@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             // Use an actual stack object so that we don't blow the actual stack through recursion.
             var root = syntaxTree.GetRoot(cancellationToken);
-            var stack = new Stack<SyntaxNodeOrToken>();
+            var stack = new Stack<SyntaxNode>();
             stack.Push(root);
 
             while (stack.Count != 0)
@@ -64,18 +64,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 cancellationToken.ThrowIfCancellationRequested();
                 var current = stack.Pop();
 
-                if (current.IsNode)
+                foreach (var child in current.ChildNodesAndTokens())
                 {
-                    var node = current.AsNode();
-
-                    foreach (var child in node.ChildNodesAndTokens())
+                    if (child.IsNode)
                     {
-                        stack.Push(child);
+                        stack.Push(child.AsNode());
                     }
-                }
-                else
-                {
-                    AnalyzeToken(context, detector, current.AsToken(), cancellationToken);
+                    else
+                    {
+                        AnalyzeToken(context, detector, child.AsToken(), cancellationToken);
+                    }
                 }
             }
         }
