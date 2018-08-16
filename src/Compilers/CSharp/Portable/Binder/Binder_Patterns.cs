@@ -484,6 +484,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Compute the val escape of an expression of the given <paramref name="type"/>, which is know to be derived
+        /// from an expression whose escape scope is <paramref name="possibleValEscape"/>. By the language rules, the
+        /// result is either that same scope (if the type is a ref struct type) or <see cref="Binder.ExternalScope"/>.
+        /// </summary>
         private static uint GetValEscape(TypeSymbol type, uint possibleValEscape)
         {
             return type.IsByRefLikeType ? possibleValEscape : Binder.ExternalScope;
