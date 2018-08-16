@@ -534,8 +534,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
             Return MakeEndOfLineTrivia(GetNextChar)
         End Function
+
         ''' <summary>
-        ''' This function handles scanning _ and _ Comments that start with '
+        ''' Scan a line continuation (_) followed by an optional comment
         ''' </summary>
         ''' <param name="tList">A list of trivia starting with _ if returning True
         ''' or Nothing if returning False</param>
@@ -587,7 +588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ch = Peek()
                     atNewLine = IsNewLine(ch)
                 Else
-                    ' If you get her you have a Line Continuation without comment but have 0 or more spaces after _, so process as V15.5
+                    ' We have a Line Continuation without comment but have 0 or more spaces after _, so process as V15.5
                     If Not CanGet(Here) Then
                         Return False
                     End If
