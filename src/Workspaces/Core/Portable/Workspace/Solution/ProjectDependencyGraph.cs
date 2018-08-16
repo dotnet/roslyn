@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis
         // These are computed fully on demand. null or ImmutableArray.IsDefault indicates the item needs to be realized
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _lazyReverseReferencesMap;
         private ImmutableArray<ProjectId> _lazyTopologicallySortedProjects;
+        
+        // This is not typed ImmutableArray<ImmutableArray<...>> because GetDependencySets() wants to return
+        // an IEnumerable<IEnumerable<...>>, and ImmutableArray<ImmutableArray<...>> can't be converted
+        // to an IEnumerable<IEnumerable<...>> without a bunch of boxing.
         private ImmutableArray<IEnumerable<ProjectId>> _lazyDependencySets;
 
         // These accumulate results on demand. They are never null, but a missing key/value pair indicates it needs to be computed.
