@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             => !diagnostic.IsSuppressed ||
                diagnostic.Properties.ContainsKey(UseExpressionBodyForLambdaDiagnosticAnalyzer.FixesError);
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
 
@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             context.RegisterCodeFix(
                 new MyCodeAction(diagnostic.GetMessage(), priority, c => FixAsync(context.Document, diagnostic, c)),
                 diagnostic);
+
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
