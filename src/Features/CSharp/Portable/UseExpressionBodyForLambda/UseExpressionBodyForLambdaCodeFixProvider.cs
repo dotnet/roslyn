@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     using static UseExpressionBodyForLambdaHelpers;
 
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal partial class UseExpressionBodyForLambdaCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed partial class UseExpressionBodyForLambdaCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId);

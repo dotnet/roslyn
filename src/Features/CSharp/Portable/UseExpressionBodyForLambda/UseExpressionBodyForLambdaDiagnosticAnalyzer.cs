@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     using static UseExpressionBodyForLambdaHelpers;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         public const string FixesError = nameof(FixesError);
 
