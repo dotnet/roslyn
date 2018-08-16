@@ -130,7 +130,6 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var projects = new Dictionary<string, ProjectId>();
 
             var projectDefinitions = projectReferences.Split(' ');
-            int index = 0;
             foreach (var projectDefinition in projectDefinitions)
             {
                 var projectDefinitionParts = projectDefinition.Split(':');
@@ -160,8 +159,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                     }
                 }
 
-                ProjectId projectId = AddProject(ref solution, index, projectName);
-                index++;
+                ProjectId projectId = AddProject(ref solution, projectName);
                 projects.Add(projectName, projectId);
             }
 
@@ -173,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             return solution;
         }
 
-        private static ProjectId AddProject(ref Solution solution, int index, string projectName)
+        private static ProjectId AddProject(ref Solution solution, string projectName)
         {
             ProjectId projectId = ProjectId.CreateNewId(debugName: projectName);
             solution = solution.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), projectName, projectName, LanguageNames.CSharp, projectName));
