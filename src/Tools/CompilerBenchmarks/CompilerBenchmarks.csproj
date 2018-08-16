@@ -5,16 +5,19 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Compilers\CSharp\Test\Emit\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.csproj" />
+    <None Include="run-perf.ps1" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="run-perf.ps1" />
+    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
   </ItemGroup>
 
 </Project>

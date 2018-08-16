@@ -33,7 +33,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />

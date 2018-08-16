@@ -37,7 +37,7 @@ namespace CompilerBenchmarks
             // Benchmark.NET creates a new process to run the benchmark, so the easiest way
             // to communicate information is pass by environment variable
             Environment.SetEnvironmentVariable("TEST_PROJECT_DIR", projectPath);
-            var summary = BenchmarkRunner.Run<PerfBenchmarks>(config);
+            var summary = BenchmarkRunner.Run<EmitBenchmark>(config);
         }
     }
 }
