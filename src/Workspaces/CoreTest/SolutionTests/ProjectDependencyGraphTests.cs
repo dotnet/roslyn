@@ -70,15 +70,14 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void ProjectDependencyGraph_GetProjectsThatThisProjectTransitivelyDependsOn()
         {
-            VerifyTransitiveReferences("A", "A", new string[] { });
-            VerifyTransitiveReferences("B:A A", "B", new string[] { "A" });
-            VerifyTransitiveReferences("C:B B:A A", "C", new string[] { "B", "A" });
-            VerifyTransitiveReferences("C:B B:A A", "A", new string[] { });
+            VerifyTransitiveReferences(CreateSolutionFromReferenceMap("A"), "A", new string[] { });
+            VerifyTransitiveReferences(CreateSolutionFromReferenceMap("B:A A"), "B", new string[] { "A" });
+            VerifyTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "C", new string[] { "B", "A" });
+            VerifyTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "A", new string[] { });
         }
 
-        private void VerifyTransitiveReferences(string projectReferences, string project, string[] expectedResults)
+        private void VerifyTransitiveReferences(Solution solution, string project, string[] expectedResults)
         {
-            Solution solution = CreateSolutionFromReferenceMap(projectReferences);
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectId = solution.GetProjectsByName(project).Single().Id;
             var projectIds = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(projectId);
@@ -97,16 +96,15 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void ProjectDependencyGraph_GetProjectsThatTransitivelyDependOnThisProject()
         {
-            VerifyReverseTransitiveReferences("A", "A", new string[] { });
-            VerifyReverseTransitiveReferences("B:A A", "A", new string[] { "B" });
-            VerifyReverseTransitiveReferences("C:B B:A A", "A", new string[] { "B", "C" });
-            VerifyReverseTransitiveReferences("C:B B:A A", "C", new string[] { });
-            VerifyReverseTransitiveReferences("D:C,B B:A C A", "A", new string[] { "D", "B" });
+            VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("A"), "A", new string[] { });
+            VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("B:A A"), "A", new string[] { "B" });
+            VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "A", new string[] { "B", "C" });
+            VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "C", new string[] { });
+            VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("D:C,B B:A C A"), "A", new string[] { "D", "B" });
         }
 
-        private void VerifyReverseTransitiveReferences(string projectReferences, string project, string[] expectedResults)
+        private void VerifyReverseTransitiveReferences(Solution solution, string project, string[] expectedResults)
         {
-            Solution solution = CreateSolutionFromReferenceMap(projectReferences);
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectId = solution.GetProjectsByName(project).Single().Id;
             var projectIds = projectDependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
