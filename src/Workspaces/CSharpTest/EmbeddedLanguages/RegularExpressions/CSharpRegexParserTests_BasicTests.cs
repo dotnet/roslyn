@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
-        public void TestCommentAfterEscapeInCharacterClass1()
+        public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass1()
         {
             Test(@"@""[a\p{Lu}(?#)b]""", @"<Tree>
   <CompilationUnit>
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
-        public void TestCommentAfterEscapeInCharacterClass2()
+        public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass2()
         {
             Test(@"@""[a\0(?#)b]""", @"<Tree>
   <CompilationUnit>
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
-        public void TestCommentAfterEscapeInCharacterClass3()
+        public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass3()
         {
             Test(@"@""[a\a(?#)b]""", @"<Tree>
   <CompilationUnit>
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
-        public void TestCommentAfterEscapeInCharacterClass4()
+        public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass4()
         {
             Test(@"@""[a\x00(?#)b]""", @"<Tree>
   <CompilationUnit>
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
-        public void TestCommentAfterEscapeInCharacterClass5()
+        public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass5()
         {
             Test(@"@""[a\u0000(?#)b]""", @"<Tree>
   <CompilationUnit>
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
-        public void TestCommentAfterEscapeInCharacterClass6()
+        public void TestDoNotTreatAsCommentAfterEscapeInCharacterClass6()
         {
             Test(@"@""[a\](?#)b]""", @"<Tree>
   <CompilationUnit>
