@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task UseExpressionBodyInFieldInitializer()
+        public async Task UseExpressionBodyInMethod()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -52,7 +52,22 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task UseBlockBodyInFieldInitializer()
+        public async Task TestMissingWhenAlreadyAndExpressionBody()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, string> f = x [|=>|] x.ToString();
+    }
+}", new TestParameters(options: UseExpressionBody));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task UseBlockBodyInMethod()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -76,6 +91,21 @@ class C
         };
     }
 }", options: UseBlockBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task MissingWhenAlreadyHasBlockBody()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, string> f = x [|=>|] { return x.ToString(); };
+    }
+}", new TestParameters(options: UseBlockBody));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
