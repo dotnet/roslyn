@@ -586,6 +586,13 @@ function Test-XUnit() {
             New-ItemProperty -Path $key -Name DumpFolder -PropertyType String -Value $logsDir -Force
             New-ItemProperty -Path $key -Name DumpCount -PropertyType DWord -Value 2 -Force
             New-ItemProperty -Path $key -Name DumpType -PropertyType DWord -Value 2 -Force
+
+            # Collect heap dumps if xunit crashes
+            $key = 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\xunit.console.x86.exe'
+            New-Item -Path $key -Force
+            New-ItemProperty -Path $key -Name DumpFolder -PropertyType String -Value $logsDir -Force
+            New-ItemProperty -Path $key -Name DumpCount -PropertyType DWord -Value 2 -Force
+            New-ItemProperty -Path $key -Name DumpType -PropertyType DWord -Value 2 -Force
         }
 
         # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
