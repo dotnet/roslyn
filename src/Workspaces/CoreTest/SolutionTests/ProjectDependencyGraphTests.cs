@@ -20,15 +20,34 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestGetTopologicallySortedProjects()
         {
-            VerifyTopologicalSort("A", "A");
-            VerifyTopologicalSort("A B", "AB", "BA");
-            VerifyTopologicalSort("C:A,B B:A A", "ABC");
-            VerifyTopologicalSort("B:A A C:A D:C,B", "ABCD", "ACBD");
+            VerifyTopologicalSort(CreateSolutionFromReferenceMap("A"), "A");
+            VerifyTopologicalSort(CreateSolutionFromReferenceMap("A B"), "AB", "BA");
+            VerifyTopologicalSort(CreateSolutionFromReferenceMap("C:A,B B:A A"), "ABC");
+            VerifyTopologicalSort(CreateSolutionFromReferenceMap("B:A A C:A D:C,B"), "ABCD", "ACBD");
         }
 
-        private void VerifyTopologicalSort(string projectReferences, params string[] expectedResults)
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTopologicallySortedProjectsIncrementalUpdate()
         {
-            Solution solution = CreateSolutionFromReferenceMap(projectReferences);
+            var solution = CreateSolutionFromReferenceMap("A");
+
+            VerifyTopologicalSort(solution, "A");
+
+            solution = AddProject(solution, "B");
+
+            VerifyTopologicalSort(solution, "AB", "BA");
+        }
+
+        /// <summary>
+        /// Verifies that <see cref="ProjectDependencyGraph.GetTopologicallySortedProjects(CancellationToken)"/> 
+        /// returns one of the correct results.
+        /// </summary>
+        /// <param name="solution"></param>
+        /// <param name="expectedResults">A list of possible results. Because topological sorting is ambiguous
+        /// in that a graph could have multiple topological sorts, this helper lets you give all the possible
+        /// results and it asserts that one of them does match.</param>
+        private void VerifyTopologicalSort(Solution solution, params string[] expectedResults)
+        {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectIds = projectDependencyGraph.GetTopologicallySortedProjects(CancellationToken.None);
 
@@ -44,16 +63,27 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         [WorkItem(542438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542438")]
         public void TestGetDependencySets()
         {
-            VerifyDependencySets("A B:A C:A D E:D F:D", "ABC DEF");
-            VerifyDependencySets("A B:A,C C", "ABC");
-            VerifyDependencySets("A B", "A B");
-            VerifyDependencySets("A B C:B", "A BC");
-            VerifyDependencySets("A B:A C:A D:B,C", "ABCD");
+            VerifyDependencySets(CreateSolutionFromReferenceMap("A B:A C:A D E:D F:D"), "ABC DEF");
+            VerifyDependencySets(CreateSolutionFromReferenceMap("A B:A,C C"), "ABC");
+            VerifyDependencySets(CreateSolutionFromReferenceMap("A B"), "A B");
+            VerifyDependencySets(CreateSolutionFromReferenceMap("A B C:B"), "A BC");
+            VerifyDependencySets(CreateSolutionFromReferenceMap("A B:A C:A D:B,C"), "ABCD");
         }
 
-        private void VerifyDependencySets(string projectReferences, string expectedResult)
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestDependencySetsIncrementalUpdate()
         {
-            Solution solution = CreateSolutionFromReferenceMap(projectReferences);
+            var solution = CreateSolutionFromReferenceMap("A");
+
+            VerifyDependencySets(solution, "A");
+
+            solution = AddProject(solution, "B");
+
+            VerifyDependencySets(solution, "A B");
+        }
+
+        private void VerifyDependencySets(Solution solution, string expectedResult)
+        {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectIds = projectDependencyGraph.GetDependencySets(CancellationToken.None);
             var actualResult = string.Join(" ",
@@ -74,6 +104,15 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(CreateSolutionFromReferenceMap("B:A A"), "B", new string[] { "A" });
             VerifyTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "C", new string[] { "B", "A" });
             VerifyTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "A", new string[] { });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestGetProjectsThatThisProjectTransitivelyDependsOnThrowsArgumentNull()
+        {
+            var solution = CreateSolutionFromReferenceMap("");
+
+            Assert.Throws<ArgumentNullException>("projectId",
+                () => solution.GetProjectDependencyGraph().GetProjectsThatThisProjectDirectlyDependsOn(null));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -112,6 +151,33 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(solution, "D", new string[] { });
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTransitiveReferencesIncrementalUpdateWithReferencesAlreadyTransitivelyIncluded()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C
+            //
+            // and then we'll add a reference from A -> C, and transitive references should be different
+
+            var solution = CreateSolutionFromReferenceMap("A:B B:C C");
+
+            void VerifyAllTransitiveReferences()
+            {
+                VerifyTransitiveReferences(solution, "A", new string[] { "B", "C" });
+                VerifyTransitiveReferences(solution, "B", new string[] { "C" });
+                VerifyTransitiveReferences(solution, "C", new string[] { });
+            }
+
+            VerifyAllTransitiveReferences();
+            VerifyDirectReferences(solution, "A", new string[] { "B" });
+
+            solution = AddProjectReferences(solution, "A", new string[] { "C" });
+
+            VerifyAllTransitiveReferences();
+            VerifyDirectReferences(solution, "A", new string[] { "B", "C" });
+        }
+
         private void VerifyDirectReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
@@ -138,6 +204,20 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         #endregion
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestDirectAndReverseDirectReferencesAfterWithProjectReferences()
+        {
+            var solution = CreateSolutionFromReferenceMap("A:B B");
+
+            VerifyDirectReverseReferences(solution, "B", new string[] { "A" });
+
+            solution = solution.WithProjectReferences(solution.GetProjectsByName("A").Single().Id,
+                Enumerable.Empty<ProjectReference>());
+
+            VerifyDirectReferences(solution, "A", new string[] { });
+            VerifyDirectReverseReferences(solution, "B", new string[] { });
+        }
+
         #region GetProjectsThatTransitivelyDependOnThisProject
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -148,6 +228,15 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "A", new string[] { "B", "C" });
             VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "C", new string[] { });
             VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("D:C,B B:A C A"), "A", new string[] { "D", "B" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestGetProjectsThatTransitivelyDependOnThisProjectThrowsArgumentNull()
+        {
+            var solution = CreateSolutionFromReferenceMap("");
+
+            Assert.Throws<ArgumentNullException>("projectId",
+                () => solution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(null));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -168,6 +257,9 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             solution = AddProjectReferences(solution, "A", new string[] { "B" });
             solution = AddProjectReferences(solution, "C", new string[] { "D" });
 
+            VerifyDirectReverseReferences(solution, "B", new string[] { "A" });
+            VerifyDirectReverseReferences(solution, "D", new string[] { "C" });
+
             VerifyReverseTransitiveReferences(solution, "A", new string[] { });
             VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
             VerifyReverseTransitiveReferences(solution, "C", new string[] { });
@@ -175,10 +267,24 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
             solution = AddProjectReferences(solution, "B", new string[] { "C" });
 
+            VerifyDirectReverseReferences(solution, "C", new string[] { "B" });
+
             VerifyReverseTransitiveReferences(solution, "A", new string[] { });
             VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
             VerifyReverseTransitiveReferences(solution, "C", new string[] { "A", "B" });
             VerifyReverseTransitiveReferences(solution, "D", new string[] { "A", "B", "C" });
+        }
+
+        private void VerifyDirectReverseReferences(Solution solution, string project, string[] expectedResults)
+        {
+            var projectDependencyGraph = solution.GetProjectDependencyGraph();
+            var projectId = solution.GetProjectsByName(project).Single().Id;
+            var projectIds = projectDependencyGraph.GetProjectsThatDirectlyDependOnThisProject(projectId);
+
+            var actualResults = projectIds.Select(id => solution.GetProject(id).Name);
+            Assert.Equal<string>(
+                expectedResults.OrderBy(n => n),
+                actualResults.OrderBy(n => n));
         }
 
         private void VerifyReverseTransitiveReferences(Solution solution, string project, string[] expectedResults)
