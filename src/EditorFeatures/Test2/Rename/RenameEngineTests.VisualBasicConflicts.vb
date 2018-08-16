@@ -3137,7 +3137,7 @@ End Class
                             </Project>
                         </Workspace>, renameTo:="P")
 
-                    result.AssertLabeledSpansAre("Conflict0", type:=RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("Conflict0", replacement:="Return P(CObj(""""))", type:=RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
