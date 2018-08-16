@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         #region GetTopologicallySortedProjects
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void ProjectDependencyGraph_GetTopologicallySortedProjects()
+        public void TestGetTopologicallySortedProjects()
         {
             VerifyTopologicalSort("A", "A");
             VerifyTopologicalSort("A B", "AB", "BA");
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(542438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542438")]
-        public void ProjectDependencyGraph_GetDependencySets()
+        public void TestGetDependencySets()
         {
             VerifyDependencySets("A B:A C:A D E:D F:D", "ABC DEF");
             VerifyDependencySets("A B:A,C C", "ABC");
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         #region GetProjectsThatThisProjectTransitivelyDependsOn
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void ProjectDependencyGraph_GetProjectsThatThisProjectTransitivelyDependsOn()
+        public void TestGetProjectsThatThisProjectTransitivelyDependsOn()
         {
             VerifyTransitiveReferences(CreateSolutionFromReferenceMap("A"), "A", new string[] { });
             VerifyTransitiveReferences(CreateSolutionFromReferenceMap("B:A A"), "B", new string[] { "A" });
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         #region GetProjectsThatTransitivelyDependOnThisProject
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void ProjectDependencyGraph_GetProjectsThatTransitivelyDependOnThisProject()
+        public void TestGetProjectsThatTransitivelyDependOnThisProject()
         {
             VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("A"), "A", new string[] { });
             VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("B:A A"), "A", new string[] { "B" });
