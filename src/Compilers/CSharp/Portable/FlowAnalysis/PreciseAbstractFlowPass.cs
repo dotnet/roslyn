@@ -2073,7 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitIndexExpression(BoundIndexExpression node)
+        public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
         {
             VisitRvalue(node.Operand);
             return null;

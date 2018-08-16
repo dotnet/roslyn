@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindUnaryOperator((PrefixUnaryExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.IndexExpression:
-                    return BindIndexExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
+                    return BindFromEndIndexExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.RangeExpression:
                     return BindRangeExpression((RangeExpressionSyntax)node, diagnostics);
@@ -1886,7 +1886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
         }
 
-        private BoundExpression BindIndexExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindFromEndIndexExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node.OperatorToken.IsKind(SyntaxKind.CaretToken));
 
@@ -1926,7 +1926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundConversion = CreateConversion(boundOperand, conversion, intType, diagnostics);
             MethodSymbol symbolOpt = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node) as MethodSymbol;
 
-            return new BoundIndexExpression(node, boundConversion, symbolOpt, indexType);
+            return new BoundFromEndIndexExpression(node, boundConversion, symbolOpt, indexType);
         }
 
         private BoundExpression BindRangeExpression(RangeExpressionSyntax node, DiagnosticBag diagnostics)

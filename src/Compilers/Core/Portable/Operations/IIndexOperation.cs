@@ -3,16 +3,16 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents an index operation.
+    /// Represents a from end index operation.
     /// <para>
     /// Current Usage:
-    ///  (1) C# index expressions
+    ///  (1) C# from end index expressions
     /// </para>
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to change it in the future.
     /// </remarks>
-    public interface IIndexOperation : IOperation
+    public interface IFromEndIndexOperation : IOperation
     {
         /// <summary>
         /// The operand.
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Operand { get; }
 
         /// <summary>
-        /// <code>true</code> if this is a 'lifted' index operation.  When there is an 
+        /// <code>true</code> if this is a 'lifted' from end index operation.  When there is an 
         /// operator that is defined to work on a value type, 'lifted' operators are 
         /// created to work on the <see cref="System.Nullable{T}"/> versions of those
         /// value types.

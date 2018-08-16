@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
-        public virtual void VisitIndexOperation(IIndexOperation operation)
+        public virtual void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
         {
             DefaultVisit(operation);
         }
@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitIndexOperation(IIndexOperation operation, TArgument argument)
+        public virtual TResult VisitFromEndIndexOperation(IFromEndIndexOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

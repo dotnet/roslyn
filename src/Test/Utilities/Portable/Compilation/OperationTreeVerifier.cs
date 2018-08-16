@@ -1785,9 +1785,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        public override void VisitIndexOperation(IIndexOperation operation)
+        public override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
         {
-            LogString(nameof(IIndexOperation));
+            LogString(nameof(IFromEndIndexOperation));
 
             if (operation.IsLifted)
             {

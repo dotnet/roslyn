@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        public override BoundNode VisitIndexExpression(BoundIndexExpression node)
+        public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
         {
             Debug.Assert(node.SymbolOpt != null);
 

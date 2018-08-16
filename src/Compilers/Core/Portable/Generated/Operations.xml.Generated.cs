@@ -6991,10 +6991,10 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IObjectOrCollectionInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
     }
 
-    internal abstract class BaseIndexOperation : Operation, IIndexOperation
+    internal abstract class BaseFromEndIndexOperation : Operation, IFromEndIndexOperation
     {
-        protected BaseIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-                    base(OperationKind.Index, semanticModel, syntax, type, constantValue: null, isImplicit: isImplicit)
+        protected BaseFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
+                    base(OperationKind.FromEndIndex, semanticModel, syntax, type, constantValue: null, isImplicit: isImplicit)
         {
             IsLifted = isLifted;
             Symbol = symbol;
@@ -7018,18 +7018,18 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitIndexOperation(this);
+            visitor.VisitFromEndIndexOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitIndexOperation(this, argument);
+            return visitor.VisitFromEndIndexOperation(this, argument);
         }
     }
 
-    internal sealed class IndexOperation : BaseIndexOperation
+    internal sealed class FromEndIndexOperation : BaseFromEndIndexOperation
     {
-        public IndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand, IMethodSymbol symbol) :
+        public FromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand, IMethodSymbol symbol) :
                     base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
         {
             Operand = Operation.SetParentOperation(operand, this);
@@ -7038,11 +7038,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation Operand { get; }
     }
 
-    internal sealed class LazyIndexOperation : BaseIndexOperation
+    internal sealed class LazyFromEndIndexOperation : BaseFromEndIndexOperation
     {
         private Lazy<IOperation> _operand;
 
-        public LazyIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Lazy<IOperation> operand, IMethodSymbol symbol) :
+        public LazyFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Lazy<IOperation> operand, IMethodSymbol symbol) :
                     base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
         {
             _operand = new Lazy<IOperation>(() => Operation.SetParentOperation(operand.Value, this));

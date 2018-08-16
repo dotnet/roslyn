@@ -3301,12 +3301,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.IndexExpression:
+                case BoundKind.FromEndIndexExpression:
                     {
-                        var indexExpression = (BoundIndexExpression)boundNode;
-                        if (indexExpression.SymbolOpt != null)
+                        var fromEndIndexExpression = (BoundFromEndIndexExpression)boundNode;
+                        if (fromEndIndexExpression.SymbolOpt != null)
                         {
-                            symbols = ImmutableArray.Create((Symbol)indexExpression.SymbolOpt);
+                            symbols = ImmutableArray.Create((Symbol)fromEndIndexExpression.SymbolOpt);
                         }
                         break;
                     }
