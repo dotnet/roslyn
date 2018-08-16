@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 {
-    using Microsoft.CodeAnalysis.Text;
     using static UseExpressionBodyForLambdaHelpers;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
