@@ -251,9 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var expression = node.ExpressionOpt;
                 var type = (expression is null) ?
-                    TypeSymbolWithAnnotations.Create(NonNullTypesUnusedContext.Instance, NoReturnExpression) :
-                    TypeSymbolWithAnnotations.Create(expression.Type?.SetUnknownNullabilityForReferenceTypes());
-                _builder.Add((node.RefKind, type));
+                    NoReturnExpression :
+                    expression.Type?.SetUnknownNullabilityForReferenceTypes();
+                _builder.Add((node.RefKind, TypeSymbolWithAnnotations.Create(type)));
                 return null;
             }
         }

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
-            get { return _typeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }
+            get { return GetTypeParametersAsTypeArguments(); }
         }
 
         public override NamedTypeSymbol ConstructedFrom

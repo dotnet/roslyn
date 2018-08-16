@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return _typeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }
+            get { return GetTypeParametersAsTypeArguments(); }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters

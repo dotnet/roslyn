@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:
-            var voidType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
+            var voidType = TypeSymbolWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
             // PROTOTYPE(NullableReferenceTypes): Should the 'object' parameter be considered nullable?
             var objectType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax));
-            var intPtrType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax));
+            var intPtrType = TypeSymbolWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax));
 
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {

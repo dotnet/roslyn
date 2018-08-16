@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 boundArguments.Add(boundArgument);
 
-                var elementType = TypeSymbolWithAnnotations.Create(boundArgument.Type, isNullableIfReferenceType: null);
+                var elementType = TypeSymbolWithAnnotations.Create(boundArgument.Type);
                 elementTypes.Add(elementType);
 
                 if (elementType.IsNull)
@@ -2719,7 +2719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Element type nullability will be inferred in flow analysis and does not need to be set here.
-            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: null), rank);
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, TypeSymbolWithAnnotations.Create(bestType), rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }
@@ -2747,7 +2747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindStackAllocWithInitializer(
                 node,
                 initializer,
-                type: GetStackAllocType(node, TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: null), diagnostics, out bool hasErrors),
+                type: GetStackAllocType(node, TypeSymbolWithAnnotations.Create(bestType), diagnostics, out bool hasErrors),
                 elementType: bestType,
                 sizeOpt: null,
                 diagnostics,

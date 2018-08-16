@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If we don't have System.Object, then we'll get an error type, which will cause overload resolution to fail, 
                     // which will cause some error to be reported.  That's sufficient (i.e. no need to specifically report its absence here).
                     parameter = new SignatureOnlyParameterSymbol(
-                        TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), parameter.Type.CustomModifiers), parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
+                        TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.Type.CustomModifiers), parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
             }
 
             analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });

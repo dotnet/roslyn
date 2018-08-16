@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // bad metadata
             if (hasTupleElementNamesAttribute && elementNames.IsDefaultOrEmpty)
             {
-                return TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol(), isNullableIfReferenceType: null);
+                return TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol());
             }
 
             TypeSymbol type = metadataType.TypeSymbol;

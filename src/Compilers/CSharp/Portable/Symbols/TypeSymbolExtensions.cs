@@ -1500,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var type = typeWithAnnotations.TypeSymbol;
             if (NormalizeTaskTypesInType(compilation, ref type))
             {
-                typeWithAnnotations = TypeSymbolWithAnnotations.Create(type, typeWithAnnotations.CustomModifiers);
+                typeWithAnnotations = TypeSymbolWithAnnotations.Create(type, customModifiers: typeWithAnnotations.CustomModifiers);
                 return true;
             }
             return false;
@@ -1524,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         hasChanged = true;
                         // Preserve custom modifiers but without normalizing those types.
-                        typeArgumentsBuilder[i] = TypeSymbolWithAnnotations.Create(typeArgNormalized, typeWithModifier.CustomModifiers);
+                        typeArgumentsBuilder[i] = TypeSymbolWithAnnotations.Create(typeArgNormalized, customModifiers: typeWithModifier.CustomModifiers);
                     }
                 }
                 if (hasChanged)

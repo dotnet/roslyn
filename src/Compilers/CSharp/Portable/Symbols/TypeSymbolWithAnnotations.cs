@@ -161,13 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateNonLazyType(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: true, customModifiers.NullToEmpty());
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Remove this method and rewrite callers to use other overloads.
-        //[Obsolete] 
-        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers = default)
-        {
-            return Create(NonNullTypesTrueContext.Instance, typeSymbol, customModifiers: customModifiers);
-        }
-
         // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
         // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
 
@@ -180,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <see cref="IsNullable"/> is determined by state other than <see cref="IsAnnotated"/>
         /// (in flow analysis for instance).
         /// </remarks>
-        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType, ImmutableArray<CustomModifier> customModifiers = default)
+        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType = null, ImmutableArray<CustomModifier> customModifiers = default)
         {
             if (typeSymbol is null)
             {
@@ -464,6 +457,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _extensions.SubstituteType(this, typeMap, withTupleUnification: false);
         public TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap) =>
             _extensions.SubstituteType(this, typeMap, withTupleUnification: true);
+
+        internal TypeSymbolWithAnnotations TransformToTupleIfCompatible() => _extensions.TransformToTupleIfCompatible(this);
 
         internal TypeSymbolWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap, bool withTupleUnification)
         {
@@ -758,6 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal abstract bool TypeSymbolEquals(TypeSymbolWithAnnotations type, TypeSymbolWithAnnotations other, TypeCompareKind comparison);
             internal abstract TypeSymbolWithAnnotations SubstituteType(TypeSymbolWithAnnotations type, AbstractTypeMap typeMap, bool withTupleUnification);
+            internal abstract TypeSymbolWithAnnotations TransformToTupleIfCompatible(TypeSymbolWithAnnotations type);
             internal abstract void ReportDiagnosticsIfObsolete(TypeSymbolWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics);
         }
 
@@ -842,6 +838,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override TypeSymbolWithAnnotations SubstituteType(TypeSymbolWithAnnotations type, AbstractTypeMap typeMap, bool withTupleUnification)
             {
                 return type.SubstituteTypeCore(typeMap, withTupleUnification);
+            }
+
+            internal override TypeSymbolWithAnnotations TransformToTupleIfCompatible(TypeSymbolWithAnnotations type)
+            {
+                var defaultType = type._defaultType;
+                var transformedType = TupleTypeSymbol.TransformToTupleIfCompatible(defaultType);
+                if ((object)defaultType != transformedType)
+                {
+                    return TypeSymbolWithAnnotations.Create(transformedType, type.IsNullable, _customModifiers);
+                }
+                return type;
             }
 
             internal override void ReportDiagnosticsIfObsolete(TypeSymbolWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
@@ -945,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var resolvedType = GetResolvedType();
                 if (resolvedType.IsNullableType())
                 {
-                    return TypeSymbolWithAnnotations.Create(resolvedType, customModifiers);
+                    return TypeSymbolWithAnnotations.Create(resolvedType, customModifiers: customModifiers);
                 }
 
                 return TypeSymbolWithAnnotations.CreateNonLazyType(resolvedType, type.NonNullTypesContext, isAnnotated: true, treatUnconstrainedTypeParameterAsNullable: false, customModifiers);
@@ -960,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (typeSymbol.IsNullableType())
                 {
-                    return TypeSymbolWithAnnotations.Create(typeSymbol, customModifiers);
+                    return TypeSymbolWithAnnotations.Create(typeSymbol, customModifiers: customModifiers);
                 }
 
                 return TypeSymbolWithAnnotations.CreateNonLazyType(typeSymbol, type.NonNullTypesContext, isAnnotated: true, type._treatUnconstrainedTypeParameterAsNullable, customModifiers);
@@ -1003,6 +1010,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return type; // substitution had no effect on the type or modifiers
                 }
+            }
+
+            internal override TypeSymbolWithAnnotations TransformToTupleIfCompatible(TypeSymbolWithAnnotations type)
+            {
+                return type;
             }
 
             internal override void ReportDiagnosticsIfObsolete(TypeSymbolWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)

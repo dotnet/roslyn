@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode IntroduceFrame(BoundNode node, Analysis.ClosureEnvironment env, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, BoundNode> F)
         {
             var frame = env.SynthesizedEnvironment;
-            var frameTypeParameters = ImmutableArray.Create(_currentTypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations), 0, frame.Arity);
+            var frameTypeParameters = ImmutableArray.Create(_currentTypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)), 0, frame.Arity);
             NamedTypeSymbol frameType = frame.ConstructIfGeneric(frameTypeParameters);
 
             Debug.Assert(frame.ScopeSyntaxOpt != null);
@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // All of _currentTypeParameters might not be preserved here due to recursively calling upwards in the chain of local functions/lambdas
             Debug.Assert((typeArgumentsOpt.IsDefault && !originalMethod.IsGenericMethod) || (typeArgumentsOpt.Length == originalMethod.Arity));
             var totalTypeArgumentCount = (containerAsFrame?.Arity ?? 0) + synthesizedMethod.Arity;
-            var realTypeArguments = ImmutableArray.Create(_currentTypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations), 0, totalTypeArgumentCount - originalMethod.Arity);
+            var realTypeArguments = ImmutableArray.Create(_currentTypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)), 0, totalTypeArgumentCount - originalMethod.Arity);
             if (!typeArgumentsOpt.IsDefault)
             {
                 realTypeArguments = realTypeArguments.Concat(typeArgumentsOpt);

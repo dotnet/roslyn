@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (isVar)
                         {
-                            declType = inferredType.IsNull ? TypeSymbolWithAnnotations.Create(CreateErrorType("var"), isNullableIfReferenceType: null) : inferredType;
+                            declType = inferredType.IsNull ? TypeSymbolWithAnnotations.Create(CreateErrorType("var")) : inferredType;
                         }
                         else
                         {
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (collectionExpr.HasDynamicType())
             {
                 // If the enumerator is dynamic, it yields dynamic values 
-                inferredType = TypeSymbolWithAnnotations.Create(DynamicTypeSymbol.Instance, isNullableIfReferenceType: null);
+                inferredType = TypeSymbolWithAnnotations.Create(DynamicTypeSymbol.Instance);
             }
             else if (collectionExpr.Type.SpecialType == SpecialType.System_String && builder.CollectionType.SpecialType == SpecialType.System_Collections_IEnumerable)
             {
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // over the string's Chars indexer.  Therefore, we should infer "char", regardless of what the spec
                 // indicates the element type is.  This actually matters in practice because the System.String in
                 // the portable library doesn't have a pattern GetEnumerator method or implement IEnumerable<char>.
-                inferredType = TypeSymbolWithAnnotations.Create(GetSpecialType(SpecialType.System_Char, diagnostics, collectionExpr.Syntax), isNullableIfReferenceType: null);
+                inferredType = TypeSymbolWithAnnotations.Create(GetSpecialType(SpecialType.System_Char, diagnostics, collectionExpr.Syntax));
             }
             else
             {
@@ -740,13 +740,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.ElementType = TypeSymbolWithAnnotations.Create(
                     ((_syntax as ForEachStatementSyntax)?.Type.IsVar == true) ?
                         (TypeSymbol)DynamicTypeSymbol.Instance :
-                        GetSpecialType(SpecialType.System_Object, diagnostics, _syntax),
-                    isNullableIfReferenceType: null);
+                        GetSpecialType(SpecialType.System_Object, diagnostics, _syntax));
             }
             else
             {
                 builder.ElementType = collectionExprType.SpecialType == SpecialType.System_String ?
-                    TypeSymbolWithAnnotations.Create(GetSpecialType(SpecialType.System_Char, diagnostics, _syntax), isNullableIfReferenceType: null) :
+                    TypeSymbolWithAnnotations.Create(GetSpecialType(SpecialType.System_Char, diagnostics, _syntax)) :
                     ((ArrayTypeSymbol)collectionExprType).ElementType;
             }
 

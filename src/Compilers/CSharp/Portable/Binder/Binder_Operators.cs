@@ -2152,9 +2152,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TypeSymbol pointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(isManagedType && allowManagedAddressOf
+            TypeSymbol pointedAtType = isManagedType && allowManagedAddressOf
                 ? GetSpecialType(SpecialType.System_IntPtr, diagnostics, node)
-                : operandType ?? CreateErrorType()));
+                : operandType ?? CreateErrorType();
+            TypeSymbol pointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(pointedAtType));
 
             return new BoundAddressOfOperator(node, operand, pointerType, hasErrors);
         }

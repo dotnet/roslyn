@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class TypeMap : AbstractTypeParameterMap
     {
-        // PROTOTYPE(NullableReferenceTypes): [Obsolete("Use TypeParametersAsTypeSymbolsWithAnnotations")]
-        public static readonly System.Func<TypeSymbol, TypeSymbolWithAnnotations> AsTypeSymbolWithAnnotations = t => TypeSymbolWithAnnotations.Create(t);
         public static readonly System.Func<TypeSymbolWithAnnotations, TypeSymbol> AsTypeSymbol = t => t.TypeSymbol;
 
         internal static ImmutableArray<TypeSymbolWithAnnotations> TypeParametersAsTypeSymbolsWithAnnotations(INonNullTypesContext nonNullTypesContext, ImmutableArray<TypeParameterSymbol> typeParameters)

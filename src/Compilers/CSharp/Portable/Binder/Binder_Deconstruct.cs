@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int leftLength = lhsVariables.Count;
             int rightLength = rhsLiteral.Arguments.Length;
 
-            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(leftLength);
+            var typesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(leftLength);
             var locationsBuilder = ArrayBuilder<Location>.GetInstance(leftLength);
             for (int i = 0; i < rightLength; i++)
             {
@@ -498,11 +498,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                typesBuilder.Add(mergedType);
+                typesBuilder.Add(TypeSymbolWithAnnotations.Create(mergedType));
                 locationsBuilder.Add(element.Syntax.Location);
             }
 
-            if (typesBuilder.Any(t => t == null))
+            if (typesBuilder.Any(t => t.IsNull))
             {
                 typesBuilder.Free();
                 locationsBuilder.Free();
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // tree of types used for figuring out natural types in tuple literal.
             return TupleTypeSymbol.Create(
                 locationOpt: null,
-                elementTypes: typesBuilder.ToImmutableAndFree().SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations), // PROTOTYPE(NullableTypeReferences): Not including nullability.
+                elementTypes: typesBuilder.ToImmutableAndFree(),
                 elementLocations: locationsBuilder.ToImmutableAndFree(),
                 elementNames: default(ImmutableArray<string>),
                 compilation: compilation,

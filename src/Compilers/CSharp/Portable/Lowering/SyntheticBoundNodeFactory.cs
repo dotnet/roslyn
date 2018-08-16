@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodName,
                 args,
                 diagnostics,
-                typeArgs: typeArgs.IsDefault ? default(ImmutableArray<TypeSymbolWithAnnotations>) : typeArgs.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations),
+                typeArgs: typeArgs.IsDefault ? default(ImmutableArray<TypeSymbolWithAnnotations>) : typeArgs.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)),
                 allowFieldsAndProperties: false,
                 allowUnexpandedForm: allowUnexpandedForm);
         }
