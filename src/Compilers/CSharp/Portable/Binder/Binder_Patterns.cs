@@ -566,10 +566,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_ArgumentNameInITuplePattern, subpatternSyntax.NameColon.Location);
                 }
 
+                // Since the input has been cast to ITuple, it must be escapable.
+                const uint valEscape = Binder.ExternalScope;
                 var boundSubpattern = new BoundSubpattern(
                     subpatternSyntax,
                     null,
-                    BindPattern(subpatternSyntax.Pattern, elementType, false, diagnostics));
+                    BindPattern(subpatternSyntax.Pattern, elementType, valEscape, false, diagnostics));
                 patterns.Add(boundSubpattern);
             }
 
