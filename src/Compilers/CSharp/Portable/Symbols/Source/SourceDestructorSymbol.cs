@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var syntax = GetSyntax();
             var bodyBinder = this.DeclaringCompilation.GetBinderFactory(syntaxReferenceOpt.SyntaxTree).GetBinder(syntax, syntax, this);
-            _lazyReturnType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
+            _lazyReturnType = TypeSymbolWithAnnotations.Create(bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
         }
 
         internal DestructorDeclarationSyntax GetSyntax()

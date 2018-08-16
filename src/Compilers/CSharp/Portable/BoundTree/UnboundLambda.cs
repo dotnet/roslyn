@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resultType = (object)taskType != null && taskType.Arity == 0 ?
                     taskType :
                     compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
-                return TypeSymbolWithAnnotations.Create(resultType, isNullableIfReferenceType: false);
+                return TypeSymbolWithAnnotations.Create(resultType);
             }
 
             if (bestResultType.IsNull || bestResultType.SpecialType == SpecialType.System_Void)
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var taskTypeT = (object)taskType != null && taskType.Arity == 1 ?
                 taskType :
                 compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
-            return TypeSymbolWithAnnotations.Create(taskTypeT.Construct(ImmutableArray.Create(bestResultType)), isNullableIfReferenceType: false);
+            return TypeSymbolWithAnnotations.Create(taskTypeT.Construct(ImmutableArray.Create(bestResultType)));
         }
 
         internal sealed class BlockReturns : BoundTreeWalker

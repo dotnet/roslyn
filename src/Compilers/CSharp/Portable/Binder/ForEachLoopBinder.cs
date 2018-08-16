@@ -740,8 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.ElementType = TypeSymbolWithAnnotations.Create(
                     ((_syntax as ForEachStatementSyntax)?.Type.IsVar == true) ?
                         (TypeSymbol)DynamicTypeSymbol.Instance :
-                        GetSpecialType(SpecialType.System_Object, diagnostics, _syntax),
-                    isNullableIfReferenceType: null);
+                        GetSpecialType(SpecialType.System_Object, diagnostics, _syntax));
             }
             else
             {

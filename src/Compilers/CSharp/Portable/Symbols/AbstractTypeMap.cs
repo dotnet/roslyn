@@ -141,14 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeSymbolWithAnnotations SubstituteType(TypeSymbol previous, bool withTupleUnification)
         {
             var result = SubstituteType(previous);
-
             // Make it a tuple if it became compatible with one.
-            if (withTupleUnification && !previous.IsTupleCompatible())
-            {
-                return result.TransformToTupleIfCompatible();
-            }
-
-            return result;
+            return withTupleUnification ? result.TransformToTupleIfCompatible() : result;
         }
 
         internal TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(TypeSymbolWithAnnotations previous)
