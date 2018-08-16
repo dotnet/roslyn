@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics: context.Diagnostics,
                     fromImplements: true);
 
-                var type = TypeSymbolWithAnnotations.Create(@interface, isNullableIfReferenceType: null);
+                var type = TypeSymbolWithAnnotations.Create(@interface);
                 yield return type.GetTypeRefWithAttributes(
                     moduleBeingBuilt,
                     declaringSymbol: this,

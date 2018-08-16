@@ -149,8 +149,8 @@ struct S<T> where T : struct
             var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
             var typeParamType = structType.TypeParameters.Single();
 
-            var pointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(typeParamType, customModifiers)); // NOTE: We're constructing this manually, since it's illegal.
-            var arrayType = ArrayTypeSymbol.CreateCSharpArray(comp.Assembly, TypeSymbolWithAnnotations.Create(typeParamType, customModifiers)); // This is legal, but we're already manually constructing types.
+            var pointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(typeParamType, customModifiers: customModifiers)); // NOTE: We're constructing this manually, since it's illegal.
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(comp.Assembly, TypeSymbolWithAnnotations.Create(typeParamType, customModifiers: customModifiers)); // This is legal, but we're already manually constructing types.
 
             var typeMap = new TypeMap(ImmutableArray.Create(typeParamType), ImmutableArray.Create(TypeSymbolWithAnnotations.Create(intType)));
 

@@ -2822,7 +2822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // extension method of x, at least until we have more information.
         //
         // Clearly it is pointless to run multiple phases
-        public static ImmutableArray<TypeSymbol> InferTypeArgumentsFromFirstArgument(
+        public static ImmutableArray<TypeSymbolWithAnnotations> InferTypeArgumentsFromFirstArgument(
             ConversionsBase conversions,
             MethodSymbol method,
             ImmutableArray<BoundExpression> arguments,
@@ -2835,7 +2835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We need at least one formal parameter type and at least one argument.
             if ((method.ParameterCount < 1) || (arguments.Length < 1))
             {
-                return default(ImmutableArray<TypeSymbol>);
+                return default(ImmutableArray<TypeSymbolWithAnnotations>);
             }
 
             Debug.Assert(!method.ParameterTypes[0].IsDynamic());
@@ -2853,7 +2853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteDiagnostics))
             {
-                return default(ImmutableArray<TypeSymbol>);
+                return default(ImmutableArray<TypeSymbolWithAnnotations>);
             }
 
             return inferrer.GetInferredTypeArguments();
@@ -2899,14 +2899,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return the inferred type arguments using null
         /// for any type arguments that were not inferred.
         /// </summary>
-        private ImmutableArray<TypeSymbol> GetInferredTypeArguments()
+        private ImmutableArray<TypeSymbolWithAnnotations> GetInferredTypeArguments()
         {
-            var builder = ArrayBuilder<TypeSymbol>.GetInstance();
-            foreach (var fixedResult in _fixedResults)
-            {
-                builder.Add(fixedResult.TypeSymbol);
-            }
-            return builder.ToImmutableAndFree();
+            return _fixedResults.AsImmutable();
         }
 
         private static bool IsReallyAType(TypeSymbol type)

@@ -317,7 +317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var boolArray = TypeSymbolWithAnnotations.Create(
                 ArrayTypeSymbol.CreateSZArray(
                     boolType.ContainingAssembly,
-                    TypeSymbolWithAnnotations.Create(boolType)));
+                    TypeSymbolWithAnnotations.Create(boolType)),
+                isNullableIfReferenceType: null);
             return ImmutableArray.Create<MethodSymbol>(
                 new SynthesizedEmbeddedAttributeConstructorSymbol(
                     containingType,

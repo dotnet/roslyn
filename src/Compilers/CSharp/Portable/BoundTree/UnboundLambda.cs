@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resultType = (object)taskType != null && taskType.Arity == 0 ?
                     taskType :
                     compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
-                return TypeSymbolWithAnnotations.Create(resultType);
+                return TypeSymbolWithAnnotations.Create(resultType, isNullableIfReferenceType: false);
             }
 
             if (bestResultType.IsNull || bestResultType.SpecialType == SpecialType.System_Void)
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var taskTypeT = (object)taskType != null && taskType.Arity == 1 ?
                 taskType :
                 compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
-            return TypeSymbolWithAnnotations.Create(taskTypeT.Construct(ImmutableArray.Create(bestResultType)));
+            return TypeSymbolWithAnnotations.Create(taskTypeT.Construct(ImmutableArray.Create(bestResultType)), isNullableIfReferenceType: false);
         }
 
         internal sealed class BlockReturns : BoundTreeWalker
@@ -251,9 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var expression = node.ExpressionOpt;
                 var type = (expression is null) ?
-                    TypeSymbolWithAnnotations.Create(NonNullTypesUnusedContext.Instance, NoReturnExpression) :
-                    TypeSymbolWithAnnotations.Create(expression.Type?.SetUnknownNullabilityForReferenceTypes());
-                _builder.Add((node.RefKind, type));
+                    NoReturnExpression :
+                    expression.Type?.SetUnknownNullabilityForReferenceTypes();
+                _builder.Add((node.RefKind, TypeSymbolWithAnnotations.Create(type)));
                 return null;
             }
         }

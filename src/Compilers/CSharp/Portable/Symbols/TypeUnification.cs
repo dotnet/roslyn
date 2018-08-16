@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MutableTypeMap substitution = null;
-            bool result = CanUnifyHelper(TypeSymbolWithAnnotations.Create(t1),
-                                         TypeSymbolWithAnnotations.Create(t2), 
-                                         ref substitution);
+            bool result = CanUnifyHelper(t1, t2, ref substitution);
 #if DEBUG
             if (result && ((object)t1 != null && (object)t2 != null))
             {
@@ -53,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type;
         }
 #endif
+
+        private static bool CanUnifyHelper(TypeSymbol t1, TypeSymbol t2, ref MutableTypeMap substitution)
+        {
+            return CanUnifyHelper(TypeSymbolWithAnnotations.Create(t1), TypeSymbolWithAnnotations.Create(t2), ref substitution);
+        }
 
         /// <summary>
         /// Determine whether there is any substitution of type parameters that will
@@ -156,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return false;
                             }
 
-                            return CanUnifyHelper(TypeSymbolWithAnnotations.Create(nt1.TupleUnderlyingType), TypeSymbolWithAnnotations.Create(nt2.TupleUnderlyingType), ref substitution);
+                            return CanUnifyHelper(nt1.TupleUnderlyingType, nt2.TupleUnderlyingType, ref substitution);
                         }
 
                         if (!nt1.IsGenericType)
@@ -190,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Note: Dev10 folds this into the loop since GetTypeArgsAll includes type args for containing types
                         // TODO: Calling CanUnifyHelper for the containing type is an overkill, we simply need to go through type arguments for all containers.
-                        return (object)nt1.ContainingType == null || CanUnifyHelper(TypeSymbolWithAnnotations.Create(nt1.ContainingType), TypeSymbolWithAnnotations.Create(nt2.ContainingType), ref substitution);
+                        return (object)nt1.ContainingType == null || CanUnifyHelper(nt1.ContainingType, nt2.ContainingType, ref substitution);
                     }
                 case SymbolKind.TypeParameter:
                     {
@@ -225,8 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             t1.CustomModifiers.SequenceEqual(t2.CustomModifiers.Take(t1.CustomModifiers.Length)))
                         {
                             AddSubstitution(ref substitution, tp1,
-                                            TypeSymbolWithAnnotations.Create(t2.TypeSymbol,
-                                                                  ImmutableArray.Create(t2.CustomModifiers, t1.CustomModifiers.Length, t2.CustomModifiers.Length - t1.CustomModifiers.Length)));
+                                TypeSymbolWithAnnotations.Create(t2.TypeSymbol,
+                                    customModifiers: ImmutableArray.Create(t2.CustomModifiers, t1.CustomModifiers.Length, t2.CustomModifiers.Length - t1.CustomModifiers.Length)));
                             return true;
                         }
 
@@ -244,8 +247,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 t2.CustomModifiers.SequenceEqual(t1.CustomModifiers.Take(t2.CustomModifiers.Length)))
                             {
                                 AddSubstitution(ref substitution, tp2,
-                                                TypeSymbolWithAnnotations.Create(t1.TypeSymbol,
-                                                                      ImmutableArray.Create(t1.CustomModifiers, t2.CustomModifiers.Length, t1.CustomModifiers.Length - t2.CustomModifiers.Length)));
+                                    TypeSymbolWithAnnotations.Create(t1.TypeSymbol,
+                                        customModifiers: ImmutableArray.Create(t1.CustomModifiers, t2.CustomModifiers.Length, t1.CustomModifiers.Length - t2.CustomModifiers.Length)));
                                 return true;
                             }
                         }

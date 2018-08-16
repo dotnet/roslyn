@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol initializerType = initializerOpt?.Type;
                 if ((object)initializerType != null)
                 {
-                    declTypeOpt = TypeSymbolWithAnnotations.Create(initializerType, isNullableIfReferenceType: null);
+                    declTypeOpt = TypeSymbolWithAnnotations.Create(initializerType);
 
                     if (declTypeOpt.SpecialType == SpecialType.System_Void)
                     {

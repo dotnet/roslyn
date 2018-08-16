@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitObjectCreationInitializer(receiver, slot, initializerOpt);
             }
 
-            _resultType = TypeSymbolWithAnnotations.Create(type);
+            _resultType = TypeSymbolWithAnnotations.Create(type, isNullableIfReferenceType: false);
         }
 
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
@@ -1227,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(NullableReferenceTypes): _result may need to be a new anonymous
             // type since the properties may have distinct nullability from original.
             // (See StaticNullChecking_FlowAnalysis.AnonymousObjectCreation_02.)
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
             return null;
         }
 
@@ -1238,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(expr);
             }
             TypeSymbol resultType = (node.InitializerOpt == null) ? node.Type : VisitArrayInitializer(node);
-            _resultType = TypeSymbolWithAnnotations.Create(resultType);
+            _resultType = TypeSymbolWithAnnotations.Create(resultType, isNullableIfReferenceType: false);
             return null;
         }
 
@@ -1286,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // Mark the error type as null-oblivious.
-                    bestType = TypeSymbolWithAnnotations.Create(bestType.TypeSymbol, isNullableIfReferenceType: null);
+                    bestType = TypeSymbolWithAnnotations.Create(bestType.TypeSymbol);
                 }
                 // PROTOTYPE(NullableReferenceTypes): Report a special ErrorCode.WRN_NoBestNullabilityArrayElements
                 // when InferBestType fails, and avoid reporting conversion warnings for each element in those cases.
@@ -1374,7 +1374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operatorKind.IsLifted())
                 {
                     // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
-                    return TypeSymbolWithAnnotations.Create(resultType, isNullableIfReferenceType: null);
+                    return TypeSymbolWithAnnotations.Create(resultType);
                 }
                 // PROTOTYPE(NullableReferenceTypes): Update method based on operand types.
                 if ((object)methodOpt != null && methodOpt.ParameterCount == 2)
@@ -2840,7 +2840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tupleOpt = (TupleTypeSymbol)node.Type;
             _resultType = (tupleOpt is null) ?
                 default :
-                TypeSymbolWithAnnotations.Create(tupleOpt.WithElementTypes(elementTypes));
+                TypeSymbolWithAnnotations.Create(tupleOpt.WithElementTypes(elementTypes), isNullableIfReferenceType: false);
         }
 
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
@@ -3153,7 +3153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             base.VisitDelegateCreationExpression(node);
-            SetResult(node);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
             return null;
         }
 
@@ -3221,7 +3221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitThisOrBaseReference(BoundExpression node)
         {
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
         }
 
         public override BoundNode VisitParameter(BoundParameter node)
@@ -3621,7 +3621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBadExpression(BoundBadExpression node)
         {
             var result = base.VisitBadExpression(node);
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type);
             return result;
         }
 
@@ -3660,7 +3660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            _resultType = resultType.IsNull ? TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null) : resultType;
+            _resultType = resultType.IsNull ? TypeSymbolWithAnnotations.Create(node.Type) : resultType;
             return null;
         }
 
@@ -3704,7 +3704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.OperatorKind.IsLifted())
             {
                 // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
-                return TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
+                return TypeSymbolWithAnnotations.Create(node.Type);
             }
             // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand types.
             if ((object)node.LogicalOperator != null && node.LogicalOperator.ParameterCount == 2)
@@ -3808,7 +3808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
         {
             var result = base.VisitTypeOfOperator(node);
-            SetResult(node);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
             return result;
         }
 
@@ -4007,7 +4007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckPossibleNullReceiver(receiver);
 
             Debug.Assert(node.Type.IsDynamic());
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type);
             return null;
         }
 
@@ -4085,7 +4085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
         {
             var result = base.VisitNoPiaObjectCreationExpression(node);
-            SetResult(node);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
             return result;
         }
 
@@ -4247,7 +4247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
         {
             var result = base.VisitNameOfOperator(node);
-            SetResult(node);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
             return result;
         }
 
@@ -4261,7 +4261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
         {
             var result = base.VisitInterpolatedString(node);
-            SetResult(node);
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
             return result;
         }
 

@@ -5270,12 +5270,12 @@ class B : A
             foreach (string memberName in new[] { "M1", "M2" })
             {
                 var member = b.GetMember<MethodSymbol>(memberName);
-                Assert.False(member.ReturnType.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).ReturnType,
+                Assert.False(member.ReturnType.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).ReturnType,
                     TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             }
 
             var m3 = b.GetMember<MethodSymbol>("M3");
-            Assert.True(m3.ReturnType.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).ReturnType,
+            Assert.True(m3.ReturnType.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).ReturnType,
                 TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
         }
 
@@ -5387,7 +5387,7 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>(memberName);
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.False(implementing.ReturnType.Equals(implemented.ReturnType,
                     TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             }
@@ -5395,7 +5395,7 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>("M3");
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.True(implementing.ReturnType.Equals(implemented.ReturnType,
                     TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             }
@@ -5455,7 +5455,7 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>(memberName);
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.False(implementing.ReturnType.Equals(implemented.ReturnType,
                     TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             }
@@ -5463,7 +5463,7 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>("M3");
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.True(implementing.ReturnType.Equals(implemented.ReturnType,
                     TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             }
@@ -5620,12 +5620,12 @@ class B : A
             foreach (string memberName in new[] { "M1", "M2" })
             {
                 var member = b.GetMember<MethodSymbol>(memberName);
-                Assert.False(member.Parameters[0].Type.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).Parameters[0].Type,
+                Assert.False(member.Parameters[0].Type.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).Parameters[0].Type,
                     TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             }
 
             var m3 = b.GetMember<MethodSymbol>("M3");
-            Assert.True(m3.Parameters[0].Type.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).Parameters[0].Type,
+            Assert.True(m3.Parameters[0].Type.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).Parameters[0].Type,
                 TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
         }
 
@@ -5839,7 +5839,7 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>(memberName);
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
                     TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             }
@@ -5847,7 +5847,7 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>("M3");
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
                     TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             }
@@ -5902,7 +5902,7 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>(memberName);
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
                     TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             }
@@ -5910,7 +5910,7 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>("M3");
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
                     TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             }
@@ -6210,7 +6210,7 @@ partial class C1
 
             var m1 = c1.GetMember<MethodSymbol>("M1");
             var m1Impl = m1.PartialImplementationPart;
-            var m1Def = m1.ConstructIfGeneric(m1Impl.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+            var m1Def = m1.ConstructIfGeneric(m1Impl.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
 
             for (int i = 0; i < 3; i++)
             {
@@ -19614,15 +19614,11 @@ static class E
         var z = y => y ?? x.ToString();
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): Should not report HDN_ExpressionIsProbablyNeverNull for `y`.
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
                 //         var z = y => y ?? x.ToString();
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = y => y ?? x.ToString()").WithArguments("lambda expression").WithLocation(5, 13),
-                // (5,22): hidden CS8607: Expression is probably never null.
-                //         var z = y => y ?? x.ToString();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(5, 22),
                 // (5,27): warning CS8602: Possible dereference of a null reference.
                 //         var z = y => y ?? x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 27));
@@ -30947,16 +30943,11 @@ class C
         F(v).ToString();
     }
 }";
-            // ErrorCode.WRN_NullReferenceReceiver is reported for F(v).ToString() because F(v)
-            // has type T from initial binding (see https://github.com/dotnet/roslyn/issues/25778).
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (12,21): error CS8197: Cannot infer the type of implicitly-typed out variable 'v'.
                 //         d.F(out var v);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "v").WithArguments("v").WithLocation(12, 21),
-                // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         F(v).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(v)").WithLocation(13, 9));
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "v").WithArguments("v").WithLocation(12, 21));
         }
 
         [Fact]
@@ -35093,8 +35084,6 @@ class C
         F(default).ToString();
     }
 }";
-            // ErrorCode.WRN_NullReferenceReceiver is reported for F(default).ToString() because F(v)
-            // has type T from initial binding (see https://github.com/dotnet/roslyn/issues/25778).
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
@@ -35107,10 +35096,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(object))").WithLocation(6, 9),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F(default(string)).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(string))").WithLocation(8, 9),
-                // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         F(default).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default)").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(string))").WithLocation(8, 9));
         }
 
         [Fact]

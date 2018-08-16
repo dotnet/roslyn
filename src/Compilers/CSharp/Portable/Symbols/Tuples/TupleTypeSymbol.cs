@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeArgumentsBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(RestPosition);
             var arguments = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
             typeArgumentsBuilder.AddRange(arguments, RestPosition - 1);
-            typeArgumentsBuilder.Add(TypeSymbolWithAnnotations.Create(extensionTuple, arguments[RestPosition - 1].CustomModifiers));
+            typeArgumentsBuilder.Add(TypeSymbolWithAnnotations.Create(extensionTuple, customModifiers: arguments[RestPosition - 1].CustomModifiers));
 
             tupleCompatibleType = tupleCompatibleType.ConstructedFrom.Construct(typeArgumentsBuilder.ToImmutableAndFree(), unbound: false);
             return tupleCompatibleType;
