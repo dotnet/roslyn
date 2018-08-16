@@ -178,6 +178,36 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyDirectReferences(solution, "A", new string[] { "B", "C" });
         }
 
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTransitiveReferencesIncrementalUpdateWithProjectThatHasUnknownReferences()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A  B  C -> D
+            //
+            // and then we will add a link from A to B. We won't ask for transitive references first,
+            // so we shouldn't have any information for A, B, or C and have to deal with that.
+
+            var solution = CreateSolutionFromReferenceMap("A B C:D D");
+            solution = solution.WithProjectReferences(solution.GetProjectsByName("C").Single().Id,
+                SpecializedCollections.EmptyEnumerable<ProjectReference>());
+
+            VerifyTransitiveReferences(solution, "A", new string[] { });
+
+            // At this point, we know the references for "A" (it's empty), but B and C's are still unknown.
+            // At this point, we're also going to directly use the underlying project graph APIs;
+            // the higher level solution APIs often call and ask for transitive information as well, which makes
+            // this particularly hard to test -- it turns out the data we think is uncomputed might be computed prior
+            // to adding the reference.
+            var dependencyGraph = solution.GetProjectDependencyGraph();
+            var projectAId = solution.GetProjectsByName("A").Single().Id;
+            var projectBId = solution.GetProjectsByName("B").Single().Id;
+            dependencyGraph = dependencyGraph.WithAdditionalProjectReferences(projectAId, new[] { projectBId });
+
+            VerifyTransitiveReferences(solution, dependencyGraph, project: "A", expectedResults: new string[] { "B" });
+        }
+
         private void VerifyDirectReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
@@ -193,6 +223,11 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         private void VerifyTransitiveReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
+            VerifyTransitiveReferences(solution, projectDependencyGraph, project, expectedResults);
+        }
+
+        private void VerifyTransitiveReferences(Solution solution, ProjectDependencyGraph projectDependencyGraph, string project, string[] expectedResults)
+        {
             var projectId = solution.GetProjectsByName(project).Single().Id;
             var projectIds = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(projectId);
 
@@ -273,6 +308,28 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
             VerifyReverseTransitiveReferences(solution, "C", new string[] { "A", "B" });
             VerifyReverseTransitiveReferences(solution, "D", new string[] { "A", "B", "C" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestReverseTransitiveReferencesForUnrelatedProjectAfterWithProjectReferences()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B       C -> D
+            //
+            // and will then remove the reference from C to D. This process will cause us to throw out
+            // all our caches, and asking for the reverse references of A will compute it again.
+
+            var solution = CreateSolutionFromReferenceMap("A:B B C:D D");
+            VerifyReverseTransitiveReferences(solution, "A", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
+            VerifyReverseTransitiveReferences(solution, "C", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "D", new string[] { "C" });
+
+            solution = solution.WithProjectReferences(solution.GetProjectsByName("C").Single().Id,
+                SpecializedCollections.EmptyEnumerable<ProjectReference>());
+
+            VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
         }
 
         private void VerifyDirectReverseReferences(Solution solution, string project, string[] expectedResults)
