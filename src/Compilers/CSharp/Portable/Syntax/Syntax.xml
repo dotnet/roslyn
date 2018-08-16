@@ -3141,6 +3141,12 @@
       <Kind Name="ClassKeyword"/>
       <Kind Name="StructKeyword"/>
     </Field>
+    <Field Name="QuestionToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="QuestionToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the question mark.</summary>
+      </PropertyComment>
+    </Field>
   </Node>
   <Node Name="TypeConstraintSyntax" Base="TypeParameterConstraintSyntax">
     <TypeComment>

@@ -14622,6 +14622,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ClassOrStructConstraintSyntax)this.Green).classOrStructKeyword, this.Position, 0); }
     }
 
+    /// <summary>SyntaxToken representing the question mark.</summary>
+    public SyntaxToken QuestionToken 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ClassOrStructConstraintSyntax)this.Green).questionToken;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(1), this.GetChildIndex(1));
+
+            return default(SyntaxToken);
+        }
+    }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -14647,11 +14660,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitClassOrStructConstraint(this);
     }
 
-    public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword)
+    public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
     {
-        if (classOrStructKeyword != this.ClassOrStructKeyword)
+        if (classOrStructKeyword != this.ClassOrStructKeyword || questionToken != this.QuestionToken)
         {
-            var newNode = SyntaxFactory.ClassOrStructConstraint(this.Kind(), classOrStructKeyword);
+            var newNode = SyntaxFactory.ClassOrStructConstraint(this.Kind(), classOrStructKeyword, questionToken);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -14663,7 +14676,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public ClassOrStructConstraintSyntax WithClassOrStructKeyword(SyntaxToken classOrStructKeyword)
     {
-        return this.Update(classOrStructKeyword);
+        return this.Update(classOrStructKeyword, this.QuestionToken);
+    }
+
+    public ClassOrStructConstraintSyntax WithQuestionToken(SyntaxToken questionToken)
+    {
+        return this.Update(this.ClassOrStructKeyword, questionToken);
     }
   }
 

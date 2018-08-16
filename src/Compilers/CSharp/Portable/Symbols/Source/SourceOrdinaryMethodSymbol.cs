@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Late step.
                 var diagnostics = DiagnosticBag.GetInstance();
-                var constraints = this.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
+                var constraints = ConstraintsHelper.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
                 Debug.Assert(!constraints.IsEarly());
                 if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, clauses) == clauses)
                 {

@@ -1880,7 +1880,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private TypeParameterConstraintSyntax ParseTypeParameterConstraint()
         {
+            SyntaxToken questionToken = null;
             var syntaxKind = this.CurrentToken.Kind;
+
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.NewKeyword:
@@ -1890,10 +1892,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return _syntaxFactory.ConstructorConstraint(newToken, open, close);
                 case SyntaxKind.StructKeyword:
                     var structToken = this.EatToken();
-                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, structToken);
+
+                    if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                    {
+                        questionToken = this.EatToken();
+                        questionToken = this.AddError(questionToken, ErrorCode.ERR_UnexpectedToken, questionToken.Text);
+                    }
+
+                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, structToken, questionToken);
                 case SyntaxKind.ClassKeyword:
                     var classToken = this.EatToken();
-                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken);
+
+                    if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                    {
+                        questionToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureStaticNullChecking);
+                    }
+
+                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken, questionToken);
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);

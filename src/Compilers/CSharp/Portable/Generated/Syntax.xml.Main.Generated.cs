@@ -3687,7 +3687,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node)
     {
       var classOrStructKeyword = this.VisitToken(node.ClassOrStructKeyword);
-      return node.Update(classOrStructKeyword);
+      var questionToken = this.VisitToken(node.QuestionToken);
+      return node.Update(classOrStructKeyword, questionToken);
     }
 
     public override SyntaxNode VisitTypeConstraint(TypeConstraintSyntax node)
@@ -8814,7 +8815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new ClassOrStructConstraintSyntax instance.</summary>
-    public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword)
+    public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
     {
       switch (kind)
       {
@@ -8832,14 +8833,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException("classOrStructKeyword");
       }
-      return (ClassOrStructConstraintSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ClassOrStructConstraint(kind, (Syntax.InternalSyntax.SyntaxToken)classOrStructKeyword.Node).CreateRed();
+      switch (questionToken.Kind())
+      {
+        case SyntaxKind.QuestionToken:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException("questionToken");
+      }
+      return (ClassOrStructConstraintSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ClassOrStructConstraint(kind, (Syntax.InternalSyntax.SyntaxToken)classOrStructKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)questionToken.Node).CreateRed();
     }
 
 
     /// <summary>Creates a new ClassOrStructConstraintSyntax instance.</summary>
     public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind)
     {
-      return SyntaxFactory.ClassOrStructConstraint(kind, SyntaxFactory.Token(GetClassOrStructConstraintClassOrStructKeywordKind(kind)));
+      return SyntaxFactory.ClassOrStructConstraint(kind, SyntaxFactory.Token(GetClassOrStructConstraintClassOrStructKeywordKind(kind)), default(SyntaxToken));
     }
 
     private static SyntaxKind GetClassOrStructConstraintClassOrStructKeywordKind(SyntaxKind kind)

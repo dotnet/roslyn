@@ -374,7 +374,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// "early" phase are checked for invalid types, duplicate types, and accessibility. 
         /// </summary>
         internal static ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraintsLate(
-            this Symbol containingSymbol,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<TypeParameterConstraintClause> constraintClauses,
             DiagnosticBag diagnostics)
@@ -385,24 +384,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<TypeParameterConstraintClause>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
-                builder.Add(MakeTypeParameterConstraintsLate(containingSymbol, typeParameters[i], constraintClauses[i], diagnostics));
+                builder.Add(MakeTypeParameterConstraintsLate(typeParameters[i], constraintClauses[i], diagnostics));
             }
             return builder.ToImmutableAndFree();
         }
 
         private static TypeParameterConstraintClause MakeTypeParameterConstraintsLate(
-            Symbol containingSymbol,
             TypeParameterSymbol typeParameter,
             TypeParameterConstraintClause constraintClause,
             DiagnosticBag diagnostics)
         {
+            Symbol containingSymbol = typeParameter.ContainingSymbol;
+
+            bool onLocalFunction = containingSymbol.Kind == SymbolKind.Method && ((MethodSymbol)containingSymbol).MethodKind == MethodKind.LocalFunction;
+
+            if ((constraintClause.Constraints & TypeParameterConstraintKind.NullableReferenceType) == TypeParameterConstraintKind.NullableReferenceType)
+            {
+                Location location = constraintClause.ClauseSyntax.Location;
+
+                foreach (TypeParameterConstraintSyntax constraintSyntax in constraintClause.ClauseSyntax.Constraints)
+                {
+                    if (constraintSyntax.IsKind(SyntaxKind.ClassConstraint) &&
+                        ((ClassOrStructConstraintSyntax)constraintSyntax).QuestionToken.IsKind(SyntaxKind.QuestionToken))
+                    {
+                        location = ((ClassOrStructConstraintSyntax)constraintSyntax).QuestionToken.GetLocation();
+                        break;
+                    }
+                }
+
+                typeParameter.ReportNullableReferenceTypesIfNeeded(diagnostics, location);
+            }
+
             var constraintTypeBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             var constraintTypes = constraintClause.ConstraintTypes;
             int n = constraintTypes.Length;
             for (int i = 0; i < n; i++)
             {
                 var constraintType = constraintTypes[i];
-                var syntax = constraintClause.Syntax[i];
+                var syntax = constraintClause.TypeConstraintsSyntax[i];
                 // Only valid constraint types are included in ConstraintTypes
                 // since, in general, it may be difficult to support all invalid types.
                 // In the future, we may want to include some invalid types
@@ -413,29 +432,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     constraintTypeBuilder.Add(constraintType);
                 }
 
-                if (constraintType.ContainsNullableReferenceTypes())
-                {
-                    // Note: Local functions register their need for the Nullable attribute on constraints in LocalRewriter
-                    bool onLocalFunction = containingSymbol.Kind == SymbolKind.Method && ((MethodSymbol)containingSymbol).MethodKind == MethodKind.LocalFunction;
-                    containingSymbol.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, syntax.Location, modifyCompilation: !onLocalFunction);
+                constraintType.ReportAnnotatedUnconstrainedTypeParameterIfAny(syntax.Location, diagnostics);
 
-                    if (!onLocalFunction)
-                    {
-                        // Note: Misuse of ? annotation on declarations of local functions is reported when binding their types (since in executable context)
-                        containingSymbol.ReportNullableReferenceTypesIfNeeded(diagnostics, syntax.Location);
-                    }
+                if (!onLocalFunction && constraintType.ContainsNullableReferenceTypes())
+                {
+                    // Note: Misuse of ? annotation on declarations of local functions is reported when binding their types (since in executable context)
+                    typeParameter.ReportNullableReferenceTypesIfNeeded(diagnostics, syntax.Location);
                 }
             }
+
             if (constraintTypeBuilder.Count < n)
             {
                 constraintTypes = constraintTypeBuilder.ToImmutable();
             }
+
             constraintTypeBuilder.Free();
+
             // Verify constraints on any other partial declarations.
             foreach (var otherClause in constraintClause.OtherPartialDeclarations)
             {
-                MakeTypeParameterConstraintsLate(containingSymbol, typeParameter, otherClause, diagnostics);
+                MakeTypeParameterConstraintsLate(typeParameter, otherClause, diagnostics);
             }
+
             return TypeParameterConstraintClause.Create(constraintClause.Constraints, constraintTypes);
         }
 

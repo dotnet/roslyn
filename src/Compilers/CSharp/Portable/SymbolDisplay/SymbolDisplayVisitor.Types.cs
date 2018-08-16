@@ -784,6 +784,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (typeParam.HasReferenceTypeConstraint)
                             {
                                 AddKeyword(SyntaxKind.ClassKeyword);
+                                if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
+                                    (typeParam as TypeParameterSymbol)?.HasNullableReferenceTypeConstraint == true) // PROTOTYPE(NullableReferenceTypes): Switch to public API when we will have one.
+                                {
+                                    AddPunctuation(SyntaxKind.QuestionToken);
+                                }
+
                                 needComma = true;
                             }
                             else if (typeParam.HasUnmanagedTypeConstraint)

@@ -198,6 +198,11 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers);
 
         /// <summary>
+        /// A verbose format for displaying symbols (useful for testing).
+        /// </summary>
+        internal static readonly SymbolDisplayFormat TestFormatWithConstraints = TestFormat.WithGenericsOptions(TestFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
+
+        /// <summary>
         /// this.QualifiedNameOnly = containingSymbol.QualifiedNameOnly + "." + this.Name
         /// </summary>
         internal static readonly SymbolDisplayFormat QualifiedNameOnlyFormat =

@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         }
 
                         // PROTOTYPE(NullableReferenceTypes): Test different [NonNullTypes] on method and containing type.
-                        var type = TypeSymbolWithAnnotations.Create(_containingSymbol, typeSymbol);
+                        var type = TypeSymbolWithAnnotations.Create(this, typeSymbol);
                         type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
                         type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, constraintHandle, moduleSymbol);
 
@@ -273,6 +273,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return (_flags & GenericParameterAttributes.ReferenceTypeConstraint) != 0;
+            }
+        }
+
+        internal override bool HasNullableReferenceTypeConstraint
+        {
+            get
+            {
+                // PROTOTYPE(NullableReferenceTypes): Support external annotations.
+                return HasReferenceTypeConstraint && 
+                       ((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out ImmutableArray<bool> nullableTransformFlags) &&
+                       nullableTransformFlags.Length == 1 && nullableTransformFlags[0];
             }
         }
 

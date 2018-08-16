@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(ordinal >= 0);
                     Debug.Assert(ordinal < n);
 
-                    var constraintClause = this.BindTypeParameterConstraints(name, clause.Constraints, diagnostics);
+                    var constraintClause = this.BindTypeParameterConstraints(name, clause, diagnostics);
                     if (results[ordinal] == null)
                     {
                         results[ordinal] = constraintClause;
@@ -97,11 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind and return a single type parameter constraint clause.
         /// </summary>
         private TypeParameterConstraintClause BindTypeParameterConstraints(
-            string name, SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax, DiagnosticBag diagnostics)
+            string name, TypeParameterConstraintClauseSyntax constraintClauseSyntax, DiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
             var constraintTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             var syntaxBuilder = ArrayBuilder<TypeConstraintSyntax>.GetInstance();
+            SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax = constraintClauseSyntax.Constraints;
 
             for (int i = 0, n = constraintsSyntax.Count; i < n; i++)
             {
@@ -114,7 +115,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
                         }
 
-                        constraints |= TypeParameterConstraintKind.ReferenceType;
+                        if (((ClassOrStructConstraintSyntax)syntax).QuestionToken.IsKind(SyntaxKind.QuestionToken))
+                        {
+                            constraints |= TypeParameterConstraintKind.NullableReferenceType;
+                        }
+                        else
+                        {
+                            constraints |= TypeParameterConstraintKind.ReferenceType;
+                        }
+
                         continue;
                     case SyntaxKind.StructConstraint:
                         if (i != 0)
@@ -189,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return TypeParameterConstraintClause.Create(constraints, constraintTypes.ToImmutableAndFree(), syntaxBuilder.ToImmutableAndFree());
+            return TypeParameterConstraintClause.Create(constraints, constraintTypes.ToImmutableAndFree(), constraintClauseSyntax, syntaxBuilder.ToImmutableAndFree());
         }
 
         /// <summary>

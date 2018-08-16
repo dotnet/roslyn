@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.HasReferenceTypeConstraint; }
         }
 
+        internal override bool HasNullableReferenceTypeConstraint
+        {
+            get { return _sourceTypeParameter.HasNullableReferenceTypeConstraint; }
+        }
+
         public override bool HasValueTypeConstraint
         {
             get { return _sourceTypeParameter.HasValueTypeConstraint; }
