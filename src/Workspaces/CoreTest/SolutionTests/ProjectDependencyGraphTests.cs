@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         {
             Solution solution = CreateSolution();
 
-            var references = new Dictionary<string, List<string>>();
+            var references = new Dictionary<string, IEnumerable<string>>();
             var projects = new Dictionary<string, ProjectId>();
 
             var projectDefinitions = projectReferences.Split(' ');
@@ -147,16 +147,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                 string projectName = projectDefinitionParts[0];
                 if (referencedProjectNames != null)
                 {
-                    foreach (var referencedProjectName in referencedProjectNames)
-                    {
-                        if (!references.TryGetValue(projectName, out var bucket))
-                        {
-                            bucket = new List<string>();
-                            references.Add(projectName, bucket);
-                        }
-
-                        bucket.Add(referencedProjectName);
-                    }
+                    references.Add(projectName, referencedProjectNames);
                 }
 
                 ProjectId projectId = AddProject(ref solution, projectName);
