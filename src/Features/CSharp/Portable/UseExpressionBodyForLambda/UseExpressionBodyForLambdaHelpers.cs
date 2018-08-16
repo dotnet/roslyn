@@ -85,11 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             LambdaExpressionSyntax declaration, bool forAnalyzer,
             CancellationToken cancellationToken)
         {
-            var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas);
-            var preference = currentOptionValue.Value;
-            var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
-            var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
-
             var expressionBodyOpt = GetExpressionBody(declaration);
             if (expressionBodyOpt == null)
             {
@@ -122,6 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 // we'll also get 'fix all' working to fix all these cases.
                 return (canOffer, fixesError: true);
             }
+
+            var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas);
+            var preference = currentOptionValue.Value;
+            var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
+            var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
 
             // If the user likes block bodies, then we offer block bodies from the diagnostic analyzer.
             // If the user does not like block bodies then we offer block bodies from the refactoring provider.
