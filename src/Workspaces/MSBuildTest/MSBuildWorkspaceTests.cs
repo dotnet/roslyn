@@ -3252,7 +3252,7 @@ class C { }";
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public async void TestAddRemoveMetadataReference_ReferenceAssembly()
+        public async Task TestAddRemoveMetadataReference_ReferenceAssembly()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithSystemNumerics));

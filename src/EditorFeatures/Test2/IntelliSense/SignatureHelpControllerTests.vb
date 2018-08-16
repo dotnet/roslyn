@@ -2,10 +2,10 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Windows.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -22,11 +22,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     <[UseExportProvider]>
     Public Class SignatureHelpControllerTests
-        Public Sub New()
-            ' The controller expects to be on a UI thread
-            TestWorkspace.ResetThreadAffinity()
-        End Sub
-
         <WpfFact>
         Public Sub InvokeSignatureHelpWithoutDocumentShouldNotStartNewSession()
             Dim emptyProvider = New Mock(Of IDocumentProvider)
@@ -249,6 +244,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                          </Workspace>)
                      Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
                  End Function)()
+            Dim threadingContext = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of IThreadingContext)
             Dim bufferFactory As ITextBufferFactoryService = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
             Dim buffer = bufferFactory.CreateTextBuffer()
             Dim view = CreateMockTextView(buffer)
@@ -272,6 +268,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
 
             Dim controller = New Controller(
+                threadingContext,
                 view.Object,
                 buffer,
                 presenter.Object,

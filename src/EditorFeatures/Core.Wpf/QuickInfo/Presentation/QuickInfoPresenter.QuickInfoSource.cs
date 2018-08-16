@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
     {
         private class QuickInfoSource : ForegroundThreadAffinitizedObject, IQuickInfoSource
         {
+            public QuickInfoSource(IThreadingContext threadingContext)
+                : base(threadingContext)
+            {
+            }
+
             public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
             {
                 AssertIsForeground();

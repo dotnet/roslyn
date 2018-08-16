@@ -630,4 +630,7 @@
   <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
     <value>A language name must be specified for this option.</value>
   </data>
+  <data name="OperationMustNotBeControlFlowGraphPart" xml:space="preserve">
+    <value>The provided operation must not be part of a Control Flow Graph.</value>
+  </data>
 </root>
