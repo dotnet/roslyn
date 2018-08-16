@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         /// <param name="whenIsKeyword">prevents the use of "when" for the identifier</param>
         /// <returns></returns>
-        private CSharpSyntaxNode ParseExpressionOrPattern(bool whenIsKeyword, Precedence precedence)
+        private CSharpSyntaxNode ParseExpressionOrPattern(bool whenIsKeyword, bool forSwitchCase, Precedence precedence)
         {
             // handle common error recovery situations during typing
             var tk = this.CurrentToken.Kind;
@@ -337,7 +337,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.ParseIdentifierName(ErrorCode.ERR_MissingPattern);
             }
 
-            if (CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken)
+            if (CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken &&
+                // We permit parsing `case _:` in older language versions
+                !(forSwitchCase && this.Options.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
             {
                 // In a pattern, we reserve `_` as a discard. It cannot be used (with that spelling) as the
                 // type of a declaration or recursive pattern. The binder will give a diagnostic if
@@ -524,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private PatternSyntax ParsePattern(Precedence precedence, bool whenIsKeyword = false)
         {
-            var node = ParseExpressionOrPattern(whenIsKeyword: whenIsKeyword, precedence: precedence);
+            var node = ParseExpressionOrPattern(whenIsKeyword: whenIsKeyword, forSwitchCase: false, precedence: precedence);
             switch (node)
             {
                 case PatternSyntax pattern:

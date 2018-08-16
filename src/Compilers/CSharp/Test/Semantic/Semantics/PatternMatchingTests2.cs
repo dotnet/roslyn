@@ -839,7 +839,7 @@ class Program
             case (false, false): return 0;
             case (false, _): return 1;
             case (_, false): return 2;
-            case _: return 3;
+            case var _: return 3;
         }
     }
 }
@@ -887,7 +887,7 @@ class Program
             case (false, _): return 1;
             case (_, false): return 2;
             case (true, true): return 3;
-            case _: return 4;
+            case var _: return 4;
         }
     }
 }
@@ -909,8 +909,8 @@ namespace System
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 // (20,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case _: return 4;
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "_").WithLocation(20, 18)
+                //             case var _: return 4;
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var _").WithLocation(20, 18)
                 );
         }
 
@@ -1123,7 +1123,7 @@ class Program1
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (11,31): error CS8413: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
+                // (11,31): warning CS8413: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
                 //     bool M1(object o) => o is _;                             // error: is type named _
                 Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("Program1._").WithLocation(11, 31),
                 // (5,31): error CS8412: A constant named '_' cannot be used as a pattern.

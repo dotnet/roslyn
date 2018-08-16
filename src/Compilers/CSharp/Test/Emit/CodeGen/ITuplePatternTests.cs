@@ -124,7 +124,7 @@ public class C : ITuple
         switch (t)
         {
             case (3, 4, 5): return true;
-            case _: return false;
+            case var _: return false;
         }
     }
 }

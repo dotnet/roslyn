@@ -5429,4 +5429,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ArgumentNameInITuplePattern" xml:space="preserve">
     <value>Element names are not permitted when pattern-matching via 'System.Runtime.CompilerServices.ITuple'.</value>
   </data>
+  <data name="ERR_DiscardPatternInSwitchStatement" xml:space="preserve">
+    <value>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</value>
+  </data>
 </root>
