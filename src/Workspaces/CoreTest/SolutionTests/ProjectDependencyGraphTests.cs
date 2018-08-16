@@ -127,7 +127,6 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             Solution solution = CreateSolution();
 
             var references = new Dictionary<string, IEnumerable<string>>();
-            var projects = new Dictionary<string, ProjectId>();
 
             var projectDefinitions = projectReferences.Split(' ');
             foreach (var projectDefinition in projectDefinitions)
@@ -150,23 +149,28 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                     references.Add(projectName, referencedProjectNames);
                 }
 
-                ProjectId projectId = AddProject(ref solution, projectName);
-                projects.Add(projectName, projectId);
+                solution = AddProject(solution, projectName);
             }
 
             foreach (var kvp in references)
             {
-                solution = solution.AddProjectReferences(projects[kvp.Key], kvp.Value.Select(name => new ProjectReference(projects[name])));
+                solution = AddProjectReferences(solution, kvp.Key, kvp.Value);
             }
 
             return solution;
         }
 
-        private static ProjectId AddProject(ref Solution solution, string projectName)
+        private static Solution AddProject(Solution solution, string projectName)
         {
             ProjectId projectId = ProjectId.CreateNewId(debugName: projectName);
-            solution = solution.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), projectName, projectName, LanguageNames.CSharp, projectName));
-            return projectId;
+            return solution.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), projectName, projectName, LanguageNames.CSharp, projectName));
+        }
+
+        private static Solution AddProjectReferences(Solution solution, string projectName, IEnumerable<string> projectReferences)
+        {
+            return solution.AddProjectReferences(
+                solution.GetProjectsByName(projectName).Single().Id,
+                projectReferences.Select(name => new ProjectReference(solution.GetProjectsByName(name).Single().Id)));
         }
 
         private Solution CreateSolution()
