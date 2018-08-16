@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             editor.ReplaceNode(
                 declaration,
-                Update(semanticModel, declaration, useExpressionBody));
+                (current, g) => Update(semanticModel, useExpressionBody, declaration, (LambdaExpressionSyntax)current));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             bool useExpressionBody, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var updatedDeclaration = Update(semanticModel, declaration, useExpressionBody);
+            var updatedDeclaration = Update(semanticModel, useExpressionBody, declaration, declaration);
 
             var newRoot = root.ReplaceNode(declaration, updatedDeclaration);
             return document.WithSyntaxRoot(newRoot);
