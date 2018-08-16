@@ -117,11 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
 
             var tree = RegexParser.TryParse(allChars, options);
-            if (tree != null)
-            {
-
-            }
-
             return (token, tree, allChars);
         }
 
