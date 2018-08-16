@@ -110,10 +110,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ProjectDependencyGraph WithAdditionalProjectReferences(ProjectId projectId, IReadOnlyList<ProjectId> referencedProjectIds)
         {
-            if (!_projectIds.Contains(projectId))
-            {
-                throw new InvalidOperationException($"{nameof(projectId)} isn't being tracked by this dependency graph.");
-            }
+            Contract.ThrowIfFalse(_projectIds.Contains(projectId));
 
             if (referencedProjectIds.Count == 0)
             {
