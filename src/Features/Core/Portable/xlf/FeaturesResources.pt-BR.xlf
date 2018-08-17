@@ -22,6 +22,11 @@
         <target state="translated">Ações não podem ficar vazias.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_linq">
+        <source>Convert to linq</source>
+        <target state="new">Convert to linq</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_query">
         <source>Convert to query</source>
         <target state="new">Convert to query</target>

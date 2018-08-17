@@ -934,6 +934,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to linq.
+        /// </summary>
+        internal static string Convert_to_linq {
+            get {
+                return ResourceManager.GetString("Convert_to_linq", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert to query.
         /// </summary>
         internal static string Convert_to_query {
@@ -941,7 +950,7 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Convert_to_query", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Convert to struct.
         /// </summary>

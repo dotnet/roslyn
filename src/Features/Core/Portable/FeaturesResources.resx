@@ -1403,4 +1403,7 @@ This version used in: {2}</value>
   <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document</value>
   </data>
+  <data name="Convert_to_linq" xml:space="preserve">
+    <value>Convert to linq</value>
+  </data>
 </root>
