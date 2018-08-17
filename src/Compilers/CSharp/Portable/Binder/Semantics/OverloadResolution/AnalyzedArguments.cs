@@ -24,16 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.RefKinds = new ArrayBuilder<RefKind>(32);
         }
 
-        internal AnalyzedArguments Copy(AnalyzedArguments original)
-        {
-            this.Arguments.AddRange(original.Arguments);
-            this.Names.AddRange(original.Names);
-            this.RefKinds.AddRange(original.RefKinds);
-            this.IsExtensionMethodInvocation = original.IsExtensionMethodInvocation;
-            this._lazyHasDynamicArgument = original._lazyHasDynamicArgument;
-            return this;
-        }
-
         public void Clear()
         {
             this.Arguments.Clear();
@@ -135,6 +125,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AnalyzedArguments GetInstance()
         {
             return Pool.Allocate();
+        }
+
+        public static AnalyzedArguments GetInstance(AnalyzedArguments original)
+        {
+            var instance = GetInstance();
+            instance.Arguments.AddRange(original.Arguments);
+            instance.Names.AddRange(original.Names);
+            instance.RefKinds.AddRange(original.RefKinds);
+            instance.IsExtensionMethodInvocation = original.IsExtensionMethodInvocation;
+            instance._lazyHasDynamicArgument = original._lazyHasDynamicArgument;
+            return instance;
         }
 
         public void Free()

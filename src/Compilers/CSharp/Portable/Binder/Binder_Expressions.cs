@@ -6055,7 +6055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
 
                 // Note: the MethodGroupResolution instance is responsible for freeing its copy of actual arguments
-                var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance().Copy(actualArguments), methodGroup.ResultKind, sealedDiagnostics);
+                var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance(actualArguments), methodGroup.ResultKind, sealedDiagnostics);
 
                 // If the search in the current scope resulted in any applicable method (regardless of whether a best
                 // applicable method could be determined) then our search is complete. Otherwise, store aside the
@@ -7256,7 +7256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnType: returnType);
 
                 // Note: the MethodGroupResolution instance is responsible for freeing its copy of analyzed arguments
-                return new MethodGroupResolution(methodGroup, null, result, AnalyzedArguments.GetInstance().Copy(analyzedArguments), methodGroup.ResultKind, sealedDiagnostics);
+                return new MethodGroupResolution(methodGroup, null, result, AnalyzedArguments.GetInstance(analyzedArguments), methodGroup.ResultKind, sealedDiagnostics);
             }
         }
 
