@@ -3,11 +3,11 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Validators;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 
 namespace CompilerBenchmarks
 {
@@ -37,7 +37,7 @@ namespace CompilerBenchmarks
             // Benchmark.NET creates a new process to run the benchmark, so the easiest way
             // to communicate information is pass by environment variable
             Environment.SetEnvironmentVariable("TEST_PROJECT_DIR", projectPath);
-            var summary = BenchmarkRunner.Run<EmitBenchmark>(config);
+            _ = BenchmarkRunner.Run<EmitBenchmark>(config);
         }
     }
 }
