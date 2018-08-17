@@ -171,7 +171,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, method, method, expanded, argsToParamsOpt, ref argumentRefKindsOpt, out temps, invokedAsExtensionMethod);
+            rewrittenArguments = MakeArguments(
+                syntax,
+                rewrittenArguments,
+                method,
+                method,
+                expanded,
+                argsToParamsOpt,
+                ref argumentRefKindsOpt,
+                out temps,
+                invokedAsExtensionMethod,
+                argumentsBinderOpt: nodeOpt?.BinderOpt);
 
             return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, rewrittenArguments, argumentRefKindsOpt, invokedAsExtensionMethod, resultKind, type, temps);
         }
@@ -374,7 +384,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
             out ImmutableArray<LocalSymbol> temps,
             bool invokedAsExtensionMethod = false,
-            ThreeState enableCallerInfo = ThreeState.Unknown)
+            ThreeState enableCallerInfo = ThreeState.Unknown,
+            Binder argumentsBinderOpt = null)
         {
             // Either the methodOrIndexer is a property, in which case the method used
             // for optional parameters is an accessor of that property (or an overridden
@@ -466,6 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt,
                 rewrittenArguments,
                 forceLambdaSpilling: false, // lambda conversions can be re-orderd in calls without side affects
+                argumentsBinderOpt,
                 actualArguments,
                 refKinds,
                 storesToTemps);
@@ -675,12 +687,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKinds,
             ImmutableArray<BoundExpression> rewrittenArguments,
             bool forceLambdaSpilling,
+            Binder argumentsBinderOpt,
             /* out */ BoundExpression[] arguments,
             /* out */ ArrayBuilder<RefKind> refKinds,
             /* out */ ArrayBuilder<BoundAssignmentOperator> storesToTemps)
         {
             Debug.Assert(refKinds.Count == arguments.Length);
             Debug.Assert(storesToTemps.Count == 0);
+
+            var discardedDiags = DiagnosticBag.GetInstance();
 
             for (int a = 0; a < rewrittenArguments.Length; ++a)
             {
@@ -697,7 +712,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
                 if (paramRefKind == RefKind.In)
                 {
-                    argRefKind = argRefKind == RefKind.None ? paramRefKind : RefKindExtensions.StrictIn;
+                    Debug.Assert(argRefKind == RefKind.None || argRefKind == RefKind.In);
+                    argRefKind = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
                 }
 
                 Debug.Assert(arguments[p] == null);
@@ -726,6 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsBeginningOfParamArray(p, a, expanded, arguments.Length, rewrittenArguments, argsToParamsOpt, out int paramArrayArgumentCount)
                     && a + paramArrayArgumentCount == rewrittenArguments.Length)
                 {
+                    discardedDiags.Free();
                     return;
                 }
 
@@ -736,19 +753,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    RefKind refKindForTemp = argRefKind;
+                    if (refKindForTemp == RefKind.In
+                        && !InArgumentRequiresCopy(rewrittenArguments[a], argumentsBinderOpt, discardedDiags))
+                    {
+                        refKindForTemp = RefKindExtensions.StrictIn;
+                    }
+
                     BoundAssignmentOperator assignment;
-                    var temp = _factory.StoreToTemp(argument, out assignment, refKind: argRefKind);
+                    var temp = _factory.StoreToTemp(
+                        argument,
+                        out assignment,
+                        refKind: refKindForTemp);
                     storesToTemps.Add(assignment);
                     arguments[p] = temp;
                 }
+
                 refKinds[p] = argRefKind;
             }
+
+            discardedDiags.Free();
 
             return;
 
             bool isLambdaConversion(BoundExpression expr)
                 => expr is BoundConversion conv && conv.ConversionKind == ConversionKind.AnonymousFunction;
         }
+
+        private static bool InArgumentRequiresCopy(
+            BoundExpression argumentExpr,
+            Binder argumentsBinder,
+            DiagnosticBag diagnostics)
+            => argumentExpr.Kind == BoundKind.Conversion || !argumentsBinder.CheckValueKind(
+                    argumentExpr.Syntax,
+                    argumentExpr,
+                    Binder.BindValueKind.RefersToLocation,
+                    checkingReceiver: false,
+                    diagnostics);
 
         // This fills in the arguments and parameters arrays in evaluation order.
         private static ImmutableArray<IArgumentOperation> BuildArgumentsInEvaluationOrder(

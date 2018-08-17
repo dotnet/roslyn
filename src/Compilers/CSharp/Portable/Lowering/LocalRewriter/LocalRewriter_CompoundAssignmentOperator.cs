@@ -287,6 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKinds,
                 rewrittenArguments,
                 forceLambdaSpilling: true, // lambdas must produce exactly one delegate so they must be spilled into a temp
+                indexerAccess.BinderOpt,
                 actualArguments,
                 refKinds,
                 storesToTemps);

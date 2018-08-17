@@ -187,7 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default(ImmutableArray<int>),
                             rewrittenRight,
                             type,
-                            used);
+                            used,
+                            argumentsBinderOpt: null);
                     }
 
                 case BoundKind.IndexerAccess:
@@ -208,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.ArgsToParamsOpt,
                             rewrittenRight,
                             type,
-                            used);
+                            used,
+                            indexerAccess.BinderOpt);
                     }
 
                 case BoundKind.Local:
@@ -260,7 +262,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             BoundExpression rewrittenRight,
             TypeSymbol type,
-            bool used)
+            bool used,
+            Binder argumentsBinderOpt)
         {
             // Rewrite property assignment into call to setter.
             var setMethod = property.GetOwnOrInheritedSetMethod();
@@ -279,7 +282,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> argTemps;
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, property, setMethod, expanded, argsToParamsOpt, ref argumentRefKindsOpt, out argTemps, enableCallerInfo: ThreeState.True);
+            rewrittenArguments = MakeArguments(
+                syntax,
+                rewrittenArguments,
+                property,
+                setMethod,
+                expanded,
+                argsToParamsOpt,
+                ref argumentRefKindsOpt,
+                out argTemps,
+                invokedAsExtensionMethod: false,
+                enableCallerInfo: ThreeState.True,
+                argumentsBinderOpt);
 
             if (used)
             {

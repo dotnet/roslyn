@@ -1280,12 +1280,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.Out:
                     refKind = RefKind.Ref;
                     break;
+
+                // "in" arguments are spilled by-value, while "strict-in" arguments are
+                // spilled by-ref. It's the responsibility of the caller to determine
+                // whether or not their argument can be spilled by-ref.
                 case RefKind.In:
-                    if (argument.GetRefKind() == RefKind.None)
-                    {
-                        refKind = RefKind.None;
-                    }
+                    refKind = RefKind.None;
                     break;
+                case RefKindExtensions.StrictIn:
+                    refKind = RefKind.In;
+                    break;
+
                 case RefKind.None:
                 case RefKind.Ref:
                     break;
