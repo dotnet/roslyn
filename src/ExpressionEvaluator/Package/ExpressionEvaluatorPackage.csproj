@@ -20,12 +20,12 @@
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\ExpressionEvaluators</ExtensionInstallationFolder>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\VisualStudio\Setup\VisualStudioSetup.csproj">
+    <ProjectReference Include="..\..\VisualStudio\Setup\Roslyn.VisualStudio.Setup.csproj">
       <Name>VisualStudioSetup</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Source\ExpressionCompiler\ExpressionCompiler.csproj">
+    <ProjectReference Include="..\Core\Source\ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionCompiler.csproj">
       <Name>ExpressionCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
@@ -34,7 +34,7 @@
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Source\FunctionResolver\FunctionResolver.csproj">
+    <ProjectReference Include="..\Core\Source\FunctionResolver\Microsoft.CodeAnalysis.FunctionResolver.csproj">
       <Name>FunctionResolver</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
@@ -43,7 +43,7 @@
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Source\ResultProvider\Portable\ResultProvider.Portable.csproj">
+    <ProjectReference Include="..\Core\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.ResultProvider.csproj">
       <Name>ResultProvider.Portable</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
@@ -52,7 +52,7 @@
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\CSharp\Source\ExpressionCompiler\CSharpExpressionCompiler.csproj">
+    <ProjectReference Include="..\CSharp\Source\ExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionCompiler.csproj">
       <Name>CSharpExpressionCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
@@ -61,7 +61,7 @@
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\CSharp\Source\ResultProvider\Portable\CSharpResultProvider.Portable.csproj">
+    <ProjectReference Include="..\CSharp\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.CSharp.ResultProvider.csproj">
       <Name>CSharpResultProvider.Portable</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
@@ -70,7 +70,7 @@
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\Source\ExpressionCompiler\BasicExpressionCompiler.vbproj">
+    <ProjectReference Include="..\VisualBasic\Source\ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler.vbproj">
       <Name>BasicExpressionCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
@@ -79,7 +79,7 @@
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\Source\ResultProvider\Portable\BasicResultProvider.Portable.vbproj">
+    <ProjectReference Include="..\VisualBasic\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.VisualBasic.ResultProvider.vbproj">
       <Name>BasicResultProvider.Portable</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
@@ -100,6 +100,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
   </ItemGroup>

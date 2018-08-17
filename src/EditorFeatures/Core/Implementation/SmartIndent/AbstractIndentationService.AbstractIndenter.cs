@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                          new ChainedFormattingRules(this.Rules, OptionSet),
                          this.TabSize,
                          this.OptionSet.GetOption(FormattingOptions.IndentationSize, syntaxRoot.Language),
-                         tokenStream: null,
-                         lastToken: default);
+                         tokenStream: null);
             }
 
             public IndentationResult? GetDesiredIndentation(Document document)
@@ -224,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             protected bool HasPreprocessorCharacter(TextLine currentLine)
             {
                 var text = currentLine.ToString();
-                Contract.Requires(!string.IsNullOrWhiteSpace(text));
+                Debug.Assert(!string.IsNullOrWhiteSpace(text));
 
                 var trimmedText = text.Trim();
 

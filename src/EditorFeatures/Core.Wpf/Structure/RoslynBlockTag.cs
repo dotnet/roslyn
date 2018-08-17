@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
         public override int Level { get; }
 
         public RoslynBlockTag(
+            IThreadingContext threadingContext,
             ITextEditorFactoryService textEditorFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                  collapsedHintForm: null)
         {
             _state = new BlockTagState(
+                threadingContext,
                 textEditorFactoryService, projectionBufferFactoryService,
                 editorOptionsFactoryService, snapshot, blockSpan);
             Level = parent == null ? 0 : parent.Level + 1;

@@ -248,6 +248,28 @@ End Module")
 
         #endregion
 
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public async Task ServerFailsWithLongTempPathUnix()
+        {
+            var newTempDir = _tempDirectory.CreateDirectory(new string('a', 100 - _tempDirectory.Path.Length));
+            await ApplyEnvironmentVariables(
+                new[] { new KeyValuePair<string, string>("TMPDIR", newTempDir.Path)},
+                async () =>
+            {
+                using (var serverData = ServerUtil.CreateServer())
+                {
+                    var result = RunCommandLineCompiler(
+                        CSharpCompilerClientExecutable,
+                        $"/shared:{serverData.PipeName} /nologo hello.cs",
+                        _tempDirectory,
+                        s_helloWorldSrcCs,
+                        shouldRunOnServer: false);
+                    VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
+                    await serverData.Verify(connections: 0, completed: 0).ConfigureAwait(true);
+                }
+            });
+        }
+
         [Fact]
         public async Task FallbackToCsc()
         {
@@ -762,7 +784,7 @@ End Module
             GC.KeepAlive(rootDirectory);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Skip = "https://github.com/dotnet/roslyn/issues/19763")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/19763")]
         [WorkItem(723280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ReferenceCachingCS()

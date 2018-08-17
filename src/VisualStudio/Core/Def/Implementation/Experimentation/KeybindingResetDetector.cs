@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experimentation;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -74,7 +75,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private bool _infoBarOpen = false;
 
         [ImportingConstructor]
-        public KeybindingResetDetector(VisualStudioWorkspace workspace, SVsServiceProvider serviceProvider)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public KeybindingResetDetector(IThreadingContext threadingContext, VisualStudioWorkspace workspace, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;

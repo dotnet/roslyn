@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    Contract.Requires(inProgressCompilation != null);
+                    Debug.Assert(inProgressCompilation != null);
                     var intermediateProjects = state.IntermediateProjects;
 
                     while (intermediateProjects.Length > 0)
