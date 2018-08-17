@@ -24,6 +24,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.RefKinds = new ArrayBuilder<RefKind>(32);
         }
 
+        internal AnalyzedArguments Copy(AnalyzedArguments original)
+        {
+            this.Arguments.AddRange(original.Arguments);
+            this.Names.AddRange(original.Names);
+            this.RefKinds.AddRange(original.RefKinds);
+            this.IsExtensionMethodInvocation = original.IsExtensionMethodInvocation;
+            this._lazyHasDynamicArgument = original._lazyHasDynamicArgument;
+            return this;
+        }
+
         public void Clear()
         {
             this.Arguments.Clear();
