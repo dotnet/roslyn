@@ -27,7 +27,7 @@ These two blogs posts on contributing code to open source projects are good too:
 
 ## Coding Style
 
-The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/dotnet) and follow the same [developer guide](https://github.com/dotnet/corefx/blob/master/Documentation/coding-guidelines/coding-style.md).  The repo also includes [.editorconfig](http://editorconfig.org) files to help enforce this convention.  Contributors should ensure they follow these guidelines when making submissions.  
+The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/dotnet) and follow the same [developer guide](https://github.com/dotnet/corefx/blob/master/Documentation/coding-guidelines/coding-style.md), with the exception that we permit the use of `var` to declare local variables regardless of the initializing expression.  The repo also includes [.editorconfig](http://editorconfig.org) files to help enforce this convention.  Contributors should ensure they follow these guidelines when making submissions.
 
 ### CSharp
 
