@@ -21,34 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBSourceLinkTests : CSharpPDBTestBase
     {
-        public static IEnumerable<object[]> ExternalPdbFormats
-        {
-            get
-            {
-                if (ExecutionConditionUtil.IsWindows)
-                {
-                    return new List<object[]>()
-                    {
-                        new object[] { DebugInformationFormat.Pdb },
-                        new object[] { DebugInformationFormat.PortablePdb }
-                    };
-                }
-                else
-                {
-                    return new List<object[]>()
-                    {
-                        new object[] { DebugInformationFormat.PortablePdb }
-                    };
-                }
-            }
-        }
-
-        public static IEnumerable<object[]> PdbFormats => 
-            new List<object[]>(ExternalPdbFormats)
-            {
-                new object[] { DebugInformationFormat.Embedded }
-            };
-
         [Theory]
         [MemberData(nameof(ExternalPdbFormats))]
         public void SourceLink(DebugInformationFormat format)

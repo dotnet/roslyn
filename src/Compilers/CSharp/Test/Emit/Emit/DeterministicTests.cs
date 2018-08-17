@@ -18,35 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     [CompilerTrait(CompilerFeature.Determinism)]
     public class DeterministicTests : EmitMetadataTestBase
     {
-        // TODO: merge with the code in PDBSourceLinkTests.cs
-        public static IEnumerable<object[]> ExternalPdbFormats
-        {
-            get
-            {
-                if (ExecutionConditionUtil.IsWindows)
-                {
-                    return new List<object[]>()
-                    {
-                        new object[] { DebugInformationFormat.Pdb },
-                        new object[] { DebugInformationFormat.PortablePdb }
-                    };
-                }
-                else
-                {
-                    return new List<object[]>()
-                    {
-                        new object[] { DebugInformationFormat.PortablePdb }
-                    };
-                }
-            }
-        }
-
-        public static IEnumerable<object[]> PdbFormats => 
-            new List<object[]>(ExternalPdbFormats)
-            {
-                new object[] { DebugInformationFormat.Embedded }
-            };
-
         private Guid CompiledGuid(string source, string assemblyName, bool debug, Platform platform = Platform.AnyCpu)
         {
             return CompiledGuid(source, assemblyName, options: debug ? TestOptions.DebugExe : TestOptions.ReleaseExe, platform: platform);
