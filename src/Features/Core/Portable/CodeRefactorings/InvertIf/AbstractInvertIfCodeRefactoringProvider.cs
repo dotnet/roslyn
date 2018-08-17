@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         SubsequentStatementsAreInTheSameBlock(ifNode, subsequentStatementRanges) &&
                         ifBodySingleExitPointOpt?.RawKind == GetNearmostParentJumpStatementRawKind(ifNode))
                     {
-                        // (3) Invese of the case (2). Safe to move all subsequent statements to if-body.
+                        // (3) Inverse of the case (2). Safe to move all subsequent statements to if-body.
                         // 
                         //  while (condition) {
                         //    if (condition) {
