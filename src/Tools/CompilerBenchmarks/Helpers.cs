@@ -10,9 +10,11 @@ namespace CompilerBenchmarks
 {
     internal static class Helpers
     {
+        public const string TestProjectEnvVarName = "ROSLYN_TEST_PROJECT_DIR";
+
         public static Compilation CreateReproCompilation()
         {
-            var projectDir = Environment.GetEnvironmentVariable("TEST_PROJECT_DIR");
+            var projectDir = Environment.GetEnvironmentVariable(TestProjectEnvVarName);
             var cmdLineParser = new CSharpCommandLineParser();
             var responseFile = Path.Combine(projectDir, "repro.rsp");
             var compiler = new MockCSharpCompiler(responseFile, projectDir, Array.Empty<string>());

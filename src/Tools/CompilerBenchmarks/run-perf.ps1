@@ -9,16 +9,15 @@ param (
 Set-Variable -Name LastExitCode 0
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = "Stop"
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-try
-{
-    . "$roslynDir/build/scripts/build-utils.ps1"
-    $binariesDir = Resolve-Path "$roslynDir/Binaries"
+try {
+    . (Join-Path $roslynDir "build/scripts/build-utils.ps1")
 
     # Download dotnet if it isn't already available
     Ensure-DotnetSdk
 
-    $reproPath = "$binariesDir/CodeAnalysisRepro"
+    $reproPath = Join-Path $binariesDir "CodeAnalysisRepro"
 
     if (-not (Test-Path $reproPath)) {
         $tmpFile = [System.IO.Path]::GetTempFileName()
@@ -27,7 +26,7 @@ try
         [IO.Compression.ZipFile]::ExtractToDirectory($tmpFile, $binariesDir)
     }
 
-    dotnet run -c Release $reproPath
+    Exec-Command "dotnet" "run -c Release $reproPath"
 }
 catch {
     Write-Host $_

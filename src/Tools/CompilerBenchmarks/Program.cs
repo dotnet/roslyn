@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
@@ -11,7 +10,7 @@ using BenchmarkDotNet.Validators;
 
 namespace CompilerBenchmarks
 {
-    class Program
+    public class Program
     {
         private class IgnoreReleaseOnly : ManualConfig
         {
@@ -25,7 +24,7 @@ namespace CompilerBenchmarks
             }
         }
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             var projectPath = args[0];
             var artifactsPath = Path.Combine(projectPath, "../BenchmarkDotNet.Artifacts");
@@ -36,7 +35,7 @@ namespace CompilerBenchmarks
 
             // Benchmark.NET creates a new process to run the benchmark, so the easiest way
             // to communicate information is pass by environment variable
-            Environment.SetEnvironmentVariable("TEST_PROJECT_DIR", projectPath);
+            Environment.SetEnvironmentVariable(Helpers.TestProjectEnvVarName, projectPath);
             _ = BenchmarkRunner.Run<EmitBenchmark>(config);
         }
     }
