@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     [CompilerTrait(CompilerFeature.NullCoalescingAssignment)]
-    public class NullCoalescingAssignmentTests : CompilingTestBase
+    public class CodeGenNullCoalescingAssignmentTests : CompilingTestBase
     {
         [Fact]
         public void LocalLvalue()
@@ -1448,6 +1445,34 @@ class C
         Console.WriteLine(t1 ??= t2);
     }
 }", expectedOutput: "Assignment Evaluated");
+        }
+
+        [Fact]
+        public void CoalescingAssignment_DynamicRuntimeCastFailure()
+        {
+            var source = @"
+using System;
+class C
+{
+    byte? B { get; set; } = null;
+    static void Main() => M(new C(), int.MaxValue);
+    static void M(dynamic d1, dynamic d2)
+    {
+        try
+        {
+            d1.B ??= d2;
+            Console.WriteLine(""Should have thrown!"");
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) {}
+
+        d1.B = (byte)1;
+
+        // Should not throw, as B is non-null
+        d1.B ??= d2;
+    }
+}";
+
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "");
         }
     }
 }

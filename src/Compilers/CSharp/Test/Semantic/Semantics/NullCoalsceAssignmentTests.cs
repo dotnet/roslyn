@@ -40,6 +40,7 @@ class C
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
                 Assert.NotNull(typeInfo);
+                Assert.NotNull(typeInfo.Type);
                 Assert.Equal(cType, typeInfo.Type);
                 Assert.Equal(cType, typeInfo.ConvertedType);
 
@@ -81,6 +82,7 @@ class D : C {}";
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
                 Assert.NotNull(typeInfo);
+                Assert.NotNull(typeInfo.Type);
                 Assert.Equal(cType, typeInfo.Type);
                 Assert.Equal(cType, typeInfo.ConvertedType);
 
@@ -123,6 +125,7 @@ class D : C {}";
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
                 Assert.NotNull(typeInfo);
+                Assert.NotNull(typeInfo.Type);
                 Assert.Equal(dType, typeInfo.Type);
                 Assert.Equal(dType, typeInfo.ConvertedType);
 

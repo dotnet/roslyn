@@ -3790,18 +3790,15 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation WhenNull => SetParentOperation(_lazyWhenNull.Value, this);
     }
 
-    internal abstract partial class BaseCoaleseAssignmentOperation : Operation, ICoalesceAssignmentOperation
+    internal abstract partial class BaseCoalesceAssignmentOperation : Operation, ICoalesceAssignmentOperation
     {
-        protected BaseCoaleseAssignmentOperation(bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseCoalesceAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.CoalesceAssignment, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            IsChecked = isChecked;
         }
 
         public abstract IOperation Target { get; }
-        public abstract IOperation WhenNull { get; }
-        public bool IsChecked { get; }
-
+        public abstract IOperation Value { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -3810,9 +3807,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     yield return Target;
                 }
-                if (WhenNull != null)
+                if (Value != null)
                 {
-                    yield return WhenNull;
+                    yield return Value;
                 }
             }
         }
@@ -3828,31 +3825,32 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CoalesceAssignmentOperation : BaseCoaleseAssignmentOperation
+    internal sealed class CoalesceAssignmentOperation : BaseCoalesceAssignmentOperation
     {
-        public CoalesceAssignmentOperation(IOperation target, IOperation whenNull, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+        public CoalesceAssignmentOperation(IOperation target, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             Target = SetParentOperation(target, this);
-            WhenNull = SetParentOperation(whenNull, this);
+            Value = SetParentOperation(value, this);
         }
 
         public override IOperation Target { get; }
-        public override IOperation WhenNull { get; }
+        public override IOperation Value { get; }
     }
 
-    internal sealed class LazyCoalesceAssignmentOperation : BaseCoaleseAssignmentOperation
+    internal sealed class LazyCoalesceAssignmentOperation : BaseCoalesceAssignmentOperation
     {
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyWhenNull;
-        public LazyCoalesceAssignmentOperation(Lazy<IOperation> lazyTarget, Lazy<IOperation> lazyWhenNull, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCoalesceAssignmentOperation(Lazy<IOperation> lazyTarget, Lazy<IOperation> lazyValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyTarget = lazyTarget;
-            _lazyWhenNull = lazyWhenNull;
+            _lazyWhenNull = lazyValue;
         }
 
         public override IOperation Target => SetParentOperation(_lazyTarget.Value, this);
-        public override IOperation WhenNull => SetParentOperation(_lazyWhenNull.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyWhenNull.Value, this);
     }
 
     /// <summary>

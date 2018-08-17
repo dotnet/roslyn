@@ -784,8 +784,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         $"Operation [{operationIndex}] in [{getBlockId(block)}] uses not initialized capture [{id.Value}].");
 
                     // Except for a few specific scenarios, any references to captures should either be long-lived capture references,
-                    // or they should come from the enclosing region. Otherwise, it signifies that the region packing algorithm failed
-                    // to correctly recognize regions that could have been merged.
+                    // or they should come from the enclosing region.
                     Assert.True(block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id) ||
                                 ((isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference) ||
                                      isIncrementedNullableForToLoopControlVariable(reference) ||
@@ -831,11 +830,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             bool isCoalesceAssignmentTarget(IFlowCaptureReferenceOperation reference)
             {
-                SyntaxNode referenceSyntax = reference.Syntax;
-                if (referenceSyntax.Parent.IsKind(CSharp.SyntaxKind.ParenthesizedExpression))
+                if (reference.Language != LanguageNames.CSharp)
                 {
-                    referenceSyntax = referenceSyntax.Parent;
+                    return false;
                 }
+
+                CSharpSyntaxNode referenceSyntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)reference.Syntax);
                 return referenceSyntax.Parent is AssignmentExpressionSyntax conditionalAccess &&
                        conditionalAccess.IsKind(CSharp.SyntaxKind.CoalesceAssignmentExpression) &&
                        conditionalAccess.Left == referenceSyntax;

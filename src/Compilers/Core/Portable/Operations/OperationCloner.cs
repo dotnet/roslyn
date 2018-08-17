@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, object argument)
         {
-            return new CoalesceAssignmentOperation(Visit(operation.Target), Visit(operation.WhenNull), operation.IsChecked, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new CoalesceAssignmentOperation(Visit(operation.Target), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitIsType(IIsTypeOperation operation, object argument)
