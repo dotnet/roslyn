@@ -7110,7 +7110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.AddRange(methodResolution.Diagnostics); // Could still have use site warnings.
                 BindMemberAccessReportError(node, diagnostics);
 
-                // Note: no need to free `methodResolution`, we're transfering the pooled objects it owned
+                // Note: no need to free `methodResolution`, we're transferring the pooled objects it owned
                 return new MethodGroupResolution(methodResolution.MethodGroup, methodResolution.OtherSymbol, methodResolution.OverloadResolutionResult, methodResolution.AnalyzedArguments, methodResolution.ResultKind, diagnostics.ToReadOnlyAndFree());
             }
             return methodResolution;
