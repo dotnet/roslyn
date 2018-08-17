@@ -33,10 +33,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
         Private Shared Sub VBCodeStyleOptions_GenerateEditorconfig(ByVal optionSet As OptionSet, ByVal [option] As [Option](Of CodeStyleOption(Of String)), ByVal editorconfig As StringBuilder)
             Dim element = [option].StorageLocations.OfType(Of EditorConfigStorageLocation(Of CodeStyleOption(Of String)))().FirstOrDefault()
             If element IsNot Nothing Then
-                editorconfig.Append(element.KeyName & " = ")
+                GridOptionPreviewControl.AppendName(element.KeyName, editorconfig)
 
                 Dim curSetting = optionSet.GetOption([option])
-                editorconfig.AppendLine(curSetting.Value + ":" + curSetting.Notification.ToString().ToLowerInvariant())
+                editorconfig.AppendLine(curSetting.Value + ":" + GridOptionPreviewControl.NotificationOptionToString(curSetting.Notification))
             End If
         End Sub
     End Class

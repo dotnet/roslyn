@@ -46,8 +46,9 @@
             <Hyperlink RequestNavigate="LearnMoreHyperlink_RequestNavigate" NavigateUri="{x:Static local:GridOptionPreviewControl.CodeStylePageHeaderLearnMoreUri}">
                 <TextBlock Text="{x:Static local:GridOptionPreviewControl.CodeStylePageHeaderLearnMoreText}"/>
             </Hyperlink>
+            <Run Text="&#x0a;" />
+            <Button Content="Generate .editorconfig file from settings" HorizontalAlignment="Left" Margin="5" VerticalAlignment="Center" Padding="5" Click="Generate_Save_Editorconfig" />
         </TextBlock>
-        <Button Content="Generate .editorconfig file from settings" HorizontalAlignment="Left" Margin="20,35,0,0" VerticalAlignment="Center" Padding="5" Click="Generate_Save_Editorconfig" />
         <DataGrid
             x:Uid="CodeStyleContent"
             x:Name="CodeStyleMembers"

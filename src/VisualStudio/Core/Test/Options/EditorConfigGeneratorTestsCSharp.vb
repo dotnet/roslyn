@@ -31,23 +31,23 @@ insert_final_newline = false
 dotnet_sort_system_directives_first = true
 
 # this. preferences:
-dotnet_style_qualification_for_field = false:none
-dotnet_style_qualification_for_property = false:none
-dotnet_style_qualification_for_method = false:none
-dotnet_style_qualification_for_event = false:none
+dotnet_style_qualification_for_field = false:refactoring_only
+dotnet_style_qualification_for_property = false:refactoring_only
+dotnet_style_qualification_for_method = false:refactoring_only
+dotnet_style_qualification_for_event = false:refactoring_only
 
 # Language keywords vs BCL types preferences:
-dotnet_style_predefined_type_for_locals_parameters_members = true:none
-dotnet_style_predefined_type_for_member_access = true:none
+dotnet_style_predefined_type_for_locals_parameters_members = true:refactoring_only
+dotnet_style_predefined_type_for_member_access = true:refactoring_only
 
 # Parentheses preferences:
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:none
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:none
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary:none
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:refactoring_only
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:refactoring_only
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:refactoring_only
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:refactoring_only
 
 # Modifier preferences:
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:refactoring_only
 dotnet_style_readonly_field = true:suggestion
 
 # Expression-level preferences:
@@ -59,23 +59,23 @@ dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:none
-dotnet_style_prefer_conditional_expression_over_assignment = true:none
-dotnet_style_prefer_conditional_expression_over_return = true:none
+dotnet_style_prefer_auto_properties = true:refactoring_only
+dotnet_style_prefer_conditional_expression_over_assignment = true:refactoring_only
+dotnet_style_prefer_conditional_expression_over_return = true:refactoring_only
 
 # C# Coding Conventions
 # 'var' preferences:
-csharp_style_var_for_built_in_types = false:none
-csharp_style_var_when_type_is_apparent = false:none
-csharp_style_var_elsewhere = false:none
+csharp_style_var_for_built_in_types = false:refactoring_only
+csharp_style_var_when_type_is_apparent = false:refactoring_only
+csharp_style_var_elsewhere = false:refactoring_only
 
 # Expression-bodied members:
-csharp_style_expression_bodied_methods = false:none
-csharp_style_expression_bodied_constructors = false:none
-csharp_style_expression_bodied_operators = false:none
-csharp_style_expression_bodied_properties = true:none
-csharp_style_expression_bodied_indexers = true:none
-csharp_style_expression_bodied_accessors = true:none
+csharp_style_expression_bodied_methods = false:refactoring_only
+csharp_style_expression_bodied_constructors = false:refactoring_only
+csharp_style_expression_bodied_operators = false:refactoring_only
+csharp_style_expression_bodied_properties = true:refactoring_only
+csharp_style_expression_bodied_indexers = true:refactoring_only
+csharp_style_expression_bodied_accessors = true:refactoring_only
 
 # Pattern matching preferences:
 csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
@@ -86,10 +86,10 @@ csharp_style_throw_expression = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
 
 # Modifier preferences:
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:none
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:refactoring_only
 
 # Expression-level preferences:
-csharp_prefer_braces = true:none
+csharp_prefer_braces = true:refactoring_only
 csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
@@ -153,23 +153,23 @@ insert_final_newline = false
 dotnet_sort_system_directives_first = true
 
 # this. preferences:
-dotnet_style_qualification_for_field = false:none
-dotnet_style_qualification_for_property = false:none
-dotnet_style_qualification_for_method = false:none
-dotnet_style_qualification_for_event = false:none
+dotnet_style_qualification_for_field = false:refactoring_only
+dotnet_style_qualification_for_property = false:refactoring_only
+dotnet_style_qualification_for_method = false:refactoring_only
+dotnet_style_qualification_for_event = false:refactoring_only
 
 # Language keywords vs BCL types preferences:
-dotnet_style_predefined_type_for_locals_parameters_members = true:none
-dotnet_style_predefined_type_for_member_access = true:none
+dotnet_style_predefined_type_for_locals_parameters_members = true:refactoring_only
+dotnet_style_predefined_type_for_member_access = true:refactoring_only
 
 # Parentheses preferences:
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:none
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:none
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary:none
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:refactoring_only
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:refactoring_only
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:refactoring_only
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:refactoring_only
 
 # Modifier preferences:
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:refactoring_only
 dotnet_style_readonly_field = true:suggestion
 
 # Expression-level preferences:
@@ -181,23 +181,23 @@ dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:none
-dotnet_style_prefer_conditional_expression_over_assignment = true:none
-dotnet_style_prefer_conditional_expression_over_return = true:none
+dotnet_style_prefer_auto_properties = true:refactoring_only
+dotnet_style_prefer_conditional_expression_over_assignment = true:refactoring_only
+dotnet_style_prefer_conditional_expression_over_return = true:refactoring_only
 
 # C# Coding Conventions
 # 'var' preferences:
-csharp_style_var_for_built_in_types = false:none
-csharp_style_var_when_type_is_apparent = false:none
-csharp_style_var_elsewhere = false:none
+csharp_style_var_for_built_in_types = false:refactoring_only
+csharp_style_var_when_type_is_apparent = false:refactoring_only
+csharp_style_var_elsewhere = false:refactoring_only
 
 # Expression-bodied members:
-csharp_style_expression_bodied_methods = false:none
-csharp_style_expression_bodied_constructors = false:none
-csharp_style_expression_bodied_operators = false:none
-csharp_style_expression_bodied_properties = true:none
-csharp_style_expression_bodied_indexers = true:none
-csharp_style_expression_bodied_accessors = true:none
+csharp_style_expression_bodied_methods = false:refactoring_only
+csharp_style_expression_bodied_constructors = false:refactoring_only
+csharp_style_expression_bodied_operators = false:refactoring_only
+csharp_style_expression_bodied_properties = true:refactoring_only
+csharp_style_expression_bodied_indexers = true:refactoring_only
+csharp_style_expression_bodied_accessors = true:refactoring_only
 
 # Pattern matching preferences:
 csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
@@ -208,10 +208,10 @@ csharp_style_throw_expression = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
 
 # Modifier preferences:
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:none
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:refactoring_only
 
 # Expression-level preferences:
-csharp_prefer_braces = true:none
+csharp_prefer_braces = true:refactoring_only
 csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
