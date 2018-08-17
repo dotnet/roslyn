@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder armBinder = this.GetBinder(node);
             bool hasErrors = _switchExpressionBinder.SwitchGoverningType.IsErrorType();
             ImmutableArray<LocalSymbol> locals = _armScopeBinder.Locals;
-            BoundPattern pattern = armBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, hasErrors, diagnostics);
+            BoundPattern pattern = armBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, _switchExpressionBinder.SwitchGoverningValEscape, hasErrors, diagnostics);
             BoundExpression whenClause = node.WhenClause != null
                 ? armBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;

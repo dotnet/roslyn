@@ -162,6 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal TypeSymbol SwitchGoverningType => InputExpression.Type;
 
+        internal uint SwitchGoverningValEscape => GetValEscape(InputExpression, LocalScopeDepth);
+
         protected DiagnosticBag InputExpressionDiagnostics
         {
             get
