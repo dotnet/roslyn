@@ -66,6 +66,7 @@
     <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
     <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
