@@ -1461,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)sourceType != null)
             {
-                Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Should fail in StaticNullChecking_FlowAnalysis.Conversions_TupleLiteralExtensionThis.
+                Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Should fail in NullableReferenceTypesTests.Conversions_TupleLiteralExtensionThis.
                 var tupleConversion = ClassifyTupleConversion(
                     sourceType,
                     destination,
