@@ -2839,7 +2839,7 @@ oneMoreTime:
         {
             SpillEvalStack();
 
-            // If we're in a statement context, we elide the useless capture of the result of the assignment, as it will
+            // If we're in a statement context, we elide the capture of the result of the assignment, as it will
             // just be wrapped in an expression statement that isn't used anywhere and isn't observed by anything.
             bool isStatement = operation.Parent.Kind == OperationKind.ExpressionStatement;
             Debug.Assert(captureIdForResult == null || !isStatement);
