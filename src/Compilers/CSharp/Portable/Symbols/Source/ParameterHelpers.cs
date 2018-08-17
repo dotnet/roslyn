@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     addRefReadOnlyModifier,
                     diagnostics);
 
-                ReportParameterErrors(owner, parameterSyntax, parameter, thisKeyword, paramsKeyword, firstDefault, diagnostics);
+                ReportParameterErrors(owner, parameterSyntax, parameter, thisKeyword, paramsKeyword, firstDefault, binder.Compilation, diagnostics);
 
                 builder.Add(parameter);
                 ++parameterIndex;
@@ -269,13 +269,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void ReportParameterErrors(
-            Symbol owner,
+        private static void ReportParameterErrors(Symbol owner,
             ParameterSyntax parameterSyntax,
             SourceParameterSymbol parameter,
             SyntaxToken thisKeyword,
             SyntaxToken paramsKeyword,
             int firstDefault,
+            CSharpCompilation compilation,
             DiagnosticBag diagnostics)
         {
             TypeSymbol parameterType = parameter.Type;
@@ -295,12 +295,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
             }
-            else if (parameter.IsParams && !parameterType.IsSZArray())
+            else if (parameter.IsParams)
             {
-                // error CS0225: The params parameter must be a single dimensional array
-                diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
+                if (!parameterType.IsPossibleParamsType())
+                {
+                    // error CS0225: The params parameter must be assignable from array.
+                    diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
+                    return;
+                }
+
+                if (!parameterType.IsSZArray() && !compilation.LanguageVersion.AllowParamsArrayInterfaceAndSpan())
+                {
+                    diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation(),
+                         new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureParamsArrayInterfaceAndSpan.RequiredVersion()));
+                    return;
+                }
             }
-            else if (parameter.Type.IsStatic && !parameter.ContainingSymbol.ContainingType.IsInterfaceType())
+
+            if (parameter.Type.IsStatic && !parameter.ContainingSymbol.ContainingType.IsInterfaceType())
             {
                 // error CS0721: '{0}': static types cannot be used as parameters
                 diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, owner.Locations[0], parameter.Type);

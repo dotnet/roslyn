@@ -162,6 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
         IDS_FeatureRecursivePatterns = MessageBase + 12745,
         IDS_FeatureNestedStackalloc = MessageBase + 12746,
+
+        IDS_FeatureParamsArrayInterfaceAndSpan = MessageBase + 12747,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -221,6 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureRecursivePatterns:
                 case MessageID.IDS_FeatureNestedStackalloc:
+                case MessageID.IDS_FeatureParamsArrayInterfaceAndSpan: // semantic check
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

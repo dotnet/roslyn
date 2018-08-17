@@ -423,11 +423,13 @@ namespace Microsoft.CodeAnalysis
 
         System_ObsoleteAttribute__ctor,
 
-        System_Span_T__ctor,
+        System_Span_T__ctor, // Span(void*, int)
+        System_Span_T__ctor2, // Span(T[])
         System_Span_T__get_Item,
         System_Span_T__get_Length,
 
-        System_ReadOnlySpan_T__ctor,
+        System_ReadOnlySpan_T__ctor, // ReadOnlySpan(void*, int)
+        System_ReadOnlySpan_T__ctor2, // ReadOnlySpan(T[])
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
 

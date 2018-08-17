@@ -96,7 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             considerRefKindDifferences: false,
-            considerCustomModifiers: false); //shouldn't actually matter for source members
+            considerCustomModifiers: false, //shouldn't actually matter for source members
+            considerParamsElementTypes: true);
 
         /// <summary>
         /// This instance is used to determine if a partial method implementation matches the definition.
@@ -302,6 +303,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Ignore the names of the tuple elements
         private readonly bool _ignoreTupleNames;
 
+        private readonly bool _considerParamsElementTypes;
+
         private MemberSignatureComparer(
             bool considerName,
             bool considerExplicitlyImplementedInterfaces,
@@ -310,6 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool considerCallingConvention,
             bool considerRefKindDifferences,
             bool considerCustomModifiers,
+            bool considerParamsElementTypes = false,
             bool ignoreDynamic = true,
             bool ignoreTupleNames = true)
         {
@@ -324,6 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _considerCustomModifiers = considerCustomModifiers;
             _ignoreDynamic = ignoreDynamic;
             _ignoreTupleNames = ignoreTupleNames;
+            _considerParamsElementTypes = considerParamsElementTypes;
         }
 
         #region IEqualityComparer<Symbol> Members
@@ -374,10 +379,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2,
-                                                                           _considerRefKindDifferences, _considerCustomModifiers, _ignoreDynamic, _ignoreTupleNames))
+            var parameters1 = member1.GetParameters();
+            var parameters2 = member2.GetParameters();
+
+            if (member1.GetParameterCount() > 0)
             {
-                return false;
+                if (!HaveSameParameterTypes(parameters1, typeMap1, parameters2, typeMap2, _considerRefKindDifferences, _considerCustomModifiers, _ignoreDynamic, _ignoreTupleNames))
+                {
+                    return false;
+                }
+
+                if (_considerParamsElementTypes && member1.HasParamsParameter() && member2.HasParamsParameter() &&
+                    !HaveSameParamsElementTypes(parameters1, parameters2))
+                {
+                    return false;
+                }
             }
 
             if (_considerCallingConvention)
@@ -691,6 +707,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return true;
+        }
+
+        private static bool HaveSameParamsElementTypes(ImmutableArray<ParameterSymbol> parameters1,  ImmutableArray<ParameterSymbol> parameters2)
+        {
+            Debug.Assert(parameters1.Length == parameters2.Length);
+            var elementType1 = parameters1.Last().Type.GetElementTypeOfParamsType();
+            var elementType2 = parameters2.Last().Type.GetElementTypeOfParamsType();
+            return elementType1.Equals(elementType2, TypeCompareKind.IgnoreTupleNames);
         }
 
         private static TypeWithModifiers SubstituteType(TypeMap typeMap, TypeWithModifiers typeSymbol)

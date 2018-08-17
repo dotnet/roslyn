@@ -887,7 +887,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var paramArrayType = parameters[paramsParam].Type;
+            var paramsType = parameters[paramsParam].Type;
+            if (paramsType.IsPossibleArrayGenericInterface())
+            {
+                paramsType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, paramsType.GetElementTypeOfParamsType()); 
+            }
+
             var arrayArgs = paramArray.ToImmutableAndFree();
 
             // If this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()" 
@@ -896,14 +901,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // of expression lambdas will appropriately understand Array.Empty<T>().
             if (arrayArgs.Length == 0 && !_inExpressionLambda)
             {
-                ArrayTypeSymbol ats = paramArrayType as ArrayTypeSymbol;
-                if (ats != null) // could be null if there's a semantic error, e.g. the params parameter type isn't an array
+                if (paramsType is ArrayTypeSymbol arrayType) // could be false if there's a semantic error, or if the params parameter type isn't an array
                 {
                     MethodSymbol arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
                     if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
                     {
                         // return an invocation of "Array.Empty<T>()"
-                        arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(ats.ElementType));
+                        arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(arrayType.ElementType));
                         return new BoundCall(
                             syntax,
                             null,
@@ -922,25 +926,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, this, null);
+            return CreateParamArrayArgument(syntax, paramsType, arrayArgs, this, null);
         }
 
-        private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,
-            TypeSymbol paramArrayType,
+        private static BoundExpression CreateParamArrayArgument(
+            SyntaxNode syntax,
+            TypeSymbol paramsType,
             ImmutableArray<BoundExpression> arrayArgs,
             LocalRewriter localRewriter,
             Binder binder)
         {
             Debug.Assert(localRewriter == null ^ binder == null);
 
-            TypeSymbol int32Type = (localRewriter != null ? localRewriter._compilation : binder.Compilation).GetSpecialType(SpecialType.System_Int32);
+            CSharpCompilation compilation = localRewriter != null ? localRewriter._compilation : binder.Compilation;
+            TypeSymbol int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
             BoundExpression arraySize = MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, localRewriter);
 
-            return new BoundArrayCreation(
-                syntax,
-                ImmutableArray.Create(arraySize),
-                new BoundArrayInitialization(syntax, arrayArgs) { WasCompilerGenerated = true },
-                paramArrayType) { WasCompilerGenerated = true };
+            var initializer = new BoundArrayInitialization(syntax, arrayArgs) { WasCompilerGenerated = true };
+
+            if (paramsType.IsSZArray())
+            {
+                return new BoundArrayCreation(syntax, ImmutableArray.Create(arraySize), initializer, paramsType) { WasCompilerGenerated = true };
+            }
+
+            TypeSymbol elementType = paramsType.GetElementTypeOfParamsType();
+            bool isReferenceType = elementType.IsReferenceType;
+
+            BoundExpression[] args;
+            if (isReferenceType)
+            {
+                args = new BoundExpression[]
+                {
+                    new BoundArrayCreation(
+                        syntax,
+                        ImmutableArray.Create(arraySize),
+                        initializer,
+                        ArrayTypeSymbol.CreateSZArray(compilation.Assembly, elementType))
+                    { WasCompilerGenerated = true }
+                };
+            }
+            else
+            {
+                args = new BoundExpression[]
+                {
+                    new BoundConvertedStackAllocExpression(
+                        syntax,
+                        elementType,
+                        arraySize,
+                        initializer,
+                        paramsType)
+                    { WasCompilerGenerated = true },
+                    arraySize,
+                };
+            }
+
+            WellKnownMember constructor = compilation.IsReadOnlySpanType(paramsType)
+                ? isReferenceType ? WellKnownMember.System_ReadOnlySpan_T__ctor2 : WellKnownMember.System_ReadOnlySpan_T__ctor
+                : isReferenceType ? WellKnownMember.System_Span_T__ctor2 : WellKnownMember.System_Span_T__ctor;
+
+            // TODO use TryGetWellKnownTypeMember instead, should test with a missing ctor
+            var spanConstructor = compilation.GetWellKnownTypeMember(constructor) as MethodSymbol;
+            if (spanConstructor == null)
+            {
+                return new BoundBadExpression(
+                    syntax: syntax,
+                    resultKind: LookupResultKind.NotInvocable,
+                    symbols: ImmutableArray<Symbol>.Empty,
+                    childBoundNodes: ImmutableArray<BoundExpression>.Empty,
+                    type: ErrorTypeSymbol.UnknownResultType);
+            }
+
+            return new BoundObjectCreationExpression(syntax, spanConstructor.AsMember((NamedTypeSymbol)paramsType), binder, arguments: args);
         }
 
         /// <summary>

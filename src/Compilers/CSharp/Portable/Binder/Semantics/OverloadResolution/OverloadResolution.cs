@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we need to confirm the "arrayness" on the original definition because
             // it's possible that the type becomes an array as a result of substitution.
             ParameterSymbol final = member.GetParameters().Last();
-            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
+            return final.IsParams && final.OriginalDefinition.Type.IsPossibleParamsType();
         }
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
@@ -2874,7 +2874,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refs = ArrayBuilder<RefKind>.GetInstance();
             bool anyRef = false;
             var parameters = member.GetParameters();
-            var elementType = ((ArrayTypeSymbol)parameters[parameters.Length - 1].Type).ElementType;
+            var paramsType = parameters[parameters.Length - 1].Type;
+            var elementType = paramsType.GetElementTypeOfParamsType();
             bool hasAnyRefArg = argumentRefKinds.Any();
             hasAnyRefOmittedArgument = false;
 

@@ -2572,11 +2572,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static TypeSymbol GetCorrespondingParameterType(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
         {
             int paramNum = result.ParameterFromArgument(arg);
-            var type =
-                (paramNum == parameters.Length - 1 && result.Kind == MemberResolutionKind.ApplicableInExpandedForm) ?
-                ((ArrayTypeSymbol)parameters[paramNum].Type).ElementType :
-                parameters[paramNum].Type;
-            return type;
+            return (paramNum == parameters.Length - 1 && result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
+                ? parameters[paramNum].Type.GetElementTypeOfParamsType()
+                : parameters[paramNum].Type;
         }
 
         private BoundExpression BindArrayCreationExpression(ArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)

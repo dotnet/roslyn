@@ -1551,9 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // That takes care of the first category of conflict; we detect the
                     // second and third categories as follows:
 
-                    var conversion = symbol as SourceUserDefinedConversionSymbol;
-                    var method = symbol as SourceMemberMethodSymbol;
-                    if ((object)conversion != null)
+                    if (symbol is SourceUserDefinedConversionSymbol conversion)
                     {
                         // Does this conversion collide *as a conversion* with any previously-seen
                         // conversion?
@@ -1584,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Do not add the conversion to the set of previously-seen methods; that set
                         // is only non-conversion methods.
                     }
-                    else if ((object)method != null)
+                    else if (symbol is SourceMemberMethodSymbol method)
                     {
                         // Does this method collide *as a method* with any previously-seen
                         // conversion?

@@ -316,28 +316,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// return true if the type is constructed from a generic interface that 
         /// might be implemented by an array.
         /// </summary>
-        public static bool IsPossibleArrayGenericInterface(this TypeSymbol _type)
+        public static bool IsPossibleArrayGenericInterface(this TypeSymbol type)
         {
-            NamedTypeSymbol t = _type as NamedTypeSymbol;
-            if ((object)t == null)
+            if (type.Kind == SymbolKind.NamedType)
             {
-                return false;
-            }
-
-            t = t.OriginalDefinition;
-
-            SpecialType st = t.SpecialType;
-
-            if (st == SpecialType.System_Collections_Generic_IList_T ||
-                st == SpecialType.System_Collections_Generic_ICollection_T ||
-                st == SpecialType.System_Collections_Generic_IEnumerable_T ||
-                st == SpecialType.System_Collections_Generic_IReadOnlyList_T ||
-                st == SpecialType.System_Collections_Generic_IReadOnlyCollection_T)
-            {
-                return true;
+                switch (((NamedTypeSymbol)type).OriginalDefinition.SpecialType)
+                {
+                    case SpecialType.System_Collections_Generic_IList_T:
+                    case SpecialType.System_Collections_Generic_ICollection_T:
+                    case SpecialType.System_Collections_Generic_IEnumerable_T:
+                    case SpecialType.System_Collections_Generic_IReadOnlyList_T:
+                    case SpecialType.System_Collections_Generic_IReadOnlyCollection_T:
+                        return true;
+                }
             }
 
             return false;
+        }
+
+        public static bool IsPossibleParamsType(this TypeSymbol type)
+        {
+            return type.IsSZArray() || type.IsPossibleArrayGenericInterface() || type.IsWellKnownTypeSpanOrReadOnlySpan();
+        }
+
+        public static TypeSymbol GetElementTypeOfParamsType(this TypeSymbol type)
+        {
+            Debug.Assert(type.IsPossibleParamsType());
+            return type.TypeKind == TypeKind.Array
+                ? ((ArrayTypeSymbol)type).ElementType
+                : ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0];
         }
 
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
@@ -1557,7 +1564,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var globalNamespace = systemNamespace.ContainingNamespace;
+            return globalNamespace != null && globalNamespace.IsGlobalNamespace;
+        }
 
+        internal static bool IsWellKnownTypeSpanOrReadOnlySpan(this TypeSymbol type)
+        {
+            if ((type.Name != "Span" && type.Name != "ReadOnlySpan") || type.ContainingType != null)
+            {
+                return false;
+            }
+
+            if (type.Kind != SymbolKind.NamedType || ((NamedTypeSymbol)type).Arity != 1)
+            {
+                return false;
+            }
+
+            var systemNamespace = type.ContainingNamespace;
+            if (systemNamespace?.Name != "System")
+            {
+                return false;
+            }
+
+            var globalNamespace = systemNamespace.ContainingNamespace;
             return globalNamespace != null && globalNamespace.IsGlobalNamespace;
         }
     }
