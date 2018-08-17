@@ -296,7 +296,8 @@ Public Class BuildDevDivInsertionFiles
                    packageName.StartsWith("Microsoft.Build") OrElse
                    packageName = "Microsoft.Composition" OrElse
                    packageName = "System.Net.Http" OrElse
-                   packageName = "System.Diagnostics.DiagnosticSource" Then
+                   packageName = "System.Diagnostics.DiagnosticSource" OrElse
+                   packageName = "Newtonsoft.Json" Then
                     Continue For
                 End If
 
