@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
-            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib45, assemblyName, sourceFileName, experimentalFeature: feature);
+            string sourceFileName = "") => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib45, references), options, parseOptions, assemblyName, sourceFileName, experimentalFeature: feature);
 
         public static CSharpCompilation CreateCompilationWithWinRT(
             CSharpTestSource source,
@@ -452,24 +452,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName, sourceFileName);
         }
 
-        internal static CSharpCompilation CreateCompilation(
+        public static CSharpCompilation CreateCompilation(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
-            string sourceFileName = "",
-            MessageID? experimentalFeature = null) => CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, experimentalFeature);
+            string sourceFileName = "") => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, experimentalFeature: null);
 
-        internal static CSharpCompilation CreateEmptyCompilation(
+        public static CSharpCompilation CreateEmptyCompilation(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
-            string sourceFileName = "",
-            MessageID? experimentalFeature = null)
+            string sourceFileName = "") => CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, experimentalFeature: null);
+
+        private static CSharpCompilation CreateCompilationCore(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references,
+            CSharpCompilationOptions options,
+            CSharpParseOptions parseOptions,
+            string assemblyName,
+            string sourceFileName,
+            MessageID? experimentalFeature)
         {
             if (options == null)
             {
