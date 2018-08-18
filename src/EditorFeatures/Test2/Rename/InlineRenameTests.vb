@@ -211,6 +211,25 @@ class Program
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(21657,"https://github.com/dotnet/roslyn/issues/21657")>
+        Public Async Function RenameAttributeCSharp() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class [|$$ustom|]Attribute : Attribute 
+{
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "ustomAttribute", "C")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700921")>
         Public Async Function RenameOverloadsVisualBasic() As Task
             Using workspace = CreateWorkspaceWithWaiter(
