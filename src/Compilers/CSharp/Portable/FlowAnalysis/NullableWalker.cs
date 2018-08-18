@@ -494,8 +494,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool ReportNullableAssignmentIfNecessary(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings, AssignmentKind assignmentKind = AssignmentKind.Assignment, Symbol target = null)
         {
-            Debug.Assert(value != null);
             Debug.Assert(!IsConditionalState);
+            if (value == null)
+            {
+                return false;
+            }
 
             if (targetType.IsNull ||
                 targetType.IsValueType ||
