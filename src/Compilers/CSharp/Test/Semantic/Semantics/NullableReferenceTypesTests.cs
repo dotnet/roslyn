@@ -50,6 +50,25 @@ class C
         }
 
         [Fact]
+        public void TestUnaryNegation()
+        {
+            var source = @"
+public class C<T>
+{
+    C(C<object> c) => throw null;
+    void M(bool b)
+    {
+        _ = new C<object>(!b);
+    }
+    public static implicit operator C<T>(T x) => throw null;
+}
+";
+ 
+            var c = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            c.VerifyDiagnostics( );
+        }
+
+        [Fact]
         public void NoNullableAnalysisWithoutNonNullTypes()
         {
             CSharpCompilation c = CreateCompilation(@"
