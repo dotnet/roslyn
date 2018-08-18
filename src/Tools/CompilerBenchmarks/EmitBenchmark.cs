@@ -4,6 +4,7 @@ using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Compilation;
 
 namespace CompilerBenchmarks
@@ -12,20 +13,22 @@ namespace CompilerBenchmarks
     {
         public enum EmitStageSelection
         {
-            FullEmit,
-            SerializeOnly
+            FullEmit, // Measures Compilation.Emit
+            SerializeOnly // Measures just metadata serialization (internal API)
         }
 
         [Params(EmitStageSelection.FullEmit, EmitStageSelection.SerializeOnly)]
-        public EmitStageSelection Selection;
+        public EmitStageSelection Selection { get; set; }
 
         private Compilation _comp;
         private CommonPEModuleBuilder _moduleBeingBuilt;
         private EmitOptions _options;
+        private MemoryStream _peStream;
 
         [GlobalSetup]
-        public void Setup()
+        public void GlobalSetup()
         {
+            _peStream = new MemoryStream();
             _comp = Helpers.CreateReproCompilation();
 
             // Call GetDiagnostics to force binding to finish and most semantic analysis to be completed
@@ -78,21 +81,20 @@ namespace CompilerBenchmarks
         [Benchmark]
         public object RunEmit()
         {
+            _peStream.Position = 0;
             switch (Selection)
             {
                 case EmitStageSelection.FullEmit:
                 {
-                    var stream = new MemoryStream();
-                    return _comp.Emit(stream);
+                    return _comp.Emit(_peStream);
                 }
                 case EmitStageSelection.SerializeOnly:
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var peStream = new MemoryStream();
 
                     _comp.SerializeToPeStream(
                         _moduleBeingBuilt,
-                        new SimpleEmitStreamProvider(peStream),
+                        new SimpleEmitStreamProvider(_peStream),
                         metadataPEStreamProvider: null,
                         pdbStreamProvider: null,
                         testSymWriterFactory: null,
@@ -106,10 +108,12 @@ namespace CompilerBenchmarks
 
                     diagnostics.Free();
 
-                    return peStream;
+                    return _peStream;
                 }
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(Selection);
             }
-            return null;
         }
     }
 }
