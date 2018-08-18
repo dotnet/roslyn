@@ -283,7 +283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-
         public bool IsTypeDeclarationContext(
             ISet<SyntaxKind> validModifiers = null,
             ISet<SyntaxKind> validTypeDeclarations = null,

@@ -187,6 +187,46 @@ namespace Goo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestAssemblyAttributeBeforeClass()
+        {
+            await VerifyKeywordAsync(
+@"
+[$$
+class Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestAssemblyAttributeBeforeInterface()
+        {
+            await VerifyKeywordAsync(
+@"
+[$$
+interface IGoo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestAssemblyAttributeBeforeStruct()
+        {
+            await VerifyKeywordAsync(
+@"
+[$$
+struct Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestAssemblyAttributeBeforeEnum()
+        {
+            await VerifyKeywordAsync(
+@"
+[$$
+enum Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotBeforeAssemblyAttributeWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
