@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="README.md" />
     <None Include="run-perf.ps1" />
   </ItemGroup>
 
