@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,14 +10,17 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 {
     internal abstract class AbstractAddAnonymousTypeMemberNameCodeFixProvider<
         TExpressionSyntax,
+        TAnonymousObjectInitializer,
         TAnonymousObjectMemberDeclaratorSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TExpressionSyntax : SyntaxNode
+        where TAnonymousObjectInitializer : SyntaxNode
         where TAnonymousObjectMemberDeclaratorSyntax : SyntaxNode
     {
         protected AbstractAddAnonymousTypeMemberNameCodeFixProvider()
@@ -26,6 +30,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
         protected abstract bool HasName(TAnonymousObjectMemberDeclaratorSyntax declarator);
         protected abstract TExpressionSyntax GetExpression(TAnonymousObjectMemberDeclaratorSyntax declarator);
         protected abstract TAnonymousObjectMemberDeclaratorSyntax WithName(TAnonymousObjectMemberDeclaratorSyntax declarator, SyntaxToken name);
+        protected abstract IEnumerable<string> GetAnonymousObjectMemberNames(TAnonymousObjectInitializer initializer);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -62,6 +67,11 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
             // Can't add a name of the declarator already has a name.
             if (HasName(declarator))
+            {
+                return null;
+            }
+
+            if (!(declarator.Parent is TAnonymousObjectInitializer))
             {
                 return null;
             }
@@ -103,12 +113,18 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
                 return;
             }
 
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             editor.ReplaceNode(
                 declarator,
                 (current, generator) =>
                 {
                     var currentDeclarator = (TAnonymousObjectMemberDeclaratorSyntax)current;
-                    var nameToken = generator.Identifier(name);
+                    var initializer = (TAnonymousObjectInitializer)currentDeclarator.Parent;
+                    var existingNames = GetAnonymousObjectMemberNames(initializer);
+                    var anonymousType = current.Parent;
+                    var uniqueName = NameGenerator.EnsureUniqueness(name, existingNames, syntaxFacts.IsCaseSensitive);
+
+                    var nameToken = generator.Identifier(uniqueName);
                     if (annotation != null)
                     {
                         nameToken = nameToken.WithAdditionalAnnotations(annotation);

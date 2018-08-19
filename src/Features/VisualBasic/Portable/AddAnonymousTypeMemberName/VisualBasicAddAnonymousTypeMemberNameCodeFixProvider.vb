@@ -9,7 +9,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddAnonymousTypeMemberName
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicAddAnonymousTypeMemberNameCodeFixProvider
-        Inherits AbstractAddAnonymousTypeMemberNameCodeFixProvider(Of ExpressionSyntax, FieldInitializerSyntax)
+        Inherits AbstractAddAnonymousTypeMemberNameCodeFixProvider(Of
+            ExpressionSyntax,
+            ObjectMemberInitializerSyntax,
+            FieldInitializerSyntax)
 
         Private Const BC36556 As String = NameOf(BC36556) ' Anonymous type member name can be inferred only from a simple or qualified name with no arguments.
 
@@ -32,6 +35,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAnonymousTypeMemberName
                 SyntaxFactory.IdentifierName(nameToken),
                 SyntaxFactory.Token(SyntaxKind.EqualsToken),
                 inferredField.Expression).WithTriviaFrom(declarator)
+        End Function
+
+        Protected Overrides Function GetAnonymousObjectMemberNames(initializer As ObjectMemberInitializerSyntax) As IEnumerable(Of String)
+            Return initializer.Initializers.OfType(Of NamedFieldInitializerSyntax).
+                                            Select(Function(i) i.Name.Identifier.ValueText)
         End Function
     End Class
 End Namespace

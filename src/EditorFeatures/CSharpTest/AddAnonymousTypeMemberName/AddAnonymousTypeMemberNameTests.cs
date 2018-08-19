@@ -38,6 +38,28 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
+        public async Task TestExistingName()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        var v = new { Type = 1, [||]this.GetType() };
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        var v = new { Type = 1, {|Rename:Type1|} = this.GetType() };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScript1Async(
