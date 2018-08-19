@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return previousSyntax is CompilationUnitSyntax || previousSyntax.Parent is CompilationUnitSyntax;
             }
 
-            var skipTrivia = token.Parent;
-            return skipTrivia.Parent == null;
+            return true;
         }
     }
 }
