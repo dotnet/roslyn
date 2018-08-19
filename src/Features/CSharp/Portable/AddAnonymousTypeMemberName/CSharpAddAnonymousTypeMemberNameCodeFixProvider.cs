@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class AddAnonymousTypeMemberNameCodeFixProvider 
+    internal class CSharpAddAnonymousTypeMemberNameCodeFixProvider 
         : AbstractAddAnonymousTypeMemberNameCodeFixProvider<ExpressionSyntax, AnonymousObjectMemberDeclaratorSyntax>
     {
         private const string CS0746 = nameof(CS0746); // Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
         protected override ExpressionSyntax GetExpression(AnonymousObjectMemberDeclaratorSyntax declarator)
             => declarator.Expression;
 
-        protected override AnonymousObjectMemberDeclaratorSyntax WithName(AnonymousObjectMemberDeclaratorSyntax declarator, string name)
-            => declarator.WithNameEquals(SyntaxFactory.NameEquals(name));
+        protected override AnonymousObjectMemberDeclaratorSyntax WithName(AnonymousObjectMemberDeclaratorSyntax declarator, SyntaxToken name)
+            => declarator.WithNameEquals(
+                SyntaxFactory.NameEquals(
+                    SyntaxFactory.IdentifierName(name)));
     }
 }

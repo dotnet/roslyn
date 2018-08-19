@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
         protected abstract bool HasName(TAnonymousObjectMemberDeclaratorSyntax declarator);
         protected abstract TExpressionSyntax GetExpression(TAnonymousObjectMemberDeclaratorSyntax declarator);
-        protected abstract TAnonymousObjectMemberDeclaratorSyntax WithName(TAnonymousObjectMemberDeclaratorSyntax currentDeclarator, string name);
+        protected abstract TAnonymousObjectMemberDeclaratorSyntax WithName(TAnonymousObjectMemberDeclaratorSyntax declarator, SyntaxToken name);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -73,18 +73,22 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            // If we're only introducing one name, then add the rename annotation to
+            // it so the user can pick a better name if they want.
+            var annotation = diagnostics.Length == 1 ? RenameAnnotation.Create() : null;
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 await FixOneAsync(
                     document, semanticModel, diagnostic, 
-                    editor, cancellationToken).ConfigureAwait(false);
+                    editor, annotation, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task FixOneAsync(
             Document document, SemanticModel semanticModel, Diagnostic diagnostic, 
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, SyntaxAnnotation annotation, CancellationToken cancellationToken)
         {
             var declarator = await GetMemberDeclaratorAsync(document, diagnostic, cancellationToken).ConfigureAwait(false);
             if (declarator == null)
@@ -101,10 +105,16 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
             editor.ReplaceNode(
                 declarator,
-                (current, _) =>
+                (current, generator) =>
                 {
                     var currentDeclarator = (TAnonymousObjectMemberDeclaratorSyntax)current;
-                    return WithName(currentDeclarator, name);
+                    var nameToken = generator.Identifier(name);
+                    if (annotation != null)
+                    {
+                        nameToken = nameToken.WithAdditionalAnnotations(annotation);
+                    }
+
+                    return WithName(currentDeclarator, nameToken);
                 });
         }
 
