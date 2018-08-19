@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return false;
             }
 
-            if (token.Parent.Kind() == SyntaxKind.AttributeList)
+            if (token.Parent.Kind() != SyntaxKind.AttributeList)
             {
-                var attributeList = token.Parent;
-                var previousSyntax = attributeList.Parent;
-                return previousSyntax is CompilationUnitSyntax || previousSyntax.Parent is CompilationUnitSyntax;
+                return true;
             }
 
-            return true;
+            var attributeList = token.Parent;
+            var previousSyntax = attributeList.Parent;
+            return previousSyntax is CompilationUnitSyntax || previousSyntax.Parent is CompilationUnitSyntax;
         }
     }
 }
