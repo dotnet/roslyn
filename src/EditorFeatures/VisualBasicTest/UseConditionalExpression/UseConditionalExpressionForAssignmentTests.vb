@@ -550,6 +550,7 @@ class C
 end class")
         End Function
 
+        <WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
         Public Async Function TestOnAssignmentToContainingProperty() As Task
             Await TestInRegularAndScriptAsync(
