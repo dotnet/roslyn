@@ -549,5 +549,34 @@ class C
     end sub
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        Public Async Function TestOnAssignmentToContainingProperty() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public theemployee as string
+
+    public readonly property employee as string
+        get
+            [||]if theemployee is nothing then
+                employee = ""1""
+            else
+                employee = ""2""
+            end if
+        end get
+    end property
+end class",
+"
+class C
+    public theemployee as string
+
+    public readonly property employee as string
+        get
+            employee = If(theemployee is nothing, ""1"", ""2"")
+        end get
+    end property
+end class")
+        End Function
     End Class
 End Namespace
