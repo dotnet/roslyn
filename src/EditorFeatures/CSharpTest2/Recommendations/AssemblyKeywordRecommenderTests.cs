@@ -119,7 +119,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestBeforeAttributeNestClass()
+        public async Task TestNotInAttributeNestClass()
         {
             await VerifyAbsenceAsync(
 @"class A
@@ -133,16 +133,16 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestBeforeAttributeNamespace()
+        public async Task TestInAttributeBeforeNamespace()
         {
             await VerifyKeywordAsync(
 @"[$$
-namespace Goo {}");
+namespace Goo {");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestNotBeforeAttributeNamespaceWithNoOpenBracket()
+        public async Task TestNotInAttributeBeforeNamespaceWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
 @"$$
@@ -152,7 +152,7 @@ namespace Goo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestNotBeforeAttributeNamespaceAndAfterUsingWithNoOpenBracket()
+        public async Task TestNotInAttributeBeforeNamespaceAndAfterUsingWithNoOpenBracket()
         {
             await VerifyAbsenceAsync(
 @"
@@ -164,7 +164,7 @@ namespace Goo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestBeforeAttributeNamespaceAndAfterUsingWithNoOpenBracket()
+        public async Task TestInAttributeBeforeNamespaceAndAfterUsingWithOpenBracket()
         {
             await VerifyKeywordAsync(
 @"
@@ -176,7 +176,7 @@ namespace Goo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestBeforeAssemblyAttributeWithOpenBracket()
+        public async Task TestInAttributeBeforeAssemblyWithOpenBracket()
         {
             await VerifyKeywordAsync(
 @"
@@ -187,7 +187,7 @@ namespace Goo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestAssemblyAttributeBeforeClass()
+        public async Task TestInAttributeBeforeClass()
         {
             await VerifyKeywordAsync(
 @"
@@ -197,7 +197,7 @@ class Goo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestAssemblyAttributeBeforeInterface()
+        public async Task TestInAttributeBeforeInterface()
         {
             await VerifyKeywordAsync(
 @"
@@ -207,7 +207,7 @@ interface IGoo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestAssemblyAttributeBeforeStruct()
+        public async Task TestInAttributeBeforeStruct()
         {
             await VerifyKeywordAsync(
 @"
@@ -217,7 +217,7 @@ struct Goo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestAssemblyAttributeBeforeEnum()
+        public async Task TestInAttributeBeforeEnum()
         {
             await VerifyKeywordAsync(
 @"
@@ -227,7 +227,7 @@ enum Goo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestNotBeforeAssemblyAttributeWithoutOpenBracket()
+        public async Task TestNotInAttributeBeforeOtherAttributeWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
 @"
@@ -238,7 +238,7 @@ namespace Goo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestNotBeforeAssemblyAttributeAndAfterUsingWithoutOpenBracket()
+        public async Task TestNotInAttributeBeforeAssemblyAttributeAndAfterUsingWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
 @"
@@ -251,7 +251,7 @@ namespace Goo {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
-        public async Task TestBeforeAssemblyAttributeAndAfterUsingWithoutOpenBracket()
+        public async Task TestInBeforeAttributeAssemblyAttributeAndAfterUsingWithoutOpenBracket()
         {
             await VerifyKeywordAsync(
 @"
