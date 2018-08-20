@@ -279,12 +279,22 @@ namespace Goo {}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInElementAccess()
         {
             await VerifyAbsenceAsync(
 @"class C {
     void Goo(string[] array) {
         array[$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestNotInIndex()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    public int this[$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
