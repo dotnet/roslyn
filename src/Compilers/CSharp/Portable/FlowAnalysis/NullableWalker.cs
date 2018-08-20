@@ -502,7 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetType.IsNull ||
                 targetType.IsValueType ||
                 targetType.IsNullable != false ||
-                (!valueType.IsNull && valueType.IsNullable != true && !valueType.TypeSymbol.IsUnconstrainedTypeParameter()))
+                valueType.IsNull ||
+                valueType.IsNullable != true)
             {
                 return false;
             }
