@@ -32,7 +32,7 @@
           and should only be enabled when it's necessary to test-install the MSIs produced by the build.
         -->
         <_BuildNumber>$(OfficialBuildId)</_BuildNumber>
-        <_BuildNumber Condition="'$(OfficialBuildId)' == ''">$([System.DateTime]::Now.ToString(yyyyMMdd)).1</_BuildNumber>
+        <_BuildNumber Condition="'$(OfficialBuildId)' == ''">$([System.DateTime]::UtcNow.ToString(yyyyMMdd)).1</_BuildNumber>
 
         <!--
           Split the build parts out from the BuildNumber which is given to us by VSTS in the format of yyyymmdd.nn
