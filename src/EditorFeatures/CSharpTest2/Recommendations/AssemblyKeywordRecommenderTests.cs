@@ -279,6 +279,15 @@ namespace Goo {}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInElementAccess()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    void Goo(string[] array) {
+        array[$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInPropertyAttribute()
         {
             await VerifyAbsenceAsync(
