@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Parent.Kind() == SyntaxKind.AttributeList)
             {
                 var attributeList = token.Parent;
-                var previousSyntax = attributeList.Parent;
-                return previousSyntax is CompilationUnitSyntax || previousSyntax.Parent is CompilationUnitSyntax;
+                var compilationUnitSyntax = attributeList.Parent;
+                return compilationUnitSyntax is CompilationUnitSyntax || compilationUnitSyntax.Parent is CompilationUnitSyntax;
             }
 
-            var parentSyntax = token.Parent;
-            return parentSyntax is SkippedTokensTriviaSyntax;
+            var skippedTokensTriviaSyntax = token.Parent;
+            return skippedTokensTriviaSyntax is SkippedTokensTriviaSyntax;
         }
     }
 }
