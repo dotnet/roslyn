@@ -79,6 +79,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.VerbatimStringLiteral);
 
         [DebuggerStepThrough]
+        public static FormattedClassification Escape(string text)
+            => New(text, ClassificationTypeNames.StringEscapeCharacter);
+
+        [DebuggerStepThrough]
         public static FormattedClassification Keyword(string text)
             => New(text, ClassificationTypeNames.Keyword);
 
