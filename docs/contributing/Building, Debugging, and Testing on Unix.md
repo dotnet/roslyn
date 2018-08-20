@@ -1,4 +1,4 @@
-# Building, Debugging and Testing on Windows
+# Building, Debugging and Testing on Unix
 This guide is meant to help developers setup an environment for debugging / contributing to Roslyn from Linux. 
 Particularly for developers who aren't experienced with .NET Core development on Linux. 
 
@@ -69,7 +69,7 @@ Following the steps on that blog post will get you to a point where you can the 
 - cd into `ubuntu/18.04` instead of `ubuntu/16.04`
 
 ### Source Link
-Many of the repositories that need to be built use source link and it crashes on Ubuntu 18.04 due to depndency changes. 
+Many of the repositories that need to be built use source link and it crashes on Ubuntu 18.04 due to dependency changes. 
 To disable source link add the following to the `Directory.Build.props` file in the root of the repository.
 
 ``` xml
@@ -77,7 +77,7 @@ To disable source link add the following to the `Directory.Build.props` file in 
 <EnableSourceLink>false</EnableSourceLink>
 <DeterministicSourcePaths>false</DeterministicSourcePaths>
 ```
-### Prereqs
+### Prerequisites
 
 Make sure to install the following via `apt install`
 
