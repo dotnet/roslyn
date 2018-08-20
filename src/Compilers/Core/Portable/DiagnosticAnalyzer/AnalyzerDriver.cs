@@ -434,20 +434,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 this.AnalyzerExecutor = this.AnalyzerExecutor.WithCancellationToken(cancellationToken);
 
-                var task = ProcessCompilationEventsAsync(analysisScope, analysisStateOpt, usingPrePopulatedEventQueue, cancellationToken);
+                await ProcessCompilationEventsAsync(analysisScope, analysisStateOpt, usingPrePopulatedEventQueue, cancellationToken).ConfigureAwait(false);
 
 #if DEBUG
                 // If not using pre-populated event queue (batch mode), then verify all symbol end actions were processed.
                 if (!usingPrePopulatedEventQueue)
                 {
-                    task = task.ContinueWith(t =>
-                        {
-                            AnalyzerManager.VerifyAllSymbolEndActionsExecuted();
-                        }, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                    AnalyzerManager.VerifyAllSymbolEndActionsExecuted();
                 }
 #endif
-
-                await task.ConfigureAwait(false);
             }
         }
 
@@ -1036,11 +1031,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Tries to execute symbol and declaration actions for the given symbol.
+        /// Tries to execute symbol action, symbol start/end actions and declaration actions for the given symbol.
         /// </summary>
         /// <returns>
-        /// True, if successfully executed the actions for the given analysis scope OR no actions were required to be executed for the given analysis scope.
-        /// False, otherwise.
+        /// <see cref="EventProcessedState"/> indicating the current state of processing of the given compilation event.
         /// </returns>
         private async Task<EventProcessedState> TryProcessSymbolDeclaredAsync(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
