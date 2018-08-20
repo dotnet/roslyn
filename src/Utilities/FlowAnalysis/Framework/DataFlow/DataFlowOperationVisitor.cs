@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 owningSymbol.Kind == SymbolKind.Field ||
                 owningSymbol.Kind == SymbolKind.Property ||
                 owningSymbol.Kind == SymbolKind.Event);
+            Debug.Assert(owningSymbol.OriginalDefinition == owningSymbol);
             Debug.Assert(wellKnownTypeProvider != null);
 
             ValueDomain = valueDomain;
@@ -261,8 +262,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         /// <summary>
         /// Primary method that flows analysis data through the given flow edge/branch.
+        /// Returns false if the branch is conditional and the branch value always evaluates to false.
         /// </summary>
-        public virtual TAnalysisData FlowBranch(
+        public virtual (TAnalysisData output, bool isFeasibleBranch) FlowBranch(
             BasicBlock fromBlock,
             BranchWithInfo branch,
             TAnalysisData input)
@@ -270,6 +272,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(fromBlock != null);
             Debug.Assert(input != null);
 
+            var isFeasibleBranch = true;
             CurrentBasicBlock = fromBlock;
             CurrentAnalysisData = input;
 
@@ -286,6 +289,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     {
                         AfterVisitRoot(branch.BranchValueOpt);
                         _visitedFlowBranchConditions.Remove(branch.BranchValueOpt);
+                    }
+
+                    if (isConditionalBranchNeverTaken())
+                    {
+                        isFeasibleBranch = false;
                     }
                 }
                 else
@@ -319,7 +327,60 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     break;
             }
 
-            return CurrentAnalysisData;
+            return (CurrentAnalysisData, isFeasibleBranch);
+
+            bool isConditionalBranchNeverTaken()
+            {
+                Debug.Assert(branch.ControlFlowConditionKind != ControlFlowConditionKind.None);
+
+                if (branch.BranchValueOpt.Type.SpecialType == SpecialType.System_Boolean &&
+                    branch.BranchValueOpt.ConstantValue.HasValue)
+                {
+                    var alwaysTrue = (bool)branch.BranchValueOpt.ConstantValue.Value;
+                    if (alwaysTrue && branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenFalse ||
+                        !alwaysTrue && branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenTrue)
+                    {
+                        return true;
+                    }
+                }
+
+                if (PredicateAnalysis &&
+                    _predicateValueKindCacheBuilder.TryGetValue(branch.BranchValueOpt, out PredicateValueKind valueKind) &&
+                    isPredicateAlwaysFalseForBranch(valueKind))
+                {
+                    return true;
+                }
+
+                if (_pointsToAnalysisResultOpt != null &&
+                    isPredicateAlwaysFalseForBranch(_pointsToAnalysisResultOpt.GetPredicateKind(branch.BranchValueOpt)))
+                {
+                    return true;
+                }
+
+                if (_copyAnalysisResultOpt != null &&
+                    isPredicateAlwaysFalseForBranch(_copyAnalysisResultOpt.GetPredicateKind(branch.BranchValueOpt)))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool isPredicateAlwaysFalseForBranch(PredicateValueKind predicateValueKind)
+            {
+                Debug.Assert(branch.ControlFlowConditionKind != ControlFlowConditionKind.None);
+
+                switch (predicateValueKind)
+                {
+                    case PredicateValueKind.AlwaysFalse:
+                        return branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenTrue;
+
+                    case PredicateValueKind.AlwaysTrue:
+                        return branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenFalse;
+                }
+
+                return false;
+            }
         }
 
         protected virtual void ProcessReturnValue(IOperation returnValue)
@@ -1147,7 +1208,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #endregion
 
+        public TAnalysisData MergeAnalysisData(TAnalysisData value1, TAnalysisData value2, bool forBackEdge)
+            => forBackEdge ? MergeAnalysisDataForBackEdge(value1, value2) : MergeAnalysisData(value1, value2);
         protected abstract TAnalysisData MergeAnalysisData(TAnalysisData value1, TAnalysisData value2);
+        protected virtual TAnalysisData MergeAnalysisDataForBackEdge(TAnalysisData value1, TAnalysisData value2)
+            => MergeAnalysisData(value1, value2);
         protected abstract TAnalysisData GetClonedAnalysisData(TAnalysisData analysisData);
         protected TAnalysisData GetClonedCurrentAnalysisData() => GetClonedAnalysisData(CurrentAnalysisData);
         protected abstract bool Equals(TAnalysisData value1, TAnalysisData value2);
@@ -1515,6 +1580,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Conservatively reset all the instance analysis data.
             ResetInstanceAnalysisData(operation.Instance);
 
+            if (operation.IsLockOperation(WellKnownTypeProvider.Monitor))
+            {
+                // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
+                Debug.Assert(operation.Arguments.Length >= 1);
+
+                HandleEnterLockOperation(operation.Arguments[0].Value);
+            }
+
             return value;
         }
 
@@ -1533,6 +1606,34 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // https://github.com/dotnet/roslyn-analyzers/issues/1547
             ResetCurrentAnalysisData();
             return value;
+        }
+
+        public virtual void HandleEnterLockOperation(IOperation lockedObject)
+        {
+            // Multi-threaded instance method.
+            // Conservatively reset all the instance analysis data for the ThisOrMeInstance.
+            ResetThisOrMeInstanceAnalysisData();
+        }
+
+        /// <summary>
+        /// Reset all the instance analysis data for <see cref="AnalysisEntityFactory.ThisOrMeInstance"/> if <see cref="HasPointsToAnalysisResult"/> is true and <see cref="PessimisticAnalysis"/> is also true.
+        /// If we are using or performing points to analysis, certain operations can invalidate all the analysis data off the containing instance.
+        /// </summary>
+        private void ResetThisOrMeInstanceAnalysisData()
+        {
+            if (!HasPointsToAnalysisResult || !PessimisticAnalysis)
+            {
+                return;
+            }
+
+            if (AnalysisEntityFactory.ThisOrMeInstance.Type.HasValueCopySemantics())
+            {
+                ResetValueTypeInstanceAnalysisData(AnalysisEntityFactory.ThisOrMeInstance);
+            }
+            else
+            {
+                ResetReferenceTypeInstanceAnalysisData(ThisOrMePointsToAbstractValue);
+            }
         }
 
         public override TAbstractAnalysisValue VisitTuple(ITupleOperation operation, object argument)

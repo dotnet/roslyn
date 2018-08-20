@@ -121,6 +121,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Reflection.ParameterInfo");
         }
 
+        public static INamedTypeSymbol Monitor(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Threading.Monitor");
+        }
+
         public static INamedTypeSymbol Thread(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Threading.Thread");

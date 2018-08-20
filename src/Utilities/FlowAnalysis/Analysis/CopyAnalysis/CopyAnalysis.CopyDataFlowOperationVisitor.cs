@@ -34,12 +34,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 return output;
             }
 
-            public override CopyAnalysisData FlowBranch(BasicBlock fromBlock, BranchWithInfo branch, CopyAnalysisData input)
+            public override (CopyAnalysisData output, bool isFeasibleBranch) FlowBranch(
+                BasicBlock fromBlock,
+                BranchWithInfo branch,
+                CopyAnalysisData input)
             {
                 AssertValidCopyAnalysisData(input);
-                var output = base.FlowBranch(fromBlock, branch, input);
-                AssertValidCopyAnalysisData(output);
-                return output;
+                (CopyAnalysisData output, bool isFeasibleBranch) result = base.FlowBranch(fromBlock, branch, input);
+                AssertValidCopyAnalysisData(result.output);
+                return result;
             }
 
             protected override void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder) => CurrentAnalysisData.AddTrackedEntities(builder);

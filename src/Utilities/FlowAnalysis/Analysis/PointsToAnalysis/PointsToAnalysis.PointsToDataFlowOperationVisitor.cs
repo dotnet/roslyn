@@ -106,33 +106,37 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 AnalysisEntity analysisEntity,
                 IOperation operation,
                 NullAbstractValue nullState,
+                DefaultPointsToValueGenerator defaultPointsToValueGenerator,
                 PointsToAnalysisData sourceAnalysisData,
                 PointsToAnalysisData targetAnalysisData)
             {
                 Debug.Assert(IsValidValueForPredicateAnalysis(nullState) || nullState == NullAbstractValue.Invalid);
-                if (sourceAnalysisData.TryGetValue(analysisEntity, out PointsToAbstractValue existingValue))
+
+                if (!sourceAnalysisData.TryGetValue(analysisEntity, out PointsToAbstractValue existingValue))
                 {
-                    PointsToAbstractValue newPointsToValue;
-                    switch (nullState)
-                    {
-                        case NullAbstractValue.Null:
-                            newPointsToValue = existingValue.MakeNull();
-                            break;
-
-                        case NullAbstractValue.NotNull:
-                            newPointsToValue = existingValue.MakeNonNull(operation);
-                            break;
-
-                        case NullAbstractValue.Invalid:
-                            newPointsToValue = PointsToAbstractValue.Invalid;
-                            break;
-
-                        default:
-                            throw new InvalidProgramException();
-                    }
-
-                    targetAnalysisData.SetAbstactValue(analysisEntity, newPointsToValue);
+                    existingValue = defaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity);
                 }
+
+                PointsToAbstractValue newPointsToValue;
+                switch (nullState)
+                {
+                    case NullAbstractValue.Null:
+                        newPointsToValue = existingValue.MakeNull();
+                        break;
+
+                    case NullAbstractValue.NotNull:
+                        newPointsToValue = existingValue.MakeNonNull(operation);
+                        break;
+
+                    case NullAbstractValue.Invalid:
+                        newPointsToValue = PointsToAbstractValue.Invalid;
+                        break;
+
+                    default:
+                        throw new InvalidProgramException();
+                }
+
+                targetAnalysisData.SetAbstactValue(analysisEntity, newPointsToValue);
             }
 
             protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity)
@@ -239,7 +243,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 PointsToAnalysisData targetAnalysisData)
             {
                 if (IsValidValueForPredicateAnalysis(value) &&
-                    AnalysisEntityFactory.TryCreate(target, out AnalysisEntity targetEntity))
+                    AnalysisEntityFactory.TryCreate(target, out AnalysisEntity targetEntity) &&
+                    ShouldBeTracked(targetEntity))
                 {
                     // Comparison with a non-null value guarantees that we can infer result in only one of the branches.
                     // For example, predicate "a == c", where we know 'c' is non-null, guarantees 'a' is non-null in CurrentAnalysisData,
@@ -251,13 +256,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         foreach (var analysisEntity in copyValue.AnalysisEntities)
                         {
                             SetValueFromPredicate(analysisEntity, value, equals, inferInTargetAnalysisData,
-                                target, ref predicateValueKind, sourceAnalysisData:CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
+                                target, ref predicateValueKind, _defaultPointsToValueGenerator,
+                                sourceAnalysisData:CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
                         }
                     }
                     else
                     {
                         SetValueFromPredicate(targetEntity, value, equals, inferInTargetAnalysisData,
-                            target, ref predicateValueKind, sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
+                            target, ref predicateValueKind, _defaultPointsToValueGenerator,
+                            sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
                     }
 
                     return true;
@@ -273,6 +280,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 bool inferInTargetAnalysisData,
                 IOperation target,
                 ref PredicateValueKind predicateValueKind,
+                DefaultPointsToValueGenerator defaultPointsToValueGenerator,
                 PointsToAnalysisData sourceAnalysisData,
                 PointsToAnalysisData targetAnalysisData)
             {
@@ -319,7 +327,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 if (inferInTargetAnalysisData)
                 {
                     // Set value for the CurrentAnalysisData.
-                    SetAbstractValueFromPredicate(key, target, value, sourceAnalysisData, targetAnalysisData);
+                    SetAbstractValueFromPredicate(key, target, value, defaultPointsToValueGenerator, sourceAnalysisData, targetAnalysisData);
                 }
             }
 
@@ -343,6 +351,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override PointsToAnalysisData MergeAnalysisData(PointsToAnalysisData value1, PointsToAnalysisData value2)
                 => _pointsToAnalysisDomain.Merge(value1, value2);
+            protected override PointsToAnalysisData MergeAnalysisDataForBackEdge(PointsToAnalysisData value1, PointsToAnalysisData value2)
+                => _pointsToAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2, GetChildAnalysisEntities);
             protected override PointsToAnalysisData GetClonedAnalysisData(PointsToAnalysisData analysisData)
                 => (PointsToAnalysisData)analysisData.Clone();
             protected override bool Equals(PointsToAnalysisData value1, PointsToAnalysisData value2)

@@ -48,19 +48,32 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         switch (backEdgeValue.NullState)
                         {
                             case NullAbstractValue.MaybeNull:
-                                StopTrackingAnalysisDataForKey();
+                                stopTrackingAnalysisDataForKeyAndChildren();
                                 break;
 
                             case NullAbstractValue.NotNull:
-                                if (backEdgeValue.MakeMayBeNull() != forwardEdgeAnalysisData[key])
+                                if (backEdgeValue.MakeMayBeNull() != forwardEdgeValue)
                                 {
-                                    StopTrackingAnalysisDataForKey();
+                                    if (forwardEdgeValue.NullState == NullAbstractValue.NotNull)
+                                    {
+                                        stopTrackingAnalysisDataForChildren();
+                                    }
+                                    else
+                                    {
+                                        stopTrackingAnalysisDataForKeyAndChildren();
+                                    }
                                 }
                                 break;
 
                         }
 
-                        void StopTrackingAnalysisDataForKey()
+                        void stopTrackingAnalysisDataForKeyAndChildren()
+                        {
+                            stopTrackingAnalysisDataForChildren();
+                            forwardEdgeAnalysisData[key] = PointsToAbstractValue.Unknown;
+                        }
+
+                        void stopTrackingAnalysisDataForChildren()
                         {
                             var childEntities = getChildAnalysisEntities(forwardEdgeValue)
                                 .Union(getChildAnalysisEntities(backEdgeValue));
@@ -68,8 +81,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                             {
                                 forwardEdgeAnalysisData[childEntity] = PointsToAbstractValue.Unknown;
                             }
-
-                            forwardEdgeAnalysisData[key] = PointsToAbstractValue.Unknown;
                         }
                     }
                 }

@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Exception = Analyzer.Utilities.WellKnownTypes.Exception(compilation);
             Contract = Analyzer.Utilities.WellKnownTypes.SystemDiagnosticContractsContract(compilation);
             IDisposable = Analyzer.Utilities.WellKnownTypes.IDisposable(compilation);
+            Monitor = Analyzer.Utilities.WellKnownTypes.Monitor(compilation);
             Task = Analyzer.Utilities.WellKnownTypes.Task(compilation);
             CollectionTypes = GetWellKnownCollectionTypes(compilation);
             SerializationInfo = Analyzer.Utilities.WellKnownTypes.SerializationInfo(compilation);
@@ -50,6 +51,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Tasks.Task"/>
         /// </summary>
         public INamedTypeSymbol Task { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Monitor"/>
+        /// </summary>
+        public INamedTypeSymbol Monitor { get; }
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.Runtime.Serialization.SerializationInfo"/>
