@@ -195,13 +195,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         }
 
         /// <summary>
-        /// Creates a linq invocation expression for the <see cref="ForEachInfo.ConvertingExtendedNodes"/> node at the given index <paramref name="extendedNodeIndex"/>
+        /// Creates a linq invocation expression for the <see cref="ForEachInfo{ForEachStatementSyntax, StatementSyntax}.ConvertingExtendedNodes"/> node at the given index <paramref name="extendedNodeIndex"/>
         /// or returns the <paramref name="selectExpression"/> if all extended nodes have been processed.
         /// </summary>
         /// <param name="selectExpression">Innermost select expression</param>
-        /// <param name="extendedNodeIndex">Index into <see cref="ForEachInfo.ConvertingExtendedNodes"/> to be processed and updated.</param>
+        /// <param name="extendedNodeIndex">Index into <see cref="ForEachInfo{ForEachStatementSyntax, StatementSyntax}.ConvertingExtendedNodes"/> to be processed and updated.</param>
         /// <param name="receiver">Receiver for the generated linq invocation. Updated when processing an if statement.</param>
-        /// <param name="hasForEachChild">Flag indicating if any of the processed <see cref="ForEachInfo.ConvertingExtendedNodes"/> is a <see cref="ForEachStatementSyntax"/>.</param>
+        /// <param name="hasForEachChild">Flag indicating if any of the processed <see cref="ForEachInfo{ForEachStatementSyntax, StatementSyntax}.ConvertingExtendedNodes"/> is a <see cref="ForEachStatementSyntax"/>.</param>
         private ExpressionSyntax CreateLinqInvocationForExtendedNode(
             ExpressionSyntax selectExpression,
             ref int extendedNodeIndex,
