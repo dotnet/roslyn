@@ -38,7 +38,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 17)
                 );
  
-            var c2 = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var c2 = CreateCompilation(source);
             c2.VerifyDiagnostics(
                 // (6,15): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         string? x = null;
@@ -30155,14 +30155,14 @@ struct S2<T>
 }";
 
             // Feature enabled.
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = tStruct!;
                 Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "tStruct!").WithLocation(6, 13));
 
             // Feature disabled.
-            comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics(
                 // (6,20): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         _ = tStruct!;
@@ -36461,7 +36461,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
             );
 
@@ -36511,7 +36511,7 @@ class B<T2> where T2 : class?
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
             );
 
@@ -36561,7 +36561,7 @@ class B
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
             );
 
@@ -36602,7 +36602,7 @@ class B<T1> where T1 : class?
         }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,29): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 // class B<T1> where T1 : class?
@@ -36635,7 +36635,7 @@ class B<T1> where T1 : class?
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (9,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F2<T2>(T2? t2) where T2 : class?
@@ -36668,7 +36668,7 @@ class B
     public static void F4<T41, T42>(T42? t1) where T41 : B where T42 : T41?
     {}
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (4,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F1<T11, T12>(T12? t1) where T11 : class where T12 : T11
@@ -36698,7 +36698,7 @@ class B<T11, T12> where T12 : T11?
     public static void F4<T4>() where T4 : T4?
     {}
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class B<T11, T12> where T12 : T11?
@@ -36738,7 +36738,7 @@ class B
 class Node<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (10,44): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T3>() where T3 : Node<T3?>?
@@ -36766,7 +36766,7 @@ class B
 class Node<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (7,51): error CS0450: 'Node<T2?>': cannot specify both a constraint class and the 'class' or 'struct' constraint
                 //     public static void F2<T2>() where T2 : class, Node<T2?>
@@ -36800,7 +36800,7 @@ class B
 class Node<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (7,52): error CS0450: 'Node<T2?>': cannot specify both a constraint class and the 'class' or 'struct' constraint
                 //     public static void F2<T2>() where T2 : class?, Node<T2?>
@@ -36837,7 +36837,7 @@ class B
 interface INode<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (7,44): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F2<T2>() where T2 : INode<T2?>
@@ -36868,7 +36868,7 @@ class B
 interface INode<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
             );
         }
@@ -36893,7 +36893,7 @@ class B
 interface INode<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (10,52): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T3>() where T3 : class?, INode<T3?>?
@@ -36927,7 +36927,7 @@ interface INode
 interface INode<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (10,83): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T31, T32>() where T31 : INode? where T32 : class?, T31, INode<T32?>?
@@ -36961,7 +36961,7 @@ class B
 interface INode
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (7,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F2<T21, T22>(T22? t2) where T21 : INode? where T22 : class?, T21
@@ -36991,7 +36991,7 @@ class B<[System.Runtime.CompilerServices.Nullable] T1>
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NullableAttributeDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NullableAttributeDefinition });
             comp.VerifyDiagnostics(
                 // (4,10): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
                 // class B<[System.Runtime.CompilerServices.Nullable] T1>
@@ -37035,7 +37035,7 @@ class B : A<int>
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
             );
 
@@ -37102,7 +37102,7 @@ public class A<T>
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
             var source2 =
 @"
@@ -37118,7 +37118,7 @@ class B : A<int>
 }
 ";
 
-            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, references: new[] { comp1.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, references: new[] { comp1.EmitToImageReference() });
 
             CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
             void symbolValidator(ModuleSymbol m)
@@ -37166,7 +37166,7 @@ public class A<T>
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
             var comp2 = CreateCompilation(NullableAttributeDefinition);
 
@@ -37233,7 +37233,7 @@ public class A<T>
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
             var source2 =
 @"
@@ -37249,7 +37249,7 @@ class B : A<int>
 }
 ";
 
-            var comp2 = CreateCompilation(new[] { source2 }, references: new[] { comp1.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp2 = CreateCompilation(new[] { source2 }, references: new[] { comp1.EmitToImageReference() });
 
             comp2.VerifyDiagnostics();
 
@@ -37307,7 +37307,7 @@ class B : A<int>
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (15,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     public override void F1<T11>(T11? t1) where T11 : class?
@@ -37362,7 +37362,7 @@ class B : IA
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             // PROTOTYPE(NullableReferenceTypes): Should probably warn on constraints mismatch for an implicit interface implementation.
             comp.VerifyDiagnostics(
             );
@@ -37416,7 +37416,7 @@ class B : IA
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8,
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                                          options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics(
             );
@@ -37459,7 +37459,7 @@ public interface IA
     void F2<T2>() where T2 : class?;
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
             var source2 =
 @"
@@ -37474,7 +37474,7 @@ class B : IA
     }
 }
 ";
-            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8,
+            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                                           options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                           references: new[] { comp1.EmitToImageReference() });
 
@@ -37519,7 +37519,7 @@ public interface IA
     void F2<T2>() where T2 : class?;
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
             var comp2 = CreateCompilation(NullableAttributeDefinition);
 
@@ -37536,7 +37536,7 @@ class B : IA
     }
 }
 ";
-            var comp3 = CreateCompilation(new[] { source3, NonNullTypesTrue }, parseOptions: TestOptions.Regular8,
+            var comp3 = CreateCompilation(new[] { source3, NonNullTypesTrue },
                                           options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                           references: new[] { comp1.EmitToImageReference(), comp2.EmitToImageReference() });
             comp3.VerifyDiagnostics(
@@ -37582,7 +37582,7 @@ public interface IA
     void F2<T2>() where T2 : class?;
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
             var source2 =
 @"
@@ -37598,7 +37598,7 @@ class B : IA
 }
 ";
 
-            var comp2 = CreateCompilation(new[] { source2 }, references: new[] { comp1.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp2 = CreateCompilation(new[] { source2 }, references: new[] { comp1.EmitToImageReference() });
 
             comp2.VerifyDiagnostics();
 
@@ -37651,7 +37651,7 @@ class B : IA
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (10,30): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     void IA.F1<T11>(T11? t1) where T11 : class?
@@ -37683,7 +37683,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
             );
 
@@ -37715,7 +37715,7 @@ class B
 class B<T2> where T2 : class?
 {
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
             );
 
@@ -37755,7 +37755,7 @@ class B
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
             );
 

@@ -6467,7 +6467,7 @@ public class Program
         {
             var tree = UsingNode(@"
 class C<T> where T : class {}
-", TestOptions.Regular8);
+");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6510,7 +6510,7 @@ class C<T> where T : class {}
         {
             var tree = UsingNode(@"
 class C<T> where T : struct {}
-", TestOptions.Regular8);
+");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6553,7 +6553,7 @@ class C<T> where T : struct {}
         {
             var tree = UsingNode(@"
 class C<T> where T : class? {}
-", TestOptions.Regular8);
+");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6597,7 +6597,7 @@ class C<T> where T : class? {}
         {
             var tree = UsingNode(@"
 class C<T> where T : struct? {}
-", TestOptions.Regular8,
+", TestOptions.Regular,
                 // (2,28): error CS1073: Unexpected token '?'
                 // class C<T> where T : struct? {}
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(2, 28)
