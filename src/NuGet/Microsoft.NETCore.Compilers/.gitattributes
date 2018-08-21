@@ -5,5 +5,5 @@
 #
 # However, right now the toolset packages must be built on Windows, and so the
 # files must be hard-coded to be cloned with LF
-RunCsc text eol=lf
-RunVbc text eol=lf
+tools/bincore/RunCsc text eol=lf
+tools/bincore/RunVbc text eol=lf
