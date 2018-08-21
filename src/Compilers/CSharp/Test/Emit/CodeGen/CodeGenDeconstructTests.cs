@@ -6330,9 +6330,9 @@ class C
             case int _:
                 break;
         }
-        M(out var _);
-        M(out int _);
-        M(out _);
+        M1(out var _);
+        M1(out int _);
+        M1(out _);
         x = 2;
     }
     static void M2()
@@ -6366,27 +6366,18 @@ class C
                 // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case int _:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case int _:").WithArguments("pattern matching", "7.0").WithLocation(11, 13),
-                // (14,19): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M(out var _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(14, 19),
-                // (15,19): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M(out int _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(15, 19),
+                // (14,20): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
+                //         M1(out var _);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(14, 20),
+                // (15,20): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
+                //         M1(out int _);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(15, 20),
                 // (6,10): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7.0").WithLocation(6, 10),
-                // (14,9): error CS0103: The name 'M' does not exist in the current context
-                //         M(out var _);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(14, 9),
-                // (15,9): error CS0103: The name 'M' does not exist in the current context
-                //         M(out int _);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(15, 9),
-                // (16,9): error CS0103: The name 'M' does not exist in the current context
-                //         M(out _);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(16, 9),
-                // (16,15): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M(out _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7.0").WithLocation(16, 15)
+                // (16,16): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                //         M1(out _);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7.0").WithLocation(16, 16)
                 );
         }
 
