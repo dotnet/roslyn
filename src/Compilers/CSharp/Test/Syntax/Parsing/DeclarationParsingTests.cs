@@ -6463,7 +6463,7 @@ public class Program
         }
 
         [Fact]
-        public void NullableClassConstrint_01()
+        public void NullableClassConstraint_01()
         {
             var tree = UsingNode(@"
 class C<T> where T : class {}
@@ -6506,7 +6506,7 @@ class C<T> where T : class {}
         }
 
         [Fact]
-        public void NullableClassConstrint_02()
+        public void NullableClassConstraint_02()
         {
             var tree = UsingNode(@"
 class C<T> where T : struct {}
@@ -6549,7 +6549,7 @@ class C<T> where T : struct {}
         }
 
         [Fact]
-        public void NullableClassConstrint_03()
+        public void NullableClassConstraint_03()
         {
             var tree = UsingNode(@"
 class C<T> where T : class? {}
@@ -6593,7 +6593,7 @@ class C<T> where T : class? {}
         }
 
         [Fact]
-        public void NullableClassConstrint_04()
+        public void NullableClassConstraint_04()
         {
             var tree = UsingNode(@"
 class C<T> where T : struct? {}
@@ -6641,7 +6641,7 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
-        public void NullableClassConstrint_05()
+        public void NullableClassConstraint_05()
         {
             var tree = UsingNode(@"
 class C<T> where T : class? {}
@@ -6689,7 +6689,7 @@ class C<T> where T : class? {}
         }
 
         [Fact]
-        public void NullableClassConstrint_06()
+        public void NullableClassConstraint_06()
         {
             var tree = UsingNode(@"
 class C<T> where T : struct? {}

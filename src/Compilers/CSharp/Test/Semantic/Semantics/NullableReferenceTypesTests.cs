@@ -3328,7 +3328,7 @@ class C3
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (6,5): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (6,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     T? F2<T>() => throw null;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(6, 5),
                 // (6,5): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
@@ -3337,10 +3337,10 @@ class C3
                 // (8,5): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     T? F4<T>() where T : class => throw null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(8, 5),
-                // (17,5): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (17,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     T? F2<T>() => throw null;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(17, 5),
-                // (28,5): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (28,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     T? F2<T>() => throw null;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(28, 5),
                 // (17,5): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
@@ -3803,7 +3803,7 @@ class B : A
                 // (11,26): error CS0506: 'B.M1<T>(T?)': cannot override inherited member 'A.M1<T>(T)' because it is not marked virtual, abstract, or override
                 //     public override void M1<T>(T? x) where T : struct
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M1").WithArguments("B.M1<T>(T?)", "A.M1<T>(T)").WithLocation(11, 26),
-                // (11,32): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (11,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public override void M1<T>(T? x) where T : struct
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? x").WithLocation(11, 32)
                 );
@@ -3860,7 +3860,7 @@ class B : A
 ";
             var compilation = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             compilation.VerifyDiagnostics(
-                // (8,23): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (8,23): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public void M2<T>(T? x) 
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? x").WithLocation(8, 23),
                 // (27,26): error CS0506: 'B.M2<T>(T?)': cannot override inherited member 'A.M2<T>(T?)' because it is not marked virtual, abstract, or override
@@ -3875,16 +3875,16 @@ class B : A
                 // (23,26): error CS0506: 'B.M1<T>(T?)': cannot override inherited member 'A.M1<T>(T)' because it is not marked virtual, abstract, or override
                 //     public override void M1<T>(T? x)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M1").WithArguments("B.M1<T>(T?)", "A.M1<T>(T)").WithLocation(23, 26),
-                // (23,32): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (23,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public override void M1<T>(T? x)
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? x").WithLocation(23, 32),
-                // (27,32): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (27,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public override void M2<T>(T? x)
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? x").WithLocation(27, 32),
-                // (31,32): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (31,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public override void M3<T>(T? x)
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? x").WithLocation(31, 32),
-                // (35,32): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (35,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public override void M4<T>(T? x)
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? x").WithLocation(35, 32)
                 );
@@ -3931,7 +3931,7 @@ class B : A
                 // (11,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
                 //     public override void M1<T>(T? x)
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(11, 26),
-                // (11,32): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (11,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public override void M1<T>(T? x)
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? x").WithLocation(11, 32)
                 );
@@ -4524,10 +4524,10 @@ public class Class<T> : Base<T>
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (7,20): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (7,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public virtual List<T?> P { get; set; } = default;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "List<T?>").WithLocation(7, 20),
-                // (12,21): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (12,21): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public override List<T?> P { get; set; } = default;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "List<T?>").WithLocation(12, 21),
                 // (12,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
@@ -34458,7 +34458,7 @@ class C
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,20): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (4,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static T F1<T>(I<T?> t)
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "I<T?> t").WithLocation(4, 20),
                 // (10,12): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 't' in 'string C.F1<string>(I<string?> t)'.
@@ -36392,7 +36392,7 @@ class B
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             // PROTOTYPE(NullableReferenceTypes): Various differences from expected warnings.
             comp.VerifyDiagnostics(
-                // (29,39): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (29,39): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static void F5<T>(T t5) where T : I<T?>
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "I<T?>").WithLocation(29, 39),
                 // (11,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -36637,13 +36637,13 @@ class B<T1> where T1 : class?
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (9,31): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (9,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F2<T2>(T2? t2) where T2 : class?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T2? t2").WithLocation(9, 31),
-                // (6,27): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (6,27): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F1(T1? t1)
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T1? t1").WithLocation(6, 27),
-                // (11,21): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (11,21): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         void F3<T3>(T3? t3) where T3 : class?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T3? t3").WithLocation(11, 21)
             );
@@ -36670,10 +36670,10 @@ class B
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,37): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (4,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F1<T11, T12>(T12? t1) where T11 : class where T12 : T11
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T12? t1").WithLocation(4, 37),
-                // (13,37): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (13,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F4<T41, T42>(T42? t1) where T41 : B where T42 : T41?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T42? t1").WithLocation(13, 37)
             );
@@ -36700,19 +36700,19 @@ class B<T11, T12> where T12 : T11?
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,31): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class B<T11, T12> where T12 : T11?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T11?").WithLocation(4, 31),
-                // (6,51): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (6,51): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F2<T21, T22>() where T22 : T21?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T21?").WithLocation(6, 51),
-                // (8,41): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (8,41): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         void F3<T31, T32>() where T32 : T31?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T31?").WithLocation(8, 41),
                 // (13,27): error CS0454: Circular constraint dependency involving 'T4' and 'T4'
                 //     public static void F4<T4>() where T4 : T4?
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "T4").WithArguments("T4", "T4").WithLocation(13, 27),
-                // (13,44): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (13,44): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F4<T4>() where T4 : T4?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T4?").WithLocation(13, 44)
             );
@@ -36740,7 +36740,7 @@ class Node<T>
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,44): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,44): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T3>() where T3 : Node<T3?>?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "Node<T3?>?").WithLocation(10, 44)
             );
@@ -36808,7 +36808,7 @@ class Node<T>
                 // (10,52): error CS0450: 'Node<T3?>': cannot specify both a constraint class and the 'class' or 'struct' constraint
                 //     public static void F3<T3>() where T3 : class?, Node<T3?>?
                 Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "Node<T3?>?").WithArguments("Node<T3?>").WithLocation(10, 52),
-                // (10,52): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,52): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T3>() where T3 : class?, Node<T3?>?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "Node<T3?>?").WithLocation(10, 52),
                 // (4,52): error CS0450: 'Node<T1>': cannot specify both a constraint class and the 'class' or 'struct' constraint
@@ -36839,10 +36839,10 @@ interface INode<T>
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,44): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (7,44): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F2<T2>() where T2 : INode<T2?>
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "INode<T2?>").WithLocation(7, 44),
-                // (10,44): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,44): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T3>() where T3 : INode<T3?>?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "INode<T3?>?").WithLocation(10, 44)
             );
@@ -36895,7 +36895,7 @@ interface INode<T>
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,52): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,52): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T3>() where T3 : class?, INode<T3?>?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "INode<T3?>?").WithLocation(10, 52)
             );
@@ -36929,13 +36929,13 @@ interface INode<T>
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,83): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,83): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T31, T32>() where T31 : INode? where T32 : class?, T31, INode<T32?>?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "INode<T32?>?").WithLocation(10, 83),
-                // (13,78): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (13,78): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F4<T41, T42>() where T41 : INode? where T42 : class?, T41?, INode<T42?>?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T41?").WithLocation(13, 78),
-                // (13,84): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (13,84): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F4<T41, T42>() where T41 : INode? where T42 : class?, T41?, INode<T42?>?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "INode<T42?>?").WithLocation(13, 84)
             );
@@ -36963,13 +36963,13 @@ interface INode
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,37): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (7,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F2<T21, T22>(T22? t2) where T21 : INode? where T22 : class?, T21
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T22? t2").WithLocation(7, 37),
-                // (10,37): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T31, T32>(T32? t1) where T31 : INode where T32 : class?, T31?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T32? t1").WithLocation(10, 37),
-                // (10,84): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,84): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T31, T32>(T32? t1) where T31 : INode where T32 : class?, T31?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T31?").WithLocation(10, 84)
             );
@@ -37363,7 +37363,7 @@ class B : IA
 }
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Should probably warn on constrints mismatch for an implicit interafce implementation.
+            // PROTOTYPE(NullableReferenceTypes): Should probably warn on constraints mismatch for an implicit interface implementation.
             comp.VerifyDiagnostics(
             );
 
@@ -38476,19 +38476,19 @@ class P
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (2,11): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (2,11): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // interface IB<T> : IA<T?> { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "IB").WithLocation(2, 11),
-                // (5,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (5,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class B<T> : A<(T, T?)> { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "B").WithLocation(5, 7),
-                // (6,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (6,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class C<T, U, V> : A<T?>, IA<U>, IC<V> { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C").WithLocation(6, 7),
-                // (7,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (7,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class D<T, U, V> : A<T>, IA<U?>, IC<V> { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "D").WithLocation(7, 7),
-                // (8,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (8,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class E<T, U, V> : A<T>, IA<U>, IC<V?> { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "E").WithLocation(8, 7));
         }
@@ -38505,10 +38505,10 @@ class B
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (1,29): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (1,29): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // interface I<T, U> where U : T? { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(1, 29),
-                // (5,37): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (5,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static void F<T, U>() where U : A<T?> { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "A<T?>").WithLocation(5, 37)
                 );
@@ -38539,28 +38539,28 @@ class B<T>
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             // PROTOTYPE(NullableReferenceTypes): Report error for `const object c = default(T?[]);`.
             comp.VerifyDiagnostics(
-                // (5,10): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (5,10): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // delegate T? D<T>();
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(5, 10),
-                // (12,8): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (12,8): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     T? F;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "F").WithLocation(12, 8),
-                // (13,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (13,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     B(T? t) { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? t").WithLocation(13, 7),
-                // (14,22): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (14,22): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static void M<U>(T? t, U? u) { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? t").WithLocation(14, 22),
-                // (14,28): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (14,28): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static void M<U>(T? t, U? u) { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U? u").WithLocation(14, 28),
-                // (15,12): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (15,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static B<T?> P { get; set; }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "B<T?>").WithLocation(15, 12),
-                // (16,28): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (16,28): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     event EventHandler<T?> E;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "E").WithLocation(16, 28),
-                // (17,37): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (17,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static explicit operator A<T?>(B<T> t) => throw null;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "A<T?>").WithLocation(17, 37));
         }
@@ -38593,16 +38593,16 @@ class C
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (16,12): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (16,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static U?[] F2<T, U>() where T : class where U : T => throw null;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?[]").WithLocation(16, 12),
-                // (18,12): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (18,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static U?[] F4<T, U>() where T : new() where U : T => throw null; // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?[]").WithLocation(18, 12),
-                // (20,12): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (20,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static U?[] F6<T, U>() where T : I where U : T => throw null; // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?[]").WithLocation(20, 12),
-                // (15,12): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (15,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static U?[] F1<T, U>() where U : T => throw null; // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?[]").WithLocation(15, 12),
                 // (17,23): error CS0456: Type parameter 'T' has the 'struct' constraint so 'T' cannot be used as a constraint for 'U'
@@ -38611,13 +38611,13 @@ class C
                 // (19,23): error CS8379: Type parameter 'T' has the 'unmanaged' constraint so 'T' cannot be used as a constraint for 'U'
                 //     static U?[] F5<T, U>() where T : unmanaged where U : T => throw null;
                 Diagnostic(ErrorCode.ERR_ConWithUnmanagedCon, "U").WithArguments("U", "T").WithLocation(19, 23),
-                // (8,12): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (8,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static T? F4<T>() where T : new() => throw null; // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 12),
-                // (10,12): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static T? F6<T>() where T : I => throw null; // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(10, 12),
-                // (5,12): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (5,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static T? F1<T>() => throw null; // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(5, 12));
         }
@@ -38649,22 +38649,22 @@ class B : A
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (4,34): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (4,34): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     internal abstract void F1<T>(T? t); // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? t").WithLocation(4, 34),
-                // (7,34): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (7,34): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     internal abstract void F4<T>(T? t) where T : new(); // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? t").WithLocation(7, 34),
-                // (9,34): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (9,34): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     internal abstract void F6<T>(T? t) where T : I; // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? t").WithLocation(9, 34),
-                // (14,34): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (14,34): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     internal override void F1<U>(U? u) { } // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U? u").WithLocation(14, 34),
-                // (17,34): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (17,34): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     internal override void F4<U>(U? u) { } // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U? u").WithLocation(17, 34),
-                // (19,34): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (19,34): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     internal override void F6<U>(U? u) { } // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U? u").WithLocation(19, 34));
         }
@@ -38685,10 +38685,10 @@ class C
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (9,23): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (9,23): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static void F2<T>(A<T?>.E[] e) { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "A<T?>.E[] e").WithLocation(9, 23),
-                // (8,23): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (8,23): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static void F1<T>(A<T?>.I  i) { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "A<T?>.I  i").WithLocation(8, 23));
         }
@@ -38728,7 +38728,7 @@ class C
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (7,12): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (7,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         F((T? t) => { });
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? t").WithLocation(7, 12));
         }
@@ -38751,10 +38751,10 @@ class C
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (6,9): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         T? L1() => throw null;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(6, 9),
-                // (10,20): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         void L2<T>(T?[] t) { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?[] t").WithLocation(10, 20));
         }
@@ -38893,7 +38893,7 @@ class E<T> where T : A, T? { }";
                 // (2,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 // class B<T> where T : T? { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(2, 9),
-                // (2,22): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (2,22): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class B<T> where T : T? { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(2, 22),
                 // (3,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
@@ -38935,13 +38935,13 @@ class E<T, U>
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (2,15): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (2,15): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     where U : T?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(2, 15),
-                // (11,15): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (11,15): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     where T : U?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(11, 15),
-                // (12,15): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (12,15): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     where U : T?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(12, 15),
                 // (10,9): error CS0454: Circular constraint dependency involving 'T' and 'U'
@@ -38975,13 +38975,13 @@ delegate void D3<T3, U3>()
                 // (1,25): error CS0405: Duplicate constraint 'T' for type parameter 'T'
                 // class A<T> where T : T, T? { }
                 Diagnostic(ErrorCode.ERR_DuplicateBound, "T?").WithArguments("T", "T").WithLocation(1, 25),
-                // (1,25): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (1,25): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class A<T> where T : T, T? { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(1, 25),
                 // (1,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 // class A<T> where T : T, T? { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(1, 9),
-                // (2,22): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (2,22): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class B<U> where U : U?, U { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(2, 22),
                 // (2,26): error CS0405: Duplicate constraint 'U' for type parameter 'U'
@@ -38990,13 +38990,13 @@ delegate void D3<T3, U3>()
                 // (2,9): error CS0454: Circular constraint dependency involving 'U' and 'U'
                 // class B<U> where U : U?, U { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "U").WithArguments("U", "U").WithLocation(2, 9),
-                // (3,22): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (3,22): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class C<V> where V : V?, V? { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "V?").WithLocation(3, 22),
                 // (3,26): error CS0405: Duplicate constraint 'V' for type parameter 'V'
                 // class C<V> where V : V?, V? { }
                 Diagnostic(ErrorCode.ERR_DuplicateBound, "V?").WithArguments("V", "V").WithLocation(3, 26),
-                // (3,26): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (3,26): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class C<V> where V : V?, V? { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "V?").WithLocation(3, 26),
                 // (3,9): error CS0454: Circular constraint dependency involving 'V' and 'V'
@@ -39005,10 +39005,10 @@ delegate void D3<T3, U3>()
                 // (5,20): error CS0405: Duplicate constraint 'T1' for type parameter 'U1'
                 //     where U1 : T1, T1?;
                 Diagnostic(ErrorCode.ERR_DuplicateBound, "T1?").WithArguments("T1", "U1").WithLocation(5, 20),
-                // (5,20): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (5,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     where U1 : T1, T1?;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T1?").WithLocation(5, 20),
-                // (7,23): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (7,23): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     where U2 : class, T2?, T2;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T2?").WithLocation(7, 23),
                 // (7,28): error CS0405: Duplicate constraint 'T2' for type parameter 'U2'
@@ -39045,13 +39045,13 @@ class B
                 // (7,20): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 //     static void F4<T>() where T : A, T? { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(7, 20),
-                // (8,38): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (8,38): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static void F5<T, U>() where U : T? { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 38),
                 // (10,55): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //     static void F7<T, U>() where T : struct where U : T? { }
                 Diagnostic(ErrorCode.ERR_BadBoundType, "T?").WithArguments("T?").WithLocation(10, 55),
-                // (4,35): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (4,35): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static void F1<T>() where T : T? { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(4, 35),
                 // (4,20): error CS0454: Circular constraint dependency involving 'T' and 'T'
@@ -39080,7 +39080,7 @@ class B
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (7,32): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (7,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         void F1<T>() where T : T? { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(7, 32),
                 // (7,17): error CS0454: Circular constraint dependency involving 'T' and 'T'
@@ -39095,7 +39095,7 @@ class B
                 // (10,17): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 //         void F4<T>() where T : A, T? { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(10, 17),
-                // (11,35): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (11,35): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         void F5<T, U>() where U : T? { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(11, 35),
                 // (13,52): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
@@ -39358,13 +39358,13 @@ class C4<T, U> : I<T?>, I<U?> { }";
                 // (5,7): error CS0695: 'C4<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
                 // class C4<T, U> : I<T?>, I<U?> { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I<T?>", "I<U?>").WithLocation(5, 7),
-                // (4,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (4,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class C3<T, U> : I<T?>, I<U> { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C3").WithLocation(4, 7),
-                // (5,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (5,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class C4<T, U> : I<T?>, I<U?> { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C4").WithLocation(5, 7),
-                // (3,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (3,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class C2<T, U> : I<T>, I<U?> { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C2").WithLocation(3, 7));
         }
@@ -39386,7 +39386,7 @@ class C4<T, U> : I<T?>, I<U?> where T : struct { }";
                 // (3,7): error CS0695: 'C2<T, U>' cannot implement both 'I<T>' and 'I<U?>' because they may unify for some type parameter substitutions
                 // class C2<T, U> : I<T>, I<U?> where T : struct { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T, U>", "I<T>", "I<U?>").WithLocation(3, 7),
-                // (3,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (3,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class C2<T, U> : I<T>, I<U?> where T : struct { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C2").WithLocation(3, 7),
                 // (4,7): error CS0695: 'C3<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
@@ -39395,7 +39395,7 @@ class C4<T, U> : I<T?>, I<U?> where T : struct { }";
                 // (5,7): error CS0695: 'C4<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
                 // class C4<T, U> : I<T?>, I<U?> where T : struct { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I<T?>", "I<U?>").WithLocation(5, 7),
-                // (5,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (5,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class C4<T, U> : I<T?>, I<U?> where T : struct { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C4").WithLocation(5, 7));
         }
@@ -39417,7 +39417,7 @@ class C4<T, U> : I<T?>, I<U?> where T : class { }";
                 // (3,7): error CS0695: 'C2<T, U>' cannot implement both 'I<T>' and 'I<U?>' because they may unify for some type parameter substitutions
                 // class C2<T, U> : I<T>, I<U?> where T : class { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T, U>", "I<T>", "I<U?>").WithLocation(3, 7),
-                // (3,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (3,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class C2<T, U> : I<T>, I<U?> where T : class { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C2").WithLocation(3, 7),
                 // (4,7): error CS0695: 'C3<T, U>' cannot implement both 'I<T?>' and 'I<U>' because they may unify for some type parameter substitutions
@@ -39426,7 +39426,7 @@ class C4<T, U> : I<T?>, I<U?> where T : class { }";
                 // (5,7): error CS0695: 'C4<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
                 // class C4<T, U> : I<T?>, I<U?> where T : class { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I<T?>", "I<U?>").WithLocation(5, 7),
-                // (5,7): error CS8627: A nullable type parameter must be known to be a value or not nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (5,7): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class C4<T, U> : I<T?>, I<U?> where T : class { }
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C4").WithLocation(5, 7));
         }

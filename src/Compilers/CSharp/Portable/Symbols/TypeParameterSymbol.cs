@@ -435,14 +435,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool ConstraintImpliesIsNotNullableIfReferenceType(TypeSymbolWithAnnotations constraint, ConsList<TypeParameterSymbol> inProgress)
         {
-            if (constraint.TypeKind == TypeKind.TypeParameter)
+            if (constraint.IsAnnotated)
             {
-                return !constraint.IsAnnotated && ((TypeParameterSymbol)constraint.TypeSymbol).GetIsNotNullableIfReferenceType(inProgress);
+                return false;
             }
-            else
-            {
-                return !constraint.IsAnnotated;
-            }
+
+            return constraint.TypeKind != TypeKind.TypeParameter ||
+                   ((TypeParameterSymbol)constraint.TypeSymbol).GetIsNotNullableIfReferenceType(inProgress);
         }
 
         // From typedesc.cpp :
