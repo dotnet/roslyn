@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using static Microsoft.VisualStudio.LanguageServices.Implementation.Options.ToolsOptionsExportEditorConfigHelper;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -352,23 +352,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     default:
                         throw new NotSupportedException();
                 }
-            }
-        }
-
-        internal static void AppendName(string name, StringBuilder editorconfig)
-        {
-            editorconfig.Append(name + " = ");
-        }
-
-        internal static string NotificationOptionToString(NotificationOption notificationOption)
-        {
-            if (notificationOption == NotificationOption.Silent)
-            {
-                return "refactoring_only";
-            }
-            else
-            {
-                return notificationOption.ToString().ToLowerInvariant();
             }
         }
     }

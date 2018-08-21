@@ -31,23 +31,23 @@ insert_final_newline = false
 dotnet_sort_system_directives_first = true
 
 # Me. preferences:
-dotnet_style_qualification_for_field = false:refactoring_only
-dotnet_style_qualification_for_property = false:refactoring_only
-dotnet_style_qualification_for_method = false:refactoring_only
-dotnet_style_qualification_for_event = false:refactoring_only
+dotnet_style_qualification_for_field = false:silent
+dotnet_style_qualification_for_property = false:silent
+dotnet_style_qualification_for_method = false:silent
+dotnet_style_qualification_for_event = false:silent
 
 # Language keywords vs BCL types preferences:
-dotnet_style_predefined_type_for_locals_parameters_members = true:refactoring_only
-dotnet_style_predefined_type_for_member_access = true:refactoring_only
+dotnet_style_predefined_type_for_locals_parameters_members = true:silent
+dotnet_style_predefined_type_for_member_access = true:silent
 
 # Parentheses preferences:
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:refactoring_only
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:refactoring_only
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:refactoring_only
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary:refactoring_only
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
 
 # Modifier preferences:
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:refactoring_only
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
 dotnet_style_readonly_field = true:suggestion
 
 # Expression-level preferences:
@@ -59,13 +59,13 @@ dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:refactoring_only
-dotnet_style_prefer_conditional_expression_over_assignment = true:refactoring_only
-dotnet_style_prefer_conditional_expression_over_return = true:refactoring_only
+dotnet_style_prefer_auto_properties = true:silent
+dotnet_style_prefer_conditional_expression_over_assignment = true:silent
+dotnet_style_prefer_conditional_expression_over_return = true:silent
 
 # VB Coding Conventions
 # Modifier preferences:
-visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:refactoring_only
+visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:silent
 "
                 Dim actualText = New StringBuilder()
                 VisualBasic.Options.Formatting.CodeStylePage.Generate_Editorconfig(workspace.Options, LanguageNames.VisualBasic, actualText)
@@ -93,23 +93,23 @@ insert_final_newline = false
 dotnet_sort_system_directives_first = true
 
 # Me. preferences:
-dotnet_style_qualification_for_field = false:refactoring_only
-dotnet_style_qualification_for_property = false:refactoring_only
-dotnet_style_qualification_for_method = false:refactoring_only
-dotnet_style_qualification_for_event = false:refactoring_only
+dotnet_style_qualification_for_field = false:silent
+dotnet_style_qualification_for_property = false:silent
+dotnet_style_qualification_for_method = false:silent
+dotnet_style_qualification_for_event = false:silent
 
 # Language keywords vs BCL types preferences:
-dotnet_style_predefined_type_for_locals_parameters_members = true:refactoring_only
-dotnet_style_predefined_type_for_member_access = true:refactoring_only
+dotnet_style_predefined_type_for_locals_parameters_members = true:silent
+dotnet_style_predefined_type_for_member_access = true:silent
 
 # Parentheses preferences:
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:refactoring_only
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:refactoring_only
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:refactoring_only
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary:refactoring_only
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
 
 # Modifier preferences:
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:refactoring_only
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
 dotnet_style_readonly_field = true:suggestion
 
 # Expression-level preferences:
@@ -121,13 +121,13 @@ dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:refactoring_only
-dotnet_style_prefer_conditional_expression_over_assignment = true:refactoring_only
-dotnet_style_prefer_conditional_expression_over_return = true:refactoring_only
+dotnet_style_prefer_auto_properties = true:silent
+dotnet_style_prefer_conditional_expression_over_assignment = true:silent
+dotnet_style_prefer_conditional_expression_over_return = true:silent
 
 # VB Coding Conventions
 # Modifier preferences:
-visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:refactoring_only
+visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator:silent
 "
                 Dim actualText = New StringBuilder()
                 VisualBasic.Options.Formatting.CodeStylePage.Generate_Editorconfig(changedOptions, LanguageNames.VisualBasic, actualText)

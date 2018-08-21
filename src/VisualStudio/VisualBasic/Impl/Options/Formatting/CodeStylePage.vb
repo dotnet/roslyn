@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options.ToolsOptionsExportEditorConfigHelper
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
     <Guid(Guids.VisualBasicOptionPageCodeStyleIdString)>
@@ -33,10 +34,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
         Private Shared Sub VBCodeStyleOptions_GenerateEditorconfig(ByVal optionSet As OptionSet, ByVal [option] As [Option](Of CodeStyleOption(Of String)), ByVal editorconfig As StringBuilder)
             Dim element = [option].StorageLocations.OfType(Of EditorConfigStorageLocation(Of CodeStyleOption(Of String)))().FirstOrDefault()
             If element IsNot Nothing Then
-                GridOptionPreviewControl.AppendName(element.KeyName, editorconfig)
+                AppendName(element.KeyName, editorconfig)
 
                 Dim curSetting = optionSet.GetOption([option])
-                editorconfig.AppendLine(curSetting.Value + ":" + GridOptionPreviewControl.NotificationOptionToString(curSetting.Notification))
+                editorconfig.AppendLine(curSetting.Value + ":" + NotificationOptionToString(curSetting.Notification))
             End If
         End Sub
     End Class

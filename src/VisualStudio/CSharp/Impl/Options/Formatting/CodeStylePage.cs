@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -12,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using static Microsoft.VisualStudio.LanguageServices.Implementation.Options.ToolsOptionsExportEditorConfigHelper;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 {
@@ -156,10 +156,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             var element = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
             if (element != null)
             {
-                GridOptionPreviewControl.AppendName(element.KeyName, editorconfig);
+                AppendName(element.KeyName, editorconfig);
 
                 var curSetting = optionSet.GetOption(option, LanguageNames.CSharp);
-                editorconfig.AppendLine(curSetting.Value.ToString().ToLower() + ":" + GridOptionPreviewControl.NotificationOptionToString(curSetting.Notification));
+                editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + NotificationOptionToString(curSetting.Notification));
             }
         }
 
@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             var element = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<T>>>().FirstOrDefault();
             if (element != null)
             {
-                GridOptionPreviewControl.AppendName(element.KeyName, editorconfig);
+                AppendName(element.KeyName, editorconfig);
 
                 var curSetting = optionSet.GetOption(option);
                 if (typeof(T) == typeof(ExpressionBodyPreference))
@@ -176,13 +176,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
                     switch((ExpressionBodyPreference)(object) curSetting.Value)
                     {
                         case ExpressionBodyPreference.Never:
-                            editorconfig.AppendLine("false" + ":" + GridOptionPreviewControl.NotificationOptionToString(curSetting.Notification));
+                            editorconfig.AppendLine("false" + ":" + NotificationOptionToString(curSetting.Notification));
                             break;
                         case ExpressionBodyPreference.WhenPossible:
-                            editorconfig.AppendLine("true" + ":" + GridOptionPreviewControl.NotificationOptionToString(curSetting.Notification));
+                            editorconfig.AppendLine("true" + ":" + NotificationOptionToString(curSetting.Notification));
                             break;
                         case ExpressionBodyPreference.WhenOnSingleLine:
-                            editorconfig.AppendLine("when_on_single_line" + ":" + GridOptionPreviewControl.NotificationOptionToString(curSetting.Notification));
+                            editorconfig.AppendLine("when_on_single_line" + ":" + NotificationOptionToString(curSetting.Notification));
                             break;
                         default:
                             throw new NotSupportedException();
@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
                 }
                 else if (typeof(T) == typeof(bool) || typeof(T) == typeof(string))
                 {
-                    editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + GridOptionPreviewControl.NotificationOptionToString(curSetting.Notification));
+                    editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + NotificationOptionToString(curSetting.Notification));
                 }
                 else
                 {
@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             var element = option.StorageLocations.OfType<EditorConfigStorageLocation<T>>().FirstOrDefault();
             if (element != null)
             {
-                GridOptionPreviewControl.AppendName(element.KeyName, editorconfig);
+                AppendName(element.KeyName, editorconfig);
 
                 var curSetting = optionSet.GetOption(option);
                 if (typeof(T) == typeof(LabelPositionOptions))
@@ -257,10 +257,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             var element = CSharpFormattingOptions.SpaceWithinOtherParentheses.StorageLocations.OfType<EditorConfigStorageLocation<bool>>().FirstOrDefault();
             if (element != null)
             {
-                GridOptionPreviewControl.AppendName(element.KeyName, editorconfig);
+                AppendName(element.KeyName, editorconfig);
 
-                var valuesApplied = JoinMultipleValues(OptionToValue(), optionSet, editorconfig);
-
+                var valuesApplied = JoinMultipleValues(CSharpSpaceBetweenParentheses_OptionToValue, optionSet, editorconfig);
                 if (valuesApplied == 0)
                 {
                     editorconfig.AppendLine("false");
@@ -270,26 +269,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
                     editorconfig.AppendLine();
                 }
             }
-
-            Dictionary<Option<bool>, string> OptionToValue()
-            {
-                return new Dictionary<Option<bool>, string>()
-                {
-                { CSharpFormattingOptions.SpaceWithinOtherParentheses, "control_flow_statements" },
-                { CSharpFormattingOptions.SpaceWithinExpressionParentheses, "expressions" },
-                { CSharpFormattingOptions.SpaceWithinCastParentheses, "type_casts" }
-                };
-            }
         }
+
+        internal static Dictionary<Option<bool>, string> CSharpSpaceBetweenParentheses_OptionToValue = new Dictionary<Option<bool>, string>()
+        {
+            { CSharpFormattingOptions.SpaceWithinOtherParentheses, "control_flow_statements" },
+            { CSharpFormattingOptions.SpaceWithinExpressionParentheses, "expressions" },
+            { CSharpFormattingOptions.SpaceWithinCastParentheses, "type_casts" }
+        };
 
         private static void CSharpNewLineBeforeOpenBrace_GenerateEditorconfig(OptionSet optionSet, StringBuilder editorconfig)
         {
             var element = CSharpFormattingOptions.NewLinesForBracesInAccessors.StorageLocations.OfType<EditorConfigStorageLocation<bool>>().FirstOrDefault();
             if (element != null)
             {
-                GridOptionPreviewControl.AppendName(element.KeyName, editorconfig);
+                AppendName(element.KeyName, editorconfig);
 
-                var allOptions = OptionToValue();
+                var allOptions = CSharpNewLineBeforeOpenBrace_OptionToValue;
                 var ruleString = new StringBuilder();
                 var valuesApplied = JoinMultipleValues(allOptions, optionSet, ruleString);
 
@@ -306,40 +302,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
                     editorconfig.AppendLine(ruleString.ToString());
                 }
             }
-
-            Dictionary<Option<bool>, string> OptionToValue()
-            {
-                return new Dictionary<Option<bool>, string>()
-                {
-                { CSharpFormattingOptions.NewLinesForBracesInAccessors, "accessors" },
-                { CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, "anonymous_methods" },
-                { CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, "anonymous_types" },
-                { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, "control_blocks" },
-                { CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, "lambdas" },
-                { CSharpFormattingOptions.NewLinesForBracesInMethods, "methods" },
-                { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, "object_collection" },
-                { CSharpFormattingOptions.NewLinesForBracesInProperties, "properties" },
-                { CSharpFormattingOptions.NewLinesForBracesInTypes, "types" }
-                };
-            }
         }
 
-        private static int JoinMultipleValues(Dictionary<Option<bool>, string> allOptions, OptionSet optionSet, StringBuilder ruleString)
+        internal static Dictionary<Option<bool>, string> CSharpNewLineBeforeOpenBrace_OptionToValue = new Dictionary<Option<bool>, string>()
         {
-            var valuesApplied = 0;
-            foreach (var curValue in allOptions)
-            {
-                if (optionSet.GetOption(curValue.Key))
-                {
-                    if (ruleString.Length != 0)
-                    {
-                        ruleString.Append(",");
-                    }
-                    ruleString.Append(curValue.Value);
-                    ++valuesApplied;
-                }
-            }
-            return valuesApplied;
-        }
+            { CSharpFormattingOptions.NewLinesForBracesInAccessors, "accessors" },
+            { CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, "anonymous_methods" },
+            { CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, "anonymous_types" },
+            { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, "control_blocks" },
+            { CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, "lambdas" },
+            { CSharpFormattingOptions.NewLinesForBracesInMethods, "methods" },
+            { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, "object_collection" },
+            { CSharpFormattingOptions.NewLinesForBracesInProperties, "properties" },
+            { CSharpFormattingOptions.NewLinesForBracesInTypes, "types" }
+        };
     }
 }
