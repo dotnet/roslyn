@@ -324,7 +324,7 @@ function Build-InsertionItems() {
         $packageOutDir = Join-Path $configDir "DevDivPackages\Roslyn"
         Create-Directory $packageOutDir
 
-        Copy-Item (Join-Path $configDir "NuGet\NonShipping\VS.*.nupkg") -Destination $vsixExpInstallerExeDestination
+        Copy-Item (Join-Path $configDir "NuGet\NonShipping\VS.*.nupkg") -Destination $packageOutDir
 
         Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" -buildArgs $extraArgs

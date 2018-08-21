@@ -146,7 +146,7 @@ then
     rm -rf ${bootstrap_path}
     mkdir -p ${bootstrap_path} 
 
-    local project_path=src/NuGet/Microsoft.NETCore.Compilers/Microsoft.NETCore.Compilers.Package.csproj
+    project_path=src/NuGet/Microsoft.NETCore.Compilers/Microsoft.NETCore.Compilers.Package.csproj
 
     dotnet pack -nologo ${project_path} /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=${bootstrap_path}
     unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.*.nupkg -d ${bootstrap_path}
