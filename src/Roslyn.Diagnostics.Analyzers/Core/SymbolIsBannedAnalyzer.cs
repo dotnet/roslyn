@@ -38,7 +38,6 @@ namespace Roslyn.Diagnostics.Analyzers
             description: RoslynDiagnosticsAnalyzersResources.DuplicateBannedSymbolDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(SymbolIsBannedRule, DuplicateBannedSymbolRule);
 
@@ -166,7 +165,14 @@ namespace Roslyn.Diagnostics.Analyzers
                 return false;
             }
 
-            apiData = ReadApiData(apiText.Path, apiText.GetText(cancellationToken));
+            var sourceText = apiText.GetText(cancellationToken);
+            if (sourceText == null)
+            {
+                apiData = default(ApiData);
+                return false;
+            }
+
+            apiData = ReadApiData(apiText.Path, sourceText);
             return true;
         }
 

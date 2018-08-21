@@ -51,6 +51,12 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         }
 
         [Fact]
+        public void NoDiagnosticForInvalidBannedText()
+        {
+            VerifyCSharp(source: "", bannedApiText: null);
+        }
+
+        [Fact]
         public void DiagnosticReportedForDuplicateBannedApiLines()
         {
             var source = @"";
