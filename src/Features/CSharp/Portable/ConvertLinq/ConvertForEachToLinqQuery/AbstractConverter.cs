@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         {
             var foreachStatement = ForEachInfo.ForEachStatement;
             selectExpression = selectExpression.WithCommentsFrom(leadingTokensForSelect, ForEachInfo.TrailingTokens.Concat(trailingTokensForSelect));
-            int currentExtendedNodeIndex = 0;
+            var currentExtendedNodeIndex = 0;
 
             return CreateLinqInvocation(
                 foreachStatement,
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             // OUTPUT:
             //   c1.SelectMany(n1 => c2.Where(n2 => n1 > n2).Select(n2 => n1 + n2))
             //
-            bool hasForEachChild = false;
+            var hasForEachChild = false;
             var lambdaBody = CreateLinqInvocationForExtendedNode(selectExpression, ref currentExtendedNodeIndex, ref receiverForInvocation, ref hasForEachChild);
             var lambda = SyntaxFactory.SimpleLambdaExpression(
                 SyntaxFactory.Parameter(
@@ -194,6 +194,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     SyntaxFactory.Argument(lambda))));
         }
 
+        /// <summary>
+        /// Creates a linq invocation expression for the <see cref="ForEachInfo.ConvertingExtendedNodes"/> node at the given index <paramref name="extendedNodeIndex"/>
+        /// or returns the <paramref name="selectExpression"/> if all extended nodes have been processed.
+        /// </summary>
+        /// <param name="selectExpression">Innermost select expression</param>
+        /// <param name="extendedNodeIndex">Index into <see cref="ForEachInfo.ConvertingExtendedNodes"/> to be processed and updated.</param>
+        /// <param name="receiver">Receiver for the generated linq invocation. Updated when processing an if statement.</param>
+        /// <param name="hasForEachChild">Flag indicating if any of the processed <see cref="ForEachInfo.ConvertingExtendedNodes"/> is a <see cref="ForEachStatementSyntax"/>.</param>
         private ExpressionSyntax CreateLinqInvocationForExtendedNode(
             ExpressionSyntax selectExpression,
             ref int extendedNodeIndex,
