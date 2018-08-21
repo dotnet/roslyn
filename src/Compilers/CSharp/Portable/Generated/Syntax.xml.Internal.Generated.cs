@@ -41482,7 +41482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(underscoreToken));
       switch (underscoreToken.Kind)
       {
-        case SyntaxKind.IdentifierToken:
+        case SyntaxKind.UnderscoreToken:
           break;
         default:
           throw new ArgumentException("underscoreToken");
@@ -48663,7 +48663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(underscoreToken));
       switch (underscoreToken.Kind)
       {
-        case SyntaxKind.IdentifierToken:
+        case SyntaxKind.UnderscoreToken:
           break;
         default:
           throw new ArgumentException("underscoreToken");

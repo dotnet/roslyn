@@ -839,7 +839,7 @@ class Program
             case (false, false): return 0;
             case (false, _): return 1;
             case (_, false): return 2;
-            case _: return 3;
+            case var _: return 3;
         }
     }
 }
@@ -887,7 +887,7 @@ class Program
             case (false, _): return 1;
             case (_, false): return 2;
             case (true, true): return 3;
-            case _: return 4;
+            case var _: return 4;
         }
     }
 }
@@ -909,8 +909,8 @@ namespace System
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 // (20,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case _: return 4;
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "_").WithLocation(20, 18)
+                //             case var _: return 4;
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var _").WithLocation(20, 18)
                 );
         }
 
@@ -1123,7 +1123,7 @@ class Program1
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (11,31): error CS8413: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
+                // (11,31): warning CS8413: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
                 //     bool M1(object o) => o is _;                             // error: is type named _
                 Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("Program1._").WithLocation(11, 31),
                 // (5,31): error CS8412: A constant named '_' cannot be used as a pattern.
@@ -1133,6 +1133,25 @@ class Program1
                 //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
                 Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program1._").WithLocation(12, 48),
                 // (6,48): error CS8411: The discard pattern '_' cannot be used where 'Program0._' is in scope.
+                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program0._").WithLocation(6, 48)
+                );
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
+                // (6,26): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(6, 26),
+                // (12,26): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(12, 26),
+                // (11,31): warning CS8513: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
+                //     bool M1(object o) => o is _;                             // error: is type named _
+                Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("Program1._").WithLocation(11, 31),
+                // (12,48): error CS8511: The discard pattern '_' cannot be used where 'Program1._' is in scope.
+                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program1._").WithLocation(12, 48),
+                // (6,48): error CS8511: The discard pattern '_' cannot be used where 'Program0._' is in scope.
                 //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
                 Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program0._").WithLocation(6, 48)
                 );

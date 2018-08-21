@@ -6756,7 +6756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       switch (underscoreToken.Kind())
       {
-        case SyntaxKind.IdentifierToken:
+        case SyntaxKind.UnderscoreToken:
           break;
         default:
           throw new ArgumentException("underscoreToken");
@@ -6764,6 +6764,12 @@ namespace Microsoft.CodeAnalysis.CSharp
       return (DiscardPatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DiscardPattern((Syntax.InternalSyntax.SyntaxToken)underscoreToken.Node).CreateRed();
     }
 
+
+    /// <summary>Creates a new DiscardPatternSyntax instance.</summary>
+    public static DiscardPatternSyntax DiscardPattern()
+    {
+      return SyntaxFactory.DiscardPattern(SyntaxFactory.Token(SyntaxKind.UnderscoreToken));
+    }
 
     /// <summary>Creates a new DeclarationPatternSyntax instance.</summary>
     public static DeclarationPatternSyntax DeclarationPattern(TypeSyntax type, VariableDesignationSyntax designation)

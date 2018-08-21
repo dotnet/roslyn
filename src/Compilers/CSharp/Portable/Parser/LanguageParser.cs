@@ -8017,11 +8017,19 @@ tryAgain:
                         }
                         else
                         {
-                            var node = CheckRecursivePatternFeature(ParseExpressionOrPattern(whenIsKeyword: true, precedence: Precedence.Ternary));
-                            if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword && node is ExpressionSyntax)
+                            var node = CheckRecursivePatternFeature(ParseExpressionOrPattern(whenIsKeyword: true, forSwitchCase: true, precedence: Precedence.Ternary));
+                            if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword)
                             {
-                                // if there is a 'when' token, we treat a case expression as a constant pattern.
-                                node = _syntaxFactory.ConstantPattern((ExpressionSyntax)node);
+                                if (node is ExpressionSyntax)
+                                {
+                                    // if there is a 'when' token, we treat a case expression as a constant pattern.
+                                    node = _syntaxFactory.ConstantPattern((ExpressionSyntax)node);
+                                }
+                            }
+
+                            if (node.Kind == SyntaxKind.DiscardPattern)
+                            {
+                                node = this.AddError(node, ErrorCode.ERR_DiscardPatternInSwitchStatement);
                             }
 
                             if (node is PatternSyntax)

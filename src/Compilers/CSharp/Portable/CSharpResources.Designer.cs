@@ -3545,6 +3545,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The discard pattern is not permitted as a case label in a switch statement. Use &apos;case var _:&apos; for a discard pattern, or &apos;case @_:&apos; for a constant named &apos;_&apos;..
+        /// </summary>
+        internal static string ERR_DiscardPatternInSwitchStatement {
+            get {
+                return ResourceManager.GetString("ERR_DiscardPatternInSwitchStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed discard..
         /// </summary>
         internal static string ERR_DiscardTypeInferenceFailed {

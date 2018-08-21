@@ -167,7 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool wasExpression)
         {
             if (innerExpression.Kind() == SyntaxKind.IdentifierName &&
-                ((IdentifierNameSyntax)innerExpression).Identifier.Text == "_")
+                ((IdentifierNameSyntax)innerExpression).Identifier.Text == "_" &&
+                Compilation.LanguageVersion >= MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
             {
                 diagnostics.Add(ErrorCode.ERR_ConstantPatternNamedUnderscore, innerExpression.Location);
                 hasErrors = true;

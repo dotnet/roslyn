@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
-            bool typeCannotBePattern = tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_";
+            bool typeCannotBePattern = this.CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken;
             // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
             if (LooksLikeTypeOfPattern(tk))
             {
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         /// <param name="whenIsKeyword">prevents the use of "when" for the identifier</param>
         /// <returns></returns>
-        private CSharpSyntaxNode ParseExpressionOrPattern(bool whenIsKeyword, Precedence precedence)
+        private CSharpSyntaxNode ParseExpressionOrPattern(bool whenIsKeyword, bool forSwitchCase, Precedence precedence)
         {
             // handle common error recovery situations during typing
             var tk = this.CurrentToken.Kind;
@@ -337,14 +337,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.ParseIdentifierName(ErrorCode.ERR_MissingPattern);
             }
 
-            if (tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_")
+            if (CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken &&
+                // We permit parsing `case _:` in older language versions
+                !(forSwitchCase && this.Options.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
             {
                 // In a pattern, we reserve `_` as a discard. It cannot be used (with that spelling) as the
-                // type of a declaration or recursive pattern, nor as a type in an is-type expression starting
-                // in C# 8. The binder will give a diagnostic if
-                // there is a usable symbol in scope by that name. You can always escape it, using `@_`.
-                // https://github.com/dotnet/roslyn/issues/27750 Should we use the "contextual keyword" infrastructure for this?
-                return _syntaxFactory.DiscardPattern(this.EatToken(SyntaxKind.IdentifierToken));
+                // type of a declaration or recursive pattern. The binder will give a diagnostic if
+                // there is a usable symbol in scope by that name. You can always escape it, using `@_`,
+                // or force the use of a discard, using `var _`.
+                return _syntaxFactory.DiscardPattern(this.EatContextualToken(SyntaxKind.UnderscoreToken));
             }
 
             var resetPoint = this.GetResetPoint();
@@ -525,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private PatternSyntax ParsePattern(Precedence precedence, bool whenIsKeyword = false)
         {
-            var node = ParseExpressionOrPattern(whenIsKeyword: whenIsKeyword, precedence: precedence);
+            var node = ParseExpressionOrPattern(whenIsKeyword: whenIsKeyword, forSwitchCase: false, precedence: precedence);
             switch (node)
             {
                 case PatternSyntax pattern:
