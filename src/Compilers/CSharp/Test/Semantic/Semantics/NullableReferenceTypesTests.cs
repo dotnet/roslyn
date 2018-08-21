@@ -52,6 +52,7 @@ class C
         [Fact]
         public void TestUnaryNegation()
         {
+            // This test verifies that we no longer crash hitting an assertion
             var source = @"
 public class C<T>
 {
@@ -19151,11 +19152,11 @@ class C
 
     static void Test1()
     {
-        CL0.M1( p1 =>
+        CL0.M1(p1 =>
                 {
                     p1.F1 = null;
                     p1 = null;
-                    return null; // 1
+                    return null;
                 });
     }
 
@@ -19163,9 +19164,9 @@ class C
     {
         System.Func<CL1<CL0>, CL0> l2 = p2 =>
                 {
-                    p2.F1 = null;
-                    p2 = null;
-                    return null; // 2
+                    p2.F1 = null; // 1
+                    p2 = null; // 2
+                    return null; // 3
                 };
     }
 }
@@ -19173,13 +19174,13 @@ class C
 
             c.VerifyDiagnostics(
                 // (20,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //                     p2.F1 = null;
+                //                     p2.F1 = null; // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 29),
                 // (21,26): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //                     p2 = null;
+                //                     p2 = null; // 2
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(21, 26),
                 // (22,28): warning CS8603: Possible null reference return.
-                //                     return null; // 2
+                //                     return null; // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(22, 28)
                 );
         }
