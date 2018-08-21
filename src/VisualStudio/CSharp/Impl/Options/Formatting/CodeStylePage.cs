@@ -259,7 +259,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             {
                 AppendName(element.KeyName, editorconfig);
 
-                var valuesApplied = JoinMultipleValues(CSharpSpaceBetweenParentheses_OptionToValue, optionSet, editorconfig);
+                var allOptions = new Dictionary<Option<bool>, string>()
+                {
+                    { CSharpFormattingOptions.SpaceWithinOtherParentheses, "control_flow_statements" },
+                    { CSharpFormattingOptions.SpaceWithinExpressionParentheses, "expressions" },
+                    { CSharpFormattingOptions.SpaceWithinCastParentheses, "type_casts" }
+                };
+
+                var valuesApplied = JoinMultipleValues(allOptions, optionSet, editorconfig);
                 if (valuesApplied == 0)
                 {
                     editorconfig.AppendLine("false");
@@ -271,13 +278,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             }
         }
 
-        internal static Dictionary<Option<bool>, string> CSharpSpaceBetweenParentheses_OptionToValue = new Dictionary<Option<bool>, string>()
-        {
-            { CSharpFormattingOptions.SpaceWithinOtherParentheses, "control_flow_statements" },
-            { CSharpFormattingOptions.SpaceWithinExpressionParentheses, "expressions" },
-            { CSharpFormattingOptions.SpaceWithinCastParentheses, "type_casts" }
-        };
-
         private static void CSharpNewLineBeforeOpenBrace_GenerateEditorconfig(OptionSet optionSet, StringBuilder editorconfig)
         {
             var element = CSharpFormattingOptions.NewLinesForBracesInAccessors.StorageLocations.OfType<EditorConfigStorageLocation<bool>>().FirstOrDefault();
@@ -285,10 +285,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             {
                 AppendName(element.KeyName, editorconfig);
 
-                var allOptions = CSharpNewLineBeforeOpenBrace_OptionToValue;
+                var allOptions = new Dictionary<Option<bool>, string>()
+                {
+                    { CSharpFormattingOptions.NewLinesForBracesInAccessors, "accessors" },
+                    { CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, "anonymous_methods" },
+                    { CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, "anonymous_types" },
+                    { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, "control_blocks" },
+                    { CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, "lambdas" },
+                    { CSharpFormattingOptions.NewLinesForBracesInMethods, "methods" },
+                    { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, "object_collection" },
+                    { CSharpFormattingOptions.NewLinesForBracesInProperties, "properties" },
+                    { CSharpFormattingOptions.NewLinesForBracesInTypes, "types" }
+                };
+
                 var ruleString = new StringBuilder();
                 var valuesApplied = JoinMultipleValues(allOptions, optionSet, ruleString);
-
                 if (valuesApplied == allOptions.Count())
                 {
                     editorconfig.AppendLine("all");
@@ -303,18 +314,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
                 }
             }
         }
-
-        internal static Dictionary<Option<bool>, string> CSharpNewLineBeforeOpenBrace_OptionToValue = new Dictionary<Option<bool>, string>()
-        {
-            { CSharpFormattingOptions.NewLinesForBracesInAccessors, "accessors" },
-            { CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, "anonymous_methods" },
-            { CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, "anonymous_types" },
-            { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, "control_blocks" },
-            { CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, "lambdas" },
-            { CSharpFormattingOptions.NewLinesForBracesInMethods, "methods" },
-            { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, "object_collection" },
-            { CSharpFormattingOptions.NewLinesForBracesInProperties, "properties" },
-            { CSharpFormattingOptions.NewLinesForBracesInTypes, "types" }
-        };
     }
 }
