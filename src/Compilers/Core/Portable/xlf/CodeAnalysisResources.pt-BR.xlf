@@ -848,11 +848,6 @@
         <target state="translated">Aviso: não foi possível habilitar o JIT multicore devido à exceção: {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>
