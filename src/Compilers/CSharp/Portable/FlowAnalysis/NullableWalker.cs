@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbolWithAnnotations returnType = GetReturnType();
-            VisitOptionalConversion(expr, returnType, useLegacyWarnings: false, AssignmentKind.Return);
+            VisitOptionalImplicitConversion(expr, returnType, useLegacyWarnings: false, AssignmentKind.Return);
             return null;
         }
 
@@ -992,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool inferredType = node.DeclaredType.InferredType;
             TypeSymbolWithAnnotations type = local.Type;
-            TypeSymbolWithAnnotations valueType = VisitOptionalConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, AssignmentKind.Assignment);
+            TypeSymbolWithAnnotations valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, AssignmentKind.Assignment);
 
             if (inferredType)
             {
@@ -1314,7 +1314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conversion = conversionBuilder[i];
                     var element = elementBuilder[i];
                     var resultType = resultBuilder[i];
-                    ApplyConversion(element, element, conversion, elementType, resultType, checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false);
+                    ApplyConversion(element, element, conversion, elementType, resultType, checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment);
                 }
             }
 
@@ -2816,7 +2816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// an implicit conversion, even if that conversion was omitted from the bound tree,
         /// so the conversion can be re-classified with nullability.
         /// </summary>
-        private TypeSymbolWithAnnotations VisitOptionalConversion(BoundExpression expr, TypeSymbolWithAnnotations targetTypeOpt, bool useLegacyWarnings, AssignmentKind assignmentKind)
+        private TypeSymbolWithAnnotations VisitOptionalImplicitConversion(BoundExpression expr, TypeSymbolWithAnnotations targetTypeOpt, bool useLegacyWarnings, AssignmentKind assignmentKind)
         {
             if (targetTypeOpt.IsNull)
             {
@@ -2973,8 +2973,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool checkConversion,
             bool fromExplicitCast,
             bool useLegacyWarnings,
-            AssignmentKind assignmentKind = AssignmentKind.Assignment,
-            Symbol target = null,
+            AssignmentKind assignmentKind,
+            ParameterSymbol target = null,
             bool reportTopLevelWarnings = true,
             bool reportNestedWarnings = true)
         {
@@ -3037,7 +3037,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             operandType,
                             checkConversion: false,
                             fromExplicitCast: false,
-                            useLegacyWarnings: false);
+                            useLegacyWarnings: false,
+                            assignmentKind);
 
                         // PROTOTYPE(NullableReferenceTypes): Update method based on operandType
                         // (see NullableReferenceTypesTests.ImplicitConversions_07).
@@ -3160,7 +3161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return resultType;
         }
 
-        private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundExpression node, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations operandType, bool useLegacyWarnings, AssignmentKind assignmentKind, Symbol target)
+        private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundExpression node, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations operandType, bool useLegacyWarnings, AssignmentKind assignmentKind, ParameterSymbol target)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var conversion = _conversions.ClassifyStandardConversion(null, operandType.TypeSymbol, targetType.TypeSymbol, ref useSiteDiagnostics);
@@ -3297,7 +3298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                TypeSymbolWithAnnotations rightType = VisitOptionalConversion(right, leftType, UseLegacyWarnings(left), AssignmentKind.Assignment);
+                TypeSymbolWithAnnotations rightType = VisitOptionalImplicitConversion(right, leftType, UseLegacyWarnings(left), AssignmentKind.Assignment);
                 TrackNullableStateForAssignment(right, leftType, MakeSlot(left), rightType, MakeSlot(right));
                 // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
                 _resultType = node.HasErrors ? TypeSymbolWithAnnotations.Create(node.Type) : rightType;
@@ -3346,7 +3347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol incrementOperator = (node.OperatorKind.IsUserDefined() && (object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1) ? node.MethodOpt : null;
                 TypeSymbolWithAnnotations targetTypeOfOperandConversion;
                 AssignmentKind assignmentKind = AssignmentKind.Assignment;
-                Symbol target = null;
+                ParameterSymbol target = null;
 
                 // PROTOTYPE(NullableReferenceTypes): Update conversion method based on operand type.
                 if (node.OperandConversion.IsUserDefined && (object)node.OperandConversion.Method != null && node.OperandConversion.Method.ParameterCount == 1)
@@ -3407,7 +3408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultOfIncrementType,
                     checkConversion: true,
                     fromExplicitCast: false,
-                    useLegacyWarnings: false);
+                    useLegacyWarnings: false,
+                    AssignmentKind.Assignment);
 
                 // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
                 if (!node.HasErrors)
@@ -3453,6 +3455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkConversion: true,
                         fromExplicitCast: false,
                         useLegacyWarnings: false,
+                        AssignmentKind.Assignment,
                         reportTopLevelWarnings: false,
                         reportNestedWarnings: false);
                 }
@@ -3481,7 +3484,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultType,
                         checkConversion: true,
                         fromExplicitCast: false,
-                        useLegacyWarnings: false);
+                        useLegacyWarnings: false,
+                        AssignmentKind.Assignment);
                 }
                 else
                 {
@@ -3535,7 +3539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Report warning passing argument where nested nullability does not match
         /// parameter (e.g.: calling `void F(object[] o)` with `F(new[] { maybeNull })`).
         /// </summary>
-        private void ReportNullabilityMismatchInArgument(BoundNode argument, TypeSymbol argumentType, Symbol parameter, TypeSymbol parameterType)
+        private void ReportNullabilityMismatchInArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType)
         {
             ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, argumentType, parameterType,
                 new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
@@ -3654,6 +3658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkConversion: false,
                         fromExplicitCast: true,
                         useLegacyWarnings: false,
+                        AssignmentKind.Assignment,
                         reportTopLevelWarnings: false,
                         reportNestedWarnings: false);
                     if (destinationType.IsReferenceType && destinationType.IsNullable == false && sourceType.IsNullable == true)
