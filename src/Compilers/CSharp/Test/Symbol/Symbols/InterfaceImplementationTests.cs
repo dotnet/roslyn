@@ -2105,7 +2105,7 @@ class Derived2 : Base2, Interface
         }
 
         [WorkItem(718115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718115")]
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void ExplicitlyImplementedAccessorsWithoutEvent()
         {
             var il = @"
@@ -2304,7 +2304,7 @@ public class Derived : Base, I
         }
 
         [WorkItem(943542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/943542"), WorkItem(137, "CodePlex")]
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void Bug943542()
         {
             var il = @"

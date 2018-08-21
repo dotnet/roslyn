@@ -404,7 +404,7 @@ class C : I, J, K
         [ClrOnlyFact]
         public void Emit01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilation(@"
 abstract class A
 {
     protected abstract string Z { get; }
