@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     !next.IsKind(SyntaxKind.QuestionToken) &&
                     !next.IsKind(SyntaxKind.SemicolonToken) &&
                     !next.IsKind(SyntaxKind.OpenBracketToken) &&
-                    (!next.IsKind(SyntaxKind.OpenParenToken) || KeywordNeedsSeparatorBeforeOpenParen(token.Kind())) &&
+                    (!next.IsKind(SyntaxKind.OpenParenToken) || KeywordNeedsSeparatorBeforeOpenParen(token.Kind()) || next.Parent.IsKind(SyntaxKind.TupleType)) &&
                     !next.IsKind(SyntaxKind.CloseParenToken) &&
                     !next.IsKind(SyntaxKind.CloseBraceToken) &&
                     !next.IsKind(SyntaxKind.ColonColonToken) &&
