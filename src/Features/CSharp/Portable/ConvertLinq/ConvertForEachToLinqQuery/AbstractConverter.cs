@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             //      OR
             //   c1.SelectMany(n1 => ...
             //
-            var invokedMethodName = !hasForEachChild ? "Select" : "SelectMany";
+            var invokedMethodName = !hasForEachChild ? nameof(Enumerable.Select) : nameof(Enumerable.SelectMany);
             return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             receiver.Parenthesize(),
-                            SyntaxFactory.IdentifierName("Where")),
+                            SyntaxFactory.IdentifierName(nameof(Enumerable.Where))),
                         SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.Argument(lambda))));
 

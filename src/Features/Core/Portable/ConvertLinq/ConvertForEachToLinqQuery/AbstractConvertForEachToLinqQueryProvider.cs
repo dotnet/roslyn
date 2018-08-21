@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
                 return;
             }
 
-            // Offer refactoring to convert foreach to query expression. For example:
+            // Offer refactoring to convert foreach to LINQ query expression. For example:
             //
             // INPUT:
             //  foreach (var n1 in c1)
@@ -111,10 +111,10 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             //
             context.RegisterRefactoring(
                 new ForEachToLinqQueryCodeAction(
-                    FeaturesResources.Convert_to_query, 
+                    FeaturesResources.Convert_to_linq, 
                     c => ApplyConversion(queryConverter, document, convertToQuery: true, c)));
 
-            // Offer refactoring to convert foreach to linq invocation expression. For example:
+            // Offer refactoring to convert foreach to LINQ invocation expression. For example:
             //
             // INPUT:
             //   foreach (var n1 in c1)
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             {
                 context.RegisterRefactoring(
                     new ForEachToLinqQueryCodeAction(
-                        FeaturesResources.Convert_to_linq,
+                        FeaturesResources.Convert_to_linq_call_form,
                         c => ApplyConversion(linqConverter, document, convertToQuery: false, c)));
             }
         }
