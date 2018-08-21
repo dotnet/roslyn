@@ -39,6 +39,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Enum
 
     Friend Module FeatureExtensions
+        <Extension>
+        Friend Function GetFeatureFlag(feature As Feature) As String
+            Select Case feature
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
 
         <Extension>
         Friend Function GetLanguageVersion(feature As Feature) As LanguageVersion
