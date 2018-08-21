@@ -482,33 +482,84 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeOpt ?? (object)"<null>";
         }
 
+        private enum AssignmentKind
+        {
+            Assignment,
+            Return,
+            Argument
+        }
+
         /// <summary>
         /// Reports top-level nullability problem in assignment.
         /// </summary>
-        private bool ReportNullReferenceAssignmentIfNecessary(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings)
+        private bool ReportNullableAssignmentIfNecessary(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings, AssignmentKind assignmentKind = AssignmentKind.Assignment, Symbol target = null)
         {
-            Debug.Assert(value != null);
-            Debug.Assert(!IsConditionalState);
-
-            if (targetType.IsNull || valueType.IsNull)
+            if (value == null)
             {
                 return false;
             }
 
-            if (targetType.IsReferenceType && targetType.IsNullable == false && valueType.IsNullable == true)
+            if (targetType.IsNull ||
+                targetType.IsValueType ||
+                targetType.IsNullable != false ||
+                valueType.IsNull ||
+                valueType.IsNullable != true)
             {
+                return false;
+            }
+
+            var unwrappedValue = SkipReferenceConversions(value);
+            if (unwrappedValue.Kind == BoundKind.SuppressNullableWarningExpression)
+            {
+                return false;
+            }
+
+            if (reportNullLiteralAssignmentIfNecessary())
+            {
+                return true;
+            }
+
+            if (valueType.IsNull)
+            {
+                return false;
+            }
+
+            if (assignmentKind == AssignmentKind.Argument)
+            {
+                ReportDiagnostic(ErrorCode.WRN_NullReferenceArgument, value.Syntax,
+                    new FormattedSymbol(target, SymbolDisplayFormat.ShortFormat),
+                    new FormattedSymbol(target.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
+            }
+            else if (useLegacyWarnings)
+            {
+                ReportWWarning(value.Syntax);
+            }
+            else
+            {
+                ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
+            }
+
+            return true;
+
+            // Report warning converting null literal to non-nullable reference type.
+            // target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
+            bool reportNullLiteralAssignmentIfNecessary()
+            {
+                if (value.ConstantValue?.IsNull != true && !IsDefaultOfUnconstrainedTypeParameter(value))
+                {
+                    return false;
+                }
+
                 if (useLegacyWarnings)
                 {
                     ReportWWarning(value.Syntax);
                 }
-                else if (!ReportNullAsNonNullableReferenceIfNecessary(value))
+                else
                 {
-                    ReportDiagnostic(ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
+                    ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, value.Syntax);
                 }
                 return true;
             }
-
-            return false;
         }
 
         private void ReportAssignmentWarnings(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings)
@@ -523,8 +574,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                ReportNullReferenceAssignmentIfNecessary(value, targetType, valueType, useLegacyWarnings);
-                ReportNullabilityMismatchInAssignmentIfNecessary(value, valueType.TypeSymbol, targetType.TypeSymbol);
+                // Report top-level nullability issues
+                ReportNullableAssignmentIfNecessary(value, targetType, valueType, useLegacyWarnings, assignmentKind: AssignmentKind.Assignment);
+
+                // Report nested nullability issues
+                var sourceType = valueType.TypeSymbol;
+                var destinationType = targetType.TypeSymbol;
+                if ((object)sourceType != null && IsNullabilityMismatch(destinationType, sourceType))
+                {
+                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, value.Syntax, sourceType, destinationType);
+                }
             }
         }
 
@@ -891,21 +950,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // Convert to method return type.
             var returnType = GetReturnType();
             TypeSymbolWithAnnotations resultType = ApplyConversion(expr, expr, conversion, returnType.TypeSymbol, result, checkConversion: true, fromExplicitCast: false, out bool canConvertNestedNullability);
             if (!canConvertNestedNullability)
             {
                 ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, GetTypeAsDiagnosticArgument(result.TypeSymbol), returnType.TypeSymbol);
             }
-
-            bool returnTypeIsNonNullable = IsNonNullable(returnType);
-            if (returnTypeIsNonNullable &&
-                !ReportNullAsNonNullableReferenceIfNecessary(node.ExpressionOpt) &&
-                IsNullable(resultType))
-            {
-                ReportDiagnostic(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
-            }
+            ReportNullableAssignmentIfNecessary(expr, returnType, resultType, useLegacyWarnings: false, assignmentKind: AssignmentKind.Return);
 
             return null;
         }
@@ -933,18 +984,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsUnconstrainedTypeParameter(TypeSymbol typeOpt)
         {
             return typeOpt?.IsUnconstrainedTypeParameter() == true;
-        }
-
-        /// <summary>
-        /// Report warning assigning value where nested nullability does not match
-        /// target (e.g.: `object[] a = new[] { maybeNull }`).
-        /// </summary>
-        private void ReportNullabilityMismatchInAssignmentIfNecessary(BoundExpression node, TypeSymbol sourceType, TypeSymbol destinationType)
-        {
-            if ((object)sourceType != null && IsNullabilityMismatch(destinationType, sourceType))
-            {
-                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, sourceType, destinationType);
-            }
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -989,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var unconvertedType = valueType;
                 valueType = ApplyConversion(initializer, initializer, conversion, type.TypeSymbol, valueType, checkConversion: true, fromExplicitCast: false, out bool canConvertNestedNullability);
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
-                ReportNullReferenceAssignmentIfNecessary(initializer, type, valueType, useLegacyWarnings: true);
+                ReportNullableAssignmentIfNecessary(initializer, type, valueType, useLegacyWarnings: true);
                 if (!canConvertNestedNullability)
                 {
                     ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, initializer.Syntax, GetTypeAsDiagnosticArgument(unconvertedType.TypeSymbol), type.TypeSymbol);
@@ -1310,7 +1349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (elementTypeIsReferenceType)
                     {
                         resultType = ApplyConversion(element, element, conversion, elementType.TypeSymbol, resultType, checkConversion: true, fromExplicitCast: false, out bool canConvertNestedNullability);
-                        ReportNullReferenceAssignmentIfNecessary(element, elementType, resultType, useLegacyWarnings: false);
+                        ReportNullableAssignmentIfNecessary(element, elementType, resultType, useLegacyWarnings: false);
                         if (!canConvertNestedNullability)
                         {
                             ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, element.Syntax, sourceType, elementType.TypeSymbol);
@@ -2332,17 +2371,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case RefKind.Out:
                     {
-                        bool reportedWarning = false;
                         if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
                             _variableTypes[local.LocalSymbol] = parameterType;
                             resultType = parameterType;
                         }
-                        if (argument.Kind != BoundKind.SuppressNullableWarningExpression)
-                        {
-                            reportedWarning = ReportNullReferenceAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument));
-                        }
-                        if (!reportedWarning)
+
+                        if (!ReportNullableAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument)))
                         {
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.TypeSymbol, argumentType, ref useSiteDiagnostics))
@@ -2360,7 +2395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (argument.Kind != BoundKind.SuppressNullableWarningExpression)
                         {
                             reportedWarning = ReportNullReferenceArgumentIfNecessary(argument, resultType, parameter, parameterType) ||
-                                ReportNullReferenceAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument));
+                                ReportNullableAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument));
                         }
                         if (!reportedWarning)
                         {
@@ -3256,7 +3291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbolWithAnnotations rightType = ApplyConversion(right, right, conversion, leftType.TypeSymbol, rightResult, checkConversion: true, fromExplicitCast: false, out bool canConvertNestedNullability);
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
-                ReportNullReferenceAssignmentIfNecessary(right, leftType, rightType, UseLegacyWarnings(left));
+                ReportNullableAssignmentIfNecessary(right, leftType, rightType, UseLegacyWarnings(left));
                 if (!canConvertNestedNullability)
                 {
                     ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, right.Syntax, GetTypeAsDiagnosticArgument(rightResult.TypeSymbol), leftType.TypeSymbol);
@@ -3453,20 +3488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool ReportNullReferenceArgumentIfNecessary(BoundExpression argument, TypeSymbolWithAnnotations argumentType, ParameterSymbol parameter, TypeSymbolWithAnnotations paramType)
         {
-            if (argumentType.IsNullable == true)
-            {
-                if (paramType.IsReferenceType && paramType.IsNullable == false)
-                {
-                    if (!ReportNullAsNonNullableReferenceIfNecessary(argument))
-                    {
-                        ReportDiagnostic(ErrorCode.WRN_NullReferenceArgument, argument.Syntax,
-                            new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
-                            new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
-                    }
-                    return true;
-                }
-            }
-            return false;
+            return ReportNullableAssignmentIfNecessary(argument, paramType, argumentType, useLegacyWarnings: false, assignmentKind: AssignmentKind.Argument, target: parameter);
         }
 
         private void ReportArgumentWarnings(BoundExpression argument, TypeSymbolWithAnnotations argumentType, ParameterSymbol parameter)
@@ -4148,25 +4170,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
                 }
             }
-        }
-
-        /// <summary>
-        /// Report warning converting null literal to non-nullable reference type.
-        /// target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
-        /// </summary>
-        private bool ReportNullAsNonNullableReferenceIfNecessary(BoundExpression value)
-        {
-            if (value.ConstantValue?.IsNull != true && !IsDefaultOfUnconstrainedTypeParameter(value))
-            {
-                return false;
-            }
-            var unwrappedValue = SkipReferenceConversions(value);
-            if (unwrappedValue.Kind == BoundKind.SuppressNullableWarningExpression)
-            {
-                return false;
-            }
-            ReportDiagnostic(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
-            return true;
         }
 
         private static bool IsDefaultOfUnconstrainedTypeParameter(BoundExpression expr)
