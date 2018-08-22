@@ -414,8 +414,15 @@ function TestUsingOptimizedRunner() {
   }
 
   try {
+    if ($testVsi -and $ci) {
+      $wprProfile = Join-Path $PSScriptRoot 'IntegrationTestProfile.wprp'
+      wpr -start $wprProfile
+    }
     Exec-Console $runTests $args
   } finally {
+    if ($testVsi -and -$ci) {
+      wpr -stop "$LogDir\Exceptions.etl"
+    }
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
