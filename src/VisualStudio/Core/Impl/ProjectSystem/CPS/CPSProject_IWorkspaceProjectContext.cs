@@ -3,8 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
@@ -36,9 +38,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 lock (_queueGate)
                 {
-                    _foregroundTaskQueue = _foregroundTaskQueue.SafeContinueWith(
-                        _ =>
+                    _foregroundTaskQueue = _foregroundTaskQueue.SafeContinueWithFromAsync(
+                        async _ =>
                         {
+                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
+
                             // since execution is now technically asynchronous
                             // only execute action if project is not disconnected and currently being tracked.
                             if (!_disconnected && this.ProjectTracker.ContainsProject(this))
@@ -46,7 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                                 action();
                             }
                         },
-                        ForegroundTaskScheduler);
+                        CancellationToken.None,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
                 }
             }
         }

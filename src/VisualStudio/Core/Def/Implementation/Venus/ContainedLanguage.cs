@@ -96,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             SetDataBuffer(dataBuffer);
 
             this.ContainedDocument = new ContainedDocument(
+                project.ThreadingContext,
                 this, sourceCodeKind, this.Workspace, hierarchy, itemid, componentModel,
                 documentServiceFactory, vbHelperFormattingRule);
 
