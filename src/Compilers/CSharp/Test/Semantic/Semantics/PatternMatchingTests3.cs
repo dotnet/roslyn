@@ -394,5 +394,41 @@ class Program
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var").WithLocation(10, 22)
                 );
         }
+
+        [Fact]
+        public void PropertyPatternVsAnonymousType()
+        {
+            var source = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        var arr = new[] {
+            new { B = true,  V = 1 },
+            new { B = false, V = 2 },
+            new { B = true,  V = 4 },
+            new { B = false, V = 8 },
+            new { B = true,  V = 16 },
+        };
+        int sum = 0;
+        foreach (var anon in arr)
+        {
+            switch (anon)
+            {
+                case { B: true, V: var val }:
+                    sum += val;
+                    break;
+            }
+        }
+        Console.WriteLine(sum);
+    }
+}";
+            var expectedOutput = "21";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
