@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             return token;
         }
 
-        private void Test1(string stringText, string expected, RegexOptions options, 
+        private void Test(string stringText, string expected, RegexOptions options, 
             bool runSubTreeTests = true, [CallerMemberName]string name = "",
             bool allowIndexOutOfRange = false,
             bool allowNullReference = false,

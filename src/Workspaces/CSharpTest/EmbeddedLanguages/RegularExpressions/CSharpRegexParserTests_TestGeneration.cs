@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if true
+#if false
 
 // This file is entirely disabled, but serves a useful purpose and is thus kept in the source tree.
 // Specifically, it provides a test scaffolding that allows us to easily run and regenerate tests
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 CSharpRegexParserTests.nameToTest.Where(kvp => !kvp.Key.StartsWith("NegativeTest") && !kvp.Key.StartsWith("Reference"))
                      .OrderBy(kvp => nameToIndex[kvp.Key])
                      .Select(kvp => kvp.Value);
-#elif true
+#elif false
             var tests =
                 CSharpRegexParserTests.nameToTest.Where(kvp => kvp.Key.StartsWith("NegativeTest"))
                      .OrderBy(kvp => kvp.Key, LogicalStringComparer.Instance)
