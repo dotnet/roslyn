@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             var other = new Dictionary<string, string>();
 
             var tree = SyntaxFactory.ParseSyntaxTree(
-                File.ReadAllText(@"C:\GitHub\roslyn-internal\Open\src\Workspaces\CSharpTest\RegularExpressions\CSharpRegexParserTests_BasicTests.cs"));
+                File.ReadAllText(@"C:\GitHub\roslyn\src\Workspaces\CSharpTest\EmbeddedLanguages\RegularExpressions\CSharpRegexParserTests_BasicTests.cs"));
 
             var methodNames = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Select(m => m.Identifier.ValueText);
             var nameToIndex = new Dictionary<string, int>();
@@ -140,12 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             builder.Append(actual);
 
             builder.Append('"');
+            builder.Append(", RegexOptions." + options.ToString());
+
             if (!runSubTreeTests)
             {
                 builder.Append(", runSubTreeTests: false");
             }
-
-            builder.Append(", RegexOptions." + options.ToString());
 
             if (allowIndexOutOfRange)
             {
