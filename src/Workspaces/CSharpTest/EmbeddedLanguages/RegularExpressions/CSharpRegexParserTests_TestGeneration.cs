@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if false
+#if true
 
 // This file is entirely disabled, but serves a useful purpose and is thus kept in the source tree.
 // Specifically, it provides a test scaffolding that allows us to easily run and regenerate tests
@@ -21,10 +21,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
 {
     // used so we can keep tests sorted numerically.  i.e.  test9 then test10 (even though 1 is
     // before 9 in ascii).
@@ -102,17 +102,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 
         public static Dictionary<string, string> nameToTest = new Dictionary<string, string>();
 
-        private void Test(string stringText, string expected, RegexOptions options, bool runSubTreeTests = true, [CallerMemberName]string name = "")
+        private void Test(
+            string stringText, string expected, RegexOptions options, 
+            bool runSubTreeTests = true, [CallerMemberName]string name = "",
+            bool allowIndexOutOfRange = false,
+            bool allowNullReference = false,
+            bool allowOutOfMemory = false)
         {
-            var test = GenerateTests(stringText, options, runSubTreeTests, name);
+            var test = GenerateTests(stringText, options, runSubTreeTests, name,
+                allowIndexOutOfRange, allowNullReference, allowOutOfMemory);
             nameToTest.Add(name, test);
         }
 
-        public string GenerateTests(string val, RegexOptions options, bool runSubTreeTests, string testName)
+        public string GenerateTests(
+            string val, RegexOptions options, bool runSubTreeTests, string testName,
+            bool allowIndexOutOfRange, bool allowNullReference, bool allowOutOfMemory)
         {
             // Actually call into our regex APIs to produce figure out the tree produced.
             // Then spit out a test that does the same, encoding the tree as the expected
-            // baseline for that test.
+            
             var builder = new StringBuilder();
             builder.AppendLine("[Fact]");
             builder.AppendLine("public void " + testName + "()");
@@ -127,13 +135,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
             var allChars = _service.TryConvertToVirtualChars(token);
             var tree = RegexParser.TryParse(allChars, options);
 
-            var actual = TreeToText(tree).Replace("\"", "\"\"");
+            var actual = TreeToText(token.SyntaxTree.GetText(), tree).Replace("\"", "\"\"");
             builder.Append(", " + '@' + '"');
             builder.Append(actual);
 
-            builder.AppendLine("" + '"' + (runSubTreeTests 
-                ? (", RegexOptions." + options.ToString()) 
-                : (", runSubTreeTests: false, options: RegexOptions." + options.ToString())) + ");");
+            builder.Append('"');
+            if (!runSubTreeTests)
+            {
+                builder.Append(", runSubTreeTests: false");
+            }
+
+            builder.Append(", RegexOptions." + options.ToString());
+
+            if (allowIndexOutOfRange)
+            {
+                builder.Append(", allowIndexOutOfRange: true");
+            }
+
+            if (allowNullReference)
+            {
+                builder.Append(", allowNullReference: true");
+            }
+
+            if (allowOutOfMemory)
+            {
+                builder.Append(", allowOutOfMemory: true");
+            }
+
+            builder.AppendLine(");");
             builder.AppendLine("}");
 
             return builder.ToString();
