@@ -248,6 +248,28 @@ End Module")
 
         #endregion
 
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public async Task ServerFailsWithLongTempPathUnix()
+        {
+            var newTempDir = _tempDirectory.CreateDirectory(new string('a', 100 - _tempDirectory.Path.Length));
+            await ApplyEnvironmentVariables(
+                new[] { new KeyValuePair<string, string>("TMPDIR", newTempDir.Path)},
+                async () =>
+            {
+                using (var serverData = ServerUtil.CreateServer())
+                {
+                    var result = RunCommandLineCompiler(
+                        CSharpCompilerClientExecutable,
+                        $"/shared:{serverData.PipeName} /nologo hello.cs",
+                        _tempDirectory,
+                        s_helloWorldSrcCs,
+                        shouldRunOnServer: false);
+                    VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
+                    await serverData.Verify(connections: 0, completed: 0).ConfigureAwait(true);
+                }
+            });
+        }
+
         [Fact]
         public async Task FallbackToCsc()
         {

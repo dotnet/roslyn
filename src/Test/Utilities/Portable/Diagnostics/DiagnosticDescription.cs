@@ -377,7 +377,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var includeDiagnosticMessagesAsComments = (language == CSharp);
             int indentDepth = (language == CSharp) ? 4 : 1;
 
-            StringBuilder assertText = new StringBuilder();
+            if (IsSortedOrEmpty(expected))
+            {
+                // If this is a new test (empty expectations) or a test that's already sorted,
+                // we sort the actual diagnostics to minimize diff noise as diagnostics change.
+                actual = Sort(actual);
+            }
+
+            var assertText = new StringBuilder();
             assertText.AppendLine();
 
             // write out the error baseline as method calls
@@ -396,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var e = actual.GetEnumerator();
             for (i = 0; e.MoveNext(); i++)
             {
-                var d = e.Current;
+                Diagnostic d = e.Current;
                 string message = d.ToString();
                 if (Regex.Match(message, @"{\d+}").Success)
                 {
@@ -446,6 +453,30 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return assertText.ToString();
         }
 
+        private static IEnumerable<Diagnostic> Sort(IEnumerable<Diagnostic> diagnostics)
+        {
+            return diagnostics.OrderBy(d => d.Location.GetMappedLineSpan().StartLinePosition, LinePositionComparer.Instance);
+        }
+
+        private static bool IsSortedOrEmpty(DiagnosticDescription[] diagnostics)
+        {
+            var comparer = LinePositionComparer.Instance;
+            DiagnosticDescription last = null;
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic._startPosition == null)
+                {
+                    return false;
+                }
+                if (last != null && comparer.Compare(last._startPosition, diagnostic._startPosition) > 0)
+                {
+                    return false;
+                }
+                last = diagnostic;
+            }
+            return true;
+        }
+
         private static string GetDiagnosticDescription(DiagnosticDescription d, int indentDepth)
         {
             return new string(' ', 4 * indentDepth) + d.ToString();
@@ -467,6 +498,36 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     sb.Append(',');
                 }
                 sb.AppendLine();
+            }
+        }
+
+        private class LinePositionComparer : IComparer<LinePosition?>
+        {
+            internal static LinePositionComparer Instance = new LinePositionComparer();
+
+            public int Compare(LinePosition? x, LinePosition? y)
+            {
+                if (x == null)
+                {
+                    if (y == null)
+                    {
+                        return 0;
+                    }
+                    return -1;
+                }
+
+                if (y == null)
+                {
+                    return 1;
+                }
+
+                int lineDiff = x.Value.Line.CompareTo(y.Value.Line);
+                if (lineDiff != 0)
+                {
+                    return lineDiff;
+                }
+
+                return x.Value.Character.CompareTo(y.Value.Character);
             }
         }
     }
