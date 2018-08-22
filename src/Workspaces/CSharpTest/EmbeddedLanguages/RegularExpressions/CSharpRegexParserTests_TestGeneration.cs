@@ -16,6 +16,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 {
+    // used so we can keep tests sorted numerically.  i.e.  test9 then test10 (even though 1 is
+    // before 9 in ascii).
     internal class LogicalStringComparer : IComparer<string>
     {
         [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
