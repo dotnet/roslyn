@@ -56,7 +56,6 @@
       <NuspecProperties>$(NuspecProperties);MicrosoftCodeAnalysisAnalyzersVersion=$(MicrosoftCodeAnalysisAnalyzersVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftCodeAnalysisElfieVersion=$(MicrosoftCodeAnalysisElfieVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftVisualBasicVersion=$(MicrosoftVisualBasicVersion)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioImagingInterop140DesignTimeVersion=$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioLanguageIntellisenseVersion=$(MicrosoftVisualStudioLanguageIntellisenseVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioLanguageStandardClassificationVersion=$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioSetupConfigurationInteropVersion=$(MicrosoftVisualStudioSetupConfigurationInteropVersion)</NuspecProperties>
