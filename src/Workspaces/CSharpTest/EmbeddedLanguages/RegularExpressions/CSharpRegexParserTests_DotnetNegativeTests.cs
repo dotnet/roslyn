@@ -5304,32 +5304,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   </Captures>
 </Tree>", RegexOptions.None);
         }
-
-        //        [Fact]
-        //        public void NegativeTest140()
-        //        {
-        //            Test(@"@"" (?(?n))""", @"<Tree>
-        //  <CompilationUnit>
-        //    <Sequence>
-        //      <Text>
-        //        <TextToken> </TextToken>
-        //      </Text>
-        //      <ConditionalExpressionGrouping>
-        //        <OpenParenToken>(</OpenParenToken>
-        //        <QuestionToken>?</QuestionToken>
-        //        <SimpleOptionsGrouping>
-        //          <OpenParenToken>(</OpenParenToken>
-        //          <QuestionToken>?</QuestionToken>
-        //          <OptionsToken>n</OptionsToken>
-        //          <CloseParenToken>)</CloseParenToken>
-        //        </SimpleOptionsGrouping>
-        //        <Sequence />
-        //        <CloseParenToken>)</CloseParenToken>
-        //      </ConditionalExpressionGrouping>
-        //    </Sequence>
-        //    <EndOfFile />
-        //  </CompilationUnit>
-        //</Tree>", RegexOptions.None);
-        //        }
     }
 }
