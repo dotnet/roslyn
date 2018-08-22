@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly AsyncIteratorInfo _asyncIteratorInfo;
 
         /// <summary>
-        /// Only set for async-iterator methods. Local for previousState.
-        /// </summary>
-        private readonly LocalSymbol _asyncIteratorPreviousStateLocal;
-
-        /// <summary>
         /// The exprReturnLabel is used to label the return handling code at the end of the async state-machine
         /// method. Return expressions are rewritten as unconditional branches to exprReturnLabel.
         /// </summary>
@@ -86,13 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _method = method;
             _asyncMethodBuilderMemberCollection = asyncMethodBuilderMemberCollection;
-
             _asyncIteratorInfo = asyncIteratorInfo;
-            if (_asyncIteratorInfo != null)
-            {
-                _asyncIteratorPreviousStateLocal = F.SynthesizedLocal(state.Type, syntax: F.Syntax, kind: SynthesizedLocalKind.LoweringTemp);
-            }
-
             _asyncMethodBuilderField = builder;
             _exprReturnLabel = F.GenerateLabel("exprReturn");
             _exitLabel = F.GenerateLabel("exitLabel");
@@ -219,7 +208,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             locals.Add(cachedState);
             if ((object)cachedThis != null) locals.Add(cachedThis);
             if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
-            if ((object)_asyncIteratorPreviousStateLocal != null) locals.Add(_asyncIteratorPreviousStateLocal);
 
             var newBody =
                 F.SequencePoint(
@@ -687,7 +675,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     yield return expression;
             // is translated to:
             //     this.current = expression;
-            //     int previousState = this.state;
             //     this.state = <next_state>;
             //     if (this._promiseIsActive)
             //     {
@@ -708,10 +695,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             blockBuilder.Add(
                 // this.current = expression;
                 F.Assignment(F.Field(F.This(), _asyncIteratorInfo.CurrentField), rewrittenExpression));
-
-            blockBuilder.Add(
-                // previousState = this.state;
-                F.Assignment(F.Local(_asyncIteratorPreviousStateLocal), F.Field(F.This(), stateField)));
 
             blockBuilder.Add(
                 // this.state = <next_state>;

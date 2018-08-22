@@ -143,3 +143,72 @@ T TryGetNext(out bool success)
 }
 ```
 
+In terms of the lowered code, there are five changes to the `MoveNext()` method of an async-iterator state machine, compared to that of a regular `async` state machines:
+- reaching the end of the method
+- reaching an `await`
+- reaching a `yield return`
+- reaching a `yield break`
+- handling exceptions
+Those changes are described below for information, but they are compiler implementation details which should not be depended on (such generated code is subject to change without notice).
+
+When we reach the end of the method, we need to fulfill the promise of value-or-end with `false` to signal that the end was reached:
+```C#
+if (this.promiseIsActive)
+{
+   this.promiseOfValueOrEnd.SetResult(false);
+}
+```
+PROTOTYPE(async-streams): maybe the end-of-method handling should also initialize/reset the promise? (the scenario is an `await` followed by a `yield` and then the end-of-method)
+
+When we reach an `await` and the awaitable result wasn't already completed, we need to reset the promise if it was inactive:
+```C#
+if (!this.promiseIsActive)
+{
+   this.promiseIsActive = true;
+   this.promiseOfValueOrEnd.Reset();
+}
+```
+
+When we reach a `yield return`, we save the "current" value and fulfill the promise of value-or-end with `true` to signal that a value is available:
+```
+this.current = expression;
+this.state = <next_state>;
+if (this._promiseIsActive)
+{
+    this._valueOrEndPromise.SetResult(true);
+}
+goto <exit_label>;
+<next_state_label>: ;
+this.state = finalizeState;
+```
+
+When we reach a `yield break`, we make sure the promise of value-or-end is initialized/reset and then fulfill it with `false` to signal that the end was reached:
+```C#
+if (!this.promiseIsActive)
+{
+   this.promiseIsActive = true;
+   this.promiseOfValueOrEnd.Reset();
+}
+this.promiseOfValueOrEnd.SetResult(false);
+return;
+```
+
+The `MoveNext()` method of the state machine also includes exception handling.
+For regular `async` methods, we catch any such exception and pass it on to the caller of the state machine, by setting the exception in the task being awaited by the caller.
+For async-iterators, we also catch any such exception and pass it on to the caller of the state machine (`WaitForNextAsync` and `TryGetNext`) via the promise of value-or-end:
+
+```C#
+catch (Exception ex)
+{
+    this.state = finishedState
+    if (promiseIsActive)
+    {
+        this.promiseOfValueOrEnd.SetException(ex);
+    }
+    else
+    {
+        throw;
+    }
+    this.promiseOfValueOrEnd.SetException(ex);
+}
+```

@@ -233,7 +233,7 @@ class C
                 {
                     verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      304 (0x130)
+  // Code size      297 (0x129)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -254,7 +254,7 @@ class C
     IL_000e:  beq.s      IL_0014
     IL_0010:  br.s       IL_0019
     IL_0012:  br.s       IL_007b
-    IL_0014:  br         IL_00d6
+    IL_0014:  br         IL_00cf
     // sequence point: {
     IL_0019:  nop
     // sequence point: Write(""1 "");
@@ -296,7 +296,7 @@ class C
     IL_006e:  ldloca.s   V_2
     IL_0070:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
     IL_0075:  nop
-    IL_0076:  leave      IL_012f
+    IL_0076:  leave      IL_0128
     // async: resume
     IL_007b:  ldarg.0
     IL_007c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
@@ -321,68 +321,65 @@ class C
     IL_00ab:  ldc.i4.3
     IL_00ac:  stfld      ""int C.<M>d__0.<>2__current""
     IL_00b1:  ldarg.0
-    IL_00b2:  ldfld      ""int C.<M>d__0.<>1__state""
-    IL_00b7:  pop
+    IL_00b2:  ldc.i4.1
+    IL_00b3:  stfld      ""int C.<M>d__0.<>1__state""
     IL_00b8:  ldarg.0
-    IL_00b9:  ldc.i4.1
-    IL_00ba:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00bf:  ldarg.0
-    IL_00c0:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_00c5:  brfalse.s  IL_00d4
-    IL_00c7:  ldarg.0
-    IL_00c8:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00cd:  ldc.i4.1
-    IL_00ce:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
-    IL_00d3:  nop
-    IL_00d4:  leave.s    IL_012f
+    IL_00b9:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00be:  brfalse.s  IL_00cd
+    IL_00c0:  ldarg.0
+    IL_00c1:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00c6:  ldc.i4.1
+    IL_00c7:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
+    IL_00cc:  nop
+    IL_00cd:  leave.s    IL_0128
     // sequence point: Write("" 4 "");
-    IL_00d6:  ldstr      "" 4 ""
-    IL_00db:  call       ""void System.Console.Write(string)""
-    IL_00e0:  nop
-    IL_00e1:  ldarg.0
-    IL_00e2:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_00e7:  brtrue.s   IL_00fc
+    IL_00cf:  ldstr      "" 4 ""
+    IL_00d4:  call       ""void System.Console.Write(string)""
+    IL_00d9:  nop
+    IL_00da:  ldarg.0
+    IL_00db:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00e0:  brtrue.s   IL_00f5
+    IL_00e2:  ldarg.0
+    IL_00e3:  ldc.i4.1
+    IL_00e4:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
     IL_00e9:  ldarg.0
-    IL_00ea:  ldc.i4.1
-    IL_00eb:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_00f0:  ldarg.0
-    IL_00f1:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00f6:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
-    IL_00fb:  nop
-    IL_00fc:  ldarg.0
-    IL_00fd:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_0102:  ldc.i4.0
-    IL_0103:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
-    IL_0108:  nop
-    IL_0109:  leave.s    IL_012f
+    IL_00ea:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00ef:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
+    IL_00f4:  nop
+    IL_00f5:  ldarg.0
+    IL_00f6:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00fb:  ldc.i4.0
+    IL_00fc:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
+    IL_0101:  nop
+    IL_0102:  leave.s    IL_0128
   }
   catch System.Exception
   {
     // sequence point: <hidden>
-    IL_010b:  stloc.3
-    IL_010c:  ldarg.0
-    IL_010d:  ldc.i4.s   -2
-    IL_010f:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_0114:  ldarg.0
-    IL_0115:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_011a:  brfalse.s  IL_012b
-    IL_011c:  ldarg.0
-    IL_011d:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_0122:  ldloc.3
-    IL_0123:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
-    IL_0128:  nop
-    IL_0129:  br.s       IL_012d
-    IL_012b:  rethrow
-    IL_012d:  leave.s    IL_012f
+    IL_0104:  stloc.3
+    IL_0105:  ldarg.0
+    IL_0106:  ldc.i4.s   -2
+    IL_0108:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_010d:  ldarg.0
+    IL_010e:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_0113:  brfalse.s  IL_0124
+    IL_0115:  ldarg.0
+    IL_0116:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_011b:  ldloc.3
+    IL_011c:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
+    IL_0121:  nop
+    IL_0122:  br.s       IL_0126
+    IL_0124:  rethrow
+    IL_0126:  leave.s    IL_0128
   }
-  IL_012f:  ret
+  IL_0128:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
                 }
                 else
                 {
                     verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-   // Code size      285 (0x11d)
+  // Code size      278 (0x116)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -399,7 +396,7 @@ class C
     IL_0008:  brfalse.s  IL_006f
     IL_000a:  ldloc.0
     IL_000b:  ldc.i4.1
-    IL_000c:  beq        IL_00c7
+    IL_000c:  beq        IL_00c0
     // sequence point: Write(""1 "");
     IL_0011:  ldstr      ""1 ""
     IL_0016:  call       ""void System.Console.Write(string)""
@@ -436,7 +433,7 @@ class C
     IL_0061:  ldloca.s   V_1
     IL_0063:  ldloca.s   V_2
     IL_0065:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
-    IL_006a:  leave      IL_011c
+    IL_006a:  leave      IL_0115
     // async: resume
     IL_006f:  ldarg.0
     IL_0070:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
@@ -459,56 +456,53 @@ class C
     IL_009d:  ldc.i4.3
     IL_009e:  stfld      ""int C.<M>d__0.<>2__current""
     IL_00a3:  ldarg.0
-    IL_00a4:  ldfld      ""int C.<M>d__0.<>1__state""
-    IL_00a9:  pop
+    IL_00a4:  ldc.i4.1
+    IL_00a5:  stfld      ""int C.<M>d__0.<>1__state""
     IL_00aa:  ldarg.0
-    IL_00ab:  ldc.i4.1
-    IL_00ac:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00b1:  ldarg.0
-    IL_00b2:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_00b7:  brfalse.s  IL_00c5
-    IL_00b9:  ldarg.0
-    IL_00ba:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00bf:  ldc.i4.1
-    IL_00c0:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
-    IL_00c5:  leave.s    IL_011c
+    IL_00ab:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00b0:  brfalse.s  IL_00be
+    IL_00b2:  ldarg.0
+    IL_00b3:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00b8:  ldc.i4.1
+    IL_00b9:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
+    IL_00be:  leave.s    IL_0115
     // sequence point: Write("" 4 "");
-    IL_00c7:  ldstr      "" 4 ""
-    IL_00cc:  call       ""void System.Console.Write(string)""
-    IL_00d1:  ldarg.0
-    IL_00d2:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_00d7:  brtrue.s   IL_00eb
+    IL_00c0:  ldstr      "" 4 ""
+    IL_00c5:  call       ""void System.Console.Write(string)""
+    IL_00ca:  ldarg.0
+    IL_00cb:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00d0:  brtrue.s   IL_00e4
+    IL_00d2:  ldarg.0
+    IL_00d3:  ldc.i4.1
+    IL_00d4:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
     IL_00d9:  ldarg.0
-    IL_00da:  ldc.i4.1
-    IL_00db:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_00e0:  ldarg.0
-    IL_00e1:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00e6:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
-    IL_00eb:  ldarg.0
-    IL_00ec:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00f1:  ldc.i4.0
-    IL_00f2:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
-    IL_00f7:  leave.s    IL_011c
+    IL_00da:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00df:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
+    IL_00e4:  ldarg.0
+    IL_00e5:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00ea:  ldc.i4.0
+    IL_00eb:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
+    IL_00f0:  leave.s    IL_0115
   }
   catch System.Exception
   {
     // sequence point: <hidden>
-    IL_00f9:  stloc.3
-    IL_00fa:  ldarg.0
-    IL_00fb:  ldc.i4.s   -2
-    IL_00fd:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_0102:  ldarg.0
-    IL_0103:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_0108:  brfalse.s  IL_0118
-    IL_010a:  ldarg.0
-    IL_010b:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_0110:  ldloc.3
-    IL_0111:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
-    IL_0116:  br.s       IL_011a
-    IL_0118:  rethrow
-    IL_011a:  leave.s    IL_011c
+    IL_00f2:  stloc.3
+    IL_00f3:  ldarg.0
+    IL_00f4:  ldc.i4.s   -2
+    IL_00f6:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00fb:  ldarg.0
+    IL_00fc:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_0101:  brfalse.s  IL_0111
+    IL_0103:  ldarg.0
+    IL_0104:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_0109:  ldloc.3
+    IL_010a:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
+    IL_010f:  br.s       IL_0113
+    IL_0111:  rethrow
+    IL_0113:  leave.s    IL_0115
   }
-  IL_011c:  ret
+  IL_0115:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
                 }
             }

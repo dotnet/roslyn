@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Additional information for rewriting an async-iterator.
     /// </summary>
-    internal class AsyncIteratorInfo
+    internal sealed class AsyncIteratorInfo
     {
         // This `ManualResetValueTaskSourceLogic<bool>` struct implements the `IValueTaskSource` logic
         internal FieldSymbol PromiseOfValueOrEndField { get; }
