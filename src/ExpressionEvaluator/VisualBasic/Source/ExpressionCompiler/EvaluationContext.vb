@@ -62,28 +62,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' <summary>
         ''' Create a context for evaluating expressions at a type scope.
         ''' </summary>
-        ''' <param name="previous">Previous context, if any, for possible re-use.</param>
-        ''' <param name="metadataBlocks">Module metadata.</param>
+        ''' <param name="compilation">Compilation.</param>
         ''' <param name="moduleVersionId">Module containing type.</param>
         ''' <param name="typeToken">Type metadata token.</param>
         ''' <returns>Evaluation context.</returns>
         ''' <remarks>
         ''' No locals since locals are associated with methods, not types.
         ''' </remarks>
-        Friend Shared Function CreateTypeContext(
-            previous As VisualBasicMetadataContext,
-            metadataBlocks As ImmutableArray(Of MetadataBlock),
-            moduleVersionId As Guid,
-            typeToken As Integer) As EvaluationContext
-
-            ' Re-use the previous compilation if possible.
-            Dim compilation = If(previous.Matches(metadataBlocks),
-                previous.Compilation,
-                metadataBlocks.ToCompilation())
-
-            Return CreateTypeContext(compilation, moduleVersionId, typeToken)
-        End Function
-
         Friend Shared Function CreateTypeContext(
             compilation As VisualBasicCompilation,
             moduleVersionId As Guid,
@@ -130,20 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim offset = NormalizeILOffset(ilOffset)
 
-            ' Re-use the previous compilation if possible.
-            Dim compilation As VisualBasicCompilation
-            If previous.Matches(metadataBlocks) Then
-                ' Re-use entire context if method scope has not changed.
-                Dim previousContext = previous.EvaluationContext
-                If previousContext IsNot Nothing AndAlso
-                    previousContext.MethodContextReuseConstraints.HasValue AndAlso
-                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset) Then
-                    Return previousContext
-                End If
-                compilation = previous.Compilation
-            Else
-                compilation = metadataBlocks.ToCompilation()
-            End If
+            Dim compilation As VisualBasicCompilation = metadataBlocks.ToCompilation(Nothing, MakeAssemblyReferencesKind.AllAssemblies)
 
             Return CreateMethodContext(
                 compilation,
@@ -156,28 +128,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 localSignatureToken)
         End Function
 
+        ''' <summary>
+        ''' Create a context for evaluating expressions within a method scope.
+        ''' </summary>
+        ''' <param name="compilation">Compilation.</param>
+        ''' <param name="symReader"><see cref="ISymUnmanagedReader"/> for PDB associated with <paramref name="moduleVersionId"/>.</param>
+        ''' <param name="moduleVersionId">Module containing method.</param>
+        ''' <param name="methodToken">Method metadata token.</param>
+        ''' <param name="methodVersion">Method version.</param>
+        ''' <param name="ilOffset">IL offset of instruction pointer in method.</param>
+        ''' <param name="localSignatureToken">Method local signature token.</param>
+        ''' <returns>Evaluation context.</returns>
         Friend Shared Function CreateMethodContext(
-            compilation As VisualBasicCompilation,
-            lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
-            symReader As Object,
-            moduleVersionId As Guid,
-            methodToken As Integer,
-            methodVersion As Integer,
-            ilOffset As UInteger,
-            localSignatureToken As Integer) As EvaluationContext
-
-            Return CreateMethodContext(
-                compilation,
-                lazyAssemblyReaders,
-                symReader,
-                moduleVersionId,
-                methodToken,
-                methodVersion,
-                NormalizeILOffset(ilOffset),
-                localSignatureToken)
-        End Function
-
-        Private Shared Function CreateMethodContext(
             compilation As VisualBasicCompilation,
             lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
             symReader As Object,

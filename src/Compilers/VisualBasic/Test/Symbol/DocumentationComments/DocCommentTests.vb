@@ -1943,7 +1943,7 @@ AssemblyName
 </xml>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/18610")>
         Public Sub IllegalXmlInDocComment()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -1993,7 +1993,7 @@ AssemblyName
 </xml>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/18610")>
         Public Sub IllegalXmlInDocComment_Schema()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">

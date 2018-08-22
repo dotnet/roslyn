@@ -19,13 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private readonly IEditAndContinueService _encService;
         private readonly IVsEditorAdaptersFactoryService _adapters;
         private readonly Workspace _workspace;
-        private readonly AbstractProject _vsProject;
 
         private bool _isDisposed;
 
         internal static readonly TraceLog log = new TraceLog(2048, "VsReadOnlyDocumentTracker");
 
-        public VsReadOnlyDocumentTracker(IEditAndContinueService encService, IVsEditorAdaptersFactoryService adapters, AbstractProject vsProject)
+        public VsReadOnlyDocumentTracker(IEditAndContinueService encService, IVsEditorAdaptersFactoryService adapters)
             : base(assertIsForeground: true)
         {
             Debug.Assert(encService.DebuggingSession != null);
@@ -33,15 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             _encService = encService;
             _adapters = adapters;
             _workspace = encService.DebuggingSession.InitialSolution.Workspace;
-            _vsProject = vsProject;
 
             _workspace.DocumentOpened += OnDocumentOpened;
             UpdateWorkspaceDocuments();
-        }
-
-        public Workspace Workspace
-        {
-            get { return _workspace; }
         }
 
         private void OnDocumentOpened(object sender, DocumentEventArgs e)
@@ -102,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             // while the code is running and get refreshed next time the web page is hit.
 
             // Note that Razor-like views are modelled as a ContainedDocument but normal code including code-behind are modelled as a StandardTextDocument.
-            var visualStudioWorkspace = _vsProject.Workspace as VisualStudioWorkspaceImpl;
+            var visualStudioWorkspace = _workspace as VisualStudioWorkspaceImpl;
             var containedDocument = visualStudioWorkspace?.GetHostDocument(documentId) as ContainedDocument;
             return containedDocument == null;
         }

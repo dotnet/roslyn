@@ -39,7 +39,7 @@ Namespace System
     End Class
 End Namespace
     </file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             Dim obj = corLib.GetSpecialType(SpecialType.System_Object)
 
@@ -69,7 +69,7 @@ Namespace System
     End Class
 End Namespace
     </file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             Dim obj = corLib.GetSpecialType(SpecialType.System_Object)
 

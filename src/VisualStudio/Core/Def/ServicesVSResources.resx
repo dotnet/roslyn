@@ -231,11 +231,8 @@
   <data name="Could_not_find_location_of_folder_on_disk" xml:space="preserve">
     <value>Could not find location of folder on disk</value>
   </data>
-  <data name="Error_while_reading_0_colon_1" xml:space="preserve">
-    <value>Error while reading '{0}': {1}</value>
-  </data>
   <data name="ErrorReadingFile" xml:space="preserve">
-    <value>Error while reading a file</value>
+    <value>Error while reading file '{0}': {1}</value>
   </data>
   <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
@@ -968,11 +965,29 @@ Additional information: {1}</value>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
     <value>Prefer local function over anonymous function</value>
   </data>
+  <data name="Keep_all_parentheses_in_colon" xml:space="preserve">
+    <value>Keep all parentheses in:</value>
+  </data>
+  <data name="In_other_operators" xml:space="preserve">
+    <value>In other operators</value>
+  </data>
+  <data name="Never_if_unnecessary" xml:space="preserve">
+    <value>Never if unnecessary</value>
+  </data>
+  <data name="Always_for_clarity" xml:space="preserve">
+    <value>Always for clarity</value>
+  </data>
+  <data name="Parentheses_preferences_colon" xml:space="preserve">
+    <value>Parentheses preferences:</value>
+  </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>
   </data>
   <data name="CantApplyChangesModuleHasBeenUnloaded" xml:space="preserve">
     <value>Can't apply changes -- module '{0}' has been unloaded.</value>
+  </data>
+  <data name="CantApplyChangesUnexpectedError" xml:space="preserve">
+    <value>Can't apply changes -- unexpected error: '{0}'</value>
   </data>
   <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
     <value>Prefer deconstructed variable declaration</value>
@@ -986,17 +1001,11 @@ Additional information: {1}</value>
   <data name="Search_found_no_results" xml:space="preserve">
     <value>Search found no results</value>
   </data>
-  <data name="Snippet_Command_Handler" xml:space="preserve">
-    <value>Snippet Command Handler</value>
+  <data name="Sync_Class_View" xml:space="preserve">
+    <value>Sync Class View</value>
   </data>
-  <data name="Sync_Class_View_Command_Handler" xml:space="preserve">
-    <value>Sync Class View Command Handler</value>
-  </data>
-  <data name="Restore_Visual_Studio_keybindings" xml:space="preserve">
-    <value>Restore Visual Studio keybindings</value>
-  </data>
-  <data name="Use_Keybindings_for_extensions" xml:space="preserve">
-    <value>Use keybindings for ReSharper/IntelliJ/Vim/etc.</value>
+  <data name="Reset_Visual_Studio_default_keymapping" xml:space="preserve">
+    <value>Reset Visual Studio default keymapping</value>
   </data>
   <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
     <value>Enable navigation to decompiled sources (experimental)</value>
@@ -1015,10 +1024,6 @@ I agree to all of the foregoing:</value>
   <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
     <value>Decompiler Legal Notice</value>
   </data>
-  <data name="Disabling_the_extension_0_unbound_your_keyboard_bindings" xml:space="preserve">
-    <value>Disabling the extension '{0}' unbound your keyboard bindings.</value>
-    <comment>0 is an extension name</comment>
-  </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
   </data>
@@ -1033,5 +1038,17 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Live_code_analysis" xml:space="preserve">
     <value>Live code analysis</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with assignments</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_returns" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with returns</value>
+  </data>
+  <data name="Apply_0_keymapping_scheme" xml:space="preserve">
+    <value>Apply '{0}' keymapping scheme</value>
+  </data>
+  <data name="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor" xml:space="preserve">
+    <value>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</value>
   </data>
 </root>

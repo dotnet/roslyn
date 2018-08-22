@@ -4211,7 +4211,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
             Dim type = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Target")
 
             Dim typeInAttribute = DirectCast(type.GetAttributes()(0).ConstructorArguments(0).Value, NamedTypeSymbol)

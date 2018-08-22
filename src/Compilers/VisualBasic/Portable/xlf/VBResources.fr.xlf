@@ -8534,7 +8534,7 @@
                                   Spécifier un mappage pour les noms de chemins sources sortis par
                                   le compilateur.
 /platform:&lt;chaîne&gt;                Limiter les plateformes sur lesquelles ce code peut s'exécuter ; 
-                                  doit correspondre à x86, x64, Itanium, arm,
+                                  doit correspondre à x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred ou anycpu (par défaut).
 /preferreduilang                  Spécifier le nom du langage de sortie préféré.
 /sdkpath:&lt;chemin&gt;                 Emplacement du répertoire du SDK .NET Framework

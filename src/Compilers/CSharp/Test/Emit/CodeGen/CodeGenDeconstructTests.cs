@@ -274,6 +274,39 @@ class C
         }
 
         [Fact]
+        [WorkItem(27520, "https://github.com/dotnet/roslyn/issues/27520")]
+        public void GetDeconstructionInfoOnIncompleteCode()
+        {
+            string source = @"
+class C
+{
+    static void M(string s)
+    {
+        foreach (char in s) { }
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS1525: Invalid expression term 'char'
+                //         foreach (char in s) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "char").WithArguments("char").WithLocation(6, 18),
+                // (6,23): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (char in s) { }
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(6, 23)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var foreachDeconstruction = (ForEachVariableStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachVariableStatement).AsNode();
+            Assert.Equal(@"foreach (char in s) { }", foreachDeconstruction.ToString());
+            var deconstructionInfo = model.GetDeconstructionInfo(foreachDeconstruction);
+            Assert.Equal(Conversion.NoConversion, deconstructionInfo.Conversion);
+            Assert.Null(deconstructionInfo.Method);
+            Assert.Empty(deconstructionInfo.Nested);
+        }
+
+        [Fact]
         [WorkItem(15634, "https://github.com/dotnet/roslyn/issues/15634")]
         public void DeconstructMustReturnVoid()
         {
@@ -1093,22 +1126,16 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       32 (0x20)
-  .maxstack  3
-  .locals init (string V_0, //x
-                string V_1) //y
-  IL_0000:  ldstr      ""goodbye""
-  IL_0005:  stloc.0
-  IL_0006:  ldnull
-  IL_0007:  stloc.0
-  IL_0008:  ldstr      ""hello""
-  IL_000d:  stloc.1
-  IL_000e:  ldstr      ""{0}{1}""
-  IL_0013:  ldloc.0
-  IL_0014:  ldloc.1
-  IL_0015:  call       ""string string.Format(string, object, object)""
-  IL_001a:  call       ""void System.Console.WriteLine(string)""
-  IL_001f:  ret
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (string V_0) //y
+  IL_0000:  ldnull
+  IL_0001:  ldstr      ""hello""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""string string.Concat(string, string)""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
 } ");
         }
 
@@ -1493,7 +1520,7 @@ class C
 
                 var x = (LocalSymbol)model.GetDeclaredSymbol(declarations.ElementAt(7));
                 Assert.Equal("(System.Int32, System.Int32) d", x.ToTestDisplayString());
-                Assert.True(x.Type.TupleElementNames.IsDefault);
+                Assert.True(x.Type.TypeSymbol.TupleElementNames.IsDefault);
 
                 Assert.Equal("(System.Int32 x, System.Int32, System.Int32 y, (System.Int32, System.Int32, System.Int32), (System.Int32 x, System.Int32 y)) nested",
                     model.GetDeclaredSymbol(declarations.ElementAt(8)).ToTestDisplayString());
@@ -3273,7 +3300,7 @@ Deconstructing (1, hello)
 
             var local = (SourceLocalSymbol)symbol;
             var typeSyntax = GetTypeSyntax(decl);
-            if (local.IsVar && local.Type.IsErrorType())
+            if (local.IsVar && local.Type.TypeSymbol.IsErrorType())
             {
                 Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
             }
@@ -3281,7 +3308,7 @@ Deconstructing (1, hello)
             {
                 if (typeSyntax != null)
                 {
-                    Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
+                    Assert.Equal(local.Type.TypeSymbol, model.GetSymbolInfo(typeSyntax).Symbol);
                 }
             }
 
@@ -3290,7 +3317,7 @@ Deconstructing (1, hello)
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
-                Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
+                Assert.Equal(local.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
             }
         }
 
@@ -3309,7 +3336,7 @@ Deconstructing (1, hello)
                 Assert.Same(field, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(field, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
-                Assert.Equal(field.Type, model.GetTypeInfo(reference).Type);
+                Assert.Equal(field.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
             }
         }
 
@@ -5113,14 +5140,14 @@ int (x, y) = (1, 2);
             var xSymbol = model.GetDeclaredSymbol(x);
             Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
             var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.False(xType.IsErrorType());
+            Assert.False(xType.TypeSymbol.IsErrorType());
             Assert.Equal("System.Int32", xType.ToTestDisplayString());
 
             var y = GetDeconstructionVariable(tree, "y");
             var ySymbol = model.GetDeclaredSymbol(y);
             Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
             var yType = ((FieldSymbol)ySymbol).Type;
-            Assert.False(yType.IsErrorType());
+            Assert.False(yType.TypeSymbol.IsErrorType());
             Assert.Equal("System.Int32", yType.ToTestDisplayString());
         }
 
@@ -5147,14 +5174,14 @@ int (x, y) = (1, 2);
             var xSymbol = model.GetDeclaredSymbol(x);
             Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
             var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.False(xType.IsErrorType());
+            Assert.False(xType.TypeSymbol.IsErrorType());
             Assert.Equal("System.Int32", xType.ToTestDisplayString());
 
             var y = GetDeconstructionVariable(tree, "y");
             var ySymbol = model.GetDeclaredSymbol(y);
             Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
             var yType = ((FieldSymbol)ySymbol).Type;
-            Assert.False(yType.IsErrorType());
+            Assert.False(yType.TypeSymbol.IsErrorType());
             Assert.Equal("System.Int32", yType.ToTestDisplayString());
         }
 
@@ -5279,7 +5306,7 @@ var (x, y) = (1, 2);
             Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x, xRef);
             var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.False(xType.IsErrorType());
+            Assert.False(xType.TypeSymbol.IsErrorType());
             Assert.Equal("System.Int32", xType.ToTestDisplayString());
         }
 
@@ -5317,17 +5344,17 @@ var (x, y) = (1, null);
             var xSymbol = model.GetDeclaredSymbol(x);
             Assert.Equal("var Script.x", xSymbol.ToTestDisplayString());
             var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.True(xType.IsErrorType());
+            Assert.True(xType.TypeSymbol.IsErrorType());
             Assert.Equal("var", xType.ToTestDisplayString());
 
-            var xTypeISymbol = (ISymbol)xType;
+            var xTypeISymbol = (ISymbol)xType.TypeSymbol;
             Assert.Equal(SymbolKind.ErrorType, xTypeISymbol.Kind);
 
             var y = GetDeconstructionVariable(tree, "y");
             var ySymbol = model.GetDeclaredSymbol(y);
             Assert.Equal("var Script.y", ySymbol.ToTestDisplayString());
             var yType = ((FieldSymbol)ySymbol).Type;
-            Assert.True(yType.IsErrorType());
+            Assert.True(yType.TypeSymbol.IsErrorType());
             Assert.Equal("var", yType.ToTestDisplayString());
         }
 
@@ -5358,7 +5385,7 @@ var (x1, x2) = (x2, x1);
             Assert.Equal("var Script.x1", x1Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x1, x1Ref);
             var x1Type = ((FieldSymbol)x1Symbol).Type;
-            Assert.True(x1Type.IsErrorType());
+            Assert.True(x1Type.TypeSymbol.IsErrorType());
             Assert.Equal("var", x1Type.Name);
 
             var x2 = GetDeconstructionVariable(tree, "x2");
@@ -5367,7 +5394,7 @@ var (x1, x2) = (x2, x1);
             Assert.Equal("var Script.x2", x2Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x2, x2Ref);
             var x2Type = ((FieldSymbol)x2Symbol).Type;
-            Assert.True(x2Type.IsErrorType());
+            Assert.True(x2Type.TypeSymbol.IsErrorType());
             Assert.Equal("var", x2Type.Name);
         }
 
@@ -5402,7 +5429,7 @@ var (y1, y2) = (x1, x2);
             Assert.Equal("var Script.x1", x1Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x1, x1Ref);
             var x1Type = ((FieldSymbol)x1Symbol).Type;
-            Assert.True(x1Type.IsErrorType());
+            Assert.True(x1Type.TypeSymbol.IsErrorType());
             Assert.Equal("var", x1Type.Name);
 
             var x2 = GetDeconstructionVariable(tree, "x2");
@@ -5411,7 +5438,7 @@ var (y1, y2) = (x1, x2);
             Assert.Equal("var Script.x2", x2Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x2, x2Ref);
             var x2Type = ((FieldSymbol)x2Symbol).Type;
-            Assert.True(x2Type.IsErrorType());
+            Assert.True(x2Type.TypeSymbol.IsErrorType());
             Assert.Equal("var", x2Type.Name);
         }
 
@@ -5715,6 +5742,156 @@ class C
 
             var isymbol = (ISymbol)symbol;
             Assert.Equal(SymbolKind.Discard, isymbol.Kind);
+        }
+
+        [Fact, WorkItem(25829, "https://github.com/dotnet/roslyn/issues/25829")]
+        public void SameTypeDiscardsAreEqual01()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (_, _) = (1, 2);
+        _ = 3;
+        M(out _);
+    }
+    static void M(out int x) => x = 1;
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discards = GetDiscardIdentifiers(tree).ToArray();
+            Assert.Equal(4, discards.Length);
+            var symbol0 = (IDiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
+            Assert.Equal(symbol0, symbol0);
+            var set = new HashSet<ISymbol>();
+            foreach (var discard in discards)
+            {
+                var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+                set.Add(symbol);
+                Assert.Equal(SymbolKind.Discard, symbol.Kind);
+                Assert.Equal("int _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                Assert.Equal(symbol0, symbol);
+                Assert.Equal(symbol, symbol);
+                Assert.Equal(symbol.GetHashCode(), symbol0.GetHashCode());
+
+                // Test to show that reference-unequal discards are equal by type.
+                IDiscardSymbol symbolClone = DiscardSymbol.CreateForTest(symbol.Type);
+                Assert.NotSame(symbol, symbolClone);
+                Assert.Equal(SymbolKind.Discard, symbolClone.Kind);
+                Assert.Equal("int _", symbolClone.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                Assert.Equal(symbol.Type, symbolClone.Type);
+                Assert.Equal(symbol0, symbolClone);
+                Assert.Equal(symbol, symbolClone);
+                Assert.Same(symbol.Type, symbolClone.Type); // original symbol for System.Int32 has identity.
+                Assert.Equal(symbol.GetHashCode(), symbolClone.GetHashCode());
+            }
+
+            Assert.Equal(1, set.Count);
+        }
+
+        [Fact, WorkItem(25829, "https://github.com/dotnet/roslyn/issues/25829")]
+        public void SameTypeDiscardsAreEqual02()
+        {
+            var source =
+@"using System.Collections.Generic;
+class C
+{
+    static void Main()
+    {
+        (_, _) = (new List<int>(), new List<int>());
+        _ = new List<int>();
+        M(out _);
+    }
+    static void M(out List<int> x) => x = new List<int>();
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discards = GetDiscardIdentifiers(tree).ToArray();
+            Assert.Equal(4, discards.Length);
+            var symbol0 = (IDiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
+            Assert.Equal(symbol0, symbol0);
+            var set = new HashSet<ISymbol>();
+            foreach (var discard in discards)
+            {
+                var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+                set.Add(symbol);
+                Assert.Equal(SymbolKind.Discard, symbol.Kind);
+                Assert.Equal("List<int> _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                Assert.Equal(symbol0, symbol);
+                Assert.Equal(symbol0.Type, symbol.Type);
+                Assert.Equal(symbol, symbol);
+                Assert.Equal(symbol.GetHashCode(), symbol0.GetHashCode());
+                if (discard != discards[0])
+                {
+                    // Although it is not part of the compiler's contract, at the moment distinct constructions are distinct
+                    Assert.NotSame(symbol.Type, symbol0.Type);
+                    Assert.NotSame(symbol, symbol0);
+                }
+            }
+
+            Assert.Equal(1, set.Count);
+        }
+
+        [Fact, WorkItem(25829, "https://github.com/dotnet/roslyn/issues/25829")]
+        public void DifferentTypeDiscardsAreNotEqual()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (_, _) = (1.0, 2);
+        _ = 3;
+        M(out _);
+    }
+    static void M(out int x) => x = 1;
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discards = GetDiscardIdentifiers(tree).ToArray();
+            Assert.Equal(4, discards.Length);
+            var symbol0 = (IDiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
+            var set = new HashSet<ISymbol>();
+            foreach (var discard in discards)
+            {
+                var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+                Assert.Equal(SymbolKind.Discard, symbol.Kind);
+                set.Add(symbol);
+                if (discard == discards[0])
+                {
+                    Assert.Equal("double _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                    Assert.Equal(symbol0, symbol);
+                    Assert.Equal(symbol0.GetHashCode(), symbol.GetHashCode());
+                }
+                else
+                {
+                    Assert.Equal("int _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                    Assert.NotEqual(symbol0, symbol);
+                }
+            }
+
+            Assert.Equal(2, set.Count);
         }
 
         [Fact]
@@ -6599,6 +6776,13 @@ class C
                 //         foreach (_ in M())
                 Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "_").WithLocation(6, 18)
                 );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var discard = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First();
+
+            var symbol = (DiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+            Assert.True(symbol.Type.IsErrorType());
         }
 
         [Fact]
@@ -6911,7 +7095,7 @@ class C
                 // (6,18): error CS8185: A declaration is not allowed in this context.
                 //         (int x1, string x2);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string x2").WithLocation(6, 18),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (int x1, string x2);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x1, string x2)").WithLocation(6, 9),
                 // (6,10): error CS0165: Use of unassigned local variable 'x1'
@@ -7224,9 +7408,9 @@ class C : EventInterface
 }
 ";
 
-            var comp2 = CompileAndVerifyWithMscorlib40(source2, expectedOutput:
+            var comp2 = CompileAndVerify(source2, targetFramework: TargetFramework.Empty, expectedOutput:
 @"True
-Handler", references: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
+Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataReference() }));
             comp2.VerifyDiagnostics();
 
             Assert.True(comp2.Compilation.GetMember<EventSymbol>("C.E").IsWindowsRuntimeEvent);
@@ -7283,13 +7467,13 @@ struct S : EventInterface
 }
 ";
 
-            var comp2 = CompileAndVerifyWithMscorlib40(source2, expectedOutput:
+            var comp2 = CompileAndVerify(source2, targetFramework: TargetFramework.Empty, expectedOutput:
 @"GetC
 1
 True
 GetC
 2
-Handler", references: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
+Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataReference() }));
             comp2.VerifyDiagnostics();
 
             Assert.True(comp2.Compilation.GetMember<EventSymbol>("S.E").IsWindowsRuntimeEvent);
@@ -7696,13 +7880,14 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             Operand: 
               IFieldReferenceOperation: System.Int32 C.y (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'y')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'y')
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'y')
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'b')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IFieldReferenceOperation: System.Byte C.b (OperationKind.FieldReference, Type: System.Byte) (Syntax: 'b')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'b')");
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'b')
+");
         }
 
         [Fact]

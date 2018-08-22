@@ -40,7 +40,7 @@ function Publish-NuGet([string]$packageDir, [string]$uploadUrl) {
     try {
         Write-Host "Publishing $(Split-Path -leaf $packageDir) to $uploadUrl"
         $apiKey = Get-PublishKey $uploadUrl
-        foreach ($package in *.nupkg) {
+        foreach ($package in Get-ChildItem *.nupkg) {
             $nupkg = Split-Path -Leaf $package
             Write-Host "  Publishing $nupkg"
             if (-not (Test-Path $nupkg)) {

@@ -5,6 +5,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Classification
+Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -12,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Utilities
 
@@ -64,6 +66,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
+        <WpfFact>
+        Public Sub TestFailOverOfMissingClassificationType()
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic()) _
+                .CreateExportProvider()
+
+
+            Dim typeMap = exportProvider.GetExportedValue(Of ClassificationTypeMap)
+            Dim formatMap = exportProvider.GetExportedValue(Of IClassificationFormatMapService).GetClassificationFormatMap("tooltip")
+
+            Dim classifiedText = New ClassifiedText("UnknownClassificationType", "dummy")
+            Dim run = classifiedText.ToRun(formatMap, typeMap)
+
+            Assert.NotNull(run)
+        End Sub
+
 #Disable Warning BC40000 ' Type or member is obsolete
         <ExportLanguageService(GetType(IEditorClassificationService), "NoCompilation"), [Shared]>
         Private Class NoCompilationEditorClassificationService
@@ -73,11 +91,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Sub
 
             Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSemanticClassificationsAsync
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
 
             Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSyntacticClassificationsAsync
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
 
             Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IEditorClassificationService.AdjustStaleClassification

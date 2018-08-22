@@ -417,6 +417,8 @@ namespace Microsoft.CodeAnalysis
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
 
+        System_Runtime_CompilerServices_NullableAttribute__ctor,
+        System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
         System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
         System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
@@ -432,6 +434,15 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T__get_Length,
 
         System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+
+        Microsoft_VisualBasic_Conversion__FixSingle,
+        Microsoft_VisualBasic_Conversion__FixDouble,
+        Microsoft_VisualBasic_Conversion__IntSingle,
+        Microsoft_VisualBasic_Conversion__IntDouble,
+
+        System_Math__CeilingDouble,
+        System_Math__FloorDouble,
+        System_Math__TruncateDouble,
 
         Count
     }

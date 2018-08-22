@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.VolatileKeyword:
                     case SyntaxKind.UnsafeKeyword:
                     case SyntaxKind.AsyncKeyword:
+                    case SyntaxKind.RefKeyword:
                         result.Add(token.Kind());
                         token = token.GetPreviousToken(includeSkipped: true);
                         continue;

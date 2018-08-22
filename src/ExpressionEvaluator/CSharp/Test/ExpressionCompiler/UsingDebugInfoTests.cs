@@ -226,7 +226,8 @@ namespace B
     }
 }
 ";
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: TestOptions.Regular7).EmitToImageReference(aliases: ImmutableArray.Create("A"));
             var comp = CreateCompilation(source, new[] { aliasedRef });
             WithRuntimeInstance(comp, runtime =>
             {
@@ -327,7 +328,8 @@ namespace D
     }
 }
 ";
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: TestOptions.Regular7).EmitToImageReference(aliases: ImmutableArray.Create("A"));
             var comp = CreateCompilation(source, new[] { aliasedRef });
 
             WithRuntimeInstance(comp, runtime =>
@@ -633,7 +635,8 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            // PROTOTYPE(NullableReferenceTypes): NamespaceSymbol.Extent.Kind is set to Compilation rather than Module.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -668,7 +671,8 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            // PROTOTYPE(NullableReferenceTypes): NamespaceSymbol.Extent.Kind is set to Compilation rather than Module.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -713,7 +717,8 @@ namespace A
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            // PROTOTYPE(NullableReferenceTypes): NamespaceSymbol.Extent.Kind is set to Compilation rather than Module.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -751,7 +756,8 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            // PROTOTYPE(NullableReferenceTypes): NamespaceSymbol.Extent.Kind is set to Compilation rather than Module.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>

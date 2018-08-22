@@ -2183,6 +2183,50 @@ var y = $$x;",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableReference()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
+@"class A<T>
+{
+}
+class B
+{
+    static void M()
+    {
+        A<B?>? x = null!;
+        var y = x;
+        $$y.ToString();
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) A<B?>? y"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26648, "https://github.com/dotnet/roslyn/issues/26648")]
+        public async Task NullableReference_InMethod()
+        {
+            var code = @"
+class G
+{
+    void M()
+    {
+        C c;
+        c.Go$$o();
+    }
+}
+public class C
+{
+    public string? Goo(IEnumerable<object?> arg)
+    {
+    }
+}";
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
+                code, MainDescription("string? C.Goo(IEnumerable<object?> arg)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NestedInGeneric()
         {
             await TestInMethodAsync(
@@ -3670,8 +3714,9 @@ $@"
     'a {FeaturesResources.is_} new {{  }}"));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): 
         [WorkItem(543873, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543873")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes)"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNestedAnonymousType()
         {
             // verify nested anonymous types are listed in the same order for different properties
@@ -5313,6 +5358,106 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLocalFunction4()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        void OuterLocalFunction$$()
+        {
+            int local = 0;
+            int InnerLocalFunction() 
+            {
+                field++;
+                return local;
+            }
+        }
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLocalFunction5()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        void OuterLocalFunction()
+        {
+            int local = 0;
+            int InnerLocalFunction$$() 
+            {
+                field++;
+                return local;
+            }
+        }
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, local"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLocalFunction6()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        int local1 = 0;
+        int local2 = 0;
+
+        void OuterLocalFunction$$()
+        {
+            _ = local1;
+            void InnerLocalFunction() 
+            {
+                _ = local2;
+            }
+        }
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local1, local2"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLocalFunction7()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        int local1 = 0;
+        int local2 = 0;
+
+        void OuterLocalFunction()
+        {
+            _ = local1;
+            void InnerLocalFunction$$() 
+            {
+                _ = local2;
+            }
+        }
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local2"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
         public async Task QuickInfoCapturesOnLambda()
         {
@@ -5393,6 +5538,106 @@ class C
     void N(System.Action x, System.Action y) { }
 }",
                 Captures($"\r\n{WorkspacesResources.Variables_captured_colon} i"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLambda5()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        System.Action a = () =$$>
+        {
+            int local = 0;
+            System.Func<int> b = () =>
+            {
+                field++;
+                return local;
+            };
+        };
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLambda6()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        System.Action a = () =>
+        {
+            int local = 0;
+            System.Func<int> b = () =$$>
+            {
+                field++;
+                return local;
+            };
+        };
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, local"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLambda7()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        int local1 = 0;
+        int local2 = 0;
+
+        System.Action a = () =$$>
+        {
+            _ = local1;
+            System.Action b = () =>
+            {
+                _ = local2;
+            };
+        };
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local1, local2"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLambda8()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        int local1 = 0;
+        int local2 = 0;
+
+        System.Action a = () =>
+        {
+            _ = local1;
+            System.Action b = () =$$>
+            {
+                _ = local2;
+            };
+        };
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local2"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

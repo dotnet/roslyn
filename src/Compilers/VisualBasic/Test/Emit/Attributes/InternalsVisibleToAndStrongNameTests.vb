@@ -132,7 +132,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
 
         other.VerifyDiagnostics()
         Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey))
@@ -285,7 +285,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
 
         other.VerifyDiagnostics()
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
@@ -303,7 +303,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
 
         other.VerifyDiagnostics()
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
@@ -603,7 +603,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
 
         'shouldn't have an error. The attribute's contents are checked when the module is added.
         Dim reference = c1.EmitToImageReference()
@@ -640,7 +640,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
 
         'shouldn't have an error. The attribute's contents are checked when the module is added.
         Dim reference = c1.EmitToImageReference()
@@ -691,7 +691,7 @@ End Class
     End Sub
 
     <Fact>
-    Public Sub IVTErrorNotBothSigned()
+    Public Sub IVTErrorNotBothSigned_VBtoVB()
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
 <compilation name="Paul">
     <file name="a.vb"><![CDATA[
@@ -723,6 +723,71 @@ End Class
         CompilationUtils.AssertTheseDiagnostics(requestor, <error>BC30389: 'C' is not accessible in this context because it is 'Friend'.
     Private Sub New(o As C)
                          ~
+</error>)
+
+    End Sub
+
+    <Fact, WorkItem(781312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781312")>
+    Public Sub Bug781312()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
+<compilation name="Paul">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
+Friend Class C
+ Friend Sub Goo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+
+        other.VerifyDiagnostics()
+
+        Dim requestor As VisualBasicCompilation = CreateCompilationWithMscorlib40AndReferences(
+<compilation name="John">
+    <file name="a.vb"><![CDATA[
+Public Class A
+    Private Sub New(o As C)
+        o.Goo()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>, {New VisualBasicCompilationReference(other)}, TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
+
+        Dim unused = requestor.Assembly.Identity
+        CompilationUtils.AssertTheseDiagnostics(requestor, <error></error>)
+    End Sub
+
+    <Fact>
+    Public Sub IVTErrorNotBothSigned_CStoVB()
+        Dim cSource = "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
+            public class C { internal void Goo() {} }"
+        Dim other As CSharp.CSharpCompilation = CSharp.CSharpCompilation.Create(
+            assemblyName:="Paul",
+            syntaxTrees:={CSharp.CSharpSyntaxTree.ParseText(cSource)},
+            references:={MscorlibRef_v4_0_30316_17626},
+            options:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithStrongNameProvider(s_defaultDesktopProvider))
+
+        other.VerifyDiagnostics()
+
+        Dim requestor As VisualBasicCompilation = CreateCompilationWithMscorlib40AndReferences(
+<compilation name="John">
+    <file name="a.vb"><![CDATA[
+Public Class A
+    Private Sub New(o As C)
+        o.Goo()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>, {MetadataReference.CreateFromImage(other.EmitToArray())}, TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithDelaySign(True).WithStrongNameProvider(s_defaultDesktopProvider))
+
+        Dim unused = requestor.Assembly.Identity
+        'gives "is not accessible" error because internals were imported because IVT was found
+        CompilationUtils.AssertTheseDiagnostics(requestor, <error>BC30390: 'C.Friend Overloads Sub Goo()' is not accessible in this context because it is 'Friend'.
+        o.Goo()
+        ~~~~~
 </error>)
 
     End Sub
@@ -969,13 +1034,13 @@ BC31535: Friend assembly reference 'WantsIVTAccess' is invalid. Strong-name sign
 
 #Region "Signing"
 
-    <Fact>
+    <ConditionalFact(GetType(WindowsDesktopOnly))>
     Public Sub MaxSizeKey()
         Dim pubKey = TestResources.General.snMaxSizePublicKeyString
         Const pubKeyToken = "1540923db30520b2"
         Dim pubKeyTokenBytes As Byte() = {&H15, &H40, &H92, &H3D, &HB3, &H5, &H20, &HB2}
 
-        Dim comp = CreateCompilationWithMscorlib40(
+        Dim comp = CreateCompilation(
 <compilation>
     <file name="c.vb">
 Imports System
@@ -1010,14 +1075,14 @@ End Class
     </file>
 </compilation>
 
-        Dim comp2 = CreateCompilationWithMscorlib40(src, references:={comp.ToMetadataReference()},
+        Dim comp2 = CreateCompilation(src, references:={comp.ToMetadataReference()},
 options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         CompileAndVerify(comp2, expectedOutput:="Called M")
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey)
         Assert.Equal(Of Byte)(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken)
 
-        Dim comp3 = CreateCompilationWithMscorlib40(src, references:={comp.EmitToImageReference()},
+        Dim comp3 = CreateCompilation(src, references:={comp.EmitToImageReference()},
 options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         CompileAndVerify(comp3, expectedOutput:="Called M")
@@ -1340,7 +1405,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1363,7 +1428,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1390,7 +1455,7 @@ End Class
 
         Dim other = CreateCompilationWithMscorlib40(
             source,
-            TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
+            options:=TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1439,7 +1504,7 @@ End Class
     ]]></file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
 
         AssertTheseDiagnostics(other,
 <expected>
@@ -1565,7 +1630,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         AssertTheseDiagnostics(other,
 <expected>

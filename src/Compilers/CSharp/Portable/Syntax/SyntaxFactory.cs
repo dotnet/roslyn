@@ -1878,16 +1878,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         public static bool AreEquivalent(SyntaxTree oldTree, SyntaxTree newTree, bool topLevel)
         {
-            var csOld = oldTree as SyntaxTree;
-            var csNew = newTree as SyntaxTree;
-
-            if (csOld == null && csNew == null)
+            if (oldTree == null && newTree == null)
+            {
                 return true;
+            }
 
-            if (csOld == null || csNew == null)
+            if (oldTree == null || newTree == null)
+            {
                 return false;
+            }
 
-            return SyntaxEquivalence.AreEquivalent(csOld, csNew, ignoreChildNode: null, topLevel: topLevel);
+            return SyntaxEquivalence.AreEquivalent(oldTree, newTree, ignoreChildNode: null, topLevel: topLevel);
         }
 
         /// <summary>
@@ -2450,6 +2451,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
         }
 
+        /// <summary>Creates a new ArrayRankSpecifierSyntax instance.</summary>
+        public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
+        {
+            return SyntaxFactory.ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken, default(SyntaxToken));
+        }
+
         // backwards compatibility for extended API
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, BlockSyntax body)
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, body, default(ArrowExpressionClauseSyntax));
@@ -2459,6 +2466,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, default(BlockSyntax), expressionBody);
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, default(BlockSyntax), expressionBody, semicolonToken);
-
     }
 }

@@ -2,8 +2,10 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="f6d4ae9d-5ca3-4e0b-9035-9457cccf53fa" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
-    <DisplayName>Roslyn Insiders (Without Tool Window)</DisplayName>
-    <Description>Pre-release build of Roslyn compilers and language services.</Description>
+    <!-- PROTOTYPE(NullableReferenceTypes): Revert before merging to master. -->
+    <DisplayName>Roslyn Nullable Reference Types Preview</DisplayName>
+    <!-- PROTOTYPE(NullableReferenceTypes): Revert before merging to master. -->
+    <Description>Pre-release build of Roslyn compilers and language services with support for nullable reference types.</Description>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,]" />
@@ -13,7 +15,7 @@
     
     <Dependency d:ProjectName="CompilerExtension" 
                 DisplayName="Roslyn Compilers" 
-                Version="[|CompilerExtension;GetBuildVersion|,)"
+                Version="[|%CurrentProject%;GetBuildVersion|,)"
                 d:Source="Project" 
                 d:InstallSource="Embed" 
                 d:VsixSubPath="Vsixes" 
@@ -22,7 +24,7 @@
     
     <Dependency d:ProjectName="VisualStudioSetup"
                 DisplayName="Roslyn Language Services"
-                Version="[|VisualStudioSetup;GetBuildVersion|,)"
+                Version="[|%CurrentProject%;GetBuildVersion|,)"
                 d:Source="Project"
                 d:InstallSource="Embed"
                 d:VsixSubPath="Vsixes"
@@ -31,7 +33,7 @@
     
     <Dependency d:ProjectName="VisualStudioInteractiveComponents" 
                 DisplayName="Roslyn Interactive Components" 
-                Version="[|VisualStudioInteractiveComponents;GetBuildVersion|,)"
+                Version="[|%CurrentProject%;GetBuildVersion|,)"
                 d:Source="Project"  
                 d:InstallSource="Embed" 
                 d:VsixSubPath="Vsixes" 
@@ -40,7 +42,7 @@
     
     <Dependency  d:ProjectName="ExpressionEvaluatorPackage" 
                  DisplayName="Roslyn Expression Evaluators" 
-                 Version="[|ExpressionEvaluatorPackage;GetBuildVersion|,)"
+                 Version="[|%CurrentProject%;GetBuildVersion|,)"
                  d:Source="Project" 
                  d:InstallSource="Embed" 
                  d:VsixSubPath="Vsixes" 

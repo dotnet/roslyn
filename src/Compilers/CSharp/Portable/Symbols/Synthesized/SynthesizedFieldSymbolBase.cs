@@ -48,36 +48,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // do not emit CompilerGenerated attributes for fields inside compiler generated types:
             if (!_containingType.IsImplicitlyDeclared)
             {
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
             }
 
             if (!this.SuppressDynamicAttribute &&
-                this.Type.ContainsDynamic() &&
+                this.Type.TypeSymbol.ContainsDynamic() &&
                 compilation.HasDynamicEmitAttributes() &&
                 compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length));
             }
 
-            if (Type.ContainsTupleNames() &&
+            if (Type.TypeSymbol.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(Type));
+                    compilation.SynthesizeTupleNamesAttribute(Type.TypeSymbol));
+            }
+
+            // PROTOTYPE(NullableReferenceTypes): Type.ReportAnnotatedUnconstrainedTypeParameterIfAny()
+
+            if (Type.ContainsNullableReferenceTypes())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, this.Type));
             }
         }
 
-        internal abstract override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
+        internal abstract override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
         public override string Name
         {
             get { return _name; }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override Symbol AssociatedSymbol

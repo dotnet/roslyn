@@ -1527,7 +1527,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefStructInterfaceImpl = 8343,
         ERR_BadSpecialByRefIterator = 8344,
         ERR_FieldAutoPropCantBeByRefLike = 8345,
-
         ERR_StackAllocConversionNotPossible = 8346,
 
         ERR_EscapeCall = 8347,
@@ -1577,6 +1576,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExprCannotBeFixed = 8385,
         ERR_InvalidObjectCreation = 8386,
         #endregion diagnostics introduced for C# 7.3
+
+        WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
+        ERR_OutVariableCannotBeByRef = 8388,
+
+        // Available  = 8389-8399
+
+        ERR_FeatureNotAvailableInVersion8 = 8400,
+
+        WRN_ConvertingNullableToNonNullable = 8600,
+        WRN_NullReferenceAssignment = 8601,
+        WRN_NullReferenceReceiver = 8602,
+        WRN_NullReferenceReturn = 8603,
+        WRN_NullReferenceArgument = 8604,
+        HDN_NullCheckIsProbablyAlwaysTrue = 8605,
+        HDN_NullCheckIsProbablyAlwaysFalse = 8606,
+        HDN_ExpressionIsProbablyNeverNull = 8607,
+        WRN_NullabilityMismatchInTypeOnOverride = 8608,
+        WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
+        WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
+        WRN_NullabilityMismatchInParameterTypeOnPartial = 8611,
+        WRN_NullabilityMismatchInTypeOnImplicitImplementation = 8612,
+        WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation = 8613,
+        WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation = 8614,
+        WRN_NullabilityMismatchInTypeOnExplicitImplementation = 8615,
+        WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation = 8616,
+        WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation = 8617,
+        WRN_UninitializedNonNullableField = 8618,
+        WRN_NullabilityMismatchInAssignment = 8619,
+        WRN_NullabilityMismatchInArgument = 8620,
+        WRN_NullabilityMismatchInReturnTypeOfTargetDelegate = 8621,
+        WRN_NullabilityMismatchInParameterTypeOfTargetDelegate = 8622,
+        ERR_ExplicitNullableAttribute = 8623,
+        ERR_NotNullableOperatorNotReferenceType = 8624,
+        WRN_NullAsNonNullable = 8625,
+        WRN_NoBestNullabilityConditionalExpression = 8626,
+        ERR_NullableUnconstrainedTypeParameter = 8627,
+        ERR_AnnotationDisallowedInObjectCreation = 8628,
+        WRN_MissingNonNullTypesContext = 8629,
+        ERR_NonNullTypesNotAvailable = 8630,
+        WRN_NullabilityMismatchInTypeParameterConstraint = 8631,
+        WRN_MissingNonNullTypesContextForAnnotation = 8632,
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }

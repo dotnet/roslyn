@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnTypeCustomModifiers.As<Cci.ICustomModifier>();
+                return this.ReturnType.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(this.ReturnType,
+            return ((PEModuleBuilder)context.Module).Translate(this.ReturnType.TypeSymbol,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                 diagnostics: context.Diagnostics);
         }
@@ -246,7 +246,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var arg in this.TypeArguments)
             {
-                yield return moduleBeingBuilt.Translate(arg,
+                Debug.Assert(arg.CustomModifiers.IsEmpty);
+                yield return moduleBeingBuilt.Translate(arg.TypeSymbol,
                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                         diagnostics: context.Diagnostics);
             }

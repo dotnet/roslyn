@@ -820,6 +820,36 @@ class Program
             await VerifyItemExistsAsync(markup, "Value");
         }
 
+        [WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerEscapeKeywords()
+        {
+            var markup = @"
+class c
+{
+    public int @new { get; set; }
+
+    public int @this { get; set; }
+
+    public int now { get; set; }
+}
+
+class d
+{
+    static void Main(string[] args)
+    {
+        var t = new c() { $$ };
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "@new");
+            await VerifyItemExistsAsync(markup, "@this");
+            await VerifyItemExistsAsync(markup, "now");
+
+            await VerifyItemIsAbsentAsync(markup, "new");
+            await VerifyItemIsAbsentAsync(markup, "this");
+        }
+
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
             using (var workspace = TestWorkspace.CreateCSharp(markup))

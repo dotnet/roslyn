@@ -13,6 +13,8 @@ namespace Roslyn.Compilers.Extension
     [ProvideAutoLoad(UIContextGuids.SolutionExists)]
     public sealed class CompilerPackage : Package
     {
+        public static string RoslynHive = null;
+        
         protected override void Initialize()
         {
             base.Initialize();
@@ -30,14 +32,14 @@ namespace Roslyn.Compilers.Extension
             {
                 var skuName = registryParts[2];
                 var hiveName = registryParts[3];
-                var roslynHive = string.Format(@"{0}.{1}", registryParts[2], registryParts[3]);
+                RoslynHive = string.Format(@"{0}.{1}", registryParts[2], registryParts[3]);
 
-                WriteMSBuildFiles(packagePath, roslynHive);
+                WriteMSBuildFiles(packagePath, RoslynHive);
 
                 try
                 {
                     Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection.DisableMarkDirty = true;
-                    Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection.SetGlobalProperty("RoslynHive", roslynHive);
+                    Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection.SetGlobalProperty("RoslynHive", RoslynHive);
                 }
                 finally
                 {

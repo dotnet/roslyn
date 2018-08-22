@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                 Return False
             End If
 
-            Dim typeInferenceService = document.Project.LanguageServices.GetService(Of ITypeInferenceService)()
+            Dim typeInferenceService = document.GetLanguageService(Of ITypeInferenceService)()
             Contract.ThrowIfNull(typeInferenceService, NameOf(typeInferenceService))
 
             Dim types = typeInferenceService.InferTypes(context.SemanticModel, context.Position, cancellationToken)

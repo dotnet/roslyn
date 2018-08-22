@@ -80,7 +80,7 @@ namespace Test
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
-            await TestSmartTagTextAsync(initialMarkup, "using Ambiguous = N1.Ambiguous;", index: 0);
+            await TestSmartTagTextAsync(initialMarkup, "using Ambiguous = N1.Ambiguous;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
@@ -292,7 +292,7 @@ class D
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
-            await TestSmartTagTextAsync(initialMarkup, "using Nested = Static<string>.Nested;", index: 0);
+            await TestSmartTagTextAsync(initialMarkup, "using Nested = Static<string>.Nested;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]

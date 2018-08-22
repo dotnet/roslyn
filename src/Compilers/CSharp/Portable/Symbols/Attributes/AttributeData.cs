@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (members.Length == 1 && members[0].Kind == SymbolKind.Property)
             {
                 var property = (PropertySymbol)members[0];
-                if ((object)property.Type != null && property.Type.SpecialType == SpecialType.System_String &&
+                if (!property.Type.IsNull && property.Type.SpecialType == SpecialType.System_String &&
                     property.DeclaredAccessibility == Accessibility.Public && property.GetMemberArity() == 0 &&
                     (object)property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public)
                 {
@@ -621,6 +621,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 case SymbolKind.NetModule:
                     // Note that DefaultCharSetAttribute is emitted to metadata, although it's also decoded and used when emitting P/Invoke
+
+                    if (IsTargetAttribute(target, AttributeDescription.NullableOptOutForAssemblyAttribute))
+                    {
+                        return false;
+                    }
                     break;
 
                 case SymbolKind.NamedType:

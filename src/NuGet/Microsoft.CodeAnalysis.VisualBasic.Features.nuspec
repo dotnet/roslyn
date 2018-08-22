@@ -25,6 +25,7 @@
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
     <!-- Include PDB unless embedded into DLL -->
@@ -32,5 +33,8 @@
     <file src="Dlls\BasicFeatures\Microsoft.CodeAnalysis.VisualBasic.Features.xml" target="lib\netstandard1.3" />
     <file src="Dlls\BasicFeatures\Microsoft.CodeAnalysis.VisualBasic.Features.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\BasicFeatures\**\Microsoft.CodeAnalysis.VisualBasic.Features.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>

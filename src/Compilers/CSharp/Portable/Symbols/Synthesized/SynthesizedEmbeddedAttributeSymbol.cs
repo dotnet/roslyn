@@ -5,10 +5,10 @@ using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -27,10 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly NamedTypeSymbol _baseType;
         private readonly NamespaceSymbol _namespace;
-        private readonly ImmutableArray<Symbol> _members;
+        private readonly ImmutableArray<MethodSymbol> _constructors;
         private readonly ModuleSymbol _module;
 
-        public SynthesizedEmbeddedAttributeSymbol(AttributeDescription description, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        public SynthesizedEmbeddedAttributeSymbol(
+            AttributeDescription description,
+            CSharpCompilation compilation,
+            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getAdditionalConstructors,
+            DiagnosticBag diagnostics)
         {
             _name = description.Name;
             _baseType = compilation.GetWellKnownType(WellKnownType.System_Attribute);
@@ -38,18 +42,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Report errors in case base type was missing or bad
             Binder.ReportUseSiteDiagnostics(_baseType, diagnostics, Location.None);
 
-            Constructor = new SynthesizedEmbeddedAttributeConstructorSymbol(this);
-            _members = ImmutableArray.Create<Symbol>(Constructor);
+            var builder = ArrayBuilder<MethodSymbol>.GetInstance();
+            builder.Add(new SynthesizedEmbeddedAttributeConstructorSymbol(this, m => ImmutableArray<ParameterSymbol>.Empty));
+            if (getAdditionalConstructors != null)
+            {
+                builder.AddRange(getAdditionalConstructors(compilation, this, diagnostics));
+            }
+            _constructors = builder.ToImmutableAndFree();
+            Debug.Assert(_constructors.Length == description.Signatures.Length);
+
             _module = compilation.SourceModule;
 
-            _namespace = compilation.SourceModule.GlobalNamespace;
+            _namespace = _module.GlobalNamespace;
             foreach (var part in description.Namespace.Split('.'))
             {
                 _namespace = new MissingNamespaceSymbol(_namespace, part);
             }
         }
 
-        public SynthesizedEmbeddedAttributeConstructorSymbol Constructor { get; private set; }
+        public new ImmutableArray<MethodSymbol> Constructors => _constructors;
 
         public override int Arity => 0;
 
@@ -61,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name => _name;
 
-        public override IEnumerable<string> MemberNames => SpecializedCollections.SingletonEnumerable(Constructor.Name);
+        public override IEnumerable<string> MemberNames => _constructors.Select(m => m.Name);
 
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
 
@@ -89,9 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSealed => true;
 
-        internal override bool HasTypeArgumentsCustomModifiers => false;
-
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics => ImmutableArray<TypeSymbol>.Empty;
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics => throw new NotImplementedException();
 
         internal override bool MangleName => false;
 
@@ -119,11 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;
 
-        public override ImmutableArray<Symbol> GetMembers() => _members;
+        public override ImmutableArray<Symbol> GetMembers() => _constructors.CastArray<Symbol>();
 
-        public override ImmutableArray<Symbol> GetMembers(string name) => Constructor.Name == name ? _members : ImmutableArray<Symbol>.Empty;
-
-        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal) => ImmutableArray<CustomModifier>.Empty;
+        public override ImmutableArray<Symbol> GetMembers(string name) => name == WellKnownMemberNames.InstanceConstructorName ? _constructors.CastArray<Symbol>() : ImmutableArray<Symbol>.Empty;
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => ImmutableArray<NamedTypeSymbol>.Empty;
 
@@ -138,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved) => _baseType;
 
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
+
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => GetMembers();
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => GetMembers(name);
@@ -162,38 +170,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ref attributes,
                 moduleBuilder.SynthesizeEmbeddedAttribute());
         }
+    }
 
-        internal sealed class SynthesizedEmbeddedAttributeConstructorSymbol : SynthesizedInstanceConstructor
+    internal sealed class SynthesizedEmbeddedAttributeConstructorSymbol : SynthesizedInstanceConstructor
+    {
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
+
+        internal SynthesizedEmbeddedAttributeConstructorSymbol(
+            NamedTypeSymbol containingType,
+            Func<MethodSymbol, ImmutableArray<ParameterSymbol>> getParameters) :
+            base(containingType)
         {
-            public SynthesizedEmbeddedAttributeConstructorSymbol(NamedTypeSymbol containingType)
-                : base(containingType)
+            _parameters = getParameters(this);
+        }
+
+        public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
+
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        {
+            if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
             {
+                // System_Attribute is missing. Don't generate anything
+                return;
             }
 
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            factory.CurrentFunction = this;
+
+            var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+            if (baseConstructorCall == null)
             {
-                if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
-                {
-                    // System_Attribute is missing. Don't generate anything
-                    return;
-                }
-
-                var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                factory.CurrentFunction = this;
-
-                var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
-                if (baseConstructorCall == null)
-                {
-                    // This may happen if Attribute..ctor is not found or is inaccessible
-                    return;
-                }
-
-                var block = factory.Block(
-                    factory.ExpressionStatement(baseConstructorCall),
-                    factory.Return());
-
-                factory.CloseMethod(block);
+                // This may happen if Attribute..ctor is not found or is inaccessible
+                return;
             }
+
+            var block = factory.Block(
+                factory.ExpressionStatement(baseConstructorCall),
+                factory.Return());
+
+            factory.CloseMethod(block);
         }
     }
 }

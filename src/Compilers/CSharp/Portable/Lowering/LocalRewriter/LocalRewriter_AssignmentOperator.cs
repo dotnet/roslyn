@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argTemps,
                         ImmutableArray<BoundExpression>.Empty,
                         setterCall,
-                        setMethod.ReturnType);
+                        setMethod.ReturnType.TypeSymbol);
                 }
             }
         }

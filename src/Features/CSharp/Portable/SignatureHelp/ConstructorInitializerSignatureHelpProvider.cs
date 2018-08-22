@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var currentConstructor = semanticModel.GetDeclaredSymbol(constructorInitializer.Parent);
 
-            var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var accessibleConstructors = type.InstanceConstructors
                                              .WhereAsArray(c => c.IsAccessibleWithin(within) && !c.Equals(currentConstructor))
                                              .WhereAsArray(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 

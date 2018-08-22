@@ -306,11 +306,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The changes must be ordered and not overlapping..
+        ///   Looks up a localized string similar to The changes must not overlap..
         /// </summary>
-        internal static string ChangesMustBeOrderedAndNotOverlapping {
+        internal static string ChangesMustNotOverlap {
             get {
-                return ResourceManager.GetString("ChangesMustBeOrderedAndNotOverlapping", resourceCulture);
+                return ResourceManager.GetString("ChangesMustNotOverlap", resourceCulture);
             }
         }
         
@@ -402,15 +402,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string CompilerAnalyzerThrowsDescription {
             get {
                 return ResourceManager.GetString("CompilerAnalyzerThrowsDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reported diagnostic has an ID &apos;{0}&apos;, which only a compiler should be reporting..
-        /// </summary>
-        internal static string CompilerDiagnosticIdReported {
-            get {
-                return ResourceManager.GetString("CompilerDiagnosticIdReported", resourceCulture);
             }
         }
         
@@ -601,6 +592,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string FileSizeExceedsMaximumAllowed {
             get {
                 return ResourceManager.GetString("FileSizeExceedsMaximumAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;Flow-Analysis&apos; is disabled..
+        /// </summary>
+        internal static string FlowAnalysisFeatureDisabled {
+            get {
+                return ResourceManager.GetString("FlowAnalysisFeatureDisabled", resourceCulture);
             }
         }
         
@@ -799,6 +799,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string InvalidNodeToTrack {
             get {
                 return ResourceManager.GetString("InvalidNodeToTrack", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Given operation block does not belong to the current analysis context..
+        /// </summary>
+        internal static string InvalidOperationBlockForAnalysisContext {
+            get {
+                return ResourceManager.GetString("InvalidOperationBlockForAnalysisContext", resourceCulture);
             }
         }
         
@@ -1028,11 +1037,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Given operation has a non-null parent..
+        /// </summary>
+        internal static string NotARootOperation {
+            get {
+                return ResourceManager.GetString("NotARootOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A value in the pathMap is null..
         /// </summary>
         internal static string NullValueInPathMap {
             get {
                 return ResourceManager.GetString("NullValueInPathMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Given operation has a null semantic model..
+        /// </summary>
+        internal static string OperationHasNullSemanticModel {
+            get {
+                return ResourceManager.GetString("OperationHasNullSemanticModel", resourceCulture);
             }
         }
         

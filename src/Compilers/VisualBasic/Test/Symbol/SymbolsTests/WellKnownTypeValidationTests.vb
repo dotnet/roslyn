@@ -502,6 +502,7 @@ End Namespace
                         Continue For
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T
                         ' Not available on all platforms.
@@ -512,7 +513,8 @@ End Namespace
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -537,11 +539,13 @@ End Namespace
                          WellKnownType.Microsoft_VisualBasic_ApplicationServices_ApplicationBase,
                          WellKnownType.Microsoft_VisualBasic_ApplicationServices_WindowsFormsApplicationBase,
                          WellKnownType.Microsoft_VisualBasic_Information,
-                         WellKnownType.Microsoft_VisualBasic_Interaction
+                         WellKnownType.Microsoft_VisualBasic_Interaction,
+                         WellKnownType.Microsoft_VisualBasic_Conversion
                         ' Not embedded, so not available.
                         Continue For
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T
                         ' Not available on all platforms.
@@ -552,7 +556,8 @@ End Namespace
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -564,7 +569,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+               <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllWellKnownTypeMembers()
             Dim refs As MetadataReference() =
             {
@@ -588,6 +593,8 @@ End Namespace
                         ' Not a real value.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
@@ -674,10 +681,16 @@ End Namespace
                          WellKnownMember.Microsoft_VisualBasic_Information__SystemTypeName,
                          WellKnownMember.Microsoft_VisualBasic_Information__TypeName,
                          WellKnownMember.Microsoft_VisualBasic_Information__VbTypeName,
-                         WellKnownMember.Microsoft_VisualBasic_Interaction__CallByName
+                         WellKnownMember.Microsoft_VisualBasic_Interaction__CallByName,
+                         WellKnownMember.Microsoft_VisualBasic_Conversion__FixSingle,
+                         WellKnownMember.Microsoft_VisualBasic_Conversion__FixDouble,
+                         WellKnownMember.Microsoft_VisualBasic_Conversion__IntSingle,
+                         WellKnownMember.Microsoft_VisualBasic_Conversion__IntDouble
                         ' The type is not embedded, so the member is not available.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,

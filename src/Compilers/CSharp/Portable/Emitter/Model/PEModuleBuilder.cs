@@ -44,13 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
         private bool _needsGeneratedIsUnmanagedAttribute_Value;
         private bool _needsGeneratedAttributes_IsFrozen;
+        private bool _needsGeneratedNullableAttribute_Value;
 
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
         /// The value is set during lowering the symbols that need that attribute, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
-        internal bool NeedsGeneratedIsReadOnlyAttribute
+        protected bool NeedsGeneratedIsReadOnlyAttribute
         {
             get
             {
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsByRefLikeAttribute to be generated during emit phase.
         /// </summary>
-        internal bool NeedsGeneratedIsByRefLikeAttribute
+        protected bool NeedsGeneratedIsByRefLikeAttribute
         {
             get
             {
@@ -76,6 +77,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 _needsGeneratedAttributes_IsFrozen = true;
                 return Compilation.NeedsGeneratedIsUnmanagedAttribute || _needsGeneratedIsUnmanagedAttribute_Value;
+            }
+        }
+
+        protected bool NeedsGeneratedNullableAttribute
+        {
+            get
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+                return Compilation.NeedsGeneratedNullableAttribute || _needsGeneratedNullableAttribute_Value;
             }
         }
 
@@ -1159,6 +1169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             BoundArgListOperator optArgList = null,
             bool needDeclaration = false)
         {
+            Debug.Assert(!methodSymbol.IsDefaultValueTypeConstructor());
             Debug.Assert(optArgList == null || (methodSymbol.IsVararg && !needDeclaration));
 
             Cci.IMethodReference unexpandedMethodRef = Translate(methodSymbol, syntaxNodeOpt, diagnostics, needDeclaration);
@@ -1471,6 +1482,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeIsByRefLikeAttribute();
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Consider moving to CSharpCompilation
+        // next to SynthesizeDynamicAttribute and SynthesizeTupleNamesAttribute.
+        /// <summary>
+        /// Given a type <paramref name="type"/>, which is either a nullable reference type OR 
+        /// is a constructed type with a nullable reference type present in its type argument tree,
+        /// returns a synthesized NullableAttribute with encoded nullable transforms array.
+        /// </summary>
+        internal SynthesizedAttributeData SynthesizeNullableAttribute(Symbol symbol, TypeSymbolWithAnnotations type)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            var flagsBuilder = ArrayBuilder<bool>.GetInstance();
+            type.AddNullableTransforms(flagsBuilder);
+
+            Debug.Assert(flagsBuilder.Any());
+            Debug.Assert(flagsBuilder.Contains(true));
+
+            WellKnownMember constructor;
+            ImmutableArray<TypedConstant> arguments;
+
+            if (flagsBuilder.Count == 1 && flagsBuilder[0])
+            {
+                constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor;
+                arguments = ImmutableArray<TypedConstant>.Empty;
+            }
+            else
+            {
+                NamedTypeSymbol booleanType = Compilation.GetSpecialType(SpecialType.System_Boolean);
+                Debug.Assert((object)booleanType != null);
+                var constantsBuilder = ArrayBuilder<TypedConstant>.GetInstance(flagsBuilder.Count);
+
+                foreach (bool flag in flagsBuilder)
+                {
+                    constantsBuilder.Add(new TypedConstant(booleanType, TypedConstantKind.Primitive, flag));
+                }
+
+                var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeSymbolWithAnnotations.Create(booleanType));
+                constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags;
+                arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, constantsBuilder.ToImmutableAndFree()));
+            }
+
+            flagsBuilder.Free();
+            return SynthesizeNullableAttribute(constructor, arguments);
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // PROTOTYPE(NullableReferenceTypes): Should not be optional.
+            return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
@@ -1518,6 +1585,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (Compilation.CheckIfIsUnmanagedAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
             {
                 _needsGeneratedIsUnmanagedAttribute_Value = true;
+            }
+        }
+
+        internal void EnsureNullableAttributeExists()
+        {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+
+            if (_needsGeneratedNullableAttribute_Value || Compilation.NeedsGeneratedNullableAttribute)
+            {
+                return;
+            }
+
+            // Don't report any errors. They should be reported during binding.
+            if (Compilation.CheckIfNullableAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            {
+                _needsGeneratedNullableAttribute_Value = true;
             }
         }
     }

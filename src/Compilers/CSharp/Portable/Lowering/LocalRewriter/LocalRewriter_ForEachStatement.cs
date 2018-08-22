@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
 
-            TypeSymbol enumeratorType = enumeratorInfo.GetEnumeratorMethod.ReturnType;
-            TypeSymbol elementType = enumeratorInfo.ElementType;
+            TypeSymbol enumeratorType = enumeratorInfo.GetEnumeratorMethod.ReturnType.TypeSymbol;
+            TypeSymbol elementType = enumeratorInfo.ElementType.TypeSymbol;
 
             // E e
             LocalSymbol enumeratorVar = _factory.SynthesizedLocal(enumeratorType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachEnumerator);
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (enumeratorType.IsValueType)
                     {
                         // No way for the struct to be nullable and disposable.
-                        Debug.Assert(((TypeSymbol)enumeratorType.OriginalDefinition).SpecialType != SpecialType.System_Nullable_T);
+                        Debug.Assert(!enumeratorType.IsNullableType());
 
                         // For non-nullable structs, no null check is required.
                         disposeStmt = disposeCall;
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// (1) assigns it into a local, or
         /// (2) deconstructs it into multiple locals (if there is a deconstruct step).
         ///
-        /// Produces `V v = /* expression */` or `(D1 d1, ...) = /* expression */`.
+        /// Produces <c>V v = /* expression */</c> or <c>(D1 d1, ...) = /* expression */</c>.
         /// </summary>
         private BoundStatement LocalOrDeconstructionDeclaration(
                                     BoundForEachStatement forEachBound,
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create<BoundExpression>(boundPositionVar),
-                    type: arrayType.ElementType),
+                    type: arrayType.ElementType.TypeSymbol),
                 conversion: node.ElementConversion,
                 rewrittenType: node.IterationVariableType.Type,
                 @checked: node.Checked);
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenOperand: new BoundArrayAccess(forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create((BoundExpression[])boundPositionVar),
-                    type: arrayType.ElementType),
+                    type: arrayType.ElementType.TypeSymbol),
                 conversion: node.ElementConversion,
                 rewrittenType: node.IterationVariableType.Type,
                 @checked: node.Checked);

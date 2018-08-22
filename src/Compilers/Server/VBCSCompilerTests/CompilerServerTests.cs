@@ -1171,7 +1171,7 @@ End Module
 {
     public System.Exception GetException()
     {
-        return null;
+        return new System.Exception();
     }
 }
 "}};

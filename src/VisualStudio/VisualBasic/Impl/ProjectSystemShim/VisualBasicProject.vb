@@ -406,7 +406,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Protected Overrides Function CreateCompilationOptions(commandLineArguments As CommandLineArguments, newParseOptions As ParseOptions) As CompilationOptions
             Dim baseCompilationOptions = DirectCast(MyBase.CreateCompilationOptions(commandLineArguments, newParseOptions), VisualBasicCompilationOptions)
             Dim vbParseOptions = DirectCast(newParseOptions, VisualBasicParseOptions)
-            Return VisualBasicProjectOptionsHelper.CreateCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, RuleSetFile)
+            Return VisualBasicProjectOptionsHelper.CreateCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, RuleSetFile?.Target)
         End Function
 
         Protected Overrides Function CreateParseOptions(commandLineArguments As CommandLineArguments) As ParseOptions

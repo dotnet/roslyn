@@ -216,15 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cast is redundant.
-        /// </summary>
-        internal static string Cast_is_redundant {
-            get {
-                return ResourceManager.GetString("Cast_is_redundant", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to catch clause.
         /// </summary>
         internal static string catch_clause {
@@ -311,6 +302,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Convert_to_switch {
             get {
                 return ResourceManager.GetString("Convert_to_switch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Declare as nullable.
+        /// </summary>
+        internal static string Declare_as_nullable {
+            get {
+                return ResourceManager.GetString("Declare_as_nullable", resourceCulture);
             }
         }
         
@@ -486,6 +486,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;if&apos; statement can be simplified.
+        /// </summary>
+        internal static string if_statement_can_be_simplified {
+            get {
+                return ResourceManager.GetString("if_statement_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to indexer.
         /// </summary>
         internal static string indexer {
@@ -554,6 +563,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Invalid_selection {
             get {
                 return ResourceManager.GetString("Invalid_selection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invert if.
+        /// </summary>
+        internal static string Invert_if {
+            get {
+                return ResourceManager.GetString("Invert_if", resourceCulture);
             }
         }
         
@@ -815,15 +833,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Remove_this_qualification {
             get {
                 return ResourceManager.GetString("Remove_this_qualification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove Unnecessary Cast.
-        /// </summary>
-        internal static string Remove_Unnecessary_Cast {
-            get {
-                return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture);
             }
         }
         

@@ -41,6 +41,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             catch
             {
                 _messageFilter.Dispose();
+                _messageFilter = null;
                 throw;
             }
         }
@@ -60,8 +61,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        public Task DisposeAsync()
+        /// <summary>
+        /// This method implements <see cref="IAsyncLifetime.DisposeAsync"/>, and is used for releasing resources
+        /// created by <see cref="IAsyncLifetime.InitializeAsync"/>. This method is only called if
+        /// <see cref="InitializeAsync"/> completes successfully.
+        /// </summary>
+        public virtual Task DisposeAsync()
         {
+            _visualStudioContext.Dispose();
             return Task.CompletedTask;
         }
 
@@ -80,18 +87,17 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Thread.Sleep(timeout);
         }
 
+        /// <summary>
+        /// This method provides the implementation for <see cref="IDisposable.Dispose"/>. This method via the
+        /// <see cref="IDisposable"/> interface (i.e. <paramref name="disposing"/> is <see langword="true"/>) if the
+        /// constructor completes successfully. The <see cref="InitializeAsync"/> may or may not have completed
+        /// successfully.
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {
-                try
-                {
-                    _visualStudioContext.Dispose();
-                }
-                finally
-                {
-                    _messageFilter.Dispose();
-                }
+                _messageFilter.Dispose();
             }
         }
 

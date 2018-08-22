@@ -20,11 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private sealed class DebuggerService : IDkmCustomMessageForwardReceiver
         {
             /// <summary>
-            /// Component id as specified in ManagedEditAndContinueService.vsdconfigxml.
-            /// </summary>
-            public static readonly Guid ComponentId = new Guid("A96BBE03-0408-41E3-8613-6086FD494B43");
-
-            /// <summary>
             /// Message source id as specified in ManagedEditAndContinueService.vsdconfigxml.
             /// </summary>
             public static readonly Guid MessageSourceId = new Guid("58CDF976-1923-48F7-8288-B4189F5700B1");
@@ -73,9 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             return _baselineMetadata.GetOrAdd(mvid, m =>
             {
-                DkmComponentManager.InitializeThread(DebuggerService.ComponentId);
-
-                try
+                using (DebuggerComponent.ManagedEditAndContinueService())
                 {
                     var clrModuleInstance = FindClrModuleInstance(m);
                     if (clrModuleInstance == null)
@@ -99,10 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         Parameter2: clrModuleInstance).SendLower();
 
                     return metadata;
-                }
-                finally
-                {
-                    DkmComponentManager.UninitializeThread(DebuggerService.ComponentId);
                 }
             });
         }

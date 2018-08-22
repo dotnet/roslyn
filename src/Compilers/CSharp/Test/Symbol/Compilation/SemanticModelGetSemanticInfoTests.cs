@@ -1029,9 +1029,8 @@ static class S
 }");
             Assert.Null(semanticInfo.Symbol);
             Utils.CheckSymbols(semanticInfo.MethodGroup);
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols,
-                "void string.E()",
-                "void string.E<string>()"
+            Utils.CheckSymbols(semanticInfo.CandidateSymbols
+                /* no candidates */
                 );
         }
 
@@ -5599,8 +5598,8 @@ public class TestClass
             MethodSymbol lambdaSym = (MethodSymbol)(semanticInfo.Symbol);
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
-            Assert.Equal("System.String", lambdaSym.Parameters[0].Type.ToTestDisplayString());
-            Assert.Equal("System.Int32", lambdaSym.ReturnType.ToTestDisplayString());
+            Assert.Equal("System.String", lambdaSym.Parameters[0].Type.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32", lambdaSym.ReturnType.TypeSymbol.ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -5636,7 +5635,7 @@ public class TestClass
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
             Assert.Equal(TypeKind.Error, lambdaSym.Parameters[0].Type.TypeKind);
-            Assert.Equal("System.Int32", lambdaSym.ReturnType.ToTestDisplayString());
+            Assert.Equal("System.Int32", lambdaSym.ReturnType.TypeSymbol.ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -6280,7 +6279,7 @@ class Program
 
             // It's type is not equal to the SemanticInfo type, because that is
             // not an error type.
-            Assert.NotEqual(semanticInfo.Type, param.Type);
+            Assert.NotEqual(semanticInfo.Type, param.Type.TypeSymbol);
         }
 
         [Fact]
@@ -11473,7 +11472,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(args[0]./*<bind>*/Goo/*</bind>*/());
+        args[0]./*<bind>*/Goo/*</bind>*/();
     }
 }
 ";
@@ -11484,7 +11483,7 @@ class Program
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 System.String.Goo()", sortedCandidates[0].ToTestDisplayString());

@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (local.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type);
+                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type.TypeSymbol);
                 }
 
                 _locals.Add(local);
@@ -900,6 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: node.IsBaseConversion,
                     @checked: node.Checked,
                     explicitCastInCode: node.ExplicitCastInCode,
+                    conversionGroupOpt: node.ConversionGroupOpt,
                     constantValueOpt: node.ConstantValueOpt,
                     type: node.Type));
         }
@@ -971,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UpdateExpression(leftBuilder, _F.Local(tmp));
             }
 
-            return UpdateExpression(builder, node.Update(left, right, node.LeftConversion, node.Type));
+            return UpdateExpression(builder, node.Update(left, right, node.LeftConversion, node.OperatorResultKind, node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)

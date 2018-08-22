@@ -1409,14 +1409,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
 
+            var location = Locations[0];
             if (this.IsByRefLikeType)
             {
-                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, Locations[0], modifyCompilationForIsByRefLike: true);
+                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
             if (this.IsReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, Locations[0], modifyCompilationForRefReadOnly: true);
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            // PROTOTYPE(NullableReferenceTypes): Report diagnostics for base type and interfaces at more specific locations.
+            var baseType = BaseTypeNoUseSiteDiagnostics;
+            var interfaces = InterfacesNoUseSiteDiagnostics();
+            if (baseType?.ContainsAnnotatedUnconstrainedTypeParameter() == true ||
+                interfaces.Any(t => t.ContainsAnnotatedUnconstrainedTypeParameter()))
+            {
+                TypeSymbolWithAnnotations.ReportAnnotatedUnconstrainedTypeParameter(location, diagnostics);
+            }
+            if (baseType?.ContainsNullableReferenceTypes() == true ||
+                interfaces.Any(t => t.ContainsNullableReferenceTypes()))
+            {
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                ReportNullableReferenceTypesIfNeeded(diagnostics, location);
             }
         }
 
@@ -1875,7 +1891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         continue;
                     }
-                    var type = field.Type;
+                    var type = field.Type.TypeSymbol;
                     if (((object)type != null) &&
                         (type.TypeKind == TypeKind.Struct) &&
                         BaseTypeAnalysis.StructDependsOn((NamedTypeSymbol)type, this) &&
@@ -2007,7 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!op1.ReturnType.Equals(op2.ReturnType, TypeCompareKind.AllIgnoreOptions))
+            if (!op1.ReturnType.TypeSymbol.Equals(op2.ReturnType.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
             {
                 return false;
             }
@@ -2072,7 +2088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var f = m as FieldSymbol;
                 if ((object)f == null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
-                var type = (NamedTypeSymbol)f.Type;
+                var type = (NamedTypeSymbol)f.Type.TypeSymbol;
                 if (InfiniteFlatteningGraph(this, type, instanceMap))
                 {
                     // Struct member '{0}' of type '{1}' causes a cycle in the struct layout
@@ -2102,7 +2118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var f = m as FieldSymbol;
                         if ((object)f == null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
-                        var type = (NamedTypeSymbol)f.Type;
+                        var type = (NamedTypeSymbol)f.Type.TypeSymbol;
                         if (InfiniteFlatteningGraph(top, type, instanceMap)) return true;
                     }
                     return false;
@@ -2662,8 +2678,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                var propertyParamType = ((i == numParams - 1) && !getNotSet) ? propertySymbol.Type : propertyParams[i].Type;
-                if (!propertyParamType.Equals(methodParam.Type, TypeCompareKind.AllIgnoreOptions))
+                var propertyParamType = (((i == numParams - 1) && !getNotSet) ? propertySymbol.Type : propertyParams[i].Type).TypeSymbol;
+                if (!propertyParamType.Equals(methodParam.Type.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
                 {
                     return false;
                 }
@@ -2681,7 +2697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return
                 methodParams.Length == 1 &&
                 methodParams[0].RefKind == RefKind.None &&
-                eventSymbol.Type.Equals(methodParams[0].Type, TypeCompareKind.AllIgnoreOptions);
+                eventSymbol.Type.TypeSymbol.Equals(methodParams[0].Type.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
         }
 
         private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)

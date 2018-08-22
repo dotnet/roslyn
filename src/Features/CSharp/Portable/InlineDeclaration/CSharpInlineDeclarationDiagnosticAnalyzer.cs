@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         public override bool OpenFileOnly(Workspace workspace) => false;
 
@@ -240,10 +240,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 ? (SyntaxNode)localDeclaration
                 : localDeclarator;
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(option.Notification.Value),
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 reportNode.GetLocation(),
-                additionalLocations: allLocations));
+                option.Notification.Severity,
+                additionalLocations: allLocations,
+                properties: null));
         }
 
         private bool WouldCauseDefiniteAssignmentErrors(

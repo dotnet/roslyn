@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureBinaryLiteral = MessageBase + 12706,
         IDS_FeatureDigitSeparator = MessageBase + 12707,
         IDS_FeatureLocalFunctions = MessageBase + 12708,
+        IDS_FeatureStaticNullChecking = MessageBase + 12709,
 
         IDS_FeatureRefLocalsReturns = MessageBase + 12710,
         IDS_FeatureTuples = MessageBase + 12711,
@@ -199,6 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 8 features.
+                case MessageID.IDS_FeatureStaticNullChecking: // syntax and semantic check
+                    return LanguageVersion.CSharp8;
+
                 // C# 7.3 features.
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
                 case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check

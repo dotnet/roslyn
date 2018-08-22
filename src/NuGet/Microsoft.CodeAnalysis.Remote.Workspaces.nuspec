@@ -31,6 +31,7 @@
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
     <!-- Include PDB unless embedded into DLL -->
@@ -38,5 +39,8 @@
     <file src="Dlls\RemoteWorkspaces\Microsoft.CodeAnalysis.Remote.Workspaces.xml" target="lib\net46" />
     <file src="Dlls\RemoteWorkspaces\Microsoft.CodeAnalysis.Remote.Workspaces.pdb*" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\RemoteWorkspaces\**\Microsoft.CodeAnalysis.Remote.Workspaces.resources.dll" target="lib\net46" />
   </files>
 </package>

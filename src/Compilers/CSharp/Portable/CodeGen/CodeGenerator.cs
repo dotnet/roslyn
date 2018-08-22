@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var localSymbol = new SynthesizedLocal(_method, _method.ReturnType, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
-                            type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics),
+                            type: _module.Translate(localSymbol.Type.TypeSymbol, bodySyntax, _diagnostics),
                             symbol: localSymbol,
                             name: null,
                             kind: localSymbol.SynthesizedKind,
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     else
                     {
-                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax, slotConstraints);
+                        result = AllocateTemp(_method.ReturnType.TypeSymbol, _boundBody.Syntax, slotConstraints);
                     }
 
                     _returnTemp = result;

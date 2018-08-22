@@ -37,19 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get
             {
                 return _underlyingProperty.Type;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get
-            {
-                return _underlyingProperty.TypeCustomModifiers;
             }
         }
 

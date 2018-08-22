@@ -54,17 +54,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
         {
-            var node = SyntaxFactory.ParseStatement(text);
-            // we validate the text roundtrips
-            Assert.Equal(text, node.ToFullString());
-            var actualErrors = node.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-            UsingNode(node);
+            UsingNode(text, SyntaxFactory.ParseStatement(text), expectedErrors);
         }
 
         internal void UsingExpression(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
-            var node = SyntaxFactory.ParseExpression(text, options: options);
+            UsingNode(text, SyntaxFactory.ParseExpression(text, options: options), expectedErrors);
+        }
+
+        private void UsingNode(string text, CSharpSyntaxNode node, DiagnosticDescription[] expectedErrors)
+        {
             // we validate the text roundtrips
             Assert.Equal(text, node.ToFullString());
             var actualErrors = node.GetDiagnostics();
@@ -95,11 +94,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Parses given string and initializes a depth-first preorder enumerator.
         /// </summary>
-        protected CSharpSyntaxNode UsingNode(string text, CSharpParseOptions options = null)
+        protected CSharpSyntaxNode UsingNode(string text)
         {
-            var root = ParseNode(text, options);
+            var root = ParseNode(text, options: null);
             UsingNode(root);
             return root;
+        }
+
+        protected CSharpSyntaxNode UsingNode(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
+        {
+            var node = ParseNode(text, options);
+            UsingNode(text, node, expectedErrors);
+            return node;
         }
 
         /// <summary>

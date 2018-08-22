@@ -6,7 +6,7 @@ using System.Text;
 namespace Microsoft.CodeAnalysis.Text
 {
     /// <summary>
-    /// An <see cref="SourceText"/> that represents a subrange of another <see cref="SourceText"/>.
+    /// A <see cref="SourceText"/> that represents a subrange of another <see cref="SourceText"/>.
     /// </summary>
     internal sealed class SubText : SourceText
     {

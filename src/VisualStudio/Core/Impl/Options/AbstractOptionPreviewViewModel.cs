@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Windows.Data;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor;
@@ -220,6 +219,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void UpdateDocument(string text)
         {
             UpdatePreview(text);
+        }
+
+        protected void AddParenthesesOption(
+            string language, OptionSet optionSet,
+            PerLanguageOption<CodeStyleOption<ParenthesesPreference>> languageOption,
+            string title, string[] examples, bool defaultAddForClarity)
+        {
+            var preferences = new List<ParenthesesPreference>();
+            var codeStylePreferences = new List<CodeStylePreference>();
+
+            preferences.Add(ParenthesesPreference.AlwaysForClarity);
+            codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Always_for_clarity, isChecked: defaultAddForClarity));
+
+            preferences.Add(ParenthesesPreference.NeverIfUnnecessary);
+            codeStylePreferences.Add(new CodeStylePreference(
+                ServicesVSResources.Never_if_unnecessary,
+                isChecked: !defaultAddForClarity));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ParenthesesPreference>(
+                languageOption, language, title, preferences.ToArray(),
+                examples, this, optionSet, ServicesVSResources.Parentheses_preferences_colon,
+                codeStylePreferences));
         }
     }
 }

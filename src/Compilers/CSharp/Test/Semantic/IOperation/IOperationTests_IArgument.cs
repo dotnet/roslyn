@@ -310,7 +310,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(ref a, out b)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'ref a')
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
@@ -346,7 +346,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x: ref a, y: out b)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x: ref a')
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
@@ -382,7 +382,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(y: out b, x: ref a)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'y: out b')
         ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'b')
@@ -418,7 +418,7 @@ struct S { }
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([S sobj = default(S)])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: sobj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         IDefaultValueOperation (OperationKind.DefaultValue, Type: S, IsImplicit) (Syntax: 'M2()')
@@ -450,7 +450,7 @@ struct S { }
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([S sobj = default(S)])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: sobj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         IDefaultValueOperation (OperationKind.DefaultValue, Type: S, IsImplicit) (Syntax: 'M2()')
@@ -481,7 +481,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Double s = 3.14])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 3.14, IsImplicit) (Syntax: 'M2()')
@@ -518,7 +518,7 @@ IInvocationOperation (void Extensions.E1(this P p, [System.Int32 x = 0], [System
     null
   Arguments(3):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'this')
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
@@ -562,7 +562,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
         null
       Arguments(3):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'this')
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'y: 1')
@@ -604,7 +604,7 @@ IInvocationOperation (void Extensions.E1(this P p, [System.Int32 x = 0], [System
     null
   Arguments(3):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'this')
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'y: 1')
@@ -640,7 +640,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(System.Int32 x, params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, a)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -674,7 +674,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(System.Int32 x, params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, 0.1, 0.2)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -715,7 +715,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2(System.Int32 x, params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -755,7 +755,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2()')
@@ -795,7 +795,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(array: a)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null) (Syntax: 'array: a')
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Double[]) (Syntax: 'a')
@@ -829,7 +829,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(array: 1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2(array: 1)')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Double[], IsImplicit) (Syntax: 'M2(array: 1)')
@@ -873,7 +873,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, array: a)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -907,7 +907,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, array: 1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -953,7 +953,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
   Expression: 
     IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(array: a, x: 1)')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
       Arguments(2):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null) (Syntax: 'array: a')
             ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Double[]) (Syntax: 'a')
@@ -987,7 +987,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(array: 1, x: 10)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2(array: 1, x: 10)')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Double[], IsImplicit) (Syntax: 'M2(array: 1, x: 10)')
@@ -1036,7 +1036,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M1"", IsImplicit) (Syntax: 'M2()')
@@ -1079,7 +1079,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M1"", IsImplicit) (Syntax: 'M2()')
@@ -1352,7 +1352,7 @@ IInvocationOperation (void System.Console.Write(System.String format, System.Obj
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib45, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1374,7 +1374,7 @@ class P
             string expectedOperationTree = @"
 IInvocationOperation ( void P.M2([System.Int32 x = default(System.Int32)])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, IsImplicit) (Syntax: 'M2()')
@@ -1413,7 +1413,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[10]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null) (Syntax: '10')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1448,7 +1448,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[10]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null) (Syntax: '10')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1483,7 +1483,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[[System.Int32 i = 1], [System.Int32 j = 2]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[j:10]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null) (Syntax: 'j:10')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1522,7 +1522,7 @@ class P
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Children(2):
-      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid) (Syntax: 'this')
+      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsInvalid) (Syntax: 'this')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1556,7 +1556,7 @@ class P
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Children(2):
-      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid) (Syntax: 'this')
+      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsInvalid) (Syntax: 'this')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ";
 
@@ -1620,7 +1620,7 @@ IPropertyReferenceOperation: System.Int32 Derived.this[[System.Int32 x = 8], [Sy
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
-            CompileAndVerify(new[] { source }, new[] { SystemRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(new[] { source }, expectedOutput: expectedOutput);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1645,7 +1645,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[System.Int32 x, params System.Int32[] y] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1687,7 +1687,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: ref System.Int32 P.this[System.Int32 x] { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1814,7 +1814,7 @@ IPropertyReferenceOperation: System.Int32 P.this[[System.Int32 i = 3], [System.I
 
             var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
-            CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
+            CompileAndVerify(new[] { csharp }, new[] { ilReference }, expectedOutput: expectedOutput);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1933,7 +1933,7 @@ IPropertyReferenceOperation: System.Int32 P.this[[System.Int32 i = 3], [System.I
 
             var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
-            CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
+            CompileAndVerify(new[] { csharp }, new[] { ilReference }, expectedOutput: expectedOutput);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2053,7 +2053,7 @@ IPropertyReferenceOperation: System.Int32 P.this[[System.Int32 i = 3], [System.I
 
             var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
-            CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
+            CompileAndVerify(new[] { csharp }, new[] { ilReference }, expectedOutput: expectedOutput);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2145,21 +2145,24 @@ IInvocationOperation (void P.M2([System.Boolean[missing]? x = true])) (Operation
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class P
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (9,20): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     static void M2(bool? x = true)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 20),
-                // (9,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
-                //     static void M2(bool? x = true)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 20),
-                // (9,12): error CS0518: Predefined type 'System.Void' is not defined or imported
-                //     static void M2(bool? x = true)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(9, 12),
                 // (4,12): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     static void M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(4, 12),
+                // (9,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //     static void M2(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 20),
+                // (9,20): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     static void M2(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 20),
+                // (9,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     static void M2(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(9, 12),
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (9,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static void M2(bool? x = true)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "bool? x = true").WithLocation(9, 20),
                 // (9,30): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     static void M2(bool? x = true)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "true").WithArguments("System.Boolean").WithLocation(9, 30),
@@ -2205,24 +2208,31 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = tru
     null
 ";
 
+            // PROTOTYPE(NullableReferenceTypes): Why are two errors reported for missing System.Nullable`1.
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class P
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
                 // (4,12): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     static P M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(4, 12),
-                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     P(bool? x = true)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
                 // (9,7): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     P(bool? x = true)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 7),
+                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     P(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
+                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     P(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
                 // (9,5): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     P(bool? x = true)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"P(bool? x = true)
     {
     }").WithArguments("System.Void").WithLocation(9, 5),
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (9,7): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     P(bool? x = true)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "bool? x = true").WithLocation(9, 7),
                 // (9,17): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     P(bool? x = true)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "true").WithArguments("System.Boolean").WithLocation(9, 17),
@@ -2262,7 +2272,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 5]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32[missing], IsInvalid) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '0')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
@@ -2277,33 +2287,36 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (3,7): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class P
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(3, 7),
-                // (6,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     public int this[int x, int? y = 5]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(6, 21),
-                // (6,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     public int this[int x, int? y = 5]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(6, 28),
-                // (6,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     public int this[int x, int? y = 5]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(6, 28),
+                // (5,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 13),
                 // (6,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = 5]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(6, 12),
+                // (6,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 5]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(6, 21),
+                // (6,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 5]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(6, 28),
+                // (6,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     public int this[int x, int? y = 5]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(6, 28),
                 // (9,9): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //         set { _number = value; }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set { _number = value; }").WithArguments("System.Void").WithLocation(9, 9),
                 // (12,5): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     void M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(12, 5),
+                // (3,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(3, 7),
+                // (6,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public int this[int x, int? y = 5]
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "int? y = 5").WithLocation(6, 28),
                 // (6,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = 5]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "5").WithArguments("System.Int32").WithLocation(6, 37),
-                // (5,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     private int _number = 0;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 13),
                 // (5,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     private int _number = 0;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(5, 27),
@@ -2351,21 +2364,24 @@ IInvocationOperation (void P.M2([System.Boolean[missing]? x = null])) (Operation
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class P
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (9,20): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     static void M2(bool? x = null)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 20),
-                // (9,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
-                //     static void M2(bool? x = null)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 20),
-                // (9,12): error CS0518: Predefined type 'System.Void' is not defined or imported
-                //     static void M2(bool? x = null)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(9, 12),
                 // (4,12): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     static void M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(4, 12),
+                // (9,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //     static void M2(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 20),
+                // (9,20): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     static void M2(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 20),
+                // (9,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     static void M2(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(9, 12),
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (9,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static void M2(bool? x = null)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "bool? x = null").WithLocation(9, 20),
                 // (6,19): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //         /*<bind>*/M2()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Object").WithLocation(6, 19),
@@ -2406,24 +2422,31 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = nul
     null
 ";
 
+            // PROTOTYPE(NullableReferenceTypes): Why are two errors reported for missing System.Nullable`1.
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class P
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
                 // (4,12): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     static P M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(4, 12),
-                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     P(bool? x = null)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
                 // (9,7): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     P(bool? x = null)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 7),
+                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     P(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
+                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     P(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
                 // (9,5): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     P(bool? x = null)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"P(bool? x = null)
     {
     }").WithArguments("System.Void").WithLocation(9, 5),
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (9,7): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     P(bool? x = null)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "bool? x = null").WithLocation(9, 7),
                 // (6,30): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //         return /*<bind>*/new P()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(6, 30),
@@ -2460,7 +2483,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32[missing], IsInvalid) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '0')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
@@ -2476,30 +2499,33 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
                 // (16,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(16, 1),
-                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class P
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     public int this[int x, int? y = null]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
-                // (5,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     public int this[int x, int? y = null]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(5, 28),
-                // (5,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     public int this[int x, int? y = null]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 28),
+                // (4,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 13),
                 // (5,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = null]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 12),
+                // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
+                // (5,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 28),
+                // (5,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(5, 28),
                 // (8,9): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //         set { _number = value; }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set { _number = value; }").WithArguments("System.Void").WithLocation(8, 9),
                 // (11,5): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     void M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(11, 5),
-                // (4,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     private int _number = 0;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 13),
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (5,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "int? y = null").WithLocation(5, 28),
                 // (4,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     private int _number = 0;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(4, 27),
@@ -2629,7 +2655,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[System.Int32 index, [S s = null]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null) (Syntax: '0')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -3194,7 +3220,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[params System.Int32[] array] { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[1]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'this[1]')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'this[1]')
@@ -3228,7 +3254,7 @@ class P
             string expectedOperationTree = @"
 IPropertyReferenceOperation: System.Int32 P.this[params System.Int32[] array] { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this[0, 1]')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'this[0, 1]')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'this[0, 1]')
@@ -3462,7 +3488,7 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
               Left: 
                 IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 0]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
                   Arguments(2):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '0')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
@@ -3479,47 +3505,50 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class P
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     public int this[int x, int? y = 0]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
-                // (5,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     public int this[int x, int? y = 0]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(5, 28),
-                // (5,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     public int this[int x, int? y = 0]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 28),
+                // (4,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 13),
                 // (5,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = 0]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 12),
+                // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 0]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
+                // (5,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 0]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 28),
+                // (5,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     public int this[int x, int? y = 0]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(5, 28),
                 // (8,9): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //         set { _number = value; }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set { _number = value; }").WithArguments("System.Void").WithLocation(8, 9),
                 // (11,5): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     P M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(11, 5),
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (5,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public int this[int x, int? y = 0]
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "int? y = 0").WithLocation(5, 28),
                 // (5,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = 0]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(5, 37),
-                // (4,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     private int _number = 0;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 13),
                 // (4,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     private int _number = 0;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(4, 27),
                 // (13,30): error CS0518: Predefined type 'System.Object' is not defined or imported
-                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                //         return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(13, 30),
                 // (13,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                //         return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(13, 37),
                 // (13,42): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                //         return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Int32").WithLocation(13, 42),
                 // (13,30): error CS0518: Predefined type 'System.Void' is not defined or imported
-                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                //         return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Void").WithLocation(13, 30),
                 // (2,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
                 // class P
@@ -3559,7 +3588,7 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
               Left: 
                 IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
                   Arguments(2):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '0')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
@@ -3574,44 +3603,47 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class P
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     public int this[int x, int? y = null]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
-                // (5,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     public int this[int x, int? y = null]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(5, 28),
-                // (5,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     public int this[int x, int? y = null]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 28),
+                // (4,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 13),
                 // (5,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = null]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 12),
+                // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
+                // (5,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 28),
+                // (5,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(5, 28),
                 // (8,9): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //         set { _number = value; }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set { _number = value; }").WithArguments("System.Void").WithLocation(8, 9),
                 // (11,5): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     P M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(11, 5),
-                // (4,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     private int _number = 0;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 13),
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (5,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "int? y = null").WithLocation(5, 28),
                 // (4,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     private int _number = 0;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(4, 27),
                 // (13,30): error CS0518: Predefined type 'System.Object' is not defined or imported
-                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                //         return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(13, 30),
                 // (13,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                //         return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(13, 37),
                 // (13,42): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                //         return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Int32").WithLocation(13, 42),
                 // (13,30): error CS0518: Predefined type 'System.Void' is not defined or imported
-                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                //         return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Void").WithLocation(13, 30),
                 // (2,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
                 // class P
@@ -3652,7 +3684,7 @@ IObjectCreationOperation (Constructor: P..ctor()) (OperationKind.ObjectCreation,
             Left: 
               IPropertyReferenceOperation: System.Int32 P.this[System.Int32 x, [S s = null]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '[0]')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: '[0]')
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: '[0]')
                 Arguments(2):
                     IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')

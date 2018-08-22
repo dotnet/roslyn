@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     // classes, and we can't emit a reference to the PIA. We don't actually need
                     // the class name at runtime: we will instead emit a reference to System.Object, as a placeholder.
                     return new SynthesizedAttributeData(ctor,
-                        ImmutableArray.Create(new TypedConstant(ctor.Parameters[0].Type, TypedConstantKind.Type, ctor.ContainingAssembly.GetSpecialType(SpecialType.System_Object))),
+                        ImmutableArray.Create(new TypedConstant(ctor.Parameters[0].Type.TypeSymbol, TypedConstantKind.Type, ctor.ContainingAssembly.GetSpecialType(SpecialType.System_Object))),
                         ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
 
                 default:
