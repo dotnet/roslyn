@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \d in character range"" Start=""17"" Length=""2"" />
+    <Diagnostic Message=""Cannot include class \d in character range"" Span=""[17..19)"" Text=""\d"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
-    <Capture Name=""1"" Span=""[13..22)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""cat([a-\d]*)dog"" />
+    <Capture Name=""1"" Span=""[13..22)"" Text=""([a-\d]*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -76,10 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized escape sequence \k"" Start=""11"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized escape sequence \k"" Span=""[11..12)"" Text=""k"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""\k&lt;1"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Start=""10"" Length=""2"" />
+    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Span=""[10..12)"" Text=""\k"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""\k&lt;"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -123,10 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Start=""10"" Length=""2"" />
+    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Span=""[10..12)"" Text=""\k"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..12)"" />
+    <Capture Name=""0"" Span=""[10..12)"" Text=""\k"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -145,10 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group number 1"" Start=""11"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 1"" Span=""[11..12)"" Text=""1"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..12)"" />
+    <Capture Name=""0"" Span=""[10..12)"" Text=""\1"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -172,10 +172,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""13"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[13..14)"" Text="")"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""(?')"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -199,10 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""13"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[13..14)"" Text="")"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""(?&lt;)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -226,10 +226,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""11"" Length=""1"" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[11..12)"" Text=""?"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""(?)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -251,10 +251,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""13"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""(?&gt;"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -277,10 +277,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""14"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[14..14)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""(?&lt;!"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -303,10 +303,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""14"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[14..14)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""(?&lt;="" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -328,10 +328,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""13"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""(?!"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -353,10 +353,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""13"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""(?="" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -383,11 +383,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""10"" Length=""1"" />
-    <Diagnostic Message=""Too many )'s"" Start=""16"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
+    <Diagnostic Message=""Too many )'s"" Span=""[16..17)"" Text="")"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?imn )"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -408,10 +408,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""10"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..15)"" />
+    <Capture Name=""0"" Span=""[10..15)"" Text=""(?imn"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -433,10 +433,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""13"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""(?:"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -460,12 +460,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""17"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[17..17)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
-    <Capture Name=""1"" Span=""[10..17)"" />
-    <Capture Name=""cat"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?'cat'"" />
+    <Capture Name=""1"" Span=""[10..17)"" Text=""(?'cat'"" />
+    <Capture Name=""cat"" Span=""[10..17)"" Text=""(?'cat'"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -489,11 +489,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""10"" Length=""3"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""13"" Length=""0"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..13)"" Text=""(?'"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""(?'"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -514,10 +514,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Start=""12"" Length=""0"" />
+    <Diagnostic Message=""Unterminated [] set"" Span=""[12..12)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..12)"" />
+    <Capture Name=""0"" Span=""[10..12)"" Text=""[^"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -541,10 +541,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Start=""14"" Length=""0"" />
+    <Diagnostic Message=""Unterminated [] set"" Span=""[14..14)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""[cat"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -569,10 +569,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Start=""15"" Length=""0"" />
+    <Diagnostic Message=""Unterminated [] set"" Span=""[15..15)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..15)"" />
+    <Capture Name=""0"" Span=""[10..15)"" Text=""[^cat"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -602,10 +602,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Start=""13"" Length=""0"" />
+    <Diagnostic Message=""Unterminated [] set"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""[a-"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -627,10 +627,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Start=""10"" Length=""2"" />
+    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[10..12)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""\p{"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -652,10 +652,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Start=""10"" Length=""2"" />
+    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[10..12)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""\p{cat"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -677,10 +677,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized escape sequence \k"" Start=""11"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized escape sequence \k"" Span=""[11..12)"" Text=""k"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""\k&lt;cat"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -702,10 +702,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unknown property 'cat'"" Start=""13"" Length=""3"" />
+    <Diagnostic Message=""Unknown property 'cat'"" Span=""[13..16)"" Text=""cat"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""\p{cat}"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -727,10 +727,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Start=""10"" Length=""2"" />
+    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[10..12)"" Text=""\P"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""\P{cat"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -752,10 +752,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unknown property 'cat'"" Start=""13"" Length=""3"" />
+    <Diagnostic Message=""Unknown property 'cat'"" Span=""[13..16)"" Text=""cat"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""\P{cat}"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -775,11 +775,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""11"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[11..11)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..11)"" />
-    <Capture Name=""1"" Span=""[10..11)"" />
+    <Capture Name=""0"" Span=""[10..11)"" Text=""("" />
+    <Capture Name=""1"" Span=""[10..11)"" Text=""("" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -803,12 +803,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""10"" Length=""1"" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""11"" Length=""1"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""12"" Length=""0"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[11..12)"" Text=""?"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[12..12)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..12)"" />
+    <Capture Name=""0"" Span=""[10..12)"" Text=""(?"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -832,11 +832,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""10"" Length=""3"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""13"" Length=""0"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..13)"" Text=""(?&lt;"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""(?&lt;"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -860,12 +860,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""17"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[17..17)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
-    <Capture Name=""1"" Span=""[10..17)"" />
-    <Capture Name=""cat"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?&lt;cat&gt;"" />
+    <Capture Name=""1"" Span=""[10..17)"" Text=""(?&lt;cat&gt;"" />
+    <Capture Name=""cat"" Span=""[10..17)"" Text=""(?&lt;cat&gt;"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -887,10 +887,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Start=""10"" Length=""2"" />
+    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[10..12)"" Text=""\P"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""\P{"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -912,10 +912,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized escape sequence \k"" Start=""11"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized escape sequence \k"" Span=""[11..12)"" Text=""k"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""\k&lt;&gt;"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -941,10 +941,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""13"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""(?("" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -974,10 +974,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""15"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[15..15)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..15)"" />
+    <Capture Name=""0"" Span=""[10..15)"" Text=""(?()|"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1012,11 +1012,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""10"" Length=""1"" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
-    <Capture Name=""1"" Span=""[11..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""?(a|b)"" />
+    <Capture Name=""1"" Span=""[11..16)"" Text=""(a|b)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1049,13 +1049,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""10"" Length=""1"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""15"" Length=""0"" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[15..15)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..15)"" />
-    <Capture Name=""1"" Span=""[11..15)"" />
-    <Capture Name=""2"" Span=""[12..15)"" />
+    <Capture Name=""0"" Span=""[10..15)"" Text=""?((a)"" />
+    <Capture Name=""1"" Span=""[11..15)"" Text=""((a)"" />
+    <Capture Name=""2"" Span=""[12..15)"" Text=""(a)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1091,13 +1091,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""10"" Length=""1"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""16"" Length=""0"" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[16..16)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
-    <Capture Name=""1"" Span=""[11..16)"" />
-    <Capture Name=""2"" Span=""[12..15)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""?((a)a"" />
+    <Capture Name=""1"" Span=""[11..16)"" Text=""((a)a"" />
+    <Capture Name=""2"" Span=""[12..15)"" Text=""(a)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1137,13 +1137,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""10"" Length=""1"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""17"" Length=""0"" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[17..17)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
-    <Capture Name=""1"" Span=""[11..17)"" />
-    <Capture Name=""2"" Span=""[12..15)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""?((a)a|"" />
+    <Capture Name=""1"" Span=""[11..17)"" Text=""((a)a|"" />
+    <Capture Name=""2"" Span=""[12..15)"" Text=""(a)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1187,13 +1187,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""10"" Length=""1"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""18"" Length=""0"" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[18..18)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..18)"" />
-    <Capture Name=""1"" Span=""[11..18)"" />
-    <Capture Name=""2"" Span=""[12..15)"" />
+    <Capture Name=""0"" Span=""[10..18)"" Text=""?((a)a|b"" />
+    <Capture Name=""1"" Span=""[11..18)"" Text=""((a)a|b"" />
+    <Capture Name=""2"" Span=""[12..15)"" Text=""(a)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?i))"" />
   </Captures>
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
@@ -1247,11 +1247,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""10"" Length=""1"" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
-    <Capture Name=""1"" Span=""[11..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""?(a)"" />
+    <Capture Name=""1"" Span=""[11..14)"" Text=""(a)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1278,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?I))"" />
   </Captures>
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?M))"" />
   </Captures>
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
@@ -1332,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?s))"" />
   </Captures>
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
@@ -1359,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?S))"" />
   </Captures>
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
@@ -1386,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?x))"" />
   </Captures>
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
@@ -1413,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?X))"" />
   </Captures>
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
@@ -1440,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?n))"" />
   </Captures>
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
@@ -1467,7 +1467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?m))"" />
   </Captures>
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
@@ -1491,10 +1491,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Start=""12"" Length=""0"" />
+    <Diagnostic Message=""Unterminated [] set"" Span=""[12..12)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..12)"" />
+    <Capture Name=""0"" Span=""[10..12)"" Text=""[a"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1521,11 +1521,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""10"" Length=""1"" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
-    <Capture Name=""1"" Span=""[11..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""?(a:b)"" />
+    <Capture Name=""1"" Span=""[11..16)"" Text=""(a:b)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1555,12 +1555,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""12"" Length=""1"" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""13"" Length=""1"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""14"" Length=""0"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[12..13)"" Text=""("" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[13..14)"" Text=""?"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[14..14)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""(?(?"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1590,10 +1590,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""16"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[16..16)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""(?(cat"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1627,10 +1627,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""18"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[18..18)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..18)"" />
+    <Capture Name=""0"" Span=""[10..18)"" Text=""(?(cat)|"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1661,10 +1661,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Capture number cannot be zero"" Start=""16"" Length=""1"" />
+    <Diagnostic Message=""Capture number cannot be zero"" Span=""[16..17)"" Text=""0"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..22)"" />
+    <Capture Name=""0"" Span=""[10..22)"" Text=""foo(?&lt;0&gt;bar)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1695,10 +1695,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Capture number cannot be zero"" Start=""16"" Length=""1"" />
+    <Diagnostic Message=""Capture number cannot be zero"" Span=""[16..17)"" Text=""0"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..22)"" />
+    <Capture Name=""0"" Span=""[10..22)"" Text=""foo(?'0'bar)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1729,11 +1729,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""17"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[17..18)"" Text=""b"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
-    <Capture Name=""1"" Span=""[13..21)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""foo(?&lt;1bar)"" />
+    <Capture Name=""1"" Span=""[13..21)"" Text=""(?&lt;1bar)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1764,11 +1764,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""17"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[17..18)"" Text=""b"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
-    <Capture Name=""1"" Span=""[13..21)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""foo(?'1bar)"" />
+    <Capture Name=""1"" Span=""[13..21)"" Text=""(?'1bar)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1794,10 +1794,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""13"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""(?("" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1819,10 +1819,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Start=""10"" Length=""2"" />
+    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[10..12)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..18)"" />
+    <Capture Name=""0"" Span=""[10..18)"" Text=""\p{klsak"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1849,11 +1849,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""10"" Length=""1"" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""11"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[11..12)"" Text=""?"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..18)"" />
+    <Capture Name=""0"" Span=""[10..18)"" Text=""(?c:cat)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1883,12 +1883,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""10"" Length=""1"" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""11"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[11..12)"" Text=""?"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..19)"" />
-    <Capture Name=""1"" Span=""[10..19)"" />
+    <Capture Name=""0"" Span=""[10..19)"" Text=""(??e:cat)"" />
+    <Capture Name=""1"" Span=""[10..19)"" Text=""(??e:cat)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1933,11 +1933,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""A subtraction must be the last element in a character class"" Start=""14"" Length=""0"" />
-    <Diagnostic Message=""Unterminated [] set"" Start=""19"" Length=""0"" />
+    <Diagnostic Message=""A subtraction must be the last element in a character class"" Span=""[14..14)"" Text="""" />
+    <Diagnostic Message=""Unterminated [] set"" Span=""[19..19)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..19)"" />
+    <Capture Name=""0"" Span=""[10..19)"" Text=""[a-f-[]]+"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1973,10 +1973,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Start=""16"" Length=""0"" />
+    <Diagnostic Message=""Unterminated [] set"" Span=""[16..16)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""[A-[]+"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2009,11 +2009,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""12"" Length=""1"" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""13"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[12..13)"" Text=""("" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[13..14)"" Text=""?"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?e))"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2046,12 +2046,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""12"" Length=""1"" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""13"" Length=""1"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""16"" Length=""0"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[12..13)"" Text=""("" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[13..14)"" Text=""?"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[16..16)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""(?(?a)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2078,11 +2078,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""10"" Length=""1"" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""11"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[11..12)"" Text=""?"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..18)"" />
+    <Capture Name=""0"" Span=""[10..18)"" Text=""(?r:cat)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2109,7 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?N))"" />
   </Captures>
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
@@ -2133,10 +2133,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Start=""12"" Length=""0"" />
+    <Diagnostic Message=""Unterminated [] set"" Span=""[12..12)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..12)"" />
+    <Capture Name=""0"" Span=""[10..12)"" Text=""[]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2156,10 +2156,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Insufficient hexadecimal digits"" Start=""10"" Length=""3"" />
+    <Diagnostic Message=""Insufficient hexadecimal digits"" Span=""[10..13)"" Text=""\x2"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""\x2"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2200,11 +2200,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     </EndOfFile>
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated (?#...) comment"" Start=""31"" Length=""35"" />
+    <Diagnostic Message=""Unterminated (?#...) comment"" Span=""[31..66)"" Text=""(?#followed by 1 or more whitespace"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..66)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
+    <Capture Name=""0"" Span=""[10..66)"" Text=""(cat) (?#cat)    \s+ (?#followed by 1 or more whitespace"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
         }
@@ -2244,11 +2244,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""15"" Length=""1"" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""16"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[15..16)"" Text=""("" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[16..17)"" Text=""?"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..28)"" />
+    <Capture Name=""0"" Span=""[10..28)"" Text=""cat(?(?afdcat)dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2289,10 +2289,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Alternation conditions do not capture and cannot be named"" Start=""13"" Length=""1"" />
+    <Diagnostic Message=""Alternation conditions do not capture and cannot be named"" Span=""[13..14)"" Text=""("" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..30)"" />
+    <Capture Name=""0"" Span=""[10..30)"" Text=""cat(?(?&lt;cat&gt;cat)dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2333,10 +2333,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Alternation conditions do not capture and cannot be named"" Start=""13"" Length=""1"" />
+    <Diagnostic Message=""Alternation conditions do not capture and cannot be named"" Span=""[13..14)"" Text=""("" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..30)"" />
+    <Capture Name=""0"" Span=""[10..30)"" Text=""cat(?(?'cat'cat)dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2376,12 +2376,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Alternation conditions cannot be comments"" Start=""13"" Length=""1"" />
-    <Diagnostic Message=""Unrecognized grouping construct"" Start=""15"" Length=""1"" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""16"" Length=""1"" />
+    <Diagnostic Message=""Alternation conditions cannot be comments"" Span=""[13..14)"" Text=""("" />
+    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[15..16)"" Text=""("" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[16..17)"" Text=""?"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..30)"" />
+    <Capture Name=""0"" Span=""[10..30)"" Text=""cat(?(?#COMMENT)cat)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2439,15 +2439,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""31"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[31..32)"" Text=""("" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..41)"" />
-    <Capture Name=""1"" Span=""[31..33)"" />
-    <Capture Name=""2"" Span=""[10..21)"" />
-    <Capture Name=""3"" Span=""[24..41)"" />
-    <Capture Name=""cat"" Span=""[10..21)"" />
-    <Capture Name=""dog"" Span=""[24..41)"" />
+    <Capture Name=""0"" Span=""[10..41)"" Text=""(?&lt;cat&gt;cat)\w+(?&lt;dog-()*!@&gt;dog)"" />
+    <Capture Name=""1"" Span=""[31..33)"" Text=""()"" />
+    <Capture Name=""2"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""3"" Span=""[24..41)"" Text=""(?&lt;dog-()*!@&gt;dog)"" />
+    <Capture Name=""cat"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""dog"" Span=""[24..41)"" Text=""(?&lt;dog-()*!@&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
@@ -2497,14 +2497,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group name catdog"" Start=""31"" Length=""6"" />
+    <Diagnostic Message=""Reference to undefined group name catdog"" Span=""[31..37)"" Text=""catdog"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..42)"" />
-    <Capture Name=""1"" Span=""[10..21)"" />
-    <Capture Name=""2"" Span=""[24..42)"" />
-    <Capture Name=""cat"" Span=""[10..21)"" />
-    <Capture Name=""dog"" Span=""[24..42)"" />
+    <Capture Name=""0"" Span=""[10..42)"" Text=""(?&lt;cat&gt;cat)\w+(?&lt;dog-catdog&gt;dog)"" />
+    <Capture Name=""1"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""2"" Span=""[24..42)"" Text=""(?&lt;dog-catdog&gt;dog)"" />
+    <Capture Name=""cat"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""dog"" Span=""[24..42)"" Text=""(?&lt;dog-catdog&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
@@ -2554,14 +2554,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""32"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[32..33)"" Text=""u"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..41)"" />
-    <Capture Name=""1"" Span=""[10..21)"" />
-    <Capture Name=""2"" Span=""[24..41)"" />
-    <Capture Name=""cat"" Span=""[10..21)"" />
-    <Capture Name=""dog"" Span=""[24..41)"" />
+    <Capture Name=""0"" Span=""[10..41)"" Text=""(?&lt;cat&gt;cat)\w+(?&lt;dog-1uosn&gt;dog)"" />
+    <Capture Name=""1"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""2"" Span=""[24..41)"" Text=""(?&lt;dog-1uosn&gt;dog)"" />
+    <Capture Name=""cat"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""dog"" Span=""[24..41)"" Text=""(?&lt;dog-1uosn&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
@@ -2611,14 +2611,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group number 16"" Start=""31"" Length=""2"" />
+    <Diagnostic Message=""Reference to undefined group number 16"" Span=""[31..33)"" Text=""16"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..38)"" />
-    <Capture Name=""1"" Span=""[10..21)"" />
-    <Capture Name=""2"" Span=""[24..38)"" />
-    <Capture Name=""cat"" Span=""[10..21)"" />
-    <Capture Name=""dog"" Span=""[24..38)"" />
+    <Capture Name=""0"" Span=""[10..38)"" Text=""(?&lt;cat&gt;cat)\w+(?&lt;dog-16&gt;dog)"" />
+    <Capture Name=""1"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""2"" Span=""[24..38)"" Text=""(?&lt;dog-16&gt;dog)"" />
+    <Capture Name=""cat"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""dog"" Span=""[24..38)"" Text=""(?&lt;dog-16&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
@@ -2651,10 +2651,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""17"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[17..18)"" Text=""&gt;"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..22)"" />
+    <Capture Name=""0"" Span=""[10..22)"" Text=""cat(?&lt;-&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
@@ -2685,10 +2685,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""16"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[16..17)"" Text=""&gt;"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""cat(?&lt;&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2731,13 +2731,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""19"" Length=""1"" />
-    <Diagnostic Message=""Too many )'s"" Start=""28"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[19..20)"" Text=""&lt;"" />
+    <Diagnostic Message=""Too many )'s"" Span=""[28..29)"" Text="")"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..29)"" />
-    <Capture Name=""1"" Span=""[13..22)"" />
-    <Capture Name=""dog"" Span=""[13..22)"" />
+    <Capture Name=""0"" Span=""[10..29)"" Text=""cat(?&lt;dog&lt;&gt;)_*&gt;dog)"" />
+    <Capture Name=""1"" Span=""[13..22)"" Text=""(?&lt;dog&lt;&gt;)"" />
+    <Capture Name=""dog"" Span=""[13..22)"" Text=""(?&lt;dog&lt;&gt;)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2780,13 +2780,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""19"" Length=""1"" />
-    <Diagnostic Message=""Too many )'s"" Start=""28"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[19..20)"" Text="" "" />
+    <Diagnostic Message=""Too many )'s"" Span=""[28..29)"" Text="")"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..29)"" />
-    <Capture Name=""1"" Span=""[13..22)"" />
-    <Capture Name=""dog"" Span=""[13..22)"" />
+    <Capture Name=""0"" Span=""[10..29)"" Text=""cat(?&lt;dog &gt;)_*&gt;dog)"" />
+    <Capture Name=""1"" Span=""[13..22)"" Text=""(?&lt;dog &gt;)"" />
+    <Capture Name=""dog"" Span=""[13..22)"" Text=""(?&lt;dog &gt;)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2829,13 +2829,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""19"" Length=""1"" />
-    <Diagnostic Message=""Too many )'s"" Start=""28"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[19..20)"" Text=""!"" />
+    <Diagnostic Message=""Too many )'s"" Span=""[28..29)"" Text="")"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..29)"" />
-    <Capture Name=""1"" Span=""[13..22)"" />
-    <Capture Name=""dog"" Span=""[13..22)"" />
+    <Capture Name=""0"" Span=""[10..29)"" Text=""cat(?&lt;dog!&gt;)_*&gt;dog)"" />
+    <Capture Name=""1"" Span=""[13..22)"" Text=""(?&lt;dog!&gt;)"" />
+    <Capture Name=""dog"" Span=""[13..22)"" Text=""(?&lt;dog!&gt;)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2874,13 +2874,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""19"" Length=""1"" />
-    <Diagnostic Message=""Too many )'s"" Start=""26"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[19..20)"" Text="")"" />
+    <Diagnostic Message=""Too many )'s"" Span=""[26..27)"" Text="")"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..27)"" />
-    <Capture Name=""1"" Span=""[13..20)"" />
-    <Capture Name=""dog"" Span=""[13..20)"" />
+    <Capture Name=""0"" Span=""[10..27)"" Text=""cat(?&lt;dog)_*&gt;dog)"" />
+    <Capture Name=""1"" Span=""[13..20)"" Text=""(?&lt;dog)"" />
+    <Capture Name=""dog"" Span=""[13..20)"" Text=""(?&lt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2911,11 +2911,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Start=""17"" Length=""1"" />
+    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[17..18)"" Text=""d"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
-    <Capture Name=""1"" Span=""[13..25)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""cat(?&lt;1dog&gt;dog)"" />
+    <Capture Name=""1"" Span=""[13..25)"" Text=""(?&lt;1dog&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2946,10 +2946,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Capture number cannot be zero"" Start=""16"" Length=""1"" />
+    <Diagnostic Message=""Capture number cannot be zero"" Span=""[16..17)"" Text=""0"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..22)"" />
+    <Capture Name=""0"" Span=""[10..22)"" Text=""cat(?&lt;0&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2992,11 +2992,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \D in character range"" Start=""14"" Length=""2"" />
+    <Diagnostic Message=""Cannot include class \D in character range"" Span=""[14..16)"" Text=""\D"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..22)"" />
-    <Capture Name=""1"" Span=""[10..19)"" />
+    <Capture Name=""0"" Span=""[10..22)"" Text=""([5-\D]*)dog"" />
+    <Capture Name=""1"" Span=""[10..19)"" Text=""([5-\D]*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3042,11 +3042,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \s in character range"" Start=""17"" Length=""2"" />
+    <Diagnostic Message=""Cannot include class \s in character range"" Span=""[17..19)"" Text=""\s"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
-    <Capture Name=""1"" Span=""[13..22)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""cat([6-\s]*)dog"" />
+    <Capture Name=""1"" Span=""[13..22)"" Text=""([6-\s]*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3089,11 +3089,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \S in character range"" Start=""17"" Length=""2"" />
+    <Diagnostic Message=""Cannot include class \S in character range"" Span=""[17..19)"" Text=""\S"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..22)"" />
-    <Capture Name=""1"" Span=""[13..22)"" />
+    <Capture Name=""0"" Span=""[10..22)"" Text=""cat([c-\S]*)"" />
+    <Capture Name=""1"" Span=""[13..22)"" Text=""([c-\S]*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3136,11 +3136,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \w in character range"" Start=""17"" Length=""2"" />
+    <Diagnostic Message=""Cannot include class \w in character range"" Span=""[17..19)"" Text=""\w"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..22)"" />
-    <Capture Name=""1"" Span=""[13..22)"" />
+    <Capture Name=""0"" Span=""[10..22)"" Text=""cat([7-\w]*)"" />
+    <Capture Name=""1"" Span=""[13..22)"" Text=""([7-\w]*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3186,11 +3186,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \W in character range"" Start=""17"" Length=""2"" />
+    <Diagnostic Message=""Cannot include class \W in character range"" Span=""[17..19)"" Text=""\W"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
-    <Capture Name=""1"" Span=""[13..22)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""cat([a-\W]*)dog"" />
+    <Capture Name=""1"" Span=""[13..22)"" Text=""([a-\W]*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3267,12 +3267,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \p in character range"" Start=""14"" Length=""2"" />
+    <Diagnostic Message=""Cannot include class \p in character range"" Span=""[14..16)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..40)"" />
-    <Capture Name=""1"" Span=""[10..25)"" />
-    <Capture Name=""2"" Span=""[27..40)"" />
+    <Capture Name=""0"" Span=""[10..40)"" Text=""([f-\p{Lu}]\w*)\s([\p{Lu}]\w*)"" />
+    <Capture Name=""1"" Span=""[10..25)"" Text=""([f-\p{Lu}]\w*)"" />
+    <Capture Name=""2"" Span=""[27..40)"" Text=""([\p{Lu}]\w*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3319,11 +3319,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     </EndOfFile>
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated (?#...) comment"" Start=""31"" Length=""35"" />
+    <Diagnostic Message=""Unterminated (?#...) comment"" Span=""[31..66)"" Text=""(?#followed by 1 or more whitespace"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..66)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
+    <Capture Name=""0"" Span=""[10..66)"" Text=""(cat) (?#cat)    \s+ (?#followed by 1 or more whitespace"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3418,12 +3418,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \P in character range"" Start=""14"" Length=""2"" />
+    <Diagnostic Message=""Cannot include class \P in character range"" Span=""[14..16)"" Text=""\P"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..52)"" />
-    <Capture Name=""1"" Span=""[10..31)"" />
-    <Capture Name=""2"" Span=""[33..52)"" />
+    <Capture Name=""0"" Span=""[10..52)"" Text=""([1-\P{Ll}][\p{Ll}]*)\s([\P{Ll}][\p{Ll}]*)"" />
+    <Capture Name=""1"" Span=""[10..31)"" Text=""([1-\P{Ll}][\p{Ll}]*)"" />
+    <Capture Name=""2"" Span=""[33..52)"" Text=""([\P{Ll}][\p{Ll}]*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3448,10 +3448,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Start=""11"" Length=""2"" />
+    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[11..13)"" Text=""\P"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""[\P]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3485,11 +3485,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \p{X} character escape"" Start=""12"" Length=""2"" />
+    <Diagnostic Message=""Malformed \p{X} character escape"" Span=""[12..14)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..19)"" />
-    <Capture Name=""1"" Span=""[10..19)"" />
+    <Capture Name=""0"" Span=""[10..19)"" Text=""([\pcat])"" />
+    <Capture Name=""1"" Span=""[10..19)"" Text=""([\pcat])"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3523,11 +3523,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \p{X} character escape"" Start=""12"" Length=""2"" />
+    <Diagnostic Message=""Malformed \p{X} character escape"" Span=""[12..14)"" Text=""\P"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..19)"" />
-    <Capture Name=""1"" Span=""[10..19)"" />
+    <Capture Name=""0"" Span=""[10..19)"" Text=""([\Pcat])"" />
+    <Capture Name=""1"" Span=""[10..19)"" Text=""([\Pcat])"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3555,12 +3555,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Start=""11"" Length=""2"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""14"" Length=""0"" />
+    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[11..13)"" Text=""\p"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[14..14)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
-    <Capture Name=""1"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""(\p{"" />
+    <Capture Name=""1"" Span=""[10..14)"" Text=""(\p{"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3588,12 +3588,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Start=""11"" Length=""2"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""16"" Length=""0"" />
+    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[11..13)"" Text=""\p"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[16..16)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
-    <Capture Name=""1"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""(\p{Ll"" />
+    <Capture Name=""1"" Span=""[10..16)"" Text=""(\p{Ll"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3645,13 +3645,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized escape sequence \o"" Start=""18"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized escape sequence \o"" Span=""[18..19)"" Text=""o"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..27)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
-    <Capture Name=""2"" Span=""[15..22)"" />
-    <Capture Name=""3"" Span=""[22..27)"" />
+    <Capture Name=""0"" Span=""[10..27)"" Text=""(cat)([\o]*)(dog)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
+    <Capture Name=""2"" Span=""[15..22)"" Text=""([\o]*)"" />
+    <Capture Name=""3"" Span=""[22..27)"" Text=""(dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3676,10 +3676,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Start=""11"" Length=""2"" />
+    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[11..13)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""[\p]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3734,14 +3734,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Start=""35"" Length=""2"" />
+    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Span=""[35..37)"" Text=""\k"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..40)"" />
-    <Capture Name=""1"" Span=""[10..21)"" />
-    <Capture Name=""2"" Span=""[24..35)"" />
-    <Capture Name=""cat"" Span=""[10..21)"" />
-    <Capture Name=""dog"" Span=""[24..35)"" />
+    <Capture Name=""0"" Span=""[10..40)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\kcat"" />
+    <Capture Name=""1"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""2"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
+    <Capture Name=""cat"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""dog"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3796,14 +3796,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group name cat2"" Start=""38"" Length=""4"" />
+    <Diagnostic Message=""Reference to undefined group name cat2"" Span=""[38..42)"" Text=""cat2"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..43)"" />
-    <Capture Name=""1"" Span=""[10..21)"" />
-    <Capture Name=""2"" Span=""[24..35)"" />
-    <Capture Name=""cat"" Span=""[10..21)"" />
-    <Capture Name=""dog"" Span=""[24..35)"" />
+    <Capture Name=""0"" Span=""[10..43)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\k&lt;cat2&gt;"" />
+    <Capture Name=""1"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""2"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
+    <Capture Name=""cat"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""dog"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3861,14 +3861,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group number 8"" Start=""38"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 8"" Span=""[38..39)"" Text=""8"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..43)"" />
-    <Capture Name=""1"" Span=""[10..21)"" />
-    <Capture Name=""2"" Span=""[24..35)"" />
-    <Capture Name=""cat"" Span=""[10..21)"" />
-    <Capture Name=""dog"" Span=""[24..35)"" />
+    <Capture Name=""0"" Span=""[10..43)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\k&lt;8&gt;cat"" />
+    <Capture Name=""1"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""2"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
+    <Capture Name=""cat"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""dog"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3909,10 +3909,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Start=""21"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier *"" Span=""[21..22)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""^[abcd]{1}?*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3948,10 +3948,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier +"" Start=""18"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier +"" Span=""[18..19)"" Text=""+"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..20)"" />
+    <Capture Name=""0"" Span=""[10..20)"" Text=""^[abcd]*+$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3987,10 +3987,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Start=""18"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier *"" Span=""[18..19)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..20)"" />
+    <Capture Name=""0"" Span=""[10..20)"" Text=""^[abcd]+*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4026,10 +4026,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Start=""18"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier *"" Span=""[18..19)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..20)"" />
+    <Capture Name=""0"" Span=""[10..20)"" Text=""^[abcd]?*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4068,10 +4068,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier +"" Start=""19"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier +"" Span=""[19..20)"" Text=""+"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""^[abcd]*?+$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4110,10 +4110,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Start=""19"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier *"" Span=""[19..20)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""^[abcd]+?*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4155,10 +4155,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Start=""22"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier *"" Span=""[22..23)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]{1,}?*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4197,10 +4197,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Start=""19"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier *"" Span=""[19..20)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""^[abcd]??*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4239,10 +4239,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier {"" Start=""18"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier {"" Span=""[18..19)"" Text=""{"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]+{0,5}$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4281,10 +4281,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier {"" Start=""18"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier {"" Span=""[18..19)"" Text=""{"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]?{0,5}$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4304,10 +4304,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Insufficient hexadecimal digits"" Start=""10"" Length=""2"" />
+    <Diagnostic Message=""Insufficient hexadecimal digits"" Span=""[10..12)"" Text=""\u"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..12)"" />
+    <Capture Name=""0"" Span=""[10..12)"" Text=""\u"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4327,10 +4327,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Insufficient hexadecimal digits"" Start=""10"" Length=""3"" />
+    <Diagnostic Message=""Insufficient hexadecimal digits"" Span=""[10..13)"" Text=""\ua"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""\ua"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4350,10 +4350,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Insufficient hexadecimal digits"" Start=""10"" Length=""3"" />
+    <Diagnostic Message=""Insufficient hexadecimal digits"" Span=""[10..13)"" Text=""\u0"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""\u0"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4373,10 +4373,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Insufficient hexadecimal digits"" Start=""10"" Length=""2"" />
+    <Diagnostic Message=""Insufficient hexadecimal digits"" Span=""[10..12)"" Text=""\x"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..12)"" />
+    <Capture Name=""0"" Span=""[10..12)"" Text=""\x"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4415,10 +4415,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier {"" Start=""18"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier {"" Span=""[18..19)"" Text=""{"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]*{0,5}$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4438,10 +4438,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Start=""11"" Length=""0"" />
+    <Diagnostic Message=""Unterminated [] set"" Span=""[11..11)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..11)"" />
+    <Capture Name=""0"" Span=""[10..11)"" Text=""["" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4484,10 +4484,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Start=""24"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier *"" Span=""[24..25)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""^[abcd]{0,16}?*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4526,10 +4526,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Start=""21"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier *"" Span=""[21..22)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""^[abcd]{1,}*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4587,14 +4587,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group number 8"" Start=""38"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 8"" Span=""[38..39)"" Text=""8"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..43)"" />
-    <Capture Name=""1"" Span=""[10..21)"" />
-    <Capture Name=""2"" Span=""[24..35)"" />
-    <Capture Name=""cat"" Span=""[10..21)"" />
-    <Capture Name=""dog"" Span=""[24..35)"" />
+    <Capture Name=""0"" Span=""[10..43)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\k&lt;8&gt;cat"" />
+    <Capture Name=""1"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""2"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
+    <Capture Name=""cat"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""dog"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.ECMAScript);
         }
@@ -4649,14 +4649,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Start=""35"" Length=""2"" />
+    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Span=""[35..37)"" Text=""\k"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..38)"" />
-    <Capture Name=""1"" Span=""[10..21)"" />
-    <Capture Name=""2"" Span=""[24..35)"" />
-    <Capture Name=""cat"" Span=""[10..21)"" />
-    <Capture Name=""dog"" Span=""[24..35)"" />
+    <Capture Name=""0"" Span=""[10..38)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\k8"" />
+    <Capture Name=""1"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""2"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
+    <Capture Name=""cat"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""dog"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4711,14 +4711,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Start=""35"" Length=""2"" />
+    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Span=""[35..37)"" Text=""\k"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..38)"" />
-    <Capture Name=""1"" Span=""[10..21)"" />
-    <Capture Name=""2"" Span=""[24..35)"" />
-    <Capture Name=""cat"" Span=""[10..21)"" />
-    <Capture Name=""dog"" Span=""[24..35)"" />
+    <Capture Name=""0"" Span=""[10..38)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\k8"" />
+    <Capture Name=""1"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""2"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
+    <Capture Name=""cat"" Span=""[10..21)"" Text=""(?&lt;cat&gt;cat)"" />
+    <Capture Name=""dog"" Span=""[24..35)"" Text=""(?&lt;dog&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.ECMAScript);
         }
@@ -4752,12 +4752,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group number 7"" Start=""17"" Length=""1"" />
+    <Diagnostic Message=""Reference to undefined group number 7"" Span=""[17..18)"" Text=""7"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..19)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
-    <Capture Name=""2"" Span=""[15..19)"" />
+    <Capture Name=""0"" Span=""[10..19)"" Text=""(cat)(\7)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
+    <Capture Name=""2"" Span=""[15..19)"" Text=""(\7)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4801,12 +4801,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Capture group numbers must be less than or equal to Int32.MaxValue"" Start=""21"" Length=""10"" />
+    <Diagnostic Message=""Capture group numbers must be less than or equal to Int32.MaxValue"" Span=""[21..31)"" Text=""2147483648"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""-2147483648"" Span=""[18..36)"" />
-    <Capture Name=""0"" Span=""[10..36)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
+    <Capture Name=""-2147483648"" Span=""[18..36)"" Text=""(?&lt;2147483648&gt;dog)"" />
+    <Capture Name=""0"" Span=""[10..36)"" Text=""(cat)\s+(?&lt;2147483648&gt;dog)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4850,12 +4850,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Capture group numbers must be less than or equal to Int32.MaxValue"" Start=""21"" Length=""14"" />
+    <Diagnostic Message=""Capture group numbers must be less than or equal to Int32.MaxValue"" Span=""[21..35)"" Text=""21474836481097"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..40)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
-    <Capture Name=""1097"" Span=""[18..40)"" />
+    <Capture Name=""0"" Span=""[10..40)"" Text=""(cat)\s+(?&lt;21474836481097&gt;dog)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
+    <Capture Name=""1097"" Span=""[18..40)"" Text=""(?&lt;21474836481097&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4893,10 +4893,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Start=""20"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier *"" Span=""[20..21)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..22)"" />
+    <Capture Name=""0"" Span=""[10..22)"" Text=""^[abcd]{1}*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4943,13 +4943,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized control character"" Start=""18"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized control character"" Span=""[18..19)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
-    <Capture Name=""2"" Span=""[15..20)"" />
-    <Capture Name=""3"" Span=""[20..25)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""(cat)(\c*)(dog)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
+    <Capture Name=""2"" Span=""[15..20)"" Text=""(\c*)"" />
+    <Capture Name=""3"" Span=""[20..25)"" Text=""(dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4999,13 +4999,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized control character"" Start=""18"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized control character"" Span=""[18..19)"" Text="" "" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
-    <Capture Name=""2"" Span=""[15..21)"" />
-    <Capture Name=""3"" Span=""[21..26)"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""(cat)(\c *)(dog)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
+    <Capture Name=""2"" Span=""[15..21)"" Text=""(\c *)"" />
+    <Capture Name=""3"" Span=""[21..26)"" Text=""(dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5055,14 +5055,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized control character"" Start=""18"" Length=""1"" />
-    <Diagnostic Message=""Nested quantifier *"" Start=""19"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized control character"" Span=""[18..19)"" Text=""?"" />
+    <Diagnostic Message=""Nested quantifier *"" Span=""[19..20)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
-    <Capture Name=""2"" Span=""[15..21)"" />
-    <Capture Name=""3"" Span=""[21..26)"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""(cat)(\c?*)(dog)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
+    <Capture Name=""2"" Span=""[15..21)"" Text=""(\c?*)"" />
+    <Capture Name=""3"" Span=""[21..26)"" Text=""(dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5112,13 +5112,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized control character"" Start=""18"" Length=""1"" />
+    <Diagnostic Message=""Unrecognized control character"" Span=""[18..19)"" Text=""`"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
-    <Capture Name=""2"" Span=""[15..21)"" />
-    <Capture Name=""3"" Span=""[21..26)"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""(cat)(\c`*)(dog)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
+    <Capture Name=""2"" Span=""[15..21)"" Text=""(\c`*)"" />
+    <Capture Name=""3"" Span=""[21..26)"" Text=""(dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5170,13 +5170,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Start=""20"" Length=""1"" />
+    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[20..21)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..27)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
-    <Capture Name=""2"" Span=""[15..22)"" />
-    <Capture Name=""3"" Span=""[22..27)"" />
+    <Capture Name=""0"" Span=""[10..27)"" Text=""(cat)(\c\|*)(dog)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
+    <Capture Name=""2"" Span=""[15..22)"" Text=""(\c\|*)"" />
+    <Capture Name=""3"" Span=""[22..27)"" Text=""(dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5220,15 +5220,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Start=""27"" Length=""0"" />
-    <Diagnostic Message=""Not enough )'s"" Start=""27"" Length=""0"" />
+    <Diagnostic Message=""Unterminated [] set"" Span=""[27..27)"" Text="""" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[27..27)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..27)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
-    <Capture Name=""2"" Span=""[15..27)"" />
+    <Capture Name=""0"" Span=""[10..27)"" Text=""(cat)(\c\[*)(dog)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
+    <Capture Name=""2"" Span=""[15..27)"" Text=""(\c\[*)(dog)"" />
   </Captures>
-</Tree>", runSubTreeTests: false, options: RegexOptions.None);
+</Tree>", RegexOptions.None, runSubTreeTests: false);
         }
 
         [Fact]
@@ -5266,10 +5266,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Start=""23"" Length=""1"" />
+    <Diagnostic Message=""Nested quantifier *"" Span=""[23..24)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""^[abcd]{0,16}*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5298,11 +5298,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Missing control character"" Start=""16"" Length=""1"" />
+    <Diagnostic Message=""Missing control character"" Span=""[16..17)"" Text=""c"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(cat)\c"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }

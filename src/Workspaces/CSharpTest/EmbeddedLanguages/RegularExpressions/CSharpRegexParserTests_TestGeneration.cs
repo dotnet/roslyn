@@ -64,12 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 index++;
             }
 
-#if true
+#if false
             var tests =
                 CSharpRegexParserTests.nameToTest.Where(kvp => !kvp.Key.StartsWith("NegativeTest") && !kvp.Key.StartsWith("Reference"))
                      .OrderBy(kvp => nameToIndex[kvp.Key])
                      .Select(kvp => kvp.Value);
-#elif false
+#elif true
             var tests =
                 CSharpRegexParserTests.nameToTest.Where(kvp => kvp.Key.StartsWith("NegativeTest"))
                      .OrderBy(kvp => kvp.Key, LogicalStringComparer.Instance)
