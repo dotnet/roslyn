@@ -5,6 +5,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
 {
+    // These tests came from tests found at:
+    // https://github.com/dotnet/corefx/blob/master/src/System.Text.RegularExpressions/tests/
     public partial class CSharpRegexParserTests
     {
         [Fact]
