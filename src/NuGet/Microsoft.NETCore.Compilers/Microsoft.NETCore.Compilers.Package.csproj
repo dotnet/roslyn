@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <RoslynProjectType>Custom</RoslynProjectType>
 
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.NETCore.Compilers</PackageId>

@@ -186,8 +186,7 @@ if [[ "${stop_vbcscompiler}" == true ]]
 then
     if [[ "${use_bootstrap}" == true ]]
     then
-        echo "Stopping VBCSCompiler"
-        dotnet "${bootstrap_path}"/microsoft.netcore.compilers/42.42.42.42/tools/bincore/VBCSCompiler.dll -shutdown
+        dotnet build-server shutdown
     else
         echo "--stop-vbcscompiler requires --use-bootstrap. Aborting."
         exit 1

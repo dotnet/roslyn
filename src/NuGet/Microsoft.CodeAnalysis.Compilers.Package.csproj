@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
+    <RoslynProjectType>Custom</RoslynProjectType>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
