@@ -6,14 +6,14 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionOrConfigurationCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         internal sealed class GlobalSuppressMessageCodeAction : AbstractGlobalSuppressMessageCodeAction
         {
             private readonly ISymbol _targetSymbol;
             private readonly Diagnostic _diagnostic;
 
-            public GlobalSuppressMessageCodeAction(ISymbol targetSymbol, Project project, Diagnostic diagnostic, AbstractSuppressionCodeFixProvider fixer)
+            public GlobalSuppressMessageCodeAction(ISymbol targetSymbol, Project project, Diagnostic diagnostic, AbstractSuppressionOrConfigurationCodeFixProvider fixer)
                 : base(fixer, project)
             {
                 _targetSymbol = targetSymbol;

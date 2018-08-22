@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal partial class AbstractSuppressionCodeFixProvider
+    internal partial class AbstractSuppressionOrConfigurationCodeFixProvider
     {
         /// <summary>
         /// Helper methods for pragma suppression add/remove batch fixers.
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         private static class PragmaBatchFixHelpers
         {
             public static CodeAction CreateBatchPragmaFix(
-                AbstractSuppressionCodeFixProvider suppressionFixProvider,
+                AbstractSuppressionOrConfigurationCodeFixProvider suppressionFixProvider,
                 Document document,
                 ImmutableArray<IPragmaBasedCodeAction> pragmaActions,
                 ImmutableArray<Diagnostic> pragmaDiagnostics,
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
 
             private static async Task<Document> BatchPragmaFixesAsync(
-                AbstractSuppressionCodeFixProvider suppressionFixProvider,
+                AbstractSuppressionOrConfigurationCodeFixProvider suppressionFixProvider,
                 Document document,
                 ImmutableArray<IPragmaBasedCodeAction> pragmaActions,
                 ImmutableArray<Diagnostic> diagnostics,
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         properties: diagnostic.Properties,
                         isSuppressed: diagnostic.IsSuppressed);
 
-                    var newSuppressionFixes = await suppressionFixProvider.GetSuppressionsAsync(currentDocument, currentDiagnosticSpan, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
+                    var newSuppressionFixes = await suppressionFixProvider.GetSuppressionsOrConfigurationsAsync(currentDocument, currentDiagnosticSpan, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
                     var newSuppressionFix = newSuppressionFixes.SingleOrDefault();
                     if (newSuppressionFix != null)
                     {

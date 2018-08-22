@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 properties = properties.Add(AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider.Negated, "");
             }
 
+            // TO-DO: Reduce degree of tight-coupling and hard-coded options
             var editorconfigName = CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
             if (editorconfigName != null)
             {

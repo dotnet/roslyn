@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         {
         }
 
+        // TO-DO: Reduce degree of tight-coupling and hard-coded options
         private static readonly Dictionary<string, Option<CodeStyleOption<bool>>> diagnosticToOptionCSharp = new Dictionary<string, Option<CodeStyleOption<bool>>>()
         {
             { IDEDiagnosticIds.AddBracesDiagnosticId,  CSharpCodeStyleOptions.PreferBraces },
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             { IDEDiagnosticIds.UseLocalFunctionDiagnosticId, CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction },
         };
 
+        // TO-DO: Reduce degree of tight-coupling and hard-coded options
         private static readonly Dictionary<string, Option<CodeStyleOption<ExpressionBodyPreference>>> expressionOptionsCSharp = new Dictionary<string, Option<CodeStyleOption<ExpressionBodyPreference>>>()
         {
             { IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId, CSharpCodeStyleOptions.PreferExpressionBodiedConstructors },

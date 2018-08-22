@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal partial class AbstractSuppressionCodeFixProvider
+    internal partial class AbstractSuppressionOrConfigurationCodeFixProvider
     {
         /// <summary>
         /// Helper methods for pragma based suppression code actions.
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return document.WithSyntaxRoot(newRoot);
             }
 
-            private static int GetPositionForPragmaInsertion(ImmutableArray<SyntaxTrivia> triviaList, TextSpan currentDiagnosticSpan, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, out SyntaxTrivia triviaAtIndex)
+            private static int GetPositionForPragmaInsertion(ImmutableArray<SyntaxTrivia> triviaList, TextSpan currentDiagnosticSpan, AbstractSuppressionOrConfigurationCodeFixProvider fixer, bool isStartToken, out SyntaxTrivia triviaAtIndex)
             {
                 // Start token: Insert the #pragma disable directive just **before** the first end of line trivia prior to diagnostic location.
                 // End token: Insert the #pragma disable directive just **after** the first end of line trivia after diagnostic location.
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 SyntaxToken startToken,
                 TextSpan currentDiagnosticSpan,
                 Diagnostic diagnostic,
-                AbstractSuppressionCodeFixProvider fixer,
+                AbstractSuppressionOrConfigurationCodeFixProvider fixer,
                 Func<SyntaxNode, Task<SyntaxNode>> formatNode,
                 bool isRemoveSuppression = false)
             {
@@ -128,19 +128,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return startToken.WithLeadingTrivia(trivia.InsertRange(index, pragmaTrivia));
             }
 
-            private static bool IsEndOfLineOrHasLeadingEndOfLine(SyntaxTrivia trivia, AbstractSuppressionCodeFixProvider fixer)
+            private static bool IsEndOfLineOrHasLeadingEndOfLine(SyntaxTrivia trivia, AbstractSuppressionOrConfigurationCodeFixProvider fixer)
             {
                 return fixer.IsEndOfLine(trivia) ||
                     (trivia.HasStructure && fixer.IsEndOfLine(trivia.GetStructure().DescendantTrivia().FirstOrDefault()));
             }
 
-            private static bool IsEndOfLineOrHasTrailingEndOfLine(SyntaxTrivia trivia, AbstractSuppressionCodeFixProvider fixer)
+            private static bool IsEndOfLineOrHasTrailingEndOfLine(SyntaxTrivia trivia, AbstractSuppressionOrConfigurationCodeFixProvider fixer)
             {
                 return fixer.IsEndOfLine(trivia) ||
                     (trivia.HasStructure && fixer.IsEndOfLine(trivia.GetStructure().DescendantTrivia().LastOrDefault()));
             }
 
-            private static bool IsEndOfLineOrContainsEndOfLine(SyntaxTrivia trivia, AbstractSuppressionCodeFixProvider fixer)
+            private static bool IsEndOfLineOrContainsEndOfLine(SyntaxTrivia trivia, AbstractSuppressionOrConfigurationCodeFixProvider fixer)
             {
                 return fixer.IsEndOfLine(trivia) ||
                     (trivia.HasStructure && trivia.GetStructure().DescendantTrivia().Any(t => fixer.IsEndOfLine(t)));
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 SyntaxToken endToken,
                 TextSpan currentDiagnosticSpan,
                 Diagnostic diagnostic,
-                AbstractSuppressionCodeFixProvider fixer,
+                AbstractSuppressionOrConfigurationCodeFixProvider fixer,
                 Func<SyntaxNode, Task<SyntaxNode>> formatNode,
                 bool isRemoveSuppression = false)
             {
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 };
             }
 
-            internal static void NormalizeTriviaOnTokens(AbstractSuppressionCodeFixProvider fixer, ref Document document, ref SuppressionTargetInfo suppressionTargetInfo)
+            internal static void NormalizeTriviaOnTokens(AbstractSuppressionOrConfigurationCodeFixProvider fixer, ref Document document, ref SuppressionTargetInfo suppressionTargetInfo)
             {
                 // For pragma suppression fixes, we need to normalize the leading trivia on start token to account for
                 // the trailing trivia on its previous token (and similarly normalize trailing trivia for end token).

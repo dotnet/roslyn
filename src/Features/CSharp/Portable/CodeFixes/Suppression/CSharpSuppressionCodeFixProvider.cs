@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 {
     [ExportSuppressionFixProvider(PredefinedCodeFixProviderNames.Suppression, LanguageNames.CSharp), Shared]
-    internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProvider
+    internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionOrConfigurationCodeFixProvider
     {
         protected override Task<SyntaxTriviaList> CreatePragmaRestoreDirectiveTriviaAsync(Diagnostic diagnostic, Func<SyntaxNode, Task<SyntaxNode>> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine)
         {

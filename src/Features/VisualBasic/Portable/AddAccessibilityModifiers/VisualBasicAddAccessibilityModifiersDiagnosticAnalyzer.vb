@@ -84,6 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             ' Have an issue to flag, either add or remove. Report issue to user.
             Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
 
+            ' TO-DO: Reduce degree of tight-coupling and hard-coded options
             Dim properties = ImmutableDictionary.CreateBuilder(Of String, String)()
             Dim ruleName = CodeStyleOptions.RequireAccessibilityModifiers.StorageLocations.OfType(Of EditorConfigStorageLocation(Of CodeStyleOption(Of AccessibilityModifiersRequired)))().FirstOrDefault()
             If ruleName IsNot Nothing Then

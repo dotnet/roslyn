@@ -10,13 +10,13 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionOrConfigurationCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         internal abstract class AbstractGlobalSuppressMessageCodeAction : AbstractSuppressionCodeAction
         {
             private readonly Project _project;
 
-            protected AbstractGlobalSuppressMessageCodeAction(AbstractSuppressionCodeFixProvider fixer, Project project)
+            protected AbstractGlobalSuppressMessageCodeAction(AbstractSuppressionOrConfigurationCodeFixProvider fixer, Project project)
                 : base(fixer, title: FeaturesResources.in_Suppression_File)
             {
                 _project = project;

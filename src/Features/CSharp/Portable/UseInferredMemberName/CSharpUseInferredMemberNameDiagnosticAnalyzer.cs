@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
+            // TO-DO: Reduce degree of tight-coupling and hard-coded options
             var option = optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language);
             var properties = ImmutableDictionary.CreateBuilder<string, string>();
             var name = CodeStyleOptions.PreferInferredTupleNames.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();

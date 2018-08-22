@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         public ConfigureSeverityLevelCodeAction(
             Diagnostic diagnostic,
             ImmutableArray<CodeAction> nestedActions)
-            : base("Configure severity level via editorconfig file",
+            : base(FeaturesResources.Configure_severity_level_via_editorconfig_file,
             ImmutableArray<CodeAction>.CastUp(nestedActions), isInlinable: false)
         {
         }
 
-        internal static Task<Solution> ConfigureEditorConfig(
+        internal static async Task<Solution> ConfigureEditorConfig(
             string severity,
             Diagnostic diagnostic,
             Project project,
@@ -34,45 +34,41 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            TextDocument editorconfig = null;
-            FindOrGenerateEditorconfig();
-
-            editorconfig.TryGetText(out var text);
-            var result = editorconfig.GetTextAsync().Result;
+            var editorconfig = FindOrGenerateEditorconfig();
+            var result = await editorconfig.GetTextAsync().ConfigureAwait(false);
 
             var headers = new Dictionary<string, TextLine>();
             string mostRecentHeader = null;
-
-            var name = string.Empty;
-            FindRuleName();
-
-            // First check if given .editorconfig rule is already in file
             var lines = result.Lines;
-            if (name.Length != 0)
+
+            var name = FindRuleName();
+            if (name != null)
             {
-                if (CheckIfRuleExistsInFile())
+                // First we check if the rule already exists in the file; if it does, we replace it
+                if (CheckIfRuleExistsAndReplaceInFile())
                 {
-                    return Task.FromResult(solution);
+                    return solution;
                 }
+
+                // If we reach this point, no match was found, so we add the rule to the .editorconfig file
+                AddMissingRule();
             }
 
-            // If we reach this point, no match was found, so we add the rule to the .editorconfig file
-            AddMissingRule();
+            return solution;
 
-            return Task.FromResult(solution);
-
-            void FindOrGenerateEditorconfig()
+            TextDocument FindOrGenerateEditorconfig()
             {
+                TextDocument doc = null;
                 foreach (var curDoc in project.AdditionalDocuments)
                 {
                     if (curDoc.Name.Equals(".editorconfig"))
                     {
-                        editorconfig = curDoc;
+                        doc = curDoc;
                     }
                 }
 
                 // Create new .editorconfig as additional file if none exists
-                if (editorconfig == null)
+                if (doc == null)
                 {
                     var id = DocumentId.CreateNewId(project.Id);
                     var editorconfigDefaultFileContent =
@@ -82,19 +78,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 #
 # https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Enable%20Editorconfig%20Configuration.md";
                     solution = solution.AddAdditionalDocument(id, ".editorconfig", editorconfigDefaultFileContent);
-                    editorconfig = solution.GetAdditionalDocument(id);
+                    doc = solution.GetAdditionalDocument(id);
                 }
+                return doc;
             }
 
-            void FindRuleName()
+            string FindRuleName()
             {
+                string ruleName = null;
                 if (diagnosticToEditorConfigDotNet.ContainsKey(diagnostic.Id))
                 {
                     diagnosticToEditorConfigDotNet.TryGetValue(diagnostic.Id, out var value);
                     var storageLocation = value.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
                     if (storageLocation != null)
                     {
-                        name = storageLocation.KeyName;
+                        ruleName = storageLocation.KeyName;
                     }
 
                 }
@@ -104,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var storageLocation = value.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
                     if (storageLocation != null)
                     {
-                        name = storageLocation.KeyName;
+                        ruleName = storageLocation.KeyName;
                     }
                 }
                 else if (expressionOptions != null && expressionOptions.ContainsKey(diagnostic.Id))
@@ -113,18 +111,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var storageLocation = value.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<ExpressionBodyPreference>>>().FirstOrDefault();
                     if (storageLocation != null)
                     {
-                        name = storageLocation.KeyName;
+                        ruleName = storageLocation.KeyName;
                     }
                 }
                 else if (diagnostic.Properties != null && diagnostic.Properties.ContainsKey("OptionName"))
                 {
-                    diagnostic.Properties.TryGetValue("OptionName", out name);
+                    diagnostic.Properties.TryGetValue("OptionName", out ruleName);
                 }
+
+                return ruleName;
             }
 
-            bool CheckIfRuleExistsInFile()
+            bool CheckIfRuleExistsAndReplaceInFile()
             {
-                bool ruleFound = false;
+                var ruleFound = false;
                 foreach (var curLine in lines)
                 {
                     var curLineText = curLine.ToString();
@@ -263,6 +263,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
         }
 
+        // TO-DO: Reduce degree of tight-coupling and hard-coded options
         internal static readonly Dictionary<string, PerLanguageOption<CodeStyleOption<bool>>> diagnosticToEditorConfigDotNet = new Dictionary<string, Options.PerLanguageOption<CodeStyleOption<bool>>>()
         {
             { IDEDiagnosticIds.UseThrowExpressionDiagnosticId, CodeStyleOptions.PreferThrowExpression },

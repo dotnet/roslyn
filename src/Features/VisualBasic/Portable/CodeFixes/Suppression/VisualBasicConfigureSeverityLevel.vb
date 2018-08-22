@@ -1,10 +1,7 @@
-﻿Imports System.Collections.Generic
-Imports System.Composition
+﻿Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
@@ -16,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             MyBase.New(diagnosticToOptionVB, LanguageNames.VisualBasic)
         End Sub
 
+        ' TO-DO: Reduce degree of tight-coupling and hard-coded options
         Private Shared ReadOnly diagnosticToOptionVB As Dictionary(Of String, [Option](Of CodeStyleOption(Of Boolean))) = New Dictionary(Of String, [Option](Of CodeStyleOption(Of Boolean)))() From
         {
         }

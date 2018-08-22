@@ -30,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return TestOptions.Script
         End Function
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(ByVal workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New VisualBasicUseObjectInitializerDiagnosticAnalyzer(), New VisualBasicConfigureSeverityLevel())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(ByVal workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)
+            Return New Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)(New VisualBasicUseObjectInitializerDiagnosticAnalyzer(), New VisualBasicConfigureSeverityLevel())
         End Function
 
         Public Class NoneConfigurationTests
@@ -51,9 +51,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -75,9 +77,11 @@ End Class
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -106,9 +110,11 @@ dotnet_style_object_initializer = true:none
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -121,86 +127,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig""># Core EditorConfig Options
-root = true
-
-# All files
-[*]
-indent_style = space
-
-# Code files
-[*.{cs,csx,vb,vbx}]
-indent_size = 4
-insert_final_newline = true
-charset = utf-8-bom
-
-# .NET Coding Conventions
-[*.{cs,vb}]
-# Organize usings
-dotnet_sort_system_directives_first = true
-
-# this. preferences
-dotnet_style_qualification_for_field = false:none
-dotnet_style_qualification_for_property = false:none
-dotnet_style_qualification_for_method = false:none
-dotnet_style_qualification_for_event = false:none
-
-# Language keywords vs BCL types preferences
-dotnet_style_predefined_type_for_locals_parameters_members = true:none
-dotnet_style_predefined_type_for_member_access = true:none
-
-# Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
-dotnet_style_readonly_field = true:suggestion
-
-# Expression-level preferences
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:suggestion
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:none
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:none
-
-# C# Coding Conventions
-[*.cs]
-# var preferences
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
-
-# Expression-bodied members
-csharp_style_expression_bodied_methods = false:none
-csharp_style_expression_bodied_constructors = false:none
-csharp_style_expression_bodied_operators = false:none
-csharp_style_expression_bodied_properties = true:none
-csharp_style_expression_bodied_indexers = true:none
-csharp_style_expression_bodied_accessors = true:none
-
-# Pattern matching preferences
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-
-# Null-checking preferences
-csharp_style_throw_expression = true:suggestion
-csharp_style_conditional_delegate_call = true:suggestion
-
-# Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
-
-# Expression-level preferences
-csharp_prefer_braces = true:none
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_prefer_simple_default_expression = true:suggestion
-csharp_style_pattern_local_over_anonymous_function = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-
-# VB Coding Conventions
-[*.vb]
-# Modifier preferences
-visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -210,9 +138,11 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -225,86 +155,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig""># Core EditorConfig Options
-root = true
-
-# All files
-[*]
-indent_style = space
-
-# Code files
-[*.{cs,csx,vb,vbx}]
-indent_size = 4
-insert_final_newline = true
-charset = utf-8-bom
-
-# .NET Coding Conventions
-[*.{cs,vb}]
-# Organize usings
-dotnet_sort_system_directives_first = true
-
-# this. preferences
-dotnet_style_qualification_for_field = false:none
-dotnet_style_qualification_for_property = false:none
-dotnet_style_qualification_for_method = false:none
-dotnet_style_qualification_for_event = false:none
-
-# Language keywords vs BCL types preferences
-dotnet_style_predefined_type_for_locals_parameters_members = true:none
-dotnet_style_predefined_type_for_member_access = true:none
-
-# Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
-dotnet_style_readonly_field = true:suggestion
-
-# Expression-level preferences
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:none
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:none
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:none
-
-# C# Coding Conventions
-[*.cs]
-# var preferences
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
-
-# Expression-bodied members
-csharp_style_expression_bodied_methods = false:none
-csharp_style_expression_bodied_constructors = false:none
-csharp_style_expression_bodied_operators = false:none
-csharp_style_expression_bodied_properties = true:none
-csharp_style_expression_bodied_indexers = true:none
-csharp_style_expression_bodied_accessors = true:none
-
-# Pattern matching preferences
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-
-# Null-checking preferences
-csharp_style_throw_expression = true:suggestion
-csharp_style_conditional_delegate_call = true:suggestion
-
-# Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
-
-# Expression-level preferences
-csharp_prefer_braces = true:none
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_prefer_simple_default_expression = true:suggestion
-csharp_style_pattern_local_over_anonymous_function = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-
-# VB Coding Conventions
-[*.vb]
-# Modifier preferences
-visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -312,16 +164,18 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-            Public Async Function ConfigureEditorconfig_SmallFile_None() As Task
+            Public Async Function ConfigureEditorconfig_InvalidHeader_None() As Task
                 Dim input = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -334,10 +188,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+        <AdditionalDocument FilePath="".editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -347,9 +199,11 @@ csharp_style_var_elsewhere = true:none
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -362,10 +216,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+        <AdditionalDocument FilePath="".editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:suggestion
 
 [*.vb]
 dotnet_style_object_initializer = true:none
@@ -383,9 +235,11 @@ dotnet_style_object_initializer = true:none
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -398,12 +252,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">
-[*.{cs,csx,vb,vbx}]
+        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,vb}]
 dotnet_style_object_initializer = false:suggestion
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -413,9 +263,11 @@ csharp_style_var_elsewhere = true:none
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -428,12 +280,70 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">
-[*.{cs,csx,vb,vbx}]
+        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,vb}]
 dotnet_style_object_initializer = false:none
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+            Public Async Function ConfigureEditorconfig_InvalidRule_None() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializerr = true:suggestion
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializerr = true:suggestion
+dotnet_style_object_initializer = true:none
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -441,7 +351,7 @@ csharp_style_var_elsewhere = true:none
             End Function
         End Class
 
-        Public Class SuggestionConfigurationTests
+        Public Class SilentConfigurationTests
             Inherits ConfigurationTestsBase
 
             Protected Overrides ReadOnly Property CodeActionIndex As Integer
@@ -451,16 +361,18 @@ csharp_style_var_elsewhere = true:none
             End Property
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-            Public Async Function ConfigureEditorconfig_Empty_Suggestion() As Task
+            Public Async Function ConfigureEditorconfig_Empty_Silent() As Task
                 Dim input = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -482,9 +394,328 @@ End Class
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializer = true:silent
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+            Public Async Function ConfigureEditorconfig_RuleExists_Silent() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializer = true:suggestion
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializer = true:silent
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+            Public Async Function ConfigureEditorconfig_InvalidHeader_Silent() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:suggestion
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:suggestion
+
+[*.vb]
+dotnet_style_object_initializer = true:silent
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+            Public Async Function ConfigureEditorconfig_MaintainCurrentOption_Silent() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,vb}]
+dotnet_style_object_initializer = false:suggestion
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,vb}]
+dotnet_style_object_initializer = false:silent
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+            Public Async Function ConfigureEditorconfig_InvalidRule_Silent() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializerr = true:suggestion
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializerr = true:suggestion
+dotnet_style_object_initializer = true:silent
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+        End Class
+
+        Public Class SuggestionConfigurationTests
+            Inherits ConfigurationTestsBase
+
+            Protected Overrides ReadOnly Property CodeActionIndex As Integer
+                Get
+                    Return 2
+                End Get
+            End Property
+
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+            Public Async Function ConfigureEditorconfig_Empty_Suggestion() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig""></AdditionalDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -513,9 +744,11 @@ dotnet_style_object_initializer = true:suggestion
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -528,86 +761,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig""># Core EditorConfig Options
-root = true
-
-# All files
-[*]
-indent_style = space
-
-# Code files
-[*.{cs,csx,vb,vbx}]
-indent_size = 4
-insert_final_newline = true
-charset = utf-8-bom
-
-# .NET Coding Conventions
-[*.{cs,vb}]
-# Organize usings
-dotnet_sort_system_directives_first = true
-
-# this. preferences
-dotnet_style_qualification_for_field = false:none
-dotnet_style_qualification_for_property = false:none
-dotnet_style_qualification_for_method = false:none
-dotnet_style_qualification_for_event = false:none
-
-# Language keywords vs BCL types preferences
-dotnet_style_predefined_type_for_locals_parameters_members = true:none
-dotnet_style_predefined_type_for_member_access = true:none
-
-# Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
-dotnet_style_readonly_field = true:suggestion
-
-# Expression-level preferences
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:warning
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:none
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:none
-
-# C# Coding Conventions
-[*.cs]
-# var preferences
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
-
-# Expression-bodied members
-csharp_style_expression_bodied_methods = false:none
-csharp_style_expression_bodied_constructors = false:none
-csharp_style_expression_bodied_operators = false:none
-csharp_style_expression_bodied_properties = true:none
-csharp_style_expression_bodied_indexers = true:none
-csharp_style_expression_bodied_accessors = true:none
-
-# Pattern matching preferences
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-
-# Null-checking preferences
-csharp_style_throw_expression = true:suggestion
-csharp_style_conditional_delegate_call = true:suggestion
-
-# Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
-
-# Expression-level preferences
-csharp_prefer_braces = true:none
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_prefer_simple_default_expression = true:suggestion
-csharp_style_pattern_local_over_anonymous_function = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-
-# VB Coding Conventions
-[*.vb]
-# Modifier preferences
-visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -617,9 +772,11 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -632,86 +789,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig""># Core EditorConfig Options
-root = true
-
-# All files
-[*]
-indent_style = space
-
-# Code files
-[*.{cs,csx,vb,vbx}]
-indent_size = 4
-insert_final_newline = true
-charset = utf-8-bom
-
-# .NET Coding Conventions
-[*.{cs,vb}]
-# Organize usings
-dotnet_sort_system_directives_first = true
-
-# this. preferences
-dotnet_style_qualification_for_field = false:none
-dotnet_style_qualification_for_property = false:none
-dotnet_style_qualification_for_method = false:none
-dotnet_style_qualification_for_event = false:none
-
-# Language keywords vs BCL types preferences
-dotnet_style_predefined_type_for_locals_parameters_members = true:none
-dotnet_style_predefined_type_for_member_access = true:none
-
-# Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
-dotnet_style_readonly_field = true:suggestion
-
-# Expression-level preferences
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:suggestion
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:none
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:none
-
-# C# Coding Conventions
-[*.cs]
-# var preferences
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
-
-# Expression-bodied members
-csharp_style_expression_bodied_methods = false:none
-csharp_style_expression_bodied_constructors = false:none
-csharp_style_expression_bodied_operators = false:none
-csharp_style_expression_bodied_properties = true:none
-csharp_style_expression_bodied_indexers = true:none
-csharp_style_expression_bodied_accessors = true:none
-
-# Pattern matching preferences
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-
-# Null-checking preferences
-csharp_style_throw_expression = true:suggestion
-csharp_style_conditional_delegate_call = true:suggestion
-
-# Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
-
-# Expression-level preferences
-csharp_prefer_braces = true:none
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_prefer_simple_default_expression = true:suggestion
-csharp_style_pattern_local_over_anonymous_function = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-
-# VB Coding Conventions
-[*.vb]
-# Modifier preferences
-visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -719,16 +798,18 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-            Public Async Function ConfigureEditorconfig_SmallFile_Suggestion() As Task
+            Public Async Function ConfigureEditorconfig_InvalidHeader_Suggestion() As Task
                 Dim input = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -741,10 +822,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+        <AdditionalDocument FilePath="".editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:warning
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -754,9 +833,11 @@ csharp_style_var_elsewhere = true:none
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -769,10 +850,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+        <AdditionalDocument FilePath="".editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:warning
 
 [*.vb]
 dotnet_style_object_initializer = true:suggestion
@@ -790,9 +869,11 @@ dotnet_style_object_initializer = true:suggestion
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -805,11 +886,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
+        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,vb}]
 dotnet_style_object_initializer = false:warning
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -819,9 +897,11 @@ csharp_style_var_elsewhere = true:none
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -834,11 +914,70 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
+        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,vb}]
 dotnet_style_object_initializer = false:suggestion
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+            Public Async Function ConfigureEditorconfig_InvalidRule_Suggestion() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializerr = true:warning
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializerr = true:warning
+dotnet_style_object_initializer = true:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -851,7 +990,7 @@ csharp_style_var_elsewhere = true:none
 
             Protected Overrides ReadOnly Property CodeActionIndex As Integer
                 Get
-                    Return 2
+                    Return 3
                 End Get
             End Property
 
@@ -863,9 +1002,11 @@ csharp_style_var_elsewhere = true:none
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -887,9 +1028,11 @@ End Class
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -918,9 +1061,11 @@ dotnet_style_object_initializer = true:warning
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -933,86 +1078,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig""># Core EditorConfig Options
-root = true
-
-# All files
-[*]
-indent_style = space
-
-# Code files
-[*.{cs,csx,vb,vbx}]
-indent_size = 4
-insert_final_newline = true
-charset = utf-8-bom
-
-# .NET Coding Conventions
-[*.{cs,vb}]
-# Organize usings
-dotnet_sort_system_directives_first = true
-
-# this. preferences
-dotnet_style_qualification_for_field = false:none
-dotnet_style_qualification_for_property = false:none
-dotnet_style_qualification_for_method = false:none
-dotnet_style_qualification_for_event = false:none
-
-# Language keywords vs BCL types preferences
-dotnet_style_predefined_type_for_locals_parameters_members = true:none
-dotnet_style_predefined_type_for_member_access = true:none
-
-# Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
-dotnet_style_readonly_field = true:suggestion
-
-# Expression-level preferences
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:suggestion
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:none
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:none
-
-# C# Coding Conventions
-[*.cs]
-# var preferences
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
-
-# Expression-bodied members
-csharp_style_expression_bodied_methods = false:none
-csharp_style_expression_bodied_constructors = false:none
-csharp_style_expression_bodied_operators = false:none
-csharp_style_expression_bodied_properties = true:none
-csharp_style_expression_bodied_indexers = true:none
-csharp_style_expression_bodied_accessors = true:none
-
-# Pattern matching preferences
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-
-# Null-checking preferences
-csharp_style_throw_expression = true:suggestion
-csharp_style_conditional_delegate_call = true:suggestion
-
-# Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
-
-# Expression-level preferences
-csharp_prefer_braces = true:none
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_prefer_simple_default_expression = true:suggestion
-csharp_style_pattern_local_over_anonymous_function = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-
-# VB Coding Conventions
-[*.vb]
-# Modifier preferences
-visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -1022,9 +1089,11 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1037,86 +1106,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig""># Core EditorConfig Options
-root = true
-
-# All files
-[*]
-indent_style = space
-
-# Code files
-[*.{cs,csx,vb,vbx}]
-indent_size = 4
-insert_final_newline = true
-charset = utf-8-bom
-
-# .NET Coding Conventions
-[*.{cs,vb}]
-# Organize usings
-dotnet_sort_system_directives_first = true
-
-# this. preferences
-dotnet_style_qualification_for_field = false:none
-dotnet_style_qualification_for_property = false:none
-dotnet_style_qualification_for_method = false:none
-dotnet_style_qualification_for_event = false:none
-
-# Language keywords vs BCL types preferences
-dotnet_style_predefined_type_for_locals_parameters_members = true:none
-dotnet_style_predefined_type_for_member_access = true:none
-
-# Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
-dotnet_style_readonly_field = true:suggestion
-
-# Expression-level preferences
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:warning
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:none
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:none
-
-# C# Coding Conventions
-[*.cs]
-# var preferences
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
-
-# Expression-bodied members
-csharp_style_expression_bodied_methods = false:none
-csharp_style_expression_bodied_constructors = false:none
-csharp_style_expression_bodied_operators = false:none
-csharp_style_expression_bodied_properties = true:none
-csharp_style_expression_bodied_indexers = true:none
-csharp_style_expression_bodied_accessors = true:none
-
-# Pattern matching preferences
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-
-# Null-checking preferences
-csharp_style_throw_expression = true:suggestion
-csharp_style_conditional_delegate_call = true:suggestion
-
-# Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
-
-# Expression-level preferences
-csharp_prefer_braces = true:none
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_prefer_simple_default_expression = true:suggestion
-csharp_style_pattern_local_over_anonymous_function = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-
-# VB Coding Conventions
-[*.vb]
-# Modifier preferences
-visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -1124,16 +1115,18 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-            Public Async Function ConfigureEditorconfig_SmallFile_Warning() As Task
+            Public Async Function ConfigureEditorconfig_InvalidHeader_Warning() As Task
                 Dim input = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1146,10 +1139,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+        <AdditionalDocument FilePath="".editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -1159,9 +1150,11 @@ csharp_style_var_elsewhere = true:none
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1174,10 +1167,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+        <AdditionalDocument FilePath="".editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:suggestion
 
 [*.vb]
 dotnet_style_object_initializer = true:warning
@@ -1195,9 +1186,11 @@ dotnet_style_object_initializer = true:warning
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1210,11 +1203,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
+        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,vb}]
 dotnet_style_object_initializer = false:suggestion
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -1224,9 +1214,11 @@ csharp_style_var_elsewhere = true:none
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1239,11 +1231,70 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
+        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,vb}]
 dotnet_style_object_initializer = false:warning
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+            Public Async Function ConfigureEditorconfig_InvalidRule_Warning() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializerr = true:suggestion
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializerr = true:suggestion
+dotnet_style_object_initializer = true:warning
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -1256,7 +1307,7 @@ csharp_style_var_elsewhere = true:none
 
             Protected Overrides ReadOnly Property CodeActionIndex As Integer
                 Get
-                    Return 3
+                    Return 4
                 End Get
             End Property
 
@@ -1268,9 +1319,11 @@ csharp_style_var_elsewhere = true:none
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1292,9 +1345,11 @@ End Class
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1323,9 +1378,11 @@ dotnet_style_object_initializer = true:error
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1338,86 +1395,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig""># Core EditorConfig Options
-root = true
-
-# All files
-[*]
-indent_style = space
-
-# Code files
-[*.{cs,csx,vb,vbx}]
-indent_size = 4
-insert_final_newline = true
-charset = utf-8-bom
-
-# .NET Coding Conventions
-[*.{cs,vb}]
-# Organize usings
-dotnet_sort_system_directives_first = true
-
-# this. preferences
-dotnet_style_qualification_for_field = false:none
-dotnet_style_qualification_for_property = false:none
-dotnet_style_qualification_for_method = false:none
-dotnet_style_qualification_for_event = false:none
-
-# Language keywords vs BCL types preferences
-dotnet_style_predefined_type_for_locals_parameters_members = true:none
-dotnet_style_predefined_type_for_member_access = true:none
-
-# Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
-dotnet_style_readonly_field = true:suggestion
-
-# Expression-level preferences
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:suggestion
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:none
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:none
-
-# C# Coding Conventions
-[*.cs]
-# var preferences
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
-
-# Expression-bodied members
-csharp_style_expression_bodied_methods = false:none
-csharp_style_expression_bodied_constructors = false:none
-csharp_style_expression_bodied_operators = false:none
-csharp_style_expression_bodied_properties = true:none
-csharp_style_expression_bodied_indexers = true:none
-csharp_style_expression_bodied_accessors = true:none
-
-# Pattern matching preferences
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-
-# Null-checking preferences
-csharp_style_throw_expression = true:suggestion
-csharp_style_conditional_delegate_call = true:suggestion
-
-# Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
-
-# Expression-level preferences
-csharp_prefer_braces = true:none
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_prefer_simple_default_expression = true:suggestion
-csharp_style_pattern_local_over_anonymous_function = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-
-# VB Coding Conventions
-[*.vb]
-# Modifier preferences
-visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -1427,9 +1406,11 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1442,86 +1423,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig""># Core EditorConfig Options
-root = true
-
-# All files
-[*]
-indent_style = space
-
-# Code files
-[*.{cs,csx,vb,vbx}]
-indent_size = 4
-insert_final_newline = true
-charset = utf-8-bom
-
-# .NET Coding Conventions
-[*.{cs,vb}]
-# Organize usings
-dotnet_sort_system_directives_first = true
-
-# this. preferences
-dotnet_style_qualification_for_field = false:none
-dotnet_style_qualification_for_property = false:none
-dotnet_style_qualification_for_method = false:none
-dotnet_style_qualification_for_event = false:none
-
-# Language keywords vs BCL types preferences
-dotnet_style_predefined_type_for_locals_parameters_members = true:none
-dotnet_style_predefined_type_for_member_access = true:none
-
-# Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
-dotnet_style_readonly_field = true:suggestion
-
-# Expression-level preferences
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:error
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:none
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:none
-
-# C# Coding Conventions
-[*.cs]
-# var preferences
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
-
-# Expression-bodied members
-csharp_style_expression_bodied_methods = false:none
-csharp_style_expression_bodied_constructors = false:none
-csharp_style_expression_bodied_operators = false:none
-csharp_style_expression_bodied_properties = true:none
-csharp_style_expression_bodied_indexers = true:none
-csharp_style_expression_bodied_accessors = true:none
-
-# Pattern matching preferences
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-
-# Null-checking preferences
-csharp_style_throw_expression = true:suggestion
-csharp_style_conditional_delegate_call = true:suggestion
-
-# Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
-
-# Expression-level preferences
-csharp_prefer_braces = true:none
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_prefer_simple_default_expression = true:suggestion
-csharp_style_pattern_local_over_anonymous_function = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-
-# VB Coding Conventions
-[*.vb]
-# Modifier preferences
-visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -1529,16 +1432,18 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-            Public Async Function ConfigureEditorconfig_SmallFile_Error() As Task
+            Public Async Function ConfigureEditorconfig_InvalidHeader_Error() As Task
                 Dim input = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1551,10 +1456,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+        <AdditionalDocument FilePath="".editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:suggestion
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -1564,9 +1467,11 @@ csharp_style_var_elsewhere = true:none
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1579,10 +1484,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,csx,vb,vbx}]
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+        <AdditionalDocument FilePath="".editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:suggestion
 
 [*.vb]
 dotnet_style_object_initializer = true:error
@@ -1600,9 +1503,11 @@ dotnet_style_object_initializer = true:error
         <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1615,12 +1520,8 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">
-[*.{cs,csx,vb,vbx}]
+        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,vb}]
 dotnet_style_object_initializer = false:suggestion
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
 </AdditionalDocument>
     </Project>
 </Workspace>"
@@ -1630,9 +1531,11 @@ csharp_style_var_elsewhere = true:none
          <Document>
 Class Program1
     Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
         Dim obj = New Customer() With {
             ._age = 21
         }
+        ' dotnet_style_object_initializer = false
         Dim obj2 As Customer = [|New Customer()|]
         obj2._age = 21
     End Sub
@@ -1645,12 +1548,70 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AdditionalDocument FilePath="".editorconfig"">
-[*.{cs,csx,vb,vbx}]
+        <AdditionalDocument FilePath="".editorconfig"">[*.{cs,vb}]
 dotnet_style_object_initializer = false:error
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = true:none
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+            Public Async Function ConfigureEditorconfig_InvalidRule_Error() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializerr = true:suggestion
+</AdditionalDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document>
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AdditionalDocument FilePath="".editorconfig"">[*.vb]
+dotnet_style_object_initializerr = true:suggestion
+dotnet_style_object_initializer = true:error
 </AdditionalDocument>
     </Project>
 </Workspace>"

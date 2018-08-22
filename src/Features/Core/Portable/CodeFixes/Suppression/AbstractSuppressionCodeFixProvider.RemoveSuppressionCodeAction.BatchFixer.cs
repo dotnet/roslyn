@@ -13,11 +13,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionOrConfigurationCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         internal abstract partial class RemoveSuppressionCodeAction
         {
-            public static BatchFixAllProvider GetBatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
+            public static BatchFixAllProvider GetBatchFixer(AbstractSuppressionOrConfigurationCodeFixProvider suppressionFixProvider)
             {
                 return new BatchFixer(suppressionFixProvider);
             }
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             /// </summary>
             private sealed class BatchFixer : BatchFixAllProvider
             {
-                private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
+                private readonly AbstractSuppressionOrConfigurationCodeFixProvider _suppressionFixProvider;
 
-                public BatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
+                public BatchFixer(AbstractSuppressionOrConfigurationCodeFixProvider suppressionFixProvider)
                 {
                     _suppressionFixProvider = suppressionFixProvider;
                 }
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     foreach (var diagnostic in diagnostics.Where(d => d.Location.IsInSource && d.IsSuppressed))
                     {
                         var span = diagnostic.Location.SourceSpan;
-                        var removeSuppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(
+                        var removeSuppressionFixes = await _suppressionFixProvider.GetSuppressionsOrConfigurationsAsync(
                             document, span, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
                         var removeSuppressionFix = removeSuppressionFixes.SingleOrDefault();
                         if (removeSuppressionFix != null)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     foreach (var diagnostic in diagnostics.Where(d => !d.Location.IsInSource && d.IsSuppressed))
                     {
-                        var removeSuppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(
+                        var removeSuppressionFixes = await _suppressionFixProvider.GetSuppressionsOrConfigurationsAsync(
                             project, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
                         if (removeSuppressionFixes.SingleOrDefault()?.Action is RemoveSuppressionCodeAction removeSuppressionCodeAction)
                         {

@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             // Have an issue to flag, either add or remove. Report issue to user.
             var additionalLocations = ImmutableArray.Create(member.GetLocation());
 
+            // TO-DO: Reduce degree of tight-coupling and hard-coded options
             var properties = ImmutableDictionary.CreateBuilder<string, string>();
             var ruleName = CodeStyleOptions.RequireAccessibilityModifiers.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<AccessibilityModifiersRequired>>>().FirstOrDefault();
             if (ruleName != null)

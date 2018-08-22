@@ -68,43 +68,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return;
             }
 
-            var properties = ImmutableDictionary.CreateBuilder<string, string>();
+            // TO-DO: Reduce degree of tight-coupling and hard-coded options
+            ImmutableDictionary<string, string> properties = null;
             var preferences = typeStyle.GetTypeStylePreferences;
-
             if (preferences == CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeForIntrinsicTypes)
             {
-                var name = CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
-                if (name != null)
-                {
-                    properties["OptionName"] = name.KeyName;
-                    var option = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes);
-                    properties["OptionCurrent"] = option.Value.ToString().ToLowerInvariant();
-                }
+                properties = SetOptionNameAndValue(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, optionSet);
             }
             else if (preferences == CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeWhereApparent)
             {
-                var name = CSharpCodeStyleOptions.UseImplicitTypeWhereApparent.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
-                if (name != null)
-                {
-                    properties["OptionName"] = name.KeyName;
-                    var option = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
-                    properties["OptionCurrent"] = option.Value.ToString().ToLowerInvariant();
-                }
+                properties = SetOptionNameAndValue(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, optionSet);
             }
             else if (preferences == CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeWherePossible)
             {
-                var name = CSharpCodeStyleOptions.UseImplicitTypeWherePossible.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
-                if (name != null)
-                {
-                    properties["OptionName"] = name.KeyName;
-                    var option = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
-                    properties["OptionCurrent"] = option.Value.ToString().ToLowerInvariant();
-                }
+                properties = SetOptionNameAndValue(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, optionSet);
             }
 
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
             var descriptor = Descriptor;
-            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity, properties.ToImmutable()));
+            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity, properties));
+        }
+
+        private ImmutableDictionary<string, string> SetOptionNameAndValue(Option<CodeStyleOption<bool>> option, OptionSet optionSet)
+        {
+            var properties = ImmutableDictionary.CreateBuilder<string, string>();
+            var name = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
+            if (name != null) {
+                properties["OptionName"] = name.KeyName;
+                var optionCurrent = optionSet.GetOption(option);
+                properties["OptionCurrent"] = optionCurrent.Value.ToString().ToLowerInvariant();
+            }
+            return properties.ToImmutable();
         }
 
         private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity, ImmutableDictionary<string, string> properties)

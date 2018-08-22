@@ -169,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         {
             var tree = syntaxContext.Node.SyntaxTree;
 
+            // TO-DO: Reduce degree of tight-coupling and hard-coded options
             var properties = ImmutableDictionary.CreateBuilder<string, string>();
             properties[Constants.Kind] = kind;
             var name = CSharpCodeStyleOptions.PreferConditionalDelegateCall.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();

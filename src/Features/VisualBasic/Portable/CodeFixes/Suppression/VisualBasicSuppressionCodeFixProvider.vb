@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
     <ExportSuppressionFixProvider(PredefinedCodeFixProviderNames.Suppression, LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSuppressionCodeFixProvider
-        Inherits AbstractSuppressionCodeFixProvider
+        Inherits AbstractSuppressionOrConfigurationCodeFixProvider
 
         Protected Overrides Function CreatePragmaRestoreDirectiveTriviaAsync(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, Task(Of SyntaxNode)), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As Task(Of SyntaxTriviaList)
             Dim errorCodes = GetErrorCodes(diagnostic)

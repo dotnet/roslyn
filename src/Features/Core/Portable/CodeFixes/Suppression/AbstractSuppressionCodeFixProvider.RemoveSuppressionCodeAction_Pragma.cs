@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionOrConfigurationCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         internal abstract partial class RemoveSuppressionCodeAction
         {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     SuppressionTargetInfo suppressionTargetInfo,
                     Document document,
                     Diagnostic diagnostic,
-                    AbstractSuppressionCodeFixProvider fixer)
+                    AbstractSuppressionOrConfigurationCodeFixProvider fixer)
                 {
                     // We need to normalize the leading trivia on start token to account for
                     // the trailing trivia on its previous token (and similarly normalize trailing trivia for end token).
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     SuppressionTargetInfo suppressionTargetInfo,
                     Document document,
                     Diagnostic diagnostic,
-                    AbstractSuppressionCodeFixProvider fixer,
+                    AbstractSuppressionOrConfigurationCodeFixProvider fixer,
                     bool forFixMultipleContext = false)
                     : base(diagnostic, fixer, forFixMultipleContext)
                 {
@@ -97,21 +97,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         cancellationToken).ConfigureAwait(false);
                 }
 
-                private static SyntaxTriviaList GetTriviaListForSuppression(SyntaxToken token, bool isStartToken, AbstractSuppressionCodeFixProvider fixer)
+                private static SyntaxTriviaList GetTriviaListForSuppression(SyntaxToken token, bool isStartToken, AbstractSuppressionOrConfigurationCodeFixProvider fixer)
                 {
                     return isStartToken || fixer.IsEndOfFileToken(token) ?
                         token.LeadingTrivia :
                         token.TrailingTrivia;
                 }
 
-                private static SyntaxToken UpdateTriviaList(SyntaxToken token, bool isStartToken, SyntaxTriviaList triviaList, AbstractSuppressionCodeFixProvider fixer)
+                private static SyntaxToken UpdateTriviaList(SyntaxToken token, bool isStartToken, SyntaxTriviaList triviaList, AbstractSuppressionOrConfigurationCodeFixProvider fixer)
                 {
                     return isStartToken || fixer.IsEndOfFileToken(token)
                         ? token.WithLeadingTrivia(triviaList)
                         : token.WithTrailingTrivia(triviaList);
                 }
 
-                private static bool CanRemovePragmaTrivia(SyntaxToken token, Diagnostic diagnostic, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, out int indexOfTriviaToRemove)
+                private static bool CanRemovePragmaTrivia(SyntaxToken token, Diagnostic diagnostic, AbstractSuppressionOrConfigurationCodeFixProvider fixer, bool isStartToken, out int indexOfTriviaToRemove)
                 {
                     indexOfTriviaToRemove = -1;
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return Task.FromResult(result);
                 }
 
-                private static SyntaxToken GetNewTokenWithPragmaUnsuppress(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, Diagnostic diagnostic, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, bool toggle)
+                private static SyntaxToken GetNewTokenWithPragmaUnsuppress(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, Diagnostic diagnostic, AbstractSuppressionOrConfigurationCodeFixProvider fixer, bool isStartToken, bool toggle)
                 {
                     Contract.ThrowIfFalse(indexOfTriviaToRemoveOrToggle >= 0);
 

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract class ConfigureSeverityLevelCodeFixProvider : ISuppressionFixProvider
+    internal abstract class ConfigureSeverityLevelCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         private Dictionary<string, Option<CodeStyleOption<bool>>> _languageOptions;
         private readonly string _language;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             _expressionOptionsOpt = expressionOptionsOpt;
         }
 
-        public bool CanBeSuppressedOrUnsuppressed(Diagnostic diagnostic)
+        public bool CanBeConfigured(Diagnostic diagnostic)
         {
             return ConfigureSeverityLevelCodeAction.diagnosticToEditorConfigDotNet.ContainsKey(diagnostic.Id) ||
                 _languageOptions.ContainsKey(diagnostic.Id) ||
@@ -37,13 +37,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return null;
         }
 
-        public Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeFix>> GetSuppressionsOrConfigurationsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
                 nestedActions.Add(new ConfigureSeverityLevelCodeActionNone(document, diagnostic, _languageOptions, _expressionOptionsOpt, _language));
+                nestedActions.Add(new ConfigureSeverityLevelCodeActionSilent(document, diagnostic, _languageOptions, _expressionOptionsOpt, _language));
                 nestedActions.Add(new ConfigureSeverityLevelCodeActionSuggestion(document, diagnostic, _languageOptions, _expressionOptionsOpt, _language));
                 nestedActions.Add(new ConfigureSeverityLevelCodeActionWarning(document, diagnostic, _languageOptions, _expressionOptionsOpt, _language));
                 nestedActions.Add(new ConfigureSeverityLevelCodeActionError(document, diagnostic, _languageOptions, _expressionOptionsOpt, _language));
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return Task.FromResult(result.ToImmutableAndFree());
         }
 
-        public Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeFix>> GetSuppressionsOrConfigurationsAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

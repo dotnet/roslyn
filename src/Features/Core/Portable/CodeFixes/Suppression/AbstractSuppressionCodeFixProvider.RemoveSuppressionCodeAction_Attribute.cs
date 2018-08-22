@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionOrConfigurationCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         internal abstract partial class RemoveSuppressionCodeAction
         {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     AttributeData attribute,
                     Project project,
                     Diagnostic diagnostic,
-                    AbstractSuppressionCodeFixProvider fixer)
+                    AbstractSuppressionOrConfigurationCodeFixProvider fixer)
                 {
                     return new AttributeRemoveAction(attribute, project, diagnostic, fixer);
                 }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     AttributeData attribute,
                     Project project,
                     Diagnostic diagnostic,
-                    AbstractSuppressionCodeFixProvider fixer,
+                    AbstractSuppressionOrConfigurationCodeFixProvider fixer,
                     bool forFixMultipleContext = false)
                     : base(diagnostic, fixer, forFixMultipleContext)
                 {

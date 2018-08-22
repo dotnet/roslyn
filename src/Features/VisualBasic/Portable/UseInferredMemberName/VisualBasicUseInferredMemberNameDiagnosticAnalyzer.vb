@@ -47,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 Return
             End If
 
+            ' TO-DO: Reduce degree of tight-coupling and hard-coded options
             Dim [option] = optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language)
             Dim properties = ImmutableDictionary.CreateBuilder(Of String, String)()
             Dim name = CodeStyleOptions.PreferInferredTupleNames.StorageLocations.OfType(Of EditorConfigStorageLocation(Of CodeStyleOption(Of Boolean)))().FirstOrDefault()

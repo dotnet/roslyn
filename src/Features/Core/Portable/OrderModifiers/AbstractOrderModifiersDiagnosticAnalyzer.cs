@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                 }
                 else
                 {
+                    // TO-DO: Reduce degree of tight-coupling and hard-coded options
                     var properties = ImmutableDictionary.CreateBuilder<string, string>();
                     var name = _option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<string>>>().FirstOrDefault();
                     if (name != null)

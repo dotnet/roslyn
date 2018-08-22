@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionOrConfigurationCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         private class SuppressionFixAllProvider : FixAllProvider
         {
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public async override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
             {
                 var batchFixer = WellKnownFixAllProviders.BatchFixer;
-                var suppressionFixer = (AbstractSuppressionCodeFixProvider)((WrapperCodeFixProvider)fixAllContext.CodeFixProvider).SuppressionFixProvider;
+                var suppressionFixer = (AbstractSuppressionOrConfigurationCodeFixProvider)((WrapperCodeFixProvider)fixAllContext.CodeFixProvider).SuppressionFixProvider;
                 var isGlobalSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey);
                 if (!isGlobalSuppression)
                 {
