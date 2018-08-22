@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
                      .Select(kvp => kvp.Value);
 #endif
 
-
             var val = string.Join("\r\n", tests);
         }
     }
@@ -90,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
         {
             _fixture = fixture;
         }
-
 
         public static Dictionary<string, string> nameToTest = new Dictionary<string, string>();
 
