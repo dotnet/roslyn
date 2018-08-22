@@ -4019,7 +4019,7 @@ public class Test
             var comp = CompileAndVerify(source2, references: new[] { new CSharpCompilationReference(compref) }, expectedOutput: "M");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/29431")]
         public void CrossLanguageCase1()
         {
             var vb1Compilation = CreateVisualBasicCompilation("VB1",
@@ -4087,7 +4087,7 @@ public class Program
             cs2Verifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/29431")]
         public void CrossLanguageCase2()
         {
             var vb1Compilation = CreateVisualBasicCompilation("VB1",

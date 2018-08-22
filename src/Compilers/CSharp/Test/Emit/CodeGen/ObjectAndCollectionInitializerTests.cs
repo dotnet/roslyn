@@ -1209,7 +1209,7 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1307,7 +1307,7 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1347,7 +1347,7 @@ struct A
 2
 3";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerifyWithCSharp(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      194 (0xc2)
@@ -1645,7 +1645,7 @@ get
 get
 3";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 

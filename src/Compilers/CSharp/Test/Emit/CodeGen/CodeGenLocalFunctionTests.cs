@@ -277,7 +277,7 @@ class Program
         [WorkItem(472056, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=472056")]
         public void Repro472056()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -318,7 +318,7 @@ namespace ConsoleApp2
         [Fact]
         public void AsyncStructClosure()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Threading.Tasks;
 
@@ -342,7 +342,7 @@ class C
                 "System.Runtime.CompilerServices.AsyncTaskMethodBuilder <>t__builder",
                 "System.Runtime.CompilerServices.TaskAwaiter<bool> <>u__1");
 
-            comp = CreateCompilationWithMscorlib46(@"
+            comp = CreateCompilation(@"
 using System;
 using System.Threading.Tasks;
 
@@ -374,7 +374,7 @@ class C
                 "int x",
                 "int y");
 
-            comp = CreateCompilationWithMscorlib46(@"
+            comp = CreateCompilation(@"
 using System;
 using System.Threading.Tasks;
 
@@ -994,7 +994,7 @@ class C
         [WorkItem(17890, "https://github.com/dotnet/roslyn/issues/17890")]
         public void Repro17890()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1034,7 +1034,7 @@ public class Class
          }
       }
    }
-}", references: new[] { LinqAssemblyRef });
+}");
             CompileAndVerify(comp);
         }
 
@@ -1386,8 +1386,7 @@ class C
         Console.WriteLine(x);
     }
 }";
-            CompileAndVerifyWithMscorlib46(src,
-                expectedOutput: @"1
+            CompileAndVerify(src, expectedOutput: @"1
 0");
         }
 
@@ -5114,13 +5113,13 @@ class Program
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
+            var comp = CreateCompilationWithCSharp(source, options: options);
             return CompileAndVerify(comp, expectedOutput: output, verify: verify).VerifyDiagnostics(); // no diagnostics
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 

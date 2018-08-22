@@ -45,7 +45,7 @@ namespace Roslyn.Test.Utilities.Desktop
         }
     }
 
-    [Serializable, DebuggerDisplay("{GetDebuggerDisplay()}")]
+    [Serializable]
     public sealed class RuntimeModuleData : ISerializable
     {
         public ModuleData Data { get; }
@@ -73,6 +73,8 @@ namespace Roslyn.Test.Utilities.Desktop
             info.AddByteArray(nameof(ModuleData.Pdb), Data.Pdb);
             info.AddValue(nameof(ModuleData.InMemoryModule), Data.InMemoryModule);
         }
+
+        public override string ToString() => Data.ToString();
     }
 }
 

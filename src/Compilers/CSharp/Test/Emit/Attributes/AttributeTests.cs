@@ -534,7 +534,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnOrderedObjectParamsArgument()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Reflection;
 
@@ -569,7 +569,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnObjectParamsArgument()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Reflection;
 
@@ -604,7 +604,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnObjectParamsArgument2()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Reflection;
 
@@ -641,7 +641,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnObjectParamsArgument3()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Reflection;
 
@@ -675,9 +675,9 @@ static class Program
 
         [Fact]
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
-        public void TestNamedArgumentOnObjectParamsArgument4()
+        public void CreateCompilation()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Reflection;
 
@@ -748,7 +748,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnNonParamsArgument()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Reflection;
 
@@ -806,7 +806,7 @@ public unsafe partial class A : C, I
 }
 ";
 
-            var source = CreateCompilationWithMscorlib40AndSystemCore(code);
+            var source = CreateCompilation(code);
 
             // the following should not crash
             source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true);
@@ -1737,7 +1737,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,13): error CS8138: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [field: System.Runtime.CompilerServices.TupleElementNamesAttribute(new[] { "hello" })]
@@ -3480,7 +3480,7 @@ namespace AttributeTest
         [Fact]
         public void TestAttributeStringForEnumTypedConstant()
         {
-            var source = CreateCompilationWithMscorlib40(@"
+            var source = CreateCompilation(@"
 using System;
 namespace AttributeTest
 {

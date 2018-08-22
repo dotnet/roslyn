@@ -252,7 +252,7 @@ namespace Test
                 expectedOutput: "True");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void Test_007B()
         {
             // Implicit reference conversions -- From a one-dimensional array-type S[] to System.Collections.Generic.IReadOnlyList<S>.

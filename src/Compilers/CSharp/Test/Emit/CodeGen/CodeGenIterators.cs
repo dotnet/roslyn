@@ -120,7 +120,7 @@ class C
             var compilation = CompileAndVerify(source, expectedOutput: "0123456789");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void TestSimpleIterator03()
         {
             var source =
@@ -163,7 +163,7 @@ class Program
         foreach (var i in new C(4).IE(5, 6)) Console.Write(i);
     }
 }";
-            var compilation = CompileAndVerifyWithMscorlib40(source, expectedOutput: "12324565");
+            var compilation = CompileAndVerify(source, expectedOutput: "12324565");
 
             compilation.VerifyIL("C.<IE>d__2<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
 {

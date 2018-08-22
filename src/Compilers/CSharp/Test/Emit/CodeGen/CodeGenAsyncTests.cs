@@ -14,19 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
-        private static CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private static CSharpCompilation CreateCompilation(string source, CSharpCompilationOptions options = null)
         {
             options = options ?? TestOptions.ReleaseExe;
-
-            IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
-            references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
-
-            return CreateCompilationWithMscorlib45(source, options: options, references: references);
+            return CSharpTestBase.CreateCompilationWithCSharp(source, options: options);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
-            var compilation = CreateCompilation(source, references: references, options: options);
+            var compilation = CodeGenAsyncTests.CreateCompilation(source, options: options);
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: verify);
         }
 
@@ -49,7 +45,7 @@ class Test
         F(123).Wait();
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source);
+            var c = CreateCompilation(source);
 
             CompilationOptions options;
 
@@ -3517,7 +3513,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         {
             // Builder
             var libB = @"public class B { }";
-            var cB = CreateCompilationWithMscorlib45(libB);
+            var cB = CreateCompilation(libB);
             var rB = cB.EmitToImageReference();
                 
             // Tasklike
@@ -3528,7 +3524,7 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var cT = CreateCompilationWithMscorlib45(libT, references: new[] { rB });
+            var cT = CreateCompilation(libT, references: new[] { rB });
             var rT = cT.EmitToImageReference();
 
             // Consumer, fails to reference builder
@@ -3540,7 +3536,7 @@ class Program {
     async T f() => await Task.Delay(1);
 }
 ";
-            var c = CreateCompilationWithMscorlib45(source, references: new[] { rT });
+            var c = CreateCompilation(source, references: new[] { rT });
             c.VerifyEmitDiagnostics(
                 // (6,17): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async T f() => await Task.Delay(1);
@@ -3840,7 +3836,7 @@ class Mismatch2MethodBuilder<T>
 }
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyEmitDiagnostics(
                 // (5,30): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async Mismatch1<int> f() { await (Task)null; return 1; }
@@ -4312,7 +4308,7 @@ namespace CompilerCrashRepro2
         {
             var source =
 @"System.Console.WriteLine(await System.Threading.Tasks.Task.FromResult(1));";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4321,7 +4317,7 @@ namespace CompilerCrashRepro2
         {
             var source =
 @"await System.Threading.Tasks.Task.FromResult(4);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4331,7 +4327,7 @@ namespace CompilerCrashRepro2
             var source =
 @"int x = await System.Threading.Tasks.Task.Run(() => 2);
 System.Console.WriteLine(x);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4375,7 +4371,7 @@ System.Console.WriteLine(x);";
     await System.Threading.Tasks.Task.FromResult(1);
 int y = x +
     await System.Threading.Tasks.Task.FromResult(2);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (2,5): error CS8100: The 'await' operator cannot be used in a static script variable initializer.
                 //     await System.Threading.Tasks.Task.FromResult(1);

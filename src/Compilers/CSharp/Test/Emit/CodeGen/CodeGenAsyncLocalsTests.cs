@@ -15,16 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncLocalsTests : EmitMetadataTestBase
     {
-        private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
-
         public CodeGenAsyncLocalsTests()
         {
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
-            references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerify(source, targetFramework: TargetFramework.Empty, expectedOutput: expectedOutput, references: references, options: options, verify: verify);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, options: options, verify: verify);
         }
 
         private string GetFieldLoadsAndStores(CompilationVerifier c, string qualifiedMethodName)
@@ -1239,7 +1236,7 @@ public class C
         var b8 = await Task.FromResult(default(Tuple<long, long, long>));
     }
 }";
-            CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {

@@ -21,6 +21,7 @@ namespace Roslyn.Test.Utilities
         public const string NetModulesNeedDesktop = "Net Modules are only supported on desktop";
         public const string RestrictedTypesNeedDesktop = "Restricted types are only supported on desktop";
         public const string TestExecutionNeedsDesktopTypes = "Test execution depends on desktop types";
+        public const string NeedsTupleUndefined = "Test needs tuple to be undefined";
         public const string NativePdbRequiresDesktop = "Native PDB tests can only execute on windows desktop";
     }
 

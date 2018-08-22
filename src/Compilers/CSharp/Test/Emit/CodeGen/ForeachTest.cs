@@ -304,7 +304,7 @@ public class Test
             CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void TestSpan()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -357,7 +357,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void TestSpanSideeffectingLoopBody()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -421,7 +421,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void TestReadOnlySpan()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -473,7 +473,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void TestReadOnlySpanString()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -522,7 +522,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void TestReadOnlySpan2()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -571,7 +571,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void TestSpanNoIndexer()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -620,7 +620,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void TestSpanValIndexer()
         {
             var comp = CreateEmptyCompilation(@"
@@ -716,7 +716,7 @@ namespace System
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void TestSpanConvert()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -770,7 +770,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void TestSpanDeconstruct()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -842,7 +842,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void TestSpanConvertDebug()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -1391,7 +1391,7 @@ public class Test
 b
 c
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }

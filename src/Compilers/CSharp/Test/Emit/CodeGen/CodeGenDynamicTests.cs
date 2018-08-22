@@ -13991,7 +13991,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerifyWithMscorlib40(source, expectedOutput: "hello!", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            var comp = CompileAndVerifyWithCSharp(source, expectedOutput: "hello!");
             comp.VerifyDiagnostics();
             // No runtime failure (System.ArrayTypeMismatchException: Attempted to access an element as a type incompatible with the array.)
             // because of the special handling for dynamic in LocalRewriter.TransformCompoundAssignmentLHS
@@ -15419,7 +15419,7 @@ class C
         public int Length = 123;
     }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "321 123", references: new[] { CSharpRef });
+            var comp = CompileAndVerifyWithCSharp(source, expectedOutput: "321 123");
         }
 
         #endregion
