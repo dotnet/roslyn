@@ -641,6 +641,7 @@ using System.Reflection;
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_1() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -660,6 +661,7 @@ using System.Reflection;
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_2() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -679,6 +681,7 @@ using System.Reflection;
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_3() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -698,6 +701,7 @@ using System.Reflection;
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_4() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                 <Workspace>
