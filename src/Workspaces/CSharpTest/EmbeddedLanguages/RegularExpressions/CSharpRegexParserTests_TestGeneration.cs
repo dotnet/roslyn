@@ -2,6 +2,16 @@
 
 #if false
 
+// This file is entirely disabled, but serves a useful purpose and is thus kept in the source tree.
+// Specifically, it provides a test scaffolding that allows us to easily run and regenerate tests
+// when appropriate.  For example, if/when we decide to add/change information in the baselines, we
+// can easily just regenerate all the tests instead of having to manually fix up the baselines
+// themselves.
+//
+// The main logic is in CSharpRegexParserTests.GenerateTests.  Basically, all tests will funnel
+// through to that, passing along all the appropriate test arguments.  That helper will then
+// generate the new baseline.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -92,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 
         public static Dictionary<string, string> nameToTest = new Dictionary<string, string>();
 
-        private void Test1(string stringText, string expected, RegexOptions options, bool runSubTreeTests = true, [CallerMemberName]string name = "")
+        private void Test(string stringText, string expected, RegexOptions options, bool runSubTreeTests = true, [CallerMemberName]string name = "")
         {
             var test = GenerateTests(stringText, options, runSubTreeTests, name);
             nameToTest.Add(name, test);
@@ -100,6 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 
         public string GenerateTests(string val, RegexOptions options, bool runSubTreeTests, string testName)
         {
+            // Actually call into our regex APIs to produce figure out the tree produced.
+            // Then spit out a test that does the same, encoding the tree as the expected
+            // baseline for that test.
             var builder = new StringBuilder();
             builder.AppendLine("[Fact]");
             builder.AppendLine("public void " + testName + "()");
