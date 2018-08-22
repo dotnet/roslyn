@@ -397,7 +397,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (constraint.TypeKind == TypeKind.TypeParameter)
             {
-                var constraints = ((TypeParameterSymbol)constraint).GetConstraintTypesNoUseSiteDiagnostics(inProgress, early: true);
+                var typeParameter = ((TypeParameterSymbol)constraint);
+
+                if (inProgress.ContainsReference(typeParameter))
+                {
+                    return false;
+                }
+
+                var constraints = typeParameter.GetConstraintTypesNoUseSiteDiagnostics(inProgress, early: true);
                 return IsReferenceTypeFromConstraintTypes(constraints, inProgress);
             }
             else if (!constraint.IsReferenceType)
@@ -426,6 +433,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private static bool ConstraintImpliesIsNotNullableIfReferenceType(TypeSymbolWithAnnotations constraint, ConsList<TypeParameterSymbol> inProgress)
+        {
+            if (constraint.IsAnnotated)
+            {
+                return false;
+            }
+
+            return constraint.TypeKind != TypeKind.TypeParameter ||
+                   ((TypeParameterSymbol)constraint.TypeSymbol).GetIsNotNullableIfReferenceType(inProgress);
+        }
+
         // From typedesc.cpp :
         // > A recursive helper that helps determine whether this variable is constrained as ObjRef.
         // > Please note that we do not check the gpReferenceTypeConstraint special constraint here
@@ -434,6 +452,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsReferenceTypeFromConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes, ConsList<TypeParameterSymbol> inProgress)
         {
             return AnyConstraintTypes(constraintTypes, inProgress, (type, arg) => ConstraintImpliesReferenceType(type.TypeSymbol, arg));
+        }
+
+        internal bool IsNotNullableIfReferenceTypeFromConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes, ConsList<TypeParameterSymbol> inProgress)
+        {
+            return AnyConstraintTypes(constraintTypes, inProgress, (type, arg) => ConstraintImpliesIsNotNullableIfReferenceType(type, arg));
         }
 
         internal bool IsValueTypeFromConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes, ConsList<TypeParameterSymbol> inProgress)
@@ -475,6 +498,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public sealed override bool IsReferenceType => GetIsReferenceType(ConsList<TypeParameterSymbol>.Empty);
+
+        internal bool GetIsNotNullableIfReferenceType(ConsList<TypeParameterSymbol> inProgress)
+        {
+            if (inProgress.ContainsReference(this))
+            {
+                return false;
+            }
+
+            if (this.HasReferenceTypeConstraint && !this.HasNullableReferenceTypeConstraint)
+            {
+                return true;
+            }
+
+            return IsNotNullableIfReferenceTypeFromConstraintTypes(this.GetConstraintTypesNoUseSiteDiagnostics(inProgress, early: true), inProgress);
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Should this API be exposed through ITypeParameterSymbol?
+        internal bool IsNotNullableIfReferenceType => GetIsNotNullableIfReferenceType(ConsList<TypeParameterSymbol>.Empty);
 
         internal bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress)
         {
@@ -523,6 +564,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public abstract bool HasReferenceTypeConstraint { get; }
+
+        // PROTOTYPE(NullableReferenceTypes): Should this API be exposed through ITypeParameterSymbol?
+        internal abstract bool HasNullableReferenceTypeConstraint { get; }
 
         public abstract bool HasValueTypeConstraint { get; }
 
@@ -579,6 +623,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
         {
             return this;
+        }
+
+        public override sealed bool? NonNullTypes
+        {
+            get
+            {
+                return ContainingSymbol.NonNullTypes;
+            }
         }
 
         #region ITypeParameterTypeSymbol Members

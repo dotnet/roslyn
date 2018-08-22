@@ -7406,7 +7406,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A nullable type parameter must be known to be a value or reference type. Consider adding a &apos;class&apos;, &apos;struct&apos;, or type constraint..
+        ///   Looks up a localized string similar to A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a &apos;class&apos;, &apos;struct&apos;, or type constraint..
         /// </summary>
         internal static string ERR_NullableUnconstrainedTypeParameter {
             get {

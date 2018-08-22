@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ClassOrStructConstraintSyntax GenerateClassOrStructConstraint()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ClassKeyword));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ClassKeyword), null);
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeConstraintSyntax GenerateTypeConstraint()
@@ -2816,6 +2816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateClassOrStructConstraint();
             
             Assert.Equal(SyntaxKind.ClassKeyword, node.ClassOrStructKeyword.Kind);
+            Assert.Null(node.QuestionToken);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -9691,7 +9692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static ClassOrStructConstraintSyntax GenerateClassOrStructConstraint()
         {
-            return SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, SyntaxFactory.Token(SyntaxKind.ClassKeyword));
+            return SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, SyntaxFactory.Token(SyntaxKind.ClassKeyword), default(SyntaxToken));
         }
         
         private static TypeConstraintSyntax GenerateTypeConstraint()
@@ -11781,7 +11782,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateClassOrStructConstraint();
             
             Assert.Equal(SyntaxKind.ClassKeyword, node.ClassOrStructKeyword.Kind());
-            var newNode = node.WithClassOrStructKeyword(node.ClassOrStructKeyword);
+            Assert.Equal(SyntaxKind.None, node.QuestionToken.Kind());
+            var newNode = node.WithClassOrStructKeyword(node.ClassOrStructKeyword).WithQuestionToken(node.QuestionToken);
             Assert.Equal(node, newNode);
         }
         

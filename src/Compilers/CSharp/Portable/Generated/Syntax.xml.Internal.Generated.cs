@@ -22868,42 +22868,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
   internal sealed partial class ClassOrStructConstraintSyntax : TypeParameterConstraintSyntax
   {
     internal readonly SyntaxToken classOrStructKeyword;
+    internal readonly SyntaxToken questionToken;
 
-    internal ClassOrStructConstraintSyntax(SyntaxKind kind, SyntaxToken classOrStructKeyword, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal ClassOrStructConstraintSyntax(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 1;
+        this.SlotCount = 2;
         this.AdjustFlagsAndWidth(classOrStructKeyword);
         this.classOrStructKeyword = classOrStructKeyword;
+        if (questionToken != null)
+        {
+            this.AdjustFlagsAndWidth(questionToken);
+            this.questionToken = questionToken;
+        }
     }
 
 
-    internal ClassOrStructConstraintSyntax(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxFactoryContext context)
+    internal ClassOrStructConstraintSyntax(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 1;
+        this.SlotCount = 2;
         this.AdjustFlagsAndWidth(classOrStructKeyword);
         this.classOrStructKeyword = classOrStructKeyword;
+        if (questionToken != null)
+        {
+            this.AdjustFlagsAndWidth(questionToken);
+            this.questionToken = questionToken;
+        }
     }
 
 
-    internal ClassOrStructConstraintSyntax(SyntaxKind kind, SyntaxToken classOrStructKeyword)
+    internal ClassOrStructConstraintSyntax(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
         : base(kind)
     {
-        this.SlotCount = 1;
+        this.SlotCount = 2;
         this.AdjustFlagsAndWidth(classOrStructKeyword);
         this.classOrStructKeyword = classOrStructKeyword;
+        if (questionToken != null)
+        {
+            this.AdjustFlagsAndWidth(questionToken);
+            this.questionToken = questionToken;
+        }
     }
 
     /// <summary>Gets the constraint keyword ("class" or "struct").</summary>
     public SyntaxToken ClassOrStructKeyword { get { return this.classOrStructKeyword; } }
+    /// <summary>SyntaxToken representing the question mark.</summary>
+    public SyntaxToken QuestionToken { get { return this.questionToken; } }
 
     internal override GreenNode GetSlot(int index)
     {
         switch (index)
         {
             case 0: return this.classOrStructKeyword;
+            case 1: return this.questionToken;
             default: return null;
         }
     }
@@ -22923,11 +22942,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         visitor.VisitClassOrStructConstraint(this);
     }
 
-    public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword)
+    public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
     {
-        if (classOrStructKeyword != this.ClassOrStructKeyword)
+        if (classOrStructKeyword != this.ClassOrStructKeyword || questionToken != this.QuestionToken)
         {
-            var newNode = SyntaxFactory.ClassOrStructConstraint(this.Kind, classOrStructKeyword);
+            var newNode = SyntaxFactory.ClassOrStructConstraint(this.Kind, classOrStructKeyword, questionToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -22942,23 +22961,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new ClassOrStructConstraintSyntax(this.Kind, this.classOrStructKeyword, diagnostics, GetAnnotations());
+         return new ClassOrStructConstraintSyntax(this.Kind, this.classOrStructKeyword, this.questionToken, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new ClassOrStructConstraintSyntax(this.Kind, this.classOrStructKeyword, GetDiagnostics(), annotations);
+         return new ClassOrStructConstraintSyntax(this.Kind, this.classOrStructKeyword, this.questionToken, GetDiagnostics(), annotations);
     }
 
     internal ClassOrStructConstraintSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 1;
+      this.SlotCount = 2;
       var classOrStructKeyword = (SyntaxToken)reader.ReadValue();
       if (classOrStructKeyword != null)
       {
          AdjustFlagsAndWidth(classOrStructKeyword);
          this.classOrStructKeyword = classOrStructKeyword;
+      }
+      var questionToken = (SyntaxToken)reader.ReadValue();
+      if (questionToken != null)
+      {
+         AdjustFlagsAndWidth(questionToken);
+         this.questionToken = questionToken;
       }
     }
 
@@ -22966,6 +22991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       base.WriteTo(writer);
       writer.WriteValue(this.classOrStructKeyword);
+      writer.WriteValue(this.questionToken);
     }
 
     static ClassOrStructConstraintSyntax()
@@ -37088,7 +37114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override CSharpSyntaxNode VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node)
     {
       var classOrStructKeyword = (SyntaxToken)this.Visit(node.ClassOrStructKeyword);
-      return node.Update(classOrStructKeyword);
+      var questionToken = (SyntaxToken)this.Visit(node.QuestionToken);
+      return node.Update(classOrStructKeyword, questionToken);
     }
 
     public override CSharpSyntaxNode VisitTypeConstraint(TypeConstraintSyntax node)
@@ -42487,7 +42514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword)
+    public ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
     {
       switch (kind)
       {
@@ -42508,13 +42535,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("classOrStructKeyword");
       }
+      if (questionToken != null)
+      {
+      switch (questionToken.Kind)
+      {
+        case SyntaxKind.QuestionToken:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException("questionToken");
+      }
+      }
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)kind, classOrStructKeyword, this.context, out hash);
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)kind, classOrStructKeyword, questionToken, this.context, out hash);
       if (cached != null) return (ClassOrStructConstraintSyntax)cached;
 
-      var result = new ClassOrStructConstraintSyntax(kind, classOrStructKeyword, this.context);
+      var result = new ClassOrStructConstraintSyntax(kind, classOrStructKeyword, questionToken, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -49453,7 +49491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword)
+    public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
     {
       switch (kind)
       {
@@ -49474,13 +49512,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("classOrStructKeyword");
       }
+      if (questionToken != null)
+      {
+      switch (questionToken.Kind)
+      {
+        case SyntaxKind.QuestionToken:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException("questionToken");
+      }
+      }
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)kind, classOrStructKeyword, out hash);
+      var cached = SyntaxNodeCache.TryGetNode((int)kind, classOrStructKeyword, questionToken, out hash);
       if (cached != null) return (ClassOrStructConstraintSyntax)cached;
 
-      var result = new ClassOrStructConstraintSyntax(kind, classOrStructKeyword);
+      var result = new ClassOrStructConstraintSyntax(kind, classOrStructKeyword, questionToken);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);

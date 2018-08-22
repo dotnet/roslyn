@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ArrayRankSpecifierSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
         {
+            // PROTOTYPE(NullableReferenceTypes): Probably should preserve QuestionToken rather than erasing it.
             return this.Update(openBracketToken, sizes, closeBracketToken, default(SyntaxToken));
         }
     }

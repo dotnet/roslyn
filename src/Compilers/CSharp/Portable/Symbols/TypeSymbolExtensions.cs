@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst();
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Should probably rename this method to have more specific name.
+        //                                    At the moment it is used only for Nullable Reference Types feature and
+        //                                    its implementation is specialized for this feature.
         public static bool IsUnconstrainedTypeParameter(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeParameter = (TypeParameterSymbol)type;
             // PROTOTYPE(NullableReferenceTypes): Test `where T : unmanaged`. See
             // UninitializedNonNullableFieldTests.TypeParameterConstraints for instance.
-            return !typeParameter.IsValueType && !typeParameter.IsReferenceType;
+            return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullableIfReferenceType);
         }
 
         public static bool IsNonNullableValueType(this TypeSymbol typeArgument)

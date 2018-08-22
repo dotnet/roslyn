@@ -68,6 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            internal override bool HasNullableReferenceTypeConstraint
+            {
+                get { return false; }
+            }
+
             public override bool HasValueTypeConstraint
             {
                 get { return false; }

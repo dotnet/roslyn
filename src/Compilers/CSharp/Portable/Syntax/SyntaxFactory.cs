@@ -2454,7 +2454,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new ArrayRankSpecifierSyntax instance.</summary>
         public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
         {
-            return SyntaxFactory.ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken, default(SyntaxToken));
+            return ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken, questionToken: default(SyntaxToken));
+        }
+
+        /// <summary>Creates a new ClassOrStructConstraintSyntax instance.</summary>
+        public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword)
+        {
+            return ClassOrStructConstraint(kind, classOrStructKeyword, questionToken: default(SyntaxToken));
         }
 
         // backwards compatibility for extended API
