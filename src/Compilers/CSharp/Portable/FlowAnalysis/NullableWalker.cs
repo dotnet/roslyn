@@ -562,6 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Can this method be replaced by VisitOptionalImplicitConversion or ApplyConversion?
         private void ReportAssignmentWarnings(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings)
         {
             Debug.Assert(value != null);
@@ -3037,7 +3038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             operandType,
                             checkConversion: false,
                             fromExplicitCast: false,
-                            useLegacyWarnings: false,
+                            useLegacyWarnings,
                             assignmentKind);
 
                         // PROTOTYPE(NullableReferenceTypes): Update method based on operandType
