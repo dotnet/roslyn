@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WindowsPerformanceRecorder Version="1.0" Author="Microsoft Corporation" Copyright="Microsoft Corporation" Company="Microsoft Corporation">
+  <Profiles>
+    <SystemCollector Id="SystemCollector">
+      <BufferSize Value="2048" />
+      <Buffers Value="2048" />
+      <StackCaching BucketCount="256" CacheSize="3072" />
+    </SystemCollector>
+    <EventCollector Id="EventCollector_0" Name="EventCollector_0">
+      <BufferSize Value="1024" />
+      <Buffers Value="2048" />
+    </EventCollector>
+    <SystemProvider Id="SystemProvider">
+      <Keywords>
+        <Keyword Value="Loader"/>
+        <Keyword Value="ProcessThread"/>
+      </Keywords>
+    </SystemProvider>
+    <EventProvider Id="EventProvider_Microsoft-Windows-DotNETRuntime_0" Name="Microsoft-Windows-DotNETRuntime" NonPagedMemory="true" Stack="false" Level="4">
+      <Keywords>
+        <!-- Turning on JIT events is necessary to resolve JIT compiled code -->
+        <Keyword Value="JITKeyword" />
+        <!-- This is needed if you want line number information in the stacks -->
+        <Keyword Value="0x20000" /> <!-- JittedMethodILToNativeMap -->
+        <!-- You must include loader events as well to resolve JIT compiled code -->
+        <Keyword Value="LoaderKeyword" />
+      </Keywords>
+    </EventProvider>
+    <EventProvider Id="EventProvider_Microsoft-Windows-DotNETRuntime_1" Name="Microsoft-Windows-DotNETRuntime" NonPagedMemory="true" Stack="true" Level="4">
+      <Keywords>
+        <!-- We want to see the exception events -->
+        <Keyword Value="ExceptionKeyword" />
+        <!-- And stacks on all CLR events where it makes sense -->
+        <Keyword Value="StackKeyword" />
+      </Keywords>
+    </EventProvider>
+    <EventProvider Id="EventProvider_Microsoft-Windows-DotNETRuntimeRundown_0" Name="Microsoft-Windows-DotNETRuntimeRundown" NonPagedMemory="true" Stack="false" Level="4">
+      <Keywords>
+        <!-- We need JIT events to be rundown to resolve method names -->
+        <Keyword Value="JitRundownKeyword" />
+        <!-- This is needed if you want line number information in the stacks -->
+        <Keyword Value="0x20000" /> <!-- JittedMethodILToNativeMap -->
+        <!-- As well as the module load events -->
+        <Keyword Value="LoaderRundownKeyword" />
+        <!-- This indicates to do the rundown now (at enable time) -->
+        <Keyword Value="StartRundownKeyword" />
+      </Keywords>
+    </EventProvider>
+    <Profile Id="DotNetExceptions.Verbose.Memory" Name="DotNetExceptions" Description="Managed code exceptions with stack traces" LoggingMode="Memory" DetailLevel="Verbose">
+      <Collectors>
+        <SystemCollectorId Value="SystemCollector">
+          <SystemProviderId Value="SystemProvider" />
+        </SystemCollectorId>
+        <EventCollectorId Value="EventCollector_0">
+          <EventProviders>
+            <EventProviderId Value="EventProvider_Microsoft-Windows-DotNETRuntime_0" />
+            <EventProviderId Value="EventProvider_Microsoft-Windows-DotNETRuntime_1" />
+            <EventProviderId Value="EventProvider_Microsoft-Windows-DotNETRuntimeRundown_0" />
+          </EventProviders>
+        </EventCollectorId>
+      </Collectors>
+    </Profile>
+  </Profiles>
+</WindowsPerformanceRecorder>

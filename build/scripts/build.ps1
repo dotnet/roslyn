@@ -618,9 +618,17 @@ function Test-XUnit() {
     }
 
     try {
+        if ($testVsi -and $cibuild) {
+            $wprProfile = Join-Path $PSScriptRoot 'IntegrationTestProfile.wprp'
+            wpr -start $wprProfile
+        }
         Exec-Console $runTests $args
     }
     finally {
+        if ($testVsi -and $cibuild) {
+            Create-Directory "$binariesDir\Tracing"
+            wpr -stop "$binariesDir\Tracing\Exceptions.etl"
+        }
         Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
         if ($testIOperation) {
             Remove-Item env:\ROSLYN_TEST_IOPERATION

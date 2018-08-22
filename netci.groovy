@@ -22,6 +22,8 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
   archiveSettings.addFiles('Binaries/**/*.png')
   archiveSettings.addFiles('Binaries/**/*.buildlog')
   archiveSettings.addFiles('Binaries/**/*.binlog')
+  archiveSettings.addFiles('Binaries/**/*.etl')
+  archiveSettings.addFiles('Binaries/**/*.cpdb')
   archiveSettings.excludeFiles('Binaries/Obj/**')
   archiveSettings.excludeFiles('Binaries/Bootstrap/**')
   archiveSettings.excludeFiles('Binaries/**/nuget*.zip')
