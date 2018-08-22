@@ -42,9 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     default:
                         return false;
                 }
-                
-                // TODO: Remove before merge
-                //return compilationUnitSyntax is CompilationUnitSyntax || compilationUnitSyntax.Parent is CompilationUnitSyntax;
             }
 
             var skippedTokensTriviaSyntax = token.Parent;
