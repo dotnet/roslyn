@@ -18,6 +18,7 @@
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
     <developmentDependency>true</developmentDependency>
