@@ -705,8 +705,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
         {
             Assert.Equal(OperationKind.CoalesceAssignment, operation.Kind);
-            Assert.NotNull(operation.Target);
-            Assert.NotNull(operation.Value);
             AssertEx.Equal(new[] { operation.Target, operation.Value }, operation.Children);
         }
 

@@ -2841,18 +2841,24 @@ oneMoreTime:
 
             // If we're in a statement context, we elide the capture of the result of the assignment, as it will
             // just be wrapped in an expression statement that isn't used anywhere and isn't observed by anything.
-            bool isStatement = operation.Parent.Kind == OperationKind.ExpressionStatement;
+            bool isStatement = _currentStatement == operation || operation?.Parent.Kind == OperationKind.ExpressionStatement;
             Debug.Assert(captureIdForResult == null || !isStatement);
 
             RegionBuilder resultCaptureRegion = _currentRegion;
 
             EvalStackFrame frame = PushStackFrame();
 
-            IOperation testExpression;
-
             PushOperand(Visit(operation.Target));
             SpillEvalStack();
-            testExpression = PopOperand();
+            IOperation locationCapture = PopOperand();
+
+            // Capture the value, as it will only be evaluated once. The location will be used separately later for
+            // the null case
+            EvalStackFrame valueFrame = PushStackFrame();
+            SpillEvalStack();
+            int valueCaptureId = GetNextCaptureId(valueFrame.RegionBuilderOpt);
+            AddStatement(new FlowCapture(valueCaptureId, locationCapture.Syntax, locationCapture));
+            IOperation valueCapture = GetCaptureReference(valueCaptureId, OperationCloner.CloneOperation(locationCapture));
 
             var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
             var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -2860,7 +2866,7 @@ oneMoreTime:
             int resultCaptureId = isStatement ? -1 : captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
             LinkBlocks(CurrentBasicBlock,
-                       Operation.SetParentOperation(MakeIsNullOperation(testExpression), null),
+                       Operation.SetParentOperation(MakeIsNullOperation(valueCapture), null),
                        jumpIfTrue: true,
                        RegularBranch(whenNull));
 
@@ -2868,9 +2874,10 @@ oneMoreTime:
             {
                 _currentBasicBlock = null;
 
-                Debug.Assert(testExpression.Kind == OperationKind.FlowCaptureReference);
-                AddStatement(new FlowCapture(resultCaptureId, operation.Syntax, OperationCloner.CloneOperation(testExpression)));
+                AddStatement(new FlowCapture(resultCaptureId, operation.Syntax, OperationCloner.CloneOperation(valueCapture)));
             }
+
+            PopStackFrameAndLeaveRegion(valueFrame);
 
             LinkBlocks(CurrentBasicBlock, afterCoalesce);
             _currentBasicBlock = null;
@@ -2883,16 +2890,16 @@ oneMoreTime:
             EvalStackFrame whenNullFrame = PushStackFrame();
 
             IOperation whenNullValue = Visit(operation.Value);
-            IOperation nullAssignment = new SimpleAssignmentExpression(OperationCloner.CloneOperation(testExpression), isRef: false, whenNullValue, semanticModel: null,
+            IOperation whenNullAssignment = new SimpleAssignmentExpression(OperationCloner.CloneOperation(locationCapture), isRef: false, whenNullValue, semanticModel: null,
                                                                        operation.Syntax, operation.Type, constantValue: operation.ConstantValue, isImplicit: true);
 
             if (isStatement)
             {
-                AddStatement(nullAssignment);
+                AddStatement(whenNullAssignment);
             }
             else
             {
-                AddStatement(new FlowCapture(resultCaptureId, operation.Syntax, nullAssignment));
+                AddStatement(new FlowCapture(resultCaptureId, operation.Syntax, whenNullAssignment));
             }
 
             PopStackFrameAndLeaveRegion(whenNullFrame);
@@ -2902,7 +2909,7 @@ oneMoreTime:
             LeaveRegionsUpTo(resultCaptureRegion);
             AppendNewBlock(afterCoalesce);
 
-            return operation.Parent.Kind == OperationKind.ExpressionStatement ? null : GetCaptureReference(resultCaptureId, operation);
+            return isStatement ? null : GetCaptureReference(resultCaptureId, operation);
         }
 
         private static BasicBlockBuilder.Branch RegularBranch(BasicBlockBuilder destination)
