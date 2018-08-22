@@ -178,24 +178,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }
 
-            // builder.SetResult([RetVal])
-            bodyBuilder.Add(
-                F.ExpressionStatement(
-                    F.Call(
-                        F.Field(F.This(), _asyncMethodBuilderField),
-                        _asyncMethodBuilderMemberCollection.SetResult,
-                        _method.IsGenericTaskReturningAsync(F.Compilation)
-                            ? ImmutableArray.Create<BoundExpression>(F.Local(_exprRetValue))
-                            : ImmutableArray<BoundExpression>.Empty)));
-
-            if (_asyncIteratorInfo != null)
+            if (_asyncIteratorInfo == null)
+            {
+                // builder.SetResult([RetVal])
+                bodyBuilder.Add(
+                    F.ExpressionStatement(
+                        F.Call(
+                            F.Field(F.This(), _asyncMethodBuilderField),
+                            _asyncMethodBuilderMemberCollection.SetResult,
+                            _method.IsGenericTaskReturningAsync(F.Compilation)
+                                ? ImmutableArray.Create<BoundExpression>(F.Local(_exprRetValue))
+                                : ImmutableArray<BoundExpression>.Empty)));
+            }
+            else
             {
                 bodyBuilder.Add(
-                    // if (this.promiseIsActive)
+                    // if (!this.promiseIsActive)
                     // {
-                    //    this.promiseOfValueOrEnd.SetResult(false);
+                    //    this.promiseIsActive = true;
+                    //    this.promiseOfValueOrEnd.Reset();
                     // }
-                    GenerateSetResultOnPromiseIfActive(false));
+                    GenerateResetPromiseIfInactive());
+
+                bodyBuilder.Add(
+                    // this.promiseOfValueOrEnd.SetResult(false);
+                    GenerateSetResultOnPromise(false));
             }
 
             // this code is hidden behind a hidden sequence point.

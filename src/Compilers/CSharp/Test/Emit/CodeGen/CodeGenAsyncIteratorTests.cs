@@ -73,7 +73,7 @@ class C
 }";
             foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
             {
-                var comp = CreateCompilationWithTasksExtensions(source + s_common, options: options);
+                var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: options);
                 comp.VerifyDiagnostics();
                 var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
 
@@ -102,7 +102,7 @@ class C
   IL_002d:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
   IL_0032:  ldloc.0
   IL_0033:  ret
-}", sequencePoints: "C.M", source: source + s_common);
+}", sequencePoints: "C.M", source: source);
 
                 verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.TryGetNext(out bool)", @"
 {
@@ -233,7 +233,7 @@ class C
                 {
                     verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      297 (0x129)
+  // Code size      305 (0x131)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -296,7 +296,7 @@ class C
     IL_006e:  ldloca.s   V_2
     IL_0070:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
     IL_0075:  nop
-    IL_0076:  leave      IL_0128
+    IL_0076:  leave      IL_0130
     // async: resume
     IL_007b:  ldarg.0
     IL_007c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
@@ -331,55 +331,60 @@ class C
     IL_00c6:  ldc.i4.1
     IL_00c7:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
     IL_00cc:  nop
-    IL_00cd:  leave.s    IL_0128
+    IL_00cd:  leave.s    IL_0130
     // sequence point: Write("" 4 "");
     IL_00cf:  ldstr      "" 4 ""
     IL_00d4:  call       ""void System.Console.Write(string)""
     IL_00d9:  nop
-    IL_00da:  ldarg.0
-    IL_00db:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_00e0:  brtrue.s   IL_00f5
-    IL_00e2:  ldarg.0
-    IL_00e3:  ldc.i4.1
-    IL_00e4:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_00e9:  ldarg.0
-    IL_00ea:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00ef:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
-    IL_00f4:  nop
-    IL_00f5:  ldarg.0
-    IL_00f6:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00fb:  ldc.i4.0
-    IL_00fc:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
-    IL_0101:  nop
-    IL_0102:  leave.s    IL_0128
+    IL_00da:  leave.s    IL_0100
   }
   catch System.Exception
   {
     // sequence point: <hidden>
-    IL_0104:  stloc.3
-    IL_0105:  ldarg.0
-    IL_0106:  ldc.i4.s   -2
-    IL_0108:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_010d:  ldarg.0
-    IL_010e:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_0113:  brfalse.s  IL_0124
-    IL_0115:  ldarg.0
-    IL_0116:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_011b:  ldloc.3
-    IL_011c:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
-    IL_0121:  nop
-    IL_0122:  br.s       IL_0126
-    IL_0124:  rethrow
-    IL_0126:  leave.s    IL_0128
+    IL_00dc:  stloc.3
+    IL_00dd:  ldarg.0
+    IL_00de:  ldc.i4.s   -2
+    IL_00e0:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00e5:  ldarg.0
+    IL_00e6:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00eb:  brfalse.s  IL_00fc
+    IL_00ed:  ldarg.0
+    IL_00ee:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00f3:  ldloc.3
+    IL_00f4:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
+    IL_00f9:  nop
+    IL_00fa:  br.s       IL_00fe
+    IL_00fc:  rethrow
+    IL_00fe:  leave.s    IL_0130
   }
-  IL_0128:  ret
+  // sequence point: }
+  IL_0100:  ldarg.0
+  IL_0101:  ldc.i4.s   -2
+  IL_0103:  stfld      ""int C.<M>d__0.<>1__state""
+  // sequence point: <hidden>
+  IL_0108:  ldarg.0
+  IL_0109:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+  IL_010e:  brtrue.s   IL_0123
+  IL_0110:  ldarg.0
+  IL_0111:  ldc.i4.1
+  IL_0112:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+  IL_0117:  ldarg.0
+  IL_0118:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_011d:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
+  IL_0122:  nop
+  IL_0123:  ldarg.0
+  IL_0124:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0129:  ldc.i4.0
+  IL_012a:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
+  IL_012f:  nop
+  IL_0130:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
                 }
                 else
                 {
                     verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      278 (0x116)
+  // Code size      286 (0x11e)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -433,7 +438,7 @@ class C
     IL_0061:  ldloca.s   V_1
     IL_0063:  ldloca.s   V_2
     IL_0065:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
-    IL_006a:  leave      IL_0115
+    IL_006a:  leave      IL_011d
     // async: resume
     IL_006f:  ldarg.0
     IL_0070:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
@@ -465,44 +470,49 @@ class C
     IL_00b3:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
     IL_00b8:  ldc.i4.1
     IL_00b9:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
-    IL_00be:  leave.s    IL_0115
+    IL_00be:  leave.s    IL_011d
     // sequence point: Write("" 4 "");
     IL_00c0:  ldstr      "" 4 ""
     IL_00c5:  call       ""void System.Console.Write(string)""
-    IL_00ca:  ldarg.0
-    IL_00cb:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_00d0:  brtrue.s   IL_00e4
-    IL_00d2:  ldarg.0
-    IL_00d3:  ldc.i4.1
-    IL_00d4:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_00d9:  ldarg.0
-    IL_00da:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00df:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
-    IL_00e4:  ldarg.0
-    IL_00e5:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00ea:  ldc.i4.0
-    IL_00eb:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
-    IL_00f0:  leave.s    IL_0115
+    IL_00ca:  leave.s    IL_00ef
   }
   catch System.Exception
   {
     // sequence point: <hidden>
-    IL_00f2:  stloc.3
-    IL_00f3:  ldarg.0
-    IL_00f4:  ldc.i4.s   -2
-    IL_00f6:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00fb:  ldarg.0
-    IL_00fc:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-    IL_0101:  brfalse.s  IL_0111
-    IL_0103:  ldarg.0
-    IL_0104:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_0109:  ldloc.3
-    IL_010a:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
-    IL_010f:  br.s       IL_0113
-    IL_0111:  rethrow
-    IL_0113:  leave.s    IL_0115
+    IL_00cc:  stloc.3
+    IL_00cd:  ldarg.0
+    IL_00ce:  ldc.i4.s   -2
+    IL_00d0:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00d5:  ldarg.0
+    IL_00d6:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00db:  brfalse.s  IL_00eb
+    IL_00dd:  ldarg.0
+    IL_00de:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00e3:  ldloc.3
+    IL_00e4:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
+    IL_00e9:  br.s       IL_00ed
+    IL_00eb:  rethrow
+    IL_00ed:  leave.s    IL_011d
   }
-  IL_0115:  ret
+  // sequence point: }
+  IL_00ef:  ldarg.0
+  IL_00f0:  ldc.i4.s   -2
+  IL_00f2:  stfld      ""int C.<M>d__0.<>1__state""
+  // sequence point: <hidden>
+  IL_00f7:  ldarg.0
+  IL_00f8:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+  IL_00fd:  brtrue.s   IL_0111
+  IL_00ff:  ldarg.0
+  IL_0100:  ldc.i4.1
+  IL_0101:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+  IL_0106:  ldarg.0
+  IL_0107:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_010c:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
+  IL_0111:  ldarg.0
+  IL_0112:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0117:  ldc.i4.0
+  IL_0118:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
+  IL_011d:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
                 }
             }
@@ -521,12 +531,42 @@ class C
         return null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
             comp.VerifyDiagnostics(
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return null;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9)
                 );
+        }
+
+        [Fact]
+        public void AsyncIteratorWithAwaitCompletedAndOneYieldAndOneInvocation()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return 3;
+        Write(""4 "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        foreach await (var i in M())
+        {
+            Write($""{i} "");
+        }
+        Write(""Done"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
 
         [Fact]
@@ -555,7 +595,7 @@ class C
         Write(""Done"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 Done");
         }
@@ -584,7 +624,7 @@ class C
         Write(""Done"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
@@ -613,7 +653,7 @@ class C
         Write(""Done"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 Done");
         }
@@ -647,7 +687,7 @@ label2:
         Write(""Done"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
@@ -685,7 +725,7 @@ class C
         Write(""Done"");
     }}
 }}";
-                var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+                var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
                 comp.VerifyDiagnostics();
                 var verifier = CompileAndVerify(comp, expectedOutput: expectation);
             }
@@ -758,7 +798,7 @@ class C
         Write(""Done"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
@@ -774,7 +814,7 @@ class C
         await System.Threading.Tasks.Task.CompletedTask;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
             comp.VerifyDiagnostics(
                 // (4,60): error CS0161: 'C.M()': not all code paths return a value
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M()
@@ -793,7 +833,7 @@ class C
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
             comp.VerifyDiagnostics(
                 // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M()
@@ -811,7 +851,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
             // PROTOTYPE(async-streams): There should be warning for missing yield too
             comp.VerifyDiagnostics(
                 // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
@@ -834,7 +874,7 @@ class C
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
 
             // PROTOTYPE(async-streams) error CS1983 should mention IAsyncEnumerable
@@ -863,7 +903,7 @@ class C
         yield return;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
             comp.VerifyDiagnostics(
                 // (7,15): error CS1627: Expression expected after yield return
                 //         yield return;
@@ -919,7 +959,7 @@ class C
         if (!b) throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Done");
         }
@@ -964,7 +1004,7 @@ class C
         if (!b) throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             // PROTOTYPE(async-streams): need to implement the exception
             //CompileAndVerify(comp, expectedOutput: "Done");
@@ -1010,7 +1050,7 @@ class C
         if (!b) throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Done");
         }
@@ -1058,7 +1098,7 @@ class C
         if (!b) throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Done");
         }
