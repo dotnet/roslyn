@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 WpfTestRunner.RequireWpfFact($"{nameof(AbstractBraceHighlightingTests)}.{nameof(TestBraceHighlightingAsync)} creates asynchronous taggers");
 
                 var provider = new BraceHighlightingViewTaggerProvider(
+                    workspace.GetService<IThreadingContext>(),
                     GetBraceMatchingService(workspace),
                     workspace.GetService<IForegroundNotificationService>(),
                     AsynchronousOperationListenerProvider.NullProvider);

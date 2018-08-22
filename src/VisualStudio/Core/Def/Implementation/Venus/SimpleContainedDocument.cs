@@ -47,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             DocumentId id,
             EventHandler updatedHandler,
             IDocumentServiceFactory documentServiceFactory)
+            : base(project.ThreadingContext)
         {
             Contract.ThrowIfNull(documentProvider);
 

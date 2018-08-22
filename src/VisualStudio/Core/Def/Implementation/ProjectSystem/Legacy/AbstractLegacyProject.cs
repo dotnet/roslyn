@@ -1,18 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using VSLangProj;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
@@ -53,6 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // Initialize command line arguments.
             base.SetArguments(commandLine: string.Empty);
         }
+
+        protected LinkedFileUtilities LinkedFileUtilities
+            => ProjectTracker.LinkedFileUtilities;
 
         public override void Disconnect()
         {
