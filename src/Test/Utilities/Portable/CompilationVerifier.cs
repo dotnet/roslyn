@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (methodName != null)
                 {
                     var map = new Dictionary<string, ICSharpCode.Decompiler.TypeSystem.IMethod>();
-                    listMethods(decompiler.TypeSystem.Compilation.RootNamespace, map);
+                    listMethods(decompiler.TypeSystem.MainModule.RootNamespace, map);
 
                     if (map.TryGetValue(methodName, out var method))
                     {
-                        return decompiler.DecompileAsString((Mono.Cecil.MethodDefinition)decompiler.TypeSystem.GetCecil(method));
+                        return decompiler.DecompileAsString(method.MetadataToken);
                     }
                     else
                     {
