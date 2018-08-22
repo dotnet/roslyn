@@ -639,5 +639,81 @@ using System.Reflection;
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_1() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted.Assembly.Name"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Dotted.Assem$$bly")]
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted.Assembly.Name")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted.Assembly.Name"")]")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_2() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted.Assembly.Name"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Dotted.Assem$$bly
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted.Assembly.Name")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted.Assembly.Name")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_3() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted.Assembly.Name"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("  Dotted.Assem$$bly  ")]
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted.Assembly.Name")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted.Assembly.Name"")]")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_4() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted1.Dotted2.Assembly.Dotted3"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Dotted1.Dotted2.Assem$$bly.Dotted")]
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3"")]")
+            End Using
+        End Function
     End Class
 End Namespace

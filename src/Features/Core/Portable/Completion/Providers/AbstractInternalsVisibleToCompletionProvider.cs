@@ -239,8 +239,30 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 assemblyName += $", PublicKey={ publicKey }";
             }
 
-            var textChange = new TextChange(item.Span, assemblyName);
+            var span = await GetTextChangeSpanAsync(document, item, cancellationToken);
+            var textChange = new TextChange(span, assemblyName);
             return CompletionChange.Create(textChange);
+        }
+
+        private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            var span = item.Span;
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(item.Span.Start);
+            if (syntaxFactsService.IsStringLiteral(token) && !string.IsNullOrEmpty(token.ValueText))
+            {
+                span = token.Span;
+                var positionOfValueIntText = token.Text.IndexOf(token.ValueText);
+                if (positionOfValueIntText >= 0)
+                {
+                    span = new TextSpan(
+                        start: token.Span.Start + positionOfValueIntText,
+                        length: token.ValueText.Length);
+                }
+            }
+
+            return span;
         }
 
         private static async Task<string> GetPublicKeyOfProjectAsync(Project project, CancellationToken cancellationToken)
