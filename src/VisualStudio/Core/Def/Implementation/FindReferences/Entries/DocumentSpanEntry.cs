@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 if (base.TryCreateColumnContent(columnName, out content))
                 {
-                    LazyToolTip.AttachTo(content, CreateDisposableToolTip);
+                    LazyToolTip.AttachTo(content, Presenter.ThreadingContext, CreateDisposableToolTip);
 
                     return true;
                 }
@@ -141,6 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     PredefinedTextViewRoles.Editable);
 
                 return ProjectionBufferContent.Create(
+                    Presenter.ThreadingContext,
                     ImmutableArray.Create(snapshotSpan),
                     Presenter.ProjectionBufferFactoryService,
                     Presenter.EditorOptionsFactoryService,

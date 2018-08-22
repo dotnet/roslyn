@@ -139,10 +139,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
 
             private void DocumentOpened(object sender, DocumentEventArgs e)
-                => DocumentOpenedAsync(e.Document);
+            {
+                _ = DocumentOpenedAsync(e.Document);
+            }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-            private async void DocumentOpenedAsync(Document document)
+            private async Task DocumentOpenedAsync(Document document)
             {
                 try
                 {
@@ -169,7 +170,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     // nop
                 }
             }
-#pragma warning restore VSTHRD100 // Avoid async void methods
 
             private static bool TryGetSnapshot(Document document, out ITextSnapshot snapshot)
             {
@@ -234,13 +234,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         SetTrackingSpansNoLock(document.Id, null);
 
                         // fire and forget:
-                        RefreshTrackingSpansAsync(document, snapshot);
+                        _ = RefreshTrackingSpansAsync(document, snapshot);
                     }
                 }
             }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-            private async void RefreshTrackingSpansAsync(Document document, ITextSnapshot snapshot)
+            private async Task RefreshTrackingSpansAsync(Document document, ITextSnapshot snapshot)
             {
                 try
                 {
@@ -257,7 +256,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     // nop
                 }
             }
-#pragma warning restore VSTHRD100 // Avoid async void methods
 
             private void RefreshTrackingSpans(DocumentId documentId, ITextSnapshot snapshot, ImmutableArray<ActiveStatement> documentActiveStatements)
             {

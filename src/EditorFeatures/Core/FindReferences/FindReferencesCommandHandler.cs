@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             // a presenter that can accept streamed results.
             if (streamingService != null && streamingPresenter != null)
             {
-                StreamingFindReferences(document, caretPosition, streamingService, streamingPresenter);
+                _ = StreamingFindReferencesAsync(document, caretPosition, streamingService, streamingPresenter);
                 return true;
             }
 
@@ -109,15 +110,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void StreamingFindReferences(
+        private async Task StreamingFindReferencesAsync(
             Document document, int caretPosition,
             IFindUsagesService findUsagesService,
             IStreamingFindUsagesPresenter presenter)
         {
             try
             {
-                using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferences)))
+                using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync)))
                 {
                     // Let the presented know we're starting a search.  It will give us back
                     // the context object that the FAR service will push results into.
@@ -147,7 +147,5 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             {
             }
         }
-#pragma warning restore VSTHRD100 // Avoid async void methods
-
     }
 }

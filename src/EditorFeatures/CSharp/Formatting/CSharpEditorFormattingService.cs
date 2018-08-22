@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
             var formatter = new SmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 
-            var changes = formatter.FormatRange(document.Project.Solution.Workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
+            var changes = await formatter.FormatRangeAsync(document.Project.Solution.Workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken).ConfigureAwait(false);
             return changes;
         }
 
