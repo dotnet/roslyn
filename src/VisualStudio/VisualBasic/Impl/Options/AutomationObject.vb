@@ -288,6 +288,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property Style_AvoidUnusedMembers As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.AvoidUnusedMembers)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.AvoidUnusedMembers, value)
+            End Set
+        End Property
+
         Public Property Option_PlaceSystemNamespaceFirst As Boolean
             Get
                 Return GetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst)

@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddParameter = "CodeActions.AddParameter";
             public const string CodeActionsAddParenthesesAroundConditionalExpressionInInterpolatedString = "CodeActions.AddParenthesesAroundConditionalExpressionInInterpolatedString";
             public const string CodeActionsAliasAmbiguousType = "CodeActions.AliasAmbiguousType";
+            public const string CodeActionsAvoidUnusedMembers = "CodeActions.AvoidUnusedMembers";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
             public const string CodeActionsChangeToIEnumerable = "CodeActions.ChangeToIEnumerable";
             public const string CodeActionsChangeToYield = "CodeActions.ChangeToYield";

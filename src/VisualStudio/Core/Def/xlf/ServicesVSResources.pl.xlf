@@ -12,6 +12,11 @@
         <target state="new">Apply '{0}' keymapping scheme</target>
         <note />
       </trans-unit>
+      <trans-unit id="Avoid_unused_members">
+        <source>Avoid unused members</source>
+        <target state="new">Avoid unused members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Element jest nieprawidłowy.</target>
@@ -25,6 +30,11 @@
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
         <target state="new">Keep all parentheses in:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_preferences_colon">
+        <source>Member preferences (field/method/property/event):</source>
+        <target state="new">Member preferences (field/method/property/event):</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">

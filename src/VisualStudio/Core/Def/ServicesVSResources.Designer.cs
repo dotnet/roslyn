@@ -326,6 +326,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Avoid unused members.
+        /// </summary>
+        internal static string Avoid_unused_members {
+            get {
+                return ResourceManager.GetString("Avoid_unused_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Base Types.
         /// </summary>
         internal static string Base_Types {
@@ -1322,6 +1331,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Member_of_0 {
             get {
                 return ResourceManager.GetString("Member_of_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member preferences (field/method/property/event):.
+        /// </summary>
+        internal static string Member_preferences_colon {
+            get {
+                return ResourceManager.GetString("Member_preferences_colon", resourceCulture);
             }
         }
         

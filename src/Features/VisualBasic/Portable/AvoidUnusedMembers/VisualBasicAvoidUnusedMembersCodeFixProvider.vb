@@ -1,0 +1,40 @@
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Composition
+Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.AvoidUnusedMembers
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.AvoidUnusedMembers
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AvoidUnusedMembers), [Shared]>
+    Friend Class VisualBasicAvoidUnusedMembersCodeFixProvider
+        Inherits AbstractAvoidUnusedMembersCodeFixProvider(Of FieldDeclarationSyntax)
+
+        Protected Overrides Function GetTopmostSyntaxNodeForSymbolDeclaration(syntaxNode As SyntaxNode, isSymbolDeclarationNode As Func(Of SyntaxNode, Boolean)) As SyntaxNode
+            Dim symbolDeclNode = MyBase.GetTopmostSyntaxNodeForSymbolDeclaration(syntaxNode, isSymbolDeclarationNode)
+
+            ' Map from StatementSyntax to BlockSyntax
+            If isSymbolDeclarationNode(symbolDeclNode.Parent) Then
+                symbolDeclNode = symbolDeclNode.Parent
+            End If
+
+            Return symbolDeclNode
+        End Function
+
+        Protected Overrides Sub AdjustDeclarators(fieldDeclarators As HashSet(Of FieldDeclarationSyntax), declarators As HashSet(Of SyntaxNode))
+            For Each variableDeclarator In fieldDeclarators.SelectMany(Function(f) f.Declarators)
+                AdjustChildDeclarators(
+                    parentDeclaration:=variableDeclarator,
+                    childDeclarators:=variableDeclarator.Names,
+                    declarators:=declarators)
+            Next
+
+            For Each fieldDeclarator In fieldDeclarators
+                AdjustChildDeclarators(
+                    parentDeclaration:=fieldDeclarator,
+                    childDeclarators:=fieldDeclarator.Declarators,
+                    declarators:=declarators)
+            Next
+        End Sub
+    End Class
+End Namespace

@@ -631,6 +631,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; has a private member &apos;{1}&apos; which can be removed as the value assigned to it is never used..
+        /// </summary>
+        internal static string Avoid_Members_Without_Reads_Message {
+            get {
+                return ResourceManager.GetString("Avoid_Members_Without_Reads_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; has an unused private member &apos;{1}&apos; which can be removed..
+        /// </summary>
+        internal static string Avoid_Unused_Members_Message {
+            get {
+                return ResourceManager.GetString("Avoid_Unused_Members_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid unused private members..
+        /// </summary>
+        internal static string Avoid_Unused_Members_Title {
+            get {
+                return ResourceManager.GetString("Avoid_Unused_Members_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Awaited task returns.
         /// </summary>
         internal static string Awaited_task_returns {
@@ -2784,6 +2811,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remove_unreachable_code {
             get {
                 return ResourceManager.GetString("Remove_unreachable_code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused member.
+        /// </summary>
+        internal static string Remove_unused_member {
+            get {
+                return ResourceManager.GetString("Remove_unused_member", resourceCulture);
             }
         }
         

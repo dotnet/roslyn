@@ -929,6 +929,32 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_avoidUnusedMembers = $@"
+class Customer1
+{{
+//[
+        // {ServicesVSResources.Prefer_colon}
+//]
+}}
+class Customer2
+{{
+//[
+        // {ServicesVSResources.Over_colon}
+        // Field '_field' is never read or written
+        private int _field;
+        
+        // Property 'Prop' is never read
+        private int Prop {{ get; set; }}
+        
+        // Method 'M' is never invoked
+        private void M()
+        {{
+            Prop = 1;
+        }}
+//]
+}}
+";
+
         #endregion
 
         #region arithmetic binary parentheses
@@ -1084,6 +1110,7 @@ class C
             var varGroupTitle = CSharpVSResources.var_preferences_colon;
             var nullCheckingGroupTitle = CSharpVSResources.null_checking_colon;
             var fieldGroupTitle = ServicesVSResources.Field_preferences_colon;
+            var memberGroupTitle = ServicesVSResources.Member_preferences_colon;
             var codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon;
             var expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon;
             var variablePreferencesGroupTitle = ServicesVSResources.Variable_preferences_colon;
@@ -1153,6 +1180,9 @@ class C
 
             // Field preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, this, optionSet, fieldGroupTitle));
+
+            // Member preferences (field/method/property/event).
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.AvoidUnusedMembers, ServicesVSResources.Avoid_unused_members, s_avoidUnusedMembers, s_avoidUnusedMembers, this, optionSet, memberGroupTitle));
         }
 
         private void AddParenthesesOptions(OptionSet optionSet)

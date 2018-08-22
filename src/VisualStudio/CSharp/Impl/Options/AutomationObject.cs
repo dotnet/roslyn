@@ -725,6 +725,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions.PreferReadonly, value); }
         }
 
+        public string Style_AvoidUnusedMembers
+        {
+            get { return GetXmlOption(CodeStyleOptions.AvoidUnusedMembers); }
+            set { SetXmlOption(CodeStyleOptions.AvoidUnusedMembers, value); }
+        }
+
         public int Wrapping_IgnoreSpacesAroundBinaryOperators
         {
             get

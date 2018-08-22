@@ -511,6 +511,28 @@ Class Customer2
 //]
 End Class"
 
+        Private Shared ReadOnly s_avoidUnusedMembers As String = $"
+Class Customer1
+//[
+    ' {ServicesVSResources.Prefer_colon}
+//]
+End Class
+Class Customer2
+//[
+    ' {ServicesVSResources.Over_colon}
+    ' Field '_field' is never read or written
+    Private _field As Integer
+
+    ' Property 'Prop' is never read
+    Private Prop As Integer
+
+    ' Method 'M' is never read
+    Private Sub M()
+        Prop = 1
+    End Sub
+//]
+End Class"
+
 #End Region
 
         Public Sub New(optionSet As OptionSet, serviceProvider As IServiceProvider)
@@ -537,6 +559,7 @@ End Class"
             Dim expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon
             Dim nothingPreferencesGroupTitle = BasicVSResources.nothing_checking_colon
             Dim fieldPreferencesGroupTitle = ServicesVSResources.Field_preferences_colon
+            Dim memberPreferencesGroupTitle = ServicesVSResources.Member_preferences_colon
 
             ' qualify with Me. group
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, BasicVSResources.Qualify_field_access_with_Me, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
@@ -568,6 +591,9 @@ End Class"
 
             ' field preferences
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, Me, optionSet, fieldPreferencesGroupTitle))
+
+            ' Member preferences (field/method/property/event).
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.AvoidUnusedMembers, ServicesVSResources.Avoid_unused_members, s_avoidUnusedMembers, s_avoidUnusedMembers, Me, optionSet, memberPreferencesGroupTitle))
         End Sub
 
         Private Sub AddParenthesesOptions(optionSet As OptionSet)
