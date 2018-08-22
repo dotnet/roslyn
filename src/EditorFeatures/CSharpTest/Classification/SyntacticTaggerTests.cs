@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     workspace.GetService<IForegroundNotificationService>(),
                     AsynchronousOperationListenerProvider.NullListener,
                     null,
-                    new SyntacticClassificationTaggerProvider(null, null, null));
+                    new SyntacticClassificationTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), null, null, null));
 
                 // Capture the expected value before the await, in case it changes.
                 var expectedLength = subjectBuffer.CurrentSnapshot.Length;

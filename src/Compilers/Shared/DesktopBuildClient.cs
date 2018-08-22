@@ -61,28 +61,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
         }
 
-        public static Task<BuildResponse> RunServerCompilation(
-            RequestLanguage language,
-            List<string> arguments,
-            BuildPaths buildPaths,
-            string keepAlive,
-            string libEnvVariable,
-            CancellationToken cancellationToken)
-        {
-            var pipeNameOpt = BuildServerConnection.GetPipeNameForPathOpt(buildPaths.ClientDirectory);
-
-            return RunServerCompilationCore(
-                language,
-                arguments,
-                buildPaths,
-                pipeNameOpt,
-                keepAlive,
-                libEnvVariable,
-                timeoutOverride: null,
-                tryCreateServerFunc: BuildServerConnection.TryCreateServerCore,
-                cancellationToken: cancellationToken);
-        }
-
         private static Task<BuildResponse> RunServerCompilationCore(
             RequestLanguage language,
             List<string> arguments,

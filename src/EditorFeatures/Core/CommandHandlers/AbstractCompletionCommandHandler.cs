@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public string DisplayName => EditorFeaturesResources.Code_Completion;
 
-        protected AbstractCompletionCommandHandler(IAsyncCompletionService completionService)
+        protected AbstractCompletionCommandHandler(IThreadingContext threadingContext, IAsyncCompletionService completionService)
+            : base(threadingContext)
         {
             _completionService = completionService;
         }

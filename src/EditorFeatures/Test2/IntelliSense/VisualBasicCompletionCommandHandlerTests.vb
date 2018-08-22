@@ -1,12 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
@@ -2633,9 +2633,6 @@ End Class
 
         <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSnippetInTupleLiteral(completionImplementation As CompletionImplementation) As Task
-            Dim snippetProvider As CompletionProvider =
-                New VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                   <Document><![CDATA[
 Class C
@@ -2644,8 +2641,7 @@ Class C
     End Sub
 End Class
 }]]></Document>,
-                  extraCompletionProviders:={snippetProvider},
-                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
                                                                                     LanguageNames.VisualBasic,
@@ -2660,10 +2656,6 @@ End Class
 
         <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSnippetInTupleLiteralAfterComma(completionImplementation As CompletionImplementation) As Task
-            Dim snippetProvider As CompletionProvider =
-                New VisualStudio.LanguageServices.VisualBasic.Snippets.
-                    SnippetCompletionProvider(editorAdaptersFactoryService:=Nothing)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                   <Document><![CDATA[
 Class C
@@ -2672,8 +2664,7 @@ Class C
     End Sub
 End Class
 }]]></Document>,
-                  extraCompletionProviders:={snippetProvider},
-                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
                                                                                     LanguageNames.VisualBasic,
@@ -2688,10 +2679,6 @@ End Class
 
         <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSnippetsNotExclusiveWhenAlwaysShowing(completionImplementation As CompletionImplementation) As Task
-            Dim snippetProvider As CompletionProvider =
-                New VisualStudio.LanguageServices.VisualBasic.Snippets.
-                    SnippetCompletionProvider(editorAdaptersFactoryService:=Nothing)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                   <Document><![CDATA[
 Class C
@@ -2701,8 +2688,7 @@ Class C
     End Sub
 End Class
 }]]></Document>,
-                  extraCompletionProviders:={snippetProvider},
-                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
                                                                                     LanguageNames.VisualBasic,
