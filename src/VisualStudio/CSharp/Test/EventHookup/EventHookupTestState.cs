@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
@@ -24,7 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
             : base(workspaceElement, excludedTypes: null, GetExtraParts(), false)
         {
-            _commandHandler = new EventHookupCommandHandler(Workspace.GetService<IInlineRenameService>(),
+            _commandHandler = new EventHookupCommandHandler(
+                Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                Workspace.GetService<IInlineRenameService>(),
                 Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
                 Workspace.ExportProvider.GetExportedValue<EventHookupSessionManager>());
 

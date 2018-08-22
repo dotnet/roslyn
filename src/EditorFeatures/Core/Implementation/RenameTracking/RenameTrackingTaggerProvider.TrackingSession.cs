@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             public bool ForceRenameOverloads => _forceRenameOverloads;
 
             public TrackingSession(StateMachine stateMachine, SnapshotSpan snapshotSpan, IAsynchronousOperationListener asyncListener)
+                : base(stateMachine.ThreadingContext)
             {
                 AssertIsForeground();
 
@@ -72,11 +73,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                     var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateTrackingSessionAfterIsRenamableIdentifierTask");
 
-                    _isRenamableIdentifierTask.SafeContinueWith(
-                        t => stateMachine.UpdateTrackingSessionIfRenamable(),
+                    _isRenamableIdentifierTask.SafeContinueWithFromAsync(
+                        async t =>
+                        {
+                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+                            stateMachine.UpdateTrackingSessionIfRenamable();
+                        },
                         _cancellationToken,
-                       TaskContinuationOptions.OnlyOnRanToCompletion,
-                       ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
+                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
 
                     QueueUpdateToStateMachine(stateMachine, _isRenamableIdentifierTask);
                 }
@@ -95,24 +100,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 var asyncToken = _asyncListener.BeginAsyncOperation($"{GetType().Name}.{nameof(QueueUpdateToStateMachine)}");
 
-                task.SafeContinueWith(t =>
+                task.SafeContinueWithFromAsync(async t =>
                    {
-                       AssertIsForeground();
+                       await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+
                        if (_isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
                        {
                            stateMachine.OnTrackingSessionUpdated(this);
                        }
                    },
                    _cancellationToken,
-                   TaskContinuationOptions.OnlyOnRanToCompletion,
-                   ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
+                   TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                   TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
             }
 
             internal void CheckNewIdentifier(StateMachine stateMachine, ITextSnapshot snapshot)
             {
                 AssertIsForeground();
 
-#pragma warning disable VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
                 _newIdentifierBindsTask = _isRenamableIdentifierTask.SafeContinueWithFromAsync(
                     async t => t.Result != TriggerIdentifierKind.NotRenamable &&
                                TriggerIdentifierKind.RenamableReference ==
@@ -122,7 +127,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     _cancellationToken,
                     TaskContinuationOptions.OnlyOnRanToCompletion,
                     TaskScheduler.Default);
-#pragma warning restore VSTHRD103 // Call async methods when in an async method: .Result is non-blocking inside a SafeContinueWith
 
                 QueueUpdateToStateMachine(stateMachine, _newIdentifierBindsTask);
             }

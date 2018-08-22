@@ -2,12 +2,12 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
 
         [ImportingConstructor]
-        internal EventHookupSessionManager(IToolTipService toolTipService)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal EventHookupSessionManager(IThreadingContext threadingContext, IToolTipService toolTipService)
+            : base(threadingContext)
         {
             _toolTipService = toolTipService;
         }

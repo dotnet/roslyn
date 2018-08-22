@@ -5,6 +5,8 @@ using System.ComponentModel.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
@@ -19,8 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
     [Export(typeof(CSharpVsInteractiveWindowProvider))]
     internal sealed class CSharpVsInteractiveWindowProvider : VsInteractiveWindowProvider
     {
+        private readonly IThreadingContext _threadingContext;
+
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVsInteractiveWindowProvider(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             IVsInteractiveWindowFactory interactiveWindowFactory,
             IViewClassifierAggregatorService classifierAggregator,
@@ -30,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             VisualStudioWorkspace workspace)
             : base(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, workspace)
         {
+            _threadingContext = threadingContext;
         }
 
         protected override Guid LanguageServiceGuid
@@ -55,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             VisualStudioWorkspace workspace)
         {
             return new CSharpInteractiveEvaluator(
+                _threadingContext,
                 workspace.Services.HostServices,
                 classifierAggregator,
                 CommandsFactory,

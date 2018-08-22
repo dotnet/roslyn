@@ -43,10 +43,4 @@
     <Rule Id="CA2213" Action="None" />
     <Rule Id="CA1063" Action="None" />
   </Rules>
-
-  <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
-    <Rule Id="VSTHRD003" Action="None" /> <!-- allow tests to use .Result  -->
-    <Rule Id="VSTHRD103" Action="None" /> <!-- allow tests to use .Result  -->
-    <Rule Id="VSTHRD200" Action="None" /> <!-- Don't force test name to end in async  -->
-  </Rules>
 </RuleSet>
