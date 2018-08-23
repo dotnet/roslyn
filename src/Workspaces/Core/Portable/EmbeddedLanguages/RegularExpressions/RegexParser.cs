@@ -1250,8 +1250,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 {
                     var right = ParseRightSideOfCharacterClassRange();
 
-                    if (TryGetRangeComponentValue(left, isRight: false, out var leftCh) &&
-                        TryGetRangeComponentValue(right, isRight: true, out var rightCh) &&
+                    if (TryGetRangeComponentValue(left, out var leftCh) &&
+                        TryGetRangeComponentValue(right, out var rightCh) &&
                         leftCh > rightCh)
                     {
                         minusToken = minusToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private bool IsEscapedMinus(RegexNode node)
             => node is RegexSimpleEscapeNode simple && IsTextChar(simple.TypeToken, '-');
 
-        private bool TryGetRangeComponentValue(RegexExpressionNode component, bool isRight, out char ch)
+        private bool TryGetRangeComponentValue(RegexExpressionNode component, out char ch)
         {
             // Don't bother examining the component if it has any errors already.  This also means
             // we don't have to worry about running into invalid escape sequences and the like.
