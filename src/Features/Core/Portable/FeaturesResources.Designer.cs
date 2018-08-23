@@ -934,14 +934,23 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert to query.
+        ///   Looks up a localized string similar to Convert to LINQ.
         /// </summary>
-        internal static string Convert_to_query {
+        internal static string Convert_to_linq {
             get {
-                return ResourceManager.GetString("Convert_to_query", resourceCulture);
+                return ResourceManager.GetString("Convert_to_linq", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to LINQ (call form).
+        /// </summary>
+        internal static string Convert_to_linq_call_form {
+            get {
+                return ResourceManager.GetString("Convert_to_linq_call_form", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to Convert to struct.
         /// </summary>

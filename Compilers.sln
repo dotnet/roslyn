@@ -146,6 +146,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IlAsmDeploy", "src\Tools\IL
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGetProjectPackUtil", "src\NuGet\NuGetProjectPackUtil.csproj", "{B2B261E8-56EC-45DC-8AB8-A491A065EFD4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilerBenchmarks", "src\Tools\CompilerBenchmarks\CompilerBenchmarks.csproj", "{B446E771-AB52-41C9-ACFC-FDF8EACAF291}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
@@ -397,6 +399,10 @@ Global
 		{B2B261E8-56EC-45DC-8AB8-A491A065EFD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2B261E8-56EC-45DC-8AB8-A491A065EFD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2B261E8-56EC-45DC-8AB8-A491A065EFD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B446E771-AB52-41C9-ACFC-FDF8EACAF291}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B446E771-AB52-41C9-ACFC-FDF8EACAF291}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B446E771-AB52-41C9-ACFC-FDF8EACAF291}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B446E771-AB52-41C9-ACFC-FDF8EACAF291}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -464,6 +470,7 @@ Global
 		{E8F0BAA5-7327-43D1-9A51-644E81AE55F1} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{46B3E63A-C462-4133-9F27-3B85DA5E7D37} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{B2B261E8-56EC-45DC-8AB8-A491A065EFD4} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{B446E771-AB52-41C9-ACFC-FDF8EACAF291} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}
