@@ -82,7 +82,7 @@ do
     fi
 
     # https://github.com/dotnet/roslyn/issues/29380
-    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file} -parallel none"
+    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}" -parallel none -maxThreads 2
     then
         echo "Assembly ${file_name[@]} passed"
     else
