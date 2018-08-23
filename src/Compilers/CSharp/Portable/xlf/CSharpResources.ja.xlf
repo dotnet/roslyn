@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../CSharpResources.resx">
     <body>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
-        <target state="new">An out variable cannot be declared as a ref local</target>
+        <target state="translated">out 変数を ref ローカルと宣言することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -379,22 +379,22 @@
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
         <source>SyntaxTree is not part of the compilation</source>
-        <target state="new">SyntaxTree is not part of the compilation</target>
+        <target state="translated">SyntaxTree はコンパイルの一部ではありません</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFoundToRemove">
         <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
-        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
+        <target state="translated">SyntaxTree はコンパイルの一部ではないため削除できません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
         <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
-        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <target state="translated">型パラメーター '{0}' は、外のメソッドからの型パラメーター '{1}' と同じ名前です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
-        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
+        <target state="translated">型パラメーターの型は、外のメソッドからの型パラメーターと同じ型です。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -1324,7 +1324,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="needs-review-translation">割り当て、呼び出し、インクリメント、デクリメント、新しいオブジェクトの式のみがステートメントとして使用できます。</target>
+        <target state="translated">割り当て、呼び出し、インクリメント、デクリメント、待機、新しいオブジェクトの式のみがステートメントとして使用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1694,7 +1694,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
-        <target state="needs-review-translation">フレンド アクセスのアクセス権は '{0}' によって付与されますが、出力アセンブリの公開キーは、付与するアセンブリで属性によって指定される公開キーと一致しません。</target>
+        <target state="translated">フレンド アクセスのアクセス権は '{0}' によって付与されますが、出力アセンブリ ('{1}') の公開キーは、付与するアセンブリで InternalsVisibleTo 属性によって指定される公開キーと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -3777,7 +3777,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="needs-review-translation">'{0}' に '{1}' の定義が含まれておらず、型 '{0}' の最初の引数を受け付ける拡張メソッド '{1}' が見つかりませんでした。using ディレクティブまたはアセンブリ参照が不足していないことを確認してください。</target>
+        <target state="translated">'{0}' に '{1}' の定義が含まれておらず、型 '{0}' の最初の引数を受け付けるアクセス可能な拡張メソッド '{1}' が見つかりませんでした。using ディレクティブまたはアセンブリ参照が不足していないことを確認してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -4387,7 +4387,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
         <source>Iterators cannot have ref, in or out parameters</source>
-        <target state="needs-review-translation">反復子には ref または out パラメーターを指定できません。</target>
+        <target state="translated">反復子には ref、in、out パラメーターを指定できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -4612,7 +4612,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
         <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="needs-review-translation">パラメーター型がデリゲート パラメーター型と一致しないため、{0} をデリゲート型 '{1}' に変換することはできません。</target>
+        <target state="translated">パラメーター型がデリゲート パラメーター型と一致しないため、{0} を型 '{1}' に変換することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -5257,7 +5257,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
         <source>An expression tree lambda may not contain a ref, in or out parameter</source>
-        <target state="needs-review-translation">式ツリーのラムダは、out パラメーターまたは ref パラメーターを含むことはできません</target>
+        <target state="translated">式ツリーのラムダは、ref、in、out パラメーターを含むことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarArgsInExpressionTree">
@@ -5815,7 +5815,7 @@ C# では out と ref を区別しますが、CLR では同じと認識します
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
         <source>Async methods cannot have ref, in or out parameters</source>
-        <target state="needs-review-translation">非同期メソッドには ref または out パラメーターを指定できません。</target>
+        <target state="translated">非同期メソッドには ref、in、out パラメーターを指定できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsync">
@@ -7361,147 +7361,147 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                               Visual C# Compiler のオプション
 
                         - 出力ファイル -
- /out:&lt;file&gt;                   出力ファイル名を指定します (既定: メイン クラス
+-out:&lt;file&gt;                   出力ファイル名を指定します (既定: メイン クラス
                                のあるファイルまたは最初のファイルのベース名)
- /target:exe                   コンソール実行可能ファイルをビルドします (既定) (短い
+-target:exe                   コンソール実行可能ファイルをビルドします (既定) (短い
                                形式: /t:exe)
- /target:winexe                Windows 実行可能ファイルをビルドします (短い形式:
+-target:winexe                Windows 実行可能ファイルをビルドします (短い形式:
                                /t:winexe)
- /target:library               ライブラリをビルドします (短い形式: /t:library)
- /target:module                別のアセンブリに追加できるモジュールをビルド
+-target:library               ライブラリをビルドします (短い形式: /t:library)
+-target:module                別のアセンブリに追加できるモジュールをビルド
                                します (短い形式: /t:module)
- /target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式:
+-target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式:
                                /t:appcontainerexe)
- /target:winmdobj              WinMDExp で使用される
+-target:winmdobj              WinMDExp で使用される
                                Windows ランタイムの中間ファイルをビルドします (短い形式: /t:winmdobj)
- /doc:&lt;file&gt;                   生成する XML ドキュメント ファイル
- /refout:&lt;file&gt;                生成する参照アセンブリ出力
- /platform:&lt;string&gt;            このコードを実行できるプラットフォームを x86、
+-doc:&lt;file&gt;                   生成する XML ドキュメント ファイル
+-refout:&lt;file&gt;                生成する参照アセンブリ出力
+-platform:&lt;string&gt;            このコードを実行できるプラットフォームを x86、
                                Itanium、x64、arm、arm64、anycpu32bitpreferred、
                                anycpu に制限します。既定は anycpu です。
 
                         - 入力ファイル -
- /recurse:&lt;wildcard&gt;           ワイルドカードの指定に従い、現行ディレクトリおよび
+-recurse:&lt;wildcard&gt;           ワイルドカードの指定に従い、現行ディレクトリおよび
                                サブディレクトリ内のすべてのファイルを
                                インクルードします
- /reference:&lt;alias&gt;=&lt;file&gt;     指定されたエイリアスを使用して、指定された
+-reference:&lt;alias&gt;=&lt;file&gt;     指定されたエイリアスを使用して、指定された
                                アセンブリ ファイルのメタデータを参照します (短い形式: /r)
- /reference:&lt;file list&gt;        指定されたアセンブリ ファイルのメタデータを参照
+-reference:&lt;file list&gt;        指定されたアセンブリ ファイルのメタデータを参照
                                します (短い形式: /r)
- /addmodule:&lt;file list&gt;        指定されたモジュールをこのアセンブリにリンクします
- /link:&lt;file list&gt;             指定された相互運用アセンブリ ファイルのメタデータを
+-addmodule:&lt;file list&gt;        指定されたモジュールをこのアセンブリにリンクします
+-link:&lt;file list&gt;             指定された相互運用アセンブリ ファイルのメタデータを
                                埋め込みます (短い形式: /l)
- /analyzer:&lt;file list&gt;         このアセンブリからアナライザーを実行します
+-analyzer:&lt;file list&gt;         このアセンブリからアナライザーを実行します
                                (短い形式: /a)
- /additionalfile:&lt;file list&gt;   コード生成には直接影響しないものの、
+-additionalfile:&lt;file list&gt;   コード生成には直接影響しないものの、
                                アナライザーがエラーまたは警告を
                                生成するときに使用する可能性のある追加ファイル。
- /embed                        すべてのソース ファイルを PDB に埋め込みます。
- /embed:&lt;file list&gt;            特定のファイルを PDB に埋め込みます
+-embed                        すべてのソース ファイルを PDB に埋め込みます。
+-embed:&lt;file list&gt;            特定のファイルを PDB に埋め込みます
 
                         - リソース -
- /win32res:&lt;file&gt;              Win32 リソース ファイル (.res) を指定します
- /win32icon:&lt;file&gt;             出力にこのアイコンを使用します
- /win32manifest:&lt;file&gt;         Win32 マニフェスト ファイル (.xml) を指定します
- /nowin32manifest              既定の Win32 マニフェストはインクルードしません
- /resource:&lt;resinfo&gt;           指定されたリソースを埋め込みます (短い形式: /res)
- /linkresource:&lt;resinfo&gt;       指定されたリソースをこのアセンブリにリンクします
+-win32res:&lt;file&gt;              Win32 リソース ファイル (.res) を指定します
+-win32icon:&lt;file&gt;             出力にこのアイコンを使用します
+-win32manifest:&lt;file&gt;         Win32 マニフェスト ファイル (.xml) を指定します
+-nowin32manifest              既定の Win32 マニフェストはインクルードしません
+-resource:&lt;resinfo&gt;           指定されたリソースを埋め込みます (短い形式: /res)
+-linkresource:&lt;resinfo&gt;       指定されたリソースをこのアセンブリにリンクします
                                (短い形式: /linkres) ここで resinfo の形式
                                は &lt;file&gt;[,&lt;string name&gt;[,public|private]] です
 
                         - コード生成 -
- /debug[+|-]                   デバッグ情報を生成します
- /debug:{full|pdbonly|portable|embedded}
+-debug[+|-]                   デバッグ情報を生成します
+-debug:{full|pdbonly|portable|embedded}
                                デバッグの種類を指定します ('full' が既定です。
                                'portable' はクロスプラットフォーム形式です。
                                'embedded' は、ターゲット .dll または .exe に
                                埋め込まれるクロスプラットフォーム形式です)
- /optimize[+|-]                最適化を有効にします (短い形式: /o)
- /deterministic                決定論的アセンブリを作成します
+-optimize[+|-]                最適化を有効にします (短い形式: /o)
+-deterministic                決定論的アセンブリを作成します
                                (モジュール バージョン GUID やタイムスタンプなど)
- /refonly                      メイン出力の代わりに参照アセンブリを生成します
- /instrument:TestCoverage      収集するためのインストルメント化されたアセンブリを作成します
+-refonly                      メイン出力の代わりに参照アセンブリを生成します
+-instrument:TestCoverage      収集するためのインストルメント化されたアセンブリを作成します
                                カバレッジ情報
- /sourcelink:&lt;file&gt;            PDB に埋め込むソース リンク情報。
+-sourcelink:&lt;file&gt;            PDB に埋め込むソース リンク情報。
 
                         - エラーと警告 -
- /warnaserror[+|-]             すべての警告をエラーとして報告します
- /warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します
- /warn:&lt;n&gt;                     警告レベル (0-4) を設定します (短い形式: /w)
- /nowarn:&lt;warn list&gt;           特定の警告メッセージを無効にします
- /ruleset:&lt;file&gt;               特定の診断を無効にするルールセット ファイルを
+-warnaserror[+|-]             すべての警告をエラーとして報告します
+-warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します
+-warn:&lt;n&gt;                     警告レベル (0-4) を設定します (短い形式: /w)
+-nowarn:&lt;warn list&gt;           特定の警告メッセージを無効にします
+-ruleset:&lt;file&gt;               特定の診断を無効にするルールセット ファイルを
                                指定します。
- /errorlog:&lt;file&gt;              すべてのコンパイラとアナライザーの診断をログに記録するための
+-errorlog:&lt;file&gt;              すべてのコンパイラとアナライザーの診断をログに記録するための
                                ファイルを指定します。
- /reportanalyzer               追加のアナライザー情報を報告します
+-reportanalyzer               追加のアナライザー情報を報告します
                                (実行時間など)。
 
                         - 言語 -
- /checked[+|-]                 オーバーフロー検査を生成します
- /unsafe[+|-]                  '安全でない' コードを許可します
- /define:&lt;symbol list&gt;         条件付きコンパイル シンボルを定義します (短い
+-checked[+|-]                 オーバーフロー検査を生成します
+-unsafe[+|-]                  '安全でない' コードを許可します
+-define:&lt;symbol list&gt;         条件付きコンパイル シンボルを定義します (短い
                                形式: /d)
- /langversion:?                言語バージョンに許容される値を表示します
- /langversion:&lt;string&gt;         `default` (最新のメジャー バージョン)や
+-langversion:?                言語バージョンに許容される値を表示します
+-langversion:&lt;string&gt;         `default` (最新のメジャー バージョン)や
                                `latest` (マイナー バージョンを含む最新バージョン)
                                または `6` や `7.1` の特定バージョンなどの
                                言語バージョンを指定します。
 
                         - SECURITY -
- /delaysign[+|-]               厳密な名前キーのパブリックな部分のみを使って 
+-delaysign[+|-]               厳密な名前キーのパブリックな部分のみを使って 
                                アセンブリを遅延署名します
- /publicsign[+|-]              厳密な名前キーのパブリックな部分のみを使って
+-publicsign[+|-]              厳密な名前キーのパブリックな部分のみを使って
                                アセンブリを公開署名します
- /keyfile:&lt;file&gt;               厳密な名前キーのファイルを指定します
- /keycontainer:&lt;string&gt;        厳密な名前キーのコンテナーを指定します
- /highentropyva[+|-]           高エントロピ ASLR を有効化します
+-keyfile:&lt;file&gt;               厳密な名前キーのファイルを指定します
+-keycontainer:&lt;string&gt;        厳密な名前キーのコンテナーを指定します
+-highentropyva[+|-]           高エントロピ ASLR を有効化します
 
                         - その他 -
  @&lt;file&gt;                       応答ファイルを読み取り、オプションを追加します
- /help                         使用法に関するメッセージを表示します (短い形式: /?)
- /nologo                       コンパイル時の著作権メッセージを表示しません
- /noconfig                     CSC.RSP ファイルを自動的に含めません
- /parallel[+|-]                ビルドを並列処理します。
- /version                      コンパイラのバージョン番号を出力して終了します。
+-help                         使用法に関するメッセージを表示します (短い形式: /?)
+-nologo                       コンパイル時の著作権メッセージを表示しません
+-noconfig                     CSC.RSP ファイルを自動的に含めません
+-parallel[+|-]                ビルドを並列処理します。
+-version                      コンパイラのバージョン番号を出力して終了します。
 
                         - 詳細 -
- /baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレス
- /checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイルのチェックサム
+-baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレス
+-checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイルのチェックサム
                                を計算するアルゴリズムを指定します。サポートされる値:
                                SHA1 (既定) または SHA256。
- /codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコード ページを
+-codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコード ページを
                                指定します
- /utf8output                   コンパイラ メッセージを UTF-8 エンコードで出力します
- /main:&lt;type&gt;                  エントリ ポイントを含む型を指定します
+-utf8output                   コンパイラ メッセージを UTF-8 エンコードで出力します
+-main:&lt;type&gt;                  エントリ ポイントを含む型を指定します
                                (他のエントリ ポイントはすべて無視します) (短い
                                形式: /m)
- /fullpaths                    コンパイラは完全修飾パスを生成します
- /filealign:&lt;n&gt;                出力ファイル セクションで使用する配置を指定
+-fullpaths                    コンパイラは完全修飾パスを生成します
+-filealign:&lt;n&gt;                出力ファイル セクションで使用する配置を指定
                                します
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                コンパイラが出力するソース パス名のマッピングを
                                指定します。
- /pdb:&lt;file&gt;                   デバッグ情報ファイル名を指定します (既定:
+-pdb:&lt;file&gt;                   デバッグ情報ファイル名を指定します (既定:
                                .pdb 拡張子の付いた出力ファイル名)
- /errorendlocation             各エラーの終了位置の出力行と
+-errorendlocation             各エラーの終了位置の出力行と
                                出力列
- /preferreduilang              出力用の言語名を指定します。
- /nostdlib[+|-]                標準ライブラリ (mscorlib.dll) は参照しません
- /subsystemversion:&lt;string&gt;    このアセンブリのサブシステム バージョンを指定します
- /lib:&lt;file list&gt;              参照を検索する追加ディレクトリを指定
+-preferreduilang              出力用の言語名を指定します。
+-nostdlib[+|-]                標準ライブラリ (mscorlib.dll) は参照しません
+-subsystemversion:&lt;string&gt;    このアセンブリのサブシステム バージョンを指定します
+-lib:&lt;file list&gt;              参照を検索する追加ディレクトリを指定
                                します
- /errorreport:&lt;string&gt;         内部コンパイラ エラーの処理方法を指定します: 
+-errorreport:&lt;string&gt;         内部コンパイラ エラーの処理方法を指定します: 
                                prompt、send、queue、none です。既定値は
                                queue です。
- /appconfig:&lt;file&gt;             アセンブリ バインド設定を含む
+-appconfig:&lt;file&gt;             アセンブリ バインド設定を含む
                                アプリケーション構成ファイルを指定します
- /moduleassemblyname:&lt;string&gt;  このモジュールが一部となるアセンブリ名
+-moduleassemblyname:&lt;string&gt;  このモジュールが一部となるアセンブリ名
                                です
- /modulename:&lt;string&gt;          ソース モジュールの名前を指定します
+-modulename:&lt;string&gt;          ソース モジュールの名前を指定します
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -7827,7 +7827,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
         <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="needs-review-translation">SyntaxTree '{0}' は #load ディレクティブから発生しているため、直接的に削除または置換できません。</target>
+        <target state="translated">SyntaxTree は #load ディレクティブから発生しているため、直接的に削除または置換できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">
@@ -8042,12 +8042,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
         <source>Iterators cannot have by-reference locals</source>
-        <target state="needs-review-translation">反復子は参照渡しのローカル変数を持つことができません</target>
+        <target state="translated">反復子は参照渡しのローカル変数を持つことができません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
         <source>Async methods cannot have by-reference locals</source>
-        <target state="needs-review-translation">非同期メソッドは参照渡しのローカル変数を持つことができません</target>
+        <target state="translated">非同期メソッドは参照渡しのローカル変数を持つことができません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
@@ -8747,12 +8747,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">ファイル名 '{0}' は、空である、無効な文字を含んでいる、絶対パスが指定されていないドライブ指定がある、または長すぎるかのいずれかです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
-        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <target state="translated">__arglist では、'in' や 'out' で引数を渡すことができません</target>
         <note />
       </trans-unit>
     </body>
