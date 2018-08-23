@@ -37,35 +37,39 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                 return;
             }
 
+            // We only create a diagnostic if the option's value is set to true.
             var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
-            var severity = option.Notification.Severity;
-            if (severity == ReportDiagnostic.Suppress)
+            if (option.Value)
             {
-                return;
-            }
-
-            var fieldReferenceOperation = (IFieldReferenceOperation)context.Operation;
-
-            var field = fieldReferenceOperation.Field;
-            if (field.ContainingType.IsTupleType)
-            {
-                if (option.Value && field.CorrespondingTupleField.Equals(field))
+                var severity = option.Notification.Severity;
+                if (severity == ReportDiagnostic.Suppress)
                 {
-                    var namedField = GetNamedField(field.ContainingType, field, cancellationToken);
-                    if (namedField != null)
+                    return;
+                }
+
+                var fieldReferenceOperation = (IFieldReferenceOperation)context.Operation;
+
+                var field = fieldReferenceOperation.Field;
+                if (field.ContainingType.IsTupleType)
+                {
+                    if (field.CorrespondingTupleField.Equals(field))
                     {
-                        var memberAccessSyntax = fieldReferenceOperation.Syntax;
-                        var nameNode = memberAccessSyntax.ChildNodesAndTokens().Reverse().FirstOrDefault();
-                        if (nameNode != null)
+                        var namedField = GetNamedField(field.ContainingType, field, cancellationToken);
+                        if (namedField != null)
                         {
-                            var properties = ImmutableDictionary<string, string>.Empty.Add(
-                                nameof(ElementName), namedField.Name);
-                            context.ReportDiagnostic(DiagnosticHelper.Create(
-                                Descriptor,
-                                nameNode.GetLocation(),
-                                severity,
-                                additionalLocations: null,
-                                properties));
+                            var memberAccessSyntax = fieldReferenceOperation.Syntax;
+                            var nameNode = memberAccessSyntax.ChildNodesAndTokens().Reverse().FirstOrDefault();
+                            if (nameNode != null)
+                            {
+                                var properties = ImmutableDictionary<string, string>.Empty.Add(
+                                    nameof(ElementName), namedField.Name);
+                                context.ReportDiagnostic(DiagnosticHelper.Create(
+                                    Descriptor,
+                                    nameNode.GetLocation(),
+                                    severity,
+                                    additionalLocations: null,
+                                    properties));
+                            }
                         }
                     }
                 }
