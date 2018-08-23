@@ -21,7 +21,6 @@
       <dependency id="Microsoft.CodeAnalysis.Elfie" version="$MicrosoftCodeAnalysisElfieVersion$" />
       <dependency id="Microsoft.VisualStudio.Language.StandardClassification" version="$MicrosoftVisualStudioLanguageStandardClassificationVersion$" />
       <dependency id="Microsoft.VisualStudio.Language.Intellisense" version="$MicrosoftVisualStudioLanguageIntellisenseVersion$" />
-      <dependency id="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" version="$MicrosoftVisualStudioImagingInterop140DesignTimeVersion$" />
       <dependency id="ICSharpCode.Decompiler" version="$ICSharpCodeDecompilerVersion$" />
       <!--This package depends on the following editor package, however we can not enforce them in there.
       Roslyn depends on Editor packages which are not released yet, enforcing these dependenceis will delay the release of roslyn package,
@@ -36,6 +35,7 @@
     <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>$tags$</tags>
     <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
