@@ -114,6 +114,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         Return
                     End If
 
+                    If Not isExplicitFormat Then
+                        ' Avoid automatically formatting extremely large dirty spans without an explicit request from
+                        ' the user. The "large span threshold" is 7000 lines. The 7000 line threshold is an estimated
+                        ' value accounting for a lower-bound of the algorithmic complexity of text differencing in
+                        ' designer cases along with measurements of a pathological example demonstrated at 14000 lines.
+                        ' We expect Windows Forms designer formatting operations to run in under ~15 seconds on average
+                        ' current hardware when nearing the threshold.
+                        Dim startLineNumber = 0
+                        Dim startColumnIndex = 0
+                        Dim endLineNumber = 0
+                        Dim endColumnIndex = 0
+                        info.SpanToFormat.GetLinesAndColumns(startLineNumber, startColumnIndex, endLineNumber, endColumnIndex)
+                        If endLineNumber - startLineNumber > 7000 Then
+                            Return
+                        End If
+                    End If
+
                     Dim tree = _dirtyState.BaseDocument.GetSyntaxTreeSynchronously(cancellationToken)
                     _commitFormatter.CommitRegion(info.SpanToFormat, isExplicitFormat, info.UseSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken)
                 End Using
