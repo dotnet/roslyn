@@ -2052,5 +2052,77 @@ offeredWhenRequireForClarityIsEnabled: true);
 }",
 offeredWhenRequireForClarityIsEnabled: true);
         }
+
+        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestMissingForPreIncrement()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int x)
+    {
+        var v = (byte)$$(++x);
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestMissingForPreDecrement()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int x)
+    {
+        var v = (byte)$$(--x);
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestForPostIncrement()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int x)
+    {
+        var v = (byte)$$(x++);
+    }
+}",
+
+@"class C
+{
+    void M(int x)
+    {
+        var v = (byte)x++;
+    }
+}", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestForPostDecrement()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int x)
+    {
+        var v = (byte)$$(x--);
+    }
+}",
+
+@"class C
+{
+    void M(int x)
+    {
+        var v = (byte)x--;
+    }
+}", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
     }
 }

@@ -224,6 +224,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // If we have: (++x) or (--x), we don't want to remove the parens. doing so can make the
+            // ++/-- now associate with the previous part of the expression.
+            if (expression.IsKind(SyntaxKind.PreIncrementExpression) ||
+                expression.IsKind(SyntaxKind.PreDecrementExpression))
+            {
+                return false;
+            }
+
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
