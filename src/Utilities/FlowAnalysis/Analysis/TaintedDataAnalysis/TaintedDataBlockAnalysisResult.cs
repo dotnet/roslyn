@@ -6,6 +6,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     using Microsoft.CodeAnalysis.FlowAnalysis;
     using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
+    /// <summary>
+    /// Result from execution of <see cref="TaintedDataAnalysis"/> on a basic block.
+    /// </summary>
     internal class TaintedDataBlockAnalysisResult : AbstractBlockAnalysisResult
     {
         public ImmutableDictionary<AnalysisEntity, TaintedDataAbstractValue> InputData { get; }

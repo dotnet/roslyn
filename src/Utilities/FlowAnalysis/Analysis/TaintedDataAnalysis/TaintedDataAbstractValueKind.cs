@@ -8,7 +8,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     internal enum TaintedDataAbstractValueKind
     {
         /// <summary>
-        /// Indicates the data may or may not be tainted.
+        /// Dunno.
         /// </summary>
         Unknown,
 
@@ -21,5 +21,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Indicates that data is definitely tainted.
         /// </summary>
         Tainted,
+
+        /// <summary>
+        /// Maybe tainted, maybe not.
+        /// </summary>
+        MaybeTainted,
     }
 }

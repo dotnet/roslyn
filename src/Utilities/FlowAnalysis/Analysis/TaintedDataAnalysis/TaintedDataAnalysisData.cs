@@ -6,6 +6,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
     internal sealed class TaintedDataAnalysisData : AnalysisEntityBasedPredicateAnalysisData<TaintedDataAbstractValue>
     {
+        public TaintedDataAnalysisData()
+            : base()
+        {
+        }
+
         public TaintedDataAnalysisData(TaintedDataAnalysisData fromData)
             : base(fromData)
         {
