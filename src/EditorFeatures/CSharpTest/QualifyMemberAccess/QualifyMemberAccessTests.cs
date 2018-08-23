@@ -273,6 +273,24 @@ CodeStyleOptions.QualifyFieldAccess);
 CodeStyleOptions.QualifyFieldAccess);
         }
 
+
+        [WorkItem(28091, "https://github.com/dotnet/roslyn/issues/28091")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_NotSuggestedOnLocalVarInDictionaryInitializer()
+        {
+            await TestMissingAsyncWithOption(
+@"class C
+{
+    void M()
+    {
+         var foo = 1;
+         var test = new System.Collections.Generic.Dictionary<int, int> { { 2, [|foo|] } };
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
+
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_LHS()
