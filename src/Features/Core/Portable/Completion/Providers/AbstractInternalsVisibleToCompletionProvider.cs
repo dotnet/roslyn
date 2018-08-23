@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     ? contentStartsAt + 1
                     : contentStartsAt;
                 var contentEndsAt = token.Span.Length == 0
-                    ? 0
+                    ? token.Span.End
                     : token.Text[token.Span.Length - 1] == '"'
                         ? token.Span.End - 1
                         : startSpan.End; // The string is open ended. We keep the right end as is.
