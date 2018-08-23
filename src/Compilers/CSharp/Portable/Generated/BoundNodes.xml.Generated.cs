@@ -1337,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNullCoalescingAssignmentOperator : BoundExpression
     {
-        public BoundNullCoalescingAssignmentOperator(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, bool isChecked, TypeSymbol type, bool hasErrors = false)
+        public BoundNullCoalescingAssignmentOperator(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.NullCoalescingAssignmentOperator, syntax, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors())
         {
 
@@ -1346,7 +1346,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.LeftOperand = leftOperand;
             this.RightOperand = rightOperand;
-            this.IsChecked = isChecked;
         }
 
 
@@ -1354,18 +1353,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression RightOperand { get; }
 
-        public bool IsChecked { get; }
-
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitNullCoalescingAssignmentOperator(this);
         }
 
-        public BoundNullCoalescingAssignmentOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, bool isChecked, TypeSymbol type)
+        public BoundNullCoalescingAssignmentOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, TypeSymbol type)
         {
-            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || isChecked != this.IsChecked || type != this.Type)
+            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || type != this.Type)
             {
-                var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, leftOperand, rightOperand, isChecked, type, this.HasErrors);
+                var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, leftOperand, rightOperand, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8960,7 +8957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression leftOperand = (BoundExpression)this.Visit(node.LeftOperand);
             BoundExpression rightOperand = (BoundExpression)this.Visit(node.RightOperand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(leftOperand, rightOperand, node.IsChecked, type);
+            return node.Update(leftOperand, rightOperand, type);
         }
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
@@ -10024,7 +10021,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("leftOperand", null, new TreeDumperNode[] { Visit(node.LeftOperand, null) }),
                 new TreeDumperNode("rightOperand", null, new TreeDumperNode[] { Visit(node.RightOperand, null) }),
-                new TreeDumperNode("isChecked", node.IsChecked, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

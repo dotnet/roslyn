@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // lhsRead ?? (transformedLHS = loweredRight)
 
             // transformedLHS = rhs
-            BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, node.LeftOperand.Type, used: true, node.IsChecked, isCompoundAssignment: true);
+            // isCompoundAssignment is only used for dynamic scenarios, and we want those scenarios to treat this like a standard assignment.
+            // See CodeGenNullCoalescingAssignmentTests.CoalescingAssignment_DynamicRuntimeCastFailure, which will fail if
+            // isCompoundAssignment is set to true. It will fail to throw a runtime binder cast exception.
+            BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, node.LeftOperand.Type, used: true, isChecked: false, isCompoundAssignment: false);
 
             // lhsRead ?? (transformedLHS = loweredRight)
             BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, Conversion.Identity, node.LeftOperand.Type);

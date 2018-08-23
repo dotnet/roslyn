@@ -435,7 +435,6 @@
   <Node Name="BoundNullCoalescingAssignmentOperator" Base="BoundExpression">
     <Field Name="LeftOperand" Type="BoundExpression" />
     <Field Name="RightOperand" Type="BoundExpression" />
-    <Field Name="IsChecked" Type="bool" />
   </Node>
 
   <Node Name="BoundConditionalOperator" Base="BoundExpression">
