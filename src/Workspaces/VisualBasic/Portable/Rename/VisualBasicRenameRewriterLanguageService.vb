@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     isNamespaceDeclarationReference = True
                 End If
 
-                Dim isMemberGroupReference = _semanticFactsService.IsNameOfContext(_semanticModel, token.Span.Start, _cancellationToken)
+                Dim isMemberGroupReference = _semanticFactsService.IsInsideNameOfExpression(_semanticModel, token.Parent, _cancellationToken)
 
                 Dim renameAnnotation = New RenameActionAnnotation(
                                     token.Span,

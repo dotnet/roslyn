@@ -9,7 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -218,7 +220,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
 
-            var factory = new RemoteHostClientServiceFactory(listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider, analyzerService);
+            var threadingContext = ((IMefHostExportProvider)workspace.Services.HostServices).GetExports<IThreadingContext>().Single().Value;
+            var factory = new RemoteHostClientServiceFactory(threadingContext, listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider, analyzerService);
             return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
         }
 
