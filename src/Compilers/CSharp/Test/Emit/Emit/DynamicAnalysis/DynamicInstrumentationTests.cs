@@ -1755,8 +1755,7 @@ True
             verifier.VerifyDiagnostics();
         }
 
-        // Disabling to track down deadlock
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void AsyncCoverage()
         {
             string source = @"

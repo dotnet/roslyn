@@ -2239,6 +2239,54 @@ class Program
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
+        public void ConditionalInSimpleMethod()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    public static void Test()
+    {
+        int i = 0;
+
+        if (i != 0)
+            Console.WriteLine();
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("Program.Test()", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (int V_0, //i
+                bool V_1)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: int i = 0;
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  // sequence point: if (i != 0)
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  cgt.un
+  IL_0007:  stloc.1
+  // sequence point: <hidden>
+  IL_0008:  ldloc.1
+  IL_0009:  brfalse.s  IL_0011
+  // sequence point: Console.WriteLine();
+  IL_000b:  call       ""void System.Console.WriteLine()""
+  IL_0010:  nop
+  // sequence point: }
+  IL_0011:  ret
+}
+", sequencePoints: "Program.Test", source: source);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ElseConditionalInAsyncMethod()
         {
             var source = @"
