@@ -200,7 +200,7 @@ CodeStyleOptions.QualifyFieldAccess);
 
         [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyFieldAccess_InObjectInitializer()
+        public async Task QualifyFieldAccess_InCollectionInitializer()
         {
             await TestAsyncWithOption(
 @"class C
@@ -259,7 +259,7 @@ CodeStyleOptions.QualifyFieldAccess);
 
         [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyFieldAccess_NotSuggestedOnLocalVarInObjectInitializer()
+        public async Task QualifyFieldAccess_NotSuggestedOnLocalVarInCollectionInitializer()
         {
             await TestMissingAsyncWithOption(
 @"class C
@@ -683,7 +683,7 @@ CodeStyleOptions.QualifyMethodAccess);
 
         [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyMethodAccess_NotSuggestedOnObjectInitializer()
+        public async Task QualifyMethodAccess_NotSuggestedOnCollectionInitializer()
         {
             await TestMissingAsyncWithOption(
 @"class C
@@ -699,7 +699,7 @@ CodeStyleOptions.QualifyMethodAccess);
 
         [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyLocalMethodAccess_NotSuggestedOnObjectInitializer()
+        public async Task QualifyLocalMethodAccess_NotSuggestedOnCollectionInitializer()
         {
             await TestMissingAsyncWithOption(
 @"class C
@@ -1341,7 +1341,7 @@ CodeStyleOptions.QualifyPropertyAccess);
 
         [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyPropertyAccess_InObjectInitializer()
+        public async Task QualifyPropertyAccess_InCollectionInitializer()
         {
             await TestAsyncWithOption(
 @"class C
