@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(SymbolKind.Method, csFields.GetMembers("FfF").Single().Kind);
         }
 
-        [Fact]
         [WorkItem(193333, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=193333")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void EnumWithPrivateValueField()
         {
             var il = @"

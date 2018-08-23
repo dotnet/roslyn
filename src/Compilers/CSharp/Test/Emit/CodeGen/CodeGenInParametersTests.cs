@@ -802,7 +802,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"6");
         }
 
@@ -844,7 +844,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (14,44): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.RefReturning(ref int)' because it returns by reference
                 //             M1(in RefReturning(ref local), await GetT(2), 3);
@@ -896,7 +896,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
             var result = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"47");
 
             var expectedIL = @"
@@ -982,7 +982,7 @@ class Program
 
             result.VerifyIL("Program.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", expectedIL);
 
-            comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             result = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"47");
 
             result.VerifyIL("Program.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", expectedIL);
@@ -1021,7 +1021,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"6");
         }
 
@@ -1081,7 +1081,7 @@ public struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
@@ -1149,7 +1149,7 @@ public struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
@@ -1212,7 +1212,7 @@ public struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
@@ -1269,7 +1269,7 @@ public class S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
@@ -1329,7 +1329,7 @@ public struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
@@ -1408,7 +1408,7 @@ public readonly struct S1
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
@@ -1423,7 +1423,7 @@ public readonly struct S1
 3
 3");
 
-            comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
@@ -1489,7 +1489,7 @@ public readonly struct S1
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
             var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 1
 2
@@ -1576,7 +1576,7 @@ public readonly struct S1
 }
 ");
 
-            comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             v = CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"
 1
 2
@@ -2883,7 +2883,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "XX");
 
             verifier.VerifyIL("X.M()", @"

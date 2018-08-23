@@ -3298,7 +3298,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
+            var c = CreateCompilation(source, options: TestOptions.DebugExe);
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "1M2");
 
@@ -3344,7 +3344,7 @@ expectedIL: @"{
 }");
 
             // Check the release code generation too.
-            c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            c = CreateCompilation(source, options: TestOptions.ReleaseExe);
             c.VerifyDiagnostics();
             verifier = CompileAndVerify(c, expectedOutput: "1M2");
 
@@ -3411,7 +3411,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            var c = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "1234");
 
@@ -3519,7 +3519,7 @@ expectedIL: @"{
 }");
 
             // Check the release code generation too.
-            c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            c = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             c.VerifyDiagnostics();
             verifier = CompileAndVerify(c, expectedOutput: "1234");
 
@@ -3610,7 +3610,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            var c = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "66");
 
@@ -3638,7 +3638,7 @@ expectedIL: @"{
 }");
 
             // Check the release code generation too.
-            c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            c = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             c.VerifyDiagnostics();
             verifier = CompileAndVerify(c, expectedOutput: "66");
 

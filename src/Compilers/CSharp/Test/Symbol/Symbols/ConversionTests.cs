@@ -2027,9 +2027,8 @@ class C
         (1, (2, 3)).F();
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(
+            var comp = CreateCompilation(
                 source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"1

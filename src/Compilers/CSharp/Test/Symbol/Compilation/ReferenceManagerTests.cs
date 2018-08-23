@@ -721,7 +721,7 @@ public class Test
         }
 
         [WorkItem(546525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546525")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void AssemblyReferencesWithAliases()
         {
             var source =

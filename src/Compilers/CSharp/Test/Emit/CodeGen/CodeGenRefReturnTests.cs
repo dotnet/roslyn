@@ -2965,7 +2965,7 @@ public class C
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
 
             var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
 
@@ -3078,7 +3078,7 @@ public class C
     }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
 
             var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
         }

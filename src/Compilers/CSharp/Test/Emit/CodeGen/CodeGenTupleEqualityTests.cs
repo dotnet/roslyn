@@ -1936,7 +1936,7 @@ public class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
         public void TestTupleEqualityPreferredOverCustomOperator()
         {
             var source = @"
@@ -1981,7 +1981,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "FalseTrue");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
         public void TestCustomOperatorPlusAllowed()
         {
             var source = @"
@@ -2020,8 +2020,8 @@ public class C
             CompileAndVerify(comp, expectedOutput: "(0, 0)");
         }
 
-        [Fact]
-        void TestTupleEqualityPreferredOverCustomOperator_Nested()
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
+        public void TestTupleEqualityPreferredOverCustomOperator_Nested()
         {
             string source = @"
 public class C
@@ -4864,7 +4864,7 @@ public class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
         void TestValueTupleWithObsoleteEqualityOperator()
         {
             string source = @"

@@ -11161,7 +11161,7 @@ public unsafe class C
         }
     }
 ";
-            var cscomp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            var cscomp = CreateCompilationWithIL(csharpSource, ilSource);
 
             var expected = new[] {
                 // (7,35): error CS0570: 'AddressHelper.AddressOf<T>(?)' is not supported by the language
@@ -11172,7 +11172,7 @@ public unsafe class C
             cscomp.VerifyDiagnostics(expected);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [Fact]
         public void SystemIntPtrInSignature_BreakingChange_001()
         {
             var ilSource =
@@ -11197,7 +11197,7 @@ public unsafe class C
         }
     }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithIL(csharpSource, ilSource, options: TestOptions.ReleaseExe);
 
             compilation.VerifyDiagnostics();
 

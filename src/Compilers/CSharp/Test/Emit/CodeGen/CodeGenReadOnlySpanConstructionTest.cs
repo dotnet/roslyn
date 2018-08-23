@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenReadOnlySpanConstructionTest : CSharpTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyOrNullStringConv()
         {
@@ -68,7 +68,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyOrNullArrayConv()
         {
@@ -130,7 +130,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyArrayCtor()
         {
@@ -185,7 +185,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void NotConstArrayCtor()
         {
@@ -242,7 +242,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void NotConstArrayCtorByte()
         {
@@ -299,7 +299,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void NotBlittableArrayConv()
         {
@@ -357,7 +357,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EnumArrayCtor()
         {
@@ -414,7 +414,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EnumArrayCtorPEverify()
         {
@@ -487,7 +487,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void ConvInMethodCall()
         {

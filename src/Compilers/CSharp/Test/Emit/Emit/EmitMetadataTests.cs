@@ -858,7 +858,7 @@ class C : I
         [Fact]
         public void SetGetOnlyAutopropsInConstructors()
         {
-            var comp = CreateCompilationWithMscorlib45(@"using System;
+            var comp = CreateCompilation(@"using System;
 class C
 {
     public int P1 { get; }

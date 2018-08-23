@@ -27,7 +27,7 @@ public class Derived : Base
     public override void M() { System.Console.WriteLine(""Derived0""); }
 }
 ";
-            var lib0Image = CreateCompilationWithMscorlib46(lib0, options: TestOptions.ReleaseDll, assemblyName: "lib").EmitToImageReference();
+            var lib0Image = CreateCompilation(lib0, options: TestOptions.ReleaseDll, assemblyName: "lib").EmitToImageReference();
 
             var lib1 = @"
 public class Base
@@ -39,7 +39,7 @@ public class Derived : Base
     public new virtual void M() { System.Console.WriteLine(""Derived1""); }
 }
 ";
-            var lib1Image = CreateCompilationWithMscorlib46(lib1, options: TestOptions.ReleaseDll, assemblyName: "lib").EmitToImageReference();
+            var lib1Image = CreateCompilation(lib1, options: TestOptions.ReleaseDll, assemblyName: "lib").EmitToImageReference();
 
             var client = @"
 public class Client
@@ -51,7 +51,7 @@ public class Client
     }
 }
 ";
-            var clientImage = CreateCompilationWithMscorlib46(client, references: new[] { lib0Image }, options: TestOptions.ReleaseDll).EmitToImageReference();
+            var clientImage = CreateCompilation(client, references: new[] { lib0Image }, options: TestOptions.ReleaseDll).EmitToImageReference();
 
             var program = @"
 public class Program
@@ -62,7 +62,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib46(program, references: new[] { lib1Image, clientImage }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(program, references: new[] { lib1Image, clientImage }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"Base1");
         }
     }

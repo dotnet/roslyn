@@ -644,7 +644,7 @@ a.a = 1
                 expectedOutput.AppendLine(i.ToString());
             }
 
-            var compilation = CreateCompilationWithMscorlib45(trees, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(trees, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expectedOutput.ToString());
         }

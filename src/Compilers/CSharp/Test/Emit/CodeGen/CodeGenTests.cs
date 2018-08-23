@@ -503,7 +503,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithIL(source, il, options: TestOptions.ReleaseDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A", @"
@@ -577,7 +577,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithIL(source, il, options: TestOptions.DebugDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A",
@@ -822,7 +822,7 @@ class Clazz
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithIL(source, il, options: TestOptions.ReleaseExe);
             var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ");
 
             result.VerifyIL("Clazz.Main", @"
@@ -6640,7 +6640,7 @@ public class D
         System.Console.WriteLine(d[4]);
     }
 }";
-            var compilation = CompileAndVerifyWithMscorlib40(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
 3
 -5
 True
@@ -6891,7 +6891,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerifyWithMscorlib40(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 Byte
 Char
 DBNull
@@ -6973,7 +6973,7 @@ Char
 DBNull
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source: source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var compilation = CreateCompilation(source: source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
             var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             //NOTE: 
@@ -9419,7 +9419,7 @@ VerifyIL("Test.Main", @"
         [Fact(), WorkItem(543691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543691")]
         public void NullableAsArgsForTypeParameter()
         {
-            CreateCompilationWithMscorlib40AndSystemCore(@"
+            CreateCompilation(@"
 using System;
 class C
 {
@@ -10453,9 +10453,8 @@ public class Test
         }
     }
 }";
-            CompileAndVerifyWithMscorlib40(
+            CompileAndVerify(
                 source,
-                references: new[] { SystemCoreRef },
                 expectedOutput: @"Success");
         }
 
@@ -10499,7 +10498,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(542267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542267")]
@@ -10733,7 +10732,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 00000000000000000000000000000000
 00000000000000000000000000010000
@@ -10853,7 +10852,7 @@ class Goo
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 00000001000000000000000000000000
 0000000a000000000000000000010000
@@ -10933,7 +10932,7 @@ class Goo
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 00000001000000000000000080000000
 0000000a000000000000000080010000
@@ -11007,7 +11006,7 @@ class Goo
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 ffffffffffffffffffffffff00000000
 ffffffffffffffffffffffff00000000
@@ -12623,7 +12622,7 @@ class C
 }
 ";
             // NOTE: this is a breaking change - dev10 builds and prints 11.
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,63): error CS1939: Cannot pass the range variable 'x' as an out or ref parameter
                 //         foreach (var e in from x in new int[2] select Goo(ref x))
                 Diagnostic(ErrorCode.ERR_QueryOutRefRangeVariable, "x").WithArguments("x"));
@@ -12996,7 +12995,7 @@ enum " + "\u0915\u094d\u200d\u0937" + @"
   .field public static literal valuetype E '" + "\u0915\u094d\u200d\u0937" + @"' = int32(0x00000000)
 } // end of class E
 ";
-            var comp = CreateCompilationWithILAndMscorlib40("", il);
+            var comp = CreateCompilationWithIL("", il);
             var @enum = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
             var field = @enum.GetMembers().OfType<FieldSymbol>().Single();
             Assert.False(field.CanBeReferencedByName);
@@ -13327,7 +13326,7 @@ public static class P
 }
 ";
 
-            var compilation = CompileAndVerifyWithMscorlib40(code, expectedOutput: "4");
+            var compilation = CompileAndVerify(code, expectedOutput: "4");
         }
 
         [WorkItem(26113, "https://github.com/dotnet/roslyn/issues/26113")]
@@ -14126,7 +14125,7 @@ public class Test
 }
 ";
 
-            CompileAndVerifyWithMscorlib40(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"0");
+            CompileAndVerifyWithCSharp(source, expectedOutput: @"0");
         }
 
 
@@ -14733,7 +14732,7 @@ public static class AExtensions
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -14759,7 +14758,7 @@ static class CExtensions
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -15450,7 +15449,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+            var compilation = CompileAndVerifyWithCSharp(source, expectedOutput: "2");
 
             // the main point of this test is to have it PEVerify/run correctly, although checking IL too can't hurt.
             compilation.VerifyIL("M..ctor",
@@ -15519,7 +15518,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+            var compilation = CompileAndVerifyWithCSharp(source, expectedOutput: "2");
 
             compilation.VerifyIL("M..ctor",
 @"{
@@ -15587,7 +15586,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithCSharp(source).VerifyDiagnostics(
                 // (6,16): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     object a = Test((dynamic)2);
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(6, 16)
@@ -15632,7 +15631,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
+            var compilation = CompileAndVerifyWithCSharp(source, expectedOutput: "long.ex caught");
         }
 
         [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
@@ -15678,7 +15677,7 @@ class M : B
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithCSharp(source).VerifyDiagnostics(
                 // (16,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //     public M() : base((object)Test((dynamic)2))
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(16, 31)
@@ -15711,7 +15710,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithCSharp(source).VerifyDiagnostics(
                 // (8,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //         Console.Write((object)Test((dynamic)2));
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(8, 31)
@@ -15739,7 +15738,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithCSharp(source).VerifyDiagnostics(
                 // (4,31): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     static object o = (object)Test((dynamic)2);
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(4, 31)
@@ -15798,7 +15797,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithCSharp(source).VerifyDiagnostics(
                 // (16,29): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)InstanceMethod((dynamic)2);
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
@@ -15877,7 +15876,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithCSharp(source).VerifyDiagnostics(
                 // (16,29): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)C.InstanceMethod((dynamic)2);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
@@ -16078,8 +16077,7 @@ class Program
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRef, SystemCoreRef },
-                expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")]
@@ -16135,7 +16133,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: "24", verify: Verification.Fails);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void StackAllocExpressionIL()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -16174,7 +16172,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void StackAllocSpanLengthNotEvaluatedTwice()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -16232,7 +16230,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void ImplicitCastOperatorOnStackAllocIsLoweredCorrectly()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -16262,7 +16260,7 @@ unsafe class Test
             CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: Verification.Fails);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void ExplicitCastOperatorOnStackAllocIsLoweredCorrectly()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"

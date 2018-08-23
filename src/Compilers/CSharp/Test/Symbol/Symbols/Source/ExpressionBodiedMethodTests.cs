@@ -302,7 +302,7 @@ class C : I, J, K
         [ClrOnlyFact]
         public void Emit01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilation(@"
 abstract class A
 {
     protected abstract string Z();
@@ -345,7 +345,7 @@ goo8");
         [ClrOnlyFact]
         public void Emit02()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public void M() { System.Console.WriteLine(""Hello""); }

@@ -1058,7 +1058,7 @@ class Program
             Assert.False(type.IsReadOnly);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void CorrectOverloadOfStackAllocSpanChosen()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -1080,7 +1080,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: "24", verify: Verification.Fails);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void StackAllocExpressionIL()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -1112,7 +1112,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void StackAllocSpanLengthNotEvaluatedTwice()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -1170,7 +1170,7 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void StackAllocSpanLengthConstantFolding()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -1256,7 +1256,7 @@ class Test
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void ImplicitCastOperatorOnStackAllocIsLoweredCorrectly()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -1286,7 +1286,7 @@ unsafe class Test
             CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: Verification.Fails);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/projects/16#card-12319302")]
         public void ExplicitCastOperatorOnStackAllocIsLoweredCorrectly()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"

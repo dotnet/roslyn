@@ -2341,7 +2341,7 @@ unsafe public class Test
         }
 
         [WorkItem(544246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544246")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void MethodCallWithParams()
         {
             var text =
@@ -3416,7 +3416,7 @@ class C
         }
 
         [WorkItem(544429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544429")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void ExtraConversionInDelegateCreation()
         {
             string source = @"using System;
@@ -3443,7 +3443,7 @@ class Program
 }";
             string expectedOutput = @"Convert(Call(null.[System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1), Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo)) Type:System.Delegate) Type:Del)";
 
-            var comp = CreateEmptyCompilation(
+            var comp = CreateCompilation(
                 new[] { source, ExpressionTestLibrary },
                 new[] { MscorlibRef, SystemCoreRef },
                 TestOptions.ReleaseExe);

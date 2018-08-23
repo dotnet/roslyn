@@ -20,10 +20,9 @@ Console.WriteLine(o.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CreateCompilationWithMscorlib45(
+                CreateCompilation(
                     new[] { tree },
-                    options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { SystemCoreRef }),
+                    options: TestOptions.ReleaseExe.WithScriptClassName("Script")),
                 expectedOutput: "{ a = 1 }"
             );
         }
@@ -39,10 +38,9 @@ Console.WriteLine(o.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CreateCompilationWithMscorlib45(
+                CreateCompilation(
                     new[] { tree },
-                    options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { SystemCoreRef }),
+                    options: TestOptions.ReleaseExe.WithScriptClassName("Script")),
                 expectedOutput: "{ a = 1 }"
             );
         }
@@ -57,10 +55,9 @@ Console.WriteLine(new { a = 1 }.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CreateCompilationWithMscorlib45(
+                CreateCompilation(
                     new[] { tree },
-                    options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { SystemCoreRef }),
+                    options: TestOptions.ReleaseExe.WithScriptClassName("Script")),
                 expectedOutput: "{ a = 1 }"
             );
         }
@@ -83,10 +80,9 @@ new CLS().M();
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CreateCompilationWithMscorlib45(
+                CreateCompilation(
                     new[] { tree },
-                    options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { SystemCoreRef }),
+                    options: TestOptions.ReleaseExe.WithScriptClassName("Script")),
                 expectedOutput: "{ a = 1 }"
             );
         }

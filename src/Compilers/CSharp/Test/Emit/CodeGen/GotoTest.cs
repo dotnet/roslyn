@@ -816,7 +816,7 @@ L0: ;
             string expectedOutput =
 @"True
 False";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Passes);
         }
 
@@ -867,7 +867,7 @@ if (Q < 4) goto L;";
 @"2: P
 3: F
 4: Q";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
@@ -950,7 +950,7 @@ default:
 }";
             string expectedOutput =
 @"3";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Passes);
         }
 

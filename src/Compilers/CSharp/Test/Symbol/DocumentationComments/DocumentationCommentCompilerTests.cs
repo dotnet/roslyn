@@ -6140,7 +6140,7 @@ class Module1
 
         #endregion Dev10 bugs
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         [WorkItem(1115058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115058")]
         public void UnterminatedElement()
         {

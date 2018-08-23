@@ -1550,22 +1550,18 @@ class D
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib40(source2 + source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                     options: TestOptions.ReleaseExe);
+            var comp1 = CreateCompilation(source2 + source1, options: TestOptions.ReleaseExe);
             comp1.VerifyDiagnostics();
             CompileAndVerify(comp1, expectedOutput: "1 hello hello 3");
 
-            var compLib = CreateCompilationWithMscorlib40(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                     options: TestOptions.ReleaseDll);
+            var compLib = CreateCompilation(source1, options: TestOptions.ReleaseDll);
             compLib.VerifyDiagnostics();
             var compLibCompilationRef = compLib.ToMetadataReference();
-            var comp2 = CreateCompilationWithMscorlib40(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, compLibCompilationRef },
-                                                     options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation(source2, references: new[] { compLibCompilationRef }, options: TestOptions.ReleaseExe);
             comp2.VerifyDiagnostics();
             CompileAndVerify(comp2, expectedOutput: "1 hello hello 3");
 
-            var comp3 = CreateCompilationWithMscorlib40(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, compLib.EmitToImageReference() },
-                                                     options: TestOptions.ReleaseExe);
+            var comp3 = CreateCompilation(source2, references: new[] { compLib.EmitToImageReference() }, options: TestOptions.ReleaseExe);
             comp3.VerifyDiagnostics();
             CompileAndVerify(comp3, expectedOutput: "1 hello hello 3");
         }
@@ -1726,7 +1722,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
         public void TupleLambdaCapture03()
         {
             var source = @"
@@ -1776,7 +1772,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Mscorlib46Extended, expectedOutput: @"42");
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Mscorlib46, expectedOutput: @"42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.<>c__DisplayClass1_0<T>.<Test>b__0()", @"
 {
@@ -2286,7 +2282,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void TupleAsyncCapture03()
         {
             var source = @"
@@ -2756,7 +2752,7 @@ null
 --");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
         public void LongTupleWithSubstitution()
         {
             var source = @"
@@ -3328,7 +3324,7 @@ class C
                      model.GetTypeInfo(node).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerifyWithMscorlib40(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -3406,9 +3402,7 @@ static class C
 }
 ";
 
-            CompileAndVerifyWithMscorlib40(source,
-                references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef },
-                expectedOutput: @"42 Alice");
+            CompileAndVerify(source, expectedOutput: @"42 Alice");
         }
 
         [Fact]
@@ -3885,7 +3879,6 @@ class C
 ";
 
             var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
-                targetFramework: TargetFramework.Mscorlib46Extended,
                 expectedOutput:"1");
             verifier.VerifyDiagnostics();
         }
@@ -4215,7 +4208,7 @@ class C3
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
         public void LocalTupleTypeWinsWhenTupleTypesInCompilation()
         {
             var source1 = @"
@@ -5253,7 +5246,7 @@ namespace TuplesCrash2
             // didn't crash
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
         [WorkItem(11302, "https://github.com/dotnet/roslyn/issues/11302")]
         public void MultipleDefinitionsOfValueTuple()
         {
@@ -12540,7 +12533,7 @@ namespace System
             AssertEx.Equal(symbols.Select(s => s.ToTestDisplayString()), baseLine);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void UnifyUnderlyingWithTuple_01()
         {
             var source1 = @"
@@ -12705,7 +12698,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void UnifyUnderlyingWithTuple_04()
         {
             var source1 = @"
@@ -13176,7 +13169,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void UnifyUnderlyingWithTuple_08()
         {
             var source = @"
@@ -13438,7 +13431,7 @@ False
             CompileAndVerify(consumer2, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void UnifyUnderlyingWithTuple_09()
         {
             var source = @"
@@ -13825,7 +13818,7 @@ namespace System
 4");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void UnifyUnderlyingWithTuple_12()
         {
             var source = @"
@@ -14086,7 +14079,7 @@ False
             CompileAndVerify(consumer2, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void UnifyUnderlyingWithTuple_13()
         {
             var source = @"
@@ -15453,7 +15446,7 @@ class D
             comp2.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
         public void LiteralsAndAmbiguousVT_01()
         {
@@ -15501,7 +15494,7 @@ class C3
             CompileAndVerify(comp, expectedOutput: "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
         public void LiteralsAndAmbiguousVT_02()
         {
@@ -15573,7 +15566,7 @@ class C3
             CompileAndVerify(comp, expectedOutput: "C2.M1");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
         [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
         public void LongLiteralsAndAmbiguousVT_02()
         {
@@ -15678,13 +15671,9 @@ namespace NS2
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib40AndSystemCore(source1,
-                references: s_valueTupleRefs,
-                assemblyName: "comp1");
+            var comp1 = CreateCompilation(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
-            var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2,
-                references: s_valueTupleRefs,
-                assemblyName: "comp2");
+            var comp2 = CreateCompilation(source2, assemblyName: "comp2");
             comp2.VerifyDiagnostics();
 
             var source3 = @"
@@ -15701,8 +15690,9 @@ class C3
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40(source3,
-                references: s_valueTupleRefs.Concat(new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference().WithAliases(ImmutableArray.Create("alias1")) }),
+            var comp = CreateCompilation(
+                source3,
+                references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference().WithAliases(ImmutableArray.Create("alias1")) },
                 parseOptions: TestOptions.Regular,
                 options: TestOptions.DebugExe);
 
@@ -15724,8 +15714,9 @@ class C3
 }
 ";
 
-            comp = CreateCompilationWithMscorlib40(source4,
-                references: s_valueTupleRefs.Concat(new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference().WithAliases(ImmutableArray.Create("alias1")) }),
+            comp = CreateCompilation(
+                source4,
+                references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference().WithAliases(ImmutableArray.Create("alias1")) },
                 parseOptions: TestOptions.Regular,
                 options: TestOptions.DebugExe);
 
@@ -15746,12 +15737,11 @@ class C3
 }
 ";
 
-            comp = CreateCompilationWithMscorlib40(source5,
+            comp = CreateCompilation(
+                source5,
                 references: new[] {
                     comp1.ToMetadataReference(),
                     comp2.ToMetadataReference().WithAliases(ImmutableArray.Create("alias1")),
-                    ValueTupleRef,
-                    SystemRuntimeFacadeRef
                 },
                 parseOptions: TestOptions.Regular,
                 options: TestOptions.DebugExe);
@@ -15761,7 +15751,7 @@ class C3
             CompileAndVerify(comp, expectedOutput: "C2.M1");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
         public void MultipleVT_01()
         {
             var source1 = @"
@@ -16086,7 +16076,7 @@ class C
             Assert.True(x1Symbol.Type.TupleElementNames.IsDefault);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
         public void CompileTupleLib()
         {
             string additionalSource = @"
@@ -20257,7 +20247,7 @@ class C
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NeedsTupleUndefined)]
         public void DefiniteAssignment015()
         {
             var source = @"
@@ -21581,7 +21571,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSharp(lib, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var libComp = CreateCompilationWithCSharp(lib, options: TestOptions.DebugDll);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -21610,16 +21600,14 @@ namespace ConsoleApplication5
 
             var libCompRef = AssemblyMetadata.CreateFromImage(libComp.EmitToArray()).GetReference();
 
-            var comp = CompileAndVerifyWithMscorlib40(source, expectedOutput: "42qq", references: s_valueTupleRefs.Concat(new[] { libCompRef }).ToArray(), options: TestOptions.DebugExe, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, expectedOutput: "42qq", references: new[] { libCompRef }, options: TestOptions.DebugExe, verify: Verification.Fails);
 
             var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
 
             var b = m.OverriddenMethod;
             Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Goo(System.Int32 arg)", b.ToTestDisplayString());
-
         }
-
 
         [Fact]
         [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
@@ -21859,7 +21847,7 @@ implicit operator AA
 
         [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
         [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void RefTupleDynamicDecode003()
         {
             string lib = @"
@@ -21955,7 +21943,7 @@ namespace ConsoleApplication5
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: (new[] { libCompRef }).Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithCSharp(source, references: new[] { libCompRef }, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: "42qq", verify: Verification.Fails);
 
@@ -23402,7 +23390,7 @@ class P
         Console.Write($""{x1} {x2} {x3}"");
     }
 }";
-            var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(1, 1) (1, 1) (1, System.Object)");
         }
@@ -23532,9 +23520,8 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib40(
+            var comp = CreateCompilation(
                 source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"(-1, 255)(-1, 255)overflow");
             verifier.VerifyIL("C.Default",

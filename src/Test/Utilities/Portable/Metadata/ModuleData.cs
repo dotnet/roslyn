@@ -92,9 +92,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private string GetDebuggerDisplay()
-        {
-            return FullName + " {" + Mvid + "}";
-        }
+        private string GetDebuggerDisplay() => FullName + " {" + Mvid + "}";
+        public override string ToString() => GetDebuggerDisplay();
     }
 }
