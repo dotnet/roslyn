@@ -120,7 +120,6 @@
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <DeployExtension Condition="'$(VisualStudioVersion)' != '15.0' and '$(VisualStudioVersion)' != '16.0'">false</DeployExtension>
-    <VisualStudioBuildToolsVersion>$(MicrosoftVSSDKBuildToolsVersion)</VisualStudioBuildToolsVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DevEnvDir)' == ''">
@@ -151,8 +150,8 @@
 
   <ImportGroup Label="WindowsImports" Condition="'$(OS)' == 'Windows_NT'">
     <Import 
-      Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props"
-      Condition="Exists('$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props')" />
+      Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(MicrosoftVSSDKBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props"
+      Condition="Exists('$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(MicrosoftVSSDKBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props')" />
   </ImportGroup>
 
   <!--
