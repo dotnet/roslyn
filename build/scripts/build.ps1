@@ -381,7 +381,7 @@ function Build-Installer () {
     Create-Directory $intermidateDirectory
 
     ## Copying VsixExpInstaller.exe
-    $vsixExpInstallerDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
+    $vsixExpInstallerDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
     $vsixExpInstallerExe = Join-Path $vsixExpInstallerDir "tools\*"
     $vsixExpInstallerExeDestination = Join-Path $intermidateDirectory "tools\vsixexpinstaller"
     Create-Directory $vsixExpInstallerExeDestination
