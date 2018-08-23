@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             var field = fieldReferenceOperation.Field;
             if (field.ContainingType.IsTupleType)
             {
-                if (field.CorrespondingTupleField.Equals(field))
+                if (option.Value && field.CorrespondingTupleField.Equals(field))
                 {
                     var namedField = GetNamedField(field.ContainingType, field, cancellationToken);
                     if (namedField != null)
