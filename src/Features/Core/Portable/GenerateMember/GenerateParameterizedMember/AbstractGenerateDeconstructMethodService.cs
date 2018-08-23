@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         where TExpressionSyntax : SyntaxNode
         where TInvocationExpressionSyntax : TExpressionSyntax
     {
-        // Make a language-specific identifier token for "Deconstruct"
-        protected abstract SyntaxToken MakeDeconstructToken();
-
         public async Task<ImmutableArray<CodeAction>> GenerateDeconstructMethodAsync(
             Document document,
             SyntaxNode targetVariables,

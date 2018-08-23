@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
 {
@@ -21,10 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
     {
         private const string CS8129 = nameof(CS8129); // No suitable Deconstruct instance or extension method was found...
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(CS8129); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8129);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -35,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
             }
 
             var document = context.Document;
-            var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var cancellationToken = context.CancellationToken;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var span = context.Span;
             var token = root.FindToken(span.Start);
 
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
                 return;
             }
 
-            var model = await document.GetSemanticModelForNodeAsync(deconstruction, context.CancellationToken).ConfigureAwait(false);
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             DeconstructionInfo info;
             ITypeSymbol type;
@@ -66,8 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
                     target = assignment.Left;
                     break;
                 default:
-                    Debug.Assert(false);
-                    return;
+                    throw ExceptionUtilities.Unreachable;
             }
 
             if (type.Kind != SymbolKind.NamedType)
@@ -82,12 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
             }
 
             var service = document.GetLanguageService<IGenerateDeconstructMemberService>();
-            var codeActions = await service.GenerateDeconstructMethodAsync(document, target, (INamedTypeSymbol)type, context.CancellationToken).ConfigureAwait(false);
+            var codeActions = await service.GenerateDeconstructMethodAsync(document, target, (INamedTypeSymbol)type, cancellationToken).ConfigureAwait(false);
 
-            if (!codeActions.IsDefaultOrEmpty)
-            {
-                context.RegisterFixes(codeActions, context.Diagnostics);
-            }
+            Debug.Assert(!codeActions.IsDefault);
+            context.RegisterFixes(codeActions, context.Diagnostics);
         }
     }
 }

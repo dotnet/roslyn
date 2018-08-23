@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -27,12 +28,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (await state.TryInitializeMethodAsync(service, document, targetVariables, typeToGenerateIn, cancellationToken).ConfigureAwait(false))
+                if (!await state.TryInitializeMethodAsync(service, document, targetVariables, typeToGenerateIn, cancellationToken).ConfigureAwait(false))
                 {
-                    return state;
+                    return null;
                 }
 
-                return null;
+                return state;
             }
 
             private async Task<bool> TryInitializeMethodAsync(
@@ -44,7 +45,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 this.TypeToGenerateIn = typeToGenerateIn;
                 this.IsStatic = false;
-                this.IdentifierToken = service.MakeDeconstructToken();
+                var generator = SyntaxGenerator.GetGenerator(document.Document);
+                this.IdentifierToken = generator.Identifier(WellKnownMemberNames.DeconstructMethodName);
                 this.MethodGenerationKind = MethodGenerationKind.Member;
                 MethodKind = MethodKind.Ordinary;
 
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
 
                 var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: ImmutableArray<AttributeData>.Empty,
+                    attributes: default,
                     accessibility: default,
                     modifiers: default,
                     returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
