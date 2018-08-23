@@ -149,7 +149,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.AddItem(completionItem);
             }
 
-            context.CompletionListSpan = await GetTextChangeSpanAsync(context.Document, context.CompletionListSpan, cancellationToken);
+            if (context.Items.Count > 0)
+            {
+                context.CompletionListSpan = await GetTextChangeSpanAsync(context.Document, context.CompletionListSpan, cancellationToken);
+            }
         }
 
         private static bool IsProjectTypeUnsupported(Project project)
@@ -247,22 +250,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, TextSpan startSpan, CancellationToken cancellationToken)
         {
+            var result = startSpan;
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(startSpan.Start);
-            if (syntaxFactsService.IsStringLiteral(token) && !string.IsNullOrEmpty(token.ValueText))
+            var token = root.FindToken(result.Start);
+            if (syntaxFactsService.IsStringLiteral(token) || syntaxFactsService.IsVerbatimStringLiteral(token))
             {
-                startSpan = token.Span;
-                var positionOfValueIntText = token.Text.IndexOf(token.ValueText);
-                if (positionOfValueIntText >= 0)
-                {
-                    startSpan = new TextSpan(
-                        start: token.Span.Start + positionOfValueIntText,
-                        length: token.ValueText.Length);
-                }
+                result = token.Span;
+                var contentStartsAt = token.Text.IndexOf('"');
+                contentStartsAt = contentStartsAt >= 0
+                    ? contentStartsAt + 1
+                    : contentStartsAt;
+                var contentEndsAt = token.Span.Length == 0
+                    ? 0
+                    : token.Text[token.Span.Length - 1] == '"'
+                        ? token.Span.End - 1
+                        : startSpan.End; // The string is open ended. We keep the right end as is.
+                result = TextSpan.FromBounds(
+                    start: token.Span.Start + contentStartsAt,
+                    end: contentEndsAt);
             }
 
-            return startSpan;
+            return result;
         }
 
         private static async Task<string> GetPublicKeyOfProjectAsync(Project project, CancellationToken cancellationToken)
