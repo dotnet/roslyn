@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <!-- RoslynDiagnosticsNugetPackageVersion is used by several individual analyzer references below -->
-    <RoslynDiagnosticsNugetPackageVersion>2.6.2-beta2-63202-01</RoslynDiagnosticsNugetPackageVersion>
+    <RoslynDiagnosticsNugetPackageVersion>2.6.2-beta2</RoslynDiagnosticsNugetPackageVersion>
 
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
     <BenchmarkDotNetVersion>0.11.0</BenchmarkDotNetVersion>
