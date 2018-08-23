@@ -165,7 +165,7 @@
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.0.0-beta2-63222-01</RoslynToolsVSIXExpInstallerVersion>
     <RoslynToolsMSBuildVersion>0.5.0-alpha</RoslynToolsMSBuildVersion>
-    <RoslynToolsNuGetRepackVersion>1.0.0-beta2-63217-01</RoslynToolsNuGetRepackVersion>
+    <RoslynToolsNuGetRepackVersion>1.0.0-beta2-63223-01</RoslynToolsNuGetRepackVersion>
     <RoslynToolsReferenceAssembliesVersion>0.1.3</RoslynToolsReferenceAssembliesVersion>
     <RoslynToolsSignToolVersion>1.0.0-beta2-dev3</RoslynToolsSignToolVersion>
     <RoslynToolsBuildTasksVersion>1.0.0-beta2-63217-01</RoslynToolsBuildTasksVersion>

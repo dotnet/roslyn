@@ -24,6 +24,9 @@
     <!-- Force references among packages to use exact versions (see https://github.com/NuGet/Home/issues/7213) -->
     <Roslyn.Tools.UpdatePackageVersionTask VersionKind="release" Packages="@(_BuiltPackages)" OutputDirectory="$(ArtifactsPackagesDir)Release" AllowPreReleaseDependencies="true" ExactVersions="true" />
     <Roslyn.Tools.UpdatePackageVersionTask VersionKind="prerelease" Packages="@(_BuiltPackages)" OutputDirectory="$(ArtifactsPackagesDir)PreRelease" ExactVersions="true"/>
+
+    <!-- Rewrite the version ranges of per-build pre-release packages (see https://github.com/NuGet/Home/issues/7213) -->
+    <Roslyn.Tools.UpdatePackageVersionTask Packages="@(_BuiltPackages)" OutputDirectory="$(ArtifactsShippingPackagesDir)" ExactVersions="true"/>
   </Target>
 
 </Project>
