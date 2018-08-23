@@ -148,6 +148,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     properties: ImmutableDictionary.Create<string, string>().Add(ProjectGuidKey, projectGuid));
                 context.AddItem(completionItem);
             }
+
+            context.CompletionListSpan = await GetTextChangeSpanAsync(context.Document, context.CompletionListSpan, cancellationToken);
         }
 
         private static bool IsProjectTypeUnsupported(Project project)
@@ -239,30 +241,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 assemblyName += $", PublicKey={ publicKey }";
             }
 
-            var span = await GetTextChangeSpanAsync(document, item, cancellationToken);
-            var textChange = new TextChange(span, assemblyName);
+            var textChange = new TextChange(item.Span, assemblyName);
             return CompletionChange.Create(textChange);
         }
 
-        private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, TextSpan startSpan, CancellationToken cancellationToken)
         {
-            var span = item.Span;
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(item.Span.Start);
+            var token = root.FindToken(startSpan.Start);
             if (syntaxFactsService.IsStringLiteral(token) && !string.IsNullOrEmpty(token.ValueText))
             {
-                span = token.Span;
+                startSpan = token.Span;
                 var positionOfValueIntText = token.Text.IndexOf(token.ValueText);
                 if (positionOfValueIntText >= 0)
                 {
-                    span = new TextSpan(
+                    startSpan = new TextSpan(
                         start: token.Span.Start + positionOfValueIntText,
                         length: token.ValueText.Length);
                 }
             }
 
-            return span;
+            return startSpan;
         }
 
         private static async Task<string> GetPublicKeyOfProjectAsync(Project project, CancellationToken cancellationToken)
