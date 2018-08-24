@@ -5288,7 +5288,7 @@ class C
             await TestInRegularAndScriptAsync(
 @"public class C
 {
-    public string Foo { get; set; }
+    public string Goo { get; set; }
 
     [Example([|2+2|])]
     public string Bar { get; set; }
@@ -5297,7 +5297,7 @@ class C
 {
     private const int {|Rename:V|} = 2 + 2;
 
-    public string Foo { get; set; }
+    public string Goo { get; set; }
 
     [Example(V)]
     public string Bar { get; set; }
@@ -5740,8 +5740,34 @@ class C
 class C
 {
     [Example( [| |] )]
-    public void Foo()
+    public void Goo()
     {
+    }
+}");
+        }
+
+        [WorkItem(28941, "https://github.com/dotnet/roslyn/issues/28941")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestElementAccessExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    byte[] getArray() => null;
+    void test()
+    {
+        var goo = [|getArray()|][0];
+    }
+}",
+@"using System;
+class C
+{
+    byte[] getArray() => null;
+    void test()
+    {
+        byte[] {|Rename:v|} = getArray();
+        var goo = v[0];
     }
 }");
         }
