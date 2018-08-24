@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Dim parent = node.Parent
             Dim statements = parent.GetStatements
             Dim nextIndex = 1 + statements.IndexOf(node)
-            If nextIndex < statements.Count - 1 Then
+            If nextIndex < statements.Count Then
                 Return statements(nextIndex)
             End If
 
