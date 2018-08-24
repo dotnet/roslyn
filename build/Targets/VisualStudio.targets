@@ -21,8 +21,7 @@
     </VSIXSourceItem>
     
     <NuGetPackageToIncludeInVsix>
-      <Visible>false</Visible>
-    </NuGetPackageToIncludeInVsix>
+      <Visible>false</Visible></NuGetPackageToIncludeInVsix>
   </ItemDefinitionGroup>
 
   <ImportGroup Condition="'$(ImportVSSDKTargets)' == 'true'">
@@ -143,7 +142,7 @@
   </Target>
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Returns="$(VsixVersion)">
+  <Target Name="GetVsixVersion" Returns="$(VsixVersion)">
     <Error Text="Invalid format of OfficialBuildId: '$(OfficialBuildId)'"
            Condition="$(VersionSuffixDateStamp) != '' and ($(VersionSuffixDateStamp.Length) != 5 or $(VersionSuffixBuildOfTheDayPadded.Length) != 2)"/>
   </Target>
