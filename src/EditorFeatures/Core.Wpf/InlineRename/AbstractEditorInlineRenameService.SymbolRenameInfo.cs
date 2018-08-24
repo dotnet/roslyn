@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public string GetFinalSymbolName(string replacementText)
             {
-                if (_isRenamingAttributePrefix)
+                if (_isRenamingAttributePrefix && !replacementText.EndsWith(AttributeSuffix))
                 {
                     return replacementText + AttributeSuffix;
                 }
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
             {
                 return _refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, RenameSymbol,
-                    this.GetFinalSymbolName(replacementText), throwOnFailure: false);
+                     this.GetFinalSymbolName(replacementText), throwOnFailure: false);
             }
 
             public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)

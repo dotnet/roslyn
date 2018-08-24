@@ -153,7 +153,8 @@ class Deconstructable
                                                            renameTextPrefix As String,
                                                            Optional renameOverloads As Boolean = False,
                                                            Optional renameInStrings As Boolean = False,
-                                                           Optional renameInComments As Boolean = False) As Task
+                                                           Optional renameInComments As Boolean = False,
+                                                           Optional isRenameAttribute As Boolean = False) As Task
             Dim optionSet = workspace.Options
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, renameOverloads)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInStrings, renameInStrings)
@@ -173,7 +174,11 @@ class Deconstructable
 
             session.Commit()
 
-            Await VerifyTagsAreCorrect(workspace, replacementText)
+            Dim checkReplacementText As String = replacementText
+            If isRenameAttribute Then
+                checkReplacementText = checkReplacementText + "Attribute"
+            End If
+            Await VerifyTagsAreCorrect(workspace, checkReplacementText)
         End Function
 
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/13186")>
@@ -211,12 +216,14 @@ class Program
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(21657,"https://github.com/dotnet/roslyn/issues/21657")>
+        <WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")>
         Public Async Function RenameAttributeCSharp() As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
+using System;
+
 class [|$$ustom|]Attribute : Attribute 
 {
 }
@@ -224,7 +231,7 @@ class [|$$ustom|]Attribute : Attribute
                         </Project>
                     </Workspace>)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "ustomAttribute", "C")
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "ustom", "C", isRenameAttribute:=True)
             End Using
         End Function
 
