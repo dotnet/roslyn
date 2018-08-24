@@ -150,22 +150,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             }
         }
 
-        protected override StatementSyntax AsEmbeddedStatement(
-            StatementSyntax originalStatement,
-            IEnumerable<StatementSyntax> newStatements)
+        protected override StatementSyntax AsEmbeddedStatement(IEnumerable<StatementSyntax> statements, StatementSyntax original)
         {
-            var statements = newStatements.ToArray();
-            if (statements.Length > 0)
+            var statementArray = statements.ToArray();
+            if (statementArray.Length > 0)
             {
-                // FIXME preserve comments
-                statements[0] = statements[0].WithoutLeadingTrivia();
+                statementArray[0] = statementArray[0].GetNodeWithoutLeadingBlankLines();
             }
 
-            return originalStatement is BlockSyntax block
-                ? block.WithStatements(SyntaxFactory.List(statements))
-                : statements.Length == 1
-                    ? statements[0]
-                    : SyntaxFactory.Block(statements);
+            return original is BlockSyntax block
+                ? block.WithStatements(SyntaxFactory.List(statementArray))
+                : statementArray.Length == 1
+                    ? statementArray[0]
+                    : SyntaxFactory.Block(statementArray);
         }
 
         protected override IfStatementSyntax UpdateIf(

@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
             {
                 continue;
             }
+            // comments
             f();
         }
     }
@@ -331,6 +332,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             [||]if (c)
             {
+                // comments
                 f();
             }
         }

@@ -424,8 +424,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         protected abstract TEmbeddedStatement GetEmptyEmbeddedStatement();
 
         protected abstract TEmbeddedStatement AsEmbeddedStatement(
-            TEmbeddedStatement originalStatement,
-            IEnumerable<TStatementSyntax> newStatements);
+            IEnumerable<TStatementSyntax> statements,
+            TEmbeddedStatement original);
 
         protected abstract TIfStatementSyntax UpdateIf(
             SourceText sourceText,
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                             text,
                             ifNode: ifNode,
                             condition: negatedExpression,
-                            trueStatement: AsEmbeddedStatement(ifBody, statementsAfterIf));
+                            trueStatement: AsEmbeddedStatement(statementsAfterIf, original: ifBody));
 
                         var updatedParent = WithStatements(
                             currentParent,
@@ -520,7 +520,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                             text,
                             ifNode: ifNode,
                             condition: negatedExpression,
-                            trueStatement: AsEmbeddedStatement(ifBody, new[] { newIfBody }));
+                            trueStatement: AsEmbeddedStatement(
+                                SpecializedCollections.SingletonEnumerable(newIfBody), original: ifBody));
 
                         var statementsBeforeIf = statements.Take(index);
 
@@ -546,7 +547,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                             text,
                             ifNode: ifNode,
                             condition: negatedExpression,
-                            trueStatement: AsEmbeddedStatement(ifBody, new[] { newIfBody }));
+                            trueStatement: AsEmbeddedStatement(
+                                SpecializedCollections.SingletonEnumerable(newIfBody), ifBody));
 
                         var statementsBeforeIf = statements.Take(index);
 
@@ -571,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                             text,
                             ifNode: ifNode,
                             condition: negatedExpression,
-                            trueStatement: AsEmbeddedStatement(ifBody, statementsAfterIf));
+                            trueStatement: AsEmbeddedStatement(statementsAfterIf, ifBody));
 
                         var updatedParent = WithStatements(
                             currentParent,
@@ -595,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                             text,
                             ifNode: ifNode,
                             condition: negatedExpression,
-                            trueStatement: AsEmbeddedStatement(ifBody, statementsAfterIf),
+                            trueStatement: AsEmbeddedStatement(statementsAfterIf, ifBody),
                             falseStatementOpt: ifBody);
 
                         var updatedParent = WithStatements(

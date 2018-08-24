@@ -102,8 +102,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return SyntaxFactory.List(Of StatementSyntax)
         End Function
 
-        Protected NotOverridable Overrides Function AsEmbeddedStatement(originalStatement As SyntaxList(Of StatementSyntax), newStatements As IEnumerable(Of StatementSyntax)) As SyntaxList(Of StatementSyntax)
-            Return SyntaxFactory.List(newStatements)
+        Protected NotOverridable Overrides Function AsEmbeddedStatement(statements As IEnumerable(Of StatementSyntax), original As SyntaxList(Of StatementSyntax)) As SyntaxList(Of StatementSyntax)
+            Return SyntaxFactory.List(statements)
         End Function
 
         Protected NotOverridable Overrides Function WithStatements(node As SyntaxNode, statements As IEnumerable(Of StatementSyntax)) As SyntaxNode
