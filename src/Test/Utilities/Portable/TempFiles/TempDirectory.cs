@@ -54,7 +54,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TempFile CreateFile(string name)
         {
             string filePath = System.IO.Path.Combine(_path, name);
-            TempRoot.CreateStream(filePath);
+            TempRoot.CreateStream(filePath, FileMode.CreateNew);
+            return _root.AddFile(new DisposableFile(filePath));
+        }
+
+        /// <summary>
+        /// Creates a file or opens an existing file in this directory.
+        /// </summary>
+        public TempFile CreateOrOpenFile(string name)
+        {
+            string filePath = System.IO.Path.Combine(_path, name);
+            TempRoot.CreateStream(filePath, FileMode.OpenOrCreate);
             return _root.AddFile(new DisposableFile(filePath));
         }
 

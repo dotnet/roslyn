@@ -1578,6 +1578,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 7.3
         WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
         ERR_OutVariableCannotBeByRef = 8388,
+
+        WRN_InvalidSeverityInAnalyzerConfig = 8500,
+        ERR_MultipleAnalyzerConfigsInSameDir = 8501,
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }

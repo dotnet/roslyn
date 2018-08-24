@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Execution
         /// this is not real option set. it doesn't have all options defined in host. but only those
         /// we pre-selected.
         /// </summary>
-        protected class SerializedPartialOptionSet : OptionSet
+        protected class SerializedPartialOptionSet : OptionSet, IInternalOptionSet
         {
             private readonly ImmutableDictionary<OptionKey, object> _values;
 
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return new SerializedPartialOptionSet(_values.SetItem(optionAndLanguage, value));
             }
 
-            internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+            internal virtual IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
             {
                 foreach (var kvp in _values)
                 {
@@ -400,6 +400,11 @@ namespace Microsoft.CodeAnalysis.Execution
                         yield return kvp.Key;
                     }
                 }
+            }
+
+            IEnumerable<OptionKey> IInternalOptionSet.GetChangedOptions(OptionSet optionSet)
+            {
+                return GetChangedOptions(optionSet);
             }
         }
     }

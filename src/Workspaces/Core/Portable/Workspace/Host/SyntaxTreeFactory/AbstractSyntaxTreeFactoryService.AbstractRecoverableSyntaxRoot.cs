@@ -1,5 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -18,14 +22,24 @@ namespace Microsoft.CodeAnalysis.Host
             public readonly ValueSource<TextAndVersion> TextSource;
             public readonly Encoding Encoding;
             public readonly int Length;
+            public readonly ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions;
 
-            public SyntaxTreeInfo(string filePath, ParseOptions options, ValueSource<TextAndVersion> textSource, Encoding encoding, int length)
+            public SyntaxTreeInfo(
+                string filePath,
+                ParseOptions options,
+                ValueSource<TextAndVersion> textSource,
+                Encoding encoding,
+                int length,
+                ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
             {
+                Debug.Assert(!(diagnosticOptions is null));
+
                 FilePath = filePath ?? string.Empty;
                 Options = options;
                 TextSource = textSource;
                 Encoding = encoding;
                 Length = length;
+                DiagnosticOptions = diagnosticOptions;
             }
 
             internal bool TryGetText(out SourceText text)
@@ -50,12 +64,36 @@ namespace Microsoft.CodeAnalysis.Host
 
             internal SyntaxTreeInfo WithFilePath(string path)
             {
-                return new SyntaxTreeInfo(path, this.Options, this.TextSource, this.Encoding, this.Length);
+                return new SyntaxTreeInfo(
+                    path,
+                    Options,
+                    TextSource,
+                    Encoding,
+                    Length,
+                    DiagnosticOptions);
             }
 
             internal SyntaxTreeInfo WithOptionsAndLength(ParseOptions options, int length)
             {
-                return new SyntaxTreeInfo(this.FilePath, options, this.TextSource, this.Encoding, length);
+                return new SyntaxTreeInfo(
+                    FilePath,
+                    options,
+                    TextSource,
+                    Encoding,
+                    length,
+                    DiagnosticOptions);
+            }
+
+            internal SyntaxTreeInfo WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
+            {
+                Debug.Assert(!(options is null));
+                return new SyntaxTreeInfo(
+                    FilePath,
+                    Options,
+                    TextSource,
+                    Encoding,
+                    Length,
+                    options);
             }
         }
 

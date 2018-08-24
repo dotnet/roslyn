@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Threading;
 using System.Text;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -77,10 +78,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 throw new NotImplementedException();
             }
 
+            public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
+            {
+                throw new NotImplementedException();
+            }
+
             public override bool HasCompilationUnitRoot
             {
                 get { throw new NotImplementedException(); }
             }
+
+            public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => throw new NotImplementedException();
         }
     }
 }

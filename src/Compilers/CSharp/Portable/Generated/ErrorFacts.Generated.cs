@@ -180,6 +180,7 @@
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
+                case ErrorCode.WRN_InvalidSeverityInAnalyzerConfig:
                     return true;
                 default:
                     return false;

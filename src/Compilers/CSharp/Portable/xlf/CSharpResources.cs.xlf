@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
+        <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
+        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotCreateConstructedFromConstructed">
         <source>Cannot create constructed generic type from another constructed generic type.</source>
         <target state="new">Cannot create constructed generic type from another constructed generic type.</target>
@@ -395,6 +400,16 @@
       <trans-unit id="SyntaxTreeNotFoundToRemove">
         <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
         <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="new">Invalid severity in analyzer config file.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">

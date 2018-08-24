@@ -126,6 +126,95 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             }
         }
 
+        [Fact]
+        public void SimpleAnalyzerConfig()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+    int _f;
+}");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+dotnet_diagnostic.cs0169.severity = suppress");
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+        }
+
+        [Fact]
+        public void AnalyzerConfigBadSeverity()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+    int _f;
+}");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+dotnet_diagnostic.cs0169.severity = garbage");
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal(
+$@"warning CS8500: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
+test.cs(4,9): warning CS0169: The field 'C._f' is never used
+", outWriter.ToString());
+        }
+
+        [Fact]
+        public void AnalyzerConfigsInSameDir()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+    int _f;
+}");
+            var configText = @"
+[*.cs]
+dotnet_diagnostic.cs0169.severity = suppress";
+
+            var analyzerConfig1 = dir.CreateFile("analyzerconfig1").WriteAllText(configText);
+            var analyzerConfig2 = dir.CreateFile("analyzerconfig2").WriteAllText(configText);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig1.Path,
+                "/analyzerconfig:" + analyzerConfig2.Path,
+                src.Path
+            });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.Equal(
+                $"error CS8501: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
+                outWriter.ToString().TrimEnd());
+        }
 
         // This test should only run when the machine's default encoding is shift-JIS
         [ConditionalFact(typeof(HasShiftJisDefaultEncoding))]
@@ -8355,6 +8444,49 @@ using System.Diagnostics; // Unused.
             args = DefaultParse(new[] { "/additionalfile:", "a.cs" }, _baseDirectory);
             args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "additionalfile"));
             Assert.Equal(0, args.AdditionalFiles.Length);
+        }
+
+
+        [Fact]
+        public void ParseEditorConfig()
+        {
+            var args = DefaultParse(new[] { "/analyzerconfig:.editorconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths.Single());
+
+            args = DefaultParse(new[] { "/analyzerconfig:.editorconfig", "a.cs", "/analyzerconfig:subdir\\.editorconfig" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths[0]);
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\\.editorconfig"), args.AnalyzerConfigPaths[1]);
+
+            args = DefaultParse(new[] { "/analyzerconfig:.editorconfig", "a.cs", "/analyzerconfig:.editorconfig" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths[0]);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths[1]);
+
+            args = DefaultParse(new[] { "/analyzerconfig:..\\.editorconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(Path.Combine(_baseDirectory, "..\\.editorconfig"), args.AnalyzerConfigPaths.Single());
+
+            args = DefaultParse(new[] { "/analyzerconfig:.editorconfig;subdir\\.editorconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths[0]);
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\\.editorconfig"), args.AnalyzerConfigPaths[1]);
+
+            args = DefaultParse(new[] { "/analyzerconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<file list>' for 'analyzerconfig' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "analyzerconfig").WithLocation(1, 1));
+            Assert.Equal(0, args.AnalyzerConfigPaths.Length);
+
+            args = DefaultParse(new[] { "/analyzerconfig:", "a.cs" }, _baseDirectory);
+            args.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<file list>' for 'analyzerconfig' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "analyzerconfig").WithLocation(1, 1));
+            Assert.Equal(0, args.AnalyzerConfigPaths.Length);
         }
 
         private static int OccurrenceCount(string source, string word)

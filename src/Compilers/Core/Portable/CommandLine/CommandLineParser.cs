@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath)
+        private protected CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath)
         {
             string extension = PathUtilities.GetExtension(resolvedPath);
 
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis
             return new CommandLineSourceFile(resolvedPath, isScriptFile);
         }
 
-        internal IEnumerable<CommandLineSourceFile> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
+        internal IEnumerable<string> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
         {
             Debug.Assert(IsScriptCommandLineParser || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
 
@@ -835,12 +835,12 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    yield return ToCommandLineSourceFile(resolvedPath);
+                    yield return resolvedPath;
                 }
             }
         }
 
-        internal IEnumerable<CommandLineSourceFile> ParseSeparatedFileArgument(string value, string baseDirectory, IList<Diagnostic> errors)
+        private protected IEnumerable<string> ParseSeparatedFileArgument(string value, string baseDirectory, IList<Diagnostic> errors)
         {
             foreach (string path in ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)))
             {
@@ -853,7 +853,10 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<CommandLineSourceFile> ParseRecurseArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
         {
-            return ExpandFileNamePattern(arg, baseDirectory, SearchOption.AllDirectories, errors);
+            foreach (var path in ExpandFileNamePattern(arg, baseDirectory, SearchOption.AllDirectories, errors))
+            {
+                yield return ToCommandLineSourceFile(path);
+            }
         }
 
         internal static Encoding TryParseEncodingName(string arg)
@@ -893,7 +896,7 @@ namespace Microsoft.CodeAnalysis
             return SourceHashAlgorithm.None;
         }
 
-        private IEnumerable<CommandLineSourceFile> ExpandFileNamePattern(
+        private IEnumerable<string> ExpandFileNamePattern(
             string path,
             string baseDirectory,
             SearchOption searchOption,
@@ -952,7 +955,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         yielded = true;
-                        yield return ToCommandLineSourceFile(resolvedPath);
+                        yield return resolvedPath;
                     }
                 }
 

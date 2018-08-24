@@ -1,11 +1,97 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestHelpers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class VisualBasicSyntaxTreeTests
+        <Fact>
+        Public Sub CreateTreeWithDiagnosticOptions()
+            Dim options = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
+            Dim tree = VisualBasicSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""), diagnosticOptions:=options)
+            Assert.Same(options, tree.DiagnosticOptions)
+        End Sub
+
+        <Fact>
+        Public Sub ParseTreeWithChangesPreservesDiagnosticOptions()
+            Dim options = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+                SourceText.From(""),
+                diagnosticOptions:=options)
+            Assert.Same(options, tree.DiagnosticOptions)
+            Dim newTree = tree.WithChangedText(SourceText.From("Class B : End Class"))
+            Assert.Same(options, newTree.DiagnosticOptions)
+        End Sub
+
+        <Fact>
+        Public Sub ParseTreeNullDiagnosticOptions()
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+                SourceText.From(""),
+                diagnosticOptions:=Nothing)
+            Assert.NotNull(tree.DiagnosticOptions)
+            Assert.True(tree.DiagnosticOptions.IsEmpty)
+            ' The default options are case insensitive but the default empty ImmutableDictionary is not
+            Assert.NotSame(ImmutableDictionary(Of String, ReportDiagnostic).Empty, tree.DiagnosticOptions)
+        End Sub
+
+        <Fact>
+        Public Sub ParseTreeEmptyDiagnosticOptions()
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+                SourceText.From(""),
+                diagnosticOptions:=ImmutableDictionary(Of String, ReportDiagnostic).Empty)
+            Assert.NotNull(tree.DiagnosticOptions)
+            Assert.True(tree.DiagnosticOptions.IsEmpty)
+            Assert.Same(ImmutableDictionary(Of String, ReportDiagnostic).Empty, tree.DiagnosticOptions)
+        End Sub
+
+        <Fact>
+        Public Sub ParseTreeCustomDiagnosticOptions()
+            Dim options = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+                SourceText.From(""),
+                diagnosticOptions:=options)
+            Assert.Same(options, tree.DiagnosticOptions)
+        End Sub
+
+        <Fact>
+        Public Sub DefaultTreeDiagnosticOptions()
+            Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
+            Assert.NotNull(tree.DiagnosticOptions)
+            Assert.True(tree.DiagnosticOptions.IsEmpty)
+        End Sub
+
+        <Fact>
+        Public Sub WithDiagnosticOptionsNull()
+            Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
+            Dim newTree = tree.WithDiagnosticOptions(Nothing)
+            Assert.NotNull(newTree.DiagnosticOptions)
+            Assert.True(newTree.DiagnosticOptions.IsEmpty)
+            Assert.Same(tree, newTree)
+        End Sub
+
+        <Fact>
+        Public Sub WithDiagnosticOptionsEmpty()
+            Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
+            Dim newTree = tree.WithDiagnosticOptions(ImmutableDictionary(Of String, ReportDiagnostic).Empty)
+            Assert.NotNull(tree.DiagnosticOptions)
+            Assert.True(newTree.DiagnosticOptions.IsEmpty)
+            ' Default empty immutable dictionary is not case insensitive
+            Assert.NotSame(tree.DiagnosticOptions, newTree.DiagnosticOptions)
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsNewDict()
+            Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
+            Dim map = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
+            Dim newTree = tree.WithDiagnosticOptions(map)
+            Assert.NotNull(newTree.DiagnosticOptions)
+            Assert.Same(map, newTree.DiagnosticOptions)
+            Assert.NotEqual(tree, newTree)
+        End Sub
+
         <Fact>
         Public Sub WithRootAndOptions_ParsedTree()
             Dim oldTree = SyntaxFactory.ParseSyntaxTree("Class B : End Class")

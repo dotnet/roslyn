@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 
@@ -14,7 +15,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public static void Log(OptionSet oldOptions, OptionSet newOptions)
         {
-            foreach (var optionKey in newOptions.GetChangedOptions(oldOptions))
+            if (!(newOptions is IInternalOptionSet internalNewOptions))
+                throw new NotSupportedException();
+
+            foreach (var optionKey in internalNewOptions.GetChangedOptions(oldOptions))
             {
                 var oldValue = oldOptions.GetOption(optionKey);
                 var currentValue = newOptions.GetOption(optionKey);

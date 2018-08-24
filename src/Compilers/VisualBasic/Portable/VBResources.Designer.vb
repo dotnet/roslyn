@@ -7423,6 +7423,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Multiple analyzer config files cannot be in the same directory (&apos;{0}&apos;)..
+        '''</summary>
+        Friend ReadOnly Property ERR_MultipleAnalyzerConfigsInSameDir() As String
+            Get
+                Return ResourceManager.GetString("ERR_MultipleAnalyzerConfigsInSameDir", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type parameter &apos;{0}&apos; can only have one constraint that is a class..
         '''</summary>
         Friend ReadOnly Property ERR_MultipleClassConstraints1() As String
@@ -12251,7 +12260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ResourceManager.GetString("FieldInitializerSyntaxNotWithinSyntaxTree", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to File name &apos;{0}&apos; is empty, contains invalid characters, has a drive specification without an absolute path, or is too long.
         '''</summary>
@@ -13797,6 +13806,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property WRN_InvalidOverrideDueToTupleNames2_Title() As String
             Get
                 Return ResourceManager.GetString("WRN_InvalidOverrideDueToTupleNames2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to The diagnostic &apos;{0}&apos; was given an invalid severity &apos;{1}&apos; in the analyzer config file at &apos;{2}&apos;..
+        '''</summary>
+        Friend ReadOnly Property WRN_InvalidSeverityInAnalyzerConfig() As String
+            Get
+                Return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Invalid severity in analyzer config file..
+        '''</summary>
+        Friend ReadOnly Property WRN_InvalidSeverityInAnalyzerConfig_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig_Title", resourceCulture)
             End Get
         End Property
         

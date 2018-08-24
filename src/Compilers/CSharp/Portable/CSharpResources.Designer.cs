@@ -6623,6 +6623,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Multiple analyzer config files cannot be in the same directory (&apos;{0}&apos;)..
+        /// </summary>
+        internal static string ERR_MultipleAnalyzerConfigsInSameDir {
+            get {
+                return ResourceManager.GetString("ERR_MultipleAnalyzerConfigsInSameDir", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point..
         /// </summary>
         internal static string ERR_MultipleEntryPoints {
@@ -13723,6 +13732,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_InvalidSearchPathDir_Title {
             get {
                 return ResourceManager.GetString("WRN_InvalidSearchPathDir_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The diagnostic &apos;{0}&apos; was given an invalid severity &apos;{1}&apos; in the analyzer config file at &apos;{2}&apos;..
+        /// </summary>
+        internal static string WRN_InvalidSeverityInAnalyzerConfig {
+            get {
+                return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid severity in analyzer config file..
+        /// </summary>
+        internal static string WRN_InvalidSeverityInAnalyzerConfig_Title {
+            get {
+                return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig_Title", resourceCulture);
             }
         }
         

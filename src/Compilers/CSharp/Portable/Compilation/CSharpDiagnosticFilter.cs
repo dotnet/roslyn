@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -88,8 +89,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return d.WithReportDiagnostic(reportAction);
         }
 
-        // Take a warning and return the final deposition of the given warning,
-        // based on both command line options and pragmas.
+        /// <summary>
+        /// Take a warning and return the final disposition of the given warning,
+        /// based on both command line options and pragmas. The diagnostic options
+        /// have precedence in the following order:
+        ///     1. Warning level
+        ///     2. Syntax tree level
+        ///     3. Compilation level
+        ///     4. Global warning level
+        ///
+        /// Pragmas are considered seperately. If a diagnostic would not otherwise
+        /// be suppressed, but is suppressed by a pragma, <paramref name="hasPragmaSuppression"/>
+        /// is true but the diagnostic is not reported as suppressed.
+        /// </summary> 
         internal static ReportDiagnostic GetDiagnosticReport(
             DiagnosticSeverity severity,
             bool isEnabledByDefault,
@@ -104,29 +116,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             hasPragmaSuppression = false;
 
-            // Read options (e.g., /nowarn or /warnaserror)
-            ReportDiagnostic report = ReportDiagnostic.Default;
-            var isSpecified = specificDiagnosticOptions.TryGetValue(id, out report);
-            if (!isSpecified)
-            {
-                report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
-            }
-
-            // Compute if the reporting should be suppressed.
-            if (diagnosticWarningLevel > warningLevelOption  // honor the warning level
-                || report == ReportDiagnostic.Suppress)                // check options (/nowarn)
+            // 1. Warning level
+            if (diagnosticWarningLevel > warningLevelOption)
             {
                 return ReportDiagnostic.Suppress;
             }
 
-            // If location is available, check out pragmas
-            if (location != null &&
-                location.SourceTree != null &&
-                ((SyntaxTree)location.SourceTree).GetPragmaDirectiveWarningState(id, location.SourceSpan.Start) == ReportDiagnostic.Suppress)
+            ReportDiagnostic report;
+            SyntaxTree tree = location?.SourceTree;
+            bool isSpecified = false;
+
+            if (tree != null && tree.DiagnosticOptions.TryGetValue(id, out var treeReport))
             {
-                hasPragmaSuppression = true;
+                // 2. Syntax tree level
+                report = treeReport;
+                isSpecified = true;
+            }
+            else if (specificDiagnosticOptions.TryGetValue(id, out var specificReport))
+            {
+                // 3. Compilation level
+                report = specificReport;
+                isSpecified = true;
+            }
+            else
+            {
+                report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
             }
 
+            // 4. Global options
             // Unless specific warning options are defined (/warnaserror[+|-]:<n> or /nowarn:<n>, 
             // follow the global option (/warnaserror[+|-] or /nowarn).
             if (report == ReportDiagnostic.Default)
@@ -135,14 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ReportDiagnostic.Error:
                         // If we've been asked to do warn-as-error then don't raise severity for anything below warning (info or hidden).
-                        if (severity == DiagnosticSeverity.Warning)
+                        // In the case where /warnaserror+ is followed by /warnaserror-:<n> on the command line,
+                        // do not promote the warning specified in <n> to an error.
+                        if (severity == DiagnosticSeverity.Warning && !isSpecified)
                         {
-                            // In the case where /warnaserror+ is followed by /warnaserror-:<n> on the command line,
-                            // do not promote the warning specified in <n> to an error.
-                            if (!isSpecified && (report == ReportDiagnostic.Default))
-                            {
-                                return ReportDiagnostic.Error;
-                            }
+                            report = ReportDiagnostic.Error;
                         }
                         break;
                     case ReportDiagnostic.Suppress:
@@ -151,14 +165,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // display a lightbulb would stop working if someone has suppress-all-warnings (/nowarn) specified in their project.
                         if (severity == DiagnosticSeverity.Warning || severity == DiagnosticSeverity.Info)
                         {
-                            return ReportDiagnostic.Suppress;
+                            report = ReportDiagnostic.Suppress;
                         }
-                        break;
-                    default:
                         break;
                 }
             }
 
+            // If the pragma suppresses the diagnostic, use a special pragma suppression marker
+            // This only takes effect if the diagnostic is not otherwise suppressed
+            if (report != ReportDiagnostic.Suppress &&
+                tree?.GetPragmaDirectiveWarningState(id, location.SourceSpan.Start) == ReportDiagnostic.Suppress)
+            {
+                hasPragmaSuppression = true;
+            }
+
+            Debug.Assert(!hasPragmaSuppression || report != ReportDiagnostic.Suppress);
             return report;
         }
     }

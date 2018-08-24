@@ -53,6 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ParseFile(consoleOutput As TextWriter,
                                    parseOptions As VisualBasicParseOptions,
                                    scriptParseOptions As VisualBasicParseOptions,
+                                   diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic),
                                    ByRef hadErrors As Boolean,
                                    file As CommandLineSourceFile,
                                    errorLogger As ErrorLogger) As SyntaxTree
@@ -67,7 +68,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(content, If(file.IsScript, scriptParseOptions, parseOptions), file.Path)
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+                content,
+                If(file.IsScript, scriptParseOptions, parseOptions),
+                file.Path,
+                diagnosticOptions)
 
             ' prepopulate line tables.
             ' we will need line tables anyways and it is better to Not wait until we are in emit
@@ -89,18 +94,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim sourceFiles As ImmutableArray(Of CommandLineSourceFile) = Arguments.SourceFiles
             Dim trees(sourceFiles.Length - 1) As SyntaxTree
+            Dim bag = DiagnosticBag.GetInstance()
+
+            Dim allTreeDiagnosticOptions As ImmutableArray(Of ImmutableDictionary(Of String, ReportDiagnostic)) = Nothing
+            If Arguments.AnalyzerConfigPaths.Length > 0 Then
+                allTreeDiagnosticOptions = ProcessAnalyzerConfigFiles(
+                    Arguments.AnalyzerConfigPaths,
+                    sourceFiles,
+                    hadErrors,
+                    bag)
+            End If
+
+            Debug.Assert(hadErrors = bag.HasAnyErrors())
+
+            If hadErrors Then
+                ReportErrors(bag.ToReadOnlyAndFree(), consoleOutput, errorLogger)
+                Return Nothing
+            End If
 
             If Arguments.CompilationOptions.ConcurrentBuild Then
                 Parallel.For(0, sourceFiles.Length,
                    UICultureUtilities.WithCurrentUICulture(Of Integer)(
                         Sub(i As Integer)
                             ' NOTE: order of trees is important!!
-                            trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
+                            trees(i) = ParseFile(
+                                consoleOutput,
+                                parseOptions,
+                                scriptParseOptions,
+                                If(allTreeDiagnosticOptions.IsDefault, Nothing, allTreeDiagnosticOptions(i)),
+                                hadErrors,
+                                sourceFiles(i),
+                                errorLogger)
                         End Sub))
             Else
                 For i = 0 To sourceFiles.Length - 1
                     ' NOTE: order of trees is important!!
-                    trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
+                    trees(i) = ParseFile(
+                        consoleOutput,
+                        parseOptions,
+                        scriptParseOptions,
+                        If(allTreeDiagnosticOptions.IsDefault, Nothing, allTreeDiagnosticOptions(i)),
+                        hadErrors,
+                        sourceFiles(i),
+                        errorLogger)
                 Next
             End If
 
@@ -116,6 +152,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim diagnostics = New List(Of DiagnosticInfo)()
+            For Each diag In bag.ToReadOnlyAndFree()
+                diagnostics.Add(New DiagnosticInfo(MessageProvider, diag.Code, diag.Arguments.ToArray()))
+            Next
 
             Dim assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default
 
