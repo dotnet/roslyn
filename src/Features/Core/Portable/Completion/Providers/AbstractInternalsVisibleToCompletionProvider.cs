@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (context.Items.Count > 0)
             {
-                context.CompletionListSpan = await GetTextChangeSpanAsync(context.Document, context.CompletionListSpan, cancellationToken);
+                context.CompletionListSpan = await GetTextChangeSpanAsync(context.Document, context.CompletionListSpan, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -251,10 +251,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, TextSpan startSpan, CancellationToken cancellationToken)
         {
             var result = startSpan;
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(result.Start);
-            if (syntaxFactsService.IsStringLiteral(token) || syntaxFactsService.IsVerbatimStringLiteral(token))
+            if (syntaxFacts.IsStringLiteral(token) || syntaxFacts.IsVerbatimStringLiteral(token))
             {
                 result = token.Span;
                 var contentStartsAt = token.Text.IndexOf('"');
@@ -265,13 +265,30 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     ? token.Span.End
                     : token.Text[token.Span.Length - 1] == '"'
                         ? token.Span.End - 1
-                        : startSpan.End; // The string is open ended. We keep the right end as is.
+                        : await GetEndOfOpenEndedStringLiteral(startSpan.End).ConfigureAwait(false); // The string is open ended. We keep the right end as is.
                 result = TextSpan.FromBounds(
                     start: token.Span.Start + contentStartsAt,
                     end: contentEndsAt);
             }
 
             return result;
+
+            async Task<int> GetEndOfOpenEndedStringLiteral(int startPosition)
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var end = startPosition;
+                while (end < text.Length)
+                {
+                    var ch = text[end];
+                    if (char.IsWhiteSpace(ch)) // this includes new line characters
+                    {
+                        break;
+                    }
+                    end++;
+                }
+
+                return end;
+            }
         }
 
         private static async Task<string> GetPublicKeyOfProjectAsync(Project project, CancellationToken cancellationToken)
