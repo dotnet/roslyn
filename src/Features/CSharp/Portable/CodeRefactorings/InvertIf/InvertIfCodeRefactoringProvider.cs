@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
-    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<IfStatementSyntax, StatementSyntax>
+    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<IfStatementSyntax, StatementSyntax, StatementSyntax>
     {
         protected override string GetTitle()
             => CSharpFeaturesResources.Invert_if;
@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         protected override bool IsNoOpSyntaxNode(SyntaxNode node)
             => node.IsKind(SyntaxKind.Block, SyntaxKind.EmptyStatement);
 
-        protected override bool IsStatement(SyntaxNode node)
+        protected override bool IsExecutableStatement(SyntaxNode node)
             => node is StatementSyntax;
 
-        protected override SyntaxNode GetNextStatement(SyntaxNode node)
-            => CSharpSyntaxFactsService.Instance.GetNextExecutableStatement(node);
+        protected override StatementSyntax GetNextStatement(StatementSyntax node)
+            => node.GetNextStatement();
 
         protected override StatementSyntax GetIfBody(IfStatementSyntax ifNode)
             => ifNode.Statement;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             return true;
         }
 
-        protected override SyntaxList<SyntaxNode> GetStatements(SyntaxNode node)
+        protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode node)
         {
             switch (node)
             {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             return -1;
         }
 
-        protected override SyntaxNode GetJumpStatement(int rawKind)
+        protected override StatementSyntax GetJumpStatement(int rawKind)
         {
             switch ((SyntaxKind)rawKind)
             {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
         protected override StatementSyntax AsEmbeddedStatement(
             StatementSyntax originalStatement,
-            IEnumerable<SyntaxNode> newStatements)
+            IEnumerable<StatementSyntax> newStatements)
         {
             var statements = newStatements.ToArray();
             if (statements.Length > 0)
@@ -164,45 +164,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             return originalStatement is BlockSyntax block
                 ? block.WithStatements(SyntaxFactory.List(statements))
                 : statements.Length == 1
-                    ? (StatementSyntax)statements[0]
-                    : SyntaxFactory.Block(statements.Cast<StatementSyntax>());
+                    ? statements[0]
+                    : SyntaxFactory.Block(statements);
         }
 
-        protected override SyntaxNode UpdateIf(
+        protected override IfStatementSyntax UpdateIf(
             SourceText sourceText,
             IfStatementSyntax ifNode,
             SyntaxNode condition,
-            StatementSyntax trueStatement = null,
-            StatementSyntax falseStatement = null)
+            StatementSyntax trueStatement,
+            StatementSyntax falseStatementOpt = null)
         {
             var isSingleLine = sourceText.AreOnSameLine(ifNode.GetFirstToken(), ifNode.GetLastToken());
-            if (trueStatement != null && falseStatement != null && isSingleLine)
+            if (isSingleLine && falseStatementOpt != null)
             {
                 // If statement is on a single line, and we're swapping the true/false parts.
                 // In that case, try to swap the trailing trivia between the true/false parts.
                 // That way the trailing comments/newlines at the end of hte 'if' stay there,
                 // and the spaces after the true-part stay where they are.
 
-                (trueStatement, falseStatement) =
-                    (trueStatement.WithTrailingTrivia(falseStatement.GetTrailingTrivia()),
-                     falseStatement.WithTrailingTrivia(trueStatement.GetTrailingTrivia()));
+                (trueStatement, falseStatementOpt) =
+                    (trueStatement.WithTrailingTrivia(falseStatementOpt.GetTrailingTrivia()),
+                     falseStatementOpt.WithTrailingTrivia(trueStatement.GetTrailingTrivia()));
             }
 
-            var updatedIf = ifNode.WithCondition((ExpressionSyntax)condition);
+            var updatedIf = ifNode
+                .WithCondition((ExpressionSyntax)condition)
+                .WithStatement(trueStatement is IfStatementSyntax
+                    ? SyntaxFactory.Block(trueStatement)
+                    : trueStatement);
 
-            if (trueStatement != null)
-            {
-                updatedIf = updatedIf.WithStatement(
-                    trueStatement is IfStatementSyntax
-                        ? SyntaxFactory.Block(trueStatement)
-                        : trueStatement);
-            }
-
-            if (falseStatement != null)
+            if (falseStatementOpt != null)
             {
                 var elseClause = updatedIf.Else != null
-                    ? updatedIf.Else.WithStatement(falseStatement)
-                    : SyntaxFactory.ElseClause(falseStatement);
+                    ? updatedIf.Else.WithStatement(falseStatementOpt)
+                    : SyntaxFactory.ElseClause(falseStatementOpt);
 
                 updatedIf = updatedIf.WithElse(elseClause);
             }
@@ -216,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 : updatedIf.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        protected override SyntaxNode WithStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)
+        protected override SyntaxNode WithStatements(SyntaxNode node, IEnumerable<StatementSyntax> statements)
         {
             switch (node)
             {
@@ -229,11 +225,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             }
         }
 
-        protected override IEnumerable<SyntaxNode> UnwrapBlock(StatementSyntax ifBody)
+        protected override IEnumerable<StatementSyntax> UnwrapBlock(StatementSyntax ifBody)
         {
             return ifBody is BlockSyntax block
                 ? block.Statements
                 : SyntaxFactory.SingletonList(ifBody);
+        }
+
+        protected override bool IsSingleStatementStatementRange(StatementRange statementRange)
+        {
+            if (statementRange.IsEmpty)
+            {
+                return false;
+            }
+
+            if ((object)statementRange.FirstStatement != (object)statementRange.LastStatement)
+            {
+                return false;
+            }
+
+            return isSingleStatement(statementRange.FirstStatement);
+
+            bool isSingleStatement(StatementSyntax statement)
+            {
+                if (statement is BlockSyntax block)
+                {
+                    return block.Statements.Count == 1 && isSingleStatement(block.Statements[0]);
+                }
+
+                return true;
+            }
         }
     }
 }

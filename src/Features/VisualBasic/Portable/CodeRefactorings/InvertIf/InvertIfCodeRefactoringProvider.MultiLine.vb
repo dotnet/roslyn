@@ -28,11 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return ifNode.IfStatement.Condition
         End Function
 
-        Protected Overrides Function GetIfBody(ifNode As MultiLineIfBlockSyntax) As SyntaxList(Of StatementSyntax)?
+        Protected Overrides Function GetIfBody(ifNode As MultiLineIfBlockSyntax) As SyntaxList(Of StatementSyntax)
             Return ifNode.Statements
         End Function
 
-        Protected Overrides Function GetElseBody(ifNode As MultiLineIfBlockSyntax) As SyntaxList(Of StatementSyntax)?
+        Protected Overrides Function GetElseBody(ifNode As MultiLineIfBlockSyntax) As SyntaxList(Of StatementSyntax)
             Return ifNode.ElseBlock.Statements
         End Function
 
@@ -40,16 +40,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 sourceText As SourceText,
                 ifNode As MultiLineIfBlockSyntax,
                 condition As SyntaxNode,
-                Optional trueStatement As SyntaxList(Of StatementSyntax)? = Nothing,
-                Optional falseStatement As SyntaxList(Of StatementSyntax)? = Nothing) As SyntaxNode
-            Dim updatedIf = ifNode.WithIfStatement(ifNode.IfStatement.WithCondition(DirectCast(condition, ExpressionSyntax)))
+                trueStatement As SyntaxList(Of StatementSyntax),
+                Optional falseStatementOpt As SyntaxList(Of StatementSyntax) = Nothing) As MultiLineIfBlockSyntax
 
-            If trueStatement IsNot Nothing Then
-                updatedIf = updatedIf.WithStatements(trueStatement.Value)
-            End If
+            Dim updatedIf = ifNode _
+                .WithIfStatement(ifNode.IfStatement.WithCondition(DirectCast(condition, ExpressionSyntax))) _
+                .WithStatements(trueStatement)
 
-            If falseStatement IsNot Nothing Then
-                updatedIf = updatedIf.WithElseBlock(SyntaxFactory.ElseBlock(falseStatement.Value))
+            If falseStatementOpt.Count > 0 Then
+                updatedIf = updatedIf.WithElseBlock(SyntaxFactory.ElseBlock(falseStatementOpt))
             End If
 
             Return updatedIf

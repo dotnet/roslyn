@@ -30,11 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return ifNode.Condition
         End Function
 
-        Protected Overrides Function GetIfBody(ifNode As SingleLineIfStatementSyntax) As SyntaxList(Of StatementSyntax)?
+        Protected Overrides Function GetIfBody(ifNode As SingleLineIfStatementSyntax) As SyntaxList(Of StatementSyntax)
             Return ifNode.Statements
         End Function
 
-        Protected Overrides Function GetElseBody(ifNode As SingleLineIfStatementSyntax) As SyntaxList(Of StatementSyntax)?
+        Protected Overrides Function GetElseBody(ifNode As SingleLineIfStatementSyntax) As SyntaxList(Of StatementSyntax)
             Return ifNode.ElseClause.Statements
         End Function
 
@@ -42,37 +42,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 sourceText As SourceText,
                 ifNode As SingleLineIfStatementSyntax,
                 condition As SyntaxNode,
-                Optional trueStatements As SyntaxList(Of StatementSyntax)? = Nothing,
-                Optional falseStatements As SyntaxList(Of StatementSyntax)? = Nothing) As SyntaxNode
+                trueStatements As SyntaxList(Of StatementSyntax),
+                Optional falseStatements As SyntaxList(Of StatementSyntax) = Nothing) As SingleLineIfStatementSyntax
 
             Dim isSingleLine = sourceText.AreOnSameLine(ifNode.GetFirstToken(), ifNode.GetLastToken())
-            If trueStatements?.Count > 0 AndAlso falseStatements?.Count > 0 AndAlso isSingleLine Then
+            If isSingleLine AndAlso falseStatements.Count > 0 Then
                 ' If statement Is on a single line, And we're swapping the true/false parts.
                 ' In that case, try to swap the trailing trivia between the true/false parts.
                 ' That way the trailing comments/newlines at the end of the 'if' stay there,
                 ' And the spaces after the true-part stay where they are.
 
-                Dim lastTrue = trueStatements.Value.Last()
-                Dim lastFalse = falseStatements.Value.Last()
+                Dim lastTrue = trueStatements.Last()
+                Dim lastFalse = falseStatements.Last()
 
                 Dim newLastTrue = lastTrue.WithTrailingTrivia(lastFalse.GetTrailingTrivia())
                 Dim newLastFalse = lastFalse.WithTrailingTrivia(lastTrue.GetTrailingTrivia())
 
-                trueStatements = trueStatements.Value.Replace(lastTrue, newLastTrue)
-                falseStatements = falseStatements.Value.Replace(lastFalse, newLastFalse)
+                trueStatements = trueStatements.Replace(lastTrue, newLastTrue)
+                falseStatements = falseStatements.Replace(lastFalse, newLastFalse)
             End If
 
-            Dim updatedIf = ifNode.WithCondition(DirectCast(condition, ExpressionSyntax))
+            Dim updatedIf = ifNode _
+                .WithCondition(DirectCast(condition, ExpressionSyntax)) _
+                .WithStatements(trueStatements)
 
-            If trueStatements?.Count <> 0 Then
-                updatedIf = updatedIf.WithStatements(trueStatements.Value)
-            End If
-
-            If falseStatements?.Count <> 0 Then
+            If falseStatements.Count <> 0 Then
                 Dim elseClause =
                     If(updatedIf.ElseClause IsNot Nothing,
-                       updatedIf.ElseClause.WithStatements(falseStatements.Value),
-                       SyntaxFactory.SingleLineElseClause(falseStatements.Value))
+                       updatedIf.ElseClause.WithStatements(falseStatements),
+                       SyntaxFactory.SingleLineElseClause(falseStatements))
 
                 updatedIf = updatedIf.WithElseClause(elseClause)
             End If

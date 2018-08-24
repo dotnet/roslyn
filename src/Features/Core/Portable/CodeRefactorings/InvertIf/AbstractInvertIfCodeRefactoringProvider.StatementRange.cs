@@ -4,14 +4,14 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 {
-    internal abstract partial class AbstractInvertIfCodeRefactoringProvider<TIfStatementSyntax, TEmbeddedStatement>
+    internal abstract partial class AbstractInvertIfCodeRefactoringProvider<TIfStatementSyntax, TStatementSyntax, TEmbeddedStatement>
     {
         protected readonly struct StatementRange
         {
-            public readonly SyntaxNode FirstStatement;
-            public readonly SyntaxNode LastStatement;
+            public readonly TStatementSyntax FirstStatement;
+            public readonly TStatementSyntax LastStatement;
 
-            public StatementRange(SyntaxNode firstStatement, SyntaxNode lastStatement)
+            public StatementRange(TStatementSyntax firstStatement, TStatementSyntax lastStatement)
             {
                 Debug.Assert(firstStatement != null);
                 Debug.Assert(lastStatement != null);
@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 LastStatement = lastStatement;
             }
 
-            public bool IsSingleStatement => FirstStatement == LastStatement;
             public bool IsEmpty => FirstStatement == null;
             public SyntaxNode Parent => FirstStatement.Parent;
         }

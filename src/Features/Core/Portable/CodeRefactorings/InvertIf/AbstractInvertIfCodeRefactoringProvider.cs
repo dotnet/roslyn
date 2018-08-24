@@ -17,8 +17,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 {
-    internal abstract partial class AbstractInvertIfCodeRefactoringProvider<TIfStatementSyntax, TEmbeddedStatement> : CodeRefactoringProvider
-        where TIfStatementSyntax : SyntaxNode
+    internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
+        TIfStatementSyntax, TStatementSyntax, TEmbeddedStatement> : CodeRefactoringProvider
+        where TIfStatementSyntax : class, TStatementSyntax
+        where TStatementSyntax : SyntaxNode
     {
         private enum InvertIfStyle
         {
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             {
                 if (!ifBodyEndPointIsReachable)
                 {
-                    if (ifBodyStatementRange.IsSingleStatement &&
+                    if (IsSingleStatementStatementRange(ifBodyStatementRange) &&
                         SubsequentStatementsAreInTheSameBlock(ifNode, subsequentStatementRanges) &&
                         ifBodySingleExitPointOpt?.RawKind == GetNearmostParentJumpStatementRawKind(ifNode))
                     {
@@ -251,10 +253,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             return InvertIfStyle.IfWithoutElse_MoveIfBodyToElseClause;
         }
 
-        private static bool SingleSubsequentStatement(ImmutableArray<StatementRange> subsequentStatementRanges)
+        private bool SingleSubsequentStatement(ImmutableArray<StatementRange> subsequentStatementRanges)
         {
-            return subsequentStatementRanges.Length == 1 && 
-                   subsequentStatementRanges[0].IsSingleStatement;
+            return subsequentStatementRanges.Length == 1 && IsSingleStatementStatementRange(subsequentStatementRanges[0]);
         }
 
         private async Task<Document> InvertIfAsync(
@@ -347,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 var parent = statementRange.Parent;
                 if (!IsStatementContainer(parent))
                 {
-                    Debug.Assert(statementRange.IsSingleStatement);
+                    Debug.Assert(statementRange.FirstStatement == statementRange.LastStatement);
                     return statementRange.FirstStatement.DescendantNodesAndSelf().All(IsNoOpSyntaxNode);
                 }
 
@@ -366,11 +367,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             return true;
         }
 
-        private ImmutableArray<StatementRange> GetSubsequentStatementRanges(SyntaxNode ifNode)
+        private ImmutableArray<StatementRange> GetSubsequentStatementRanges(TIfStatementSyntax ifNode)
         {
             var builder = ArrayBuilder<StatementRange>.GetInstance();
 
-            var innerStatement = ifNode;
+            TStatementSyntax innerStatement = ifNode;
             foreach (var node in ifNode.Ancestors())
             {
                 var nextStatement = GetNextStatement(innerStatement);
@@ -386,9 +387,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     break;
                 }
 
-                if (IsStatement(node))
+                if (IsExecutableStatement(node))
                 {
-                    innerStatement = node;
+                    innerStatement = (TStatementSyntax)node;
                 }
             }
 
@@ -397,15 +398,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 
         protected abstract string GetTitle();
 
-        protected abstract SyntaxList<SyntaxNode> GetStatements(SyntaxNode node);
-        protected abstract SyntaxNode GetNextStatement(SyntaxNode node);
+        protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode node);
+        protected abstract TStatementSyntax GetNextStatement(TStatementSyntax node);
 
-        protected abstract SyntaxNode GetJumpStatement(int rawKind);
+        protected abstract TStatementSyntax GetJumpStatement(int rawKind);
         protected abstract int GetJumpStatementRawKind(SyntaxNode node);
 
         protected abstract bool IsNoOpSyntaxNode(SyntaxNode node);
-        protected abstract bool IsStatement(SyntaxNode node);
+        protected abstract bool IsExecutableStatement(SyntaxNode node);
         protected abstract bool IsStatementContainer(SyntaxNode node);
+        protected abstract bool IsSingleStatementStatementRange(StatementRange statementRange);
 
         protected abstract bool CanControlFlowOut(SyntaxNode node);
 
@@ -416,25 +418,25 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
         protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifNode);
 
-        protected abstract IEnumerable<SyntaxNode> UnwrapBlock(TEmbeddedStatement ifBody);
+        protected abstract IEnumerable<TStatementSyntax> UnwrapBlock(TEmbeddedStatement ifBody);
         protected abstract TEmbeddedStatement GetIfBody(TIfStatementSyntax ifNode);
         protected abstract TEmbeddedStatement GetElseBody(TIfStatementSyntax ifNode);
         protected abstract TEmbeddedStatement GetEmptyEmbeddedStatement();
 
         protected abstract TEmbeddedStatement AsEmbeddedStatement(
             TEmbeddedStatement originalStatement,
-            IEnumerable<SyntaxNode> newStatements);
+            IEnumerable<TStatementSyntax> newStatements);
 
-        protected abstract SyntaxNode UpdateIf(
-            SourceText text,
+        protected abstract TIfStatementSyntax UpdateIf(
+            SourceText sourceText,
             TIfStatementSyntax ifNode,
             SyntaxNode condition,
-            TEmbeddedStatement trueStatement = default,
-            TEmbeddedStatement falseStatement = default);
+            TEmbeddedStatement trueStatement,
+            TEmbeddedStatement falseStatementOpt = default);
 
         protected abstract SyntaxNode WithStatements(
             SyntaxNode node,
-            IEnumerable<SyntaxNode> statements);
+            IEnumerable<TStatementSyntax> statements);
 
         private SyntaxNode GetRootWithInvertIfStatement(
             SourceText text,
@@ -453,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: GetElseBody(ifNode),
-                            falseStatement: GetIfBody(ifNode));
+                            falseStatementOpt: GetIfBody(ifNode));
 
                         return root.ReplaceNode(ifNode, updatedIf);
                     }
@@ -465,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: GetEmptyEmbeddedStatement(),
-                            falseStatement: GetIfBody(ifNode));
+                            falseStatementOpt: GetIfBody(ifNode));
 
                         return root.ReplaceNode(ifNode, updatedIf);
                     }
@@ -475,7 +477,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         var updatedIf = UpdateIf(
                             text,
                             ifNode: ifNode,
-                            condition: negatedExpression);
+                            condition: negatedExpression,
+                            trueStatement: GetIfBody(ifNode));
 
                         return root.ReplaceNode(ifNode, updatedIf);
                     }
@@ -530,12 +533,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 
                 case InvertIfStyle.IfWithoutElse_WithSubsequentExitPointStatement:
                     {
+                        Debug.Assert(subsequentSingleExitPointOpt is TStatementSyntax);
+
                         var currentParent = ifNode.Parent;
                         var statements = GetStatements(currentParent);
                         var index = statements.IndexOf(ifNode);
 
                         var ifBody = GetIfBody(ifNode);
-                        var newIfBody = subsequentSingleExitPointOpt;
+                        var newIfBody = (TStatementSyntax)subsequentSingleExitPointOpt;
 
                         var updatedIf = UpdateIf(
                             text,
@@ -591,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: AsEmbeddedStatement(ifBody, statementsAfterIf),
-                            falseStatement: ifBody);
+                            falseStatementOpt: ifBody);
 
                         var updatedParent = WithStatements(
                             currentParent,

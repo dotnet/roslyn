@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
     Friend MustInherit Class VisualBasicInvertIfCodeRefactoringProvider(Of TIfStatementSyntax As ExecutableStatementSyntax)
-        Inherits AbstractInvertIfCodeRefactoringProvider(Of TIfStatementSyntax, SyntaxList(Of StatementSyntax)?)
+        Inherits AbstractInvertIfCodeRefactoringProvider(Of TIfStatementSyntax, StatementSyntax, SyntaxList(Of StatementSyntax))
 
         Protected NotOverridable Overrides Function GetTitle() As String
             Return VBFeaturesResources.Invert_If
@@ -54,14 +54,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return node.IsStatementContainerNode()
         End Function
 
-        Protected NotOverridable Overrides Function GetStatements(node As SyntaxNode) As SyntaxList(Of SyntaxNode)
+        Protected NotOverridable Overrides Function GetStatements(node As SyntaxNode) As SyntaxList(Of StatementSyntax)
             Return node.GetStatements()
         End Function
 
-        Protected NotOverridable Overrides Function GetNextStatement(node As SyntaxNode) As SyntaxNode
+        Protected NotOverridable Overrides Function GetNextStatement(node As StatementSyntax) As StatementSyntax
             Dim parent = node.Parent
             Dim statements = parent.GetStatements
-            Dim nextIndex = 1 + statements.IndexOf(DirectCast(node, StatementSyntax))
+            Dim nextIndex = 1 + statements.IndexOf(node)
             If nextIndex < statements.Count - 1 Then
                 Return statements(nextIndex)
             End If
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return Nothing
         End Function
 
-        Protected NotOverridable Overrides Function GetJumpStatement(rawKind As Integer) As SyntaxNode
+        Protected NotOverridable Overrides Function GetJumpStatement(rawKind As Integer) As StatementSyntax
             Select Case rawKind
                 Case SyntaxKind.ReturnStatement
                     Return SyntaxFactory.ReturnStatement
@@ -90,24 +90,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return node.IsKind(SyntaxKind.EmptyStatement)
         End Function
 
-        Protected NotOverridable Overrides Function IsStatement(node As SyntaxNode) As Boolean
+        Protected NotOverridable Overrides Function IsExecutableStatement(node As SyntaxNode) As Boolean
             Return TypeOf node Is ExecutableStatementSyntax
         End Function
 
-        Protected NotOverridable Overrides Function UnwrapBlock(ifBody As SyntaxList(Of StatementSyntax)?) As IEnumerable(Of SyntaxNode)
+        Protected NotOverridable Overrides Function UnwrapBlock(ifBody As SyntaxList(Of StatementSyntax)) As IEnumerable(Of StatementSyntax)
             Return ifBody
         End Function
 
-        Protected NotOverridable Overrides Function GetEmptyEmbeddedStatement() As SyntaxList(Of StatementSyntax)?
+        Protected NotOverridable Overrides Function GetEmptyEmbeddedStatement() As SyntaxList(Of StatementSyntax)
             Return SyntaxFactory.List(Of StatementSyntax)
         End Function
 
-        Protected NotOverridable Overrides Function AsEmbeddedStatement(originalStatement As SyntaxList(Of StatementSyntax)?, newStatements As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)?
+        Protected NotOverridable Overrides Function AsEmbeddedStatement(originalStatement As SyntaxList(Of StatementSyntax), newStatements As IEnumerable(Of StatementSyntax)) As SyntaxList(Of StatementSyntax)
             Return SyntaxFactory.List(newStatements)
         End Function
 
-        Protected NotOverridable Overrides Function WithStatements(node As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+        Protected NotOverridable Overrides Function WithStatements(node As SyntaxNode, statements As IEnumerable(Of StatementSyntax)) As SyntaxNode
             Return node.ReplaceStatements(SyntaxFactory.List(statements))
+        End Function
+
+        Protected NotOverridable Overrides Function IsSingleStatementStatementRange(statementRange As StatementRange) As Boolean
+            Return Not statementRange.IsEmpty AndAlso statementRange.FirstStatement Is statementRange.LastStatement
         End Function
     End Class
 End Namespace
