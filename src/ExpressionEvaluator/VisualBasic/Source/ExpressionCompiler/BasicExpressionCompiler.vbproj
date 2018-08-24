@@ -41,9 +41,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineImplementationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation">
-      <Version>$(MicrosoftVisualStudioDebuggerMetadataImplementationVersion)</Version>
+      <Version>$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)</Version>
       <ExcludeAssets>compile</ExcludeAssets>
     </PackageReference>
   </ItemGroup>
