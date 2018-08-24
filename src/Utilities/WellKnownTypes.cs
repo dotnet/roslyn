@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
@@ -44,6 +45,16 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol IList(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.IList");
+        }
+
+        internal static INamedTypeSymbol HttpRequest(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.HttpRequest");
+        }
+
+        internal static INamedTypeSymbol NameValueCollection(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Collections.Specialized.NameValueCollection");
         }
 
         public static INamedTypeSymbol GenericIList(Compilation compilation)

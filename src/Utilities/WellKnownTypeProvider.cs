@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             CollectionTypes = GetWellKnownCollectionTypes(compilation);
             SerializationInfo = Analyzer.Utilities.WellKnownTypes.SerializationInfo(compilation);
             GenericIEquatable = Analyzer.Utilities.WellKnownTypes.GenericIEquatable(compilation);
+            HttpRequest = Analyzer.Utilities.WellKnownTypes.HttpRequest(compilation);
+            NameValueCollection = Analyzer.Utilities.WellKnownTypes.NameValueCollection(compilation);
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation) => s_providerCache.GetValue(compilation, s_ProviderCacheCallback);
@@ -66,6 +68,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.IEquatable{T}"/>
         /// </summary>
         public INamedTypeSymbol GenericIEquatable { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Web.HttpRequest"/>
+        /// </summary>
+        public INamedTypeSymbol HttpRequest { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.Specialized.NameValueCollection"/>
+        /// </summary>
+        public INamedTypeSymbol NameValueCollection { get;  }
 
         /// <summary>
         /// Set containing following named types, if not null:

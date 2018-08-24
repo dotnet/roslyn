@@ -42,8 +42,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 owningSymbol,
                 wellKnownTypeProvider,
                 cfg,
-                pointsToAnalysisResult,
-                true);
+                true /* pessimisticAnalysis */,
+                false /* predicateAnalysis */,
+                copyAnalysisResult,
+                pointsToAnalysisResult);
             TaintedDataAnalysis analysis = new TaintedDataAnalysis(visitor);
             DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> analysisResult =
                 analysis.GetOrComputeResultCore(cfg, cacheResult: true);

@@ -21,7 +21,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         public TaintedDataAbstractValue(TaintedDataAbstractValueKind kind)
-            : this(null, kind)
+            : this(ImmutableHashSet<AnalysisEntity>.Empty, kind)
         {
         }
 

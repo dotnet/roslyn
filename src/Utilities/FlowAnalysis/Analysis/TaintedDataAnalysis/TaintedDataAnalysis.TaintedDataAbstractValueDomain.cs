@@ -24,6 +24,23 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             public override TaintedDataAbstractValue Merge(TaintedDataAbstractValue value1, TaintedDataAbstractValue value2)
             {
+                if (value1 == null)
+                {
+                    return value2;
+                }
+                else if (value2 == null)
+                {
+                    return value1;
+                }
+                else if (value1.Kind == TaintedDataAbstractValueKind.Tainted || value2.Kind == TaintedDataAbstractValueKind.Tainted)
+                {
+                    return value1;
+                }
+                else if (value1.Kind == TaintedDataAbstractValueKind.Unknown || value2.Kind == TaintedDataAbstractValueKind.Unknown)
+                {
+                    return TaintedDataAbstractValue.Unknown;
+                }
+
                 throw new System.NotImplementedException();
             }
         }
