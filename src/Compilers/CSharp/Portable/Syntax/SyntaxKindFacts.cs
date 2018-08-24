@@ -1596,8 +1596,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "await";
                 case SyntaxKind.WhenKeyword:
                     return "when";
-                case SyntaxKind.InterpolatedVerbatimStringStartToken:
-                    return "$@\"";
                 case SyntaxKind.InterpolatedStringStartToken:
                     return "$\"";
                 case SyntaxKind.InterpolatedStringEndToken:

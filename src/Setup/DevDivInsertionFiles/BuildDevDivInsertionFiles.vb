@@ -1,4 +1,4 @@
-Imports System.IO.Packaging
+﻿Imports System.IO.Packaging
 Imports System.IO
 Imports System.Threading
 Imports Newtonsoft.Json
@@ -136,7 +136,6 @@ Public Class BuildDevDivInsertionFiles
         Dim dependencies = BuildDependencyMap(_binDirectory)
         GenerateContractsListMsbuild(dependencies)
         GenerateAssemblyVersionList(dependencies)
-        GeneratePortableFacadesSwrFile(dependencies)
         CopyDependencies(dependencies)
 
         ' List of files to add to VS.ExternalAPI.Roslyn.nuspec.
@@ -297,7 +296,8 @@ Public Class BuildDevDivInsertionFiles
                    packageName.StartsWith("Microsoft.Build") OrElse
                    packageName = "Microsoft.Composition" OrElse
                    packageName = "System.Net.Http" OrElse
-                   packageName = "System.Diagnostics.DiagnosticSource" Then
+                   packageName = "System.Diagnostics.DiagnosticSource" OrElse
+                   packageName = "Newtonsoft.Json" Then
                     Continue For
                 End If
 
@@ -402,41 +402,6 @@ Public Class BuildDevDivInsertionFiles
             Directory.CreateDirectory(dstDir)
             File.Copy(srcPath, dstPath, overwrite:=True)
         Next
-    End Sub
-
-    Private Sub GeneratePortableFacadesSwrFile(dependencies As Dictionary(Of String, DependencyInfo))
-        Dim facades = dependencies.Where(Function(e) e.Value.IsFacade).OrderBy(Function(e) e.Key).ToArray()
-
-        Dim swrPath = Path.Combine(_setupDirectory, DevDivVsixDirName, "PortableFacades", "PortableFacades.swr")
-        Dim swrVersion As Version = Nothing
-        Dim swrFiles As IEnumerable(Of String) = Nothing
-        ParseSwrFile(swrPath, swrVersion, swrFiles)
-
-        Dim expectedFiles = New List(Of String)
-        For Each entry In facades
-            Dim dependency = entry.Value
-            Dim fileName = entry.Key
-            Dim implPath = IO.Path.Combine(dependency.PackageName, dependency.PackageVersion, dependency.ImplementationDir, fileName)
-            expectedFiles.Add($"    file source=""$(NuGetPackageRoot)\{implPath}"" vs.file.ngen=yes")
-        Next
-
-        If Not swrFiles.SequenceEqual(expectedFiles) Then
-            Using writer = New StreamWriter(File.Open(swrPath, FileMode.Truncate, FileAccess.Write))
-                writer.WriteLine("use vs")
-                writer.WriteLine()
-                writer.WriteLine($"package name=PortableFacades")
-                writer.WriteLine($"        version={New Version(swrVersion.Major, swrVersion.Minor + 1, 0, 0)}")
-                writer.WriteLine()
-                writer.WriteLine("folder InstallDir:\Common7\IDE\PrivateAssemblies")
-
-                For Each entry In expectedFiles
-                    writer.WriteLine(entry)
-                Next
-            End Using
-
-            Throw New Exception($"The content of file {swrPath} is not up-to-date. The file has been updated to reflect the changes in dependencies made in the repo " &
-                                $"(in files {Path.Combine(_setupDirectory, DevDivPackagesDirName)}\**\project.json). Include this file change in your PR and rebuild.")
-        End If
     End Sub
 
     Private Sub ParseSwrFile(path As String, <Out> ByRef version As Version, <Out> ByRef files As IEnumerable(Of String))
@@ -574,10 +539,6 @@ Public Class BuildDevDivInsertionFiles
         add("Vsix\Roslyn.VisualStudio.Setup\System.Composition.Hosting.dll")
         add("Vsix\Roslyn.VisualStudio.Setup\System.Composition.TypedParts.dll")
         add("Vsix\Roslyn.VisualStudio.Setup\System.Threading.Tasks.Extensions.dll")
-        add("Vsix\Roslyn.VisualStudio.Setup\Mono.Cecil.dll")
-        add("Vsix\Roslyn.VisualStudio.Setup\Mono.Cecil.Mdb.dll")
-        add("Vsix\Roslyn.VisualStudio.Setup\Mono.Cecil.Pdb.dll")
-        add("Vsix\Roslyn.VisualStudio.Setup\Mono.Cecil.Rocks.dll")
         add("Vsix\Roslyn.VisualStudio.Setup\ICSharpCode.Decompiler.dll")
         add("Dlls\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
         add("Dlls\Microsoft.CodeAnalysis.VisualBasic.ResultProvider\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig")

@@ -62,6 +62,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot create constructed generic type from another constructed generic type..
+        /// </summary>
+        internal static string CannotCreateConstructedFromConstructed {
+            get {
+                return ResourceManager.GetString("CannotCreateConstructedFromConstructed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot create constructed generic type from non-generic type..
+        /// </summary>
+        internal static string CannotCreateConstructedFromNongeneric {
+            get {
+                return ResourceManager.GetString("CannotCreateConstructedFromNongeneric", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t reference compilation of type &apos;{0}&apos; from {1} compilation..
         /// </summary>
         internal static string CantReferenceCompilationOf {
@@ -283,6 +301,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AliasQualifiedNameNotAnExpression {
             get {
                 return ResourceManager.GetString("ERR_AliasQualifiedNameNotAnExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To use &apos;@$&apos; instead of &apos;$@&apos; for an interpolated verbatim string, please use language version {0} or greater..
+        /// </summary>
+        internal static string ERR_AltInterpolatedVerbatimStringsNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_AltInterpolatedVerbatimStringsNotAvailable", resourceCulture);
             }
         }
         
@@ -4567,6 +4594,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExternHasConstructorInitializer {
             get {
                 return ResourceManager.GetString("ERR_ExternHasConstructorInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is experimental and unsupported; use &apos;/features:{1}&apos; to enable..
+        /// </summary>
+        internal static string ERR_FeatureIsExperimental {
+            get {
+                return ResourceManager.GetString("ERR_FeatureIsExperimental", resourceCulture);
             }
         }
         
@@ -10400,6 +10436,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_DirectoryHasInvalidPath {
             get {
                 return ResourceManager.GetString("IDS_DirectoryHasInvalidPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to alternative interpolated verbatim strings.
+        /// </summary>
+        internal static string IDS_FeatureAltInterpolatedVerbatimStrings {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAltInterpolatedVerbatimStrings", resourceCulture);
             }
         }
         

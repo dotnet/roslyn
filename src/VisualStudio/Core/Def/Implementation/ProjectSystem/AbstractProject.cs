@@ -120,6 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
             ICommandLineParserService commandLineParserServiceOpt = null)
+            : base(projectTracker.ThreadingContext)
         {
             Contract.ThrowIfNull(projectSystemName);
 
@@ -722,13 +723,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // efforts to listen to file changes can lead to a deadlock situation.
             // Postponing the VisualStudioAnalyzer operations gives this thread the opportunity
             // to release the lock.
-            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() =>
+            ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                VisualStudioAnalyzer analyzer = (VisualStudioAnalyzer)sender;
+                await Task.Yield();
+
+                var analyzer = (VisualStudioAnalyzer)sender;
 
                 RemoveAnalyzerReference(analyzer.FullPath);
                 AddAnalyzerReference(analyzer.FullPath);
-            }));
+            });
         }
 
         // Internal for unit testing

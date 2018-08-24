@@ -27,9 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         private const string CS8370 = nameof(CS8370); // error CS8370: Feature is not available in C# 7.3. Please use language version X or greater.
         private const string CS8371 = nameof(CS8371); // warning CS8371: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
         private const string CS8400 = nameof(CS8400); // error CS8400: Feature is not available in C# 8.0. Please use language version X or greater.
+        private const string CS8401 = nameof(CS8401); // error CS8401: To use '@$' instead of '$@" for a verbatim interpolated string, please use language version 8.0 or greater.
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059, CS8107, CS8302, CS8306, CS8314, CS8320, CS1738, CS8370, CS8371, CS8400);
+            ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059, CS8107,
+                CS8302, CS8306, CS8314, CS8320, CS1738, CS8370, CS8371, CS8400, CS8401);
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
         public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;

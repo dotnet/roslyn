@@ -1053,13 +1053,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             where TNode : GreenNode
         {
             LanguageVersion availableVersion = this.Options.LanguageVersion;
+            LanguageVersion requiredVersion = feature.RequiredVersion();
 
-            if (feature == MessageID.IDS_FeatureModuleAttrLoc)
+            // There are special error codes for some features, so handle those separately.
+            switch (feature)
             {
-                // There's a special error code for this feature, so handle it separately.
-                return availableVersion >= LanguageVersion.CSharp2
-                    ? node
-                    : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
+                case MessageID.IDS_FeatureModuleAttrLoc:
+                    return availableVersion >= LanguageVersion.CSharp2
+                        ? node
+                        : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
+
+                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
+                    return availableVersion >= requiredVersion
+                        ? node
+                        : this.AddError(node, ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable,
+                            new CSharpRequiredLanguageVersion(requiredVersion));
             }
 
             if (IsFeatureEnabled(feature))
@@ -1068,13 +1076,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var featureName = feature.Localize();
-            var requiredVersion = feature.RequiredVersion();
-
-            if (forceWarning)
+            var requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
             {
-                SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName,
-                    new CSharpRequiredLanguageVersion(requiredVersion));
-                return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                if (forceWarning)
+                {
+                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, featureName, requiredFeature);
+                    return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                }
+
+                return this.AddError(node, ErrorCode.ERR_FeatureIsExperimental, featureName, requiredFeature);
+            }
+            else
+            {
+                if (forceWarning)
+                {
+                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName,
+                        new CSharpRequiredLanguageVersion(requiredVersion));
+                    return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                }
             }
 
             return this.AddError(node, availableVersion.GetErrorCode(), featureName, new CSharpRequiredLanguageVersion(requiredVersion));

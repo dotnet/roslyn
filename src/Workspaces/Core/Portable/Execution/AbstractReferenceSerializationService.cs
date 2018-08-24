@@ -157,48 +157,48 @@ namespace Microsoft.CodeAnalysis.Execution
             switch (reference)
             {
                 case AnalyzerFileReference file:
+                {
+                    // fail to load analyzer assembly
+                    var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
+                    if (assemblyPath == null)
                     {
-                        // fail to load analyzer assembly
-                        var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
-                        if (assemblyPath == null)
-                        {
-                            WriteUnresolvedAnalyzerReferenceTo(reference, writer);
-                            return;
-                        }
-
-                        writer.WriteString(nameof(AnalyzerFileReference));
-                        writer.WriteInt32((int)SerializationKinds.FilePath);
-
-                        // TODO: remove this kind of host specific knowledge from common layer.
-                        //       but think moving it to host layer where this implementation detail actually exist.
-                        //
-                        // analyzer assembly path to load analyzer acts like
-                        // snapshot version for analyzer (since it is based on shadow copy)
-                        // we can't send over bits and load analyzer from memory (image) due to CLR not being able
-                        // to find satellite dlls for analyzers.
-                        writer.WriteString(file.FullPath);
-                        writer.WriteString(assemblyPath);
+                        WriteUnresolvedAnalyzerReferenceTo(reference, writer);
                         return;
                     }
+
+                    writer.WriteString(nameof(AnalyzerFileReference));
+                    writer.WriteInt32((int)SerializationKinds.FilePath);
+
+                    // TODO: remove this kind of host specific knowledge from common layer.
+                    //       but think moving it to host layer where this implementation detail actually exist.
+                    //
+                    // analyzer assembly path to load analyzer acts like
+                    // snapshot version for analyzer (since it is based on shadow copy)
+                    // we can't send over bits and load analyzer from memory (image) due to CLR not being able
+                    // to find satellite dlls for analyzers.
+                    writer.WriteString(file.FullPath);
+                    writer.WriteString(assemblyPath);
+                    return;
+                }
 
                 case UnresolvedAnalyzerReference unresolved:
-                    {
-                        WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
-                        return;
-                    }
+                {
+                    WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
+                    return;
+                }
 
                 case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
-                    {
-                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
-                        return;
-                    }
+                {
+                    WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
+                    return;
+                }
 
                 case AnalyzerImageReference _:
-                    {
-                        // TODO: think a way to support this or a way to deal with this kind of situation.
-                        // https://github.com/dotnet/roslyn/issues/15783
-                        throw new NotSupportedException(nameof(AnalyzerImageReference));
-                    }
+                {
+                    // TODO: think a way to support this or a way to deal with this kind of situation.
+                    // https://github.com/dotnet/roslyn/issues/15783
+                    throw new NotSupportedException(nameof(AnalyzerImageReference));
+                }
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(reference);
@@ -419,6 +419,11 @@ namespace Microsoft.CodeAnalysis.Execution
         private bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
             ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
+            if (_storageService == null)
+            {
+                return false;
+            }
+
             var storages = reference.GetStorages();
             if (storages == null)
             {
@@ -466,6 +471,29 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             var metadataKind = (MetadataImageKind)imageKind;
+            if (_storageService == null)
+            {
+                if (metadataKind == MetadataImageKind.Assembly)
+                {
+                    using (var pooledMetadata = Creator.CreateList<ModuleMetadata>())
+                    {
+                        var count = reader.ReadInt32();
+                        for (var i = 0; i < count; i++)
+                        {
+                            metadataKind = (MetadataImageKind)reader.ReadInt32();
+                            Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+
+                            pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
+                        }
+
+                        return (AssemblyMetadata.Create(pooledMetadata.Object), storages: default);
+                    }
+                }
+
+                Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+                return (ReadModuleMetadataFrom(reader, kind), storages: default);
+            }
+
             if (metadataKind == MetadataImageKind.Assembly)
             {
                 using (var pooledMetadata = Creator.CreateList<ModuleMetadata>())
@@ -477,10 +505,10 @@ namespace Microsoft.CodeAnalysis.Execution
                         metadataKind = (MetadataImageKind)reader.ReadInt32();
                         Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-                        var tuple = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+                        var (metadata, storage) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
 
-                        pooledMetadata.Object.Add(tuple.metadata);
-                        pooledStorage.Object.Add(tuple.storage);
+                        pooledMetadata.Object.Add(metadata);
+                        pooledStorage.Object.Add(storage);
                     }
 
                     return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorage.Object.ToImmutableArrayOrEmpty());
@@ -497,6 +525,7 @@ namespace Microsoft.CodeAnalysis.Execution
             ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
             GetTemporaryStorage(reader, kind, out var storage, out var length, cancellationToken);
 
             var storageStream = storage.ReadStream(cancellationToken);
@@ -509,6 +538,22 @@ namespace Microsoft.CodeAnalysis.Execution
             s_lifetimeMap.Add(metadata, lifeTimeObject);
 
             return (metadata, storage);
+        }
+
+        private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
+        {
+            Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
+
+            var array = reader.ReadArray<byte>();
+            var pinnedObject = new PinnedObject(array, array.Length);
+
+            var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
+
+            // make sure we keep storageStream alive while Metadata is alive
+            // we use conditional weak table since we can't control metadata liftetime
+            s_lifetimeMap.Add(metadata, pinnedObject);
+
+            return metadata;
         }
 
         private void GetTemporaryStorage(
@@ -744,7 +789,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public IEnumerable<ITemporaryStreamStorage> GetStorages()
             {
-                return _storagesOpt;
+                return _storagesOpt.IsDefault ? (IEnumerable<ITemporaryStreamStorage>)null : _storagesOpt;
             }
         }
     }
