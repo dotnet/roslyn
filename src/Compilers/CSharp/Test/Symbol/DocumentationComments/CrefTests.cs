@@ -6673,7 +6673,10 @@ class C
 {
 }
 ";
-            var compilation = CreateCompilationWithDocumentationComments(source);
+
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default);
+            var compilation = CreateCompilation(source, parseOptions: parseOptions, options: options, targetFramework: TargetFramework.StandardAndCSharp);
             var cMember = compilation.GetMember<NamedTypeSymbol>("C");
             var xmlDocumentationString = cMember.GetDocumentationCommentXml();
 
@@ -6695,7 +6698,9 @@ class C
 {
 }
 ";
-            var compilation = CreateCompilationWithDocumentationComments(source);
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default);
+            var compilation = CreateCompilation(source, parseOptions: parseOptions, options: options, targetFramework: TargetFramework.StandardAndCSharp);
             var cMember = compilation.GetMember<NamedTypeSymbol>("C");
             var xmlDocumentationString = cMember.GetDocumentationCommentXml();
 
