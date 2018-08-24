@@ -403,6 +403,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName, sourceFileName);
         }
 
+        public static CSharpCompilation CreateCompilationWithDocumentationComments(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "",
+            string sourceFileName = "")
+        {
+            parseOptions = parseOptions != null ? parseOptions.WithDocumentationMode(DocumentationMode.Diagnose) : TestOptions.RegularWithDocumentationComments;
+            options = (options ?? TestOptions.ReleaseDll).WithXmlReferenceResolver(XmlFileResolver.Default);
+            return CreateCompilation(source, references, options, parseOptions, TargetFramework.StandardAndCSharp, assemblyName, sourceFileName);
+        }
+
         public static CSharpCompilation CreateCompilation(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,

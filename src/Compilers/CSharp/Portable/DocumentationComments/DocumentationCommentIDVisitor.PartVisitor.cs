@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (symbol.IsTupleType)
                 {
-                    return VisitNamedType(((TupleTypeSymbol)symbol).UnderlyingNamedType, builder);
+                    return VisitTupleType((TupleTypeSymbol)symbol, builder);
                 }
 
                 if ((object)symbol.ContainingSymbol != null && symbol.ContainingSymbol.Name.Length != 0)
@@ -268,6 +268,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Append("System.Object");
 
                 return null;
+            }
+
+            private object VisitTupleType(TupleTypeSymbol symbol, StringBuilder builder)
+            {
+                // get the underlying tuple type. 
+                var tupleType = symbol.UnderlyingNamedType;
+
+                // In the case this was a transformed tuple with unresolved type parameters, get the original defnition so we know about the type parameters
+                if (tupleType.TypeArgumentsNoUseSiteDiagnostics.Any() && tupleType.TypeArgumentsNoUseSiteDiagnostics[0].ContainingSymbol is null)
+                {
+                    tupleType = tupleType.OriginalDefinition;
+                }
+
+                return VisitNamedType(tupleType, builder);
             }
 
             private static string GetEscapedMetadataName(Symbol symbol)
