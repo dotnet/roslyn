@@ -95,6 +95,20 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
+  <!--
+  This node is used to represent the argument for a TryGetNext(out bool) method.
+  It is used to perform initial binding only.
+  -->
+  <Node Name="BoundTryGetNextArgumentPlaceholder" Base="BoundValuePlaceholderBase">
+  </Node>
+
+  <!--
+  This node is used to represent an awaitable expression of a certain type, when binding an using-await statement.
+  It does not survive past initial binding.
+  -->
+  <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
+  </Node>
+
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
@@ -471,9 +485,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Expression" Type="BoundExpression"/>
-    <Field Name="GetAwaiter" Type="MethodSymbol" Null="allow"/>
-    <Field Name="IsCompleted" Type="PropertySymbol" Null="allow"/>
-    <Field Name="GetResult" Type="MethodSymbol" Null="allow"/>
+    <Field Name="AwaitableInfo" Type="AwaitableInfo" Null="disallow"/>
   </Node>
 
   <AbstractNode Name="BoundTypeOf" Base="BoundExpression">
@@ -917,6 +929,7 @@
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow"/>
+    <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
   
     <Field Name="Checked" Type="bool"/>
@@ -935,6 +948,7 @@
     <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
+    <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">

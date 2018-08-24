@@ -85,10 +85,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
                 IList<ModuleData> moduleDatas = testEnvironment.GetAllModuleData();
-                string mainModuleSimpleName = moduleDatas.Single(md => md.FullName == mainModuleFullName).SimpleName;
+                var mainModule = moduleDatas.Single(md => md.FullName == mainModuleFullName);
                 RuntimeEnvironmentUtilities.DumpAssemblyData(moduleDatas, out var dumpDir);
 
-                string modulePath = Path.Combine(dumpDir, mainModuleSimpleName + ".dll");
+                string extension = mainModule.Kind == OutputKind.ConsoleApplication ? ".exe" : ".dll";
+                string modulePath = Path.Combine(dumpDir, mainModule.SimpleName + extension);
                 var decompiler = new ICSharpCode.Decompiler.CSharp.CSharpDecompiler(modulePath, new ICSharpCode.Decompiler.DecompilerSettings());
                 var syntaxTree = decompiler.DecompileWholeModuleAsSingleFile();
                 return syntaxTree.ToString();
@@ -217,6 +218,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                              PdbToXmlOptions.ExcludeCustomDebugInformation |
                              PdbToXmlOptions.ExcludeScopes,
                     methodName: sequencePoints);
+
+                if (actualPdbXml.StartsWith("<error>"))
+                {
+                    throw new Exception($"Failed to extract PDB information for method '{sequencePoints}'. PdbToXmlConverter returned:\r\n{actualPdbXml}");
+                }
 
                 markers = ILValidation.GetSequencePointMarkers(actualPdbXml, source);
             }
