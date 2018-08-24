@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Public Sub New(substitutedSourceType As NamedTypeSymbol, containingBinder As Binder)
             MyBase.New(containingBinder)
 
-            _sourceBinder = New NamedTypeBinder(CompilationContext.BackstopBinder, substitutedSourceType)
+            _sourceBinder = New NamedTypeBinder(CompilationContext.s_BackstopBinder, substitutedSourceType)
         End Sub
 
         Public Overrides ReadOnly Property ContainingNamespaceOrType As NamespaceOrTypeSymbol

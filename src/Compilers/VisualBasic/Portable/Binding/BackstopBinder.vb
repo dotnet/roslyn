@@ -22,6 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class BackstopBinder
         Inherits Binder
 
+        Public Shared ReadOnly Property Instance As New BackstopBinder
+
         Public Sub New()
             MyBase.New(Nothing)
         End Sub
