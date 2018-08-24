@@ -11,8 +11,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     internal class TaintedDataAbstractValue : CacheBasedEquatable<TaintedDataAbstractValue>
     {
         public static readonly TaintedDataAbstractValue Unknown = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.Unknown);
-        public static readonly TaintedDataAbstractValue Tainted = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.Tainted);
         public static readonly TaintedDataAbstractValue NotTainted = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.NotTainted);
+        public static readonly TaintedDataAbstractValue Tainted = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.Tainted);
 
         public TaintedDataAbstractValue(ImmutableHashSet<AnalysisEntity> analysisEntities, TaintedDataAbstractValueKind kind)
         {

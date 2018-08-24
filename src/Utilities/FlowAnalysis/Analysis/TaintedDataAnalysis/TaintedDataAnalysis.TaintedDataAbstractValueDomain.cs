@@ -24,6 +24,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             public override TaintedDataAbstractValue Merge(TaintedDataAbstractValue value1, TaintedDataAbstractValue value2)
             {
+                //     U N T M
+                //   +---------
+                // U | U N T M
+                // N | N N T M
+                // T | T T T M
+                // M | M M M M
+
                 if (value1 == null)
                 {
                     return value2;
@@ -38,7 +45,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
                 else if (value1.Kind == TaintedDataAbstractValueKind.Unknown || value2.Kind == TaintedDataAbstractValueKind.Unknown)
                 {
-                    return TaintedDataAbstractValue.Unknown;
+                    return value1;
                 }
 
                 throw new System.NotImplementedException();
