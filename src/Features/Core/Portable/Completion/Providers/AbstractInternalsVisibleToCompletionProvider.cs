@@ -276,18 +276,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             async Task<int> GetEndOfOpenEndedStringLiteral(int startPosition)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var end = startPosition;
-                while (end < text.Length)
-                {
-                    var ch = text[end];
-                    if (char.IsWhiteSpace(ch)) // this includes new line characters
-                    {
-                        break;
-                    }
-                    end++;
-                }
+                var span = CommonCompletionUtilities.GetWordSpan(text, startPosition, ch => false, ch => !char.IsWhiteSpace(ch), alwaysExtendEndSpan: true);
 
-                return end;
+                return span.End;
             }
         }
 
