@@ -2187,5 +2187,33 @@ offeredWhenRequireForClarityIsEnabled: true);
     }
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
+
+        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestMissingForPreIncrementAfterAdd()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int x)
+    {
+        var v = x+$$(++x);
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestMissingForUnaryPlusAfterAdd()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int x)
+    {
+        var v = x+$$(+x);
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
     }
 }
