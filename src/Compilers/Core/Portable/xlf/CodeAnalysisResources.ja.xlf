@@ -24,6 +24,11 @@
         <target state="translated">指定した操作のセマンティック モデルが null です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">出力の種類がサポートされていません。</target>

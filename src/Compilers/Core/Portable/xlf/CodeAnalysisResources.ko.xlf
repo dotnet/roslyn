@@ -24,6 +24,11 @@
         <target state="translated">지정한 작업에 null 의미 체계 모델이 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">출력 종류가 지원되지 않습니다.</target>
