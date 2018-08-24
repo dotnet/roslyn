@@ -57,7 +57,7 @@
     </AssemblySearchPaths>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Language)' == ''">
+  <PropertyGroup>
     <Language Condition="'$(MSBuildProjectExtension)' == '.csproj'">C#</Language>
     <Language Condition="'$(MSBuildProjectExtension)' == '.vbproj'">VB</Language>
     <Language Condition="'$(MSBuildProjectExtension)' == '.fsproj'">F#</Language>

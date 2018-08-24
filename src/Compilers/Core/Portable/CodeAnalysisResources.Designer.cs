@@ -1064,6 +1064,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The provided operation must not be part of a Control Flow Graph..
+        /// </summary>
+        internal static string OperationMustNotBeControlFlowGraphPart {
+            get {
+                return ResourceManager.GetString("OperationMustNotBeControlFlowGraphPart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Output kind not supported..
         /// </summary>
         internal static string OutputKindNotSupported {

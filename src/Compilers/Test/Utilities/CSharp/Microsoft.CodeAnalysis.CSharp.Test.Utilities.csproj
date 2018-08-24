@@ -35,6 +35,7 @@
     <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="CompilerBenchmarks" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Runtime.Extensions" Version="$(SystemRuntimeExtensionsVersion)" />
