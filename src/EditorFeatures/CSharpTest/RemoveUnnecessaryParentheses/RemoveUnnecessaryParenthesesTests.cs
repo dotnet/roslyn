@@ -2124,5 +2124,68 @@ offeredWhenRequireForClarityIsEnabled: true);
     }
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
+
+        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestForPreIncrementInLocalDeclaration()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int x)
+    {
+        var v = $$(++x);
+    }
+}",
+@"class C
+{
+    void M(int x)
+    {
+        var v = ++x;
+    }
+}", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestForPreIncrementInSimpleAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int x, int v)
+    {
+        v = $$(++x);
+    }
+}",
+@"class C
+{
+    void M(int x, int v)
+    {
+        v = ++x;
+    }
+}", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestForPreIncrementInArgument()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int x)
+    {
+        M($$(++x));
+    }
+}",
+@"class C
+{
+    void M(int x)
+    {
+        M(++x);
+    }
+}", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
     }
 }
