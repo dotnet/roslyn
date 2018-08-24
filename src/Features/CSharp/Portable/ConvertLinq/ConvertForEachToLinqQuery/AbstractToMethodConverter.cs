@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
         protected abstract bool CanReplaceInitialization(ExpressionSyntax expressionSyntax, CancellationToken cancellationToken);
 
-        protected abstract StatementSyntax CreateDefaultStatement(QueryExpressionSyntax queryExpression, ExpressionSyntax expression);
+        protected abstract StatementSyntax CreateDefaultStatement(ExpressionSyntax queryOrLinqInvocationExpression, ExpressionSyntax expression);
 
-        public override void Convert(SyntaxEditor editor, CancellationToken cancellationToken)
+        public override void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken)
         {
-            var queryExpression = CreateQueryExpression(
-                _selectExpression, Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>());
+            var queryOrLinqInvocationExpression = CreateQueryExpressionOrLinqInvocation(
+                _selectExpression, Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>(), convertToQuery);
 
             var previous = ForEachInfo.ForEachStatement.GetPreviousStatement();
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             // list.AddRange(query) or counter += query.Count();
             editor.ReplaceNode(
                 ForEachInfo.ForEachStatement,
-                CreateDefaultStatement(queryExpression, _modifyingExpression).WithAdditionalAnnotations(Formatter.Annotation));
+                CreateDefaultStatement(queryOrLinqInvocationExpression, _modifyingExpression).WithAdditionalAnnotations(Formatter.Annotation));
 
             return;
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
                 editor.ReplaceNode(
                     replacingExpression,
-                    CreateInvocationExpression(queryExpression)
+                    CreateInvocationExpression(queryOrLinqInvocationExpression)
                         .WithCommentsFrom(leadingTrivia, _trivia).KeepCommentsAndAddElasticMarkers());
                 editor.RemoveNode(ForEachInfo.ForEachStatement);
             }
@@ -182,11 +182,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
         // query => query.Method()
         // like query.Count() or query.ToList()
-        protected InvocationExpressionSyntax CreateInvocationExpression(QueryExpressionSyntax queryExpression)
+        protected InvocationExpressionSyntax CreateInvocationExpression(ExpressionSyntax queryOrLinqInvocationExpression)
             => SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.ParenthesizedExpression(queryExpression),
+                        SyntaxFactory.ParenthesizedExpression(queryOrLinqInvocationExpression),
                         SyntaxFactory.IdentifierName(MethodName))).WithAdditionalAnnotations(Formatter.Annotation);
     }
 }

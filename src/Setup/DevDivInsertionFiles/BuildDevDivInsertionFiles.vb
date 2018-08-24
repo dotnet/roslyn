@@ -297,7 +297,8 @@ Public Class BuildDevDivInsertionFiles
                    packageName = "Microsoft.Composition" OrElse
                    packageName = "System.Net.Http" OrElse
                    packageName = "System.Diagnostics.DiagnosticSource" OrElse
-                   packageName = "StreamJsonRpc" Then
+                   packageName = "StreamJsonRpc" OrElse
+                   packageName = "Newtonsoft.Json" Then
                     Continue For
                 End If
 
