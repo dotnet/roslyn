@@ -67,26 +67,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 return;
             }
 
-            // Keep the subsequent exit-point to be used in case (5) below.
-            SyntaxNode subsequentSingleExitPointOpt = null;
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var invertIfStyle = IsElseless(ifNode)
-                ? GetInvertIfStyle(
-                    ifNode,
-                    semanticModel,
-                    ref subsequentSingleExitPointOpt)
-                : InvertIfStyle.IfWithElse_SwapIfBodyWithElseBody;
-
             context.RegisterRefactoring(new MyCodeAction(GetTitle(),
-                c => InvertIfAsync(root, document, semanticModel, ifNode, invertIfStyle, subsequentSingleExitPointOpt, c)));
+                c => InvertIfAsync(root, document, ifNode, c)));
         }
 
         private InvertIfStyle GetInvertIfStyle(
             TIfStatementSyntax ifNode,
             SemanticModel semanticModel,
-            ref SyntaxNode subsequentSingleExitPointOpt)
+            out SyntaxNode subsequentSingleExitPointOpt)
         {
+            subsequentSingleExitPointOpt = null;
+
+            if (!IsElseless(ifNode))
+            {
+                return InvertIfStyle.IfWithElse_SwapIfBodyWithElseBody;
+            }
+
             var ifBodyStatementRange = GetIfBodyStatementRange(ifNode);
             if (IsEmptyStatementRange(ifBodyStatementRange))
             {
@@ -264,13 +260,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         private async Task<Document> InvertIfAsync(
             SyntaxNode root,
             Document document,
-            SemanticModel semanticModel,
             TIfStatementSyntax ifNode,
-            InvertIfStyle invertIfStyle,
-            SyntaxNode subsequentSingleExitPointOpt,
             CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var invertIfStyle = GetInvertIfStyle(ifNode, semanticModel, out var subsequentSingleExitPointOpt);
             var generator = document.GetLanguageService<SyntaxGenerator>();
             return document.WithSyntaxRoot(
                 GetRootWithInvertIfStatement(
