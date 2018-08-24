@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
-            var declaration = (LambdaExpressionSyntax)declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var originalDeclaration = (LambdaExpressionSyntax)declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
 
             editor.ReplaceNode(
-                declaration,
-                (current, g) => Update(semanticModel, useExpressionBody, declaration, (LambdaExpressionSyntax)current));
+                originalDeclaration,
+                (currentDeclaration, g) => Update(semanticModel, useExpressionBody, originalDeclaration, (LambdaExpressionSyntax)currentDeclaration));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
