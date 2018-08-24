@@ -2629,5 +2629,12 @@ class X
                 Escape(@"{{"),
                 Escape(@"}}"));
         }
+
+        [WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestDirectiveStringLiteral()
+        {
+            await TestInMethodAsync(@"#line 1 ""a\b""");
+        }
     }
 }
