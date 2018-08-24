@@ -204,6 +204,108 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task IfWithoutElse_MoveIfBodyToElseClause6()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            case 1:
+                [||]if (c)
+                {
+                    if (c)
+                    {
+                        f();
+                        return 1;
+                    }
+                }
+
+                f();
+                return 2;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            case 1:
+                [||]if (!c)
+                {
+                }
+                else
+                {
+                    if (c)
+                    {
+                        f();
+                        return 1;
+                    }
+                }
+
+                f();
+                return 2;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task IfWithoutElse_MoveIfBodyToElseClause7()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            case 1:
+                if (c)
+                {
+                    [||]if (c)
+                    {
+                        f();
+                        return 1;
+                    }
+                }
+
+                f();
+                return 2;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            case 1:
+                if (c)
+                {
+                    if (!c)
+                    {
+                    }
+                    else
+                    {
+                        f();
+                        return 1;
+                    }
+                }
+
+                f();
+                return 2;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task IfWithoutElse_MoveSubsequentStatementsToIfBody1()
         {
             await TestInRegularAndScriptAsync(
@@ -412,6 +514,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task IfWithoutElse_WithNegatedCondition1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [||]if (c) { }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (!c) { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task IfWithoutElse_WithNearmostJumpStatement1()
         {
             await TestInRegularAndScriptAsync(
@@ -504,6 +626,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
             return;
         }
         f();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task IfWithoutElse_WithNearmostJumpStatement4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        for (;;)
+        {
+            [||]if (c)
+            {
+                break;
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        for (;;)
+        {
+            [||]if (!c)
+            {
+                continue;
+            }
+            break;
+        }
     }
 }");
         }
