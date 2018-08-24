@@ -1,16 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -52,6 +47,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // a random ProjectId, which is sufficient for their needs. They'll simply observe there is no project with that ID, and then go and create a
             // new project. Then they call this function again, and fetch the real ID.
             return _workspace.CurrentSolution.Projects.FirstOrDefault(p => p.FilePath == filePath)?.Id ?? ProjectId.CreateNewId("ProjectNotFound");
+        }
+
+        public AbstractProject GetProject(ProjectId projectId)
+        {
+            // HACK: to keep F# working, we will ensure that if there is a project with that ID, we will return a non-null value, otherwise we'll return null.
+            // It doesn't actually matter *what* the project is, so we'll just return something silly
+            var project = _workspace.CurrentSolution.GetProject(projectId);
+
+            if (project != null)
+            {
+                return new StubProject(project, _threadingContext);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private sealed class StubProject : AbstractProject
+        {
+            public StubProject(Project project, IThreadingContext threadingContext)
+                : base(_ => null, project.Name + "_Stub", project.FilePath, null, project.Language, Guid.Empty, null, threadingContext, null)
+            {
+            }
         }
     }
 }
