@@ -85,11 +85,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var node = token.Parent;
             if (node != null && syntaxFactsService.IsStringLiteralExpression(node))
             {
-                // Edge case: ElementAccessExpressionSyntax is present if the following statement is another attribute:
+                // Edge cases: 
+                // ElementAccessExpressionSyntax is present if the following statement is another attribute:
                 //   [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("|
                 //   [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
                 //   [assembly: System.Reflection.AssemblyCompany("Test")]
-                while (syntaxFactsService.IsElementAccessExpression(node.Parent))
+                // BinaryExpression is present if the string literal is concatenated:
+                //   From: https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx
+                //   [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Friend1, PublicKey=002400000480000094" + 
+                //                                                                 "0000000602000000240000525341310004000" + ..
+                while (syntaxFactsService.IsElementAccessExpression(node.Parent) || syntaxFactsService.IsBinaryExpression(node.Parent))
                 {
                     node = node.Parent;
                 }
