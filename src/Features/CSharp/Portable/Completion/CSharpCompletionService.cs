@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     {
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            return new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
+            var workspace = languageServices.WorkspaceServices.Workspace;
+            return new Dispatcher(workspace, new CSharpCompletionService(workspace));
         }
     }
 
