@@ -256,30 +256,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var token = root.FindToken(result.Start);
             if (syntaxFacts.IsStringLiteral(token) || syntaxFacts.IsVerbatimStringLiteral(token))
             {
-                result = token.Span;
-                var contentStartsAt = token.Text.IndexOf('"');
-                contentStartsAt = contentStartsAt >= 0
-                    ? contentStartsAt + 1
-                    : contentStartsAt;
-                var contentEndsAt = token.Span.Length == 0
-                    ? token.Span.End
-                    : token.Text[token.Span.Length - 1] == '"'
-                        ? token.Span.End - 1
-                        : await GetEndOfOpenEndedStringLiteral(startSpan.End).ConfigureAwait(false); // The string is open ended. We keep the right end as is.
-                result = TextSpan.FromBounds(
-                    start: token.Span.Start + contentStartsAt,
-                    end: contentEndsAt);
+                var text = root.GetText();
+                bool IsWordCharacter(char ch) => !(ch == '"' || (char.IsControl(ch) || char.IsSeparator(ch) && !char.IsWhiteSpace(ch)));
+                result = CommonCompletionUtilities.GetWordSpan(
+                    text, startSpan.Start, IsWordCharacter, IsWordCharacter, alwaysExtendEndSpan: true);
             }
 
             return result;
-
-            async Task<int> GetEndOfOpenEndedStringLiteral(int startPosition)
-            {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var span = CommonCompletionUtilities.GetWordSpan(text, startPosition, ch => false, ch => !char.IsWhiteSpace(ch), alwaysExtendEndSpan: true);
-
-                return span.End;
-            }
         }
 
         private static async Task<string> GetPublicKeyOfProjectAsync(Project project, CancellationToken cancellationToken)
