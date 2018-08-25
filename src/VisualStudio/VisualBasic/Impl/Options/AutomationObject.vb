@@ -288,12 +288,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property Style_AvoidUnusedMembers As String
+        Public Property Style_RemoveUnusedMembers As String
             Get
-                Return GetXmlOption(CodeStyleOptions.AvoidUnusedMembers)
+                Return GetXmlOption(CodeStyleOptions.RemoveUnusedMembers)
             End Get
             Set(value As String)
-                SetXmlOption(CodeStyleOptions.AvoidUnusedMembers, value)
+                SetXmlOption(CodeStyleOptions.RemoveUnusedMembers, value)
             End Set
         End Property
 

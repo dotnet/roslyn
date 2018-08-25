@@ -2,14 +2,14 @@
 
 using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis.AvoidUnusedMembers;
+using Microsoft.CodeAnalysis.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.AvoidUnusedMembers
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AvoidUnusedMembers), Shared]
-    internal class CSharpAvoidUnusedMembersCodeFixProvider : AbstractAvoidUnusedMembersCodeFixProvider<FieldDeclarationSyntax>
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedMembers), Shared]
+    internal class CSharpRemoveUnusedMembersCodeFixProvider : AbstractRemoveUnusedMembersCodeFixProvider<FieldDeclarationSyntax>
     {
         protected override void AdjustDeclarators(HashSet<FieldDeclarationSyntax> fieldDeclarators, HashSet<SyntaxNode> declarators)
         {

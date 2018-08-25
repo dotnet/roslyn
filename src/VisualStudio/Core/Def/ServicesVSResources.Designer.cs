@@ -326,15 +326,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Avoid unused members.
-        /// </summary>
-        internal static string Avoid_unused_members {
-            get {
-                return ResourceManager.GetString("Avoid_unused_members", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Base Types.
         /// </summary>
         internal static string Base_Types {
@@ -962,15 +953,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Field preferences:.
-        /// </summary>
-        internal static string Field_preferences_colon {
-            get {
-                return ResourceManager.GetString("Field_preferences_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to File already exists.
         /// </summary>
         internal static string File_already_exists {
@@ -1335,7 +1317,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Member preferences (field/method/property/event):.
+        ///   Looks up a localized string similar to Member preferences:.
         /// </summary>
         internal static string Member_preferences_colon {
             get {
@@ -1894,11 +1876,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer readonly.
+        ///   Looks up a localized string similar to Prefer readonly fields.
         /// </summary>
-        internal static string Prefer_readonly {
+        internal static string Prefer_readonly_fields {
             get {
-                return ResourceManager.GetString("Prefer_readonly", resourceCulture);
+                return ResourceManager.GetString("Prefer_readonly_fields", resourceCulture);
             }
         }
         
@@ -2130,6 +2112,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Remove_symbol_specification {
             get {
                 return ResourceManager.GetString("Remove_symbol_specification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused members.
+        /// </summary>
+        internal static string Remove_unused_members {
+            get {
+                return ResourceManager.GetString("Remove_unused_members", resourceCulture);
             }
         }
         

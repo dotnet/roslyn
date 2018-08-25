@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AliasAmbiguousType = nameof(AliasAmbiguousType);
         public const string ApplyNamingStyle = nameof(ApplyNamingStyle);
         public const string AddBraces = nameof(AddBraces);
-        public const string AvoidUnusedMembers = nameof(AvoidUnusedMembers);
         public const string ChangeReturnType = nameof(ChangeReturnType);
         public const string ChangeToYield = nameof(ChangeToYield);
         public const string ConvertToAsync = nameof(ConvertToAsync);
@@ -44,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
         public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
+        public const string RemoveUnusedMembers = nameof(RemoveUnusedMembers);
         public const string RemoveUnusedVariable = nameof(RemoveUnusedVariable);
         public const string RenameTracking = nameof(RenameTracking);
         public const string SimplifyNames = nameof(SimplifyNames);

@@ -4,21 +4,24 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AvoidUnusedMembers
+namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
-    internal abstract class AbstractAvoidUnusedMembersCodeFixProvider<TFieldDeclarationSyntax> : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractRemoveUnusedMembersCodeFixProvider<TFieldDeclarationSyntax> : SyntaxEditorBasedCodeFixProvider
         where TFieldDeclarationSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.AvoidUnusedMembersDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId);
 
         // Adjust declarators to remove based on whether or not all variable declarators within a field declaration should be removed.
         protected abstract void AdjustDeclarators(HashSet<TFieldDeclarationSyntax> fieldDeclarators, HashSet<SyntaxNode> declarators);
@@ -31,17 +34,10 @@ namespace Microsoft.CodeAnalysis.AvoidUnusedMembers
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CancellationToken cancellationToken)
-        {
-            return FixWithEditorAsync(document, editor, diagnostics, cancellationToken);
-        }
-
-        private async Task FixWithEditorAsync(
-            Document document, SyntaxEditor editor, ImmutableArray<Diagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
             var declarators = new HashSet<SyntaxNode>();
@@ -51,27 +47,37 @@ namespace Microsoft.CodeAnalysis.AvoidUnusedMembers
             foreach (var diagnostic in diagnostics)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var diagnosticSpan = diagnostic.Location.SourceSpan;
-                var symbolName = diagnostic.Properties[AvoidUnusedMembersDiagnosticAnalyzer.UnunsedMemberNameProperty];
-                var symbolKind = diagnostic.Properties[AvoidUnusedMembersDiagnosticAnalyzer.UnunsedMemberKindProperty];
 
-                var node = GetTopmostSyntaxNodeForSymbolDeclaration(root.FindNode(diagnosticSpan),
-                    isSymbolDeclarationNode: n => n != null && semanticModel.GetDeclaredSymbol(n, cancellationToken)?.Name == symbolName);
+                // Get symbol to be removed.
+                var diagnosticNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                var symbol = semanticModel.GetDeclaredSymbol(diagnosticNode, cancellationToken);
+                Debug.Assert(symbol != null);
 
-                declarators.Add(node);
-                if (symbolKind == nameof(SymbolKind.Field))
+                // Get symbol declarations to be removed.
+                var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
+                foreach (var declReference in declarationService.GetDeclarations(symbol))
                 {
-                    var fieldDeclarator = node.FirstAncestorOrSelf<TFieldDeclarationSyntax>();
-                    fieldDeclarators.Add(fieldDeclarator);
+                    var node = await declReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                    declarators.Add(node);
+
+                    // For fields, the declaration node is the variable declarator.
+                    // We also track the ancestor FieldDeclarationSyntax which may declare more then one field.
+                    if (symbol.Kind == SymbolKind.Field)
+                    {
+                        var fieldDeclarator = node.FirstAncestorOrSelf<TFieldDeclarationSyntax>();
+                        fieldDeclarators.Add(fieldDeclarator);
+                    }
                 }
             }
 
+            // If all the fields declared within a field declaration are unused,
+            // we can remove the entire field declaration instead of individual variable declarators.
             if (fieldDeclarators.Count > 0)
             {
                 AdjustDeclarators(fieldDeclarators, declarators);
             }
 
+            // Remove all the symbol declarator nodes.
             foreach (var declarator in declarators)
             {
                 editor.RemoveNode(declarator);
@@ -83,9 +89,18 @@ namespace Microsoft.CodeAnalysis.AvoidUnusedMembers
             return syntaxNode.FirstAncestorOrSelf(isSymbolDeclarationNode);
         }
 
+        /// <summary>
+        /// If all the <paramref name="childDeclarators"/> are contained in <paramref name="declarators"/>,
+        /// the removes the <paramref name="childDeclarators"/> from <paramref name="declarators"/>, and
+        /// adds the <paramref name="parentDeclaration"/> to the <paramref name="declarators"/>.
+        /// </summary>
         protected void AdjustChildDeclarators(SyntaxNode parentDeclaration, IEnumerable<SyntaxNode> childDeclarators, HashSet<SyntaxNode> declarators)
         {
-            Debug.Assert(!declarators.Contains(parentDeclaration));
+            if(declarators.Contains(parentDeclaration))
+            {
+                Debug.Assert(childDeclarators.All(c => !declarators.Contains(c)));
+                return;
+            }
 
             var declaratorsContainsAllChildren = true;
             foreach (var childDeclarator in childDeclarators)

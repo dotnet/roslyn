@@ -3,19 +3,18 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.AvoidUnusedMembers
-Imports Microsoft.CodeAnalysis.VisualBasic.AvoidUnusedMembers
+Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AvoidUnusedMembers
-    Public Class AvoidUnusedMembersTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedMembers
+    Public Class RemoveUnusedMembersTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New AvoidUnusedMembersDiagnosticAnalyzer(),
-                New VisualBasicAvoidUnusedMembersCodeFixProvider())
+            Return (New VisualBasicRemoveUnusedMembersDiagnosticAnalyzer(),
+                New VisualBasicRemoveUnusedMembersCodeFixProvider())
         End Function
 
-        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         <InlineData("Public")>
         <InlineData("Friend")>
         <InlineData("Protected")>
@@ -27,7 +26,7 @@ $"Class C
 End Class")
         End Function
 
-        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         <InlineData("Public")>
         <InlineData("Friend")>
         <InlineData("Protected")>
@@ -40,7 +39,7 @@ $"Class C
 End Class")
         End Function
 
-        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         <InlineData("Public")>
         <InlineData("Friend")>
         <InlineData("Protected")>
@@ -52,7 +51,7 @@ $"Class C
 End Class")
         End Function
 
-        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         <InlineData("Public")>
         <InlineData("Friend")>
         <InlineData("Protected")>
@@ -70,7 +69,7 @@ $"Class C
 End Class")
         End Function
 
-        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         <InlineData("Public")>
         <InlineData("Friend")>
         <InlineData("Protected")>
@@ -82,7 +81,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsUnused() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -92,7 +91,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodIsUnused() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -103,7 +102,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsUnused() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -113,7 +112,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsUnused() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -129,7 +128,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsUnused() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -139,7 +138,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsUnused_ReadOnly() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -149,7 +148,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsUnused_ReadOnly() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -159,7 +158,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsUnused_ReadOnly() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -169,7 +168,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsUnused_Shared() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -179,7 +178,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodIsUnused_Shared() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -190,7 +189,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsUnused_Shared() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -200,7 +199,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsUnused_Shared() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -216,7 +215,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsUnused_Shared() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -226,7 +225,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsUnused_Custom() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -247,7 +246,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsUnused_Const() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -257,7 +256,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -268,7 +267,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_Lambda() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -279,7 +278,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_Accessor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -292,7 +291,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_DifferentInstance() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -303,7 +302,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_ObjectInitializer() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -318,7 +317,7 @@ Class C2
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_ObjectInitializer_02() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -330,7 +329,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_MeInstance() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -341,7 +340,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_Attribute() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -353,7 +352,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodIsInvoked() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -366,7 +365,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodIsAddressTaken() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -379,7 +378,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsRead() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -390,7 +389,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsRead() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -408,7 +407,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsRead() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -420,7 +419,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsSubscribed() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -432,7 +431,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsRaised() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -446,19 +445,35 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldInNameOf() As Task
-            Await TestInRegularAndScriptAsync(
+            ' https://github.com/dotnet/roslyn/issues/29519 tracks flagging and fixing this appropriately.
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer
-    Private _goo2 As String = NameOf(_goo)
-End Class",
-"Class C
     Private _goo2 As String = NameOf(_goo)
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function FieldInDocComment() As Task
+            Await TestInRegularAndScriptAsync(
+"
+''' <summary>
+''' <see cref=""C._goo""/>
+''' </summary>
+Class C
+    Private Shared [|_goo|] As Integer
+End Class",
+"
+''' <summary>
+''' <see cref=""C._goo""/>
+''' </summary>
+Class C
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsOnlyWritten() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -474,7 +489,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsOnlyWritten() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -490,7 +505,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsOnlyWritten() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -512,7 +527,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsOnlyWritten() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -541,7 +556,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsOnlyWritten_ObjectInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -557,7 +572,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsOnlyWritten_InProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -583,7 +598,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsReadAndWritten() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -595,7 +610,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsReadAndWritten() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -607,7 +622,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsReadAndWritten() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -626,7 +641,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsTargetOfCompoundAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -642,7 +657,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsTargetOfCompoundAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -658,7 +673,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsTargetOfCompoundAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -681,7 +696,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsArg() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -694,7 +709,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsByRefArg() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -707,7 +722,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodIsArg() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -722,7 +737,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsArg() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -735,7 +750,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsArg() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -755,7 +770,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsArg() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -768,7 +783,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MultipleFields_AllUnused() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -779,7 +794,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MultipleFields_AllUnused_02() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -790,7 +805,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MultipleFields_SomeUnused() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -807,7 +822,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MultipleFields_SomeUnused_02() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -818,7 +833,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_InNestedType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -831,7 +846,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodIsInvoked_InNestedType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -846,7 +861,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldOfNestedTypeIsUnused() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -860,7 +875,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldOfNestedTypeIsRead() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -873,7 +888,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsUnused_PartialClass() As Task
             Await TestInRegularAndScriptAsync(
 "Partial Class C
@@ -883,7 +898,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_PartialClass() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Partial Class C
@@ -897,7 +912,7 @@ Partial Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_PartialClass_DifferentFile() As Task
             Await TestMissingInRegularAndScriptAsync(
 "<Workspace>
@@ -918,7 +933,7 @@ End Class
 </Workspace>")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsOnlyWritten_PartialClass_DifferentFile() As Task
             Await TestInRegularAndScriptAsync(
 "<Workspace>
@@ -954,7 +969,7 @@ End Class
 </Workspace>")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_InParens() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -965,7 +980,7 @@ End Class
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsWritten_InParens() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -981,7 +996,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldInTypeWithGeneratedCode() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -1002,7 +1017,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsGeneratedCode() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -1014,7 +1029,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldUsedInGeneratedCode() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -1027,7 +1042,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FixAllFields_Document() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -1053,7 +1068,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FixAllMethods_Document() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -1077,7 +1092,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FixAllProperties_Document() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -1105,7 +1120,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FixAllEvents_Document() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1139,7 +1154,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FixAllMembers_Project() As Task
             Await TestInRegularAndScriptAsync(
 "<Workspace>
@@ -1205,7 +1220,7 @@ End Class
 </Workspace>")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsUnused_Module() As Task
             Await TestInRegularAndScriptAsync(
 "Module C

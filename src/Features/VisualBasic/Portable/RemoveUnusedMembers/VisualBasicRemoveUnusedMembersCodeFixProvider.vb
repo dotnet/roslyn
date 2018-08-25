@@ -2,13 +2,13 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.AvoidUnusedMembers
+Imports Microsoft.CodeAnalysis.RemoveUnusedMembers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.AvoidUnusedMembers
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AvoidUnusedMembers), [Shared]>
-    Friend Class VisualBasicAvoidUnusedMembersCodeFixProvider
-        Inherits AbstractAvoidUnusedMembersCodeFixProvider(Of FieldDeclarationSyntax)
+Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnusedMembers), [Shared]>
+    Friend Class VisualBasicRemoveUnusedMembersCodeFixProvider
+        Inherits AbstractRemoveUnusedMembersCodeFixProvider(Of FieldDeclarationSyntax)
 
         Protected Overrides Function GetTopmostSyntaxNodeForSymbolDeclaration(syntaxNode As SyntaxNode, isSymbolDeclarationNode As Func(Of SyntaxNode, Boolean)) As SyntaxNode
             Dim symbolDeclNode = MyBase.GetTopmostSyntaxNodeForSymbolDeclaration(syntaxNode, isSymbolDeclarationNode)

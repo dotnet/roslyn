@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal static partial class OperationExtensions
     {
+        public static bool IsTargetOfObjectMemberInitializer(this IOperation operation)
+            => operation.Parent is IAssignmentOperation assignmentOperation &&
+               assignmentOperation.Target == operation &&
+               assignmentOperation.Parent?.Kind == OperationKind.ObjectOrCollectionInitializer;
+
         /// <summary>
         /// Returns the <see cref="ValueUsageInfo"/> for the given operation.
         /// This extension can be removed once https://github.com/dotnet/roslyn/issues/25057 is implemented.
@@ -28,18 +33,18 @@ namespace Microsoft.CodeAnalysis
             | x.Prop += 1     |  ✔️  |  ✔️   |             |             |
             | x.Prop++        |  ✔️  |  ✔️   |             |             |
             | Foo(x.Prop)     |  ✔️  |       |             |             |
-            | Foo(x.Prop)*    |      |       |     ✔️      |             |
+            | Foo(x.Prop),    |      |       |     ✔️      |             |
+               where void Foo(in T v)
             | Foo(out x.Prop) |      |       |             |     ✔️      |
             | Foo(ref x.Prop) |      |       |     ✔️      |     ✔️      |
 
-            * where void Foo(in T v)
             */
 
             if (operation.Parent is IAssignmentOperation assignmentOperation &&
                 assignmentOperation.Target == operation)
             {
                 return operation.Parent.Kind == OperationKind.CompoundAssignment
-                    ?  ValueUsageInfo.ReadWrite
+                    ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }
             else if (operation.Parent is IIncrementOrDecrementOperation)
@@ -51,8 +56,8 @@ namespace Microsoft.CodeAnalysis
                 return parenthesizedOperation.GetValueUsageInfo();
             }
             else if (operation.Parent is INameOfOperation ||
-                operation.Parent is ITypeOfOperation ||
-                operation.Parent is ISizeOfOperation)
+                     operation.Parent is ITypeOfOperation ||
+                     operation.Parent is ISizeOfOperation)
             {
                 return ValueUsageInfo.None;
             }

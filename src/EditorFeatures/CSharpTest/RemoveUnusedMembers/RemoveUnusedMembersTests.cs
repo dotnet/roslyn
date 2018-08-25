@@ -2,23 +2,20 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.AvoidUnusedMembers;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.AvoidUnusedMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.CSharp;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AvoidUnusedMembers
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
 {
-    public class AvoidUnusedMembersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class RemoveUnusedMembersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new AvoidUnusedMembersDiagnosticAnalyzer(), new CSharpAvoidUnusedMembersCodeFixProvider());
+            => (new CSharpRemoveUnusedMembersDiagnosticAnalyzer(), new CSharpRemoveUnusedMembersCodeFixProvider());
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [InlineData("public")]
         [InlineData("internal")]
         [InlineData("protected")]
@@ -33,7 +30,7 @@ $@"class MyClass
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [InlineData("public")]
         [InlineData("internal")]
         [InlineData("protected")]
@@ -48,7 +45,7 @@ $@"class MyClass
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [InlineData("public")]
         [InlineData("internal")]
         [InlineData("protected")]
@@ -63,7 +60,7 @@ $@"class MyClass
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [InlineData("public")]
         [InlineData("internal")]
         [InlineData("protected")]
@@ -78,7 +75,7 @@ $@"class MyClass
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [InlineData("public")]
         [InlineData("internal")]
         [InlineData("protected")]
@@ -95,7 +92,7 @@ class MyClass
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused()
         {
             await TestInRegularAndScriptAsync(
@@ -108,7 +105,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsUnused()
         {
             await TestInRegularAndScriptAsync(
@@ -121,7 +118,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsUnused()
         {
             await TestInRegularAndScriptAsync(
@@ -134,7 +131,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsUnused()
         {
             await TestInRegularAndScriptAsync(
@@ -147,7 +144,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsUnused()
         {
             await TestInRegularAndScriptAsync(
@@ -160,7 +157,41 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task EntryPointMethodNotFlagged()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private static void [|Main|]() { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task EntryPointMethodNotFlagged_02()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class MyClass
+{
+    private static async Task [|Main|]() => await Task.CompletedTask;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task EntryPointMethodNotFlagged_03()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class MyClass
+{
+    private static async Task<int> [|Main|]() => await Task.FromResult(0);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_ReadOnly()
         {
             await TestInRegularAndScriptAsync(
@@ -173,7 +204,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsUnused_ReadOnly()
         {
             await TestInRegularAndScriptAsync(
@@ -186,7 +217,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsUnused_ReadOnly()
         {
             await TestInRegularAndScriptAsync(
@@ -199,7 +230,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_Static()
         {
             await TestInRegularAndScriptAsync(
@@ -212,7 +243,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsUnused_Static()
         {
             await TestInRegularAndScriptAsync(
@@ -225,7 +256,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsUnused_Static()
         {
             await TestInRegularAndScriptAsync(
@@ -238,7 +269,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsUnused_Static()
         {
             await TestInRegularAndScriptAsync(
@@ -251,7 +282,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsUnused_Static()
         {
             await TestInRegularAndScriptAsync(
@@ -264,7 +295,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_Const()
         {
             await TestInRegularAndScriptAsync(
@@ -277,7 +308,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_ExpressionBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -288,7 +319,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_BlockBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -299,7 +330,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_ExpressionLambda()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -313,7 +344,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_BlockLambda()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -327,7 +358,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_Delegate()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -341,7 +372,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_ExpressionBodyLocalFunction()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -356,7 +387,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_BlockBodyLocalFunction()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -371,7 +402,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_Accessor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -388,7 +419,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_Deconstruction()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -402,7 +433,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_DifferentInstance()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -413,7 +444,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_ObjectInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -429,7 +460,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_ThisInstance()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -440,7 +471,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_Attribute()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -453,7 +484,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsInvoked()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -464,7 +495,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsAddressTaken()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -478,7 +509,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsRead()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -489,7 +520,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsRead()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -500,7 +531,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsRead()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -513,7 +544,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsSubscribed()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -533,7 +564,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsRaised()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -550,22 +581,40 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldInNameOf()
         {
-            await TestInRegularAndScriptAsync(
+            // https://github.com/dotnet/roslyn/issues/29519 tracks flagging and fixing this appropriately.
+            await TestMissingInRegularAndScriptAsync(
 @"class MyClass
 {
     private int [|_goo|];
     private string _goo2 = nameof(_goo);
-}",
-@"class MyClass
-{
-    private string _goo2 = nameof(_goo);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldInDocComment()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+/// <summary>
+/// <see cref=""C._goo""/>
+/// </summary>
+class C
+{
+    private static int [|_goo|];
+}",
+@"
+/// <summary>
+/// <see cref=""C._goo""/>
+/// </summary>
+class C
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOnlyWritten()
         {
             await TestInRegularAndScriptAsync(
@@ -586,7 +635,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsOnlyWritten()
         {
             await TestInRegularAndScriptAsync(
@@ -607,7 +656,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsOnlyWritten()
         {
             await TestInRegularAndScriptAsync(
@@ -628,7 +677,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsOnlyWritten()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -643,7 +692,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOnlyWritten_Deconstruction()
         {
             await TestInRegularAndScriptAsync(
@@ -666,7 +715,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOnlyWritten_ObjectInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -683,7 +732,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOnlyWritten_InProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -706,7 +755,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsReadAndWritten()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -721,7 +770,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsReadAndWritten()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -736,7 +785,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsReadAndWritten()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -751,7 +800,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsReadAndWritten_InProperty()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -766,7 +815,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsIncremented()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -777,7 +826,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsIncremented()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -788,7 +837,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsIncremented()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -799,7 +848,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsTargetOfCompoundAssignment()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -810,7 +859,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsTargetOfCompoundAssignment()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -821,7 +870,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsTargetOfCompoundAssignment()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -832,7 +881,39 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsTargetOfAssignmentAndParenthesized()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    public void M1(int x) => (_goo) = x;
+}",
+@"class MyClass
+{
+    public void M1(int x) => (_goo) = x;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsTargetOfAssignmentAndHasImplicitConversion()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    public static implicit operator int(MyClass c) => 0;
+    public void M1(MyClass c) => _goo = c;
+}",
+@"class MyClass
+{
+    public static implicit operator int(MyClass c) => 0;
+    public void M1(MyClass c) => _goo = c;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsArg()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -844,7 +925,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsInArg()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -856,7 +937,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRefArg()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -868,7 +949,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOutArg()
         {
             await TestInRegularAndScriptAsync(
@@ -885,7 +966,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsArg()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -897,7 +978,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsArg()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -909,7 +990,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsArg()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -921,7 +1002,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsArg()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -935,7 +1016,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MultipleFields_AllUnused()
         {
             await TestInRegularAndScriptAsync(
@@ -949,7 +1030,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MultipleFields_AllUnused_02()
         {
             await TestInRegularAndScriptAsync(
@@ -963,7 +1044,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MultipleFields_SomeUnused()
         {
             await TestInRegularAndScriptAsync(
@@ -979,7 +1060,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MultipleFields_SomeUnused_02()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -990,7 +1071,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_InNestedType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1005,7 +1086,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsInvoked_InNestedType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1020,7 +1101,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldOfNestedTypeIsUnused()
         {
             await TestInRegularAndScriptAsync(
@@ -1039,7 +1120,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldOfNestedTypeIsRead()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1054,7 +1135,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_PartialClass()
         {
             await TestInRegularAndScriptAsync(
@@ -1067,7 +1148,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_PartialClass()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1081,7 +1162,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_PartialClass_DifferentFile()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1102,7 +1183,7 @@ partial class MyClass
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOnlyWritten_PartialClass_DifferentFile()
         {
             await TestInRegularAndScriptAsync(
@@ -1137,7 +1218,7 @@ partial class MyClass
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_InParens()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1148,7 +1229,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsWritten_InParens()
         {
             await TestInRegularAndScriptAsync(
@@ -1163,7 +1244,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_InDeconstruction_InParens()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1178,7 +1259,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldInTypeWithGeneratedCode()
         {
             await TestInRegularAndScriptAsync(
@@ -1204,7 +1285,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsGeneratedCode()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1219,7 +1300,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldUsedInGeneratedCode()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1232,7 +1313,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllFields_Document()
         {
             await TestInRegularAndScriptAsync(
@@ -1252,7 +1333,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllMethods_Document()
         {
             await TestInRegularAndScriptAsync(
@@ -1274,7 +1355,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllProperties_Document()
         {
             await TestInRegularAndScriptAsync(
@@ -1290,7 +1371,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllEvents_Document()
         {
             await TestInRegularAndScriptAsync(
@@ -1324,7 +1405,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAvoidUnusedMembers)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllMembers_Project()
         {
             await TestInRegularAndScriptAsync(

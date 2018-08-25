@@ -12,11 +12,6 @@
         <target state="new">Apply '{0}' keymapping scheme</target>
         <note />
       </trans-unit>
-      <trans-unit id="Avoid_unused_members">
-        <source>Avoid unused members</source>
-        <target state="new">Avoid unused members</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">요소가 잘못되었습니다.</target>
@@ -33,8 +28,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Member_preferences_colon">
-        <source>Member preferences (field/method/property/event):</source>
-        <target state="new">Member preferences (field/method/property/event):</target>
+        <source>Member preferences:</source>
+        <target state="new">Member preferences:</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -45,6 +40,16 @@
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
         <target state="new">Parentheses preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="new">Prefer readonly fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_members">
+        <source>Remove unused members</source>
+        <target state="new">Remove unused members</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
@@ -1531,16 +1536,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
         <target state="translated">변경 내용을 적용할 수 없음 - 예기치 않은 오류: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences_colon">
-        <source>Field preferences:</source>
-        <target state="translated">필드 기본 설정:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly">
-        <source>Prefer readonly</source>
-        <target state="translated">읽기 전용 기본 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Manage_naming_styles">

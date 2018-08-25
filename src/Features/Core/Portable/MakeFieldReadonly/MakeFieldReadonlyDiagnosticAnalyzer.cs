@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         {
             // Check if the underlying member is being written or a writable reference to the member is taken.
             var valueUsageInfo = fieldReference.GetValueUsageInfo();
-            if ((valueUsageInfo & (ValueUsageInfo.Write | ValueUsageInfo.WritableRef)) == 0)
+            if (!valueUsageInfo.ContainsWriteOrWritableRef())
             {
                 return false;
             }
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 // For instance fields, ensure that the instance reference is being initialized by the constructor.
                 var instanceFieldWrittenInCtor = isInConstructor &&
                     fieldReference.Instance?.Kind == OperationKind.InstanceReference &&
-                    (!(fieldReference.Parent is IAssignmentOperation) || fieldReference.Parent.Parent?.Kind != OperationKind.ObjectOrCollectionInitializer);
+                    !fieldReference.IsTargetOfObjectMemberInitializer();
 
                 // For static fields, ensure that we are in the static constructor.
                 var staticFieldWrittenInStaticCtor = isInStaticConstructor && field.IsStatic;
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         private static CodeStyleOption<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var optionSet = options.GetDocumentOptionSetAsync(field.Locations[0].SourceTree, cancellationToken).GetAwaiter().GetResult();
-            return optionSet?.GetOption(CodeStyleOptions.AvoidUnusedMembers, field.Language);
+            return optionSet?.GetOption(CodeStyleOptions.RemoveUnusedMembers, field.Language);
         }
 
         private static bool IsMutableValueType(ITypeSymbol type)

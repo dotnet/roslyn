@@ -16,4 +16,13 @@ namespace Microsoft.CodeAnalysis
         ReadWrite = Read | Write,
         ReadableWritableRef = ReadableRef | WritableRef
     }
+
+    internal static class ValueUsageInfoExtensions
+    {
+        public static bool ContainsReadOrReadableRef(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & (ValueUsageInfo.Read | ValueUsageInfo.ReadableRef)) != 0;
+
+        public static bool ContainsWriteOrWritableRef(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & (ValueUsageInfo.Write | ValueUsageInfo.WritableRef)) != 0;
+    }
 }
