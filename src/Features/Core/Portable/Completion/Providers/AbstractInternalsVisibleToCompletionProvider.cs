@@ -156,7 +156,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (context.Items.Count > 0)
             {
-                context.CompletionListSpan = await GetTextChangeSpanAsync(context.Document, context.CompletionListSpan, cancellationToken).ConfigureAwait(false);
+                context.CompletionListSpan = await GetTextChangeSpanAsync(
+                    context.Document, context.CompletionListSpan, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -237,6 +238,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return string.Empty;
         }
 
+        private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, TextSpan startSpan, CancellationToken cancellationToken)
+        {
+            var result = startSpan;
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(result.Start);
+            if (syntaxFacts.IsStringLiteral(token) || syntaxFacts.IsVerbatimStringLiteral(token))
+            {
+                var text = root.GetText();
+                
+                // Expand selection in both directions until a double quote or any line break character is reached
+                bool IsWordCharacter(char ch) => !(ch == '"' || (char.IsControl(ch) || char.IsSeparator(ch) && !char.IsWhiteSpace(ch)));
+
+                result = CommonCompletionUtilities.GetWordSpan(
+                    text, startSpan.Start, IsWordCharacter, IsWordCharacter, alwaysExtendEndSpan: true);
+            }
+
+            return result;
+        }
+
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
         {
             var projectIdGuid = item.Properties[ProjectGuidKey];
@@ -251,23 +272,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var textChange = new TextChange(item.Span, assemblyName);
             return CompletionChange.Create(textChange);
-        }
-
-        private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, TextSpan startSpan, CancellationToken cancellationToken)
-        {
-            var result = startSpan;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(result.Start);
-            if (syntaxFacts.IsStringLiteral(token) || syntaxFacts.IsVerbatimStringLiteral(token))
-            {
-                var text = root.GetText();
-                bool IsWordCharacter(char ch) => !(ch == '"' || (char.IsControl(ch) || char.IsSeparator(ch) && !char.IsWhiteSpace(ch)));
-                result = CommonCompletionUtilities.GetWordSpan(
-                    text, startSpan.Start, IsWordCharacter, IsWordCharacter, alwaysExtendEndSpan: true);
-            }
-
-            return result;
         }
 
         private static async Task<string> GetPublicKeyOfProjectAsync(Project project, CancellationToken cancellationToken)
