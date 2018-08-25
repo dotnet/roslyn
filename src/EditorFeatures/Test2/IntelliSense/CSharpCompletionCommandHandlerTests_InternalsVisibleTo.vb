@@ -760,7 +760,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="Escaped double quotes are not supported."), Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_EscapeSequence_1() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
