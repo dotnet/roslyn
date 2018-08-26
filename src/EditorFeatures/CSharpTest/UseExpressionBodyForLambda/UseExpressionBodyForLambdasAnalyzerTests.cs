@@ -1047,6 +1047,118 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task UseExpressionBodyInMethod_FixAll1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = x {|FixAllInDocument:=>|}
+        {
+            return y =>
+            {
+                return (x + y).ToString();
+            };
+        };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = x => y => (x + y).ToString();
+    }
+}", options: UseExpressionBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task UseExpressionBodyInMethod_FixAll2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = x =>
+        {
+            return y {|FixAllInDocument:=>|}
+            {
+                return (x + y).ToString();
+            };
+        };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = x => y => (x + y).ToString();
+    }
+}", options: UseExpressionBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task UseBlockBodyInMethod_FixAll1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = x {|FixAllInDocument:=>|} y => (x + y).ToString();
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = x =>
+        {
+            return y =>
+            {
+                return (x + y).ToString();
+            };
+        };
+    }
+}", options: UseBlockBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task UseBlockBodyInMethod_FixAll2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = x => y {|FixAllInDocument:=>|} (x + y).ToString();
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = x =>
+        {
+            return y =>
+            {
+                return (x + y).ToString();
+            };
+        };
+    }
+}", options: UseBlockBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task FixAllNested1()
         {
             await TestInRegularAndScriptAsync(
