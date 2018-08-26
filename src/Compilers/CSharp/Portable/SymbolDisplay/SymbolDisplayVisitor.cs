@@ -39,6 +39,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             _lazyAliasMap = aliasMap;
         }
 
+        protected override AbstractSymbolDisplayVisitor MakeFirstSymbolContainingTypeVisitor()
+        {
+            if (!isFirstSymbolVisited || format.KindOptions == SymbolDisplayKindOptions.None)
+            {
+                return this;
+            }
+
+            return new SymbolDisplayVisitor(
+                this.builder,
+                this.format.WithKindOptions(SymbolDisplayKindOptions.None),
+                this.semanticModelOpt,
+                this.positionOpt,
+                _escapeKeywordIdentifiers,
+                _lazyAliasMap,
+                isFirstSymbolVisited: true,
+                inNamespaceOrType);
+        }
+
         protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false)
         {
             return new SymbolDisplayVisitor(

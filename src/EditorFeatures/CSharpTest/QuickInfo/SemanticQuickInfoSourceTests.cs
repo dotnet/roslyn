@@ -745,7 +745,7 @@ public class GenericList<T> { Generic$$List<int> t; }";
         {
             await TestInClassAsync(
 @"event $$EventHandler e;",
-                MainDescription("delegate void System.EventHandler(object sender, System.EventArgs e)"));
+                MainDescription("delegate void System.EventHandler(object sender, EventArgs e)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -911,6 +911,25 @@ class C<T> { $$T t; }";
         {
             await TestAsync(@"class C<T> where $$T : IEnumerable<int>",
                 MainDescription($"T {FeaturesResources.in_} C<T> where T : IEnumerable<int>"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(547, "https://github.com/dotnet/roslyn/issues/547")]
+        public async Task TestMinimallyQualifiedConstraint2()
+        {
+            await TestAsync(@"using System.Collections.Generic;
+ 
+class C<T, U> where T : struct where U : List<T>
+{
+    void M()
+    {
+        v$$ar x = new C<int, List<int>>();
+    }
+}",
+                MainDescription("class C<T, U> where T : struct where U : List<T>"),
+                TypeParameterMap(Lines(
+                    $"\r\nT {FeaturesResources.is_} int",
+                    $"U {FeaturesResources.is_} List<int>")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -5747,7 +5766,7 @@ public class C
     }
 }
 " + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                MainDescription("ValueTuple<System.Int32>"));
+                MainDescription("ValueTuple<int>"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -5783,7 +5802,7 @@ public class C
     }
 }
 " + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                MainDescription("(System.Int32, System.Int32)"));
+                MainDescription("(int, int)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

@@ -1864,10 +1864,10 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30508: 'B' cannot expose type 'A.B(Of T).C' in class 'A' through class 'B'.
+BC30508: 'B' cannot expose type 'A.B(Of T As A.B(Of T).C).C' in class 'A' through class 'B'.
     Private Class B(Of T As B(Of T).C)
                             ~~~~~~~~~
-BC30508: 'D' cannot expose type 'A.B(Of T).C' in class 'A' through class 'B'.
+BC30508: 'D' cannot expose type 'A.B(Of T As A.B(Of T).C).C' in class 'A' through class 'B'.
         Public Sub D(Of S As C)()
                              ~
 </expected>)

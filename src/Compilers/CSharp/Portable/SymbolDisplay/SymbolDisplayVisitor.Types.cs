@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes))
+            if (CanUseSpecialTypes)
             {
                 if (AddSpecialTypeKeyword(symbol))
                 {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IncludeNamedType(symbol.ContainingType))
                 {
-                    symbol.ContainingType.Accept(this.NotFirstVisitor);
+                    symbol.ContainingType.Accept(this.FirstSymbolContainingTypeVisitor);
                     AddPunctuation(SyntaxKind.DotToken);
                 }
             }

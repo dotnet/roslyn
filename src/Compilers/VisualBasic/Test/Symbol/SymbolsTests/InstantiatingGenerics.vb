@@ -704,7 +704,7 @@ End Class
             Assert.Equal("C1(Of C1T1, C1T2) : {C1T1->Integer, C1T2->Integer}", substitution1.ToString())
 
             substitution2 = TypeSubstitution.Create(c4, {c3.TypeParameters(0), c4.TypeParameters(0)}, {bte, chr})
-            Assert.Equal("C1(Of C1T1, C1T2).C2(Of C2T1, C2T2).C3(Of C3T1, C3T2).C4(Of C4T1) : {C3T1->Byte}, {C4T1->Char}", substitution2.ToString())
+            Assert.Equal("C1(Of C1T1, C1T2).C2(Of C2T1, C2T2).C3(Of C3T1, C3T2 As C1T1).C4(Of C4T1) : {C3T1->Byte}, {C4T1->Char}", substitution2.ToString())
 
             Assert.Same(substitution1, TypeSubstitution.Concat(c1, Nothing, substitution1))
             Assert.Same(substitution1, TypeSubstitution.Concat(c1, substitution1, Nothing))
@@ -714,7 +714,7 @@ End Class
             Assert.Equal("C1(Of C1T1, C1T2).C2(Of C2T1, C2T2) : {C1T1->Integer, C1T2->Integer}, {}", substitution3.ToString())
 
             substitution3 = TypeSubstitution.Concat(c4, substitution1, substitution2)
-            Assert.Equal("C1(Of C1T1, C1T2).C2(Of C2T1, C2T2).C3(Of C3T1, C3T2).C4(Of C4T1) : {C1T1->Integer, C1T2->Integer}, {}, {C3T1->Byte}, {C4T1->Char}", substitution3.ToString())
+            Assert.Equal("C1(Of C1T1, C1T2).C2(Of C2T1, C2T2).C3(Of C3T1, C3T2 As C1T1).C4(Of C4T1) : {C1T1->Integer, C1T2->Integer}, {}, {C3T1->Byte}, {C4T1->Char}", substitution3.ToString())
 
             Assert.Null(TypeSubstitution.Create(c4, {c1.TypeParameters(0)}, {c1.TypeParameters(0)}))
         End Sub

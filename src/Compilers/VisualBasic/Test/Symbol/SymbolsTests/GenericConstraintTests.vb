@@ -363,7 +363,7 @@ End Class
 BC30909: 'B' cannot expose type 'A' outside the project through class 'B'.
 Public Class B(Of T As A, U As C)
                        ~
-BC30508: 'B' cannot expose type 'B(Of T, U).C' in namespace '<Default>' through class 'B'.
+BC30508: 'B' cannot expose type 'B(Of T As A, U As B(Of T, U).C).C' in namespace '<Default>' through class 'B'.
 Public Class B(Of T As A, U As C)
                                ~
     ]]>
@@ -2931,7 +2931,7 @@ BC36739: Type 'IT(Of T).IAI' does not inherit the generic type parameters of its
 BC36739: Type 'IT(Of T).IAI.IAI' does not inherit the generic type parameters of its container.
     Implements IT(Of Object).IAI.IAI ' BC36739 (not reported by Dev11)
                ~~~~~~~~~~~~~~~~~~~~~
-BC36739: Type 'ITU(Of T, U).ITU2' does not inherit the generic type parameters of its container.
+BC36739: Type 'ITU(Of T, U As T).ITU2' does not inherit the generic type parameters of its container.
     Implements ITU(Of Object, Object).ITU2 ' BC36739 (not reported by Dev11)
                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC36739: Type 'IT(Of T).IF' does not inherit the generic type parameters of its container.
@@ -2940,10 +2940,10 @@ BC36739: Type 'IT(Of T).IF' does not inherit the generic type parameters of its 
 BC36739: Type 'IT(Of T).IIn' does not inherit the generic type parameters of its container.
     Implements IT(Of Object).IIn ' BC36739
                ~~~~~~~~~~~~~~~~~
-BC36739: Type 'IAI(Of T).IT' does not inherit the generic type parameters of its container.
+BC36739: Type 'IAI(Of T As {A, I}).IT' does not inherit the generic type parameters of its container.
     Implements IAI(Of C).IT ' BC36739 (not reported by Dev11)
                ~~~~~~~~~~~~
-BC36739: Type 'CF(Of T).CT' does not inherit the generic type parameters of its container.
+BC36739: Type 'CF(Of T As {Class, New}).CT' does not inherit the generic type parameters of its container.
     Inherits CF(Of C).CT ' BC36739
              ~~~~~~~~~~~
 BC36739: Type 'IIn(Of In T).IT' does not inherit the generic type parameters of its container.

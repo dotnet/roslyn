@@ -414,13 +414,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 this.MemberOptions,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
@@ -462,13 +463,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithGenericsOptions(SymbolDisplayGenericsOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 options,
                 this.MemberOptions,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
@@ -511,13 +513,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithMemberOptions(SymbolDisplayMemberOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 options,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
@@ -564,13 +567,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithKindOptions(SymbolDisplayKindOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 this.MemberOptions,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 this.LocalOptions,
                 options,
@@ -615,13 +619,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithParameterOptions(SymbolDisplayParameterOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 this.MemberOptions,
+                options,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                options,
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
@@ -666,13 +671,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle style)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 style,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 this.MemberOptions,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
@@ -689,13 +695,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithLocalOptions(SymbolDisplayLocalOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 this.MemberOptions,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 options,
                 this.KindOptions,
