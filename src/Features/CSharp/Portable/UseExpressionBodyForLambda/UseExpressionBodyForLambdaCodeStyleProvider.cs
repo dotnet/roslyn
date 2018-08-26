@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 {
     internal partial class UseExpressionBodyForLambdaCodeStyleProvider
-        : AbstractCodeStyleProvider<ExpressionBodyPreference, SyntaxKind, UseExpressionBodyForLambdaCodeStyleProvider>
+        : AbstractCodeStyleProvider<ExpressionBodyPreference, UseExpressionBodyForLambdaCodeStyleProvider>
     {
         private static readonly LocalizableString UseExpressionBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString UseBlockBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));

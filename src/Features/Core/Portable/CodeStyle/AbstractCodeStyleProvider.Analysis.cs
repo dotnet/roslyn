@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     // subclasses cannot change anything.  All code relevant to subclasses relating to analysis
     // is contained in AbstractCodeStyleProvider.cs
 
-    internal abstract partial class AbstractCodeStyleProvider<TOptionKind, TSyntaxKind, TCodeStyleProvider>
+    internal abstract partial class AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>
     {
         public abstract class DiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
         {
@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     operationKinds);
             }
 
-            public void RegisterSyntaxNodeAction(
+            public void RegisterSyntaxNodeAction<TSyntaxKind>(
                 Action<SyntaxNodeAnalysisContext, CodeStyleOption<TOptionKind>> analyze,
-                params TSyntaxKind[] syntaxKinds)
+                params TSyntaxKind[] syntaxKinds) where TSyntaxKind : struct
             {
                 var provider = _codeStyleProvider;
                 _context.RegisterSyntaxNodeAction(

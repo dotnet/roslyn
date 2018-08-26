@@ -27,11 +27,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// the CodeRefactoringProvider codepaths.
     /// </summary>
     internal abstract partial class AbstractCodeStyleProvider<
-        TOptionKind, 
-        TSyntaxKind,
-        TCodeStyleProvider>
-        where TSyntaxKind : struct
-        where TCodeStyleProvider : AbstractCodeStyleProvider<TOptionKind, TSyntaxKind, TCodeStyleProvider>, new()
+        TOptionKind, TCodeStyleProvider>
+        where TCodeStyleProvider : AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>, new()
     {
         private readonly Option<CodeStyleOption<TOptionKind>> _option;
         private readonly string _descriptorId;
