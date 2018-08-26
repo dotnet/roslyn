@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     internal abstract partial class AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>
     {
-        private async Task RegisterCodeFixesAsync(
-            CodeFixProvider fixProvider, CodeFixContext context)
+        private async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var diagnostic = context.Diagnostics[0];
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
             public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-                => _codeStyleProvider.RegisterCodeFixesAsync(this, context);
+                => _codeStyleProvider.RegisterCodeFixesAsync(context);
 
             protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
                 => _codeStyleProvider.FixAllAsync(document, diagnostics, editor, cancellationToken);
