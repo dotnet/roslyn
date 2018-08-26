@@ -760,9 +760,13 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfFact(Skip:="Escaped double quotes are not supported."), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_EscapeSequence_1() As Task
+            ' Escaped double quotes are not handled properly: The selection is expanded from the cursor position until
+            ' a double quote or new line is reached. But because double quotes are not allowed in this context this 
+            ' case is rare enough to ignore. Supporting it would require more complicated code that was reverted in
+            ' https://github.com/dotnet/roslyn/pull/29447/commits/e7a852a7e83fffe1f25a8dee0aaec68f67fcc1d8
             Using state = TestState.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="C#" AssemblyName="Dotted1.Dotted2.Assembly.Dotted3"/>
@@ -776,7 +780,7 @@ using System.Reflection;
                 Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
                 state.SendTab()
                 Await state.WaitForAsynchronousOperationsAsync()
-                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3"")]")
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""\""Dotted1.Dotted2.Assembly.Dotted3"""")]")
             End Using
         End Function
 
