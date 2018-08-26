@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         private static readonly LocalizableString UseBlockBodyTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_lambda_expressions), FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
         public UseExpressionBodyForLambdaCodeStyleProvider() 
-            : base(CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions,
+            : base(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
                    IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
                    UseExpressionBodyTitle,
                    UseExpressionBodyTitle)
@@ -165,7 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                     createReturnStatementForExpression,
                     out var statement))
             {
-
                 return currentDeclaration;
             }
 
@@ -224,18 +223,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     // Stub classes needed only for exporting purposes.
 
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal partial class UseExpressionBodyForLambdaCodeFixProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeFixProvider
+    internal sealed class UseExpressionBodyForLambdaCodeFixProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeFixProvider
     {
     }
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp,
         Name = nameof(UseExpressionBodyForLambdaCodeRefactoringProvider)), Shared]
-    internal class UseExpressionBodyForLambdaCodeRefactoringProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeRefactoringProvider
+    internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeRefactoringProvider
     {
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class UseExpressionBodyForLambdaDiagnosticAnalyzer : UseExpressionBodyForLambdaCodeStyleProvider.DiagnosticAnalyzer
+    internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : UseExpressionBodyForLambdaCodeStyleProvider.DiagnosticAnalyzer
     {
     }
 }

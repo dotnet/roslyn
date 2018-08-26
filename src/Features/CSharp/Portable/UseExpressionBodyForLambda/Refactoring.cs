@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             if (CanOfferUseExpressionBody(option, lambdaNode))
             {
                 result.Add(new MyCodeAction(
-                    UseExpressionBodyTitle.ToString() + "-Ref",
+                    UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
                         document, root, lambdaNode, c)));
             }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             if (CanOfferUseBlockBody(semanticModel, option, lambdaNode, cancellationToken))
             {
                 result.Add(new MyCodeAction(
-                    UseBlockBodyTitle.ToString() + "-Ref",
+                    UseBlockBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
                         document, root, lambdaNode, c)));
             }
@@ -132,6 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             Document document, SyntaxNode root, LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            // We're only replacing a single declaration in the refactoring.  So pass 'declaration'
+            // as both the 'original' and 'current' declaration.
             var updatedDeclaration = Update(semanticModel, declaration, declaration);
 
             var newRoot = root.ReplaceNode(declaration, updatedDeclaration);

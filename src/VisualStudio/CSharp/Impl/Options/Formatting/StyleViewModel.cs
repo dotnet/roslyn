@@ -910,7 +910,7 @@ class List<T>
 //]
 ";
 
-        private const string s_preferExpressionBodyForLambdaExpressions = @"
+        private const string s_preferExpressionBodyForLambdas = @"
 
 using System;
 
@@ -925,7 +925,7 @@ class Customer
 }
 ";
 
-        private const string s_preferBlockBodyForLambdaExpressions = @"
+        private const string s_preferBlockBodyForLambdas = @"
 using System;
 
 class Customer
@@ -1268,10 +1268,10 @@ class C
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
-                CSharpCodeStyleOptions.PreferExpressionBodiedLambdaExpressions,
-                ServicesVSResources.Use_expression_body_for_lambda_expressions,
+                CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
+                ServicesVSResources.Use_expression_body_for_lambdas,
                 enumValues,
-                new[] { s_preferBlockBodyForLambdaExpressions, s_preferExpressionBodyForLambdaExpressions, s_preferExpressionBodyForLambdaExpressions },
+                new[] { s_preferBlockBodyForLambdas, s_preferExpressionBodyForLambdas, s_preferExpressionBodyForLambdas },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
         }
     }

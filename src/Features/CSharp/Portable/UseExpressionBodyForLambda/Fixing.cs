@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         protected override Task<ImmutableArray<CodeAction>> ComputeCodeActionsAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var codeAction = new MyCodeAction(
-                diagnostic.GetMessage() + "-Fix",
+                diagnostic.GetMessage(),
                 c => FixWithSyntaxEditorAsync(document, diagnostic, c));
 
             return Task.FromResult(ImmutableArray.Create<CodeAction>(codeAction));
@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
-            var declaration = (LambdaExpressionSyntax)declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var originalDeclaration = (LambdaExpressionSyntax)declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
             editor.ReplaceNode(
-                declaration,
-                (current, _) => Update(semanticModel, declaration, (LambdaExpressionSyntax)current));
+                originalDeclaration,
+                (current, _) => Update(semanticModel, originalDeclaration, (LambdaExpressionSyntax)current));
         }
     }
 }
