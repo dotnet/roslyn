@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             if (await GetServiceAsync(typeof(SVsObjectManager)).ConfigureAwait(true) is IVsObjectManager2 objectManager)
             {
-                _libraryManager = new ObjectBrowserLibraryManager(this);
+                _libraryManager = new ObjectBrowserLibraryManager(this, ComponentModel, Workspace);
 
                 if (ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(_libraryManager, out _libraryManagerCookie)))
                 {

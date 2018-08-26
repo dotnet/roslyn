@@ -258,6 +258,28 @@ commitPullList.each { isPr ->
   }
 }
 
+// Loc change check
+commitPullList.each { isPr ->
+  // This job blocks PRs with loc changes, so only activate it for PR builds of
+  // release branches after a loc freeze.
+  if (isPr
+      && (branchName == "dev15.8.x"
+          || branchName == "dev15.8.x-vs-deps")) {
+    def jobName = Utilities.getFullJobName(projectName, "windows_loc_changes", isPr)
+    def myJob = job(jobName) {
+        description('Validate that a PR contains no localization changes')
+        steps {
+            batchFile(""".\\build\\scripts\\check-for-loc-changes.cmd -base origin/${branchName} -head %GIT_COMMIT%""")
+        }
+    }
+
+    def triggerPhraseOnly = false
+    def triggerPhraseExtra = "loc changes"
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+  }
+}
+
 JobReport.Report.generateJobReport(out)
 
 // Make the call to generate the help job

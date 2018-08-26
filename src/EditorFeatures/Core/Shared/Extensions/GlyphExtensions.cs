@@ -425,6 +425,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     case WellKnownTags.RangeVariable:
                         return Glyph.RangeVariable;
 
+                    case WellKnownTags.AddReference:
+                        return Glyph.AddReference;
+
                     case WellKnownTags.Reference:
                         return Glyph.Reference;
 

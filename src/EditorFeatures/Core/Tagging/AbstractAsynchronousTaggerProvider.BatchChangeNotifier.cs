@@ -61,11 +61,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly Action<NormalizedSnapshotSpanCollection> _notifyEditorNow;
 
             public BatchChangeNotifier(
+                IThreadingContext threadingContext,
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener listener,
                 IForegroundNotificationService notificationService,
                 Action<NormalizedSnapshotSpanCollection> notifyEditorNow,
                 CancellationToken cancellationToken)
+                : base(threadingContext)
             {
                 Contract.ThrowIfNull(notifyEditorNow);
                 _subjectBuffer = subjectBuffer;

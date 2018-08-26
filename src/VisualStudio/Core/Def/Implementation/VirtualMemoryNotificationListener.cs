@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -37,9 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool _alreadyLogged;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         private VirtualMemoryNotificationListener(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
-            VisualStudioWorkspace workspace) : base(assertIsForeground: true)
+            VisualStudioWorkspace workspace)
+            : base(threadingContext, assertIsForeground: true)
         {
             _workspace = workspace;
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
