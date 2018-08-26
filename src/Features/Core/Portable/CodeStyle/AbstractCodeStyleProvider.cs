@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     // This file contains the "protected" surface area of the AbstractCodeStyleProvider.
-    // It specifically is all the extensibilty surface that a subclass needs to fill in
+    // It specifically is all the extensibility surface that a subclass needs to fill in
     // in order to properly expose a code style analyzer/fixer/refactoring.
 
     /// <summary>

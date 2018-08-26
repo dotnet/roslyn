@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             public readonly TCodeStyleProvider _codeStyleProvider;
 
-            protected DiagnosticAnalyzer(bool configurable = true) 
+            protected DiagnosticAnalyzer(bool configurable = true)
                 : this(new TCodeStyleProvider(), configurable)
             {
             }
@@ -38,6 +38,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 => _codeStyleProvider.DiagnosticsForOpenFileOnly(workspace);
         }
 
+        /// <summary>
+        /// Critically, we want to consolidate the logic about checking if the analyzer should run
+        /// at all.  i.e. if the user has their option set to 'none' or 'refactoring only' then we
+        /// do not want the analyzer to run at all.
+        ///
+        /// To that end, we don't let the subclass have direct access to the real <see
+        /// cref="Diagnostics.AnalysisContext"/>. Instead, we pass this type to the subclass for it
+        /// register with.  We then check if the registration should proceed given the <see
+        /// cref="CodeStyleOption{T}"/>
+        /// and the current <see cref="SyntaxTree"/> being processed.  If not, we don't do the
+        /// actual registration.
+        /// </summary>
         protected struct AnalysisContext
         {
             private readonly TCodeStyleProvider _codeStyleProvider;
@@ -47,6 +59,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 _codeStyleProvider = codeStyleProvider;
                 _context = context;
+            }
+
+            public void RegisterCompilationStartAction(Action<Compilation, AnalysisContext> analyze)
+            {
+                var _this = this;
+                _context.RegisterCompilationStartAction(
+                    c => analyze(c.Compilation, _this));
             }
 
             public void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext, CodeStyleOption<TOptionKind>> analyze)
@@ -63,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.SemanticModel.SyntaxTree, c.CancellationToken));
             }
 
-            public void RegisterSsyntaxTreeAction(Action<SyntaxTreeAnalysisContext, CodeStyleOption<TOptionKind>> analyze)
+            public void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext, CodeStyleOption<TOptionKind>> analyze)
             {
                 var provider = _codeStyleProvider;
                 _context.RegisterSyntaxTreeAction(
@@ -90,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     syntaxKinds);
             }
 
-            static void AnalyzeIfEnabled<TContext>(
+            private static void AnalyzeIfEnabled<TContext>(
                 TCodeStyleProvider provider, TContext context, Action<TContext, CodeStyleOption<TOptionKind>> analyze,
                 AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
             {
