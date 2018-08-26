@@ -204,6 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsNamedParameter(SyntaxNode node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
 
+        public SyntaxToken? GetNameOfParameter(SyntaxNode node)
+            => (node as ParameterSyntax)?.Identifier;
+
         public SyntaxNode GetDefaultOfParameter(SyntaxNode node)
             => (node as ParameterSyntax)?.Default;
 
@@ -657,11 +660,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node)
             => (node as ConditionalAccessExpressionSyntax)?.Expression;
 
-        public SyntaxNode GetExpressionOfElementAccessExpression(SyntaxNode node)
-            => (node as ElementAccessExpressionSyntax)?.Expression;
-
-        public SyntaxNode GetArgumentListOfElementAccessExpression(SyntaxNode node)
-            => (node as ElementAccessExpressionSyntax)?.ArgumentList;
+        public void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
+        {
+            var elementAccess = node as ElementAccessExpressionSyntax;
+            expression = elementAccess?.Expression;
+            argumentList = elementAccess?.ArgumentList;
+        }
 
         public SyntaxNode GetExpressionOfInterpolation(SyntaxNode node)
             => (node as InterpolationSyntax)?.Expression;
@@ -1511,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // First, annotate the context node in the tree so that we can find it again
             // after we've done all the rewriting.
             // var currentRoot = root.ReplaceNode(contextNode, contextNode.WithAdditionalAnnotations(s_annotation));
-            newRoot = new AddFirstMissingCloseBaceRewriter(contextNode).Visit(root);
+            newRoot = new AddFirstMissingCloseBraceRewriter(contextNode).Visit(root);
             newContextNode = newRoot.GetAnnotatedNodes(s_annotation).Single();
         }
 
@@ -1698,13 +1702,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
-        private class AddFirstMissingCloseBaceRewriter : CSharpSyntaxRewriter
+        private class AddFirstMissingCloseBraceRewriter : CSharpSyntaxRewriter
         {
             private readonly SyntaxNode _contextNode;
             private bool _seenContextNode = false;
             private bool _addedFirstCloseCurly = false;
 
-            public AddFirstMissingCloseBaceRewriter(SyntaxNode contextNode)
+            public AddFirstMissingCloseBraceRewriter(SyntaxNode contextNode)
             {
                 _contextNode = contextNode;
             }

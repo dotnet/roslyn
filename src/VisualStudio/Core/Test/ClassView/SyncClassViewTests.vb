@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -871,7 +872,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 
                 Dim navigationTool = New MockNavigationTool(canonicalNodes:=Nothing, presentationNodes:=presentationNodes)
                 Dim serviceProvider = New MockServiceProvider(navigationTool)
-                Dim commandHandler = New MockSyncClassViewCommandHandler(serviceProvider)
+                Dim commandHandler = New MockSyncClassViewCommandHandler(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), serviceProvider)
 
                 commandHandler.ExecuteCommand(
                     args:=New SyncClassViewCommandArgs(textView, subjectBuffer), TestCommandExecutionContext.Create())
