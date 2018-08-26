@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     // This file contains the "protected" surface area of the AbstractCodeStyleProvider.
-    // It specifically is all the extensibilty surface that a subclass needs to fill in
+    // It specifically is all the extensibility surface that a subclass needs to fill in
     // in order to properly expose a code style analyzer/fixer/refactoring.
 
     /// <summary>
@@ -27,11 +27,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// the CodeRefactoringProvider codepaths.
     /// </summary>
     internal abstract partial class AbstractCodeStyleProvider<
-        TOptionKind, 
-        TSyntaxKind,
-        TCodeStyleProvider>
-        where TSyntaxKind : struct
-        where TCodeStyleProvider : AbstractCodeStyleProvider<TOptionKind, TSyntaxKind, TCodeStyleProvider>, new()
+        TOptionKind, TCodeStyleProvider>
+        where TCodeStyleProvider : AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>, new()
     {
         private readonly Option<CodeStyleOption<TOptionKind>> _option;
         private readonly string _descriptorId;
