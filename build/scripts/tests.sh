@@ -69,8 +69,7 @@ do
     echo Running "${runtime} ${file_name[@]}"
     if [[ "${runtime}" == "dotnet" ]]; then
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
-        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests.dll' ]] || \
-           [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll' ]] || \
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll' ]] || \
            [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] || \
            [[ "${file_name[@]}" == *'Roslyn.Compilers.VisualBasic.IOperation.UnitTests.dll' ]] 
         then
@@ -82,7 +81,7 @@ do
     fi
 
     # https://github.com/dotnet/roslyn/issues/29380
-    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}" -parallel none -maxThreads 2
+    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}" -parallel none 
     then
         echo "Assembly ${file_name[@]} passed"
     else
