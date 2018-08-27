@@ -160,7 +160,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                         }
                         else
                         {
-                            break;
+                            // hit something we don't understand.  bail out.  that will help ensure
+                            // users don't have weird behavior just because they misspelled something.
+                            // instead, they will know they need to fix it up.
+                            return false;
                         }
                     }
 
