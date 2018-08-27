@@ -12198,8 +12198,8 @@ xmlDoc)
                     End If
 
                     Assert.Equal(
-                        expectedDocXml.Value.Replace(vbLf, vbCrLf).Trim(),
-                        xmlDoc.Replace(vbLf, vbCrLf).Trim())
+                        expectedDocXml.Value.Trim(),
+                        xmlDoc.Replace(vbCrLf, vbLf).Trim())
                 End Using
             End Using
         End Sub
