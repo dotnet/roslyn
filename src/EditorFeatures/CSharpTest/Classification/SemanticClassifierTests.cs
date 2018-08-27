@@ -2901,6 +2901,30 @@ Regex.Comment("(?#comment)"),
 Regex.Text(" # is not end of line comment"));
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex11()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    // language=regex
+    private static string myRegex = @""$(\a\t\u0020)"";
+}",
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("t"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("u"),
+Regex.OtherEscape("0020"),
+Regex.Grouping(")"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestUnmanagedConstraint_LocalFunction_Keyword()
         {
