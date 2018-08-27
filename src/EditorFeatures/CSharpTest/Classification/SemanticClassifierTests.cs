@@ -2925,6 +2925,40 @@ Regex.OtherEscape("0020"),
 Regex.Grouping(")"));
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void M()
+    {
+        // not terminating this string caused us to eat up to the quote on the next line.
+        // we then treated #comment as a directive with a lot of skipped tokens on it, including
+        // a skipped token for "";
+        //
+        // Because it's a comment on a directive, special lexing rules apply (i.e. no escape
+        // characters are supposed, and we want our system to bail there and not try to validate
+        // it.
+        var r = new Regex(@""$;
+        var s = /* language=regex */ @""(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"";
+    }
+}",
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("t"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("u"),
+Regex.OtherEscape("0020"),
+Regex.Grouping(")"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestUnmanagedConstraint_LocalFunction_Keyword()
         {
