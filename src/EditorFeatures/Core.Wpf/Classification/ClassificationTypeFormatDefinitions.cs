@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
-        #region Regex - Comment
+        #region Regex
 
         // When https://github.com/dotnet/roslyn/issues/29173 is addressed, this section
         // can be removed.  Right now it serves as an easy way to recompile while flipping
