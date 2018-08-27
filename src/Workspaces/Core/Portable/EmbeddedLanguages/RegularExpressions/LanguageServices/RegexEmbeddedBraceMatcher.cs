@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
@@ -61,16 +62,28 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return null;
             }
 
+
             var ch = virtualChar.Value;
-            if (ch != '(' && ch != ')')
+            switch (ch)
             {
-                return null;
+                case '(': case ')':
+                case '[': case ']':
+                    break;
+                default:
+                    return null;
             }
 
             return FindBraceHighlights(tree, ch);
         }
 
         private static EmbeddedBraceMatchingResult? FindBraceHighlights(RegexTree tree, VirtualChar ch)
+        {
+            return FindGroupingBraces(tree, ch) ??
+                   // FindCommentBraces(tree, ch) ??
+                   FindCharacterClassBraces(tree, ch);
+        }
+
+        private static EmbeddedBraceMatchingResult? FindGroupingBraces(RegexTree tree, VirtualChar ch)
         {
             var node = FindGroupingNode(tree.Root, ch);
             if (node == null)
@@ -88,19 +101,45 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 node.CloseParenToken.VirtualChars[0].Span);
         }
 
-        private static RegexGroupingNode FindGroupingNode(RegexNode node, VirtualChar ch)
+        private static EmbeddedBraceMatchingResult? FindCharacterClassBraces(RegexTree tree, VirtualChar ch)
         {
-            if (node is RegexGroupingNode grouping &&
-                (grouping.OpenParenToken.VirtualChars.Contains(ch) || grouping.CloseParenToken.VirtualChars.Contains(ch)))
+            var node = FindCharacterClassNode(tree.Root, ch);
+            if (node == null)
             {
-                return grouping;
+                return null;
+            }
+
+            if (node.OpenBracketToken.IsMissing || node.CloseBracketToken.IsMissing)
+            {
+                return null;
+            }
+
+            return new EmbeddedBraceMatchingResult(
+                node.OpenBracketToken.VirtualChars[0].Span,
+                node.CloseBracketToken.VirtualChars[0].Span);
+        }
+
+        private static RegexGroupingNode FindGroupingNode(RegexNode node, VirtualChar ch)
+            => FindNode<RegexGroupingNode>(node, ch, (grouping, c) =>
+                    grouping.OpenParenToken.VirtualChars.Contains(c) || grouping.CloseParenToken.VirtualChars.Contains(c));
+
+        private static RegexBaseCharacterClassNode FindCharacterClassNode(RegexNode node, VirtualChar ch)
+            => FindNode<RegexBaseCharacterClassNode>(node, ch, (grouping, c) =>
+                    grouping.OpenBracketToken.VirtualChars.Contains(c) || grouping.CloseBracketToken.VirtualChars.Contains(c));
+
+        private static TNode FindNode<TNode>(RegexNode node, VirtualChar ch, Func<TNode, VirtualChar, bool> predicate)
+            where TNode : RegexNode
+        {
+            if (node is TNode nodeMatch && predicate(nodeMatch, ch))
+            {
+                return nodeMatch;
             }
 
             foreach (var child in node)
             {
                 if (child.IsNode)
                 {
-                    var result = FindGroupingNode(child.Node, ch);
+                    var result = FindNode(child.Node, ch, predicate);
                     if (result != null)
                     {
                         return result;
