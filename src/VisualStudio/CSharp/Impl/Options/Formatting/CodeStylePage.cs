@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using static Microsoft.VisualStudio.LanguageServices.Implementation.Options.ToolsOptionsExportEditorConfigHelper;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 {
@@ -33,8 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
         private static void GetCurrentEditorConfigOptionsCSharp(OptionSet optionSet, StringBuilder editorconfig)
         {
             editorconfig.AppendLine();
-            editorconfig.AppendLine("# C# Coding Conventions");
 
+            editorconfig.AppendLine("# C# Coding Conventions");
             editorconfig.AppendLine("# " + CSharpVSResources.var_preferences_colon);
             // csharp_style_var_for_built_in_types
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, editorconfig);
@@ -42,8 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, editorconfig);
             // csharp_style_var_elsewhere
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.UseImplicitTypeWherePossible, editorconfig);
-
             editorconfig.AppendLine();
+
             editorconfig.AppendLine("# Expression-bodied members:");
             // csharp_style_expression_bodied_methods
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.PreferExpressionBodiedMethods, editorconfig);
@@ -57,27 +58,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, editorconfig);
             // csharp_style_expression_bodied_accessors
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, editorconfig);
-
             editorconfig.AppendLine();
+
             editorconfig.AppendLine("# Pattern matching preferences:");
             // csharp_style_pattern_matching_over_is_with_cast_check
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, editorconfig);
             // csharp_style_pattern_matching_over_as_with_null_check
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, editorconfig);
-
             editorconfig.AppendLine();
+
             editorconfig.AppendLine("# Null-checking preferences:");
             // csharp_style_throw_expression
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.PreferThrowExpression, editorconfig);
             // csharp_style_conditional_delegate_call
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.PreferConditionalDelegateCall, editorconfig);
-
             editorconfig.AppendLine();
+
             editorconfig.AppendLine("# Modifier preferences:");
             // csharp_preferred_modifier_order
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.PreferredModifierOrder, editorconfig);
-
             editorconfig.AppendLine();
+
             editorconfig.AppendLine("# Expression-level preferences:");
             // csharp_prefer_braces
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.PreferBraces, editorconfig);
@@ -89,8 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, editorconfig);
             // csharp_style_inlined_variable_declaration
             CSharpCodeStyleOptions_GenerateEditorconfig(optionSet, CodeStyleOptions.PreferInlinedVariableDeclaration, editorconfig);
-
             editorconfig.AppendLine();
+
             editorconfig.AppendLine("# C# Formatting Rules");
             editorconfig.AppendLine("# New line preferences:");
             // csharp_new_line_before_open_brace
@@ -107,8 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.NewLineForMembersInAnonymousTypes, editorconfig);
             // csharp_new_line_between_query_expression_clauses
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.NewLineForClausesInQuery, editorconfig);
-
             editorconfig.AppendLine();
+
             editorconfig.AppendLine("# Indentation preferences:");
             // csharp_indent_case_contents
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.IndentSwitchCaseSection, editorconfig);
@@ -116,8 +117,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.IndentSwitchSection, editorconfig);
             // csharp_indent_labels
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.LabelPositioning, editorconfig);
-
             editorconfig.AppendLine();
+
             editorconfig.AppendLine("# Space preferences:");
             // csharp_space_after_cast
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.SpaceAfterCast, editorconfig);
@@ -128,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             // csharp_space_between_method_declaration_parameter_list_parentheses
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis, editorconfig);
             // csharp_space_between_parentheses
-            CSharpFormattingOptions_GenerateEditorconfig(optionSet, editorconfig);
+            CSharpSpaceBetweenParentheses_GenerateEditorconfig(optionSet, editorconfig);
             // csharp_space_before_colon_in_inheritance_clause
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.SpaceBeforeColonInBaseTypeDeclaration, editorconfig);
             // csharp_space_after_colon_in_inheritance_clause
@@ -141,8 +142,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.SpaceAfterMethodCallName, editorconfig);
             // csharp_space_between_method_call_empty_parameter_list_parentheses
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, editorconfig);
-
             editorconfig.AppendLine();
+
             editorconfig.AppendLine("# Wrapping preferences:");
             // csharp_preserve_single_line_statements
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, editorconfig);
@@ -150,72 +151,46 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             CSharpFormattingOptions_GenerateEditorconfig(optionSet, CSharpFormattingOptions.WrappingPreserveSingleLine, editorconfig);
         }
 
-        private static void CSharpFormattingOptions_GenerateEditorconfig(OptionSet optionSet, Option<bool> option, StringBuilder editorconfig)
-        {
-            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<bool>>().FirstOrDefault();
-            if (element != null)
-            {
-                editorconfig.Append(element.KeyName + " = ");
-
-                editorconfig.AppendLine(optionSet.GetOption(option).ToString().ToLowerInvariant());
-            }
-        }
-
         private static void CSharpCodeStyleOptions_GenerateEditorconfig(OptionSet optionSet, PerLanguageOption<CodeStyleOption<bool>> option, StringBuilder editorconfig)
         {
             var element = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
             if (element != null)
             {
-                editorconfig.Append(element.KeyName + " = ");
+                AppendName(element.KeyName, editorconfig);
 
                 var curSetting = optionSet.GetOption(option, LanguageNames.CSharp);
-                editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + curSetting.Notification.ToString().ToLowerInvariant());
+                editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + NotificationOptionToString(curSetting.Notification));
             }
         }
 
-        private static void CSharpCodeStyleOptions_GenerateEditorconfig(OptionSet optionSet, Option<CodeStyleOption<bool>> option, StringBuilder editorconfig)
+        private static void CSharpCodeStyleOptions_GenerateEditorconfig<T>(OptionSet optionSet, Option<CodeStyleOption<T>> option, StringBuilder editorconfig)
         {
-            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
+            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<T>>>().FirstOrDefault();
             if (element != null)
             {
-                editorconfig.Append(element.KeyName + " = ");
+                AppendName(element.KeyName, editorconfig);
 
                 var curSetting = optionSet.GetOption(option);
-                editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + curSetting.Notification.ToString().ToLowerInvariant());
-            }
-        }
-
-        private static void CSharpCodeStyleOptions_GenerateEditorconfig(OptionSet optionSet, Option<CodeStyleOption<string>> option, StringBuilder editorconfig)
-        {
-            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<string>>>().FirstOrDefault();
-            if (element != null)
-            {
-                editorconfig.Append(element.KeyName + " = ");
-
-                var curSetting = optionSet.GetOption(option);
-                editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + curSetting.Notification.ToString().ToLowerInvariant());
-            }
-        }
-
-        private static void CSharpCodeStyleOptions_GenerateEditorconfig(OptionSet optionSet, Option<CodeStyleOption<ExpressionBodyPreference>> option, StringBuilder editorconfig)
-        {
-            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<ExpressionBodyPreference>>>().FirstOrDefault();
-            if (element != null)
-            {
-                editorconfig.Append(element.KeyName + " = ");
-
-                var curSetting = optionSet.GetOption(option);
-                if (curSetting.Value == ExpressionBodyPreference.Never)
+                if (typeof(T) == typeof(ExpressionBodyPreference))
                 {
-                    editorconfig.AppendLine("false" + ":" + curSetting.Notification.ToString().ToLowerInvariant());
+                    switch((ExpressionBodyPreference)(object) curSetting.Value)
+                    {
+                        case ExpressionBodyPreference.Never:
+                            editorconfig.AppendLine("false" + ":" + NotificationOptionToString(curSetting.Notification));
+                            break;
+                        case ExpressionBodyPreference.WhenPossible:
+                            editorconfig.AppendLine("true" + ":" + NotificationOptionToString(curSetting.Notification));
+                            break;
+                        case ExpressionBodyPreference.WhenOnSingleLine:
+                            editorconfig.AppendLine("when_on_single_line" + ":" + NotificationOptionToString(curSetting.Notification));
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    };
                 }
-                else if (curSetting.Value == ExpressionBodyPreference.WhenPossible)
+                else if (typeof(T) == typeof(bool) || typeof(T) == typeof(string))
                 {
-                    editorconfig.AppendLine("true" + ":" + curSetting.Notification.ToString().ToLowerInvariant());
-                }
-                else if (curSetting.Value == ExpressionBodyPreference.WhenOnSingleLine)
-                {
-                    editorconfig.AppendLine("when_on_single_line" + ":" + curSetting.Notification.ToString().ToLowerInvariant());
+                    editorconfig.AppendLine(curSetting.Value.ToString().ToLowerInvariant() + ":" + NotificationOptionToString(curSetting.Notification));
                 }
                 else
                 {
@@ -224,24 +199,51 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             }
         }
 
-        private static void CSharpFormattingOptions_GenerateEditorconfig(OptionSet optionSet, Option<LabelPositionOptions> option, StringBuilder editorconfig)
+        private static void CSharpFormattingOptions_GenerateEditorconfig<T>(OptionSet optionSet, Option<T> option, StringBuilder editorconfig)
         {
-            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<LabelPositionOptions>>().FirstOrDefault();
+            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<T>>().FirstOrDefault();
             if (element != null)
             {
-                editorconfig.Append(element.KeyName + " = ");
+                AppendName(element.KeyName, editorconfig);
+
                 var curSetting = optionSet.GetOption(option);
-                if (curSetting == LabelPositionOptions.LeftMost)
+                if (typeof(T) == typeof(LabelPositionOptions))
                 {
-                    editorconfig.AppendLine("flush_left");
+                    switch((LabelPositionOptions)(object) curSetting)
+                    {
+                        case LabelPositionOptions.LeftMost:
+                            editorconfig.AppendLine("flush_left");
+                            break;
+                        case LabelPositionOptions.OneLess:
+                            editorconfig.AppendLine("one_less_than_current");
+                            break;
+                        case LabelPositionOptions.NoIndent:
+                            editorconfig.AppendLine("no_change");
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    };
                 }
-                else if (curSetting == LabelPositionOptions.OneLess)
+                else if (typeof(T) == typeof(BinaryOperatorSpacingOptions))
                 {
-                    editorconfig.AppendLine("one_less_than_current");
+                    switch((BinaryOperatorSpacingOptions)(object) curSetting)
+                    {
+                        case BinaryOperatorSpacingOptions.Single:
+                            editorconfig.AppendLine("before_and_after");
+                            break;
+                        case BinaryOperatorSpacingOptions.Remove:
+                            editorconfig.AppendLine("none");
+                            break;
+                        case BinaryOperatorSpacingOptions.Ignore:
+                            editorconfig.AppendLine("ignore");
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    };
                 }
-                else if (curSetting == LabelPositionOptions.NoIndent)
+                else if (typeof(T) == typeof(bool))
                 {
-                    editorconfig.AppendLine("no_change");
+                    editorconfig.AppendLine(optionSet.GetOption(option).ToString().ToLowerInvariant());
                 }
                 else
                 {
@@ -250,73 +252,22 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             }
         }
 
-        private static void CSharpFormattingOptions_GenerateEditorconfig(OptionSet optionSet, Option<BinaryOperatorSpacingOptions> option, StringBuilder editorconfig)
-        {
-            var element = option.StorageLocations.OfType<EditorConfigStorageLocation<BinaryOperatorSpacingOptions>>().FirstOrDefault();
-            if (element != null)
-            {
-                editorconfig.Append(element.KeyName + " = ");
-                var curSetting = optionSet.GetOption(option);
-                if (curSetting == BinaryOperatorSpacingOptions.Single)
-                {
-                    editorconfig.AppendLine("before_and_after");
-                }
-                else if (curSetting == BinaryOperatorSpacingOptions.Remove)
-                {
-                    editorconfig.AppendLine("none");
-                }
-                else if (curSetting == BinaryOperatorSpacingOptions.Ignore)
-                {
-                    editorconfig.AppendLine("ignore");
-                }
-                else
-                {
-                    throw new NotSupportedException();
-                }
-            }
-        }
-
-        private static void CSharpFormattingOptions_GenerateEditorconfig(OptionSet optionSet, StringBuilder editorconfig)
+        private static void CSharpSpaceBetweenParentheses_GenerateEditorconfig(OptionSet optionSet, StringBuilder editorconfig)
         {
             var element = CSharpFormattingOptions.SpaceWithinOtherParentheses.StorageLocations.OfType<EditorConfigStorageLocation<bool>>().FirstOrDefault();
             if (element != null)
             {
-                editorconfig.Append(element.KeyName + " = ");
+                AppendName(element.KeyName, editorconfig);
 
-                var firstRule = true;
-                if (optionSet.GetOption(CSharpFormattingOptions.SpaceWithinOtherParentheses))
+                var allOptions = new Dictionary<Option<bool>, string>()
                 {
-                    editorconfig.Append("control_flow_statements");
-                    firstRule = false;
-                }
-                if (optionSet.GetOption(CSharpFormattingOptions.SpaceWithinExpressionParentheses))
-                {
-                    if (firstRule)
-                    {
-                        firstRule = false;
-                    }
-                    else
-                    {
-                        editorconfig.Append(",");
-                    }
+                    { CSharpFormattingOptions.SpaceWithinOtherParentheses, "control_flow_statements" },
+                    { CSharpFormattingOptions.SpaceWithinExpressionParentheses, "expressions" },
+                    { CSharpFormattingOptions.SpaceWithinCastParentheses, "type_casts" }
+                };
 
-                    editorconfig.Append("expressions");
-                }
-                if (optionSet.GetOption(CSharpFormattingOptions.SpaceWithinCastParentheses))
-                {
-                    if (firstRule)
-                    {
-                        firstRule = false;
-                    }
-                    else
-                    {
-                        editorconfig.Append(",");
-                    }
-
-                    editorconfig.Append("type_casts");
-                }
-
-                if (firstRule)
+                var valuesApplied = JoinMultipleValues(allOptions, optionSet, editorconfig);
+                if (valuesApplied == 0)
                 {
                     editorconfig.AppendLine("false");
                 }
@@ -332,101 +283,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
             var element = CSharpFormattingOptions.NewLinesForBracesInAccessors.StorageLocations.OfType<EditorConfigStorageLocation<bool>>().FirstOrDefault();
             if (element != null)
             {
-                editorconfig.Append(element.KeyName + " = ");
-                const int totalRules = 9;
-                var rulesApplied = 0;
+                AppendName(element.KeyName, editorconfig);
+
+                var allOptions = new Dictionary<Option<bool>, string>()
+                {
+                    { CSharpFormattingOptions.NewLinesForBracesInAccessors, "accessors" },
+                    { CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, "anonymous_methods" },
+                    { CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, "anonymous_types" },
+                    { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, "control_blocks" },
+                    { CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, "lambdas" },
+                    { CSharpFormattingOptions.NewLinesForBracesInMethods, "methods" },
+                    { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, "object_collection" },
+                    { CSharpFormattingOptions.NewLinesForBracesInProperties, "properties" },
+                    { CSharpFormattingOptions.NewLinesForBracesInTypes, "types" }
+                };
+
                 var ruleString = new StringBuilder();
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAccessors))
-                {
-                    ++rulesApplied;
-                    ruleString.Append("accessors");
-                }
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods))
-                {
-                    if (ruleString.Length != 0)
-                    {
-                        ruleString.Append(",");
-                    }
-
-                    ++rulesApplied;
-                    ruleString.Append("anonymous_methods");
-                }
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes))
-                {
-                    if (ruleString.Length != 0)
-                    {
-                        ruleString.Append(",");
-                    }
-
-                    ++rulesApplied;
-                    ruleString.Append("anonymous_types");
-                }
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks))
-                {
-                    if (ruleString.Length != 0)
-                    {
-                        ruleString.Append(",");
-                    }
-
-                    ++rulesApplied;
-                    ruleString.Append("control_blocks");
-                }
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody))
-                {
-                    if (ruleString.Length != 0)
-                    {
-                        ruleString.Append(",");
-                    }
-
-                    ++rulesApplied;
-                    ruleString.Append("lambdas");
-                }
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInMethods))
-                {
-                    if (ruleString.Length != 0)
-                    {
-                        ruleString.Append(",");
-                    }
-
-                    ++rulesApplied;
-                    ruleString.Append("methods");
-                }
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers))
-                {
-                    if (ruleString.Length != 0)
-                    {
-                        ruleString.Append(",");
-                    }
-
-                    ++rulesApplied;
-                    ruleString.Append("object_collection");
-                }
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInProperties))
-                {
-                    if (ruleString.Length != 0)
-                    {
-                        ruleString.Append(",");
-                    }
-
-                    ++rulesApplied;
-                    ruleString.Append("properties");
-                }
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInTypes))
-                {
-                    if (ruleString.Length != 0)
-                    {
-                        ruleString.Append(",");
-                    }
-
-                    ++rulesApplied;
-                    ruleString.Append("types");
-                }
-
-                if (rulesApplied == totalRules)
+                var valuesApplied = JoinMultipleValues(allOptions, optionSet, ruleString);
+                if (valuesApplied == allOptions.Count())
                 {
                     editorconfig.AppendLine("all");
                 }
-                else if (rulesApplied == 0)
+                else if (valuesApplied == 0)
                 {
                     editorconfig.AppendLine("none");
                 }
