@@ -115,6 +115,7 @@ namespace Roslyn.Test.Utilities
     {
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsDesktop => CoreClrShim.AssemblyLoadContext.Type == null;
+        public static bool IsWindowsDesktop => IsWindows && IsDesktop;
     }
 
     public class x86 : ExecutionCondition
@@ -166,7 +167,7 @@ namespace Roslyn.Test.Utilities
 
     public class WindowsDesktopOnly : ExecutionCondition
     {
-        public override bool ShouldSkip => !(ExecutionConditionUtil.IsWindows && ExecutionConditionUtil.IsDesktop);
+        public override bool ShouldSkip => !ExecutionConditionUtil.IsWindowsDesktop;
         public override string SkipReason => "Test only supported on Windows desktop";
     }
 
