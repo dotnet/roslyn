@@ -228,14 +228,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 {
                     // Is a string argument to a method that looks like it could be a Regex method.  
                     // Need to do deeper analysis
-                    var method = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
-                    if (method != null &&
-                        method.DeclaredAccessibility == Accessibility.Public &&
-                        method.IsStatic &&
-                        _regexType.Equals(method.ContainingType))
+                    var symbolInfo = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken);
+                    var method = symbolInfo.Symbol;
+                    if (TryAnalyzeInvocation(stringLiteral, argumentNode, method, cancellationToken, out options))
                     {
-                        return AnalyzeStringLiteral(
-                            stringLiteral, argumentNode, cancellationToken, out options);
+                        return true;
+                    }
+
+                    foreach (var candidate in symbolInfo.CandidateSymbols)
+                    {
+                        if (TryAnalyzeInvocation(stringLiteral, argumentNode, candidate, cancellationToken, out options))
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -258,6 +263,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 }
             }
 
+            return false;
+        }
+
+        private bool TryAnalyzeInvocation(
+            SyntaxToken stringLiteral, SyntaxNode argumentNode, ISymbol method,
+            CancellationToken cancellationToken, out RegexOptions options)
+        {
+            if (method != null &&
+                method.DeclaredAccessibility == Accessibility.Public &&
+                method.IsStatic &&
+                _regexType.Equals(method.ContainingType))
+            {
+                return AnalyzeStringLiteral(
+                    stringLiteral, argumentNode, cancellationToken, out options);
+            }
+
+            options = default;
             return false;
         }
 
