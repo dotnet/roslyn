@@ -60,8 +60,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return referencesOnTheRight;
             }
 
+            if (positionInDocument == 0)
+            {
+                return default;
+            }
+
             // Nothing was on the right of the caret.  Return anything we were able to find on 
-            // the left of the caret
+            // the left of the caret.
             var referencesOnTheLeft = GetReferences(document, tree, positionInDocument - 1, caretOnLeft: false);
             return referencesOnTheLeft;
         }
