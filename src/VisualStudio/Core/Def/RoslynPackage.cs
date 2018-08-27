@@ -97,7 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         protected override async Task LoadComponentsInUIContextAsync(CancellationToken cancellationToken)
         {
             await GetServiceAsync(typeof(SVsTaskStatusCenterService));
-            
+            var b = await GetServiceAsync(typeof(SVsErrorList));
+
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
             this.ComponentModel.GetService<DiagnosticProgressReporter>();
