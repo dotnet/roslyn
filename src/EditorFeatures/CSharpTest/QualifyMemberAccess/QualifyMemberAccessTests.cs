@@ -198,6 +198,30 @@ class Derived : Base
 CodeStyleOptions.QualifyFieldAccess);
         }
 
+        [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_InCollectionInitializer()
+        {
+            await TestAsyncWithOption(
+@"class C
+{
+    int i = 1;
+    void M()
+    {
+        var test = new System.Collections.Generic.List<int> { [|i|] };
+    }
+}",
+@"class C
+{
+    int i = 1;
+    void M()
+    {
+        var test = new System.Collections.Generic.List<int> { this.i };
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_NotSuggestedOnInstance()
@@ -232,6 +256,40 @@ CodeStyleOptions.QualifyFieldAccess);
 }",
 CodeStyleOptions.QualifyFieldAccess);
         }
+
+        [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_NotSuggestedOnLocalVarInCollectionInitializer()
+        {
+            await TestMissingAsyncWithOption(
+@"class C
+{
+    void M()
+    {
+         var foo = 1;
+         var test = new System.Collections.Generic.List<int> { [|foo|] };
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
+
+        [WorkItem(28091, "https://github.com/dotnet/roslyn/issues/28091")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_NotSuggestedOnLocalVarInDictionaryInitializer()
+        {
+            await TestMissingAsyncWithOption(
+@"class C
+{
+    void M()
+    {
+         var foo = 1;
+         var test = new System.Collections.Generic.Dictionary<int, int> { { 2, [|foo|] } };
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
@@ -636,6 +694,54 @@ CodeStyleOptions.QualifyMethodAccess);
     void M()
     {
         [|Method|]();
+    }
+}",
+CodeStyleOptions.QualifyMethodAccess);
+        }
+
+        [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyMethodAccess_NotSuggestedOnCollectionInitializer()
+        {
+            await TestMissingAsyncWithOption(
+@"class C
+{
+    void M()
+    {
+         var foo = 1;
+         var test = new System.Collections.Generic.List<int> { [|foo|] };
+    }
+}",
+CodeStyleOptions.QualifyMethodAccess);
+        }
+
+        [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyLocalMethodAccess_NotSuggestedOnCollectionInitializer()
+        {
+            await TestMissingAsyncWithOption(
+@"class C
+{
+    void M()
+    {
+        int Local() => 1;
+        var test = new System.Collections.Generic.List<int> { [|Local()|] };
+    }
+}",
+CodeStyleOptions.QualifyMethodAccess);
+        }
+
+        [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyLocalMethodAccess_NotSuggestedInMethodCall()
+        {
+            await TestMissingAsyncWithOption(
+@"class C
+{
+    void M()
+    {
+        int Local() => 1;
+        [|Local|]();
     }
 }",
 CodeStyleOptions.QualifyMethodAccess);
@@ -1247,6 +1353,30 @@ CodeStyleOptions.QualifyPropertyAccess);
 {
     public string Foo { get; set; }
     public string Bar { get { return Foo; } => this.Foo; }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_InCollectionInitializer()
+        {
+            await TestAsyncWithOption(
+@"class C
+{
+    public int Foo { get; set }
+    void M()
+    {
+        var test = new System.Collections.Generic.List<int> { [|Foo|] };
+    }
+}",
+@"class C
+{
+    public int Foo { get; set }
+    void M()
+    {
+        var test = new System.Collections.Generic.List<int> { this.Foo };
+    }
 }",
 CodeStyleOptions.QualifyPropertyAccess);
         }
