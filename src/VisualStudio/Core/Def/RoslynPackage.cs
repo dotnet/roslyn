@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TaskStatusCenter;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
@@ -77,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             InitializeColors();
 
             // load some services that have to be loaded in UI thread
-            LoadComponentsInUIContextOnceSolutionFullyLoaded(cancellationToken);
+            await LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken);
 
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
         }
@@ -93,8 +94,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
         }
 
-        protected override void LoadComponentsInUIContext(CancellationToken cancellationToken)
+        protected override async Task LoadComponentsInUIContextAsync(CancellationToken cancellationToken)
         {
+            await GetServiceAsync(typeof(SVsTaskStatusCenterService));
+            
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
             this.ComponentModel.GetService<DiagnosticProgressReporter>();

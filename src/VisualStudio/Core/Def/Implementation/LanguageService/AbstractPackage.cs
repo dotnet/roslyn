@@ -27,36 +27,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             ForegroundObject = new ForegroundThreadAffinitizedObject(componentModel.GetService<IThreadingContext>());
         }
 
-        protected void LoadComponentsInUIContextOnceSolutionFullyLoaded(CancellationToken cancellationToken)
+        protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             if (KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
             {
                 // if we are already in the right UI context, load it right away
-                LoadComponentsInUIContext(cancellationToken);
+                await LoadComponentsInUIContextAsync(cancellationToken);
             }
             else
             {
                 // load them when it is a right context.
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged += OnSolutionExistsAndFullyLoadedContext;
+                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged += OnSolutionExistsAndFullyLoadedContextAsync;
             }
         }
 
-        private void OnSolutionExistsAndFullyLoadedContext(object sender, UIContextChangedEventArgs e)
+        private async void OnSolutionExistsAndFullyLoadedContextAsync(object sender, UIContextChangedEventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             if (e.Activated)
             {
                 // unsubscribe from it
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged -= OnSolutionExistsAndFullyLoadedContext;
+                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged -= OnSolutionExistsAndFullyLoadedContextAsync;
 
                 // load components
-                LoadComponentsInUIContext(CancellationToken.None);
+                await LoadComponentsInUIContextAsync(CancellationToken.None);
             }
         }
 
-        protected abstract void LoadComponentsInUIContext(CancellationToken cancellationToken);
+        protected abstract Task LoadComponentsInUIContextAsync(CancellationToken cancellationToken);
     }
 }

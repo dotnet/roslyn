@@ -95,17 +95,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Workspace.AdviseSolutionEvents(solution);
             }
 
-            LoadComponentsInUIContextOnceSolutionFullyLoaded(cancellationToken);
+            await LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken);
         }
 
-        protected override void LoadComponentsInUIContext(CancellationToken cancellationToken)
+        protected override async Task LoadComponentsInUIContextAsync(CancellationToken cancellationToken)
         {
             ForegroundObject.AssertIsForeground();
 
             // Ensure the nuget package services are initialized after we've loaded
             // the solution.
-            _packageInstallerService = Workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
-            _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
+            _packageInstallerService = await GetServiceAsync(typeof(IPackageInstallerService)) as PackageInstallerService;
+            _symbolSearchService = await GetServiceAsync(typeof(ISymbolSearchService)) as VisualStudioSymbolSearchService;
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
