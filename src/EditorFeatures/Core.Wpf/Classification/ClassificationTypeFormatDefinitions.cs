@@ -374,6 +374,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         #region Regex - Comment
 
+        // When https://github.com/dotnet/roslyn/issues/29173 is addressed, this section
+        // can be removed.  Right now it serves as an easy way to recompile while flipping
+        // between different themes.
 #if dark_theme
         private static readonly Color s_regexTextColor = Color.FromRgb(0xd6, 0x9d, 0x85);
         private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0xff, 0xd6, 0x8f);
