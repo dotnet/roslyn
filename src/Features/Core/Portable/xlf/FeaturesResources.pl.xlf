@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="new">Add parameter to '{0}' (and overrides/implementations)</target>
+        <target state="translated">Dodaj parametr do elementu „{0}” (oraz przesłonięć/implementacji)</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Add_to_0">
         <source>Add to '{0}'</source>
-        <target state="new">Add to '{0}'</target>
+        <target state="translated">Dodaj do elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
@@ -54,17 +54,17 @@
       </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
-        <target state="new">Fix typo '{0}'</target>
+        <target state="translated">Popraw błąd pisowni „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
-        <target state="new">Formatting document</target>
+        <target state="translated">Formatowanie dokumentu</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="new">Related method signatures found in metadata will not be updated.</target>
+        <target state="translated">Sygnatury powiązanych metod znalezione w metadanych nie zostaną zaktualizowane.</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -2032,22 +2032,22 @@ Ta wersja jest używana wersja: {2}</target>
       </trans-unit>
       <trans-unit id="Parentheses_can_be_removed">
         <source>Parentheses can be removed</source>
-        <target state="new">Parentheses can be removed</target>
+        <target state="translated">Nawiasy można usunąć</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
         <source>Remove unnecessary parentheses</source>
-        <target state="new">Remove unnecessary parentheses</target>
+        <target state="translated">Usuń niepotrzebne nawiasy</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
         <source>Add parentheses for clarity</source>
-        <target state="new">Add parentheses for clarity</target>
+        <target state="translated">Dodaj nawiasy w celu zapewnienia jednoznaczności</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_should_be_added_for_clarity">
         <source>Parentheses should be added for clarity</source>
-        <target state="new">Parentheses should be added for clarity</target>
+        <target state="translated">Nawiasy powinny zostać dodane w celu zapewnienia jednoznaczności</target>
         <note />
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
@@ -2082,7 +2082,7 @@ Ta wersja jest używana wersja: {2}</target>
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+        <target state="translated">Konwertuj na wyrażenie warunkowe</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
