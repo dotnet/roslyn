@@ -2947,16 +2947,8 @@ class Program
         var s = /* language=regex */ @""(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"";
     }
 }",
-Regex.Anchor("$"),
-Regex.Grouping("("),
-Regex.OtherEscape("\\"),
-Regex.OtherEscape("a"),
-Regex.OtherEscape("\\"),
-Regex.OtherEscape("t"),
-Regex.OtherEscape("\\"),
-Regex.OtherEscape("u"),
-Regex.OtherEscape("0020"),
-Regex.Grouping(")"));
+Keyword("var"),
+Class("Regex"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
