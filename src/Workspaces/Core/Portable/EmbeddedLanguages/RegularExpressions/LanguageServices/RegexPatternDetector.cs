@@ -227,7 +227,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 if (_methodNamesOfInterest.Contains(name))
                 {
                     // Is a string argument to a method that looks like it could be a Regex method.  
-                    // Need to do deeper analysis
+                    // Need to do deeper analysis.
+
+                    // Note we do not use GetAllSymbols here because we don't want to incur the
+                    // allocation.
                     var symbolInfo = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken);
                     var method = symbolInfo.Symbol;
                     if (TryAnalyzeInvocation(stringLiteral, argumentNode, method, cancellationToken, out options))
