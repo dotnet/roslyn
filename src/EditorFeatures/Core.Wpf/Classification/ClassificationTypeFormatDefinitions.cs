@@ -517,6 +517,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexSelfEscapedCharacterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_SelfEscapedCharacter;
+
+                // by default, we make a self-escaped character just the bolded form of the normal
+                // text color.
                 this.ForegroundColor = s_regexTextColor;
                 this.IsBold = true;
             }
