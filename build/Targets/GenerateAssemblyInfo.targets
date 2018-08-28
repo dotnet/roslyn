@@ -11,10 +11,10 @@
           BeforeTargets="GetAssemblyAttributes"
           Condition="'$(GenerateMicrosoftCodeAnalysisCommitHashAttribute)' == 'true'">
     <ItemGroup>
-      <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
+      <AssemblyAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
         <_Parameter1 Condition="'$(OfficialBuild)' == 'true'">$(SourceRevisionId)</_Parameter1>
         <_Parameter1 Condition="'$(OfficialBuild)' != 'true'">&lt;developer build&gt;</_Parameter1>
-      </AssemblyVersionAttribute>
+      </AssemblyAttribute>
     </ItemGroup>
   </Target>
 </Project>
