@@ -284,30 +284,9 @@ function Build-ExtraSignArtifacts() {
 
 function Build-InsertionItems() {
 
-    # Create the PerfTests directory under Binaries\$(Configuration).  There are still a number
-    # of tools (in roslyn and roslyn-internal) that depend on this combined directory.
-    function Create-PerfTests() {
-        $target = Join-Path $configDir "PerfTests"
-        Write-Host "PerfTests: $target"
-        Create-Directory $target
-
-        Push-Location $configDir
-        foreach ($subDir in @("Dlls", "UnitTests")) {
-            Push-Location $subDir
-            foreach ($path in Get-ChildItem -re -in "PerfTests") {
-                Write-Host "`tcopying $path"
-                Copy-Item -force -recurse "$path\*" $target
-            }
-            Pop-Location
-        }
-        Pop-Location
-    }
-
     $setupDir = Join-Path $repoDir "src\Setup"
     Push-Location $setupDir
     try {
-        Create-PerfTests
-
         Write-Host "Building VS Insertion artifacts"
         Exec-Console (Join-Path $configDir "Exes\Roslyn.BuildDevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $(Get-PackagesDir)"
 
