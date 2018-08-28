@@ -24,13 +24,13 @@ In older versions of Visual Studio 2015:
 2. Right click the unloaded project in **Solution Explorer** and select **Edit *ProjectName*.csproj**.
 3. Locate the following item in the project file.
 
-    ```csharp
+    ```xml
     <None Include=".editorconfig" />
     ```
 
 4. Change the definition to the following.
 
-    ```csharp
+    ```xml
     <AdditionalFiles Include=".editorconfig" />
     ```
 
