@@ -1410,9 +1410,15 @@ This version used in: {2}</value>
     <value>Remove unused member</value>
   </data>
   <data name="Remove_Unused_Private_Members_Message" xml:space="preserve">
-    <value>Type '{0}' has a private member '{1}' which can be removed as it is either never used or the value assigned to it is never used.</value>
+    <value>Type '{0}' has an unused private member '{1}' which can be removed.</value>
   </data>
   <data name="Remove_Unused_Private_Members" xml:space="preserve">
     <value>Remove unused private members</value>
+  </data>
+  <data name="Remove_Unread_Private_Members" xml:space="preserve">
+    <value>Remove unread private members</value>
+  </data>
+  <data name="Remove_Unread_Private_Members_Message" xml:space="preserve">
+    <value>Type '{0}' has a private member '{1}' that can be removed as the value assigned to it is never read.</value>
   </data>
 </root>

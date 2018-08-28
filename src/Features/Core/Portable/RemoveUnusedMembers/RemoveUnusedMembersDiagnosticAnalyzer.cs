@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,23 +9,45 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
-    internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer
+    internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax>
         : AbstractCodeStyleDiagnosticAnalyzer
+        where TDocumentationCommentTriviaSyntax: SyntaxNode
+        where TIdentifierNameSyntax : SyntaxNode
     {
-        private readonly bool _treatCompoundAssignmentAsWriteOnlyOperation;
-
-        public AbstractRemoveUnusedMembersDiagnosticAnalyzer(bool treatCompoundAssignmentAsWriteOnlyOperation = false)
-            : base(
-                IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
-                new LocalizableResourceString(nameof(FeaturesResources.Remove_Unused_Private_Members), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                new LocalizableResourceString(nameof(FeaturesResources.Remove_Unused_Private_Members_Message), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+        protected AbstractRemoveUnusedMembersDiagnosticAnalyzer(bool forceEnableRules)
+            : base(CreateDescriptors(forceEnableRules))
         {
-            _treatCompoundAssignmentAsWriteOnlyOperation = treatCompoundAssignmentAsWriteOnlyOperation;
         }
+
+        private static ImmutableArray<DiagnosticDescriptor> CreateDescriptors(bool forceEnableRules)
+        {
+            // TODO: Enable these rules by default once we have designed the Tools|Option location and UI for such code quality rules.
+
+            // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
+            var removeUnusedMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_Unused_Private_Members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            var removeUnusedMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Remove_Unused_Private_Members_Message), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            var removeUnusedMembersRule = CreateDescriptor(
+                IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId, removeUnusedMembersTitle, removeUnusedMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
+            var removeUnusedMembersRuleWithFadingRule = CreateUnnecessaryDescriptor(
+                IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId, removeUnusedMembersTitle, removeUnusedMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
+
+            // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
+            var removeUnreadMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_Unread_Private_Members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            var removeUnreadMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Remove_Unread_Private_Members_Message), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            var removeUnreadMembersRule = CreateDescriptor(
+                IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId, removeUnreadMembersTitle, removeUnreadMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
+            var removeUnreadMembersRuleUnnecessaryWithFadingRule = CreateUnnecessaryDescriptor(
+                IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId, removeUnreadMembersTitle, removeUnreadMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
+
+            return ImmutableArray.Create(removeUnusedMembersRule, removeUnusedMembersRuleWithFadingRule,
+                    removeUnreadMembersRule, removeUnreadMembersRuleUnnecessaryWithFadingRule);
+        }
+
+        private DiagnosticDescriptor RemoveUnusedMemberRule => SupportedDiagnostics[1];
+        private DiagnosticDescriptor RemoveUnreadMemberRule => SupportedDiagnostics[3];
 
         public override bool OpenFileOnly(Workspace workspace) => false;
 
@@ -40,38 +61,40 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             context.RegisterCompilationStartAction(compilationStartContext =>
             {
-                var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation, UnnecessaryWithSuggestionDescriptor, _treatCompoundAssignmentAsWriteOnlyOperation);
+                var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation, RemoveUnusedMemberRule, RemoveUnreadMemberRule);
 
                 // We register following actions in the compilation:
                 // 1. A symbol action for member symbols to ensure the member's unused state is initialized to true for every private member symbol.
                 // 2. Operation actions for member references and invocations to detect member usages, i.e. read or read reference taken.
-                // 3. A symbol start/end action for named types to report diagnostics for candidate members that have no usage in executable code.
+                // 3. Operation action for invalid operations to bail out on erroneous code.
+                // 4. A symbol start/end action for named types to report diagnostics for candidate members that have no usage in executable code.
                 //
                 // Note that we need to register separately for OperationKind.Invocation due to https://github.com/dotnet/roslyn/issues/26206
-                
+
                 compilationStartContext.RegisterSymbolAction(compilationAnalyzer.AnalyzeSymbolDeclaration, SymbolKind.Method, SymbolKind.Field, SymbolKind.Property, SymbolKind.Event);
 
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
+                    var hasInvalidOperation = false;
                     symbolStartContext.RegisterOperationAction(compilationAnalyzer.AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                     symbolStartContext.RegisterOperationAction(compilationAnalyzer.AnalyzeInvocationOperation, OperationKind.Invocation);
-                    symbolStartContext.RegisterSymbolEndAction(compilationAnalyzer.OnSymbolEnd);
+                    symbolStartContext.RegisterOperationAction(_ => hasInvalidOperation = true, OperationKind.Invalid);
+                    symbolStartContext.RegisterSymbolEndAction(symbolEndContext => compilationAnalyzer.OnSymbolEnd(symbolEndContext, hasInvalidOperation));
                 }, SymbolKind.NamedType);
             });
         }
 
         private sealed class CompilationAnalyzer
         {
-            private readonly DiagnosticDescriptor _rule;
-            private readonly bool _treatCompoundAssignmentAsWriteOnlyOperation;
+            private readonly DiagnosticDescriptor _removeUnusedMembersRule, _removeUnreadMembersRule;
             private readonly object _gate;
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
             private readonly Lazy<INamedTypeSymbol> _lazyTaskType, _lazyGenericTaskType;
 
-            public CompilationAnalyzer(Compilation compilation, DiagnosticDescriptor rule, bool treatCompoundAssignmentAsWriteOnlyOperation)
+            public CompilationAnalyzer(Compilation compilation, DiagnosticDescriptor removeUnusedMembersRule, DiagnosticDescriptor removeUnreadMembersRule)
             {
-                _rule = rule;
-                _treatCompoundAssignmentAsWriteOnlyOperation = treatCompoundAssignmentAsWriteOnlyOperation;
+                _removeUnusedMembersRule = removeUnusedMembersRule;
+                _removeUnreadMembersRule = removeUnreadMembersRule;
                 _gate = new object();
 
                 // State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
@@ -137,20 +160,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     // Get the value usage info.
                     var valueUsageInfo = memberReference.GetValueUsageInfo();
 
-                    // Usages which are neither value read nor value write (e.g. in nameof, typeof, sizeof)
-                    // are treated as a read to avoid flagging them.
-                    // https://github.com/dotnet/roslyn/issues/29519 covers improving this behavior.
-                    if (valueUsageInfo == ValueUsageInfo.None)
+                    if (valueUsageInfo == ValueUsageInfo.ReadWrite)
                     {
-                        valueUsageInfo = ValueUsageInfo.Read;
-                    }
+                        Debug.Assert(memberReference.Parent is ICompoundAssignmentOperation compoundAssignment &&
+                            compoundAssignment.Target == memberReference ||
+                            memberReference.Parent is IIncrementOrDecrementOperation);
 
-                    // Is this a compound assignment that must be treated as a write-only usage?
-                    if (_treatCompoundAssignmentAsWriteOnlyOperation &&
-                        memberReference.Parent is ICompoundAssignmentOperation compoundAssignment &&
-                        compoundAssignment.Target == memberReference)
-                    {
-                        valueUsageInfo = ValueUsageInfo.Write;
+                        // Compound assignment or increment whose value is being dropped (parent has null type)
+                        // is treated as a Write as the value was never actually 'read' in a way that is observable.
+                        if (memberReference.Parent.Parent?.Type == null)
+                        {
+                            valueUsageInfo = ValueUsageInfo.Write;
+                        }
                     }
 
                     OnSymbolUsage(memberReference.Member, valueUsageInfo);
@@ -166,9 +187,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
             }
 
-            public void OnSymbolEnd(SymbolAnalysisContext symbolEndContext)
+            public void OnSymbolEnd(SymbolAnalysisContext symbolEndContext, bool hasInvalidOperation)
             {
+                if (hasInvalidOperation)
+                {
+                    return;
+                }
+
                 // Report diagnostics for unused candidate members.
+                ImmutableHashSet<ISymbol> symbolsReferencedInDocComments = null;
                 var members = ((INamedTypeSymbol)symbolEndContext.Symbol).GetMembers();
                 foreach (var member in members)
                 {
@@ -179,20 +206,68 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         Debug.Assert(IsCandidateSymbol(member));
                         Debug.Assert(!member.IsImplicitlyDeclared);
 
-                        var option = TryGetCodeStyleOption(member, symbolEndContext);
-                        if (option != null && option.Value)
+                        if (symbolsReferencedInDocComments == null)
                         {
-                            var diagnostic = DiagnosticHelper.Create(
-                                _rule,
-                                member.Locations[0],
-                                option.Notification.Severity,
-                                additionalLocations: member.Locations,
-                                properties: null,
-                                member.ContainingType.Name,
-                                member.Name);
-                            symbolEndContext.ReportDiagnostic(diagnostic);
+                            // Bail out if there are syntax errors in any of the declarations of the containing type.
+                            if (HasSyntaxErrors())
+                            {
+                                return;
+                            }
+
+                            symbolsReferencedInDocComments = GetCandidateSymbolsReferencedInDocComments();
+                        }
+
+                        // Report IDE0051 or IDE0052 based on whether the underlying member has any Write/WritableRef/NonReadWriteRef references or not.
+                        var rule = !valueUsageInfo.ContainsWriteOrWritableRef() && !valueUsageInfo.ContainsNonReadWriteRef() && !symbolsReferencedInDocComments.Contains(member)
+                            ? _removeUnusedMembersRule
+                            : _removeUnreadMembersRule;
+                        var effectiveSeverity = rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options);
+
+                        var diagnostic = DiagnosticHelper.Create(
+                            rule,
+                            member.Locations[0],
+                            effectiveSeverity,
+                            additionalLocations: member.Locations,
+                            properties: null,
+                            member.ContainingType.Name,
+                            member.Name);
+                        symbolEndContext.ReportDiagnostic(diagnostic);
+                    }
+                }
+
+                bool HasSyntaxErrors()
+                {
+                    foreach (var tree in symbolEndContext.Symbol.Locations.Select(l => l.SourceTree))
+                    {
+                        if (tree.GetDiagnostics(symbolEndContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+                        {
+                            return true;
                         }
                     }
+
+                    return false;
+                }
+
+                ImmutableHashSet<ISymbol> GetCandidateSymbolsReferencedInDocComments()
+                {
+                    var builder = ImmutableHashSet.CreateBuilder<ISymbol>();
+                    foreach (var root in symbolEndContext.Symbol.Locations.Select(l => l.SourceTree.GetRoot(symbolEndContext.CancellationToken)))
+                    {
+                        SemanticModel lazyModel = null;
+                        foreach (var node in root.DescendantNodes(descendIntoTrivia: true)
+                                                 .OfType<TDocumentationCommentTriviaSyntax>()
+                                                 .SelectMany(n => n.DescendantNodes().OfType<TIdentifierNameSyntax>()))
+                        {
+                            lazyModel = lazyModel ?? symbolEndContext.Compilation.GetSemanticModel(root.SyntaxTree);
+                            var symbol = lazyModel.GetSymbolInfo(node, symbolEndContext.CancellationToken).Symbol;
+                            if (symbol != null && IsCandidateSymbol(symbol))
+                            {
+                                builder.Add(symbol);
+                            }
+                        }
+                    }
+
+                    return builder.ToImmutable();
                 }
             }
 
@@ -217,7 +292,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     }
                 }
 
-                return false;   
+                return false;
 
                 // Local functions.
                 bool IsEntryPoint(IMethodSymbol methodSymbol)
@@ -242,12 +317,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                     return false;
                 }
-            }
-
-            private static CodeStyleOption<bool> TryGetCodeStyleOption(ISymbol memberSymbol, SymbolAnalysisContext symbolEndContext)
-            {
-                var optionSet = symbolEndContext.Options.GetDocumentOptionSetAsync(memberSymbol.Locations[0].SourceTree, symbolEndContext.CancellationToken).GetAwaiter().GetResult();
-                return optionSet?.GetOption(CodeStyleOptions.RemoveUnusedMembers, memberSymbol.Language);
             }
         }
     }

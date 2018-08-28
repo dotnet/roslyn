@@ -953,6 +953,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Field preferences:.
+        /// </summary>
+        internal static string Field_preferences_colon {
+            get {
+                return ResourceManager.GetString("Field_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File already exists.
         /// </summary>
         internal static string File_already_exists {
@@ -1313,15 +1322,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Member_of_0 {
             get {
                 return ResourceManager.GetString("Member_of_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Member preferences:.
-        /// </summary>
-        internal static string Member_preferences_colon {
-            get {
-                return ResourceManager.GetString("Member_preferences_colon", resourceCulture);
             }
         }
         
@@ -1876,6 +1876,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer_readonly.
+        /// </summary>
+        internal static string Prefer_readonly {
+            get {
+                return ResourceManager.GetString("Prefer_readonly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer readonly fields.
         /// </summary>
         internal static string Prefer_readonly_fields {
@@ -2112,15 +2121,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Remove_symbol_specification {
             get {
                 return ResourceManager.GetString("Remove_symbol_specification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove unused members.
-        /// </summary>
-        internal static string Remove_unused_members {
-            get {
-                return ResourceManager.GetString("Remove_unused_members", resourceCulture);
             }
         }
         

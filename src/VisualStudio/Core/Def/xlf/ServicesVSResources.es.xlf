@@ -17,6 +17,11 @@
         <target state="translated">El elemento no es válido.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="new">In other operators</target>
@@ -25,11 +30,6 @@
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
         <target state="new">Keep all parentheses in:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_preferences_colon">
-        <source>Member preferences:</source>
-        <target state="new">Member preferences:</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -42,14 +42,14 @@
         <target state="new">Parentheses preferences:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer_readonly</source>
+        <target state="new">Prefer_readonly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="new">Prefer readonly fields</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_members">
-        <source>Remove unused members</source>
-        <target state="new">Remove unused members</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">

@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.RemoveUnusedMembers
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedMembers
@@ -10,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedMember
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicRemoveUnusedMembersDiagnosticAnalyzer(),
+            Return (New VisualBasicRemoveUnusedMembersDiagnosticAnalyzer(forceEnableRules:=True),
                 New VisualBasicRemoveUnusedMembersCodeFixProvider())
         End Function
 
@@ -447,67 +448,83 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldInNameOf() As Task
-            ' https://github.com/dotnet/roslyn/issues/29519 tracks flagging and fixing this appropriately.
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "Class C
     Private [|_goo|] As Integer
     Private _goo2 As String = NameOf(_goo)
-End Class")
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldInDocComment() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "
 ''' <summary>
 ''' <see cref=""C._goo""/>
 ''' </summary>
 Class C
     Private Shared [|_goo|] As Integer
-End Class",
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "_goo").WithLocation(6, 20))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function FieldInDocComment_02() As Task
+            Await TestDiagnosticsAsync(
 "
-''' <summary>
-''' <see cref=""C._goo""/>
-''' </summary>
 Class C
-End Class")
+    ''' <summary>
+    ''' <see cref=""_goo""/>
+    ''' </summary>
+    Private Shared [|_goo|] As Integer
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "_goo").WithLocation(6, 20))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function FieldInDocComment_03() As Task
+            Await TestDiagnosticsAsync(
+"
+Class C
+    ''' <summary>
+    ''' <see cref=""_goo""/>
+    ''' </summary>
+    Public Sub M()
+    End Sub
+
+    Private Shared [|_goo|] As Integer
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "_goo").WithLocation(9, 20))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsOnlyWritten() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "Class C
     Private [|_goo|] As Integer
     Public Sub M()
         _goo = 0
     End Sub
-End Class",
-"Class C
-    Public Sub M()
-        _goo = 0
-    End Sub
-End Class")
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsOnlyWritten() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "Class C
     Private Property [|P|] As Integer
     Public Sub M()
         P = 0
     End Sub
-End Class",
-"Class C
-    Public Sub M()
-        P = 0
-    End Sub
-End Class")
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "P").WithLocation(2, 22))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsOnlyWritten() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "Class C
     Private Property [|P|](x As Integer) As Integer
         Get
@@ -519,17 +536,13 @@ End Class")
     Public Sub M(x As Integer)
         P(x) = 0
     End Sub
-End Class",
-"Class C
-    Public Sub M(x As Integer)
-        P(x) = 0
-    End Sub
-End Class")
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "P").WithLocation(2, 22))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsOnlyWritten() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "Imports System
 
 Class C
@@ -545,36 +558,25 @@ Class C
         ' BC32022: 'Private Event E As EventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.
         E = Nothing
     End Sub
-End Class",
-"Imports System
-
-Class C
-    Public Sub M()
-        ' BC32022: 'Private Event E As EventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.
-        E = Nothing
-    End Sub
-End Class")
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "E").WithLocation(4, 26))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsOnlyWritten_ObjectInitializer() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "Class C
     Private [|_goo|] As Integer
     Public Sub M()
         Dim x = New C() With { ._goo = 0 }
     End Sub
-End Class",
-"Class C
-    Public Sub M()
-        Dim x = New C() With { ._goo = 0 }
-    End Sub
-End Class")
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsOnlyWritten_InProperty() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "Class C
     Private [|_goo|] As Integer
     Public Property P As Integer
@@ -585,17 +587,8 @@ End Class")
             _goo = value
         End Set
     End Property
-End Class",
-"Class C
-    Public Property P As Integer
-        Get 
-            Return 0
-        End Get
-        Set
-            _goo = value
-        End Set
-    End Property
-End Class")
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -643,39 +636,31 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsTargetOfCompoundAssignment() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "Class C
     Dim [|_goo|] As Integer
     Public Sub M()
         _goo += 1
     End Sub
-End Class",
-"Class C
-    Public Sub M()
-        _goo += 1
-    End Sub
-End Class")
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "_goo").WithLocation(2, 9))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsTargetOfCompoundAssignment() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "Class C
     Private ReadOnly Property [|P|] As Integer
     Public Sub M()
         P += 1
     End Sub
-End Class",
-"Class C
-    Public Sub M()
-        P += 1
-    End Sub
-End Class")
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "P").WithLocation(2, 31))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsTargetOfCompoundAssignment() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "Class C
     Private Property [|P|](i As Integer) As Integer
         Get
@@ -688,12 +673,8 @@ End Class")
     Public Sub M(x As Integer)
         P(x) += 1
     End Sub
-End Class",
-"Class C
-    Public Sub M(x As Integer)
-        P(x) += 1
-    End Sub
-End Class")
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "P").WithLocation(2, 22))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -935,7 +916,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsOnlyWritten_PartialClass_DifferentFile() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestDiagnosticsAsync(
 "<Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -951,22 +932,8 @@ Partial Class C
 End Class
         </Document>
     </Project>
-</Workspace>",
-"<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-Partial Class C
-End Class
-        </Document>
-        <Document>
-Partial Class C
-    Public Sub M()
-        _goo = 0
-    End Sub
-End Class
-        </Document>
-    </Project>
-</Workspace>")
+</Workspace>", parameters:=Nothing,
+    Diagnostic("IDE0052", "_goo").WithLocation(3, 13))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -982,16 +949,59 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsWritten_InParens() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer
     Public Sub M()
+        ' Below is a syntax error, _goo is parsed as skipped trivia
         (_goo) = 0
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function FieldIsUnusedInType_SyntaxError() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private [|_goo|] As Integer
+    Public Sub M()
+        Return =
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function FieldIsUnusedInType_SemanticError() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private [|_goo|] As Integer
+    Public Sub M()
+        ' _goo2 is undefined
+        Return _goo2
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function FieldIsUnusedInType_SemanticErrorInDifferentType() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_goo|] As Integer
+End Class
+
+Class C2
+    Public Sub M()
+        ' _goo2 is undefined
+        Return _goo2
     End Sub
 End Class",
 "Class C
+End Class
+
+Class C2
     Public Sub M()
-        (_goo) = 0
+        ' _goo2 is undefined
+        Return _goo2
     End Sub
 End Class")
         End Function
@@ -1047,9 +1057,9 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Private {|FixAllInDocument:_goo|}, _goo2 As Integer, _goo3 = """", _goo4, _goo5 As Char
-    Private _goo6, _goo7 As Integer, _goo8 = 'c'
-    Private _goo9, _goo10 As New String
-    Private _goo11, _goo12 As New String
+    Private _goo6, _goo7 As Integer, _goo8 = 0
+    Private _goo9, _goo10 As New String("""")
+    Private _goo11, _goo12 As New String("""")
     Private _goo13 = 0
 
     Public Sub M()
@@ -1059,7 +1069,7 @@ End Class")
 End Class",
 "Class C
     Private _goo4 As Char
-    Private _goo11 As New String
+    Private _goo11 As New String("""")
 
     Public Sub M()
         Dim x = _goo4

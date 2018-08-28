@@ -208,14 +208,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_readonly_field"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferReadonly") });
 
-        internal static readonly PerLanguageOption<CodeStyleOption<bool>> RemoveUnusedMembers = new PerLanguageOption<CodeStyleOption<bool>>(
-            nameof(CodeStyleOptions),
-            nameof(RemoveUnusedMembers),
-            defaultValue: TrueWithSuggestionEnforcement,
-            storageLocations: new OptionStorageLocation[]{
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_remove_unused_member"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveUnusedMembers") });
-
         private static CodeStyleOption<AccessibilityModifiersRequired> ParseAccessibilityModifiersRequired(string optionString)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(optionString,

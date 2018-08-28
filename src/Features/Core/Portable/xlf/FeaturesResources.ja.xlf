@@ -67,14 +67,24 @@
         <target state="new">Related method signatures found in metadata will not be updated.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_Unread_Private_Members">
+        <source>Remove unread private members</source>
+        <target state="new">Remove unread private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Unread_Private_Members_Message">
+        <source>Type '{0}' has a private member '{1}' that can be removed as the value assigned to it is never read.</source>
+        <target state="new">Type '{0}' has a private member '{1}' that can be removed as the value assigned to it is never read.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_Unused_Private_Members">
         <source>Remove unused private members</source>
         <target state="new">Remove unused private members</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unused_Private_Members_Message">
-        <source>Type '{0}' has a private member '{1}' which can be removed as it is either never used or the value assigned to it is never used.</source>
-        <target state="new">Type '{0}' has a private member '{1}' which can be removed as it is either never used or the value assigned to it is never used.</target>
+        <source>Type '{0}' has an unused private member '{1}' which can be removed.</source>
+        <target state="new">Type '{0}' has an unused private member '{1}' which can be removed.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_member">

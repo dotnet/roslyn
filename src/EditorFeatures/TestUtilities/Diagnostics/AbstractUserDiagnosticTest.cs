@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -34,6 +35,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         internal abstract Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters);
+
+        protected async Task TestDiagnosticsAsync(
+            string initialMarkup, TestParameters parameters = default, params DiagnosticDescription[] expected)
+        {
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            {
+                var diagnostics = (await GetDiagnosticsAsync(workspace, parameters).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
+                DiagnosticExtensions.Verify(diagnostics, expected);
+            }
+        }
 
         protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters)

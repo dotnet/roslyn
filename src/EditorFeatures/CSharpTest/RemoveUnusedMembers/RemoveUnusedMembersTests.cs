@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -13,7 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
     public class RemoveUnusedMembersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpRemoveUnusedMembersDiagnosticAnalyzer(), new CSharpRemoveUnusedMembersCodeFixProvider());
+            => (new CSharpRemoveUnusedMembersDiagnosticAnalyzer(forceEnableRules: true),
+            new CSharpRemoveUnusedMembersCodeFixProvider());
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [InlineData("public")]
@@ -584,19 +586,19 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldInNameOf()
         {
-            // https://github.com/dotnet/roslyn/issues/29519 tracks flagging and fixing this appropriately.
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"class MyClass
 {
     private int [|_goo|];
     private string _goo2 = nameof(_goo);
-}");
+}",
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldInDocComment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"
 /// <summary>
 /// <see cref=""C._goo""/>
@@ -605,19 +607,45 @@ class C
 {
     private static int [|_goo|];
 }",
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(7, 24));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldInDocComment_02()
+        {
+            await TestDiagnosticsAsync(
 @"
-/// <summary>
-/// <see cref=""C._goo""/>
-/// </summary>
 class C
 {
-}");
+    /// <summary>
+    /// <see cref=""_goo""/>
+    /// </summary>
+    private static int [|_goo|];
+}",
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(7, 24));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldInDocComment_03()
+        {
+            await TestDiagnosticsAsync(
+@"
+class C
+{
+    /// <summary>
+    /// <see cref=""_goo""/>
+    /// </summary>
+    public void M() { }
+
+    private static int [|_goo|];
+}",
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(9, 24));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOnlyWritten()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -626,19 +654,13 @@ class C
         _goo = 0;
     }
 }",
-@"class MyClass
-{
-    public void M()
-    {
-        _goo = 0;
-    }
-}");
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsOnlyWritten()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"class MyClass
 {
     private int [|P|] { get; set; }
@@ -647,19 +669,13 @@ class C
         P = 0;
     }
 }",
-@"class MyClass
-{
-    public void M()
-    {
-        P = 0;
-    }
-}");
+    expected: Diagnostic("IDE0052", "P").WithLocation(3, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsOnlyWritten()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"class MyClass
 {
     private int [|this|][int x] { get { return 0; } set { } }
@@ -668,13 +684,7 @@ class C
         this[x] = y;
     }
 }",
-@"class MyClass
-{
-    public void M(int x, int y)
-    {
-        this[x] = y;
-    }
-}");
+    expected: Diagnostic("IDE0052", "this").WithLocation(3, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -695,7 +705,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOnlyWritten_Deconstruction()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -705,37 +715,26 @@ class C
         (_goo, x) = (0, 0);
     }
 }",
-@"class MyClass
-{
-    public void M()
-    {
-        int x;
-        (_goo, x) = (0, 0);
-    }
-}");
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOnlyWritten_ObjectInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"
 class MyClass
 {
     private int [|_goo|];
     public MyClass M() => new MyClass() { _goo = 0 };
 }",
-@"
-class MyClass
-{
-    public MyClass M() => new MyClass() { _goo = 0 };
-}");
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(4, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOnlyWritten_InProperty()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -745,14 +744,7 @@ class MyClass
         set { _goo = value; }
     }
 }",
-@"class MyClass
-{
-    int Goo
-    {
-        get { return 0; }
-        set { _goo = value; }
-    }
-}");
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -816,7 +808,7 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-        public async Task FieldIsIncremented()
+        public async Task FieldIsIncrementedAndValueUsed()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
@@ -827,7 +819,42 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-        public async Task PropertyIsIncremented()
+        public async Task FieldIsIncrementedAndValueUsed_02()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    public int M1() { return ++_goo; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsIncrementedAndValueDropped()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    public void M1() => ++_goo;
+}",
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsIncrementedAndValueDropped_02()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    public void M1() { ++_goo; }
+}",
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsIncrementedAndValueUsed()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
@@ -838,7 +865,19 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-        public async Task IndexerIsIncremented()
+        public async Task PropertyIsIncrementedAndValueDropped()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|P|] { get; set; }
+    public void M1() { ++P; }
+}",
+    expected: Diagnostic("IDE0052", "P").WithLocation(3, 17));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task IndexerIsIncrementedAndValueUsed()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
@@ -849,7 +888,19 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-        public async Task FieldIsTargetOfCompoundAssignment()
+        public async Task IndexerIsIncrementedAndValueDropped()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|this|][int x] { get { return 0; } set { } }
+    public void M1(int x) => ++this[x];
+}",
+    expected: Diagnostic("IDE0052", "this").WithLocation(3, 17));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsTargetOfCompoundAssignmentAndValueUsed()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
@@ -860,7 +911,42 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-        public async Task PropertyIsTargetOfCompoundAssignment()
+        public async Task FieldIsTargetOfCompoundAssignmentAndValueUsed_02()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    public int M1(int x) { return _goo += x; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsTargetOfCompoundAssignmentAndValueDropped()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    public void M1(int x) => _goo += x;
+}",
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsTargetOfCompoundAssignmentAndValueDropped_02()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    public void M1(int x) { _goo += x; }
+}",
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsTargetOfCompoundAssignmentAndValueUsed()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
@@ -871,7 +957,19 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-        public async Task IndexerIsTargetOfCompoundAssignment()
+        public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|P|] { get; set; }
+    public void M1(int x) { P += x; }
+}",
+    expected: Diagnostic("IDE0052", "P").WithLocation(3, 17));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task IndexerIsTargetOfCompoundAssignmentAndValueUsed()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class MyClass
@@ -882,35 +980,40 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|this|][int x] { get { return 0; } set { } }
+    public void M1(int x, int y) => this[x] += y;
+}",
+    expected: Diagnostic("IDE0052", "this").WithLocation(3, 17));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsTargetOfAssignmentAndParenthesized()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"class MyClass
 {
     private int [|_goo|];
     public void M1(int x) => (_goo) = x;
 }",
-@"class MyClass
-{
-    public void M1(int x) => (_goo) = x;
-}");
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsTargetOfAssignmentAndHasImplicitConversion()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"class MyClass
 {
     private int [|_goo|];
     public static implicit operator int(MyClass c) => 0;
     public void M1(MyClass c) => _goo = c;
 }",
-@"class MyClass
-{
-    public static implicit operator int(MyClass c) => 0;
-    public void M1(MyClass c) => _goo = c;
-}");
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -952,18 +1055,14 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOutArg()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"class MyClass
 {
     private int [|_goo|];
     public int M1() => M2(out _goo);
-    public int M2(out int i) => { i = 0; return i; }
+    public int M2(out int i) { i = 0; return i; }
 }",
-@"class MyClass
-{
-    public int M1() => M2(out _goo);
-    public int M2(out int i) => { i = 0; return i; }
-}");
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1186,7 +1285,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOnlyWritten_PartialClass_DifferentFile()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -1202,20 +1301,7 @@ partial class MyClass
         </Document>
     </Project>
 </Workspace>",
-@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>partial class MyClass
-{
-}
-        </Document>
-        <Document>partial class MyClass
-{
-    public void M() { _goo = 0; }
-}
-        </Document>
-    </Project>
-</Workspace>");
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1232,16 +1318,13 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsWritten_InParens()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticsAsync(
 @"class MyClass
 {
     private int [|_goo|];
     public int M() { (_goo) = 1; }
 }",
-@"class MyClass
-{
-    public int M() { (_goo) = 1; }
-}");
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1310,6 +1393,56 @@ partial class MyClass
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("""", """")]
     public int M() => i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsUnusedInType_SyntaxError()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    private int [|i|];
+
+    public int M() { return = ; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsUnusedInType_SemanticError()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    private int [|i|];
+
+    // 'ii' is undefined.
+    public int M() => ii;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsUnusedInType_SemanticErrorInDifferentType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    private int [|i|];
+}
+
+class C2
+{
+    // 'ii' is undefined.
+    public int M() => ii;
+}",
+@"class C
+{
+}
+
+class C2
+{
+    // 'ii' is undefined.
+    public int M() => ii;
 }");
         }
 
@@ -1417,10 +1550,10 @@ using System;
 
 partial class MyClass
 {
-    private int {|FixAllInProject:_f1|}, f2 = 0, f3;
+    private int {|FixAllInProject:f1|}, f2 = 0, f3;
     private void M1() { }
     private int P1 => 0;
-    private int this[x] { get { return 0; } set { } }
+    private int this[int x] { get { return 0; } set { } }
     private event EventHandler e1, e2 = null;
 }
 

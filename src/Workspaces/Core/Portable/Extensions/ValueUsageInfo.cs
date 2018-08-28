@@ -7,11 +7,12 @@ namespace Microsoft.CodeAnalysis
     [Flags]
     internal enum ValueUsageInfo
     {
-        None = 0x0000,
-        Read = 0x0001,
-        Write = 0x0010,
-        ReadableRef = 0x0100,
-        WritableRef = 0x1000,
+        None = 0x00000,
+        Read = 0x00001,
+        Write = 0x00010,
+        ReadableRef = 0x00100,
+        WritableRef = 0x01000,
+        NonReadWriteRef = 0x10000,
 
         ReadWrite = Read | Write,
         ReadableWritableRef = ReadableRef | WritableRef
@@ -24,5 +25,8 @@ namespace Microsoft.CodeAnalysis
 
         public static bool ContainsWriteOrWritableRef(this ValueUsageInfo valueUsageInfo)
             => (valueUsageInfo & (ValueUsageInfo.Write | ValueUsageInfo.WritableRef)) != 0;
+
+        public static bool ContainsNonReadWriteRef(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & ValueUsageInfo.NonReadWriteRef) != 0;
     }
 }

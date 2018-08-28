@@ -1109,7 +1109,7 @@ class C
             var predefinedTypesGroupTitle = CSharpVSResources.predefined_type_preferences_colon;
             var varGroupTitle = CSharpVSResources.var_preferences_colon;
             var nullCheckingGroupTitle = CSharpVSResources.null_checking_colon;
-            var memberGroupTitle = ServicesVSResources.Member_preferences_colon;
+            var fieldGroupTitle = ServicesVSResources.Field_preferences_colon;
             var codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon;
             var expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon;
             var variablePreferencesGroupTitle = ServicesVSResources.Variable_preferences_colon;
@@ -1177,9 +1177,8 @@ class C
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionSet, nullCheckingGroupTitle));
 
-            // Member preferences (field/method/property/event).
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, s_preferReadonly, s_preferReadonly, this, optionSet, memberGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.RemoveUnusedMembers, ServicesVSResources.Remove_unused_members, s_removeUnusedMembers, s_removeUnusedMembers, this, optionSet, memberGroupTitle));
+            // Field preferences.
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, this, optionSet, fieldGroupTitle));
         }
 
         private void AddParenthesesOptions(OptionSet optionSet)

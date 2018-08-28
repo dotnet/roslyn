@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,16 +28,18 @@ namespace Microsoft.CodeAnalysis
         public static ValueUsageInfo GetValueUsageInfo(this IOperation operation)
         {
             /*
-            |    code         | Read | Write | ReadableRef | WritableRef |
-            | nameof(x)       |      |       |             |             |
-            | x.Prop = 1      |      |  ✔️   |             |             |
-            | x.Prop += 1     |  ✔️  |  ✔️   |             |             |
-            | x.Prop++        |  ✔️  |  ✔️   |             |             |
-            | Foo(x.Prop)     |  ✔️  |       |             |             |
-            | Foo(x.Prop),    |      |       |     ✔️      |             |
+            |    code         | Read | Write | ReadableRef | WritableRef | NonReadWriteRef |
+            | x.Prop = 1      |      |  ✔️   |             |             |                 |
+            | x.Prop += 1     |  ✔️  |  ✔️   |             |             |                 |
+            | x.Prop++        |  ✔️  |  ✔️   |             |             |                 |
+            | Foo(x.Prop)     |  ✔️  |       |             |             |                 |
+            | Foo(x.Prop),    |      |       |     ✔️      |             |                 |
                where void Foo(in T v)
-            | Foo(out x.Prop) |      |       |             |     ✔️      |
-            | Foo(ref x.Prop) |      |       |     ✔️      |     ✔️      |
+            | Foo(out x.Prop) |      |       |             |     ✔️      |                 |
+            | Foo(ref x.Prop) |      |       |     ✔️      |     ✔️      |                 |
+            | nameof(x)       |      |       |             |             |       ✔        | ️
+            | sizeof(x)       |      |       |             |             |       ✔        | ️
+            | typeof(x)       |      |       |             |             |       ✔        | ️
 
             */
 
@@ -53,13 +56,17 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation.Parent is IParenthesizedOperation parenthesizedOperation)
             {
-                return parenthesizedOperation.GetValueUsageInfo();
+                // Note: IParenthesizedOperation is specific to VB, where the parens cause a copy, so this cannot be classified as a write.
+                Debug.Assert(parenthesizedOperation.Language == LanguageNames.VisualBasic);
+
+                return parenthesizedOperation.GetValueUsageInfo() &
+                    ~(ValueUsageInfo.Write | ValueUsageInfo.WritableRef);
             }
             else if (operation.Parent is INameOfOperation ||
                      operation.Parent is ITypeOfOperation ||
                      operation.Parent is ISizeOfOperation)
             {
-                return ValueUsageInfo.None;
+                return ValueUsageInfo.NonReadWriteRef;
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {

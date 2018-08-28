@@ -1048,10 +1048,10 @@ I agree to all of the foregoing:</value>
   <data name="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor" xml:space="preserve">
     <value>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</value>
   </data>
-  <data name="Remove_unused_members" xml:space="preserve">
-    <value>Remove unused members</value>
+  <data name="Prefer_readonly" xml:space="preserve">
+    <value>Prefer_readonly</value>
   </data>
-  <data name="Member_preferences_colon" xml:space="preserve">
-    <value>Member preferences:</value>
+  <data name="Field_preferences_colon" xml:space="preserve">
+    <value>Field preferences:</value>
   </data>
 </root>

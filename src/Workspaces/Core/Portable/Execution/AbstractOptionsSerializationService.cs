@@ -242,7 +242,6 @@ namespace Microsoft.CodeAnalysis.Execution
             WriteOptionTo(options, language, CodeStyleOptions.PreferInferredTupleNames, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferReadonly, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.RemoveUnusedMembers, writer, cancellationToken);
         }
 
         protected OptionSet ReadOptionSetFrom(OptionSet options, string language, ObjectReader reader, CancellationToken cancellationToken)
@@ -273,7 +272,6 @@ namespace Microsoft.CodeAnalysis.Execution
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferInferredTupleNames, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferReadonly, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.RemoveUnusedMembers, reader, cancellationToken);
             return options;
         }
 

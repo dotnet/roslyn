@@ -2788,6 +2788,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unread private members.
+        /// </summary>
+        internal static string Remove_Unread_Private_Members {
+            get {
+                return ResourceManager.GetString("Remove_Unread_Private_Members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; has a private member &apos;{1}&apos; that can be removed as the value assigned to it is never read..
+        /// </summary>
+        internal static string Remove_Unread_Private_Members_Message {
+            get {
+                return ResourceManager.GetString("Remove_Unread_Private_Members_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove unused member.
         /// </summary>
         internal static string Remove_unused_member {
@@ -2806,7 +2824,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{0}&apos; has a private member &apos;{1}&apos; which can be removed as it is either never used or the value assigned to it is never used..
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; has an unused private member &apos;{1}&apos; which can be removed..
         /// </summary>
         internal static string Remove_Unused_Private_Members_Message {
             get {

@@ -558,7 +558,7 @@ End Class"
             Dim codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon
             Dim expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon
             Dim nothingPreferencesGroupTitle = BasicVSResources.nothing_checking_colon
-            Dim memberPreferencesGroupTitle = ServicesVSResources.Member_preferences_colon
+            Dim fieldPreferencesGroupTitle = ServicesVSResources.Field_preferences_colon
 
             ' qualify with Me. group
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, BasicVSResources.Qualify_field_access_with_Me, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
@@ -588,9 +588,8 @@ End Class"
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, Me, optionSet, nothingPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, BasicVSResources.Prefer_Is_Nothing_for_reference_equality_checks, s_preferIsNothingCheckOverReferenceEquals, s_preferIsNothingCheckOverReferenceEquals, Me, optionSet, nothingPreferencesGroupTitle))
 
-            ' Member preferences (field/method/property/event).
-            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, s_preferReadonly, s_preferReadonly, Me, optionSet, memberPreferencesGroupTitle))
-            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.RemoveUnusedMembers, ServicesVSResources.Remove_unused_members, s_removeUnusedMembers, s_removeUnusedMembers, Me, optionSet, memberPreferencesGroupTitle))
+            ' field preferences
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, Me, optionSet, fieldPreferencesGroupTitle))
         End Sub
 
         Private Sub AddParenthesesOptions(optionSet As OptionSet)
