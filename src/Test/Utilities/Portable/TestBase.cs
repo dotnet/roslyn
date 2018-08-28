@@ -335,7 +335,7 @@ namespace Roslyn.Test.Utilities
             return new DiagnosticDescription(
                 code as string ?? (object)(int)code,
                 false,
-                squiggledText,
+                NormalizeDiagnosticString(squiggledText),
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
@@ -362,9 +362,24 @@ namespace Roslyn.Test.Utilities
 
         protected static string NormalizeDiagnosticString(string inputString)
         {
-            if (!inputString.Contains("\r\n") && inputString.Contains("\n"))
+            if (inputString == null)
             {
-                return inputString.Replace("\n", "\r\n");
+                return inputString;
+            }
+
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                if (!inputString.Contains("\r\n") && inputString.Contains("\n"))
+                {
+                    return inputString.Replace("\n", "\r\n");
+                }
+            }
+            else
+            {
+                if (inputString.Contains("\r\n"))
+                {
+                    return inputString.Replace("\r\n", "\n");
+                }
             }
 
             return inputString;
