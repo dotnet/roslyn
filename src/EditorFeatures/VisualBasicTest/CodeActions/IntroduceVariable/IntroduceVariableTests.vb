@@ -1390,7 +1390,6 @@ Module Program
 End Module")
         End Function
 
-
         <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNotOnAttribute1CommentsAfterLineContinuation() As Task
@@ -1416,7 +1415,6 @@ Module Program
     End Function
 End Module")
         End Function
-
 
         <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>

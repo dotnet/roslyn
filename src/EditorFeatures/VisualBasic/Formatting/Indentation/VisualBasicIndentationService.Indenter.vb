@@ -45,10 +45,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                         Return GetIndentationBasedOnToken(GetTokenOnLeft(trivia), trivia)
                     End If
 
-                    If trivia.Kind = SyntaxKind.CommentTrivia Then ' Two cases comment or _ followed by comment
-                        Dim FirstTrivia As SyntaxTrivia = Tree.GetRoot(CancellationToken).FindTrivia(token.Span.End + 1)
-                        If FirstTrivia.Kind = SyntaxKind.LineContinuationTrivia Then
-                            Return GetIndentationBasedOnToken(GetTokenOnLeft(FirstTrivia), FirstTrivia)
+                    ' Line ends in comment
+                    If trivia.Kind = SyntaxKind.CommentTrivia Then ' Two cases a line ending comment or _ comment
+                        Dim firstTrivia As SyntaxTrivia = Tree.GetRoot(CancellationToken).FindTrivia(token.Span.End + 1)
+                        ' firstTrivia contains either an _ or a comment, this is the First trivia after the last Token on the line
+                        If firstTrivia.Kind = SyntaxKind.LineContinuationTrivia Then
+                            Return GetIndentationBasedOnToken(GetTokenOnLeft(firstTrivia), firstTrivia)
                         Else
                             ' This is we have just a comment
                             Return GetIndentationBasedOnToken(GetTokenOnLeft(trivia), trivia)
