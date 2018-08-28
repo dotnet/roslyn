@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -44,11 +45,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
-                nestedActions.Add(new SolutionChangeAction(EditorConfigSeverityStrings.None, (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.None, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
-                nestedActions.Add(new SolutionChangeAction(EditorConfigSeverityStrings.Silent, (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Silent, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
-                nestedActions.Add(new SolutionChangeAction(EditorConfigSeverityStrings.Suggestion, (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Suggestion, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
-                nestedActions.Add(new SolutionChangeAction(EditorConfigSeverityStrings.Warning, (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Warning, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
-                nestedActions.Add(new SolutionChangeAction(EditorConfigSeverityStrings.Error, (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Error, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
+                nestedActions.Add(new SolutionChangeAction("None", (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.None, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
+                nestedActions.Add(new SolutionChangeAction("Silent", (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Silent, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
+                nestedActions.Add(new SolutionChangeAction("Suggestion", (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Suggestion, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
+                nestedActions.Add(new SolutionChangeAction("Warning", (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Warning, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
+                nestedActions.Add(new SolutionChangeAction("Error", (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Error, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
 
                 var codeAction = new ConfigureSeverityLevelCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
                 result.Add(new CodeFix(document.Project, codeAction, diagnostic));
