@@ -8,10 +8,15 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
+    using System.Collections.Immutable;
+    using RegexToken = EmbeddedSyntaxToken<RegexKind>;
+    using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
+
     /// <summary>
     /// Brace matching impl for embedded regex strings.
     /// </summary>
@@ -62,61 +67,50 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return null;
             }
 
-
             var ch = virtualChar.Value;
             switch (ch)
             {
-                case '(': case ')':
-                case '[': case ']':
-                    break;
+                case '(':
+                case ')':
+                    return FindGroupingBraces(tree, ch) ?? FindCommentBraces(tree, ch);
+                case '[':
+                case ']':
+                    return FindCharacterClassBraces(tree, ch);
                 default:
                     return null;
             }
-
-            return FindBraceHighlights(tree, ch);
         }
 
-        private static EmbeddedBraceMatchingResult? FindBraceHighlights(RegexTree tree, VirtualChar ch)
+        private static EmbeddedBraceMatchingResult? CreateResult(RegexToken open, RegexToken close)
+            => open.IsMissing || close.IsMissing
+                ? default(EmbeddedBraceMatchingResult?)
+                : new EmbeddedBraceMatchingResult(open.VirtualChars[0].Span, close.VirtualChars[0].Span);
+
+        private static EmbeddedBraceMatchingResult? FindCommentBraces(RegexTree tree, VirtualChar ch)
         {
-            return FindGroupingBraces(tree, ch) ??
-                   // FindCommentBraces(tree, ch) ??
-                   FindCharacterClassBraces(tree, ch);
+            var trivia = FindTrivia(tree.Root, ch);
+            if (trivia?.Kind != RegexKind.CommentTrivia)
+            {
+                return null;
+            }
+
+            var firstChar = trivia.Value.VirtualChars[0];
+            var lastChar = trivia.Value.VirtualChars[trivia.Value.VirtualChars.Length - 1];
+            return firstChar != '(' || lastChar != ')'
+                ? default(EmbeddedBraceMatchingResult?)
+                : new EmbeddedBraceMatchingResult(firstChar.Span, lastChar.Span);
         }
 
         private static EmbeddedBraceMatchingResult? FindGroupingBraces(RegexTree tree, VirtualChar ch)
         {
             var node = FindGroupingNode(tree.Root, ch);
-            if (node == null)
-            {
-                return null;
-            }
-
-            if (node.OpenParenToken.IsMissing || node.CloseParenToken.IsMissing)
-            {
-                return null;
-            }
-
-            return new EmbeddedBraceMatchingResult(
-                node.OpenParenToken.VirtualChars[0].Span,
-                node.CloseParenToken.VirtualChars[0].Span);
+            return node == null ? null : CreateResult(node.OpenParenToken, node.CloseParenToken);
         }
 
         private static EmbeddedBraceMatchingResult? FindCharacterClassBraces(RegexTree tree, VirtualChar ch)
         {
             var node = FindCharacterClassNode(tree.Root, ch);
-            if (node == null)
-            {
-                return null;
-            }
-
-            if (node.OpenBracketToken.IsMissing || node.CloseBracketToken.IsMissing)
-            {
-                return null;
-            }
-
-            return new EmbeddedBraceMatchingResult(
-                node.OpenBracketToken.VirtualChars[0].Span,
-                node.CloseBracketToken.VirtualChars[0].Span);
+            return node == null ? null : CreateResult(node.OpenBracketToken, node.CloseBracketToken);
         }
 
         private static RegexGroupingNode FindGroupingNode(RegexNode node, VirtualChar ch)
@@ -144,6 +138,47 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                     {
                         return result;
                     }
+                }
+            }
+
+            return null;
+        }
+
+        private static RegexTrivia? FindTrivia(RegexNode node, VirtualChar ch)
+        {
+            foreach (var child in node)
+            {
+                if (child.IsNode)
+                {
+                    var result = FindTrivia(child.Node, ch);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+                else
+                {
+                    var token = child.Token;
+                    var trivia = TryGetTrivia(token.LeadingTrivia, ch) ??
+                                 TryGetTrivia(token.TrailingTrivia, ch);
+
+                    if (trivia != null)
+                    {
+                        return trivia;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static RegexTrivia? TryGetTrivia(ImmutableArray<RegexTrivia> triviaList, VirtualChar ch)
+        {
+            foreach (var trivia in triviaList)
+            {
+                if (trivia.VirtualChars.Contains(ch))
+                {
+                    return trivia;
                 }
             }
 

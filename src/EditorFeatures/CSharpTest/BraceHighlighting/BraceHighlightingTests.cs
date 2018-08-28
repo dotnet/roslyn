@@ -293,6 +293,74 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexUnclosedGroupBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$(a"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexCommentBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$[|(|]?#a[|)|]"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexCommentBracket2()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""[|(|]?#a[|)|]$$"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexUnclosedCommentBracket()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$(?#a"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestRegexCharacterClassBracket1()
         {
             var input = @"
@@ -322,6 +390,23 @@ class C
         var r = new Regex(@""[|<|]a[|>|]$$"");
     }
 }";
+            await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexUnclosedCharacterClassBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$<a"");
+    }
+}";
+
             await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
         }
 
