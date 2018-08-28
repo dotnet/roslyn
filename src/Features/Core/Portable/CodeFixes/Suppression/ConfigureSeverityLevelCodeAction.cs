@@ -46,14 +46,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var configureExistingRule = CheckIfRuleExistsAndReplaceInFile();
                 if (configureExistingRule != null)
                 {
-                    solution = solution.WithAdditionalDocumentText(editorconfig.Id, configureExistingRule);
+                    return solution.WithAdditionalDocumentText(editorconfig.Id, configureExistingRule);
                 }
 
                 // If we reach this point, no match was found, so we add the rule to the .editorconfig file
                 var addMissingRule = AddMissingRule();
                 if (addMissingRule != null)
                 {
-                    solution = solution.WithAdditionalDocumentText(editorconfig.Id, addMissingRule);
+                    return solution.WithAdditionalDocumentText(editorconfig.Id, addMissingRule);
                 }
             }
 
