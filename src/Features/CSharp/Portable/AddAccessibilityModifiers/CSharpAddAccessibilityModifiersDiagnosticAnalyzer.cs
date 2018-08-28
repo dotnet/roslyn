@@ -139,18 +139,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             var ruleName = CodeStyleOptions.RequireAccessibilityModifiers.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<AccessibilityModifiersRequired>>>().FirstOrDefault();
             if (ruleName != null)
             {
-                properties["OptionName"] = ruleName.KeyName;
-                if (option.Value == AccessibilityModifiersRequired.ForNonInterfaceMembers)
+                properties[OptionName] = ruleName.KeyName;
+                if (EditorconfigOptionToAccessibilityModifiersRequired.options.ContainsValue(option.Value))
                 {
-                    properties["OptionCurrent"] = "for_non_interface_members";
-                }
-                else if (option.Value == AccessibilityModifiersRequired.OmitIfDefault)
-                {
-                    properties["OptionCurrent"] = "omit_if_default";
-                }
-                else
-                {
-                    properties["OptionCurrent"] = option.Value.ToString().ToLowerInvariant();
+                    properties[OptionCurrent] = EditorconfigOptionToAccessibilityModifiersRequired.options.Where(pair => pair.Value == option.Value).FirstOrDefault().Key;
                 }
             }
 

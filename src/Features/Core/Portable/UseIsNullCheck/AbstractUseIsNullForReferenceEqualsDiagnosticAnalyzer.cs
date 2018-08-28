@@ -146,8 +146,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             var editorconfigName = CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
             if (editorconfigName != null)
             {
-                properties = properties.Add("OptionName", editorconfigName.KeyName);
-                properties = properties.Add("OptionCurrent", option.Value.ToString().ToLowerInvariant());
+                properties = properties.Add(OptionName, editorconfigName.KeyName);
+                properties = properties.Add(OptionCurrent, option.Value.ToString().ToLowerInvariant());
             }
 
             var severity = option.Notification.Severity;

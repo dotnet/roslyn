@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.LanguageServices;
-using System.Linq;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.OrderModifiers
 {
@@ -89,14 +89,14 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                     var name = _option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<string>>>().FirstOrDefault();
                     if (name != null)
                     {
-                        properties["OptionName"] = name.KeyName;
+                        properties[OptionName] = name.KeyName;
                         var cancellationToken = context.CancellationToken;
                         var syntaxTree = context.Tree;
                         var root = syntaxTree.GetRoot(cancellationToken);
 
                         var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
                         var option = optionSet.GetOption(_option);
-                        properties["OptionCurrent"] = option.Value.ToString().ToLowerInvariant();
+                        properties[OptionCurrent] = option.Value.ToString().ToLowerInvariant();
                     }
 
                     // If the Severity is not hidden, then just put the user visible portion on the

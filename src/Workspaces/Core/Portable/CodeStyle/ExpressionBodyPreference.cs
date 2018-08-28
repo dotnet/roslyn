@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     /// <remarks>
@@ -17,5 +19,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         // CodeStyleOption<bool> and that will map to '1' when deserialized.
         WhenPossible = 1,
         WhenOnSingleLine = 2,
+    }
+
+    internal class EditorconfigOptionToExpressionBodyPreference
+    {
+        internal static readonly Dictionary<string, ExpressionBodyPreference> options = new Dictionary<string, ExpressionBodyPreference>
+        {
+            { "true", ExpressionBodyPreference.WhenPossible },
+            { "when_on_single_line", ExpressionBodyPreference.WhenOnSingleLine },
+            { "false", ExpressionBodyPreference.Never }
+        };
     }
 }

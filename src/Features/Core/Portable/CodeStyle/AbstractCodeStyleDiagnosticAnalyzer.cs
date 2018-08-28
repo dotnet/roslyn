@@ -103,5 +103,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
         public abstract bool OpenFileOnly(Workspace workspace);
+
+        public const string OptionName = "OptionName";
+        public const string OptionCurrent = "OptionCurrent";
+        public const string OptionLanguage = "OptionLanguage";
     }
 }

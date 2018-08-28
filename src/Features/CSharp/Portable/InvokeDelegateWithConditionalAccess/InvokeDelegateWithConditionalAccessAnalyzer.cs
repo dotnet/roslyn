@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var name = CSharpCodeStyleOptions.PreferConditionalDelegateCall.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
             if (name != null)
             {
-                properties["OptionName"] = name.KeyName;
-                properties["OptionCurrent"] = severity.ToString();
+                properties[OptionName] = name.KeyName;
+                properties[OptionCurrent] = severity.ToString();
             }
 
             var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();

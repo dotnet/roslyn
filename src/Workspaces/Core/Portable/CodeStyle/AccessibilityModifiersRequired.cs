@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
+using System.Collections.Generic;
+
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal enum AccessibilityModifiersRequired
@@ -19,5 +21,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         // Remove any accessibility modifier that matches the default
         OmitIfDefault = 3
+    }
+
+    internal class EditorconfigOptionToAccessibilityModifiersRequired
+    {
+        internal static readonly Dictionary<string, AccessibilityModifiersRequired> options = new Dictionary<string, AccessibilityModifiersRequired>
+        {
+            { "always", AccessibilityModifiersRequired.Always },
+            { "never", AccessibilityModifiersRequired.Never },
+            { "for_non_interface_members", AccessibilityModifiersRequired.ForNonInterfaceMembers },
+            { "omit_if_default", AccessibilityModifiersRequired.OmitIfDefault }
+        };
     }
 }

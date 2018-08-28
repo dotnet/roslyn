@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -9,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             Diagnostic diagnostic,
             ImmutableArray<CodeAction> nestedActions)
             : base(FeaturesResources.Configure_severity_level_via_editorconfig_file,
-            ImmutableArray<CodeAction>.CastUp(nestedActions), isInlinable: false)
+            nestedActions, isInlinable: false)
         {
         }
 
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             var solution = project.Solution;
             var editorconfig = FindOrGenerateEditorconfig();
-            var result = await editorconfig.GetTextAsync().ConfigureAwait(false);
+            var result = await editorconfig.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var headers = new Dictionary<string, TextLine>();
             string mostRecentHeader = null;
@@ -45,32 +43,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             if (name != null)
             {
                 // First we check if the rule already exists in the file; if it does, we replace it
-                if (CheckIfRuleExistsAndReplaceInFile())
+                var configureExistingRule = CheckIfRuleExistsAndReplaceInFile();
+                if (configureExistingRule != null)
                 {
-                    return solution;
+                    solution = solution.WithAdditionalDocumentText(editorconfig.Id, configureExistingRule);
                 }
 
                 // If we reach this point, no match was found, so we add the rule to the .editorconfig file
-                AddMissingRule();
+                var addMissingRule = AddMissingRule();
+                if (addMissingRule != null)
+                {
+                    solution = solution.WithAdditionalDocumentText(editorconfig.Id, addMissingRule);
+                }
             }
 
             return solution;
 
             TextDocument FindOrGenerateEditorconfig()
             {
-                TextDocument doc = null;
-                foreach (var curDoc in project.AdditionalDocuments)
-                {
-                    if (curDoc.Name.Equals(".editorconfig"))
-                    {
-                        doc = curDoc;
-                    }
-                }
+                var doc = project.AdditionalDocuments.FirstOrDefault(d => d.Name.Equals(".editorconfig"));
 
                 // Create new .editorconfig as additional file if none exists
                 if (doc == null)
                 {
                     var id = DocumentId.CreateNewId(project.Id);
+
+                    // TO-DO: needs localization
                     var editorconfigDefaultFileContent =
                         @"# ACTION REQUIRED: This file was automatically added to your project, but it
 # will not correctly take effect until additional steps are taken to enable it. See the
@@ -80,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     solution = solution.AddAdditionalDocument(id, ".editorconfig", editorconfigDefaultFileContent);
                     doc = solution.GetAdditionalDocument(id);
                 }
+
                 return doc;
             }
 
@@ -94,7 +93,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     {
                         ruleName = storageLocation.KeyName;
                     }
-
                 }
                 else if (languageSpecificOptions.ContainsKey(diagnostic.Id))
                 {
@@ -114,17 +112,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         ruleName = storageLocation.KeyName;
                     }
                 }
-                else if (diagnostic.Properties != null && diagnostic.Properties.ContainsKey("OptionName"))
+                else if (diagnostic.Properties != null && diagnostic.Properties.ContainsKey(AbstractCodeStyleDiagnosticAnalyzer.OptionName))
                 {
-                    diagnostic.Properties.TryGetValue("OptionName", out ruleName);
+                    diagnostic.Properties.TryGetValue(AbstractCodeStyleDiagnosticAnalyzer.OptionName, out ruleName);
                 }
 
                 return ruleName;
             }
 
-            bool CheckIfRuleExistsAndReplaceInFile()
+            SourceText CheckIfRuleExistsAndReplaceInFile()
             {
-                var ruleFound = false;
                 foreach (var curLine in lines)
                 {
                     var curLineText = curLine.ToString();
@@ -151,9 +148,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         // We found the rule in the file -- replace it
                         if (name.Equals(ruleName) && validRule)
                         {
-                            ruleFound = true;
                             var textChange = new TextChange(curLine.Span, ruleName + " = " + groups[2].Value.ToString().Trim() + ":" + severity);
-                            solution = solution.WithAdditionalDocumentText(editorconfig.Id, result.WithChanges(textChange));
+                            return result.WithChanges(textChange);
                         }
                     }
                     else if (headerPattern.IsMatch(curLineText.Trim()))
@@ -167,10 +163,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         headers[mostRecentHeader] = curLine;
                     }
                 }
-                return ruleFound;
+                return null;
             }
 
-            void AddMissingRule()
+            SourceText AddMissingRule()
             {
                 var option = "";
                 if (diagnosticToEditorConfigDotNet.ContainsKey(diagnostic.Id))
@@ -187,22 +183,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     expressionOptions.TryGetValue(diagnostic.Id, out var value);
                     var preference = solution.Workspace.Options.GetOption(value).Value;
-                    if (preference == ExpressionBodyPreference.WhenPossible)
+                    if (EditorconfigOptionToExpressionBodyPreference.options.ContainsValue(preference))
                     {
-                        option = "true";
-                    }
-                    else if (preference == ExpressionBodyPreference.WhenOnSingleLine)
-                    {
-                        option = "when_on_single_line";
-                    }
-                    else if (preference == ExpressionBodyPreference.Never)
-                    {
-                        option = "false";
+                        option = EditorconfigOptionToExpressionBodyPreference.options.Where(pair => pair.Value == preference).FirstOrDefault().Key;
                     }
                 }
-                else if (diagnostic.Properties != null && diagnostic.Properties.ContainsKey("OptionCurrent"))
+                else if (diagnostic.Properties != null && diagnostic.Properties.ContainsKey(AbstractCodeStyleDiagnosticAnalyzer.OptionCurrent))
                 {
-                    diagnostic.Properties.TryGetValue("OptionCurrent", out option);
+                    diagnostic.Properties.TryGetValue(AbstractCodeStyleDiagnosticAnalyzer.OptionCurrent, out option);
                     option = option.ToLowerInvariant();
                 }
 
@@ -220,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                         newRule += name + " = " + option + ":" + severity + "\r\n";
                         var textChange = new TextChange(new TextSpan(csheader.FirstOrDefault().Value.Span.End, 0), newRule);
-                        solution = solution.WithAdditionalDocumentText(editorconfig.Id, result.WithChanges(textChange));
+                        return result.WithChanges(textChange);
                     }
                     else if (language == LanguageNames.VisualBasic && headers.Where(header => header.Key.Contains(".vb")).Count() != 0)
                     {
@@ -232,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                         newRule += name + " = " + option + ":" + severity + "\r\n";
                         var textChange = new TextChange(new TextSpan(vbheader.FirstOrDefault().Value.Span.End, 0), newRule);
-                        solution = solution.WithAdditionalDocumentText(editorconfig.Id, result.WithChanges(textChange));
+                        return result.WithChanges(textChange);
                     }
                     else if (language == LanguageNames.CSharp || language == LanguageNames.VisualBasic)
                     {
@@ -257,9 +245,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                             newRule += "[*.vb]\r\n" + name + " = " + option + ":" + severity + "\r\n";
                         }
                         var textChange = new TextChange(new TextSpan(result.Length, 0), newRule);
-                        solution = solution.WithAdditionalDocumentText(editorconfig.Id, result.WithChanges(textChange));
+                        return result.WithChanges(textChange);
                     }
                 }
+                return null;
             }
         }
 

@@ -53,8 +53,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Dim name = CodeStyleOptions.PreferInferredTupleNames.StorageLocations.OfType(Of EditorConfigStorageLocation(Of CodeStyleOption(Of Boolean)))().FirstOrDefault()
 
             If name IsNot Nothing Then
-                properties("OptionName") = name.KeyName
-                properties("OptionCurrent") = [option].Value.ToString().ToLowerInvariant()
+                properties(OptionName) = name.KeyName
+                properties(OptionCurrent) = [option].Value.ToString().ToLowerInvariant()
             End If
 
             ' Create a normal diagnostic
@@ -93,8 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Dim name = CodeStyleOptions.PreferInferredAnonymousTypeMemberNames.StorageLocations.OfType(Of EditorConfigStorageLocation(Of CodeStyleOption(Of Boolean)))().FirstOrDefault()
 
             If name IsNot Nothing Then
-                properties("OptionName") = name.KeyName
-                properties("OptionCurrent") = [option].Value.ToString().ToLowerInvariant()
+                properties(OptionName) = name.KeyName
+                properties(OptionCurrent) = [option].Value.ToString().ToLowerInvariant()
             End If
 
             ' Create a normal diagnostic

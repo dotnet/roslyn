@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
             var tree = model.SyntaxTree;
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
-            builder["OptionLanguage"] = model.Language;
+            builder[AbstractCodeStyleDiagnosticAnalyzer.OptionName] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
+            builder[AbstractCodeStyleDiagnosticAnalyzer.OptionLanguage] = model.Language;
             diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
             return true;
         }

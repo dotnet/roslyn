@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             var name = CodeStyleOptions.PreferInferredTupleNames.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
             if (name != null)
             {
-                properties["OptionName"] = name.KeyName;
-                properties["OptionCurrent"] = option.Value.ToString().ToLowerInvariant();
+                properties[OptionName] = name.KeyName;
+                properties[OptionCurrent] = option.Value.ToString().ToLowerInvariant();
             }
 
             // Create a normal diagnostic
@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             var name = CodeStyleOptions.PreferInferredAnonymousTypeMemberNames.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
             if (name != null)
             {
-                properties["OptionName"] = name.KeyName;
-                properties["OptionCurrent"] = option.Value.ToString().ToLowerInvariant();
+                properties[OptionName] = name.KeyName;
+                properties[OptionCurrent] = option.Value.ToString().ToLowerInvariant();
             }
 
             // Create a normal diagnostic

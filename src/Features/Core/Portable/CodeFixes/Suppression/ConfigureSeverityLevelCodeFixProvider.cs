@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return ConfigureSeverityLevelCodeAction.diagnosticToEditorConfigDotNet.ContainsKey(diagnostic.Id) ||
                 _languageOptions.ContainsKey(diagnostic.Id) ||
                 (_expressionOptionsOpt != null && _expressionOptionsOpt.ContainsKey(diagnostic.Id)) ||
-                (diagnostic.Properties != null && diagnostic.Properties.ContainsKey("OptionName") && diagnostic.Properties.ContainsKey("OptionCurrent"));
+                (diagnostic.Properties != null && diagnostic.Properties.ContainsKey(AbstractCodeStyleDiagnosticAnalyzer.OptionName) && diagnostic.Properties.ContainsKey(AbstractCodeStyleDiagnosticAnalyzer.OptionCurrent));
         }
 
         public FixAllProvider GetFixAllProvider()
@@ -43,11 +44,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
-                nestedActions.Add(new ConfigureSeverityLevelCodeActionNone(document, diagnostic, _languageOptions, _expressionOptionsOpt, _language));
-                nestedActions.Add(new ConfigureSeverityLevelCodeActionSilent(document, diagnostic, _languageOptions, _expressionOptionsOpt, _language));
-                nestedActions.Add(new ConfigureSeverityLevelCodeActionSuggestion(document, diagnostic, _languageOptions, _expressionOptionsOpt, _language));
-                nestedActions.Add(new ConfigureSeverityLevelCodeActionWarning(document, diagnostic, _languageOptions, _expressionOptionsOpt, _language));
-                nestedActions.Add(new ConfigureSeverityLevelCodeActionError(document, diagnostic, _languageOptions, _expressionOptionsOpt, _language));
+                nestedActions.Add(new SolutionChangeAction(EditorConfigSeverityStrings.None, (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.None, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
+                nestedActions.Add(new SolutionChangeAction(EditorConfigSeverityStrings.Silent, (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Silent, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
+                nestedActions.Add(new SolutionChangeAction(EditorConfigSeverityStrings.Suggestion, (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Suggestion, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
+                nestedActions.Add(new SolutionChangeAction(EditorConfigSeverityStrings.Warning, (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Warning, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
+                nestedActions.Add(new SolutionChangeAction(EditorConfigSeverityStrings.Error, (solution => ConfigureSeverityLevelCodeAction.ConfigureEditorConfig(EditorConfigSeverityStrings.Error, diagnostic, document.Project, _languageOptions, _expressionOptionsOpt, _language, cancellationToken))));
+
                 var codeAction = new ConfigureSeverityLevelCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
                 result.Add(new CodeFix(document.Project, codeAction, diagnostic));
             }

@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var properties = ImmutableDictionary.CreateBuilder<string, string>();
             var name = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
             if (name != null) {
-                properties["OptionName"] = name.KeyName;
+                properties[OptionName] = name.KeyName;
                 var optionCurrent = optionSet.GetOption(option);
-                properties["OptionCurrent"] = optionCurrent.Value.ToString().ToLowerInvariant();
+                properties[OptionCurrent] = optionCurrent.Value.ToString().ToLowerInvariant();
             }
             return properties.ToImmutable();
         }

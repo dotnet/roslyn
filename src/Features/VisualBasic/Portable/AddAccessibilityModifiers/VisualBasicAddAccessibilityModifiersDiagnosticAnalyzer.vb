@@ -88,8 +88,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             Dim properties = ImmutableDictionary.CreateBuilder(Of String, String)()
             Dim ruleName = CodeStyleOptions.RequireAccessibilityModifiers.StorageLocations.OfType(Of EditorConfigStorageLocation(Of CodeStyleOption(Of AccessibilityModifiersRequired)))().FirstOrDefault()
             If ruleName IsNot Nothing Then
-                properties("OptionName") = ruleName.KeyName
-                properties("OptionCurrent") = [option].Value.ToString().ToLowerInvariant()
+                properties(OptionName) = ruleName.KeyName
+                properties(OptionCurrent) = [option].Value.ToString().ToLowerInvariant()
             End If
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
