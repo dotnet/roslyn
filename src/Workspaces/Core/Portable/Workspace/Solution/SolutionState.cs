@@ -1071,7 +1071,7 @@ namespace Microsoft.CodeAnalysis
                 CheckContainsProject(documentInfosInProject.Key);
                 var oldProject = this.GetProjectState(documentInfosInProject.Key);
 
-                var newDocumentStatesForProjectBuilder = ImmutableArray.CreateBuilder<DocumentState>();
+                var newDocumentStatesForProjectBuilder = ArrayBuilder<DocumentState>.GetInstance();
 
                 foreach (var documentInfo in documentInfosInProject)
                 {
@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis
                         _solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind));
                 }
 
-                var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutable();
+                var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
 
                 var newProjectState = oldProject.AddDocuments(newDocumentStatesForProject);
 
