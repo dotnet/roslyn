@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 this.LanguageServices,
                 this.solutionServices,
-                this.Attributes,
+                this.Attributes.With(sourceCodeKind: options.Kind),
                 options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,
