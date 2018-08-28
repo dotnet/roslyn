@@ -43,13 +43,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly">
-        <source>Prefer_readonly</source>
-        <target state="new">Prefer_readonly</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly_fields">
-        <source>Prefer readonly fields</source>
-        <target state="new">Prefer readonly fields</target>
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">

@@ -1876,20 +1876,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer_readonly.
+        ///   Looks up a localized string similar to Prefer readonly.
         /// </summary>
         internal static string Prefer_readonly {
             get {
                 return ResourceManager.GetString("Prefer_readonly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Prefer readonly fields.
-        /// </summary>
-        internal static string Prefer_readonly_fields {
-            get {
-                return ResourceManager.GetString("Prefer_readonly_fields", resourceCulture);
             }
         }
         

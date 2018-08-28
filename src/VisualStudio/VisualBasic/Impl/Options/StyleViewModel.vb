@@ -511,28 +511,6 @@ Class Customer2
 //]
 End Class"
 
-        Private Shared ReadOnly s_removeUnusedMembers As String = $"
-Class Customer1
-//[
-    ' {ServicesVSResources.Prefer_colon}
-//]
-End Class
-Class Customer2
-//[
-    ' {ServicesVSResources.Over_colon}
-    ' Field '_field' is never read or written
-    Private _field As Integer
-
-    ' Property 'Prop' is never read
-    Private Prop As Integer
-
-    ' Method 'M' is never read
-    Private Sub M()
-        Prop = 1
-    End Sub
-//]
-End Class"
-
 #End Region
 
         Public Sub New(optionSet As OptionSet, serviceProvider As IServiceProvider)

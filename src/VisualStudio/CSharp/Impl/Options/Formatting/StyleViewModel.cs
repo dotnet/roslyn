@@ -929,32 +929,6 @@ class Customer2
 }}
 ";
 
-        private static readonly string s_removeUnusedMembers = $@"
-class Customer1
-{{
-//[
-        // {ServicesVSResources.Prefer_colon}
-//]
-}}
-class Customer2
-{{
-//[
-        // {ServicesVSResources.Over_colon}
-        // Field '_field' is never read or written
-        private int _field;
-        
-        // Property 'Prop' is never read
-        private int Prop {{ get; set; }}
-        
-        // Method 'M' is never invoked
-        private void M()
-        {{
-            Prop = 1;
-        }}
-//]
-}}
-";
-
         #endregion
 
         #region arithmetic binary parentheses
