@@ -3381,8 +3381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
             }
 
-            // SPEC: Otherwise, if A exists and is a value type, a compile-time error occurs.
-
+            // SPEC: Otherwise, if A exists and is a non-nullable value type, a compile-time error occurs.
             if ((object)optLeftType != null && optLeftType.IsValueType && !optLeftType.IsNullableType())
             {
                 return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
