@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
             {
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private async void OnSolutionExistsAndFullyLoadedContextAsync(object sender, UIContextChangedEventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
             if (e.Activated)
             {

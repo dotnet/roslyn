@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         [ImportingConstructor]
         public VisualStudioDiagnosticListTable(
-            IVsErrorList errorList,
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
@@ -36,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             ConnectWorkspaceEvents();
 
-            _errorList = errorList as IErrorList;
+            _errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
             if (_errorList == null)
             {
                 AddInitialTableSource(workspace.CurrentSolution, _liveTableSource);

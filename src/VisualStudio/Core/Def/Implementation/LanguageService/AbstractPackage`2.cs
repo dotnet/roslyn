@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override async Task LoadComponentsInUIContextAsync(CancellationToken cancellationToken)
         {
-            ForegroundObject.AssertIsForeground();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             // Ensure the nuget package services are initialized after we've loaded
             // the solution.
