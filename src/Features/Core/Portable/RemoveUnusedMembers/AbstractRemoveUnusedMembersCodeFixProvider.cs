@@ -84,11 +84,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
         }
 
-        protected virtual SyntaxNode GetTopmostSyntaxNodeForSymbolDeclaration(SyntaxNode syntaxNode, Func<SyntaxNode, bool> isSymbolDeclarationNode)
-        {
-            return syntaxNode.FirstAncestorOrSelf(isSymbolDeclarationNode);
-        }
-
         /// <summary>
         /// If all the <paramref name="childDeclarators"/> are contained in <paramref name="declarators"/>,
         /// the removes the <paramref name="childDeclarators"/> from <paramref name="declarators"/>, and

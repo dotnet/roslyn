@@ -10,17 +10,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
     Friend Class VisualBasicRemoveUnusedMembersCodeFixProvider
         Inherits AbstractRemoveUnusedMembersCodeFixProvider(Of FieldDeclarationSyntax)
 
-        Protected Overrides Function GetTopmostSyntaxNodeForSymbolDeclaration(syntaxNode As SyntaxNode, isSymbolDeclarationNode As Func(Of SyntaxNode, Boolean)) As SyntaxNode
-            Dim symbolDeclNode = MyBase.GetTopmostSyntaxNodeForSymbolDeclaration(syntaxNode, isSymbolDeclarationNode)
-
-            ' Map from StatementSyntax to BlockSyntax
-            If isSymbolDeclarationNode(symbolDeclNode.Parent) Then
-                symbolDeclNode = symbolDeclNode.Parent
-            End If
-
-            Return symbolDeclNode
-        End Function
-
         Protected Overrides Sub AdjustDeclarators(fieldDeclarators As HashSet(Of FieldDeclarationSyntax), declarators As HashSet(Of SyntaxNode))
             For Each variableDeclarator In fieldDeclarators.SelectMany(Function(f) f.Declarators)
                 AdjustChildDeclarators(
