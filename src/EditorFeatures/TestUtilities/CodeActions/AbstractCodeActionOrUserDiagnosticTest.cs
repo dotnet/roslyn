@@ -489,6 +489,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         var expectedRoot = await expectedDocument.GetSyntaxRootAsync();
                         Assert.Equal(expectedRoot.ToFullString(), root.ToFullString());
                     }
+
+                    foreach (var additionalDoc in project.AdditionalDocuments)
+                    {
+                        var root = await additionalDoc.GetTextAsync();
+                        var expectedDocument = expectedProject.AdditionalDocuments.Single(d => d.Name == additionalDoc.Name);
+                        var expectedRoot = await expectedDocument.GetTextAsync();
+                        Assert.Equal(expectedRoot.ToString(), root.ToString());
+                    }
                 }
             }
         }

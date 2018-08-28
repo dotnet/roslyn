@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider> _analyzerReferenceToFixersMap;
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>.CreateValueCallback _createProjectCodeFixProvider;
 
-        private readonly ImmutableDictionary<LanguageKind, Lazy<ISuppressionFixProvider>> _suppressionProvidersMap;
+        private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<ISuppressionOrConfigurationFixProvider>>> _suppressionOrConfigurationProvidersMap;
         private readonly IEnumerable<Lazy<IErrorLoggerService>> _errorLoggers;
 
         private ImmutableDictionary<object, FixAllProviderInfo> _fixAllProviderMap;
@@ -52,16 +52,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IDiagnosticAnalyzerService service,
             [ImportMany]IEnumerable<Lazy<IErrorLoggerService>> loggers,
             [ImportMany]IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
-            [ImportMany]IEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>> suppressionProviders)
+            [ImportMany]IEnumerable<Lazy<ISuppressionOrConfigurationFixProvider, CodeChangeProviderMetadata>> suppressionOrConfigurationProviders)
             : base(assertIsForeground: false)
         {
             _errorLoggers = loggers;
             _diagnosticService = service;
             var fixersPerLanguageMap = fixers.ToPerLanguageMapWithMultipleLanguages();
-            var suppressionProvidersPerLanguageMap = suppressionProviders.ToPerLanguageMapWithMultipleLanguages();
+            var suppressionOrConfigurationProvidersPerLanguageMap = suppressionOrConfigurationProviders.ToPerLanguageMapWithMultipleLanguages();
 
             _workspaceFixersMap = GetFixerPerLanguageMap(fixersPerLanguageMap, null);
-            _suppressionProvidersMap = GetSuppressionProvidersPerLanguageMap(suppressionProvidersPerLanguageMap);
+            _suppressionOrConfigurationProvidersMap = GetSuppressionOrConfigurationProvidersPerLanguageMap(suppressionOrConfigurationProvidersPerLanguageMap);
 
             // REVIEW: currently, fixer's priority is statically defined by the fixer itself. might considering making it more dynamic or configurable.
             _fixerPriorityMap = GetFixerPriorityPerLanguageMap(fixersPerLanguageMap);
@@ -140,12 +140,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeSuppressionFixes, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeSuppressionOrConfigurationFixes, CancellationToken cancellationToken)
         {
-            return GetFixesAsync(document, range, includeSuppressionFixes, diagnosticIdOpt: null, cancellationToken);
+            return GetFixesAsync(document, range, includeSuppressionOrConfigurationFixes, diagnosticIdOpt: null, cancellationToken);
         }
 
-        private async Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeSuppressionFixes, string diagnosticIdOpt, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeSuppressionOrConfigurationFixes, string diagnosticIdOpt, CancellationToken cancellationToken)
         {
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic service to give back
             // current diagnostics for the given span, and it will use that to get fixes. internally diagnostic service will either return cached information
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // this design's weakness is that each side don't have enough information to narrow down works to do. it will most likely always do more works than needed.
             // sometimes way more than it is needed. (compilation)
             Dictionary<TextSpan, List<DiagnosticData>> aggregatedDiagnostics = null;
-            foreach (var diagnostic in await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, includeSuppressionFixes, diagnosticIdOpt, cancellationToken).ConfigureAwait(false))
+            foreach (var diagnostic in await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, includeSuppressionOrConfigurationFixes, diagnosticIdOpt, cancellationToken).ConfigureAwait(false))
             {
                 if (diagnostic.IsSuppressed)
                 {
@@ -205,11 +205,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
-            if (document.Project.Solution.Workspace.Kind != WorkspaceKind.Interactive && includeSuppressionFixes)
+            if (document.Project.Solution.Workspace.Kind != WorkspaceKind.Interactive && includeSuppressionOrConfigurationFixes)
             {
                 foreach (var spanAndDiagnostic in aggregatedDiagnostics)
                 {
-                    await AppendSuppressionsAsync(
+                    await AppendSuppressionsOrConfigurationsAsync(
                         document, spanAndDiagnostic.Key, spanAndDiagnostic.Value,
                         result, cancellationToken).ConfigureAwait(false);
                 }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public async Task<CodeFixCollection> GetFixesAsync(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
         {
-            var fixesCollectionArray = await GetFixesAsync(document, range, includeSuppressionFixes: false, diagnosticId, cancellationToken).ConfigureAwait(false);
+            var fixesCollectionArray = await GetFixesAsync(document, range, includeSuppressionOrConfigurationFixes: false, diagnosticId, cancellationToken).ConfigureAwait(false);
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                await AppendFixesOrSuppressionsAsync(
+                await AppendFixesOrSuppressionsAsync<CodeFixProvider>(
                     document, span, diagnostics, result, fixer,
                     hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
                     getFixes: dxs => GetCodeFixesAsync(document, span, fixer, dxs, cancellationToken),
@@ -309,32 +309,36 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return fixes.ToImmutableAndFree();
         }
 
-        private async Task AppendSuppressionsAsync(
+        private async Task AppendSuppressionsOrConfigurationsAsync(
             Document document, TextSpan span, IEnumerable<DiagnosticData> diagnostics,
             ArrayBuilder<CodeFixCollection> result, CancellationToken cancellationToken)
         {
-            if (!_suppressionProvidersMap.TryGetValue(document.Project.Language, out var lazySuppressionProvider) || lazySuppressionProvider.Value == null)
+            if (!_suppressionOrConfigurationProvidersMap.TryGetValue(document.Project.Language, out var lazySuppressionOrConfigurationProvider) || lazySuppressionOrConfigurationProvider.Value == null)
             {
                 return;
             }
 
-            await AppendFixesOrSuppressionsAsync(
-                document, span, diagnostics, result, lazySuppressionProvider.Value,
-                hasFix: d => lazySuppressionProvider.Value.CanBeSuppressedOrUnsuppressed(d),
-                getFixes: dxs => lazySuppressionProvider.Value.GetSuppressionsAsync(
-                    document, span, dxs, cancellationToken),
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+            foreach (var provider in lazySuppressionOrConfigurationProvider.Value)
+            {
+                await AppendFixesOrSuppressionsAsync<ISuppressionOrConfigurationFixProvider>(
+                    document, span, diagnostics, result, provider,
+                    hasFix: d => provider.CanBeConfigured(d),
+                    getFixes: dxs => provider.GetSuppressionsOrConfigurationsAsync(
+                        document, span, dxs, cancellationToken),
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        private async Task AppendFixesOrSuppressionsAsync(
+        private async Task AppendFixesOrSuppressionsAsync<TCodeFixProvider>(
             Document document,
             TextSpan span,
             IEnumerable<DiagnosticData> diagnosticsWithSameSpan,
             ArrayBuilder<CodeFixCollection> result,
-            object fixer,
+            TCodeFixProvider fixer,
             Func<Diagnostic, bool> hasFix,
             Func<ImmutableArray<Diagnostic>, Task<ImmutableArray<CodeFix>>> getFixes,
             CancellationToken cancellationToken)
+            where TCodeFixProvider : class
         {
             var allDiagnostics =
                 await diagnosticsWithSameSpan.OrderByDescending(d => d.Severity)
@@ -363,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var supportedScopes = ImmutableArray<FixAllScope>.Empty;
             if (fixAllProviderInfo != null)
             {
-                var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionFixProvider)fixer, diagnostics.Select(d => d.Id));
+                var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionOrConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
                 fixAllState = CreateFixAllState(
                     fixAllProviderInfo.FixAllProvider,
                     document, fixAllProviderInfo, codeFixProvider, diagnostics);
@@ -398,14 +402,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 fixAllDiagnosticProvider: diagnosticProvider);
         }
 
-        public CodeFixProvider GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds)
+        /// <summary> Looks explicitly for an <see cref="AbstractSuppressionOrConfigurationCodeFixProvider"/>.</summary>
+        public CodeFixProvider GetSuppressionOrConfigurationFixer(string language, IEnumerable<string> diagnosticIds)
         {
-            if (!_suppressionProvidersMap.TryGetValue(language, out var lazySuppressionProvider) || lazySuppressionProvider.Value == null)
+            if (!_suppressionOrConfigurationProvidersMap.TryGetValue(language, out var lazySuppressionOrConfigurationProvider) || lazySuppressionOrConfigurationProvider.Value == null)
             {
                 return null;
             }
 
-            return new WrapperCodeFixProvider(lazySuppressionProvider.Value, diagnosticIds);
+            // Explicitly looks for an AbstractSuppressionOrConfigurationCodeFixProvider
+            var fixer = lazySuppressionOrConfigurationProvider.Value.OfType<AbstractSuppressionOrConfigurationCodeFixProvider>().FirstOrDefault();
+            if (fixer == null)
+            {
+                return null;
+            }
+
+            return new WrapperCodeFixProvider(fixer, diagnosticIds);
         }
 
         private async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
@@ -450,11 +462,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 hasAnySharedFixer = workspaceFixers.Any();
             }
 
-            var hasSuppressionFixer =
-                _suppressionProvidersMap.TryGetValue(document.Project.Language, out var lazySuppressionProvider) &&
-                lazySuppressionProvider.Value != null;
+            var hasSuppressionOrConfigurationFixer =
+                _suppressionOrConfigurationProvidersMap.TryGetValue(document.Project.Language, out var lazySuppressionOrConfigurationProvider) &&
+                lazySuppressionOrConfigurationProvider.Value != null;
 
-            if (!hasAnySharedFixer && !hasAnyProjectFixer && !hasSuppressionFixer)
+            if (!hasAnySharedFixer && !hasAnyProjectFixer && !hasSuppressionOrConfigurationFixer)
             {
                 return false;
             }
@@ -472,7 +484,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var dx = await diagnostic.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
-            if (hasSuppressionFixer && lazySuppressionProvider.Value.CanBeSuppressedOrUnsuppressed(dx))
+            var canBeConfigured = false;
+            foreach (var curLazySuppressionOrConfigurationProvider in lazySuppressionOrConfigurationProvider.Value)
+            {
+                if (curLazySuppressionOrConfigurationProvider.CanBeConfigured(dx))
+                {
+                    canBeConfigured = true;
+                }
+            }
+            if (hasSuppressionOrConfigurationFixer && canBeConfigured)
             {
                 return true;
             }
@@ -508,10 +528,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Have to see if this fix is still applicable.  Jump to the foreground thread
                     // to make that check.
                     var applicable = await Task.Factory.StartNew(() =>
-                        {
-                            this.AssertIsForeground();
-                            return fix.Action.IsApplicable(document.Project.Solution.Workspace);
-                        },
+                    {
+                        this.AssertIsForeground();
+                        return fix.Action.IsApplicable(document.Project.Solution.Workspace);
+                    },
                         cancellationToken, TaskCreationOptions.None, ForegroundTaskScheduler).ConfigureAwait(false);
                     this.AssertIsBackground();
 
@@ -618,17 +638,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return fixerMap;
         }
 
-        private static ImmutableDictionary<LanguageKind, Lazy<ISuppressionFixProvider>> GetSuppressionProvidersPerLanguageMap(
-            Dictionary<LanguageKind, List<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>> suppressionProvidersPerLanguage)
+        private static ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<ISuppressionOrConfigurationFixProvider>>> GetSuppressionOrConfigurationProvidersPerLanguageMap(
+            Dictionary<LanguageKind, List<Lazy<ISuppressionOrConfigurationFixProvider, CodeChangeProviderMetadata>>> suppressionOrConfigurationProvidersPerLanguage)
         {
-            var suppressionFixerMap = ImmutableDictionary.Create<LanguageKind, Lazy<ISuppressionFixProvider>>();
-            foreach (var languageKindAndFixers in suppressionProvidersPerLanguage)
+            var suppressionOrConfigurationFixerMap = ImmutableDictionary.Create<LanguageKind, Lazy<ImmutableArray<ISuppressionOrConfigurationFixProvider>>>();
+            foreach (var languageKindAndFixers in suppressionOrConfigurationProvidersPerLanguage)
             {
-                var suppressionFixerLazyMap = new Lazy<ISuppressionFixProvider>(() => languageKindAndFixers.Value.SingleOrDefault().Value);
-                suppressionFixerMap = suppressionFixerMap.Add(languageKindAndFixers.Key, suppressionFixerLazyMap);
+                var suppressionOrConfigurationFixerList = new List<ISuppressionOrConfigurationFixProvider>();
+                foreach (var languageKindAndFixersVal in languageKindAndFixers.Value)
+                {
+                    suppressionOrConfigurationFixerList.Add(languageKindAndFixersVal.Value);
+                }
+                var suppressionOrConfigurationFixerLazyArray = new Lazy<ImmutableArray<ISuppressionOrConfigurationFixProvider>>(() => suppressionOrConfigurationFixerList.ToImmutableArray());
+                suppressionOrConfigurationFixerMap = suppressionOrConfigurationFixerMap.Add(languageKindAndFixers.Key, suppressionOrConfigurationFixerLazyArray);
             }
 
-            return suppressionFixerMap;
+            return suppressionOrConfigurationFixerMap;
         }
 
         private static ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>> GetFixerPriorityPerLanguageMap(

@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
@@ -73,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                     ' We have to keep this here.
                     Return
                 End If
-           
+
             Else ' Require all, flag missing modidifers
                 If Accessibility <> Accessibility.NotApplicable Then
                     Return
@@ -82,25 +83,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
 
             ' Have an issue to flag, either add or remove. Report issue to user.
             Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
+
+            ' TO-DO: Reduce degree of tight-coupling and hard-coded options
+            Dim properties = ImmutableDictionary.CreateBuilder(Of String, String)()
+            Dim ruleName = CodeStyleOptions.RequireAccessibilityModifiers.StorageLocations.OfType(Of EditorConfigStorageLocation(Of CodeStyleOption(Of AccessibilityModifiersRequired)))().FirstOrDefault()
+            If ruleName IsNot Nothing Then
+                properties(OptionName) = ruleName.KeyName
+                properties(OptionCurrent) = [option].Value.ToString().ToLowerInvariant()
+            End If
+
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 name.GetLocation(),
                 [option].Notification.Severity,
                 additionalLocations:=additionalLocations,
-                properties:=Nothing))
+                properties:=properties.ToImmutable()))
         End Sub
 
         Private Function MatchesDefaultAccessibility(accessibility As Accessibility, member As StatementSyntax) As Boolean
             ' Top level items in a namespace or file
             If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
                member.IsParentKind(SyntaxKind.NamespaceBlock) Then
-               ' default is Friend
+                ' default is Friend
                 Return accessibility = Accessibility.Friend
             End If
 
             ' default for const and field in a class is private
-            If member.IsParentKind(SyntaxKind.ClassBlock) OrElse 
-               member.IsParentKind(SyntaxKind.ModuleBlock) Then                
+            If member.IsParentKind(SyntaxKind.ClassBlock) OrElse
+               member.IsParentKind(SyntaxKind.ModuleBlock) Then
                 If member.IsKind(SyntaxKind.FieldDeclaration) Then
                     Return accessibility = Accessibility.Private
                 End If

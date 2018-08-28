@@ -110,20 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(optionString,
                     out var value, out var notificationOpt))
             {
+                value = value.Trim();
                 // A notification value must be provided.
-                if (notificationOpt != null)
+                if (notificationOpt != null && EditorconfigOptionToExpressionBodyPreference.options.ContainsKey(value))
                 {
-                    if (bool.TryParse(value, out var boolValue))
-                    {
-                        return boolValue
-                            ? new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, notificationOpt)
-                            : new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, notificationOpt);
-                    }
-
-                    if (value == "when_on_single_line")
-                    {
-                        return new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, notificationOpt);
-                    }
+                    EditorconfigOptionToExpressionBodyPreference.options.TryGetValue(value, out var preference);
+                    return new CodeStyleOption<ExpressionBodyPreference>(preference, notificationOpt);
                 }
             }
 

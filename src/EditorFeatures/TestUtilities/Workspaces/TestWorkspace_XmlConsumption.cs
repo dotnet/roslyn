@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspace = new TestWorkspace(exportProvider, workspaceKind);
 
             var projectNameToTestHostProject = new Dictionary<string, TestHostProject>();
-            var documentElementToFilePath = new Dictionary<XElement, string>();
+
             var projectElementToProjectName = new Dictionary<XElement, string>();
             var filePathToTextBufferMap = new Dictionary<string, ITextBuffer>();
             int projectIdentifier = 0;
@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     projectElement,
                     exportProvider,
                     workspace,
-                    documentElementToFilePath,
                     filePathToTextBufferMap,
                     ref projectIdentifier,
                     ref documentIdentifier);
@@ -253,7 +252,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             XElement projectElement,
             ExportProvider exportProvider,
             TestWorkspace workspace,
-            Dictionary<XElement, string> documentElementToFilePath,
             Dictionary<string, ITextBuffer> filePathToTextBufferMap,
             ref int projectId,
             ref int documentId)
@@ -306,10 +304,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     ref documentId);
 
                 documents.Add(document);
-                documentElementToFilePath.Add(documentElement, document.FilePath);
             }
 
-            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, filePath: filePath, analyzerReferences: analyzers);
+            var additionalDocuments = new List<TestHostDocument>();
+            var additionalDocumentElements = projectElement.Elements(AdditionalDocumentElementName).ToList();
+            foreach (var additionalDocumentElement in additionalDocumentElements)
+            {
+                var document = CreateDocument(
+                    workspace,
+                    workspaceElement,
+                    additionalDocumentElement,
+                    language,
+                    exportProvider,
+                    languageServices,
+                    filePathToTextBufferMap,
+                    ref documentId);
+
+                additionalDocuments.Add(document);
+            }
+
+            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, additionalDocuments, filePath: filePath, analyzerReferences: analyzers);
         }
 
         private static ParseOptions GetParseOptions(XElement projectElement, string language, HostLanguageServices languageServices)

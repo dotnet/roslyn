@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionOrConfigurationCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         internal sealed class PragmaWarningCodeAction : AbstractSuppressionCodeAction, IPragmaBasedCodeAction
         {
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 SuppressionTargetInfo suppressionTargetInfo,
                 Document document,
                 Diagnostic diagnostic,
-                AbstractSuppressionCodeFixProvider fixer)
+                AbstractSuppressionOrConfigurationCodeFixProvider fixer)
             {
                 // We need to normalize the leading trivia on start token to account for
                 // the trailing trivia on its previous token (and similarly normalize trailing trivia for end token).
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 SuppressionTargetInfo suppressionTargetInfo,
                 Document document,
                 Diagnostic diagnostic,
-                AbstractSuppressionCodeFixProvider fixer,
+                AbstractSuppressionOrConfigurationCodeFixProvider fixer,
                 bool forFixMultipleContext = false)
                 : base(fixer, title: FeaturesResources.in_Source)
             {

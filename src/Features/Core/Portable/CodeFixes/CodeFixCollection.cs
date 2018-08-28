@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
     /// Represents a collection of <see cref="CodeFix"/>es supplied by a given fix provider
-    /// (such as <see cref="CodeFixProvider"/> or <see cref="ISuppressionFixProvider"/>).
+    /// (such as <see cref="CodeFixProvider"/> or <see cref="ISuppressionOrConfigurationFixProvider"/>).
     /// </summary>
     internal class CodeFixCollection
     {

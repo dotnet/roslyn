@@ -835,6 +835,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Configure severity level via .editorconfig file.
+        /// </summary>
+        internal static string Configure_severity_level_via_editorconfig_file {
+            get {
+                return ResourceManager.GetString("Configure_severity_level_via_editorconfig_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to const field.
         /// </summary>
         internal static string const_field {

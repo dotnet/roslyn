@@ -169,13 +169,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             var actions = fixes.SelectAsArray(f => f.Action);
-            if (actions.Length == 1)
-            {
-                if (actions[0] is TopLevelSuppressionCodeAction suppressionAction)
-                {
-                    actions = suppressionAction.NestedCodeActions;
-                }
-            }
 
             actions = MassageActions(actions);
 

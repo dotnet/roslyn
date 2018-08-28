@@ -1,17 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer 
+    internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
         : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
     {
         public CSharpAddAccessibilityModifiersDiagnosticAnalyzer()
@@ -19,15 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
         }
 
         protected override void ProcessCompilationUnit(
-            SyntaxTreeAnalysisContext context, SyntaxGenerator generator, 
+            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
             CodeStyleOption<AccessibilityModifiersRequired> option, CompilationUnitSyntax compilationUnit)
         {
             ProcessMembers(context, generator, option, compilationUnit.Members);
         }
 
         private void ProcessMembers(
-            SyntaxTreeAnalysisContext context, SyntaxGenerator generator, 
-            CodeStyleOption<AccessibilityModifiersRequired> option, 
+            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
+            CodeStyleOption<AccessibilityModifiersRequired> option,
             SyntaxList<MemberDeclarationSyntax> members)
         {
             foreach (var memberDeclaration in members)
@@ -131,12 +133,25 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 
             // Have an issue to flag, either add or remove. Report issue to user.
             var additionalLocations = ImmutableArray.Create(member.GetLocation());
+
+            // TO-DO: Reduce degree of tight-coupling and hard-coded options
+            var properties = ImmutableDictionary.CreateBuilder<string, string>();
+            var ruleName = CodeStyleOptions.RequireAccessibilityModifiers.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<AccessibilityModifiersRequired>>>().FirstOrDefault();
+            if (ruleName != null)
+            {
+                properties[OptionName] = ruleName.KeyName;
+                if (EditorconfigOptionToAccessibilityModifiersRequired.options.ContainsValue(option.Value))
+                {
+                    properties[OptionCurrent] = EditorconfigOptionToAccessibilityModifiersRequired.options.Where(pair => pair.Value == option.Value).FirstOrDefault().Key;
+                }
+            }
+
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 name.GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: additionalLocations,
-                properties: null));
+                properties: properties.ToImmutable()));
         }
     }
 }

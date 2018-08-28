@@ -709,6 +709,9 @@ Do you want to continue?</value>
   <data name="Remove_Suppression" xml:space="preserve">
     <value>Remove Suppression</value>
   </data>
+  <data name = "Configure_severity_level_via_editorconfig_file" xml:space="preserve">
+    <value>Configure severity level via .editorconfig file</value>
+  </data>
   <data name="Pending" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
   </data>

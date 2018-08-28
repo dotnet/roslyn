@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionOrConfigurationCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         /// <summary>
         /// Base type for remove suppression code actions.
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Document documentOpt,
                 Project project,
                 Diagnostic diagnostic,
-                AbstractSuppressionCodeFixProvider fixer,
+                AbstractSuppressionOrConfigurationCodeFixProvider fixer,
                 CancellationToken cancellationToken)
             {
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             protected RemoveSuppressionCodeAction(
                 Diagnostic diagnostic,
-                AbstractSuppressionCodeFixProvider fixer,
+                AbstractSuppressionOrConfigurationCodeFixProvider fixer,
                 bool forFixMultipleContext = false)
                 : base(fixer, title: string.Format(FeaturesResources.Remove_Suppression_0, diagnostic.Id))
             {

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan textSpan, bool includeSuppressionFixes, CancellationToken cancellationToken);
         Task<CodeFixCollection> GetFixesAsync(Document document, TextSpan textSpan, string diagnosticId, CancellationToken cancellationToken);
-        CodeFixProvider GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds);
+        CodeFixProvider GetSuppressionOrConfigurationFixer(string language, IEnumerable<string> diagnosticIds);
         Task<FirstDiagnosticResult> GetMostSevereFixableDiagnostic(Document document, TextSpan range, CancellationToken cancellationToken);
     }
 }

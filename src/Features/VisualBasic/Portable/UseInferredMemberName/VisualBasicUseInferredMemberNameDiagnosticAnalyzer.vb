@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
@@ -46,6 +47,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 Return
             End If
 
+            ' TO-DO: Reduce degree of tight-coupling and hard-coded options
+            Dim [option] = optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language)
+            Dim properties = ImmutableDictionary.CreateBuilder(Of String, String)()
+            Dim name = CodeStyleOptions.PreferInferredTupleNames.StorageLocations.OfType(Of EditorConfigStorageLocation(Of CodeStyleOption(Of Boolean)))().FirstOrDefault()
+
+            If name IsNot Nothing Then
+                properties(OptionName) = name.KeyName
+                properties(OptionCurrent) = [option].Value.ToString().ToLowerInvariant()
+            End If
+
             ' Create a normal diagnostic
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
@@ -53,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                     nameColonEquals.GetLocation(),
                     optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Severity,
                     additionalLocations:=Nothing,
-                    properties:=Nothing))
+                    properties:=properties.ToImmutable()))
 
             ' Also fade out the part of the name-colon-equals syntax
             Dim fadeSpan = TextSpan.FromBounds(nameColonEquals.Name.SpanStart, nameColonEquals.ColonEqualsToken.Span.End)
@@ -77,6 +88,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
 
             Dim fadeSpan = TextSpan.FromBounds(fieldInitializer.Name.SpanStart, fieldInitializer.EqualsToken.Span.End)
 
+            Dim [option] = optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language)
+            Dim properties = ImmutableDictionary.CreateBuilder(Of String, String)()
+            Dim name = CodeStyleOptions.PreferInferredAnonymousTypeMemberNames.StorageLocations.OfType(Of EditorConfigStorageLocation(Of CodeStyleOption(Of Boolean)))().FirstOrDefault()
+
+            If name IsNot Nothing Then
+                properties(OptionName) = name.KeyName
+                properties(OptionCurrent) = [option].Value.ToString().ToLowerInvariant()
+            End If
+
             ' Create a normal diagnostic
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
@@ -84,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                     syntaxTree.GetLocation(fadeSpan),
                     optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Severity,
                     additionalLocations:=Nothing,
-                    properties:=Nothing))
+                    properties:=properties.ToImmutable()))
 
             ' Also fade out the part of the name-equals syntax
             context.ReportDiagnostic(

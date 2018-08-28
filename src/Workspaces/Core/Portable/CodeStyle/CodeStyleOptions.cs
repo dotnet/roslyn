@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
@@ -219,19 +220,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     notificationOpt = notificationOpt ?? NotificationOption.Silent;
                 }
 
-                if (notificationOpt != null)
+                if (notificationOpt != null && EditorconfigOptionToAccessibilityModifiersRequired.options.ContainsKey(value))
                 {
-                    switch (value)
-                    {
-                        case "never":
-                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Never, notificationOpt);
-                        case "always":
-                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, notificationOpt);
-                        case "for_non_interface_members":
-                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, notificationOpt);
-                        case "omit_if_default":
-                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.OmitIfDefault, notificationOpt);
-                    }
+                        EditorconfigOptionToAccessibilityModifiersRequired.options.TryGetValue(value, out var preference);
+                        return new CodeStyleOption<AccessibilityModifiersRequired>(preference, notificationOpt);
                 }
             }
 
@@ -287,15 +279,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             if (TryGetCodeStyleValueAndOptionalNotification(optionString,
                     out var value, out var notificationOpt))
             {
-                value.Trim();
+                value = value.Trim();
                 notificationOpt = notificationOpt ?? NotificationOption.Silent;
 
-                switch (value)
+                if (notificationOpt != null && EditorconfigOptionToParenthesesPreference.options.ContainsKey(value))
                 {
-                case "always_for_clarity":
-                    return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, notificationOpt);
-                case "never_if_unnecessary":
-                    return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, notificationOpt);
+                    EditorconfigOptionToParenthesesPreference.options.TryGetValue(value, out var preference);
+                    return new CodeStyleOption<ParenthesesPreference>(preference, notificationOpt);
                 }
             }
 

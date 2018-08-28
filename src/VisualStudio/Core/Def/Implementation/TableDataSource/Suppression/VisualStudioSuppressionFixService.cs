@@ -491,7 +491,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private static CodeFixProvider GetSuppressionFixer(IEnumerable<Diagnostic> diagnostics, string language, ICodeFixService codeFixService)
         {
             // Fetch the suppression fixer to apply the fix.
-            return codeFixService.GetSuppressionFixer(language, diagnostics.Select(d => d.Id));
+            return codeFixService.GetSuppressionOrConfigurationFixer(language, diagnostics.Select(d => d.Id));
         }
 
         private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)

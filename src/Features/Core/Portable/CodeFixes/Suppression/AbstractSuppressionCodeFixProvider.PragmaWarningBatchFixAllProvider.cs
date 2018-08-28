@@ -12,16 +12,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionOrConfigurationCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         /// <summary>
         /// Batch fixer for pragma suppress code action.
         /// </summary>
         internal sealed class PragmaWarningBatchFixAllProvider : BatchFixAllProvider
         {
-            private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
+            private readonly AbstractSuppressionOrConfigurationCodeFixProvider _suppressionFixProvider;
 
-            public PragmaWarningBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider)
+            public PragmaWarningBatchFixAllProvider(AbstractSuppressionOrConfigurationCodeFixProvider suppressionFixProvider)
             {
                 _suppressionFixProvider = suppressionFixProvider;
             }

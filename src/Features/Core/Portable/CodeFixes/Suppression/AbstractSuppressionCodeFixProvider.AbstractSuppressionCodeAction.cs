@@ -2,19 +2,19 @@
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal partial class AbstractSuppressionCodeFixProvider
+    internal partial class AbstractSuppressionOrConfigurationCodeFixProvider
     {
         internal abstract class AbstractSuppressionCodeAction : NestedSuppressionCodeAction
         {
-            private readonly AbstractSuppressionCodeFixProvider _fixer;
+            private readonly AbstractSuppressionOrConfigurationCodeFixProvider _fixer;
 
-            protected AbstractSuppressionCodeAction(AbstractSuppressionCodeFixProvider fixer, string title)
+            protected AbstractSuppressionCodeAction(AbstractSuppressionOrConfigurationCodeFixProvider fixer, string title)
                 : base(title)
             {
                 _fixer = fixer;
             }
 
-            protected AbstractSuppressionCodeFixProvider Fixer => _fixer;
+            protected AbstractSuppressionOrConfigurationCodeFixProvider Fixer => _fixer;
         }
     }
 }

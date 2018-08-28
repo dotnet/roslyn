@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         where TExpressionSyntax : SyntaxNode
         where TSimpleNameSyntax : TExpressionSyntax
     {
-        protected AbstractQualifyMemberAccessDiagnosticAnalyzer() 
+        protected AbstractQualifyMemberAccessDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddQualificationDiagnosticId,
                    new LocalizableResourceString(nameof(WorkspacesResources.Member_access_should_be_qualified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Add_this_or_Me_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
@@ -124,17 +126,15 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             var severity = optionValue.Notification.Severity;
             if (!shouldOptionBePresent || severity == ReportDiagnostic.Suppress)
             {
-                return;
-            }
-
-            if (!IsAlreadyQualifiedMemberAccess(simpleName))
-            {
-                context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor, 
-                    GetLocation(operation),
-                    severity,
-                    additionalLocations: null,
-                    properties: null));
+                if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
+                {
+                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                        Descriptor,
+                        GetLocation(operation),
+                        severity,
+                        additionalLocations: null,
+                        properties: null));
+                }
             }
         }
 

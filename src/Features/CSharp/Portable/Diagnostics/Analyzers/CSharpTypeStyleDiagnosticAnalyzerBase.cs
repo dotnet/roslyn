@@ -1,10 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
@@ -63,12 +68,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return;
             }
 
+            // TO-DO: Reduce degree of tight-coupling and hard-coded options
+            ImmutableDictionary<string, string> properties = null;
+            var preferences = typeStyle.GetTypeStylePreferences;
+            if (preferences == CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeForIntrinsicTypes)
+            {
+                properties = SetOptionNameAndValue(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, optionSet);
+            }
+            else if (preferences == CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeWhereApparent)
+            {
+                properties = SetOptionNameAndValue(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, optionSet);
+            }
+            else if (preferences == CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeWherePossible)
+            {
+                properties = SetOptionNameAndValue(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, optionSet);
+            }
+
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
             var descriptor = Descriptor;
-            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity));
+            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity, properties));
         }
 
-        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity) 
-            => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), severity, additionalLocations: null, properties: null);
+        private ImmutableDictionary<string, string> SetOptionNameAndValue(Option<CodeStyleOption<bool>> option, OptionSet optionSet)
+        {
+            var properties = ImmutableDictionary.CreateBuilder<string, string>();
+            var name = option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<bool>>>().FirstOrDefault();
+            if (name != null) {
+                properties[OptionName] = name.KeyName;
+                var optionCurrent = optionSet.GetOption(option);
+                properties[OptionCurrent] = optionCurrent.Value.ToString().ToLowerInvariant();
+            }
+            return properties.ToImmutable();
+        }
+
+        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity, ImmutableDictionary<string, string> properties)
+            => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), severity, additionalLocations: null, properties: properties);
     }
 }

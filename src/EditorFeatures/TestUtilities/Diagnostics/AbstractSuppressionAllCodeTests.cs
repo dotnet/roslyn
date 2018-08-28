@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         protected abstract TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions);
 
-        internal abstract Tuple<Analyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
+        internal abstract Tuple<Analyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
         protected Task TestPragmaAsync(string code, ParseOptions options, Func<string, bool> verifier)
         {
             var set = new HashSet<ValueTuple<SyntaxToken, SyntaxToken>>();
             return TestPragmaOrAttributeAsync(code, options, pragma: true, digInto: n => true, verifier: verifier, fixChecker: c =>
             {
-                var fix = (AbstractSuppressionCodeFixProvider.PragmaWarningCodeAction)c;
+                var fix = (AbstractSuppressionOrConfigurationCodeFixProvider.PragmaWarningCodeAction)c;
                 var tuple = ValueTuple.Create(fix.StartToken_TestOnly, fix.EndToken_TestOnly);
                 if (set.Contains(tuple))
                 {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var set = new HashSet<ISymbol>();
             return TestPragmaOrAttributeAsync(code, options, pragma: false, digInto: digInto, verifier: verifier, fixChecker: c =>
             {
-                var fix = (AbstractSuppressionCodeFixProvider.GlobalSuppressMessageCodeAction)c;
+                var fix = (AbstractSuppressionOrConfigurationCodeFixProvider.GlobalSuppressMessageCodeAction)c;
                 if (set.Contains(fix.TargetSymbol_TestOnly))
                 {
                     return true;
@@ -75,12 +75,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 foreach (var diagnostic in diagnostics)
                 {
-                    if (!fixer.CanBeSuppressedOrUnsuppressed(diagnostic))
+                    if (!fixer.CanBeConfigured(diagnostic))
                     {
                         continue;
                     }
 
-                    var fixes = fixer.GetSuppressionsAsync(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), CancellationToken.None).GetAwaiter().GetResult();
+                    var fixes = fixer.GetSuppressionsOrConfigurationsAsync(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), CancellationToken.None).GetAwaiter().GetResult();
                     if (fixes == null || fixes.Count() <= 0)
                     {
                         continue;
@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             if (pragma)
             {
-                return fixes.FirstOrDefault(f => f is AbstractSuppressionCodeFixProvider.PragmaWarningCodeAction);
+                return fixes.FirstOrDefault(f => f is AbstractSuppressionOrConfigurationCodeFixProvider.PragmaWarningCodeAction);
             }
 
-            return fixes.OfType<AbstractSuppressionCodeFixProvider.GlobalSuppressMessageCodeAction>().FirstOrDefault();
+            return fixes.OfType<AbstractSuppressionOrConfigurationCodeFixProvider.GlobalSuppressMessageCodeAction>().FirstOrDefault();
         }
 
         public bool Equals(Diagnostic x, Diagnostic y)

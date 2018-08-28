@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -82,10 +84,30 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                 }
                 else
                 {
+                    // TO-DO: Reduce degree of tight-coupling and hard-coded options
+                    var properties = ImmutableDictionary.CreateBuilder<string, string>();
+                    var name = _option.StorageLocations.OfType<EditorConfigStorageLocation<CodeStyleOption<string>>>().FirstOrDefault();
+                    if (name != null)
+                    {
+                        properties[OptionName] = name.KeyName;
+                        var cancellationToken = context.CancellationToken;
+                        var syntaxTree = context.Tree;
+                        var root = syntaxTree.GetRoot(cancellationToken);
+
+                        var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+                        var option = optionSet.GetOption(_option);
+                        properties[OptionCurrent] = option.Value.ToString().ToLowerInvariant();
+                    }
+
                     // If the Severity is not hidden, then just put the user visible portion on the
                     // first token.  That way we don't 
                     context.ReportDiagnostic(
-                        DiagnosticHelper.Create(Descriptor, modifiers.First().GetLocation(), severity, additionalLocations: null, properties: null));
+                        DiagnosticHelper.Create(
+                            Descriptor,
+                            modifiers.First().GetLocation(),
+                            severity,
+                            additionalLocations: null,
+                            properties: properties.ToImmutable()));
                 }
             }
         }
