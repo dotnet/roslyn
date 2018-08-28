@@ -1114,7 +1114,7 @@ BC42024: Unused local variable: 'x'.
         End Sub
 
         <WorkItem(685473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685473")>
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub Bug685473()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -3043,7 +3043,7 @@ AssemblyName
 </xml>)
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub Tags_Summary_Permission_See_SeeAlso_List_Para()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -4318,7 +4318,7 @@ AssemblyName
 withDiagnostics:=False)
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub BC42305WRN_XMLDocDuplicateXMLNode()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -4512,7 +4512,7 @@ AssemblyName
 </xml>, ensureEnglishUICulture:=True)
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub BC42305WRN_XMLDocDuplicateXMLNode_NoError()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
