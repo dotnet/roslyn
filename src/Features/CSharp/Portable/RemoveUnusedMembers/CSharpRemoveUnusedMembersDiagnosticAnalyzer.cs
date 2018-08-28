@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers
         {
         }
 
+        // For testing purposes only.
         internal CSharpRemoveUnusedMembersDiagnosticAnalyzer(bool forceEnableRules)
             : base(forceEnableRules)
         {

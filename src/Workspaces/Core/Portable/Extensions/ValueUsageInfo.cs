@@ -7,14 +7,51 @@ namespace Microsoft.CodeAnalysis
     [Flags]
     internal enum ValueUsageInfo
     {
+        /// <summary>
+        /// Represents default value indicating no usage.
+        /// </summary>
         None = 0x00000,
+
+        /// <summary>
+        /// Represents a value read.
+        /// For example, reading the value of a local/field/parameter.
+        /// </summary>
         Read = 0x00001,
+
+        /// <summary>
+        /// Represents a value write.
+        /// For example, assigning a value to a local/field/parameter.
+        /// </summary>
         Write = 0x00010,
+
+        /// <summary>
+        /// Represents a readable reference being taken to the value.
+        /// For example, passing an argument to an "in" or "ref readonly" parameter.
+        /// </summary>
         ReadableRef = 0x00100,
+
+        /// <summary>
+        /// Represents a readable reference being taken to the value.
+        /// For example, passing an argument to an "out" parameter.
+        /// </summary>
         WritableRef = 0x01000,
+
+        /// <summary>
+        /// Represents a symbol reference that neither reads nor writes the underlying value.
+        /// For example, 'nameof(x)' does not read or write the underlying value stored in 'x'.
+        /// </summary>
         NonReadWriteRef = 0x10000,
 
+        /// <summary>
+        /// Represents a value read and/or write.
+        /// For example, an increment or compound assignment operation.
+        /// </summary>
         ReadWrite = Read | Write,
+
+        /// <summary>
+        /// Represents a value read or write.
+        /// For example, passing an argument to a "ref" parameter.
+        /// </summary>
         ReadableWritableRef = ReadableRef | WritableRef
     }
 

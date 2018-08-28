@@ -14,7 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
             MyBase.New(forceEnableRules:=False)
         End Sub
 
-        Public Sub New(forceEnableRules As Boolean)
+        ' For testing purposes only.
+        Friend Sub New(forceEnableRules As Boolean)
             MyBase.New(forceEnableRules)
         End Sub
     End Class

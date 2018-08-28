@@ -23,8 +23,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId);
 
-        // Adjust declarators to remove based on whether or not all variable declarators within a field declaration should be removed.
-        protected abstract void AdjustDeclarators(HashSet<TFieldDeclarationSyntax> fieldDeclarators, HashSet<SyntaxNode> declarators);
+        /// <summary>
+        /// This method adjusts the <paramref name="declarators"/> to remove based on whether or not all variable declarators
+        /// within a field declaration should be removed,
+        /// i.e. if all the fields declared within a field declaration are unused,
+        /// we can remove the entire field declaration instead of individual variable declarators.
+        /// </summary>
+        protected abstract void AdjustAndAddAppropriateDeclaratorsToRemove(HashSet<TFieldDeclarationSyntax> fieldDeclarators, HashSet<SyntaxNode> declarators);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -42,19 +47,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         {
             var declarators = new HashSet<SyntaxNode>();
             var fieldDeclarators = new HashSet<TFieldDeclarationSyntax>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
 
             // Compute declarators to remove, and also track common field declarators.
             foreach (var diagnostic in diagnostics)
-            {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
+            {   
                 // Get symbol to be removed.
                 var diagnosticNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 var symbol = semanticModel.GetDeclaredSymbol(diagnosticNode, cancellationToken);
                 Debug.Assert(symbol != null);
 
                 // Get symbol declarations to be removed.
-                var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
                 foreach (var declReference in declarationService.GetDeclarations(symbol))
                 {
                     var node = await declReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             // we can remove the entire field declaration instead of individual variable declarators.
             if (fieldDeclarators.Count > 0)
             {
-                AdjustDeclarators(fieldDeclarators, declarators);
+                AdjustAndAddAppropriateDeclaratorsToRemove(fieldDeclarators, declarators);
             }
 
             // Remove all the symbol declarator nodes.
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         /// the removes the <paramref name="childDeclarators"/> from <paramref name="declarators"/>, and
         /// adds the <paramref name="parentDeclaration"/> to the <paramref name="declarators"/>.
         /// </summary>
-        protected void AdjustChildDeclarators(SyntaxNode parentDeclaration, IEnumerable<SyntaxNode> childDeclarators, HashSet<SyntaxNode> declarators)
+        protected void AdjustAndAddAppropriateDeclaratorsToRemove(SyntaxNode parentDeclaration, IEnumerable<SyntaxNode> childDeclarators, HashSet<SyntaxNode> declarators)
         {
             if(declarators.Contains(parentDeclaration))
             {

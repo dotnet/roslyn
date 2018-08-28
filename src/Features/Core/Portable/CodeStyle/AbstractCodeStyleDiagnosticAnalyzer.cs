@@ -70,10 +70,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             => CreateUnnecessaryDescriptor(DescriptorId);
 
         protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
-            => CreateUnnecessaryDescriptor(descriptorId, _localizableTitle, _localizableMessageFormat, _configurable);
+            => CreateUnnecessaryDescriptor(descriptorId, _localizableTitle, _localizableMessageFormat, _configurable, enabledByDefault: true);
 
         protected static DiagnosticDescriptor CreateUnnecessaryDescriptor(
-            string id, LocalizableString title, LocalizableString messageFormat, bool configurable, bool enabledByDefault = true)
+            string id, LocalizableString title, LocalizableString messageFormat, bool configurable, bool enabledByDefault)
             => CreateDescriptor(id, title, messageFormat, configurable, enabledByDefault, DiagnosticCustomTags.Unnecessary);
 
         protected DiagnosticDescriptor CreateDescriptor(params string[] customTags)
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected DiagnosticDescriptor CreateDescriptorWithId(
             string id, LocalizableString title, LocalizableString messageFormat,
             params string[] customTags)
-            => CreateDescriptor(id, title, messageFormat, _configurable, customTags: customTags);
+            => CreateDescriptor(id, title, messageFormat, _configurable, customTags: customTags, enabledByDefault: true);
 
         protected static DiagnosticDescriptor CreateDescriptor(
             string id, LocalizableString title, LocalizableString messageFormat,
-            bool configurable, bool enabledByDefault = true, params string[] customTags)
+            bool configurable, bool enabledByDefault, params string[] customTags)
         {
             if (!configurable)
             {

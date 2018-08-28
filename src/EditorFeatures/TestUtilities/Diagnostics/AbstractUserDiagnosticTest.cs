@@ -41,7 +41,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                var diagnostics = (await GetDiagnosticsAsync(workspace, parameters).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
+                var diagnostics = await GetDiagnosticsAsync(workspace, parameters).ConfigureAwait(false);
+
+                // Special case for single diagnostic reported with annotated span.
+                if (expected.Length == 1)
+                {
+                    var hostDocumentsWithAnnotations = workspace.Documents.Where(d => d.SelectedSpans.Any());
+                    if (hostDocumentsWithAnnotations.Count() == 1)
+                    {
+                        var expectedSpan = hostDocumentsWithAnnotations.Single().SelectedSpans.Single();
+
+                        Assert.Equal(1, diagnostics.Count());
+                        var diagnostic = diagnostics.Single();
+
+                        var actualSpan = diagnostic.Location.SourceSpan;
+                        Assert.Equal(expectedSpan, actualSpan);
+
+                        Assert.Equal(expected[0].Code, diagnostic.Id);
+                        return;
+                    }
+                }
+
                 DiagnosticExtensions.Verify(diagnostics, expected);
             }
         }

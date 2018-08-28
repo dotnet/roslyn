@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
             await TestMissingInRegularAndScriptAsync(
 $@"class MyClass
 {{
-    {accessibility} int[| _goo |];
+    {accessibility} int [|_goo|];
 }}");
         }
 
@@ -58,7 +58,7 @@ $@"class MyClass
             await TestMissingInRegularAndScriptAsync(
 $@"class MyClass
 {{
-    {accessibility} int[| P |] {{ get; }}
+    {accessibility} int [|P|] {{ get; }}
 }}");
         }
 
@@ -194,6 +194,18 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task EntryPointMethodNotFlagged_04()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class MyClass
+{
+    private static Task [|Main|]() => return Task.CompletedTask;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_ReadOnly()
         {
             await TestInRegularAndScriptAsync(
@@ -294,6 +306,54 @@ class MyClass
 }",
 @"class MyClass
 {
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodIsUnused_Extern()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Runtime.InteropServices;
+
+class C
+{
+    [DllImport(""Assembly.dll"")]
+    private static extern void [|M|]();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodIsUnused_Abstract()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    private abstract void [|M|]();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodIsUnused_InterfaceMethod()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"interface I
+{
+    void [|M|]();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodIsUnused_ExplicitInterfaceImplementation()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"interface I
+{
+    void M();
+}
+
+class C : I
+{
+    void I.[|M|]() { }
 }");
         }
 
@@ -592,7 +652,7 @@ class MyClass
     private int [|_goo|];
     private string _goo2 = nameof(_goo);
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -607,7 +667,7 @@ class C
 {
     private static int [|_goo|];
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(7, 24));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -622,7 +682,7 @@ class C
     /// </summary>
     private static int [|_goo|];
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(7, 24));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -639,7 +699,7 @@ class C
 
     private static int [|_goo|];
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(9, 24));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -654,7 +714,7 @@ class C
         _goo = 0;
     }
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -669,7 +729,7 @@ class C
         P = 0;
     }
 }",
-    expected: Diagnostic("IDE0052", "P").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -684,7 +744,7 @@ class C
         this[x] = y;
     }
 }",
-    expected: Diagnostic("IDE0052", "this").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -711,7 +771,7 @@ class C
     private int [|_goo|] = M();
     public static int M() => 0;
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -727,7 +787,7 @@ class C
         (_goo, x) = (0, 0);
     }
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -740,7 +800,7 @@ class MyClass
     private int [|_goo|];
     public MyClass M() => new MyClass() { _goo = 0 };
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(4, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -756,7 +816,7 @@ class MyClass
         set { _goo = value; }
     }
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -850,7 +910,7 @@ class MyClass
     private int [|_goo|];
     public void M1() => ++_goo;
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -862,7 +922,7 @@ class MyClass
     private int [|_goo|];
     public void M1() { ++_goo; }
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -885,7 +945,7 @@ class MyClass
     private int [|P|] { get; set; }
     public void M1() { ++P; }
 }",
-    expected: Diagnostic("IDE0052", "P").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -908,7 +968,7 @@ class MyClass
     private int [|this|][int x] { get { return 0; } set { } }
     public void M1(int x) => ++this[x];
 }",
-    expected: Diagnostic("IDE0052", "this").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -942,7 +1002,7 @@ class MyClass
     private int [|_goo|];
     public void M1(int x) => _goo += x;
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -954,7 +1014,7 @@ class MyClass
     private int [|_goo|];
     public void M1(int x) { _goo += x; }
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -977,7 +1037,7 @@ class MyClass
     private int [|P|] { get; set; }
     public void M1(int x) { P += x; }
 }",
-    expected: Diagnostic("IDE0052", "P").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1000,7 +1060,7 @@ class MyClass
     private int [|this|][int x] { get { return 0; } set { } }
     public void M1(int x, int y) => this[x] += y;
 }",
-    expected: Diagnostic("IDE0052", "this").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1012,7 +1072,7 @@ class MyClass
     private int [|_goo|];
     public void M1(int x) => (_goo) = x;
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1025,7 +1085,7 @@ class MyClass
     public static implicit operator int(MyClass c) => 0;
     public void M1(MyClass c) => _goo = c;
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1074,7 +1134,7 @@ class MyClass
     public int M1() => M2(out _goo);
     public int M2(out int i) { i = 0; return i; }
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1313,7 +1373,7 @@ partial class MyClass
         </Document>
     </Project>
 </Workspace>",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1336,7 +1396,7 @@ partial class MyClass
     private int [|_goo|];
     public void M() { (_goo) = 1; }
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1348,7 +1408,7 @@ partial class MyClass
     private int [|_goo|];
     public int M() => (_goo) = 1;
 }",
-    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+    expected: Diagnostic("IDE0052"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]

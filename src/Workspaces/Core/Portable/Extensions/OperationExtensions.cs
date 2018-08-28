@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis
                where void Foo(in T v)
             | Foo(out x.Prop) |      |       |             |     ✔️      |                 |
             | Foo(ref x.Prop) |      |       |     ✔️      |     ✔️      |                 |
-            | nameof(x)       |      |       |             |             |       ✔        | ️
-            | sizeof(x)       |      |       |             |             |       ✔        | ️
-            | typeof(x)       |      |       |             |             |       ✔        | ️
+            | nameof(x)       |      |       |             |             |       ✔️        | ️
+            | sizeof(x)       |      |       |             |             |       ✔️        | ️
+            | typeof(x)       |      |       |             |             |       ✔️        | ️
 
             */
 

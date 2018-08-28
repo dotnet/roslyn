@@ -453,7 +453,7 @@ End Class")
     Private [|_goo|] As Integer
     Private _goo2 As String = NameOf(_goo)
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -466,7 +466,7 @@ End Class", parameters:=Nothing,
 Class C
     Private Shared [|_goo|] As Integer
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "_goo").WithLocation(6, 20))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -479,7 +479,7 @@ Class C
     ''' </summary>
     Private Shared [|_goo|] As Integer
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "_goo").WithLocation(6, 20))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -495,7 +495,7 @@ Class C
 
     Private Shared [|_goo|] As Integer
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "_goo").WithLocation(9, 20))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -507,7 +507,7 @@ End Class", parameters:=Nothing,
         _goo = 0
     End Sub
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -519,7 +519,7 @@ End Class", parameters:=Nothing,
         P = 0
     End Sub
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "P").WithLocation(2, 22))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -537,7 +537,7 @@ End Class", parameters:=Nothing,
         P(x) = 0
     End Sub
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "P").WithLocation(2, 22))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -559,7 +559,7 @@ Class C
         E = Nothing
     End Sub
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "E").WithLocation(4, 26))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -571,7 +571,7 @@ End Class", parameters:=Nothing,
         Return 0
     End Function
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -580,7 +580,7 @@ End Class", parameters:=Nothing,
 "Class C
     Private [|_goo|] = 0 ' Implicit conversion to Object type in the initializer, hence it is a non constant initializer.
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -592,7 +592,7 @@ End Class", parameters:=Nothing,
         Dim x = New C() With { ._goo = 0 }
     End Sub
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -609,7 +609,7 @@ End Class", parameters:=Nothing,
         End Set
     End Property
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -664,7 +664,7 @@ End Class")
         _goo += 1
     End Sub
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "_goo").WithLocation(2, 9))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -676,7 +676,7 @@ End Class", parameters:=Nothing,
         P += 1
     End Sub
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "P").WithLocation(2, 31))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -695,7 +695,7 @@ End Class", parameters:=Nothing,
         P(x) += 1
     End Sub
 End Class", parameters:=Nothing,
-    Diagnostic("IDE0052", "P").WithLocation(2, 22))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -954,7 +954,7 @@ End Class
         </Document>
     </Project>
 </Workspace>", parameters:=Nothing,
-    Diagnostic("IDE0052", "_goo").WithLocation(3, 13))
+    Diagnostic("IDE0052"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>

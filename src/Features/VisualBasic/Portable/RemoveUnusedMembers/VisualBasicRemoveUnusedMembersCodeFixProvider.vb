@@ -10,16 +10,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
     Friend Class VisualBasicRemoveUnusedMembersCodeFixProvider
         Inherits AbstractRemoveUnusedMembersCodeFixProvider(Of FieldDeclarationSyntax)
 
-        Protected Overrides Sub AdjustDeclarators(fieldDeclarators As HashSet(Of FieldDeclarationSyntax), declarators As HashSet(Of SyntaxNode))
+        ''' <summary>
+        ''' This method adjusts the <paramref name="declarators"/> to remove based on whether or not all variable declarators
+        ''' within a field declaration should be removed,
+        ''' i.e. if all the fields declared within a field declaration are unused,
+        ''' we can remove the entire field declaration instead of individual variable declarators.
+        ''' </summary>
+        Protected Overrides Sub AdjustAndAddAppropriateDeclaratorsToRemove(fieldDeclarators As HashSet(Of FieldDeclarationSyntax), declarators As HashSet(Of SyntaxNode))
             For Each variableDeclarator In fieldDeclarators.SelectMany(Function(f) f.Declarators)
-                AdjustChildDeclarators(
+                AdjustAndAddAppropriateDeclaratorsToRemove(
                     parentDeclaration:=variableDeclarator,
                     childDeclarators:=variableDeclarator.Names,
                     declarators:=declarators)
             Next
 
             For Each fieldDeclarator In fieldDeclarators
-                AdjustChildDeclarators(
+                AdjustAndAddAppropriateDeclaratorsToRemove(
                     parentDeclaration:=fieldDeclarator,
                     childDeclarators:=fieldDeclarator.Declarators,
                     declarators:=declarators)
