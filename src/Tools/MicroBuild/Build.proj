@@ -21,7 +21,7 @@
 
     <ItemGroup>
       <_PublishProps Include="Configuration=$(Configuration)"/>
-      <_PublishProps Include="CIBuild=true"/>
+      <_PublishProps Include="ContinuousIntegrationBuild=true"/>
       <_PublishProps Include="AzureFeedUrl=$(PB_PublishBlobFeedUrl)" Condition="'$(PB_PublishType)' == 'blob'" />
       <_PublishProps Include="AzureAccountKey=$(PB_PublishBlobFeedKey)" Condition="'$(PB_PublishType)' == 'blob'" />
     </ItemGroup>
