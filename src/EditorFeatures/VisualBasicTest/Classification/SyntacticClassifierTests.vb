@@ -3568,9 +3568,9 @@ End Module"
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBug927678() As Task
             Dim code =
-"'This is not usually a
-'collapsible comment block
-x = 2"
+            "'This is not usually a " & vbCrLf &
+            "'collapsible comment block" & vbCrLf &
+            "x = 2"
 
             Await TestInMethodAsync(code,
                          Comment("'This is not usually a "),
