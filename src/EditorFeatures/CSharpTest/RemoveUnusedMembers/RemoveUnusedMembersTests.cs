@@ -703,6 +703,18 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsOnlyInitialized_NonConstant()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|_goo|] = M();
+    public static int M() => 0;
+}",
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsOnlyWritten_Deconstruction()
         {
             await TestDiagnosticsAsync(
@@ -1322,7 +1334,19 @@ partial class MyClass
 @"class MyClass
 {
     private int [|_goo|];
-    public int M() { (_goo) = 1; }
+    public void M() { (_goo) = 1; }
+}",
+    expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task FieldIsWritten_InParens_02()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    public int M() => (_goo) = 1;
 }",
     expected: Diagnostic("IDE0052", "_goo").WithLocation(3, 17));
         }

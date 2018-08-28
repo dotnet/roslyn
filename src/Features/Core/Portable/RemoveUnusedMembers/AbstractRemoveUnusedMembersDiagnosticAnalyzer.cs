@@ -66,8 +66,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // We register following actions in the compilation:
                 // 1. A symbol action for member symbols to ensure the member's unused state is initialized to true for every private member symbol.
                 // 2. Operation actions for member references and invocations to detect member usages, i.e. read or read reference taken.
-                // 3. Operation action for invalid operations to bail out on erroneous code.
-                // 4. A symbol start/end action for named types to report diagnostics for candidate members that have no usage in executable code.
+                // 3. Operation action for field initializers to detect non-constant initialization.
+                // 4. Operation action for invalid operations to bail out on erroneous code.
+                // 5. A symbol start/end action for named types to report diagnostics for candidate members that have no usage in executable code.
                 //
                 // Note that we need to register separately for OperationKind.Invocation due to https://github.com/dotnet/roslyn/issues/26206
 
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     var hasInvalidOperation = false;
                     symbolStartContext.RegisterOperationAction(compilationAnalyzer.AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
+                    symbolStartContext.RegisterOperationAction(compilationAnalyzer.AnalyzeFieldInitializer, OperationKind.FieldInitializer);
                     symbolStartContext.RegisterOperationAction(compilationAnalyzer.AnalyzeInvocationOperation, OperationKind.Invocation);
                     symbolStartContext.RegisterOperationAction(_ => hasInvalidOperation = true, OperationKind.Invalid);
                     symbolStartContext.RegisterSymbolEndAction(symbolEndContext => compilationAnalyzer.OnSymbolEnd(symbolEndContext, hasInvalidOperation));
@@ -118,6 +120,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         {
                             _symbolValueUsageStateMap.Add(symbolContext.Symbol, ValueUsageInfo.None);
                         }
+                    }
+                }
+            }
+
+            public void AnalyzeFieldInitializer(OperationAnalysisContext operationContext)
+            {
+                var initializer = (IFieldInitializerOperation)operationContext.Operation;
+                if (!initializer.Value.ConstantValue.HasValue)
+                {
+                    foreach (var field in initializer.InitializedFields)
+                    {
+                        OnSymbolUsage(field, ValueUsageInfo.Write);
                     }
                 }
             }

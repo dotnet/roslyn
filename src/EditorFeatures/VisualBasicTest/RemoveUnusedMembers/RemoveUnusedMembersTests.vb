@@ -563,6 +563,27 @@ End Class", parameters:=Nothing,
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function FieldIsOnlyInitialized_NonConstant() As Task
+            Await TestDiagnosticsAsync(
+"Class C
+    Private [|_goo|] As Integer = M()
+    Public Shared Function M() As Integer
+        Return 0
+    End Function
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function FieldIsOnlyInitialized_NonConstant_02() As Task
+            Await TestDiagnosticsAsync(
+"Class C
+    Private [|_goo|] = 0 ' Implicit conversion to Object type in the initializer, hence it is a non constant initializer.
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052", "_goo").WithLocation(2, 13))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsOnlyWritten_ObjectInitializer() As Task
             Await TestDiagnosticsAsync(
 "Class C
@@ -779,7 +800,7 @@ End Class")
         Public Async Function MultipleFields_AllUnused_02() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private _goo, _goo2 As Integer, [|_goo3|] = """", _goo4 As String
+    Private _goo, _goo2 As Integer, [|_goo3|] As Integer = 0, _goo4 As String
 End Class",
 "Class C
     Private _goo, _goo2 As Integer, _goo4 As String
@@ -790,13 +811,13 @@ End Class")
         Public Async Function MultipleFields_SomeUnused() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private [|_goo|] = 0, _goo2 = 0
+    Private [|_goo|] As Integer = 0, _goo2 As Integer = 0
     Public Function M() As Integer
         Return _goo2
     End Function
 End Class",
 "Class C
-    Private _goo2 = 0
+    Private _goo2 As Integer = 0
     Public Function M() As Integer
         Return _goo2
     End Function
@@ -1056,24 +1077,22 @@ End Class")
         Public Async Function FixAllFields_Document() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Private {|FixAllInDocument:_goo|}, _goo2 As Integer, _goo3 = """", _goo4, _goo5 As Char
-    Private _goo6, _goo7 As Integer, _goo8 = 0
-    Private _goo9, _goo10 As New String("""")
-    Private _goo11, _goo12 As New String("""")
-    Private _goo13 = 0
+    Private {|FixAllInDocument:_goo|}, _goo2 As Integer, _goo3 As Integer = 0, _goo4, _goo5 As Char
+    Private _goo6, _goo7 As Integer, _goo8 As Integer = 0
+    Private _goo9, _goo10 As New String("""") ' Non constant intializer
+    Private _goo11 = 0  ' Implicit conversion to Object type in the initializer, hence it is a non constant initializer.
 
     Public Sub M()
         Dim x = _goo4
-        Dim y = _goo11
     End Sub
 End Class",
 "Class C
     Private _goo4 As Char
-    Private _goo11 As New String("""")
+    Private _goo9, _goo10 As New String("""") ' Non constant intializer
+    Private _goo11 = 0  ' Implicit conversion to Object type in the initializer, hence it is a non constant initializer.
 
     Public Sub M()
         Dim x = _goo4
-        Dim y = _goo11
     End Sub
 End Class")
         End Function
