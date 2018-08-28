@@ -3448,6 +3448,68 @@ class C
                 Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int M()", FeaturesResources.method));
         }
 
+        [Fact]
+        public void Method_ImplementingInterface_Add()
+        {
+            var src1 = @"
+using System;
+
+public interface ISample
+{
+    string Get();
+}
+
+public interface IConflict
+{
+    string Get();
+}
+
+public class BaseClass : ISample
+{
+    public virtual string Get() => string.Empty;
+}
+
+public class SubClass : BaseClass, IConflict
+{
+    public override string Get() => string.Empty;
+}
+";
+            var src2 = @"
+using System;
+
+public interface ISample
+{
+    string Get();
+}
+
+public interface IConflict
+{
+    string Get();
+}
+
+public class BaseClass : ISample
+{
+    public virtual string Get() => string.Empty;
+}
+
+public class SubClass : BaseClass, IConflict
+{
+    public override string Get() => string.Empty;
+
+    string IConflict.Get() => String.Empty;
+}
+";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [string IConflict.Get() => String.Empty;]@325",
+                "Insert [()]@345");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.MethodWithExplicitInterfaceSpecifierAdd, "string IConflict.Get()", FeaturesResources.method));
+        }
+
         #endregion
 
         #region Operators
