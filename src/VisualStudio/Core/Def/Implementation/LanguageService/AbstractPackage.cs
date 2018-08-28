@@ -29,32 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
         {
+            await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            if (KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
-            {
-                // if we are already in the right UI context, load it right away
-                await LoadComponentsInUIContextAsync(cancellationToken);
-            }
-            else
-            {
-                // load them when it is a right context.
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged += OnSolutionExistsAndFullyLoadedContextAsync;
-            }
-        }
-
-        private async void OnSolutionExistsAndFullyLoadedContextAsync(object sender, UIContextChangedEventArgs e)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
-
-            if (e.Activated)
-            {
-                // unsubscribe from it
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged -= OnSolutionExistsAndFullyLoadedContextAsync;
-
-                // load components
-                await LoadComponentsInUIContextAsync(CancellationToken.None);
-            }
+            await LoadComponentsInUIContextAsync(cancellationToken);
         }
 
         protected abstract Task LoadComponentsInUIContextAsync(CancellationToken cancellationToken);
