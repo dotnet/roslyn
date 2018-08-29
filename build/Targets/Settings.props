@@ -22,11 +22,6 @@
   <Import Project="Tools.props" />
 
   <PropertyGroup>
-    <JenkinsBuild>false</JenkinsBuild>
-    <JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</JenkinsBuild>
-    <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
-    <ContinuousIntegrationBuild Condition="'$(OfficialBuild)' == 'true' or '$(JenkinsBuild)' == 'true'">true</ContinuousIntegrationBuild>
-
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>

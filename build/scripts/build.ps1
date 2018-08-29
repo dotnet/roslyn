@@ -164,7 +164,11 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     }
 
     if ($official) {
-        $args += " /p:OfficialBuild=true"
+        $args += " /p:OfficialBuildId=" + $env:BUILD_BUILDNUMBER
+    }
+
+    if ($cibuild) {
+        $args += " /p:ContinuousIntegrationBuild=true"
     }
 
     if ($bootstrapDir -ne "") {
@@ -317,14 +321,6 @@ function Build-InsertionItems() {
         if (-not $official) {
             $extraArgs = " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
         }
-
-        $insertionDir = Join-Path $configDir "DevDivInsertionFiles"
-        $vsToolsDir = Join-Path $insertionDir "VS.Tools.Roslyn"
-
-        $packageOutDir = Join-Path $configDir "DevDivPackages\Roslyn"
-        Create-Directory $packageOutDir
-
-        Copy-Item (Join-Path $configDir "NuGet\NonShipping\VS.*.nupkg") -Destination $packageOutDir
 
         Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" -buildArgs $extraArgs
