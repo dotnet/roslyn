@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             var cancellationToken = context.CancellationToken;
             var options = context.Options;
 
-            var option = optionSet.GetOption(JsonOptions.ReportInvalidJsonPatterns, syntaxTree.Options.Language);
+            var option = optionSet.GetOption(JsonFeatureOptions.ReportInvalidJsonPatterns, syntaxTree.Options.Language);
             if (!option)
             {
                 return;

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
 
         Private Function OptionOn() As IDictionary(Of OptionKey, Object)
             Dim values = New Dictionary(Of OptionKey, Object)
-            values.Add(New OptionKey(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic), True)
+            values.Add(New OptionKey(RegexFeatureOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic), True)
             Return values
         End Function
 

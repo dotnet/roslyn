@@ -30,17 +30,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         private readonly INamedTypeSymbol _regexType;
         private readonly HashSet<string> _methodNamesOfInterest;
 
-        private static readonly Dictionary<string, RegexOptions> s_nameToOption =
-            typeof(RegexOptions).GetTypeInfo().DeclaredFields
-                .Where(f => f.FieldType == typeof(RegexOptions))
-                .ToDictionary(f => f.Name, f => (RegexOptions)f.GetValue(null), StringComparer.OrdinalIgnoreCase);
-
-        private static LanguageCommentDetector<RegexOptions> s_commentDetector =
-            new LanguageCommentDetector<RegexOptions>(
-                new[] { "regex", "regexp" },
-                s_nameToOption.Keys.ToArray(),
-                v => s_nameToOption.TryGetValue(v, out var options) ? (true, options) : default,
-                (o1, o2) => o1 | o2);
+        // We support both: lang=regex and lang=regexp
+        private static LanguageCommentDetector<RegexOptions> s_languageCommentDetector =
+            new LanguageCommentDetector<RegexOptions>("regex", "regexp");
 
         public RegexPatternDetector(
             SemanticModel semanticModel,
@@ -140,12 +132,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 // Note: ToString on SyntaxTrivia is non-allocating.  It will just return the
                 // underlying text that the trivia is already pointing to.
                 var text = trivia.ToString();
-                var (matched, matchOptions) = s_commentDetector.TryMatch(text);
-                if (matched)
-                {
-                    options = matchOptions;
-                    return true;
-                }
+                return s_languageCommentDetector.TryMatch(text, out options);
             }
 
             options = default;
@@ -357,8 +344,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
         internal static class TestAccessor
         {
-            public static (bool success, RegexOptions options) TryMatch(string text)
-                => s_commentDetector.TryMatch(text);
+            public static bool TryMatch(string text, out RegexOptions options)
+                => s_languageCommentDetector.TryMatch(text, out options);
         }
     }
 }

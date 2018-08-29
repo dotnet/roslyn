@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             Workspace workspace, SyntaxToken token, SemanticModel semanticModel, 
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (!workspace.Options.GetOption(RegularExpressionsOptions.ColorizeRegexPatterns, semanticModel.Language))
+            if (!workspace.Options.GetOption(RegexFeatureOptions.ColorizeRegexPatterns, semanticModel.Language))
             {
                 return;
             }

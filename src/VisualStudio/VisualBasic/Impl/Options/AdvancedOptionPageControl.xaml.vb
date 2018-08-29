@@ -3,8 +3,8 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.Json
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Fading
 Imports Microsoft.CodeAnalysis.ImplementType
@@ -61,14 +61,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic)
 
-            BindToOption(Colorize_regular_expressions, RegularExpressionsOptions.ColorizeRegexPatterns, LanguageNames.VisualBasic)
-            BindToOption(Report_invalid_regular_expressions, RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic)
-            BindToOption(Highlight_related_regular_expression_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.VisualBasic)
+            BindToOption(Colorize_regular_expressions, RegexFeatureOptions.ColorizeRegexPatterns, LanguageNames.VisualBasic)
+            BindToOption(Report_invalid_regular_expressions, RegexFeatureOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic)
+            BindToOption(Highlight_related_regular_expression_components_under_cursor, RegexFeatureOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.VisualBasic)
 
-            BindToOption(Detect_and_offer_editor_features_for_likely_JSON_strings, JsonOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, LanguageNames.VisualBasic)
-            BindToOption(Colorize_JSON_strings, JsonOptions.ColorizeJsonPatterns, LanguageNames.VisualBasic)
-            BindToOption(Report_invalid_JSON_strings, JsonOptions.ReportInvalidJsonPatterns, LanguageNames.VisualBasic)
-            BindToOption(Highlight_related_JSON_components_under_cursor, JsonOptions.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.VisualBasic)
+            BindToOption(Detect_and_offer_editor_features_for_likely_JSON_strings, JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, LanguageNames.VisualBasic)
+            BindToOption(Colorize_JSON_strings, JsonFeatureOptions.ColorizeJsonPatterns, LanguageNames.VisualBasic)
+            BindToOption(Report_invalid_JSON_strings, JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.VisualBasic)
+            BindToOption(Highlight_related_JSON_components_under_cursor, JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.VisualBasic)
         End Sub
     End Class
 End Namespace

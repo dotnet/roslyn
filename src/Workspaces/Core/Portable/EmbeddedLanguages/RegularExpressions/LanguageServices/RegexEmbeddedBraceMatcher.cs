@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             Document document, int position, CancellationToken cancellationToken)
         {
             var option = document.Project.Solution.Workspace.Options.GetOption(
-                RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
+                RegexFeatureOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
             if (!option)
             {
                 return null;

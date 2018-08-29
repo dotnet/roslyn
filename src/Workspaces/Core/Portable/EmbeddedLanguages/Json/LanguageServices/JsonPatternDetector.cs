@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,9 +41,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         /// 
         /// All matching is case insensitive, with spaces allowed between the punctuation.
         /// </summary>
-        private static readonly Regex s_languageCommentDetector =
-            new Regex(@"lang(uage)?\s*=\s*json((\s*,\s*)(?<option>[a-zA-Z]+))*",
-                RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly LanguageCommentDetector<JsonOptions> s_languageCommentDetector =
+            new LanguageCommentDetector<JsonOptions>("json");
 
         public JsonPatternDetector(
             SemanticModel semanticModel,
@@ -91,67 +91,50 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         }
 
         private static bool HasJsonLanguageComment(
-            SyntaxToken token, ISyntaxFactsService syntaxFacts, out bool strict)
+            SyntaxToken token, ISyntaxFactsService syntaxFacts, out JsonOptions options)
         {
-            if (HasJsonLanguageComment(token.GetPreviousToken().TrailingTrivia, syntaxFacts, out strict))
+            if (HasJsonLanguageComment(token.GetPreviousToken().TrailingTrivia, syntaxFacts, out options))
             {
                 return true;
             }
 
             for (var node = token.Parent; node != null; node = node.Parent)
             {
-                if (HasJsonLanguageComment(node.GetLeadingTrivia(), syntaxFacts, out strict))
+                if (HasJsonLanguageComment(node.GetLeadingTrivia(), syntaxFacts, out options))
                 {
                     return true;
                 }
             }
 
-            strict = false;
+            options = default;
             return false;
         }
 
         private static bool HasJsonLanguageComment(
-            SyntaxTriviaList list, ISyntaxFactsService syntaxFacts, out bool strict)
+            SyntaxTriviaList list, ISyntaxFactsService syntaxFacts, out JsonOptions options)
         {
             foreach (var trivia in list)
             {
-                if (HasJsonLanguageComment(trivia, syntaxFacts, out strict))
+                if (HasJsonLanguageComment(trivia, syntaxFacts, out options))
                 {
                     return true;
                 }
             }
 
-            strict = false;
+            options = default;
             return false;
         }
 
         private static bool HasJsonLanguageComment(
-            SyntaxTrivia trivia, ISyntaxFactsService syntaxFacts, out bool strict)
+            SyntaxTrivia trivia, ISyntaxFactsService syntaxFacts, out JsonOptions options)
         {
-            strict = false;
             if (syntaxFacts.IsRegularComment(trivia))
             {
                 var text = trivia.ToString();
-                var match = s_languageCommentDetector.Match(text);
-                if (match.Success)
-                {
-                    var optionGroup = match.Groups["option"];
-                    foreach (Capture capture in optionGroup.Captures)
-                    {
-                        if (StringComparer.OrdinalIgnoreCase.Equals("strict", capture.Value))
-                        {
-                            strict = true;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    return true;
-                }
+                return s_languageCommentDetector.TryMatch(text, out options);
             }
 
+            options = default;
             return false;
         }
 
@@ -216,7 +199,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
                 return null;
             }
 
-            HasJsonLanguageComment(token, syntaxFacts, out var strict);
+            HasJsonLanguageComment(token, syntaxFacts, out var options);
 
             var chars = _language.VirtualCharService.TryConvertToVirtualChars(token);
             if (chars.IsDefaultOrEmpty)
@@ -224,7 +207,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
                 return null;
             }
 
-            return JsonParser.TryParse(chars, strict);
+            return JsonParser.TryParse(chars, options);
         }
 
         private bool IsArgumentToParameterWithName(

@@ -96,11 +96,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         /// diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
-        public static JsonTree TryParse(ImmutableArray<VirtualChar> text, bool strict)
+        public static JsonTree TryParse(ImmutableArray<VirtualChar> text, JsonOptions options)
         {
             try
             {
-                return new JsonParser(text).ParseTree(strict);
+                return new JsonParser(text).ParseTree(options);
             }
             catch (Exception e) when (StackGuard.IsInsufficientExecutionStackException(e))
             {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
         }
 
-        private JsonTree ParseTree(bool strict)
+        private JsonTree ParseTree(JsonOptions options)
         {
             var arraySequence = this.ParseSequence();
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 // We didn't have any diagnostics in the tree so far.  Do the json.net/strict checks
                 // depending on how we were invoked.
-                diagnostic = strict
+                diagnostic = options == JsonOptions.Strict
                     ? StrictSyntaxChecker.CheckSyntax(root)
                     : JsonNetSyntaxChecker.CheckSyntax(root);
             }

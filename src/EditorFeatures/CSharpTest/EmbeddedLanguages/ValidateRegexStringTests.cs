@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         private IDictionary<OptionKey, object> OptionOn()
         {
             var optionsSet = new Dictionary<OptionKey, object>();
-            optionsSet.Add(new OptionKey(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp), true);
+            optionsSet.Add(new OptionKey(RegexFeatureOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp), true);
             return optionsSet;
         }
 

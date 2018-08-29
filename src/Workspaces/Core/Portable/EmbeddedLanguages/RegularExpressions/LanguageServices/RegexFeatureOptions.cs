@@ -5,38 +5,38 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    internal class RegularExpressionsOptions
+    internal class RegexFeatureOptions
     {
         public static PerLanguageOption<bool> ColorizeRegexPatterns =
             new PerLanguageOption<bool>(
-                nameof(RegularExpressionsOptions),
+                nameof(RegexFeatureOptions),
                 nameof(ColorizeRegexPatterns),
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns"));
 
         public static PerLanguageOption<bool> ReportInvalidRegexPatterns =
             new PerLanguageOption<bool>(
-                nameof(RegularExpressionsOptions), 
+                nameof(RegexFeatureOptions), 
                 nameof(ReportInvalidRegexPatterns), 
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns"));
 
         public static PerLanguageOption<bool> HighlightRelatedRegexComponentsUnderCursor =
             new PerLanguageOption<bool>(
-                nameof(RegularExpressionsOptions),
+                nameof(RegexFeatureOptions),
                 nameof(HighlightRelatedRegexComponentsUnderCursor),
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor"));
     }
 
     [ExportOptionProvider, Shared]
-    internal class RegularExpressionsOptionsProvider : IOptionProvider
+    internal class RegexFeatureOptionsProvider : IOptionProvider
     {
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            RegularExpressionsOptions.ColorizeRegexPatterns,
-            RegularExpressionsOptions.ReportInvalidRegexPatterns,
-            RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor);
+            RegexFeatureOptions.ColorizeRegexPatterns,
+            RegexFeatureOptions.ReportInvalidRegexPatterns,
+            RegexFeatureOptions.HighlightRelatedRegexComponentsUnderCursor);
     }
 }

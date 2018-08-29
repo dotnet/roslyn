@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var option = optionSet.GetOption(RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
+            var option = optionSet.GetOption(RegexFeatureOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
             if (!option)
             {
                 return;

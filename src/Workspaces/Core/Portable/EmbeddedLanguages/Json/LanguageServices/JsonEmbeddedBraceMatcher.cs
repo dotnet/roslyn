@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         public async Task<EmbeddedBraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var option = document.Project.Solution.Workspace.Options.GetOption(JsonOptions.HighlightRelatedJsonComponentsUnderCursor, document.Project.Language);
+            var option = document.Project.Solution.Workspace.Options.GetOption(JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, document.Project.Language);
             if (!option)
             {
                 return default;

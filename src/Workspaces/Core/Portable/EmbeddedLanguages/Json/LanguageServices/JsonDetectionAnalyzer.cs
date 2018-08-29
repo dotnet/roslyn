@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var options = context.Options;
-            var option = optionSet.GetOption(JsonOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, syntaxTree.Options.Language);
+            var option = optionSet.GetOption(JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, syntaxTree.Options.Language);
             if (!option)
             {
                 return;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
                         detector.IsProbablyJson(token))
                     {
                         var chars = _language.VirtualCharService.TryConvertToVirtualChars(token);
-                        var strictTree = JsonParser.TryParse(chars, strict: true);
+                        var strictTree = JsonParser.TryParse(chars, JsonOptions.Strict);
                         var properties = strictTree != null && strictTree.Diagnostics.Length == 0
                             ? ImmutableDictionary<string, string>.Empty.Add(StrictKey, "")
                             : ImmutableDictionary<string, string>.Empty;

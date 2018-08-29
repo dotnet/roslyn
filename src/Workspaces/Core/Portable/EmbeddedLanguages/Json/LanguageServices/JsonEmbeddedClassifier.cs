@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         {
             Debug.Assert(token.RawKind == _language.StringLiteralKind);
 
-            if (!workspace.Options.GetOption(JsonOptions.ColorizeJsonPatterns, token.Language))
+            if (!workspace.Options.GetOption(JsonFeatureOptions.ColorizeJsonPatterns, token.Language))
             {
                 return;
             }

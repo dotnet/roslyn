@@ -10,19 +10,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
     {
         private void Match(string value, RegexOptions? expectedOptions = null)
         {
-            var (matched, options) = RegexPatternDetector.TestAccessor.TryMatch(value);
-            Assert.True(matched);
+            Assert.True(RegexPatternDetector.TestAccessor.TryMatch(value, out var actualOptions));
 
             if (expectedOptions != null)
             {
-                Assert.Equal(expectedOptions.Value, options);
+                Assert.Equal(expectedOptions.Value, actualOptions);
             }
         }
 
         private void NoMatch(string value)
         {
-            var (matched, options) = RegexPatternDetector.TestAccessor.TryMatch(value);
-            Assert.False(matched);
+            Assert.False(RegexPatternDetector.TestAccessor.TryMatch(value, out _));
         }
 
         [Fact]

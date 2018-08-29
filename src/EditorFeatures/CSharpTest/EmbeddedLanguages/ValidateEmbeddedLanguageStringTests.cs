@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         private IDictionary<OptionKey, object> OptionOn()
         {
             var optionsSet = new Dictionary<OptionKey, object>();
-            optionsSet.Add(new OptionKey(JsonOptions.ReportInvalidJsonPatterns, LanguageNames.CSharp), true);
-            optionsSet.Add(new OptionKey(JsonOptions.ReportInvalidJsonPatterns, LanguageNames.VisualBasic), true);
+            optionsSet.Add(new OptionKey(JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.CSharp), true);
+            optionsSet.Add(new OptionKey(JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.VisualBasic), true);
             return optionsSet;
         }
 

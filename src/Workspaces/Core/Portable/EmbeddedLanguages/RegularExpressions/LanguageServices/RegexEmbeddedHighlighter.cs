@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
         public async Task<ImmutableArray<TextSpan>> GetHighlightsAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var option = document.Project.Solution.Workspace.Options.GetOption(RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
+            var option = document.Project.Solution.Workspace.Options.GetOption(RegexFeatureOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
             if (!option)
             {
                 return default;

@@ -2,58 +2,60 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
-    internal struct LanguageCommentDetector<TOptions>
+    internal struct LanguageCommentDetector<TOptions> where TOptions : struct, Enum
     {
-        private readonly Regex _regex;
-        private readonly ImmutableArray<string> _allowedOptions;
-        private readonly Func<string, (bool, TOptions)> _tryGetOptionValue;
-        private readonly Func<TOptions, TOptions, TOptions> _combineOptions;
+        private static readonly Dictionary<string, TOptions> s_nameToOption =
+            typeof(TOptions).GetTypeInfo().DeclaredFields
+                .Where(f => f.FieldType == typeof(TOptions))
+                .ToDictionary(f => f.Name, f => (TOptions)f.GetValue(null), StringComparer.OrdinalIgnoreCase);
 
-        public LanguageCommentDetector(
-            IEnumerable<string> languageNames, IEnumerable<string> allowedOptions,
-            Func<string, (bool, TOptions)> tryGetOptionValue, Func<TOptions, TOptions, TOptions> combineOptions)
+        private readonly Regex _regex;
+
+        public LanguageCommentDetector(params string[] languageNames)
         {
             var namePortion = string.Join("|", languageNames.Select(Regex.Escape));
 
             _regex = new Regex($@"\blang(uage)?\s*=\s*({namePortion})\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-            _allowedOptions = allowedOptions.ToImmutableArray();
-            _tryGetOptionValue = tryGetOptionValue;
-            _combineOptions = combineOptions;
         }
 
-        public (bool success, TOptions options) TryMatch(string text)
+        public bool TryMatch(string text, out TOptions options)
         {
             var match = _regex.Match(text);
+            options = default;
             if (!match.Success)
             {
-                return default;
+                return false;
             }
 
-            var options = default(TOptions);
             var optionGroup = match.Groups["option"];
             foreach (Capture capture in optionGroup.Captures)
             {
-                var (succeeded, specificOption) = _tryGetOptionValue(capture.Value);
-                if (!succeeded)
+                if (!s_nameToOption.TryGetValue(capture.Value, out var specificOption))
                 {
                     // hit something we don't understand.  bail out.  that will help ensure
                     // users don't have weird behavior just because they misspelled something.
                     // instead, they will know they need to fix it up.
-                    return default;
+                    return false;
                 }
 
-                options = _combineOptions(options, specificOption);
+                options = CombineOptions(options, specificOption);
             }
 
-            return (true, options);
+            return true;
+        }
+
+        private TOptions CombineOptions(TOptions options, TOptions specificOption)
+        {
+            var int1 = (int)(object)options;
+            var int2 = (int)(object)specificOption;
+            return (TOptions)(object)(int1 | int2);
         }
     }
 }
