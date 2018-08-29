@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -29,24 +30,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         private readonly INamedTypeSymbol _regexType;
         private readonly HashSet<string> _methodNamesOfInterest;
 
-        /// <summary>
-        /// Helps match patterns of the form: language=regex,option1,option2,option3
-        /// 
-        /// All matching is case insensitive, with spaces allowed between the punctuation.
-        /// 'regex' or 'regexp' are both allowed.  Option values will be or'ed together
-        /// to produce final options value.  If an unknown option is encountered, processing
-        /// will stop with whatever value has accumulated so far.
-        /// 
-        /// Option names are the values from the <see cref="RegexOptions"/> enum.
-        /// </summary>
-        private static readonly Regex s_languageCommentDetector =
-            new Regex(@"\blang(uage)?\s*=\s*regex(p)?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
-                RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
         private static readonly Dictionary<string, RegexOptions> s_nameToOption =
             typeof(RegexOptions).GetTypeInfo().DeclaredFields
                 .Where(f => f.FieldType == typeof(RegexOptions))
                 .ToDictionary(f => f.Name, f => (RegexOptions)f.GetValue(null), StringComparer.OrdinalIgnoreCase);
+
+        private static LanguageCommentDetector<RegexOptions> s_commentDetector =
+            new LanguageCommentDetector<RegexOptions>(
+                new[] { "regex", "regexp" },
+                s_nameToOption.Keys.ToArray(),
+                v => s_nameToOption.TryGetValue(v, out var options) ? (true, options) : default,
+                (o1, o2) => o1 | o2);
 
         public RegexPatternDetector(
             SemanticModel semanticModel,
@@ -146,7 +140,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 // Note: ToString on SyntaxTrivia is non-allocating.  It will just return the
                 // underlying text that the trivia is already pointing to.
                 var text = trivia.ToString();
-                var (matched, matchOptions) = TryMatch(text);
+                var (matched, matchOptions) = s_commentDetector.TryMatch(text);
                 if (matched)
                 {
                     options = matchOptions;
@@ -156,34 +150,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             options = default;
             return false;
-        }
-
-        private static (bool success, RegexOptions options) TryMatch(string text)
-        {
-            var options = RegexOptions.None;
-            var match = s_languageCommentDetector.Match(text);
-            if (!match.Success)
-            {
-                return default;
-            }
-
-            var optionGroup = match.Groups["option"];
-            foreach (Capture capture in optionGroup.Captures)
-            {
-                if (s_nameToOption.TryGetValue(capture.Value, out var specificOption))
-                {
-                    options |= specificOption;
-                }
-                else
-                {
-                    // hit something we don't understand.  bail out.  that will help ensure
-                    // users don't have weird behavior just because they misspelled something.
-                    // instead, they will know they need to fix it up.
-                    return default;
-                }
-            }
-
-            return (true, options);
         }
 
         private static bool IsMethodOrConstructorArgument(SyntaxToken token, ISyntaxFactsService syntaxFacts)
@@ -392,7 +358,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         internal static class TestAccessor
         {
             public static (bool success, RegexOptions options) TryMatch(string text)
-                => RegexPatternDetector.TryMatch(text);
+                => s_commentDetector.TryMatch(text);
         }
     }
 }
