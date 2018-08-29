@@ -360,7 +360,7 @@ namespace Roslyn.Test.Utilities
                 argumentOrderDoesNotMatter);
         }
 
-        protected static string NormalizeDiagnosticString(string inputString)
+        public static string NormalizeDiagnosticString(string inputString)
         {
             if (inputString == null)
             {
@@ -374,15 +374,8 @@ namespace Roslyn.Test.Utilities
                     return inputString.Replace("\n", "\r\n");
                 }
             }
-            else
-            {
-                if (inputString.Contains("\r\n"))
-                {
-                    return inputString.Replace("\r\n", "\n");
-                }
-            }
-
-            return inputString;
+            
+            return inputString.Replace("\r\n", "\n");
         }
 
         #endregion
