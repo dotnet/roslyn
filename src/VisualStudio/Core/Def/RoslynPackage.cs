@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             InitializeColors();
 
             // load some services that have to be loaded in UI thread
-            await LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken);
+            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
 
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
         }
