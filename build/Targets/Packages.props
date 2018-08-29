@@ -258,6 +258,12 @@
     <xunitrunnerconsoleVersion>2.4.1-pre.build.4059</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
     <xunitrunnervisualstudioVersion>2.4.1-pre.build.4059</xunitrunnervisualstudioVersion>
+
+    <!--
+      The CodeStyle layer depends on a prior stable release of the CodeAnalysis assemblies so the NuGet packages
+      produced by the build can be installed in projects building with those older releases.
+    -->
+    <CodeStyleLayerCodeAnalysisVersion>2.8.2</CodeStyleLayerCodeAnalysisVersion>
   </PropertyGroup>
 
   <!-- 
