@@ -97,12 +97,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override async Task LoadComponentsInUIContextAsync(CancellationToken cancellationToken)
         {
-            await GetServiceAsync(typeof(SVsTaskStatusCenterService));
-            await GetServiceAsync(typeof(SVsErrorList));
-            await GetServiceAsync(typeof(SVsSolution));
-            await GetServiceAsync(typeof(SVsShell));
-            await GetServiceAsync(typeof(SVsRunningDocumentTable));
-            await GetServiceAsync(typeof(SVsTextManager));
+            await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
 
             // we need to load it as early as possible since we can have errors from
             // package from each language very early

@@ -30,8 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
         {
             await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             await LoadComponentsInUIContextAsync(cancellationToken);
         }
 

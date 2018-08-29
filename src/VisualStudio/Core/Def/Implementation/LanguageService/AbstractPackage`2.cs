@@ -101,12 +101,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override async Task LoadComponentsInUIContextAsync(CancellationToken cancellationToken)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Ensure the nuget package services are initialized after we've loaded
             // the solution.
-            _packageInstallerService = await GetServiceAsync(typeof(IPackageInstallerService)) as PackageInstallerService;
-            _symbolSearchService = await GetServiceAsync(typeof(ISymbolSearchService)) as VisualStudioSymbolSearchService;
+            _packageInstallerService = Workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
+            _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
