@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
+namespace Roslyn.Test.Utilities
 {
     // Based on CoreCLR's implementation of the TaskScheduler they return from TaskScheduler.FromCurrentSynchronizationContext
     internal class SynchronizationContextTaskScheduler : TaskScheduler
@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         protected override void QueueTask(Task task)
         {
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
             _synchronizationContext.Post(_postCallback, task);
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
         }
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {

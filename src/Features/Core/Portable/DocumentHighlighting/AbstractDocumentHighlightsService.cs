@@ -148,13 +148,15 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             {
                 var progress = new StreamingProgressCollector(
                     StreamingFindReferencesProgress.Instance);
+
+                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(
                     symbolAndProjectId, document.Project.Solution, progress,
-                    documentsToSearch, cancellationToken).ConfigureAwait(false);
+                    documentsToSearch, options, cancellationToken).ConfigureAwait(false);
 
                 return await FilterAndCreateSpansAsync(
                     progress.GetReferencedSymbols(), document, documentsToSearch,
-                    symbol, cancellationToken).ConfigureAwait(false);
+                    symbol, options, cancellationToken).ConfigureAwait(false);
             }
 
             return ImmutableArray<DocumentHighlights>.Empty;
@@ -187,11 +189,11 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
             IEnumerable<ReferencedSymbol> references, Document startingDocument,
             IImmutableSet<Document> documentsToSearch, ISymbol symbol,
-            CancellationToken cancellationToken)
+            FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var solution = startingDocument.Project.Solution;
 
-            references = references.FilterToItemsToShow();
+            references = references.FilterToItemsToShow(options);
             references = references.FilterNonMatchingMethodNames(solution, symbol);
             references = references.FilterToAliasMatches(symbol as IAliasSymbol);
 

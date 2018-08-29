@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         {
         }
 
-        public override void Convert(SyntaxEditor editor, CancellationToken cancellationToken)
+        public override void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken)
         {
             // Filter out identifiers which are not used in statements.
             var variableNamesReadInside = new HashSet<string>(ForEachInfo.Statements
@@ -35,14 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
             editor.ReplaceNode(
                 ForEachInfo.ForEachStatement,
-                CreateDefaultReplacementStatement(ForEachInfo, identifiersUsedInStatements, block)
+                CreateDefaultReplacementStatement(ForEachInfo, identifiersUsedInStatements, block, convertToQuery)
                     .WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         private StatementSyntax CreateDefaultReplacementStatement(
             ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
             IEnumerable<SyntaxToken> identifiers,
-            BlockSyntax block)
+            BlockSyntax block,
+            bool convertToQuery)
         {
             var identifiersCount = identifiers.Count();
             if (identifiersCount == 0)
@@ -51,10 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 return SyntaxFactory.ForEachStatement(
                     VarNameIdentifier,
                     SyntaxFactory.Identifier("_"),
-                    CreateQueryExpression(
+                    CreateQueryExpressionOrLinqInvocation(
                         SyntaxFactory.AnonymousObjectCreationExpression(),
                         Enumerable.Empty<SyntaxToken>(),
-                        Enumerable.Empty<SyntaxToken>()),
+                        Enumerable.Empty<SyntaxToken>(),
+                        convertToQuery),
                     block);
             }
             else if (identifiersCount == 1)
@@ -63,10 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 return SyntaxFactory.ForEachStatement(
                     VarNameIdentifier,
                     identifiers.Single(),
-                    CreateQueryExpression(
+                    CreateQueryExpressionOrLinqInvocation(
                         SyntaxFactory.IdentifierName(identifiers.Single()),
                         Enumerable.Empty<SyntaxToken>(),
-                        Enumerable.Empty<SyntaxToken>()),
+                        Enumerable.Empty<SyntaxToken>(),
+                        convertToQuery),
                     block);
             }
             else
@@ -83,10 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 // Generate foreach(var (a,b) ... select (a, b))
                 return SyntaxFactory.ForEachVariableStatement(
                     declaration, 
-                    CreateQueryExpression(
+                    CreateQueryExpressionOrLinqInvocation(
                         tupleForSelectExpression, 
                         Enumerable.Empty<SyntaxToken>(), 
-                        Enumerable.Empty<SyntaxToken>()), 
+                        Enumerable.Empty<SyntaxToken>(),
+                        convertToQuery), 
                     block);
             }
         }

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -42,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private object _classMemberGate = new object();
 
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly IThreadingContext _threadingContext;
 
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
@@ -61,6 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
             _streamingPresenters = componentModel.DefaultExportProvider.GetExports<IStreamingFindUsagesPresenter>();
+            _threadingContext = componentModel.DefaultExportProvider.GetExportedValue<IThreadingContext>();
         }
 
         internal abstract AbstractDescriptionBuilder CreateDescriptionBuilder(
@@ -541,7 +544,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 // thread.
                 await Task.Run(async () =>
                 {
-                    await FindReferencesAsync(symbolListItem, project, context, cancellationToken).ConfigureAwait(false);
+                    await FindReferencesAsync(_threadingContext, symbolListItem, project, context, cancellationToken).ConfigureAwait(false);
                 }, cancellationToken).ConfigureAwait(false);
 
                 // Note: we don't need to put this in a finally.  The only time we might not hit
@@ -559,13 +562,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        private static async Task FindReferencesAsync(SymbolListItem symbolListItem, Project project, CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
+        private static async Task FindReferencesAsync(IThreadingContext threadingContext, SymbolListItem symbolListItem, Project project, CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = symbolListItem.ResolveSymbol(compilation);
             if (symbol != null)
             {
                 await AbstractFindUsagesService.FindSymbolReferencesAsync(
+                    threadingContext,
                     context, symbol, project, cancellationToken).ConfigureAwait(false);
             }
         }

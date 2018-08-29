@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -36,10 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 
         [ImportingConstructor]
         public HighlighterViewTaggerProvider(
+            IThreadingContext threadingContext,
             IHighlightingService highlightingService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting), notificationService)
         {
             _highlightingService = highlightingService;
         }
