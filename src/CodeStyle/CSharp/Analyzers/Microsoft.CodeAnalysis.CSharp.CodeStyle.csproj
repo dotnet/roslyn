@@ -8,9 +8,10 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.8.2" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />

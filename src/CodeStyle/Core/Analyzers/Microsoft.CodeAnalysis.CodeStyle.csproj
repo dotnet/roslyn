@@ -8,8 +8,8 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="2.8.2" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
