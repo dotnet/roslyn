@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         public const string DiagnosticId = "JSON002";
         public const string StrictKey = nameof(StrictKey);
 
+        private static readonly ImmutableDictionary<string, string> s_strictProperties =
+            ImmutableDictionary<string, string>.Empty.Add(StrictKey, "");
+
         private readonly JsonEmbeddedLanguage _language;
         private readonly DiagnosticDescriptor _descriptor;
 
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
                         var chars = _language.VirtualCharService.TryConvertToVirtualChars(token);
                         var strictTree = JsonParser.TryParse(chars, JsonOptions.Strict);
                         var properties = strictTree != null && strictTree.Diagnostics.Length == 0
-                            ? ImmutableDictionary<string, string>.Empty.Add(StrictKey, "")
+                            ? s_strictProperties
                             : ImmutableDictionary<string, string>.Empty;
 
                         context.ReportDiagnostic(Diagnostic.Create(

@@ -35,12 +35,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             var stringLiteral = diagnostic.Location.FindToken(cancellationToken);
             Debug.Assert(_language.SyntaxFacts.IsStringLiteral(stringLiteral));
 
-            var commentContents = "lang=json";
-            var strict = diagnostic.Properties.ContainsKey(JsonDetectionAnalyzer.StrictKey);
-            if (strict)
-            {
-                commentContents += ",strict";
-            }
+            var commentContents = diagnostic.Properties.ContainsKey(JsonDetectionAnalyzer.StrictKey)
+                ? "lang=json,strict"
+                : "lang=json";
             
             _provider.AddComment(editor, stringLiteral, commentContents);
         }
