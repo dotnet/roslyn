@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpEmbeddedLanguageDiagnosticAnalyzer(), new CSharpEmbeddedLanguageCodeFixProvider());
-         
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
         public async Task TestStrict()
         {

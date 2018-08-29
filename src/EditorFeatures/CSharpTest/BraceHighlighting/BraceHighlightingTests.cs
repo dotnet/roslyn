@@ -293,11 +293,6 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-<<<<<<< HEAD
-        public async Task TestJsonBracket1()
-        {
-            var input = @"
-=======
         public async Task TestRegexUnclosedGroupBracket1()
         {
             var input = @"
@@ -337,23 +332,16 @@ class C
             var input = @"
 using System.Text.RegularExpressions;
 
->>>>>>> upstream/features/embeddedRegex
 class C
 {
     void Goo()
     {
-<<<<<<< HEAD
-        var r = /*lang=json*/ @""new Json[|(|]1, 2, 3[|)|]$$"");
-=======
         var r = new Regex(@""[|(|]?#a[|)|]$$"");
->>>>>>> upstream/features/embeddedRegex
     }
 }";
 
             await TestBraceHighlightingAsync(input);
         }
-<<<<<<< HEAD
-=======
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestRegexUnclosedCommentBracket()
@@ -455,6 +443,19 @@ class C
 
             await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
         }
->>>>>>> upstream/features/embeddedRegex
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestJsonBracket1()
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = /*lang=json*/ @""new Json[|(|]1, 2, 3[|)|]$$"");
+    }
+}";
+            await TestBraceHighlightingAsync(input);
+        }
     }
 }
