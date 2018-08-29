@@ -335,7 +335,7 @@ namespace Roslyn.Test.Utilities
             return new DiagnosticDescription(
                 code as string ?? (object)(int)code,
                 false,
-                NormalizeDiagnosticString(squiggledText),
+                squiggledText,
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
@@ -353,29 +353,21 @@ namespace Roslyn.Test.Utilities
         {
             return Diagnostic(
                 code,
-                NormalizeDiagnosticString(squiggledText.Value),
+                NormalizeNewLines(squiggledText),
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
                 argumentOrderDoesNotMatter);
         }
 
-        public static string NormalizeDiagnosticString(string inputString)
+        public static string NormalizeNewLines(XCData data)
         {
-            if (inputString == null)
-            {
-                return inputString;
-            }
-
             if (ExecutionConditionUtil.IsWindows)
             {
-                if (!inputString.Contains("\r\n") && inputString.Contains("\n"))
-                {
-                    return inputString.Replace("\n", "\r\n");
-                }
+                return data.Value.Replace("\n", "\r\n");
             }
-            
-            return inputString.Replace("\r\n", "\n");
+
+            return data.Value;
         }
 
         #endregion
