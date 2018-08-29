@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TaskStatusCenter;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
@@ -98,6 +99,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             await GetServiceAsync(typeof(SVsTaskStatusCenterService));
             await GetServiceAsync(typeof(SVsErrorList));
+            await GetServiceAsync(typeof(SVsSolution));
+            await GetServiceAsync(typeof(SVsShell));
+            await GetServiceAsync(typeof(SVsRunningDocumentTable));
+            await GetServiceAsync(typeof(SVsTextManager));
 
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
