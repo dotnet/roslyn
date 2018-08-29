@@ -535,6 +535,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MakeEndOfLineTrivia(GetNextChar)
         End Function
 
+        Private Function Original_Scanner(ByRef atNewLine As Boolean, ByRef tList As SyntaxListBuilder, ch As Char, Optional Here As Integer = 1) As Boolean
+            atNewLine = IsNewLine(ch)
+            If Not atNewLine AndAlso CanGet(Here) Then
+                ' If we get here we have an error, return trivia is Nothing
+                Return False
+            End If
+
+            tList.Add(MakeLineContinuationTrivia(GetText(1)))
+            ' Leading Whitespace on line after _
+            If Here > 1 Then
+                tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
+            End If
+            Return True
+        End Function
+
         ''' <summary>
         ''' Scan a line continuation (_) followed by an optional comment
         ''' </summary>
@@ -589,16 +604,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     atNewLine = IsNewLine(ch)
                 Else
                     ' We have a Line Continuation without comment but have 0 or more spaces after _, so process as V15.5
-                    atNewLine = IsNewLine(ch)
-                    If Not atNewLine AndAlso CanGet(Here) Then
-                        ' If we get here we have an error, return trivia is Nothing
+                    If Not Original_Scanner(atNewLine, tList, ch, Here) Then
                         Return False
-                    End If
-
-                    tList.Add(MakeLineContinuationTrivia(GetText(1)))
-                    ' Leading Whitespace on line after _
-                    If Here > 1 Then
-                        tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
                     End If
                 End If
             Else
@@ -607,13 +614,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If CanGet(Here) Then
                     ch = Peek(Here)
                 End If
-                atNewLine = IsNewLine(ch)
-                If Not atNewLine AndAlso CanGet(Here) Then
-                    ' If we get here we have an error, return trivia is Nothing
+                If Not Original_Scanner(atNewLine, tList, ch) Then
                     Return False
                 End If
-                ' If we get here the line ends in valid newline or EOF and there is no whitespace after _
-                tList.Add(MakeLineContinuationTrivia(GetText(1)))
             End If
 
             If atNewLine AndAlso CanGet() Then
