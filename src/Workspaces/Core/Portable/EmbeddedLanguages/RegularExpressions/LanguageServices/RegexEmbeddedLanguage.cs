@@ -6,12 +6,18 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    internal class RegexEmbeddedLanguage : IEmbeddedLanguage
+    internal sealed class RegexEmbeddedLanguage : IEmbeddedLanguage
     {
         public int StringLiteralKind { get; }
         public ISyntaxFactsService SyntaxFacts { get; }
         public ISemanticFactsService SemanticFacts { get; }
         public IVirtualCharService VirtualCharService { get; }
+
+        public IEmbeddedBraceMatcher BraceMatcher { get; }
+        public IEmbeddedClassifier Classifier { get; }
+        public IEmbeddedHighlighter Highlighter { get; }
+        public IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer { get; }
+        public IEmbeddedCodeFixProvider CodeFixProvider { get; }
 
         public RegexEmbeddedLanguage(
             int stringLiteralKind,
@@ -29,11 +35,5 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             Highlighter = new RegexEmbeddedHighlighter(this);
             DiagnosticAnalyzer = new RegexDiagnosticAnalyzer(this);
         }
-
-        public IEmbeddedBraceMatcher BraceMatcher { get; }
-        public IEmbeddedClassifier Classifier { get; }
-        public IEmbeddedHighlighter Highlighter { get; }
-        public IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer { get; }
-        public IEmbeddedCodeFixProvider CodeFixProvider { get; }
     }
 }

@@ -27,22 +27,35 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public static RegexTrivia CreateTrivia(RegexKind kind, ImmutableArray<VirtualChar> virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
             => new RegexTrivia(kind, virtualChars, diagnostics);
 
+        /// <summary>
+        /// Maps an escaped character to the actual character it was escaping.  For something like
+        /// 'a' this will map to actual '\a' char (the bell character).  However, for something like
+        /// '(' this will just map to '(' as that's all that \( does in a regex.
+        /// </summary>
+        public static char MapEscapeChar(char ch)
+        {
+            switch (ch)
+            {
+                default:
+                    return ch;
+
+                case 'a': return '\u0007';  // bell
+                case 'b': return '\b';      // backspace
+                case 'e': return '\u001B';  // escape
+                case 'f': return '\f';      // form feed
+                case 'n': return '\n';      // new line
+                case 'r': return '\r';      // carriage return
+                case 't': return '\t';      // tab
+                case 'v': return '\u000B';  // vertical tab
+            }
+        }
+
         public static bool IsSelfEscape(this RegexSimpleEscapeNode node)
         {
             if (node.TypeToken.VirtualChars.Length > 0)
             {
-                switch (node.TypeToken.VirtualChars[0].Char)
-                {
-                    case 'a':
-                    case 'b':
-                    case 'e':
-                    case 'f':
-                    case 'n':
-                    case 'r':
-                    case 't':
-                    case 'v':
-                        return false;
-                }
+                var ch = node.TypeToken.VirtualChars[0].Char;
+                return MapEscapeChar(ch) == ch;
             }
 
             return true;

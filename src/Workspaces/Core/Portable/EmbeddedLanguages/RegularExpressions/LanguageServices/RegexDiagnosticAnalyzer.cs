@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     /// <summary>
     /// Analyzer that reports diagnostics in strings that we know are regex text.
     /// </summary>
-    internal class RegexDiagnosticAnalyzer : IEmbeddedDiagnosticAnalyzer
+    internal sealed class RegexDiagnosticAnalyzer : IEmbeddedDiagnosticAnalyzer
     {
         public const string DiagnosticId = "RE001";
 
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             _descriptor = new DiagnosticDescriptor(DiagnosticId,
                 new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                 new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                "REGEX",
+                category: "REGEX",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
 
@@ -39,7 +41,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var options = context.Options;
 
             var option = optionSet.GetOption(RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
             if (!option)
@@ -53,38 +54,45 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
+            // Use an actual stack object so that we don't blow the actual stack through recursion.
             var root = syntaxTree.GetRoot(cancellationToken);
-            Analyze(context, detector, root, cancellationToken);
+            var stack = new Stack<SyntaxNode>();
+            stack.Push(root);
+
+            while (stack.Count != 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var current = stack.Pop();
+
+                foreach (var child in current.ChildNodesAndTokens())
+                {
+                    if (child.IsNode)
+                    {
+                        stack.Push(child.AsNode());
+                    }
+                    else
+                    {
+                        AnalyzeToken(context, detector, child.AsToken(), cancellationToken);
+                    }
+                }
+            }
         }
 
-        private void Analyze(
-            SemanticModelAnalysisContext context, RegexPatternDetector detector,
-            SyntaxNode node, CancellationToken cancellationToken)
+        private void AnalyzeToken(
+            SemanticModelAnalysisContext context, RegexPatternDetector detector, 
+            SyntaxToken token, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            foreach (var child in node.ChildNodesAndTokens())
+            if (token.RawKind == _language.StringLiteralKind)
             {
-                if (child.IsNode)
+                var tree = detector.TryParseRegexPattern(token, cancellationToken);
+                if (tree != null)
                 {
-                    Analyze(context, detector, child.AsNode(), cancellationToken);
-                }
-                else
-                {
-                    var token = child.AsToken();
-                    if (token.RawKind == _language.StringLiteralKind)
+                    foreach (var diag in tree.Diagnostics)
                     {
-                        var tree = detector.TryParseRegexPattern(token, cancellationToken);
-                        if (tree != null)
-                        {
-                            foreach (var diag in tree.Diagnostics)
-                            {
-                                context.ReportDiagnostic(Diagnostic.Create(
-                                    _descriptor,
-                                    Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
-                                    diag.Message));
-                            }
-                        }
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            _descriptor,
+                            Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
+                            diag.Message));
                     }
                 }
             }

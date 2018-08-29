@@ -23,15 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         {
             var optionsSet = new Dictionary<OptionKey, object>();
             optionsSet.Add(new OptionKey(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp), true);
-            optionsSet.Add(new OptionKey(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic), true);
-            return optionsSet;
-        }
-
-        private IDictionary<OptionKey, object> OptionOff()
-        {
-            var optionsSet = new Dictionary<OptionKey, object>();
-            optionsSet.Add(new OptionKey(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp), false);
-            optionsSet.Add(new OptionKey(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic), false);
             return optionsSet;
         }
 

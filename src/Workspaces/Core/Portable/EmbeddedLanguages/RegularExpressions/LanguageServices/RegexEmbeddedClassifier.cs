@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-    using Microsoft.CodeAnalysis.LanguageServices;
     using static EmbeddedSyntaxHelpers;
 
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     /// <summary>
     /// Classifier impl for embedded regex strings.
     /// </summary>
-    internal class RegexEmbeddedClassifier : IEmbeddedClassifier
+    internal sealed class RegexEmbeddedClassifier : IEmbeddedClassifier
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
 
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             Workspace workspace, SyntaxToken token, SemanticModel semanticModel, 
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (!workspace.Options.GetOption(RegularExpressionsOptions.ColorizeRegexPatterns, LanguageNames.CSharp))
+            if (!workspace.Options.GetOption(RegularExpressionsOptions.ColorizeRegexPatterns, semanticModel.Language))
             {
                 return;
             }
