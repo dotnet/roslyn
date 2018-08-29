@@ -1905,7 +1905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
                     {
-                        questionToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureStaticNullChecking);
+                        questionToken = this.EatToken();
                     }
 
                     return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken, questionToken);

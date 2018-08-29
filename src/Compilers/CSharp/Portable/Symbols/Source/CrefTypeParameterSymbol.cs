@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override bool HasNullableReferenceTypeConstraint
+        internal override bool? ReferenceTypeConstraintIsNullable
         {
             get { return false; }
         }

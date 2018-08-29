@@ -723,7 +723,7 @@ public class C<T> where T : A<object>
     where U : T?
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -747,7 +747,7 @@ public class C<T> where T : A<object>
             var comp2 = CreateCompilation(new[] { source, source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp2.VerifyEmitDiagnostics();
 
-            comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyEmitDiagnostics();
 
             var type = comp2.GetMember<NamedTypeSymbol>("C");

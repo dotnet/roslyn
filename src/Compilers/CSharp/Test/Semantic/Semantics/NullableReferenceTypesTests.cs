@@ -38,7 +38,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 17)
                 );
  
-            var c2 = CreateCompilation(source);
+            var c2 = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             c2.VerifyDiagnostics(
                 // (6,15): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         string? x = null;
@@ -287,9 +287,15 @@ class C<T> where T : class
                 // (40,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     public static C<T?> operator +(C<T> x, C<T?> y) => throw null; // warn 24 and 25
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "C<T?>").WithLocation(40, 19),
+                // (40,19): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public static C<T?> operator +(C<T> x, C<T?> y) => throw null; // warn 24 and 25
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C<T?>").WithLocation(40, 19),
                 // (40,44): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     public static C<T?> operator +(C<T> x, C<T?> y) => throw null; // warn 24 and 25
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "C<T?> y").WithLocation(40, 44),
+                // (40,44): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public static C<T?> operator +(C<T> x, C<T?> y) => throw null; // warn 24 and 25
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C<T?> y").WithLocation(40, 44),
                 // (45,12): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     public string? this[C<string?> x] { get => throw null; } // warn 27 and 28
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "string?").WithLocation(45, 12),
@@ -302,6 +308,9 @@ class C<T> where T : class
                 // (43,12): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         D3(C<T?> x) => throw null; // warn 26
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "C<T?> x").WithLocation(43, 12),
+                // (43,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //         D3(C<T?> x) => throw null; // warn 26
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C<T?> x").WithLocation(43, 12),
                 // (35,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     delegate string? MyDelegate(C<string?> x); // warn 18 and 19
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "string?").WithLocation(35, 14),
@@ -311,6 +320,9 @@ class C<T> where T : class
                 // (38,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     class D<T2> where T2 : T? { } // warn 22
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(38, 28),
+                // (38,28): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     class D<T2> where T2 : T? { } // warn 22
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(38, 28),
                 // (39,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     class D2 : C<string?> { } // warn 23
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "D2").WithLocation(39, 11),
@@ -377,7 +389,7 @@ class C<T> where T : class
         [Fact]
         public void AnnotationWithoutNonNullTypes_GenericType()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            var source = @"
 public class C<T> where T : class
 {
     public T? M(T? x1) // warn 1 and 2
@@ -394,15 +406,24 @@ public class E<T> where T : struct
         return y2;
     }
 }
-");
-
+";
+            CSharpCompilation c = CreateCompilation(source);
+            // PROTOTYPE(NullableReferenceTypes): ERR_NullableUnconstrainedTypeParameter is missing for 
+            // (6,10): 
+            //         T? y1 = x1; // warn 3
             c.VerifyDiagnostics(
                 // (4,12): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     public T? M(T? x1) // warn 1 and 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(4, 12),
+                // (4,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public T? M(T? x1) // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(4, 12),
                 // (4,17): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     public T? M(T? x1) // warn 1 and 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T? x1").WithLocation(4, 17),
+                // (4,17): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public T? M(T? x1) // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T? x1").WithLocation(4, 17),
                 // (6,10): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         T? y1 = x1; // warn 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 10)
@@ -417,7 +438,24 @@ class Client
     }
 }
 ";
-            var comp2 = CreateCompilation(new[] { client, NonNullTypesTrue, NonNullTypesAttributesDefinition }, references: new[] { c.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { client, NonNullTypesTrue, NonNullTypesAttributesDefinition }, references: new[] { c.ToMetadataReference() });
+            comp2.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         c.M("").ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"c.M("""")").WithLocation(6, 9)
+                );
+
+            c = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            c.VerifyDiagnostics();
+
+            comp2 = CreateCompilation(new[] { client, NonNullTypesTrue }, references: new[] { c.EmitToImageReference() });
+            comp2.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         c.M("").ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"c.M("""")").WithLocation(6, 9)
+                );
+
+            comp2 = CreateCompilation(new[] { client, NonNullTypesTrue }, references: new[] { c.ToMetadataReference() });
             comp2.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         c.M("").ToString();
@@ -3356,6 +3394,9 @@ class C3
                 // (8,5): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     T? F4<T>() where T : class => throw null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(8, 5),
+                // (8,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     T? F4<T>() where T : class => throw null;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 5),
                 // (17,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     T? F2<T>() => throw null;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(17, 5),
@@ -3367,7 +3408,11 @@ class C3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(17, 5),
                 // (19,5): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     T? F4<T>() where T : class => throw null;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(19, 5));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(19, 5),
+                // (19,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     T? F4<T>() where T : class => throw null;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(19, 5)
+            );
 
             verify("C1.F1", "T", isAnnotated: false, isNullable: null);
             verify("C1.F2", "T?", isAnnotated: true, isNullable: true);
@@ -5563,6 +5608,9 @@ class B : IA
                 // (7,5): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
                 //     T?[] M2<T>() where T : class;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?[]").WithLocation(7, 5),
+                // (7,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     T?[] M2<T>() where T : class;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?[]").WithLocation(7, 5),
                 // (5,5): warning CS8632: The annotation for nullable reference types can only be used in code within a '[NonNullTypes(true)]' context.
                 //     string?[] M1();
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "string?[]").WithLocation(5, 5)
@@ -6212,7 +6260,7 @@ partial class C1
     { }
 }";
             var compilation = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-
+            // PROTOTYPE(NullReferenceTypes): What nullability is getting emitted?
             compilation.VerifyDiagnostics(
                  // (16,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
                  //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
@@ -6271,9 +6319,15 @@ partial class C1
                 // (5,29): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?[] y").WithLocation(5, 29),
+                // (5,29): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?[] y").WithLocation(5, 29),
                 // (5,57): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "System.Action<T?[]?>?[]? u").WithLocation(5, 57)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "System.Action<T?[]?>?[]? u").WithLocation(5, 57),
+                // (5,57): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "System.Action<T?[]?>?[]? u").WithLocation(5, 57)
                 );
         }
 
@@ -6300,7 +6354,9 @@ partial class C1
     { }
 }";
             var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition });
-
+            // PROTOTYPE(NullReferenceTypes): Missing WRN_MissingNonNullTypesContextForAnnotation for '?' in 
+            // (17,18): 
+            //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
             compilation.VerifyDiagnostics(
                 // (17,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
                 //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
@@ -6314,9 +6370,15 @@ partial class C1
                 // (11,29): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?[] y").WithLocation(11, 29),
+                // (11,29): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?[] y").WithLocation(11, 29),
                 // (11,57): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "System.Action<T?[]?>?[]? u").WithLocation(11, 57)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "System.Action<T?[]?>?[]? u").WithLocation(11, 57),
+                // (11,57): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "System.Action<T?[]?>?[]? u").WithLocation(11, 57)
                 );
         }
 
@@ -30221,14 +30283,14 @@ struct S2<T>
 }";
 
             // Feature enabled.
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = tStruct!;
                 Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "tStruct!").WithLocation(6, 13));
 
             // Feature disabled.
-            comp = CreateCompilation(new[] { source });
+            comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,20): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         _ = tStruct!;
@@ -36564,7 +36626,7 @@ class B
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
                 Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
-                Assert.False(t1.HasNullableReferenceTypeConstraint);
+                Assert.False(t1.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(t1.GetAttributes());
 
                 var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
@@ -36573,7 +36635,7 @@ class B
                                                                                                 WithMiscellaneousOptions(SymbolDisplayFormat.TestFormatWithConstraints.MiscellaneousOptions & 
                                                                                                                             (~SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))));
                 TypeParameterSymbol t2 = f2.TypeParameters[0];
-                Assert.True(t2.HasNullableReferenceTypeConstraint);
+                Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t2.GetAttributes());
@@ -36614,13 +36676,13 @@ class B<T2> where T2 : class?
                 var a = (NamedTypeSymbol)m.GlobalNamespace.GetMember("A");
                 Assert.Equal("A<T1> where T1 : class", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = a.TypeParameters[0];
-                Assert.False(t1.HasNullableReferenceTypeConstraint);
+                Assert.False(t1.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(t1.GetAttributes());
 
                 var b = (NamedTypeSymbol)m.GlobalNamespace.GetMember("B");
                 Assert.Equal("B<T2> where T2 : class?", b.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t2 = b.TypeParameters[0];
-                Assert.True(t2.HasNullableReferenceTypeConstraint);
+                Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t2.GetAttributes());
@@ -36667,13 +36729,13 @@ class B
             var f1 = (LocalFunctionSymbol)model.GetDeclaredSymbol(localSyntaxes[0]);
             Assert.Equal("void F1<T1>(T1? t1) where T1 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
-            Assert.False(t1.HasNullableReferenceTypeConstraint);
+            Assert.False(t1.ReferenceTypeConstraintIsNullable);
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (LocalFunctionSymbol)model.GetDeclaredSymbol(localSyntaxes[1]);
             Assert.Equal("void F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
-            Assert.True(t2.HasNullableReferenceTypeConstraint);
+            Assert.True(t2.ReferenceTypeConstraintIsNullable);
             Assert.Empty(t2.GetAttributes());
         }
 
@@ -36705,6 +36767,59 @@ class B<T1> where T1 : class?
                 //         void F3<T3>(T3 t3) where T3 : class?
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 44)
             );
+
+            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var b = (NamedTypeSymbol)m.GlobalNamespace.GetMember("B");
+                Assert.Equal("B<T1> where T1 : class?", b.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t1 = b.TypeParameters[0];
+                Assert.True(t1.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t1.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t1.GetAttributes().Single().ToString());
+                }
+
+                var f2 = (MethodSymbol)b.GetMember("F2");
+                Assert.Equal("void B<T1>.F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t2 = f2.TypeParameters[0];
+                Assert.True(t2.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t2.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t2.GetAttributes().Single().ToString());
+                }
+            }
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            var expected = new[] {
+                // (4,29): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class B<T1> where T1 : class?
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("static null checking", "8.0").WithLocation(4, 29),
+                // (6,54): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public static void F2<T2>(T2 t2) where T2 : class?
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("static null checking", "8.0").WithLocation(6, 54),
+                // (8,44): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         void F3<T3>(T3 t3) where T3 : class?
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("static null checking", "8.0").WithLocation(8, 44)
+            };
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(expected.Concat(new[] {
+                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+            }).ToArray());
         }
 
         [Fact]
@@ -37138,20 +37253,20 @@ class B : A<int>
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
                 Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.HasNullableReferenceTypeConstraint);
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(t11.GetAttributes());
 
                 var af1 = bf1.OverriddenMethod;
                 Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = af1.TypeParameters[0];
-                Assert.False(t1.HasNullableReferenceTypeConstraint);
+                Assert.False(t1.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(t1.GetAttributes());
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.HasNullableReferenceTypeConstraint);
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t22.GetAttributes());
@@ -37165,7 +37280,7 @@ class B : A<int>
                 Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t2 = af2.TypeParameters[0];
-                Assert.True(t2.HasNullableReferenceTypeConstraint);
+                Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t2.GetAttributes());
@@ -37219,14 +37334,14 @@ class B : A<int>
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
                 Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.HasNullableReferenceTypeConstraint);
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(t11.GetAttributes());
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.HasNullableReferenceTypeConstraint);
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t22.GetAttributes());
@@ -37287,14 +37402,14 @@ class B : A<int>
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
                 Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.HasNullableReferenceTypeConstraint);
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(t11.GetAttributes());
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.HasNullableReferenceTypeConstraint);
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t22.GetAttributes());
@@ -37352,14 +37467,26 @@ class B : A<int>
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
                 Assert.Equal("void B.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.HasNullableReferenceTypeConstraint);
+
+                // PROTOTYPE(NullableReferenceTypes): It is probably wrong to have this difference between source symbol
+                //                                    and emitted-then-imported symbol. What are the rules for inheriting constraints
+                //                                    across different non-null contexts?
+                if (isSource)
+                {
+                    Assert.False(t11.ReferenceTypeConstraintIsNullable);
+                }
+                else
+                {
+                    Assert.Null(t11.ReferenceTypeConstraintIsNullable);
+                }
+
                 Assert.Empty(t11.GetAttributes());
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.HasNullableReferenceTypeConstraint);
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t22.GetAttributes());
@@ -37411,37 +37538,49 @@ class B : A<int>
             var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F1");
             Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t11 = bf1.TypeParameters[0];
-            Assert.False(t11.HasNullableReferenceTypeConstraint);
+            Assert.False(t11.ReferenceTypeConstraintIsNullable);
 
             var af1 = bf1.OverriddenMethod;
             Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = af1.TypeParameters[0];
-            Assert.False(t1.HasNullableReferenceTypeConstraint);
+            Assert.False(t1.ReferenceTypeConstraintIsNullable);
 
             var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F2");
             Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
             TypeParameterSymbol t22 = bf2.TypeParameters[0];
-            Assert.True(t22.HasNullableReferenceTypeConstraint);
+            Assert.True(t22.ReferenceTypeConstraintIsNullable);
 
             var af2 = bf2.OverriddenMethod;
             Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
             TypeParameterSymbol t2 = af2.TypeParameters[0];
-            Assert.True(t2.HasNullableReferenceTypeConstraint);
+            Assert.True(t2.ReferenceTypeConstraintIsNullable);
         }
 
         [Fact]
         public void Constraints_23()
         {
-            var source =
+            var source1 =
 @"
-interface IA
+public interface IA
 {
     void F1<T1>() where T1 : class?;
     void F2<T2>() where T2 : class;
+    void F3<T3>() where T3 : C1<C2>;
+    void F4<T4>() where T4 : C1<C2>;
+    void F5<T51, T52>() where T51 : class where T52 : C1<T51>;
+    void F6<T61, T62>() where T61 : class where T62 : C1<T61?>;
 }
 
+public class C1<T>
+{}
+
+public class C2
+{}
+";
+            var source2 =
+@"
 class B : IA
 {
     public void F1<T11>() where T11 : class
@@ -37451,14 +37590,74 @@ class B : IA
     public void F2<T22>() where T22 : class?
     {
     }
+
+    public void F3<T33>() where T33 : C1<C2?>
+    {
+    }
+
+    public void F4<T44>() where T44 : C1<C2>?
+    {
+    }
+
+    public void F5<T551, T552>() where T551 : class where T552 : C1<T551?>
+    {
+    }
+
+    public void F6<T661, T662>() where T661 : class where T662 : C1<T661>
+    {
+    }
+}
+
+class D : IA
+{
+    public void F1<T111>() where T111 : class?
+    {
+    }
+
+    public void F2<T222>() where T222 : class
+    {
+    }
+
+    public void F3<T333>() where T333 : C1<C2>
+    {
+    }
+
+    public void F4<T444>() where T444 : C1<C2>
+    {
+    }
+
+    public void F5<T5551, T5552>() where T5551 : class where T5552 : C1<T5551>
+    {
+    }
+
+    public void F6<T6661, T6662>() where T6661 : class where T6662 : C1<T6661?>
+    {
+    }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should probably warn on constraints mismatch for an implicit interface implementation.
-            comp.VerifyDiagnostics(
+            var comp1 = CreateCompilation(new[] { source2, source1, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp1.VerifyDiagnostics(
+                // (4,17): warning CS8633: Nullability in constraints for type parameter 'T11' of method 'B.F1<T11>()' doesn't match the constraints for type parameter 'T1' of interface method 'IA.F1<T1>()'. Consider using an explicit interface implementation instead.
+                //     public void F1<T11>() where T11 : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F1").WithArguments("T11", "B.F1<T11>()", "T1", "IA.F1<T1>()").WithLocation(4, 17),
+                // (8,17): warning CS8633: Nullability in constraints for type parameter 'T22' of method 'B.F2<T22>()' doesn't match the constraints for type parameter 'T2' of interface method 'IA.F2<T2>()'. Consider using an explicit interface implementation instead.
+                //     public void F2<T22>() where T22 : class?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F2").WithArguments("T22", "B.F2<T22>()", "T2", "IA.F2<T2>()").WithLocation(8, 17),
+                // (12,17): warning CS8633: Nullability in constraints for type parameter 'T33' of method 'B.F3<T33>()' doesn't match the constraints for type parameter 'T3' of interface method 'IA.F3<T3>()'. Consider using an explicit interface implementation instead.
+                //     public void F3<T33>() where T33 : C1<C2?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F3").WithArguments("T33", "B.F3<T33>()", "T3", "IA.F3<T3>()").WithLocation(12, 17),
+                // (16,17): warning CS8633: Nullability in constraints for type parameter 'T44' of method 'B.F4<T44>()' doesn't match the constraints for type parameter 'T4' of interface method 'IA.F4<T4>()'. Consider using an explicit interface implementation instead.
+                //     public void F4<T44>() where T44 : C1<C2>?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F4").WithArguments("T44", "B.F4<T44>()", "T4", "IA.F4<T4>()").WithLocation(16, 17),
+                // (20,17): warning CS8633: Nullability in constraints for type parameter 'T552' of method 'B.F5<T551, T552>()' doesn't match the constraints for type parameter 'T52' of interface method 'IA.F5<T51, T52>()'. Consider using an explicit interface implementation instead.
+                //     public void F5<T551, T552>() where T551 : class where T552 : C1<T551?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F5").WithArguments("T552", "B.F5<T551, T552>()", "T52", "IA.F5<T51, T52>()").WithLocation(20, 17),
+                // (24,17): warning CS8633: Nullability in constraints for type parameter 'T662' of method 'B.F6<T661, T662>()' doesn't match the constraints for type parameter 'T62' of interface method 'IA.F6<T61, T62>()'. Consider using an explicit interface implementation instead.
+                //     public void F6<T661, T662>() where T661 : class where T662 : C1<T661>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F6").WithArguments("T662", "B.F6<T661, T662>()", "T62", "IA.F6<T61, T62>()").WithLocation(24, 17)
             );
 
-            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
             void symbolValidator(ModuleSymbol m)
             {
                 bool isSource = !(m is PEModuleSymbol);
@@ -37466,14 +37665,14 @@ class B : IA
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
                 Assert.Equal("void B.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.HasNullableReferenceTypeConstraint);
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(t11.GetAttributes());
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.HasNullableReferenceTypeConstraint);
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t22.GetAttributes());
@@ -37482,7 +37681,51 @@ class B : IA
                 {
                     Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t22.GetAttributes().Single().ToString());
                 }
+
+                var bf3 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F3");
+                Assert.Equal("void B.F3<T33>() where T33 : C1<C2?>", bf3.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                var bf4 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F4");
+                Assert.Equal("void B.F4<T44>() where T44 : C1<C2>?", bf4.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             }
+
+            var comp2 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp2.VerifyDiagnostics(
+            );
+
+            var comp3 = CreateCompilation(new[] { source2 }, references: new[] { comp2.ToMetadataReference() });
+            comp3.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
+                // (8,17): warning CS8633: Nullability in constraints for type parameter 'T22' of method 'B.F2<T22>()' doesn't match the constraints for type parameter 'T2' of interface method 'IA.F2<T2>()'. Consider using an explicit interface implementation instead.
+                //     public void F2<T22>() where T22 : class?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F2").WithArguments("T22", "B.F2<T22>()", "T2", "IA.F2<T2>()").WithLocation(8, 17),
+                // (12,17): warning CS8633: Nullability in constraints for type parameter 'T33' of method 'B.F3<T33>()' doesn't match the constraints for type parameter 'T3' of interface method 'IA.F3<T3>()'. Consider using an explicit interface implementation instead.
+                //     public void F3<T33>() where T33 : C1<C2?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F3").WithArguments("T33", "B.F3<T33>()", "T3", "IA.F3<T3>()").WithLocation(12, 17),
+                // (16,17): warning CS8633: Nullability in constraints for type parameter 'T44' of method 'B.F4<T44>()' doesn't match the constraints for type parameter 'T4' of interface method 'IA.F4<T4>()'. Consider using an explicit interface implementation instead.
+                //     public void F4<T44>() where T44 : C1<C2>?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F4").WithArguments("T44", "B.F4<T44>()", "T4", "IA.F4<T4>()").WithLocation(16, 17),
+                // (20,17): warning CS8633: Nullability in constraints for type parameter 'T552' of method 'B.F5<T551, T552>()' doesn't match the constraints for type parameter 'T52' of interface method 'IA.F5<T51, T52>()'. Consider using an explicit interface implementation instead.
+                //     public void F5<T551, T552>() where T551 : class where T552 : C1<T551?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F5").WithArguments("T552", "B.F5<T551, T552>()", "T52", "IA.F5<T51, T52>()").WithLocation(20, 17),
+                // (20,66): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public void F5<T551, T552>() where T551 : class where T552 : C1<T551?>
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C1<T551?>").WithLocation(20, 66),
+                // (51,70): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public void F6<T6661, T6662>() where T6661 : class where T6662 : C1<T6661?>
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C1<T6661?>").WithLocation(51, 70)
+            );
+
+            var comp4 = CreateCompilation(new[] { source1 });
+
+            var comp5 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, references: new[] { comp4.ToMetadataReference() });
+            comp5.VerifyDiagnostics(
+                // (4,17): warning CS8633: Nullability in constraints for type parameter 'T11' of method 'B.F1<T11>()' doesn't match the constraints for type parameter 'T1' of interface method 'IA.F1<T1>()'. Consider using an explicit interface implementation instead.
+                //     public void F1<T11>() where T11 : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F1").WithArguments("T11", "B.F1<T11>()", "T1", "IA.F1<T1>()").WithLocation(4, 17),
+                // (24,17): warning CS8633: Nullability in constraints for type parameter 'T662' of method 'B.F6<T661, T662>()' doesn't match the constraints for type parameter 'T62' of interface method 'IA.F6<T61, T62>()'. Consider using an explicit interface implementation instead.
+                //     public void F6<T661, T662>() where T661 : class where T662 : C1<T661>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F6").WithArguments("T662", "B.F6<T661, T662>()", "T62", "IA.F6<T61, T62>()").WithLocation(24, 17)
+                );
         }
 
         [Fact]
@@ -37520,14 +37763,14 @@ class B : IA
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
                 Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.HasNullableReferenceTypeConstraint);
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(t11.GetAttributes());
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
                 Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.HasNullableReferenceTypeConstraint);
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t22.GetAttributes());
@@ -37577,14 +37820,14 @@ class B : IA
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
                 Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.HasNullableReferenceTypeConstraint);
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(t11.GetAttributes());
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
                 Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.HasNullableReferenceTypeConstraint);
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t22.GetAttributes());
@@ -37641,14 +37884,14 @@ class B : IA
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
                 Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.HasNullableReferenceTypeConstraint);
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(t11.GetAttributes());
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
                 Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.HasNullableReferenceTypeConstraint);
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t22.GetAttributes());
@@ -37701,14 +37944,26 @@ class B : IA
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
                 Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.HasNullableReferenceTypeConstraint);
+
+                // PROTOTYPE(NullableReferenceTypes): It is probably wrong to have this difference between source symbol
+                //                                    and emitted-then-imported symbol. What are the rules for inheriting constraints
+                //                                    across different non-null contexts?
+                if (isSource)
+                {
+                    Assert.False(t11.ReferenceTypeConstraintIsNullable);
+                }
+                else
+                {
+                    Assert.Null(t11.ReferenceTypeConstraintIsNullable);
+                }
+
                 Assert.Empty(t11.GetAttributes());
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
                 Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.HasNullableReferenceTypeConstraint);
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t22.GetAttributes());
@@ -37755,12 +38010,12 @@ class B : IA
             var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.IA.F1");
             Assert.Equal("void B.IA.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t11 = bf1.TypeParameters[0];
-            Assert.False(t11.HasNullableReferenceTypeConstraint);
+            Assert.False(t11.ReferenceTypeConstraintIsNullable);
 
             var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.IA.F2");
             Assert.Equal("void B.IA.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t22 = bf2.TypeParameters[0];
-            Assert.True(t22.HasNullableReferenceTypeConstraint);
+            Assert.True(t22.ReferenceTypeConstraintIsNullable);
         }
 
         [Fact]
@@ -37786,7 +38041,7 @@ class B
                 var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T2>() where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t2 = f2.TypeParameters[0];
-                Assert.True(t2.HasNullableReferenceTypeConstraint);
+                Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t2.GetAttributes());
@@ -37818,7 +38073,7 @@ class B<T2> where T2 : class?
                 var b = (NamedTypeSymbol)m.GlobalNamespace.GetMember("B");
                 Assert.Equal("B<T2> where T2 : class?", b.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t2 = b.TypeParameters[0];
-                Assert.True(t2.HasNullableReferenceTypeConstraint);
+                Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
                     Assert.Empty(t2.GetAttributes());
@@ -37861,8 +38116,884 @@ class B
             var f2 = (LocalFunctionSymbol)model.GetDeclaredSymbol(localSyntaxes[0]);
             Assert.Equal("void F2<T2>() where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
-            Assert.True(t2.HasNullableReferenceTypeConstraint);
+            Assert.True(t2.ReferenceTypeConstraintIsNullable);
             Assert.Empty(t2.GetAttributes());
+        }
+
+        [Fact]
+        public void Constraints_32()
+        {
+            var source =
+@"
+#pragma warning disable CS8321
+
+class B<T1> where T1 : struct?
+{
+    public static void F2<T2>(T2 t2) where T2 : struct?
+    {
+        void F3<T3>(T3 t3) where T3 : struct?
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+
+            var expected = new[] {
+                // (4,30): error CS1073: Unexpected token '?'
+                // class B<T1> where T1 : struct?
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(4, 30),
+                // (6,55): error CS1073: Unexpected token '?'
+                //     public static void F2<T2>(T2 t2) where T2 : struct?
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(6, 55),
+                // (8,45): error CS1073: Unexpected token '?'
+                //         void F3<T3>(T3 t3) where T3 : struct?
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(8, 45)
+            };
+
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(expected.Concat(new[] { 
+                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+            }).ToArray());
+        }
+
+        [Fact]
+        public void Constraints_33()
+        {
+            var source =
+@"
+interface IA<TA>
+{ }
+
+class C<TC> where TC : IA<object>, IA<object?>
+{ }
+
+class B<TB> where TB : IA<object?>, IA<object>
+{ }
+";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (5,36): error CS0405: Duplicate constraint 'IA<object>' for type parameter 'TC'
+                // class C<TC> where TC : IA<object>, IA<object?>
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "IA<object?>").WithArguments("IA<object>", "TC").WithLocation(5, 36),
+                // (8,37): error CS0405: Duplicate constraint 'IA<object>' for type parameter 'TB'
+                // class B<TB> where TB : IA<object?>, IA<object>
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "IA<object>").WithArguments("IA<object>", "TB").WithLocation(8, 37)
+            );
+        }
+
+        [Fact]
+        public void Constraints_34()
+        {
+            var source =
+@"
+interface IA<TA>
+{ }
+
+class B<TB> where TB : IA<object>?, IA<object>
+{ }
+
+class C<TC> where TC : IA<object>, IA<object>?
+{ }
+";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (5,37): error CS0405: Duplicate constraint 'IA<object>' for type parameter 'TB'
+                // class B<TB> where TB : IA<object>?, IA<object>
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "IA<object>").WithArguments("IA<object>", "TB").WithLocation(5, 37),
+                // (8,36): error CS0405: Duplicate constraint 'IA<object>' for type parameter 'TC'
+                // class C<TC> where TC : IA<object>, IA<object>?
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "IA<object>?").WithArguments("IA<object>", "TC").WithLocation(8, 36)
+            );
+        }
+
+        [Fact]
+        public void Constraints_35()
+        {
+            var source1 =
+@"
+public interface IA<S>
+{
+    void F1<T1>() where T1 : class?;
+    void F2<T2>() where T2 : class;
+    void F3<T3>() where T3 : C1<C2>;
+    void F4<T4>() where T4 : C1<C2>;
+    void F5<T51, T52>() where T51 : class where T52 : C1<T51>;
+    void F6<T61, T62>() where T61 : class where T62 : C1<T61?>;
+}
+
+public class C1<T>
+{}
+
+public class C2
+{}
+";
+            var source2 =
+@"
+class B : IA<string>
+{
+    public void F1<T11>() where T11 : class
+    {
+    }
+
+    public void F2<T22>() where T22 : class?
+    {
+    }
+
+    public void F3<T33>() where T33 : C1<C2?>
+    {
+    }
+
+    public void F4<T44>() where T44 : C1<C2>?
+    {
+    }
+
+    public void F5<T551, T552>() where T551 : class where T552 : C1<T551?>
+    {
+    }
+
+    public void F6<T661, T662>() where T661 : class where T662 : C1<T661>
+    {
+    }
+}
+
+class D : IA<string>
+{
+    public void F1<T111>() where T111 : class?
+    {
+    }
+
+    public void F2<T222>() where T222 : class
+    {
+    }
+
+    public void F3<T333>() where T333 : C1<C2>
+    {
+    }
+
+    public void F4<T444>() where T444 : C1<C2>
+    {
+    }
+
+    public void F5<T5551, T5552>() where T5551 : class where T5552 : C1<T5551>
+    {
+    }
+
+    public void F6<T6661, T6662>() where T6661 : class where T6662 : C1<T6661?>
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source2, source1, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp1.VerifyDiagnostics(
+                // (4,17): warning CS8633: Nullability in constraints for type parameter 'T11' of method 'B.F1<T11>()' doesn't match the constraints for type parameter 'T1' of interface method 'IA<string>.F1<T1>()'. Consider using an explicit interface implementation instead.
+                //     public void F1<T11>() where T11 : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F1").WithArguments("T11", "B.F1<T11>()", "T1", "IA<string>.F1<T1>()").WithLocation(4, 17),
+                // (8,17): warning CS8633: Nullability in constraints for type parameter 'T22' of method 'B.F2<T22>()' doesn't match the constraints for type parameter 'T2' of interface method 'IA<string>.F2<T2>()'. Consider using an explicit interface implementation instead.
+                //     public void F2<T22>() where T22 : class?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F2").WithArguments("T22", "B.F2<T22>()", "T2", "IA<string>.F2<T2>()").WithLocation(8, 17),
+                // (12,17): warning CS8633: Nullability in constraints for type parameter 'T33' of method 'B.F3<T33>()' doesn't match the constraints for type parameter 'T3' of interface method 'IA<string>.F3<T3>()'. Consider using an explicit interface implementation instead.
+                //     public void F3<T33>() where T33 : C1<C2?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F3").WithArguments("T33", "B.F3<T33>()", "T3", "IA<string>.F3<T3>()").WithLocation(12, 17),
+                // (16,17): warning CS8633: Nullability in constraints for type parameter 'T44' of method 'B.F4<T44>()' doesn't match the constraints for type parameter 'T4' of interface method 'IA<string>.F4<T4>()'. Consider using an explicit interface implementation instead.
+                //     public void F4<T44>() where T44 : C1<C2>?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F4").WithArguments("T44", "B.F4<T44>()", "T4", "IA<string>.F4<T4>()").WithLocation(16, 17),
+                // (20,17): warning CS8633: Nullability in constraints for type parameter 'T552' of method 'B.F5<T551, T552>()' doesn't match the constraints for type parameter 'T52' of interface method 'IA<string>.F5<T51, T52>()'. Consider using an explicit interface implementation instead.
+                //     public void F5<T551, T552>() where T551 : class where T552 : C1<T551?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F5").WithArguments("T552", "B.F5<T551, T552>()", "T52", "IA<string>.F5<T51, T52>()").WithLocation(20, 17),
+                // (24,17): warning CS8633: Nullability in constraints for type parameter 'T662' of method 'B.F6<T661, T662>()' doesn't match the constraints for type parameter 'T62' of interface method 'IA<string>.F6<T61, T62>()'. Consider using an explicit interface implementation instead.
+                //     public void F6<T661, T662>() where T661 : class where T662 : C1<T661>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F6").WithArguments("T662", "B.F6<T661, T662>()", "T62", "IA<string>.F6<T61, T62>()").WithLocation(24, 17)
+            );
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t11 = bf1.TypeParameters[0];
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
+                Assert.Empty(t11.GetAttributes());
+
+                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
+                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol t22 = bf2.TypeParameters[0];
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t22.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t22.GetAttributes().Single().ToString());
+                }
+
+                var bf3 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F3");
+                Assert.Equal("void B.F3<T33>() where T33 : C1<C2?>", bf3.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                var bf4 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F4");
+                Assert.Equal("void B.F4<T44>() where T44 : C1<C2>?", bf4.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            }
+
+            var comp2 = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp2.VerifyDiagnostics(
+            );
+
+            var comp3 = CreateCompilation(new[] { source2 }, references: new[] { comp2.ToMetadataReference() });
+            comp3.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
+                // (8,17): warning CS8633: Nullability in constraints for type parameter 'T22' of method 'B.F2<T22>()' doesn't match the constraints for type parameter 'T2' of interface method 'IA<string>.F2<T2>()'. Consider using an explicit interface implementation instead.
+                //     public void F2<T22>() where T22 : class?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F2").WithArguments("T22", "B.F2<T22>()", "T2", "IA<string>.F2<T2>()").WithLocation(8, 17),
+                // (12,17): warning CS8633: Nullability in constraints for type parameter 'T33' of method 'B.F3<T33>()' doesn't match the constraints for type parameter 'T3' of interface method 'IA<string>.F3<T3>()'. Consider using an explicit interface implementation instead.
+                //     public void F3<T33>() where T33 : C1<C2?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F3").WithArguments("T33", "B.F3<T33>()", "T3", "IA<string>.F3<T3>()").WithLocation(12, 17),
+                // (16,17): warning CS8633: Nullability in constraints for type parameter 'T44' of method 'B.F4<T44>()' doesn't match the constraints for type parameter 'T4' of interface method 'IA<string>.F4<T4>()'. Consider using an explicit interface implementation instead.
+                //     public void F4<T44>() where T44 : C1<C2>?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F4").WithArguments("T44", "B.F4<T44>()", "T4", "IA<string>.F4<T4>()").WithLocation(16, 17),
+                // (20,17): warning CS8633: Nullability in constraints for type parameter 'T552' of method 'B.F5<T551, T552>()' doesn't match the constraints for type parameter 'T52' of interface method 'IA<string>.F5<T51, T52>()'. Consider using an explicit interface implementation instead.
+                //     public void F5<T551, T552>() where T551 : class where T552 : C1<T551?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F5").WithArguments("T552", "B.F5<T551, T552>()", "T52", "IA<string>.F5<T51, T52>()").WithLocation(20, 17),
+                // (20,66): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public void F5<T551, T552>() where T551 : class where T552 : C1<T551?>
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C1<T551?>").WithLocation(20, 66),
+                // (51,70): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public void F6<T6661, T6662>() where T6661 : class where T6662 : C1<T6661?>
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "C1<T6661?>").WithLocation(51, 70)
+            );
+
+            var comp4 = CreateCompilation(new[] { source1 });
+
+            var comp5 = CreateCompilation(new[] { source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, references: new[] { comp4.ToMetadataReference() });
+            comp5.VerifyDiagnostics(
+                // (4,17): warning CS8633: Nullability in constraints for type parameter 'T11' of method 'B.F1<T11>()' doesn't match the constraints for type parameter 'T1' of interface method 'IA<string>.F1<T1>()'. Consider using an explicit interface implementation instead.
+                //     public void F1<T11>() where T11 : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F1").WithArguments("T11", "B.F1<T11>()", "T1", "IA<string>.F1<T1>()").WithLocation(4, 17),
+                // (24,17): warning CS8633: Nullability in constraints for type parameter 'T662' of method 'B.F6<T661, T662>()' doesn't match the constraints for type parameter 'T62' of interface method 'IA<string>.F6<T61, T62>()'. Consider using an explicit interface implementation instead.
+                //     public void F6<T661, T662>() where T661 : class where T662 : C1<T661>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F6").WithArguments("T662", "B.F6<T661, T662>()", "T62", "IA<string>.F6<T61, T62>()").WithLocation(24, 17)
+                );
+        }
+
+        [Fact]
+        public void Constraints_36()
+        {
+            var source =
+@"
+public interface IA
+{
+    void F1<T1>() where T1 : class?, IB, IC?;
+    void F2<T2>() where T2 : class, IB?, IC?;
+    void F3<T3>() where T3 : class?, IB?, IC;
+    void F4<T41, T42>() where T41 : class where T42 : T41?, IB, IC?;
+    void F5<T51, T52>() where T51 : class where T52 : T51, IB?, IC?;
+    void F6<T61, T62>() where T61 : class where T62 : T61?, IB?, IC;
+    void F7<T71, T72>() where T71 : class? where T72 : T71, IB, IC?;
+    void F8<T81, T82>() where T81 : class where T82 : T81, IB?, IC?;
+    void F9<T91, T92>() where T91 : class? where T92 : T91, IB?, IC;
+}
+
+public interface IB
+{}
+
+public interface IC
+{}
+
+class B : IA
+{
+    public void F1<T11>() where T11 : class, IB, IC 
+    {
+    }
+
+    public void F2<T22>() where T22 : class, IB, IC
+    {
+    }
+
+    public void F3<T33>() where T33 : class, IB, IC
+    {
+    }
+
+    public void F4<T441, T442>() where T441 : class where T442 : T441, IB, IC
+    {
+    }
+
+    public void F5<T551, T552>() where T551 : class where T552 : T551, IB, IC
+    {
+    }
+
+    public void F6<T661, T662>() where T661 : class where T662 : T661, IB, IC
+    {
+    }
+
+    public void F7<T771, T772>() where T771 : class where T772 : T771, IB, IC
+    {
+    }
+
+    public void F8<T881, T882>() where T881 : class where T882 : T881, IB, IC
+    {
+    }
+
+    public void F9<T991, T992>() where T991 : class where T992 : T991, IB, IC
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp1.VerifyDiagnostics(
+                // (55,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
+                //     public void F9<T991, T992>() where T991 : class where T992 : T991, IB, IC
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F9").WithArguments("T991", "B.F9<T991, T992>()", "T91", "IA.F9<T91, T92>()").WithLocation(55, 17),
+                // (47,17): warning CS8633: Nullability in constraints for type parameter 'T771' of method 'B.F7<T771, T772>()' doesn't match the constraints for type parameter 'T71' of interface method 'IA.F7<T71, T72>()'. Consider using an explicit interface implementation instead.
+                //     public void F7<T771, T772>() where T771 : class where T772 : T771, IB, IC
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F7").WithArguments("T771", "B.F7<T771, T772>()", "T71", "IA.F7<T71, T72>()").WithLocation(47, 17)
+            );
+        }
+
+        [Fact]
+        public void Constraints_37()
+        {
+            var source =
+@"
+public interface IA
+{
+    void F1<T1>() where T1 : class, IB, IC;
+    void F2<T2>() where T2 : class, IB, IC;
+    void F3<T3>() where T3 : class, IB, IC;
+    void F4<T41, T42>() where T41 : class where T42 : T41, IB, IC;
+    void F5<T51, T52>() where T51 : class where T52 : T51, IB, IC;
+    void F6<T61, T62>() where T61 : class where T62 : T61, IB, IC;
+    void F7<T71, T72>() where T71 : class where T72 : T71, IB, IC;
+    void F8<T81, T82>() where T81 : class where T82 : T81, IB, IC;
+    void F9<T91, T92>() where T91 : class where T92 : T91, IB, IC;
+}
+
+public interface IB
+{}
+
+public interface IC
+{}
+
+class B : IA
+{
+    public void F1<T11>() where T11 : class?, IB, IC? 
+    {
+    }
+
+    public void F2<T22>() where T22 : class, IB?, IC?
+    {
+    }
+
+    public void F3<T33>() where T33 : class?, IB?, IC
+    {
+    }
+
+    public void F4<T441, T442>() where T441 : class where T442 : T441?, IB, IC?
+    {
+    }
+
+    public void F5<T551, T552>() where T551 : class where T552 : T551, IB?, IC?
+    {
+    }
+
+    public void F6<T661, T662>() where T661 : class where T662 : T661?, IB?, IC
+    {
+    }
+
+    public void F7<T771, T772>() where T771 : class? where T772 : T771, IB, IC?
+    {
+    }
+
+    public void F8<T881, T882>() where T881 : class where T882 : T881, IB?, IC?
+    {
+    }
+
+    public void F9<T991, T992>() where T991 : class? where T992 : T991, IB?, IC
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp1.VerifyDiagnostics(
+                // (55,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
+                //     public void F9<T991, T992>() where T991 : class? where T992 : T991, IB?, IC
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F9").WithArguments("T991", "B.F9<T991, T992>()", "T91", "IA.F9<T91, T92>()").WithLocation(55, 17),
+                // (47,17): warning CS8633: Nullability in constraints for type parameter 'T771' of method 'B.F7<T771, T772>()' doesn't match the constraints for type parameter 'T71' of interface method 'IA.F7<T71, T72>()'. Consider using an explicit interface implementation instead.
+                //     public void F7<T771, T772>() where T771 : class? where T772 : T771, IB, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F7").WithArguments("T771", "B.F7<T771, T772>()", "T71", "IA.F7<T71, T72>()").WithLocation(47, 17)
+            );
+        }
+
+        [Fact]
+        public void Constraints_38()
+        {
+            var source =
+@"
+public interface IA
+{
+    void F1<T1>() where T1 : ID?, IB, IC?;
+    void F2<T2>() where T2 : ID, IB?, IC?;
+    void F3<T3>() where T3 : ID?, IB?, IC;
+    void F4<T41, T42>() where T41 : ID where T42 : T41?, IB, IC?;
+    void F5<T51, T52>() where T51 : ID where T52 : T51, IB?, IC?;
+    void F6<T61, T62>() where T61 : ID where T62 : T61?, IB?, IC;
+    void F7<T71, T72>() where T71 : ID? where T72 : T71, IB, IC?;
+    void F8<T81, T82>() where T81 : ID where T82 : T81, IB?, IC?;
+    void F9<T91, T92>() where T91 : ID? where T92 : T91, IB?, IC;
+}
+
+public interface IB
+{}
+
+public interface IC
+{}
+
+public interface ID
+{}
+
+class B : IA
+{
+    public void F1<T11>() where T11 : ID, IB, IC 
+    {
+    }
+
+    public void F2<T22>() where T22 : ID, IB, IC
+    {
+    }
+
+    public void F3<T33>() where T33 : ID, IB, IC
+    {
+    }
+
+    public void F4<T441, T442>() where T441 : ID where T442 : T441, IB, IC
+    {
+    }
+
+    public void F5<T551, T552>() where T551 : ID where T552 : T551, IB, IC
+    {
+    }
+
+    public void F6<T661, T662>() where T661 : ID where T662 : T661, IB, IC
+    {
+    }
+
+    public void F7<T771, T772>() where T771 : ID where T772 : T771, IB, IC
+    {
+    }
+
+    public void F8<T881, T882>() where T881 : ID where T882 : T881, IB, IC
+    {
+    }
+
+    public void F9<T991, T992>() where T991 : ID where T992 : T991, IB, IC
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp1.VerifyDiagnostics(
+                // (7,52): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     void F4<T41, T42>() where T41 : ID where T42 : T41?, IB, IC?;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T41?").WithLocation(7, 52),
+                // (9,52): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     void F6<T61, T62>() where T61 : ID where T62 : T61?, IB?, IC;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T61?").WithLocation(9, 52),
+                // (58,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
+                //     public void F9<T991, T992>() where T991 : ID where T992 : T991, IB, IC
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F9").WithArguments("T991", "B.F9<T991, T992>()", "T91", "IA.F9<T91, T92>()").WithLocation(58, 17),
+                // (50,17): warning CS8633: Nullability in constraints for type parameter 'T771' of method 'B.F7<T771, T772>()' doesn't match the constraints for type parameter 'T71' of interface method 'IA.F7<T71, T72>()'. Consider using an explicit interface implementation instead.
+                //     public void F7<T771, T772>() where T771 : ID where T772 : T771, IB, IC
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F7").WithArguments("T771", "B.F7<T771, T772>()", "T71", "IA.F7<T71, T72>()").WithLocation(50, 17)
+            );
+        }
+
+        [Fact]
+        public void Constraints_39()
+        {
+            var source =
+@"
+public interface IA
+{
+    void F1<T1>() where T1 : ID, IB, IC;
+    void F2<T2>() where T2 : ID, IB, IC;
+    void F3<T3>() where T3 : ID, IB, IC;
+    void F4<T41, T42>() where T41 : ID where T42 : T41, IB, IC;
+    void F5<T51, T52>() where T51 : ID where T52 : T51, IB, IC;
+    void F6<T61, T62>() where T61 : ID where T62 : T61, IB, IC;
+    void F7<T71, T72>() where T71 : ID where T72 : T71, IB, IC;
+    void F8<T81, T82>() where T81 : ID where T82 : T81, IB, IC;
+    void F9<T91, T92>() where T91 : ID where T92 : T91, IB, IC;
+}
+
+public interface IB
+{}
+
+public interface IC
+{}
+
+public interface ID
+{}
+
+class B : IA
+{
+    public void F1<T11>() where T11 : ID?, IB, IC? 
+    {
+    }
+
+    public void F2<T22>() where T22 : ID, IB?, IC?
+    {
+    }
+
+    public void F3<T33>() where T33 : ID?, IB?, IC
+    {
+    }
+
+    public void F4<T441, T442>() where T441 : ID where T442 : T441?, IB, IC?
+    {
+    }
+
+    public void F5<T551, T552>() where T551 : ID where T552 : T551, IB?, IC?
+    {
+    }
+
+    public void F6<T661, T662>() where T661 : ID where T662 : T661?, IB?, IC
+    {
+    }
+
+    public void F7<T771, T772>() where T771 : ID? where T772 : T771, IB, IC?
+    {
+    }
+
+    public void F8<T881, T882>() where T881 : ID where T882 : T881, IB?, IC?
+    {
+    }
+
+    public void F9<T991, T992>() where T991 : ID? where T992 : T991, IB?, IC
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp1.VerifyDiagnostics(
+                // (38,63): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public void F4<T441, T442>() where T441 : ID where T442 : T441?, IB, IC?
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T441?").WithLocation(38, 63),
+                // (46,63): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public void F6<T661, T662>() where T661 : ID where T662 : T661?, IB?, IC
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T661?").WithLocation(46, 63),
+                // (58,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
+                //     public void F9<T991, T992>() where T991 : ID? where T992 : T991, IB?, IC
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F9").WithArguments("T991", "B.F9<T991, T992>()", "T91", "IA.F9<T91, T92>()").WithLocation(58, 17),
+                // (50,17): warning CS8633: Nullability in constraints for type parameter 'T771' of method 'B.F7<T771, T772>()' doesn't match the constraints for type parameter 'T71' of interface method 'IA.F7<T71, T72>()'. Consider using an explicit interface implementation instead.
+                //     public void F7<T771, T772>() where T771 : ID? where T772 : T771, IB, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F7").WithArguments("T771", "B.F7<T771, T772>()", "T71", "IA.F7<T71, T72>()").WithLocation(50, 17)
+            );
+        }
+
+        [Fact]
+        public void Constraints_40()
+        {
+            var source =
+@"
+public interface IA
+{
+    void F1<T1>() where T1 : D?, IB, IC?;
+    void F2<T2>() where T2 : D, IB?, IC?;
+    void F3<T3>() where T3 : D?, IB?, IC;
+    void F4<T41, T42>() where T41 : D where T42 : T41?, IB, IC?;
+    void F5<T51, T52>() where T51 : D where T52 : T51, IB?, IC?;
+    void F6<T61, T62>() where T61 : D where T62 : T61?, IB?, IC;
+    void F7<T71, T72>() where T71 : D? where T72 : T71, IB, IC?;
+    void F8<T81, T82>() where T81 : D where T82 : T81, IB?, IC?;
+    void F9<T91, T92>() where T91 : D? where T92 : T91, IB?, IC;
+}
+
+public interface IB
+{}
+
+public interface IC
+{}
+
+public class D
+{}
+
+class B : IA
+{
+    public void F1<T11>() where T11 : D, IB, IC 
+    {
+    }
+
+    public void F2<T22>() where T22 : D, IB, IC
+    {
+    }
+
+    public void F3<T33>() where T33 : D, IB, IC
+    {
+    }
+
+    public void F4<T441, T442>() where T441 : D where T442 : T441, IB, IC
+    {
+    }
+
+    public void F5<T551, T552>() where T551 : D where T552 : T551, IB, IC
+    {
+    }
+
+    public void F6<T661, T662>() where T661 : D where T662 : T661, IB, IC
+    {
+    }
+
+    public void F7<T771, T772>() where T771 : D where T772 : T771, IB, IC
+    {
+    }
+
+    public void F8<T881, T882>() where T881 : D where T882 : T881, IB, IC
+    {
+    }
+
+    public void F9<T991, T992>() where T991 : D where T992 : T991, IB, IC
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp1.VerifyDiagnostics(
+                // (58,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
+                //     public void F9<T991, T992>() where T991 : D where T992 : T991, IB, IC
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F9").WithArguments("T991", "B.F9<T991, T992>()", "T91", "IA.F9<T91, T92>()").WithLocation(58, 17),
+                // (50,17): warning CS8633: Nullability in constraints for type parameter 'T771' of method 'B.F7<T771, T772>()' doesn't match the constraints for type parameter 'T71' of interface method 'IA.F7<T71, T72>()'. Consider using an explicit interface implementation instead.
+                //     public void F7<T771, T772>() where T771 : D where T772 : T771, IB, IC
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F7").WithArguments("T771", "B.F7<T771, T772>()", "T71", "IA.F7<T71, T72>()").WithLocation(50, 17)
+            );
+        }
+
+        [Fact]
+        public void Constraints_41()
+        {
+            var source =
+@"
+public interface IA
+{
+    void F1<T1>() where T1 : D, IB, IC;
+    void F2<T2>() where T2 : D, IB, IC;
+    void F3<T3>() where T3 : D, IB, IC;
+    void F4<T41, T42>() where T41 : D where T42 : T41, IB, IC;
+    void F5<T51, T52>() where T51 : D where T52 : T51, IB, IC;
+    void F6<T61, T62>() where T61 : D where T62 : T61, IB, IC;
+    void F7<T71, T72>() where T71 : D where T72 : T71, IB, IC;
+    void F8<T81, T82>() where T81 : D where T82 : T81, IB, IC;
+    void F9<T91, T92>() where T91 : D where T92 : T91, IB, IC;
+}
+
+public interface IB
+{}
+
+public interface IC
+{}
+
+public class D
+{}
+
+class B : IA
+{
+    public void F1<T11>() where T11 : D?, IB, IC? 
+    {
+    }
+
+    public void F2<T22>() where T22 : D, IB?, IC?
+    {
+    }
+
+    public void F3<T33>() where T33 : D?, IB?, IC
+    {
+    }
+
+    public void F4<T441, T442>() where T441 : D where T442 : T441?, IB, IC?
+    {
+    }
+
+    public void F5<T551, T552>() where T551 : D where T552 : T551, IB?, IC?
+    {
+    }
+
+    public void F6<T661, T662>() where T661 : D where T662 : T661?, IB?, IC
+    {
+    }
+
+    public void F7<T771, T772>() where T771 : D? where T772 : T771, IB, IC?
+    {
+    }
+
+    public void F8<T881, T882>() where T881 : D where T882 : T881, IB?, IC?
+    {
+    }
+
+    public void F9<T991, T992>() where T991 : D? where T992 : T991, IB?, IC
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp1.VerifyDiagnostics(
+                // (58,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
+                //     public void F9<T991, T992>() where T991 : D? where T992 : T991, IB?, IC
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F9").WithArguments("T991", "B.F9<T991, T992>()", "T91", "IA.F9<T91, T92>()").WithLocation(58, 17),
+                // (50,17): warning CS8633: Nullability in constraints for type parameter 'T771' of method 'B.F7<T771, T772>()' doesn't match the constraints for type parameter 'T71' of interface method 'IA.F7<T71, T72>()'. Consider using an explicit interface implementation instead.
+                //     public void F7<T771, T772>() where T771 : D? where T772 : T771, IB, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F7").WithArguments("T771", "B.F7<T771, T772>()", "T71", "IA.F7<T71, T72>()").WithLocation(50, 17)
+            );
+        }
+
+        [Fact]
+        public void Constraints_42()
+        {
+            var source =
+@"
+public interface IA
+{
+    void F1<T1>() where T1 : class?, IB?, IC?;
+    void F2<T2>() where T2 : class?, IB?, IC?;
+    void F3<T3>() where T3 : class?, IB?, IC?;
+    void F4<T41, T42>() where T41 : class? where T42 : T41, IB?, IC?;
+    void F5<T51, T52>() where T51 : class? where T52 : T51, IB?, IC?;
+    void F6<T61, T62>() where T61 : class? where T62 : T61, IB?, IC?;
+    void F7<T71, T72>() where T71 : class where T72 : T71?, IB?, IC?;
+    void F8<T81, T82>() where T81 : class where T82 : T81?, IB?, IC?;
+    void F9<T91, T92>() where T91 : class where T92 : T91?, IB?, IC?;
+}
+
+public interface IB
+{}
+
+public interface IC
+{}
+
+class B : IA
+{
+    public void F1<T11>() where T11 : class?, IB?, IC? 
+    {
+    }
+
+    public void F2<T22>() where T22 : class?, IB?, IC?
+    {
+    }
+
+    public void F3<T33>() where T33 : class?, IB?, IC?
+    {
+    }
+
+    public void F4<T441, T442>() where T441 : class where T442 : T441?, IB?, IC?
+    {
+    }
+
+    public void F5<T551, T552>() where T551 : class where T552 : T551?, IB?, IC?
+    {
+    }
+
+    public void F6<T661, T662>() where T661 : class where T662 : T661?, IB?, IC?
+    {
+    }
+
+    public void F7<T771, T772>() where T771 : class? where T772 : T771, IB?, IC?
+    {
+    }
+
+    public void F8<T881, T882>() where T881 : class? where T882 : T881, IB?, IC?
+    {
+    }
+
+    public void F9<T991, T992>() where T991 : class? where T992 : T991, IB?, IC?
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp1.VerifyDiagnostics(
+                // (55,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
+                //     public void F9<T991, T992>() where T991 : class? where T992 : T991, IB?, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F9").WithArguments("T991", "B.F9<T991, T992>()", "T91", "IA.F9<T91, T92>()").WithLocation(55, 17),
+                // (35,17): warning CS8633: Nullability in constraints for type parameter 'T441' of method 'B.F4<T441, T442>()' doesn't match the constraints for type parameter 'T41' of interface method 'IA.F4<T41, T42>()'. Consider using an explicit interface implementation instead.
+                //     public void F4<T441, T442>() where T441 : class where T442 : T441?, IB?, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F4").WithArguments("T441", "B.F4<T441, T442>()", "T41", "IA.F4<T41, T42>()").WithLocation(35, 17),
+                // (39,17): warning CS8633: Nullability in constraints for type parameter 'T551' of method 'B.F5<T551, T552>()' doesn't match the constraints for type parameter 'T51' of interface method 'IA.F5<T51, T52>()'. Consider using an explicit interface implementation instead.
+                //     public void F5<T551, T552>() where T551 : class where T552 : T551?, IB?, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F5").WithArguments("T551", "B.F5<T551, T552>()", "T51", "IA.F5<T51, T52>()").WithLocation(39, 17),
+                // (43,17): warning CS8633: Nullability in constraints for type parameter 'T661' of method 'B.F6<T661, T662>()' doesn't match the constraints for type parameter 'T61' of interface method 'IA.F6<T61, T62>()'. Consider using an explicit interface implementation instead.
+                //     public void F6<T661, T662>() where T661 : class where T662 : T661?, IB?, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F6").WithArguments("T661", "B.F6<T661, T662>()", "T61", "IA.F6<T61, T62>()").WithLocation(43, 17),
+                // (47,17): warning CS8633: Nullability in constraints for type parameter 'T771' of method 'B.F7<T771, T772>()' doesn't match the constraints for type parameter 'T71' of interface method 'IA.F7<T71, T72>()'. Consider using an explicit interface implementation instead.
+                //     public void F7<T771, T772>() where T771 : class? where T772 : T771, IB?, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F7").WithArguments("T771", "B.F7<T771, T772>()", "T71", "IA.F7<T71, T72>()").WithLocation(47, 17),
+                // (51,17): warning CS8633: Nullability in constraints for type parameter 'T881' of method 'B.F8<T881, T882>()' doesn't match the constraints for type parameter 'T81' of interface method 'IA.F8<T81, T82>()'. Consider using an explicit interface implementation instead.
+                //     public void F8<T881, T882>() where T881 : class? where T882 : T881, IB?, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F8").WithArguments("T881", "B.F8<T881, T882>()", "T81", "IA.F8<T81, T82>()").WithLocation(51, 17)
+            );
+        }
+
+        [Fact]
+        public void Constraints_43()
+        {
+            var source =
+@"
+public interface IA
+{
+    void F7<T71, T72>() where T71 : class where T72 : T71?, IB?, IC?;
+    void F8<T81, T82>() where T81 : class where T82 : T81?, IB?, IC?;
+    void F9<T91, T92>() where T91 : class where T92 : T91?, IB?, IC?;
+}
+
+public interface IB
+{}
+
+public interface IC
+{}
+
+class B : IA
+{
+    public void F7<T771, T772>() where T771 : class? where T772 : T771?, IB?, IC?
+    {
+    }
+
+    public void F8<T881, T882>() where T881 : class? where T882 : T881?, IB?, IC?
+    {
+    }
+
+    public void F9<T991, T992>() where T991 : class? where T992 : T991?, IB?, IC?
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp1.VerifyDiagnostics(
+                // (25,67): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public void F9<T991, T992>() where T991 : class? where T992 : T991?, IB?, IC?
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T991?").WithLocation(25, 67),
+                // (21,67): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public void F8<T881, T882>() where T881 : class? where T882 : T881?, IB?, IC?
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T881?").WithLocation(21, 67),
+                // (17,67): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public void F7<T771, T772>() where T771 : class? where T772 : T771?, IB?, IC?
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T771?").WithLocation(17, 67),
+                // (25,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
+                //     public void F9<T991, T992>() where T991 : class? where T992 : T991?, IB?, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F9").WithArguments("T991", "B.F9<T991, T992>()", "T91", "IA.F9<T91, T92>()").WithLocation(25, 17),
+                // (21,17): warning CS8633: Nullability in constraints for type parameter 'T881' of method 'B.F8<T881, T882>()' doesn't match the constraints for type parameter 'T81' of interface method 'IA.F8<T81, T82>()'. Consider using an explicit interface implementation instead.
+                //     public void F8<T881, T882>() where T881 : class? where T882 : T881?, IB?, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F8").WithArguments("T881", "B.F8<T881, T882>()", "T81", "IA.F8<T81, T82>()").WithLocation(21, 17),
+                // (17,17): warning CS8633: Nullability in constraints for type parameter 'T771' of method 'B.F7<T771, T772>()' doesn't match the constraints for type parameter 'T71' of interface method 'IA.F7<T71, T72>()'. Consider using an explicit interface implementation instead.
+                //     public void F7<T771, T772>() where T771 : class? where T772 : T771?, IB?, IC?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraints, "F7").WithArguments("T771", "B.F7<T771, T772>()", "T71", "IA.F7<T71, T72>()").WithLocation(17, 17)
+            );
         }
 
         // PROTOTYPE(NullableReferenceTypes): Should report CS8600 for `T1 t = (T1)NullableObject();`
@@ -39304,8 +40435,6 @@ class B4<T> : A<T?, T?>, I<T?, T?>
     where U : T?
 {
 }";
-            var comp = CreateCompilation(source0);
-            var ref0 = comp.EmitToImageReference();
             var source1 =
 @"class Program
 {
@@ -39318,7 +40447,27 @@ class B4<T> : A<T?, T?>, I<T?, T?>
         o = new C<object, object>(); // 4
     }
 }";
+
+            var comp = CreateCompilation(source0);
+
+            comp.VerifyDiagnostics(
+                // (3,15): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     where U : T?
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(3, 15),
+                // (3,15): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     where U : T?
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(3, 15)
+                );
+
+            MetadataReference ref0 = comp.ToMetadataReference();
+
             comp = CreateCompilation(new[] { source1, NonNullTypesTrue, NonNullTypesAttributesDefinition }, new[] { ref0 });
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source0, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            ref0 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(new[] { source1, NonNullTypesTrue }, new[] { ref0 });
             // PROTOTYPE(NullableReferenceTypes): TypeSymbolExtensions.GetTypeRefWithAttributes
             // drops the top-level nullability when emitting the `T?` constraint. See also
             // AttributeTests_Nullable.EmitAttribute_Constraint_03.
@@ -39885,11 +41034,22 @@ public abstract class A<T> where T : class
                 // (6,66): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(6, 66),
+                // (6,66): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(6, 66),
                 // (6,70): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "I<T?>").WithLocation(6, 70)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "I<T?>").WithLocation(6, 70),
+                // (6,70): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "I<T?>").WithLocation(6, 70),
+                // (8,65): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     [NonNullTypes(true)] public abstract void F4<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 65),
+                // (8,69): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     [NonNullTypes(true)] public abstract void F4<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "I<T?>").WithLocation(8, 69)
                 );
-            var ref0 = comp0.EmitToImageReference();
 
             var source =
 @"using System.Runtime.CompilerServices;
@@ -39926,6 +41086,23 @@ class B4 : A<string?>
     public override void F4<U>() { }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { new CSharpCompilationReference(comp0) });
+            comp.VerifyDiagnostics(
+                // (11,7): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // class B2 : A<string?>
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "B2").WithLocation(11, 7));
+            verifyAllConstraintTypes();
+
+            comp0 = CreateCompilation(new[] { source0, NonNullTypesAttributesDefinition, NonNullTypesTrue });
+            comp0.VerifyDiagnostics(
+                // (6,66): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "T?").WithLocation(6, 66),
+                // (6,70): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "I<T?>").WithLocation(6, 70)
+                );
+
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { new CSharpCompilationReference(comp0) });
             comp.VerifyDiagnostics(
                 // (11,7): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 // class B2 : A<string?>
@@ -40003,10 +41180,22 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition });
+
+            // PROTOTYPE(NullableReferenceTypes): Missing WRN_MissingNonNullTypesContextForAnnotation for '?' in constraints
+            // (18,98): 
+            //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
+            // (27,98):
+            //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
             comp.VerifyDiagnostics(
+                // (18,98): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(18, 98),
                 // (20,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //             T? x = t; // warn 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 14),
+                // (27,98): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(27, 98),
                 // (29,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //             T? x = t; // warn 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(29, 14),
@@ -40275,14 +41464,20 @@ class B2<T> where T : A2<T?, T> { } // 2
 [NonNullTypes] class B3<T> where T : A1<T, T?> { }
 [NonNullTypes] class B4<T> where T : A2<T?, T> { }";
             var comp = CreateCompilation(new[] { source }, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report warnings for each.
+
             comp.VerifyDiagnostics(
                 // (2,23): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 // class B1<T> where T : A1<T, T?> { } // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "A1<T, T?>").WithLocation(2, 23),
+                // (2,23): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // class B1<T> where T : A1<T, T?> { } // 1
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "A1<T, T?>").WithLocation(2, 23),
                 // (3,23): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 // class B2<T> where T : A2<T?, T> { } // 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "A2<T?, T>").WithLocation(3, 23)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "A2<T?, T>").WithLocation(3, 23),
+                // (3,23): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // class B2<T> where T : A2<T?, T> { } // 2
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "A2<T?, T>").WithLocation(3, 23)
                 );
         }
 
@@ -40569,13 +41764,13 @@ class Program
         [WorkItem(29041, "https://github.com/dotnet/roslyn/issues/29041")]
         [WorkItem(29048, "https://github.com/dotnet/roslyn/issues/29048")]
         [Fact]
-        public void ConstraintCyclesFromMetadata()
+        public void ConstraintCyclesFromMetadata_01()
         {
             var source0 =
 @"using System;
 public class A0<T> where T : IEquatable<T> { }
 public class A1<T> where T : class, IEquatable<T> { }
-public class A2<T> where T : class, IEquatable<T?> { }
+
 public class A3<T> where T : struct, IEquatable<T> { }
 public class A4<T> where T : struct, IEquatable<T?> { }
 public class A5<T> where T : IEquatable<string?> { }
@@ -40587,8 +41782,8 @@ public class A6<T> where T : IEquatable<int?> { }";
     {
         new A0<string?>(); // 1
         new A0<string>();
-        new A2<string?>(); // 2
-        new A2<string>(); // 3
+
+
         new A5<string?>(); // 4
         new A5<string>(); // 5
     }
@@ -40597,21 +41792,17 @@ public class A6<T> where T : IEquatable<int?> { }";
             var comp0 = CreateCompilation(source0);
             var ref0 = comp0.EmitToImageReference();
             var comp = CreateCompilation(source, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A0<string?>() and A2<string>().
+            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A0<string?>().
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         new A0<string?>(); // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
-                // (7,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A2<string?>(); // 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 22),
                 // (9,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         new A5<string?>(); // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22)
                 );
             verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
-            verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
             verifyTypeParameterConstraint("A3", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A4", "System.IEquatable<T?>");
             verifyTypeParameterConstraint("A5", "System.IEquatable<System.String?>");
@@ -40626,16 +41817,12 @@ public class A6<T> where T : IEquatable<int?> { }";
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         new A0<string?>(); // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
-                // (7,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A2<string?>(); // 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 22),
                 // (9,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         new A5<string?>(); // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22)
                 );
             verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
-            verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
             verifyTypeParameterConstraint("A3", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A4", "System.IEquatable<T?>");
             verifyTypeParameterConstraint("A5", "System.IEquatable<System.String?>");
@@ -40645,14 +41832,11 @@ public class A6<T> where T : IEquatable<int?> { }";
             comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             ref0 = comp0.EmitToImageReference();
             comp = CreateCompilation(source, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A0<string?>() and A2<string>().
+            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A0<string?>().
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         new A0<string?>(); // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
-                // (7,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A2<string?>(); // 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 22),
                 // (9,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         new A5<string?>(); // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22),
@@ -40662,11 +41846,89 @@ public class A6<T> where T : IEquatable<int?> { }";
                 );
             verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
-            verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
             verifyTypeParameterConstraint("A3", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A4", "System.IEquatable<T?>");
             verifyTypeParameterConstraint("A5", "System.IEquatable<System.String?>");
             verifyTypeParameterConstraint("A6", "System.IEquatable<System.Int32?>");
+
+            void verifyTypeParameterConstraint(string typeName, string expected)
+            {
+                var type = comp.GetMember<NamedTypeSymbol>(typeName);
+                var constraintType = type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0];
+                Assert.Equal(expected, constraintType.ToTestDisplayString());
+            }
+        }
+
+        [WorkItem(29041, "https://github.com/dotnet/roslyn/issues/29041")]
+        [WorkItem(29048, "https://github.com/dotnet/roslyn/issues/29048")]
+        [Fact]
+        public void ConstraintCyclesFromMetadata_02()
+        {
+            var source0 =
+@"using System;
+public class A2<T> where T : class, IEquatable<T?> { }
+";
+            var source =
+@"class B
+{
+    static void Main()
+    {
+        new A2<string?>(); // 2
+        new A2<string>(); // 3
+    }
+}";
+            // No [NullNullTypes]
+            var comp0 = CreateCompilation(source0);
+            comp0.VerifyDiagnostics(
+                // (2,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // public class A2<T> where T : class, IEquatable<T?> { }
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "IEquatable<T?>").WithLocation(2, 37),
+                // (2,37): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // public class A2<T> where T : class, IEquatable<T?> { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "IEquatable<T?>").WithLocation(2, 37)
+                );
+
+            MetadataReference ref0 = comp0.ToMetadataReference();
+            var comp = CreateCompilation(source, references: new[] { ref0 });
+            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A2<string>().
+            comp.VerifyDiagnostics(
+                // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A2<string?>(); // 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22)
+                );
+            verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
+
+            // [NullNullTypes(false)]
+            comp0 = CreateCompilation(new[] { source0, NonNullTypesFalse, NonNullTypesAttributesDefinition });
+            comp0.VerifyDiagnostics(
+                // (2,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // public class A2<T> where T : class, IEquatable<T?> { }
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "IEquatable<T?>").WithLocation(2, 37),
+                // (2,37): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // public class A2<T> where T : class, IEquatable<T?> { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "IEquatable<T?>").WithLocation(2, 37)
+                );
+            ref0 = comp0.ToMetadataReference();
+            comp = CreateCompilation(source, references: new[] { ref0 });
+            // PROTOTYPE(NullableReferenceTypes): Should report same warnings as other two cases.
+            comp.VerifyDiagnostics(
+                // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A2<string?>(); // 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22)
+                );
+            verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
+
+            // [NullNullTypes(true)]
+            comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            ref0 = comp0.EmitToImageReference();
+            comp = CreateCompilation(source, references: new[] { ref0 });
+            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A2<string>().
+            comp.VerifyDiagnostics(
+                // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //         new A2<string?>(); // 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22)
+                );
+            verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
 
             void verifyTypeParameterConstraint(string typeName, string expected)
             {

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(underlyingMethod.ConstructedFrom == (object)underlyingMethod);
             _containingType = container;
 
-            TypeMap.Empty.WithAlphaRename(underlyingMethod, this, nonNullTypesContext: this, out _typeParameters);
+            TypeMap.Empty.WithAlphaRename(underlyingMethod, this, nonNullTypesContext: underlyingMethod.OriginalDefinition, out _typeParameters);
             _underlyingMethod = underlyingMethod.ConstructIfGeneric(GetTypeParametersAsTypeArguments(nonNullTypesContext: this));
         }
 

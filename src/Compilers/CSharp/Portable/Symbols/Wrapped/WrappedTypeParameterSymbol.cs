@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool HasNullableReferenceTypeConstraint
+        internal override bool? ReferenceTypeConstraintIsNullable
         {
             get
             {
-                return _underlyingTypeParameter.HasNullableReferenceTypeConstraint;
+                return _underlyingTypeParameter.ReferenceTypeConstraintIsNullable;
             }
         }
 
