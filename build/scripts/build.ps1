@@ -164,7 +164,11 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     }
 
     if ($official) {
-        $args += " /p:OfficialBuild=true"
+        $args += " /p:OfficialBuildId=" + $env:BUILD_BUILDNUMBER
+    }
+
+    if ($cibuild) {
+        $args += " /p:ContinuousIntegrationBuild=true"
     }
 
     if ($bootstrapDir -ne "") {

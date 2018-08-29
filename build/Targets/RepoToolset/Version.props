@@ -18,11 +18,6 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <!-- TODO: Remove. OfficialBuildId should be set directly by the build definition  -->
-    <OfficialBuildId Condition="'$(OfficialBuild)' == 'true'">$(BUILD_BUILDNUMBER)</OfficialBuildId>
-  </PropertyGroup>
-
   <Choose>
     <When Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">
       <PropertyGroup>
