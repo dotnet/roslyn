@@ -178,6 +178,7 @@ class Deconstructable
             If isRenameAttribute Then
                 checkReplacementText = checkReplacementText + "Attribute"
             End If
+
             Await VerifyTagsAreCorrect(workspace, checkReplacementText)
         End Function
 
@@ -227,6 +228,69 @@ using System;
 class [|$$ustom|]Attribute : Attribute 
 {
 }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "ustom", "C", isRenameAttribute:=True)
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")>
+        Public Async Function RenameAttributeVb() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document>
+Import System;
+
+Public Class [|$$ustom|]Attribute 
+        Inherits Attribute
+End Class
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "ustom", "C", isRenameAttribute:=True)
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")>
+        Public Async Function RenameAttributeCapitalizedVb() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document>
+Import System;
+
+Public Class [|$$ustom|]ATTRIBUTE 
+        Inherits Attribute
+End Class
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "ustom", "C", isRenameAttribute:=True)
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")>
+        Public Async Function RenameAttributeNotCapitalizedVb() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document>
+Import System;
+
+Public Class [|$$ustom|]attribute 
+        Inherits Attribute 
+End Class
                             </Document>
                         </Project>
                     </Workspace>)

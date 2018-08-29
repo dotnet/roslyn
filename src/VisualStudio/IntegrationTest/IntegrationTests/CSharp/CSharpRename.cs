@@ -88,7 +88,7 @@ class Program
             var markup = @"
 using System;
 
-class [|Custom|]$$Attribute : Attribute
+class [|$$ustom|]Attribute : Attribute
 {
 }
 ";
@@ -99,11 +99,11 @@ class [|Custom|]$$Attribute : Attribute
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys("Customs", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
             VisualStudio.Editor.Verify.TextContains(@"
 using System;
 
-class CustomsAttribute : Attribute
+class CustomAttribute : Attribute
 {
 }");
         }

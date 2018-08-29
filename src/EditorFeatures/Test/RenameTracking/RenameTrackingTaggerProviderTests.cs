@@ -663,29 +663,112 @@ namespace NS
             }
         }
 
-
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
-        public async Task RenameTrackingOnReference_Attribute()
+        public async Task RenameTrackingOnReference_Attribute_CSharp()
         {
             var code = @"
 using System;
 
-class [|Custom|]$$Attribute : Attribute
+class [|$$ustom|]Attribute : Attribute
 {
 }
 ";
             using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
             {
-                state.EditorOperations.InsertText("s");
-                await state.AssertTag("CustomAttribute", "CustomsAttribute", invokeAction: true);
+                state.EditorOperations.InsertText("C");
+                await state.AssertTag("ustomAttribute", "CustomAttribute", invokeAction: true);
                 var expectedCode = @"
 using System;
 
-class CustomsAttribute : Attribute
+class CustomAttribute : Attribute
 {
 }
+";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        public async Task RenameTrackingOnReference_Attribute_VB()
+        {
+            var code = @"
+Import System;
+
+Public Class [|$$ustom|]Attribute 
+        Inherits Attribute
+End Class
+";
+            using (var state = RenameTrackingTestState.Create(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.InsertText("C");
+                await state.AssertTag("ustomAttribute", "CustomAttribute", invokeAction: true);
+                var expectedCode = @"
+Import System;
+
+Public Class CustomAttribute 
+        Inherits Attribute
+End Class
+";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        public async Task RenameTrackingOnReference_Capitalized_Attribute_VB()
+        {
+            var code = @"
+Import System;
+
+Public Class [|$$ustom|]ATTRIBUTE 
+        Inherits Attribute
+End Class
+";
+            using (var state = RenameTrackingTestState.Create(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.InsertText("C");
+                await state.AssertTag("ustomATTRIBUTE", "CustomATTRIBUTE", invokeAction: true);
+                var expectedCode = @"
+Import System;
+
+Public Class CustomATTRIBUTE 
+        Inherits Attribute
+End Class
+";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        public async Task RenameTrackingOnReference_Not_Capitalized_Attribute_VB()
+        {
+            var code = @"
+Import System;
+
+Public Class [|$$ustom|]attribute 
+        Inherits Attribute
+End Class
+";
+            using (var state = RenameTrackingTestState.Create(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.InsertText("C");
+                await state.AssertTag("ustomattribute", "Customattribute", invokeAction: true);
+                var expectedCode = @"
+Import System;
+
+Public Class Customattribute 
+        Inherits Attribute
+End Class
 ";
                 Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
 

@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             /// </summary>
             private readonly bool _shortenedTriggerSpan;
             private readonly bool _isRenamingAttributePrefix;
+            private readonly bool _isCaseSensitiveAttribute;
 
             public bool CanRename { get; }
             public string LocalizedErrorMessage { get; }
@@ -68,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);
 
                 _shortenedTriggerSpan = this.TriggerSpan != triggerSpan;
+                _isCaseSensitiveAttribute = RenameSymbol.Language != LanguageNames.VisualBasic;
             }
 
             private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Ok, the symbol is good.  Now, make sure that the trigger text starts with the prefix
                 // of the attribute.  If it does, then we can rename just the attribute prefix (otherwise
                 // we need to rename the entire attribute).
-                var nameWithoutAttribute = this.RenameSymbol.Name.GetWithoutAttributeSuffix(isCaseSensitive: true);
+                var nameWithoutAttribute = this.RenameSymbol.Name.GetWithoutAttributeSuffix(isCaseSensitive: _isCaseSensitiveAttribute);
                 var triggerText = GetSpanText(document, triggerSpan, cancellationToken);
 
                 return triggerText.StartsWith(triggerText); // TODO: Always true? What was it supposed to do?
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     // We're only renaming the attribute prefix part.  We want to adjust the span of 
                     // the reference we've found to only update the prefix portion.
-                    searchName = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
+                    searchName = this.RenameSymbol.Name.GetWithoutAttributeSuffix(_isCaseSensitiveAttribute);
                 }
 
                 var spanText = GetSpanText(location.Document, location.TextSpan, cancellationToken);
@@ -153,17 +155,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return triggerText;
             }
 
-            private static string GetWithoutAttributeSuffix(string value)
-            {
-                return value.GetWithoutAttributeSuffix(isCaseSensitive: true);
-            }
-
             internal bool IsRenamingAttributeTypeWithAttributeSuffix()
             {
                 if (this.RenameSymbol.IsAttribute() || (this.RenameSymbol.Kind == SymbolKind.Alias && ((IAliasSymbol)this.RenameSymbol).Target.IsAttribute()))
                 {
                     var name = this.RenameSymbol.Name;
-                    if (name.TryGetWithoutAttributeSuffix(isCaseSensitive: true, result: out name))
+                    if (name.TryGetWithoutAttributeSuffix(isCaseSensitive: _isCaseSensitiveAttribute, result: out name))
                     {
                         return true;
                     }
@@ -198,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public string GetFinalSymbolName(string replacementText)
             {
-                if (_isRenamingAttributePrefix && !replacementText.EndsWith(AttributeSuffix))
+                if (_isRenamingAttributePrefix && !replacementText.TryGetWithoutAttributeSuffix(_isCaseSensitiveAttribute, out var _))
                 {
                     return replacementText + AttributeSuffix;
                 }
@@ -248,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
             {
                 return _refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, RenameSymbol,
-                     this.GetFinalSymbolName(replacementText), throwOnFailure: false);
+                    this.GetFinalSymbolName(replacementText), throwOnFailure: false);
             }
 
             public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
