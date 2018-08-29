@@ -14,21 +14,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public static readonly TaintedDataAbstractValue NotTainted = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.NotTainted);
         public static readonly TaintedDataAbstractValue Tainted = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.Tainted);
 
-        public TaintedDataAbstractValue(ImmutableHashSet<AnalysisEntity> analysisEntities, TaintedDataAbstractValueKind kind)
+        private TaintedDataAbstractValue(TaintedDataAbstractValueKind kind)
         {
-            this.AnalysisEntities = analysisEntities;
             this.Kind = kind;
         }
-
-        public TaintedDataAbstractValue(TaintedDataAbstractValueKind kind)
-            : this(ImmutableHashSet<AnalysisEntity>.Empty, kind)
-        {
-        }
-
-        /// <summary>
-        /// The set of <see cref="AnalysisEntity"/> that this abstract value is representing.
-        /// </summary>
-        public ImmutableHashSet<AnalysisEntity> AnalysisEntities { get; }
 
         /// <summary>
         /// The abstract value that this is representing.
@@ -37,13 +26,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         protected override int ComputeHashCode()
         {
-            int hashCode = HashUtilities.Combine(Kind.GetHashCode(), this.AnalysisEntities.Count.GetHashCode());
-            foreach (AnalysisEntity entity in this.AnalysisEntities)
-            {
-                hashCode = HashUtilities.Combine(entity.GetHashCode(), hashCode);
-            }
-
-            return hashCode;
+            return this.Kind.GetHashCode();
         }
     }
 }

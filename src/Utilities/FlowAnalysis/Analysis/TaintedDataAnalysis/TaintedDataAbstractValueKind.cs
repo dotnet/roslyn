@@ -13,7 +13,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         Unknown,
 
         /// <summary>
-        /// Indicates the data is definitely untainted.
+        /// Indicates the data is definitely untainted (cuz it was sanitized).
         /// </summary>
         NotTainted,
 
@@ -25,6 +25,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Maybe tainted, maybe not.
         /// </summary>
-        MaybeTainted,
+        ////MaybeTainted,
     }
 }

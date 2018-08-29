@@ -43,18 +43,40 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     case IPropertyReferenceOperation propertyReferenceOperation:
                         // TODO: Need a good way to identify sources.
-                        // HttpWebRequest.Form["somestring"]
+                        // HttpRequest.Form["somestring"]
+                        // NameValueCollection blah = HttpWebRequest.Form;
+                        // blah["somestring"];
                         if (propertyReferenceOperation.Instance != null
-                            && propertyReferenceOperation.Instance is IPropertyReferenceOperation instancePropertyReferenceOperation
-                            && instancePropertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.HttpRequest
+                            && propertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.HttpRequest
+                            && propertyReferenceOperation.Member.MetadataName == "Form")
+                        {
+                            if (this.AnalysisEntityFactory.TryCreate(propertyReferenceOperation, out AnalysisEntity analysisEntity))
+                            {
+                               // Remember that the NameValueCollection is tainted.
+                               this.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.Tainted);
+                            }
+
+                            return TaintedDataAbstractValue.NotTainted;
+                        }
+                        else if (propertyReferenceOperation.Instance != null
                             && propertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.NameValueCollection
-                            && instancePropertyReferenceOperation.Member.MetadataName == "Form"
-                            && propertyReferenceOperation.Member.MetadataName == "Item")
-                            //&& propertyReferenceOperation.Member.Parameters.Length == 1
-                            //&& propertyReferenceOperation.Member.Parameters[0].Type == WellKnownTypes.String)
+                            && this.AnalysisEntityFactory.TryCreate(propertyReferenceOperation, out AnalysisEntity analysisEntity)
+                            && this.GetAbstractValue(analysisEntity).Kind == TaintedDataAbstractValueKind.Tainted
+                            )
                         {
                             return TaintedDataAbstractValue.Tainted;
                         }
+                        ////else if (propertyReferenceOperation.Instance != null
+                        ////    && propertyReferenceOperation.Instance is IPropertyReferenceOperation instancePropertyReferenceOperation
+                        ////    && instancePropertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.HttpRequest
+                        ////    && propertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.NameValueCollection
+                        ////    && instancePropertyReferenceOperation.Member.MetadataName == "Form"
+                        ////    && propertyReferenceOperation.Member.MetadataName == "Item")
+                        ////    //&& propertyReferenceOperation.Member.Parameters.Length == 1
+                        ////    //&& propertyReferenceOperation.Member.Parameters[0].Type == WellKnownTypes.String)
+                        ////{
+                        ////    return TaintedDataAbstractValue.Tainted;
+                        ////}
                         else
                         {
                             return TaintedDataAbstractValue.NotTainted;
@@ -112,7 +134,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, TaintedDataAbstractValue value)
             {
-                this.CurrentAnalysisData.SetAbstactValue(analysisEntity, value);
+                if (value.Kind == TaintedDataAbstractValueKind.Tainted 
+                    || this.CurrentAnalysisData.CoreAnalysisData.ContainsKey(analysisEntity))
+                {
+                    // Only track tainted data, or sanitized data.
+                    // If it's new, and it's untainted, we don't care.
+                    this.CurrentAnalysisData.SetAbstactValue(analysisEntity, value);
+                }
             }
 
             protected override void StopTrackingEntity(AnalysisEntity analysisEntity)
