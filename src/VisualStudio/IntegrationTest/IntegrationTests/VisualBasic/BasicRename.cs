@@ -239,7 +239,7 @@ End Class";
             VisualStudio.Editor.Verify.TextContains(@"
 Import System;
 
-Public Class CustomATTRIBUTE
+Public Class CustomAttribute
         Inherits Attribute
 End Class");
         }
@@ -265,7 +265,7 @@ End Class";
             VisualStudio.Editor.Verify.TextContains(@"
 Import System;
 
-Public Class Customattribute
+Public Class CustomAttribute
         Inherits Attribute
 End Class");
         }
