@@ -675,7 +675,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddDocument(DocumentInfo documentInfo)
         {
-            var newState = _state.AddDocument(documentInfo);
+            return AddDocuments(ImmutableArray.Create(documentInfo));
+        }
+
+        /// <summary>
+        /// Create a new <see cref="Solution"/> instance with the corresponding <see cref="Project"/>s updated to include
+        /// the documents specified by <paramref name="documentInfos"/>.
+        /// </summary>
+        /// <returns>A new <see cref="Solution"/> with the documents added.</returns>
+        public Solution AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddDocuments(documentInfos);
             if (newState == _state)
             {
                 return this;
