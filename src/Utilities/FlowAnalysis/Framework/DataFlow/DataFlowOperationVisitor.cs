@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         /// <remarks>
         /// For dispose analysis, we want to perform an optimistic points to analysis as we assume a disposable field is not likely to be re-assigned to a separate object in helper method invocations in Dispose.
-        /// For string content analysis, we want to perform a pessimistic points to analysis to be conservative and avoid missing out true violations.
+        /// For value content analysis, we want to perform a pessimistic points to analysis to be conservative and avoid missing out true violations.
         /// </remarks>
         protected bool PessimisticAnalysis { get; }
 
@@ -1288,12 +1288,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             TAbstractAnalysisValue targetValue = Visit(operation.Target, argument);
             TAbstractAnalysisValue assignedValue = Visit(operation.Value, argument);
-            var value = ComputeValueForCompoundAssignment(operation, targetValue, assignedValue);
+            var value = ComputeValueForCompoundAssignment(operation, targetValue, assignedValue, operation.Target.Type, operation.Value.Type);
             SetAbstractValueForAssignment(operation.Target, operation.Value, value);
             return value;
         }
 
-        public virtual TAbstractAnalysisValue ComputeValueForCompoundAssignment(ICompoundAssignmentOperation operation, TAbstractAnalysisValue targetValue, TAbstractAnalysisValue assignedValue)
+        public virtual TAbstractAnalysisValue ComputeValueForCompoundAssignment(
+            ICompoundAssignmentOperation operation,
+            TAbstractAnalysisValue targetValue,
+            TAbstractAnalysisValue assignedValue,
+            ITypeSymbol targetType,
+            ITypeSymbol assignedValueType)
         {
             return ValueDomain.UnknownOrMayBeValue;
         }

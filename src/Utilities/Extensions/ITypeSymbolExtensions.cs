@@ -23,8 +23,6 @@ namespace Analyzer.Utilities.Extensions
                 case SpecialType.System_UInt16:
                 case SpecialType.System_UInt32:
                 case SpecialType.System_UInt64:
-                case SpecialType.System_IntPtr:
-                case SpecialType.System_UIntPtr:
                 case SpecialType.System_SByte:
                 case SpecialType.System_Single:
                     return true;

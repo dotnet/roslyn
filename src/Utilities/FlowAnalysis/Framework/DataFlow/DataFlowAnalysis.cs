@@ -269,20 +269,42 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            void MergeIntoCatchInputData(ControlFlowRegion tryAndCatchRegion, TAnalysisData dataToMerge)
+            ControlFlowRegion MergeIntoCatchInputData(ControlFlowRegion tryAndCatchRegion, TAnalysisData dataToMerge)
             {
                 Debug.Assert(tryAndCatchRegion.Kind == ControlFlowRegionKind.TryAndCatch);
 
-                if (!catchBlockInputDataMap.TryGetValue(tryAndCatchRegion, out var catchBlockInputData))
+                var catchRegion = tryAndCatchRegion.NestedRegions.FirstOrDefault(region => region.Kind == ControlFlowRegionKind.Catch || region.Kind == ControlFlowRegionKind.FilterAndHandler);
+                if (catchRegion == null)
                 {
-                    catchBlockInputData = AnalysisDomain.Clone(dataToMerge);
+                    return null;
+                }
+
+                var catchBlock = cfg.Blocks[catchRegion.FirstBlockOrdinal];
+
+                // Check if we have already visited the catch block once, and hence have a non-null input.
+                // If so, just update the resultBuilder input.
+                // Otherwise, update the catchBlockInputDataMap.
+
+                var catchBlockInputData = GetInput(resultBuilder[catchBlock]);
+                if (catchBlockInputData != null)
+                {
+                    UpdateInput(resultBuilder, catchBlock, AnalysisDomain.Merge(catchBlockInputData, dataToMerge));
                 }
                 else
                 {
-                    catchBlockInputData = AnalysisDomain.Merge(catchBlockInputData, dataToMerge);
+                    if (!catchBlockInputDataMap.TryGetValue(tryAndCatchRegion, out catchBlockInputData))
+                    {
+                        catchBlockInputData = AnalysisDomain.Clone(dataToMerge);
+                    }
+                    else
+                    {
+                        catchBlockInputData = AnalysisDomain.Merge(catchBlockInputData, dataToMerge);
+                    }
+
+                    catchBlockInputDataMap[tryAndCatchRegion] = catchBlockInputData;
                 }
 
-                catchBlockInputDataMap[tryAndCatchRegion] = catchBlockInputData;
+                return catchRegion;
             }
 
             // Ensures that we have a valid worklist/pendingBlocksNeedingAtLeastOnePass state.
@@ -405,11 +427,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     foreach (var tryAndCatchRegion in branch.LeavingRegions.Where(region => region.Kind == ControlFlowRegionKind.TryAndCatch))
                     {
-                        var catchRegion = tryAndCatchRegion.NestedRegions.FirstOrDefault(region => region.Kind == ControlFlowRegionKind.Catch || region.Kind == ControlFlowRegionKind.FilterAndHandler);
+                        var catchRegion = MergeIntoCatchInputData(tryAndCatchRegion, branchData);
                         if (catchRegion != null)
-                        {
-                            MergeIntoCatchInputData(tryAndCatchRegion, branchData);
-                            
+                        {   
                             // We also need to enqueue the catch block into the worklist as there is no direct branch into catch.
                             worklist.Enqueue(ordinalToBlockMap[catchRegion.FirstBlockOrdinal]);
                         }
