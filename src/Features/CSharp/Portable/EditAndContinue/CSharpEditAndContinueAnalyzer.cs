@@ -2104,7 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 if (method.ExplicitInterfaceSpecifier != null)
                 {
-                    ReportError(RudeEditKind.MethodWithExplicitInterfaceSpecifierAdd);
+                    ReportError(RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier);
                 }
 
                 ClassifyPossibleReadOnlyRefAttributesForType(method, method.ReturnType);
