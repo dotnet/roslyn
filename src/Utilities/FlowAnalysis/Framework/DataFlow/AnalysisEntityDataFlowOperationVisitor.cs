@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -13,19 +12,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Operation visitor to flow the abstract dataflow analysis values for <see cref="AnalysisEntity"/> instances across a given statement in a basic block.
     /// </summary>
-    internal abstract class AnalysisEntityDataFlowOperationVisitor<TAnalysisData, TAbstractAnalysisValue> : DataFlowOperationVisitor<TAnalysisData, TAbstractAnalysisValue>
+    internal abstract class AnalysisEntityDataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        where TAnalysisContext: AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        where TAnalysisResult : IDataFlowAnalysisResult
     {
-        protected AnalysisEntityDataFlowOperationVisitor(
-            AbstractValueDomain<TAbstractAnalysisValue> valueDomain,
-            ISymbol owningSymbol,
-            WellKnownTypeProvider wellKnownTypeProvider,
-            ControlFlowGraph cfg,
-            bool pessimisticAnalysis,
-            bool predicateAnalysis,
-            DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> copyAnalysisResultOpt,
-            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt)
-            : base (valueDomain, owningSymbol, wellKnownTypeProvider, cfg, pessimisticAnalysis, predicateAnalysis,
-                  copyAnalysisResultOpt, pointsToAnalysisResultOpt)
+        protected AnalysisEntityDataFlowOperationVisitor(TAnalysisContext analysisContext)
+            : base(analysisContext)
         {
         }
 

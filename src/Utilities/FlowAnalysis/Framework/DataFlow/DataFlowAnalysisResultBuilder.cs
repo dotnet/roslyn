@@ -33,16 +33,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _info[block] = newData;
         }
 
-        public DataFlowAnalysisResult<TAnalysisResult, TAbstractAnalysisValue> ToResult<TAnalysisResult, TAbstractAnalysisValue>(
-            Func<BasicBlock, DataFlowAnalysisInfo<TAnalysisData>, TAnalysisResult> getResult,
+        public DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> ToResult<TBlockAnalysisResult, TAbstractAnalysisValue>(
+            Func<BasicBlock, DataFlowAnalysisInfo<TAnalysisData>, TBlockAnalysisResult> getResult,
             ImmutableDictionary<IOperation, TAbstractAnalysisValue> stateMap,
             ImmutableDictionary<IOperation, PredicateValueKind> predicateValueKindMap,
             TAnalysisData mergedDataForUnhandledThrowOperations,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
-            where TAnalysisResult: class
+            where TBlockAnalysisResult: AbstractBlockAnalysisResult
         {
-            var resultBuilder = ImmutableDictionary.CreateBuilder<BasicBlock, TAnalysisResult>();
+            var resultBuilder = ImmutableDictionary.CreateBuilder<BasicBlock, TBlockAnalysisResult>();
             foreach (var kvp in _info)
             {
                 var block = kvp.Key;
@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 resultBuilder.Add(block, result);
             }
 
-            TAnalysisResult mergedStateForUnhandledThrowOperations = null;
+            TBlockAnalysisResult mergedStateForUnhandledThrowOperations = null;
             if (mergedDataForUnhandledThrowOperations != null)
             {
                 var info = new DataFlowAnalysisInfo<TAnalysisData>(mergedDataForUnhandledThrowOperations, mergedDataForUnhandledThrowOperations);
                 mergedStateForUnhandledThrowOperations = getResult(cfg.GetExit(), info);
             }
 
-            return new DataFlowAnalysisResult<TAnalysisResult, TAbstractAnalysisValue>(resultBuilder.ToImmutable(), stateMap,
+            return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(resultBuilder.ToImmutable(), stateMap,
                 predicateValueKindMap, mergedStateForUnhandledThrowOperations, cfg, defaultUnknownValue);
         }
     }

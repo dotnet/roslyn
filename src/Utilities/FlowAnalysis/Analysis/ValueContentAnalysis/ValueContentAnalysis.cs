@@ -4,17 +4,19 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
+
     /// <summary>
     /// Dataflow analysis to track value content of <see cref="AnalysisEntity"/>/<see cref="IOperation"/>.
     /// </summary>
-    internal partial class ValueContentAnalysis : ForwardDataFlowAnalysis<ValueContentAnalysisData, ValueContentBlockAnalysisResult, ValueContentAbstractValue>
+    internal partial class ValueContentAnalysis : ForwardDataFlowAnalysis<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentBlockAnalysisResult, ValueContentAbstractValue>
     {
         private ValueContentAnalysis(ValueContentDataFlowOperationVisitor operationVisitor)
             : base(ValueContentAnalysisDomain.Instance, operationVisitor)
         {
         }
 
-        public static DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue> GetOrComputeResult(
+        public static ValueContentAnalysisResult GetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
@@ -22,12 +24,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             DataFlowAnalysisResult<PointsToAnalysis.PointsToBlockAnalysisResult, PointsToAnalysis.PointsToAbstractValue> pointsToAnalysisResultOpt = null,
             bool pessimisticAnalsysis = true)
         {
-            var operationVisitor = new ValueContentDataFlowOperationVisitor(ValueContentAbstractValueDomain.Default, owningSymbol,
-                wellKnownTypeProvider, cfg, pessimisticAnalsysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt);
-            var nullAnalysis = new ValueContentAnalysis(operationVisitor);
-            return nullAnalysis.GetOrComputeResultCore(cfg, cacheResult: false);
+            var analysisContext = new ValueContentAnalysisContext(ValueContentAbstractValueDomain.Default, wellKnownTypeProvider,
+                cfg, owningSymbol, pessimisticAnalsysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
+            return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 
-        internal override ValueContentBlockAnalysisResult ToResult(BasicBlock basicBlock, DataFlowAnalysisInfo<ValueContentAnalysisData> blockAnalysisData) => new ValueContentBlockAnalysisResult(basicBlock, blockAnalysisData);
+        private static ValueContentAnalysisResult GetOrComputeResultForAnalysisContext(ValueContentAnalysisContext analysisContext)
+        {
+            var operationVisitor = new ValueContentDataFlowOperationVisitor(analysisContext);
+            var nullAnalysis = new ValueContentAnalysis(operationVisitor);
+            return nullAnalysis.GetOrComputeResultCore(analysisContext, cacheResult: false);
+        }
+
+        internal override ValueContentAnalysisResult ToResult(ValueContentAnalysisContext analysisContext, ValueContentAnalysisResult dataFlowAnalysisResult)
+            => dataFlowAnalysisResult;
+
+        internal override ValueContentBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DataFlowAnalysisInfo<ValueContentAnalysisData> blockAnalysisData)
+            => new ValueContentBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

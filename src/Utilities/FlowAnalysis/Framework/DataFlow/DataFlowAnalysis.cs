@@ -15,42 +15,42 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// Subtype for all dataflow analyses on a control flow graph.
     /// It performs a worklist based approach to flow abstract data values for <see cref="AnalysisEntity"/>/<see cref="IOperation"/> across the basic blocks until a fix point is reached.
     /// </summary>
-    internal abstract class DataFlowAnalysis<TAnalysisData, TAnalysisResult, TAbstractAnalysisValue>
+    internal abstract class DataFlowAnalysis<TAnalysisData, TAnalysisContext, TAnalysisResult, TBlockAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisData : class
-        where TAnalysisResult : AbstractBlockAnalysisResult
+        where TAnalysisContext: AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        where TAnalysisResult : DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>
+        where TBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        private static readonly ConditionalWeakTable<IOperation, ConcurrentDictionary<DataFlowOperationVisitor<TAnalysisData, TAbstractAnalysisValue>, DataFlowAnalysisResult<TAnalysisResult, TAbstractAnalysisValue>>> s_resultCache =
-            new ConditionalWeakTable<IOperation, ConcurrentDictionary<DataFlowOperationVisitor<TAnalysisData, TAbstractAnalysisValue>, DataFlowAnalysisResult<TAnalysisResult, TAbstractAnalysisValue>>>();
+        private static readonly ConditionalWeakTable<IOperation, ConcurrentDictionary<DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>, TAnalysisResult>> s_resultCache =
+            new ConditionalWeakTable<IOperation, ConcurrentDictionary<DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>, TAnalysisResult>>();
 
-        protected DataFlowAnalysis(AbstractAnalysisDomain<TAnalysisData> analysisDomain, DataFlowOperationVisitor<TAnalysisData, TAbstractAnalysisValue> operationVisitor)
+        protected DataFlowAnalysis(AbstractAnalysisDomain<TAnalysisData> analysisDomain, DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> operationVisitor)
         {
             AnalysisDomain = analysisDomain;
             OperationVisitor = operationVisitor;
         }
 
         protected AbstractAnalysisDomain<TAnalysisData> AnalysisDomain { get; }
-        protected DataFlowOperationVisitor<TAnalysisData, TAbstractAnalysisValue> OperationVisitor { get; }
+        protected DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> OperationVisitor { get; }
         private Dictionary<ControlFlowRegion, TAnalysisData> MergedInputAnalysisDataForFinallyRegions { get; set; }
 
-        protected DataFlowAnalysisResult<TAnalysisResult, TAbstractAnalysisValue> GetOrComputeResultCore(
-            ControlFlowGraph cfg,
-            bool cacheResult)
+        protected TAnalysisResult GetOrComputeResultCore(TAnalysisContext analysisContext, bool cacheResult)
         {
-            if (cfg == null)
+            if (analysisContext == null)
             {
-                throw new ArgumentNullException(nameof(cfg));
+                throw new ArgumentNullException(nameof(analysisContext));
             }
 
             if (!cacheResult)
             {
-                return Run(cfg);
+                return Run(analysisContext);
             }
 
-            var analysisResultsMap = s_resultCache.GetOrCreateValue(cfg.OriginalOperation);
-            return analysisResultsMap.GetOrAdd(OperationVisitor, _ => Run(cfg));
+            var analysisResultsMap = s_resultCache.GetOrCreateValue(analysisContext.ControlFlowGraph.OriginalOperation);
+            return analysisResultsMap.GetOrAdd(OperationVisitor, _ => Run(analysisContext));
         }
 
-        private DataFlowAnalysisResult<TAnalysisResult, TAbstractAnalysisValue> Run(ControlFlowGraph cfg)
+        private TAnalysisResult Run(TAnalysisContext analysisContext)
         {
             var resultBuilder = new DataFlowAnalysisResultBuilder<TAnalysisData>();
             var uniqueSuccessors = new HashSet<BasicBlock>();
@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var catchBlockInputDataMap = new Dictionary<ControlFlowRegion, TAnalysisData>();
             var inputDataFromInfeasibleBranchesMap = new Dictionary<int, TAnalysisData>();
             var unreachableBlocks = new HashSet<int>();
+            var cfg = analysisContext.ControlFlowGraph;
 
             // Add each basic block to the result.
             foreach (var block in cfg.Blocks)
@@ -254,9 +255,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 Debug.Assert(IsValidWorklistState());
             }
 
-            return resultBuilder.ToResult(ToResult, OperationVisitor.GetStateMap(),
+            var dataflowAnalysisResult = resultBuilder.ToResult(ToBlockResult, OperationVisitor.GetStateMap(),
                 OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetMergedDataForUnhandledThrowOperations(),
                 cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
+            return ToResult(analysisContext, dataflowAnalysisResult);
 
             void updateUnreachableBlocks()
             {
@@ -450,7 +452,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        public static TAnalysisData Flow(DataFlowOperationVisitor<TAnalysisData, TAbstractAnalysisValue> operationVisitor, BasicBlock block, TAnalysisData data)
+        public static TAnalysisData Flow(DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> operationVisitor, BasicBlock block, TAnalysisData data)
         {
             operationVisitor.OnStartBlockAnalysis(block, data);
 
@@ -464,7 +466,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return data;
         }
 
-        internal abstract TAnalysisResult ToResult(BasicBlock basicBlock, DataFlowAnalysisInfo<TAnalysisData> blockAnalysisData);
+        internal abstract TAnalysisResult ToResult(TAnalysisContext analysisContext, DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> dataFlowAnalysisResult);
+        internal abstract TBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DataFlowAnalysisInfo<TAnalysisData> blockAnalysisData);
         private static TAnalysisData GetInput(DataFlowAnalysisInfo<TAnalysisData> result) => result.Input;
         private static TAnalysisData GetOutput(DataFlowAnalysisInfo<TAnalysisData> result) => result.Output;
         

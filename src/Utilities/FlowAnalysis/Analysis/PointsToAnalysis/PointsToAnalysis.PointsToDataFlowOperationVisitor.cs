@@ -10,12 +10,15 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
-    internal partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToBlockAnalysisResult, PointsToAbstractValue>
+    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
+
+    internal partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
     {
         /// <summary>
         /// Operation visitor to flow the PointsTo values across a given statement in a basic block.
         /// </summary>
-        private sealed class PointsToDataFlowOperationVisitor : AnalysisEntityDataFlowOperationVisitor<PointsToAnalysisData, PointsToAbstractValue>
+        private sealed class PointsToDataFlowOperationVisitor :
+            AnalysisEntityDataFlowOperationVisitor<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToAbstractValue>
         {
             private readonly DefaultPointsToValueGenerator _defaultPointsToValueGenerator;
             private readonly PointsToAnalysisDomain _pointsToAnalysisDomain;
@@ -23,13 +26,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public PointsToDataFlowOperationVisitor(
                 DefaultPointsToValueGenerator defaultPointsToValueGenerator,
                 PointsToAnalysisDomain pointsToAnalysisDomain,
-                PointsToAbstractValueDomain valueDomain,
-                ISymbol owningSymbol,
-                WellKnownTypeProvider wellKnownTypeProvider,
-                ControlFlowGraph cfg,
-                bool pessimisticAnalysis,
-                DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> copyAnalysisResultOpt)
-                : base(valueDomain, owningSymbol, wellKnownTypeProvider, cfg, pessimisticAnalysis, predicateAnalysis: true, copyAnalysisResultOpt: copyAnalysisResultOpt, pointsToAnalysisResultOpt: null)
+                PointsToAnalysisContext analysisContext)
+                : base (analysisContext)
             {
                 _defaultPointsToValueGenerator = defaultPointsToValueGenerator;
                 _pointsToAnalysisDomain = pointsToAnalysisDomain;
@@ -526,16 +524,36 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
             }
 
-            public override PointsToAbstractValue VisitInvocation_LambdaOrDelegateOrLocalFunction(IInvocationOperation operation, object argument)
+            public override PointsToAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
+                IMethodSymbol method,
+                IOperation visitedInstance,
+                ImmutableArray<IArgumentOperation> visitedArguments,
+                bool invokedAsDelegate,
+                IOperation originalOperation,
+                PointsToAbstractValue defaultValue)
             {
-                var _ = base.VisitInvocation_LambdaOrDelegateOrLocalFunction(operation, argument);
-                return VisitInvocationCommon(operation, operation.Instance);
+                var _ = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
+                return VisitInvocationCommon(originalOperation, visitedInstance);
             }
 
-            public override PointsToAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IInvocationOperation operation, object argument)
+            public override PointsToAbstractValue VisitInvocation_LocalFunction(
+                IMethodSymbol localFunction,
+                ImmutableArray<IArgumentOperation> visitedArguments,
+                IOperation originalOperation,
+                PointsToAbstractValue defaultValue)
             {
-                var _ = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(operation, argument);
-                return VisitInvocationCommon(operation, operation.Instance);
+                var _ = base.VisitInvocation_LocalFunction(localFunction, visitedArguments, originalOperation, defaultValue);
+                return VisitInvocationCommon(originalOperation, instance: null);
+            }
+
+            public override PointsToAbstractValue VisitInvocation_Lambda(
+                IFlowAnonymousFunctionOperation lambda,
+                ImmutableArray<IArgumentOperation> visitedArguments,
+                IOperation originalOperation, 
+                PointsToAbstractValue defaultValue)
+            {
+                var _ = base.VisitInvocation_Lambda(lambda, visitedArguments, originalOperation, defaultValue);
+                return VisitInvocationCommon(originalOperation, instance: null);
             }
 
             public override PointsToAbstractValue VisitDynamicInvocation(IDynamicInvocationOperation operation, object argument)

@@ -8,23 +8,17 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
-    internal partial class ValueContentAnalysis : ForwardDataFlowAnalysis<ValueContentAnalysisData, ValueContentBlockAnalysisResult, ValueContentAbstractValue>
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
+
+    internal partial class ValueContentAnalysis : ForwardDataFlowAnalysis<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentBlockAnalysisResult, ValueContentAbstractValue>
     {
         /// <summary>
         /// Operation visitor to flow the data values across a given statement in a basic block.
         /// </summary>
-        private sealed class ValueContentDataFlowOperationVisitor : AnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAbstractValue>
+        private sealed class ValueContentDataFlowOperationVisitor : AnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
         {
-            public ValueContentDataFlowOperationVisitor(
-                ValueContentAbstractValueDomain valueDomain,
-                ISymbol owningSymbol,
-                WellKnownTypeProvider wellKnownTypeProvider,
-                ControlFlowGraph cfg,
-                bool pessimisticAnalysis,
-                DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> copyAnalysisResultOpt,
-                DataFlowAnalysisResult<PointsToAnalysis.PointsToBlockAnalysisResult, PointsToAnalysis.PointsToAbstractValue> pointsToAnalysisResultOpt)
-                : base(valueDomain, owningSymbol, wellKnownTypeProvider, cfg, pessimisticAnalysis,
-                      predicateAnalysis: true, copyAnalysisResultOpt: copyAnalysisResultOpt, pointsToAnalysisResultOpt: pointsToAnalysisResultOpt)
+            public ValueContentDataFlowOperationVisitor(ValueContentAnalysisContext analysisContext)
+                : base(analysisContext)
             {
             }
 
@@ -215,11 +209,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 return value;
             }
 
-            public override ValueContentAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IInvocationOperation operation, object argument)
+            public override ValueContentAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
+                IMethodSymbol method,
+                IOperation visitedInstance,
+                ImmutableArray<IArgumentOperation> visitedArguments,
+                bool invokedAsDelegate,
+                IOperation originalOperation,
+                ValueContentAbstractValue defaultValue)
             {
                 // TODO: Handle invocations of string methods (Format, SubString, Replace, Concat, etc.)
                 // https://github.com/dotnet/roslyn-analyzers/issues/1547
-                return base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(operation, argument);
+                return base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
             }
 
             public override ValueContentAbstractValue VisitInterpolatedString(IInterpolatedStringOperation operation, object argument)

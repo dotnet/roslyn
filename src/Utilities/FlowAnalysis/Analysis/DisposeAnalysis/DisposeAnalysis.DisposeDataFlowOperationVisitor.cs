@@ -14,41 +14,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 {
     using DisposeAnalysisData = IDictionary<AbstractLocation, DisposeAbstractValue>;
 
-    internal partial class DisposeAnalysis : ForwardDataFlowAnalysis<DisposeAnalysisData, DisposeBlockAnalysisResult, DisposeAbstractValue>
+    internal partial class DisposeAnalysis : ForwardDataFlowAnalysis<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeBlockAnalysisResult, DisposeAbstractValue>
     {
         /// <summary>
         /// Operation visitor to flow the dispose values across a given statement in a basic block.
         /// </summary>
-        private sealed class DisposeDataFlowOperationVisitor : AbstractLocationDataFlowOperationVisitor<DisposeAnalysisData, DisposeAbstractValue>
+        private sealed class DisposeDataFlowOperationVisitor: AbstractLocationDataFlowOperationVisitor<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeAbstractValue>
         {
-            private readonly ImmutableHashSet<INamedTypeSymbol> _disposeOwnershipTransferLikelyTypes;
             private readonly Dictionary<IFieldSymbol, PointsToAbstractValue> _trackedInstanceFieldLocationsOpt;
+            private ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes => DataFlowAnalysisContext.DisposeOwnershipTransferLikelyTypes;
 
-            // Invoking an instance method may likely invalidate all the instance field analysis state, i.e.
-            // reference type fields might be re-assigned to point to different objects in the called method.
-            // An optimistic points to analysis assumes that the points to values of instance fields don't change on invoking an instance method.
-            // A pessimistic points to analysis resets all the instance state and assumes the instance field might point to any object, hence has unknown state.
-            // For dispose analysis, we want to perform an optimistic points to analysis as we assume a disposable field is not likely to be re-assigned to a separate object in helper method invocations in Dispose.
-            private const bool pessimisticAnalysis = false;
-
-            public DisposeDataFlowOperationVisitor(
-                DisposeAbstractValueDomain valueDomain,
-                ISymbol owningSymbol,
-                WellKnownTypeProvider wellKnownTypeProvider,
-                ControlFlowGraph cfg,
-                ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
-                bool trackInstanceFields,
-                DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResult)
-                : base(valueDomain, owningSymbol, wellKnownTypeProvider, cfg, pessimisticAnalysis,
-                      predicateAnalysis: false, copyAnalysisResultOpt: null, pointsToAnalysisResultOpt: pointsToAnalysisResult)
+            public DisposeDataFlowOperationVisitor(DisposeAnalysisContext analysisContext)
+                : base(analysisContext)
             {
-                Debug.Assert(wellKnownTypeProvider.IDisposable != null);
-                Debug.Assert(wellKnownTypeProvider.CollectionTypes.All(ct => ct.TypeKind == TypeKind.Interface));
-                Debug.Assert(disposeOwnershipTransferLikelyTypes != null);
-                Debug.Assert(pointsToAnalysisResult != null);
+                Debug.Assert(analysisContext.WellKnownTypeProvider.IDisposable != null);
+                Debug.Assert(analysisContext.WellKnownTypeProvider.CollectionTypes.All(ct => ct.TypeKind == TypeKind.Interface));
+                Debug.Assert(analysisContext.DisposeOwnershipTransferLikelyTypes != null);
+                Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
 
-                _disposeOwnershipTransferLikelyTypes = disposeOwnershipTransferLikelyTypes;
-                if (trackInstanceFields)
+                if (analysisContext.TrackInstanceFields)
                 {
                     _trackedInstanceFieldLocationsOpt = new Dictionary<IFieldSymbol, PointsToAbstractValue>();
                 }
@@ -182,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             protected override void SetValueForParameterPointsToLocationOnEntry(IParameterSymbol parameter, PointsToAbstractValue pointsToAbstractValue)
             {
-                if (_disposeOwnershipTransferLikelyTypes.Contains(parameter.Type))
+                if (DisposeOwnershipTransferLikelyTypes.Contains(parameter.Type))
                 {
                     SetAbstractValue(pointsToAbstractValue, DisposeAbstractValue.NotDisposed);
                 }
@@ -227,25 +211,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             }
 
             // FxCop compat: Catches things like static calls to File.Open() and Create()
-            private static bool IsDisposableCreationSpecialCase(IInvocationOperation operation)
-                => operation.TargetMethod.IsStatic &&
-                   (operation.TargetMethod.Name.StartsWith("create", StringComparison.OrdinalIgnoreCase) ||
-                    operation.TargetMethod.Name.StartsWith("open", StringComparison.OrdinalIgnoreCase));
+            private static bool IsDisposableCreationSpecialCase(IMethodSymbol targetMethod)
+                => targetMethod.IsStatic &&
+                   (targetMethod.Name.StartsWith("create", StringComparison.OrdinalIgnoreCase) ||
+                    targetMethod.Name.StartsWith("open", StringComparison.OrdinalIgnoreCase));
 
-            public override DisposeAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IInvocationOperation operation, object argument)
+            public override DisposeAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
+                IMethodSymbol targetMethod,
+                IOperation instance,
+                ImmutableArray<IArgumentOperation> arguments,
+                bool invokedAsDelegate,
+                IOperation originaOperation,
+                DisposeAbstractValue defaultValue)
             {
-                var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(operation, argument);
-                var disposeMethodKind = operation.TargetMethod.GetDisposeMethodKind(WellKnownTypeProvider.IDisposable);
+                var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(targetMethod, instance,
+                    arguments, invokedAsDelegate, originaOperation, defaultValue);
+
+                var disposeMethodKind = targetMethod.GetDisposeMethodKind(WellKnownTypeProvider.IDisposable);
                 switch (disposeMethodKind)
                 {
                     case DisposeMethodKind.Dispose:
                     case DisposeMethodKind.DisposeBool:
-                        HandleDisposingOperation(operation, operation.Instance);
+                        HandleDisposingOperation(originaOperation, instance);
                         break;
 
                     case DisposeMethodKind.Close:
                         // FxCop compat: Calling "this.Close" shouldn't count as disposing the object within the implementation of Dispose.
-                        if (operation.Instance?.Kind != OperationKind.InstanceReference)
+                        if (instance?.Kind != OperationKind.InstanceReference)
                         {
                             goto case DisposeMethodKind.Dispose;
                         }
@@ -253,17 +245,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
                     default:
                         // FxCop compat: Catches things like static calls to File.Open() and Create()
-                        if (IsDisposableCreationSpecialCase(operation))
+                        if (IsDisposableCreationSpecialCase(targetMethod))
                         {
-                            var instanceLocation = GetPointsToAbstractValue(operation);
-                            return HandleInstanceCreation(operation.Type, instanceLocation, value);
+                            var instanceLocation = GetPointsToAbstractValue(originaOperation);
+                            return HandleInstanceCreation(originaOperation.Type, instanceLocation, value);
                         }
-                        else if (operation.Arguments.Length > 0 &&
-                            operation.TargetMethod.IsCollectionAddMethod(WellKnownTypeProvider.CollectionTypes))
+                        else if (arguments.Length > 0 &&
+                            targetMethod.IsCollectionAddMethod(WellKnownTypeProvider.CollectionTypes))
                         {
                             // FxCop compat: The object added to a collection is considered escaped.
-                            var lastArgument = operation.Arguments[operation.Arguments.Length - 1];
-                            HandlePossibleEscapingOperation(operation, lastArgument.Value);
+                            var lastArgument = arguments[arguments.Length - 1];
+                            HandlePossibleEscapingOperation(originaOperation, lastArgument.Value);
                         }
 
                         break;
@@ -289,8 +281,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     // Discover if a disposable object is being passed into the creation method for this new disposable object
                     // and if the new disposable object assumes ownership of that passed in disposable object.
                     if ((operation.Parent is IObjectCreationOperation objectCreation ||
-                         operation.Parent is IInvocationOperation invocation && IsDisposableCreationSpecialCase(invocation)) &&
-                        _disposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type))
+                         operation.Parent is IInvocationOperation invocation && IsDisposableCreationSpecialCase(invocation.TargetMethod)) &&
+                        DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type))
                     {
                         possibleEscape = true;
                     }

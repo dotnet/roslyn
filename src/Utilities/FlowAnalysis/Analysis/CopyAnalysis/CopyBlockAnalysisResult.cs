@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     /// Result from execution of <see cref="CopyAnalysis"/> on a basic block.
     /// It store copy values for each <see cref="AnalysisEntity"/> at the start and end of the basic block.
     /// </summary>
-    internal class CopyBlockAnalysisResult : AbstractBlockAnalysisResult
+    internal sealed class CopyBlockAnalysisResult : AbstractBlockAnalysisResult
     {
         public CopyBlockAnalysisResult(BasicBlock basicBlock, DataFlowAnalysisInfo<CopyAnalysisData> blockAnalysisData)
             : base (basicBlock)

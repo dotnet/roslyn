@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
 
 namespace Analyzer.Utilities
 {
+    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
+
     /// <summary>
     /// Helper for DisposeAnalysis.
     /// </summary>
@@ -89,7 +91,7 @@ namespace Analyzer.Utilities
         public bool TryGetOrComputeResult(
             ImmutableArray<IOperation> operationBlocks,
             IMethodSymbol containingMethod,
-            out DataFlowAnalysisResult<DisposeBlockAnalysisResult, DisposeAbstractValue> disposeAnalysisResult)
+            out DisposeAnalysisResult disposeAnalysisResult)
         {
             return TryGetOrComputeResult(operationBlocks, containingMethod, out disposeAnalysisResult, out var _);
         }
@@ -97,20 +99,19 @@ namespace Analyzer.Utilities
         public bool TryGetOrComputeResult(
             ImmutableArray<IOperation> operationBlocks,
             IMethodSymbol containingMethod,
-            out DataFlowAnalysisResult<DisposeBlockAnalysisResult, DisposeAbstractValue> disposeAnalysisResult,
-            out DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResult)
+            out DisposeAnalysisResult disposeAnalysisResult,
+            out PointsToAnalysisResult pointsToAnalysisResult)
         {
             return TryGetOrComputeResult(operationBlocks, containingMethod, trackInstanceFields: false,
-                disposeAnalysisResult: out disposeAnalysisResult, pointsToAnalysisResult: out pointsToAnalysisResult, trackedInstanceFieldPointsToMap: out var _);
+                disposeAnalysisResult: out disposeAnalysisResult, pointsToAnalysisResult: out pointsToAnalysisResult);
         }
 
         public bool TryGetOrComputeResult(
             ImmutableArray<IOperation> operationBlocks,
             IMethodSymbol containingMethod,
             bool trackInstanceFields,
-            out DataFlowAnalysisResult<DisposeBlockAnalysisResult, DisposeAbstractValue> disposeAnalysisResult,
-            out DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResult,
-            out ImmutableDictionary<IFieldSymbol, PointsToAbstractValue> trackedInstanceFieldPointsToMap)
+            out DisposeAnalysisResult disposeAnalysisResult,
+            out PointsToAnalysisResult pointsToAnalysisResult)
         {
             foreach (var operationRoot in operationBlocks)
             {
@@ -125,15 +126,14 @@ namespace Analyzer.Utilities
                     // A pessimistic points to analysis resets all the instance state and assumes the instance field might point to any object, hence has unknown state.
                     // For dispose analysis, we want to perform an optimistic points to analysis as we assume a disposable field is not likely to be re-assigned to a separate object in helper method invocations in Dispose.
                     pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider, pessimisticAnalysis: false);
-                    disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider, _disposeOwnershipTransferLikelyTypes, pointsToAnalysisResult,
-                        trackInstanceFields, out trackedInstanceFieldPointsToMap);
+                    disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod,
+                        _wellKnownTypeProvider, _disposeOwnershipTransferLikelyTypes, pointsToAnalysisResult, trackInstanceFields);
                     return true;
                 }
             }
 
             disposeAnalysisResult = null;
             pointsToAnalysisResult = null;
-            trackedInstanceFieldPointsToMap = null;
             return false;
         }
 
