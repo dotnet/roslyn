@@ -97,6 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override async Task LoadComponentsInUIContextAsync(CancellationToken cancellationToken)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(true);
             await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(true);
             await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
