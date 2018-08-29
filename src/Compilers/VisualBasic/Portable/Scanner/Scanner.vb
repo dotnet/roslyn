@@ -581,21 +581,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
                     Dim comment As SyntaxTrivia = ScanComment()
                     If Not CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
-                        comment = DirectCast(comment.SetDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1,
-                                                                                                    New VisualBasicRequiredLanguageVersion(Feature.CommentsAfterLineContinuation.GetLanguageVersion()))}), SyntaxTrivia)
+                        comment = comment.WithDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1,
+                                                                                                    New VisualBasicRequiredLanguageVersion(Feature.CommentsAfterLineContinuation.GetLanguageVersion()))})
                     End If
                     tList.Add(comment)
                     ch = Peek()
                     atNewLine = IsNewLine(ch)
                 Else
                     ' We have a Line Continuation without comment but have 0 or more spaces after _, so process as V15.5
-                    If Not CanGet(Here) Then
+                    atNewLine = IsNewLine(ch)
+                    If Not atNewLine AndAlso CanGet(Here) Then
+                        ' If we get here we have an error, return trivia is Nothing
                         Return False
                     End If
-                    atNewLine = IsNewLine(Peek(Here))
-                    If Not atNewLine Then
-                        Return False
-                    End If
+
                     tList.Add(MakeLineContinuationTrivia(GetText(1)))
                     ' Leading Whitespace on line after _
                     If Here > 1 Then

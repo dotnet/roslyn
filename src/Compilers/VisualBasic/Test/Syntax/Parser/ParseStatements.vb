@@ -8459,22 +8459,6 @@ End Module
 
     <Fact()>
     <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
-    Public Sub ParseLineContWith1SpaceBeforeCommentV16()
-        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16 _
-        ParseAndVerify(
-        <![CDATA[
-    Module M
-           Sub Main()
-                Dim I As Integer _ ' Comment
-                    = 1
-            End Sub
-     End Module
-    ]]>, New VisualBasicParseOptions(LanguageVersion.Latest)
-        )
-    End Sub
-
-    <Fact()>
-    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithMultipleSpacesBeforeCommentV16()
         ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16 _
         ParseAndVerify(

@@ -2365,14 +2365,15 @@ End Module]]>,
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).SingleOrDefault
-        Assert.Null(skippedTokens)
+        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax)
+        Assert.True(skippedTokens.IsEmpty)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.Kind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.Kind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
+        Assert.True(enableNode.ErrorCodes.IsEmpty)
     End Sub
 
     <Fact()>
@@ -2382,15 +2383,15 @@ End Module]]>,
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).SingleOrDefault
-        Assert.Null(skippedTokens)
+        Dim skippedTokens As IEnumerable(Of SkippedTokensTriviaSyntax) = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax)
+        Assert.True(skippedTokens.IsEmpty)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.Kind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.Kind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
-        Assert.Null(enableNode.ErrorCodes.SingleOrDefault)
+        Assert.True(enableNode.ErrorCodes.IsEmpty)
     End Sub
 
     <Fact()>
@@ -2424,8 +2425,8 @@ End Module]]>,
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).SingleOrDefault
-        Assert.Null(skippedTokens)
+        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax)
+        Assert.True(skippedTokens.isempty)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.Kind)
@@ -2445,8 +2446,8 @@ End Module]]>,
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).SingleOrDefault
-        Assert.Null(skippedTokens)
+        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax)
+        Assert.True(skippedTokens.IsEmpty)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.Kind)
