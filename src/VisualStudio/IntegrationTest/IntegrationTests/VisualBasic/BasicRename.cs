@@ -215,7 +215,7 @@ Import System;
 
 Public Class CustomAttribute 
         Inherits Attribute
-    End Class");
+End Class");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
