@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -2574,7 +2575,7 @@ class Program
         new D().Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "A.P.get;B.P.set;A.P.get;B.P.set;\r\nA.P.get;B.P.set;D.P.get;B.P.set;").
+            CompileAndVerify(source, expectedOutput: $"A.P.get;B.P.set;A.P.get;B.P.set;{Environment.NewLine}A.P.get;B.P.set;D.P.get;B.P.set;").
                 VerifyIL("C.Test",
 @"{
   // Code size       25 (0x19)
@@ -2745,7 +2746,7 @@ class Program
         new D().Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "A.P.get;C.P.set;C.P.get;B.P.set;\r\nA.P.get;B.P.set;D.P.get;B.P.set;").
+            CompileAndVerify(source, expectedOutput: $"A.P.get;C.P.set;C.P.get;B.P.set;{Environment.NewLine}A.P.get;B.P.set;D.P.get;B.P.set;").
                 VerifyIL("C.Test",
 @"{
   // Code size       25 (0x19)
@@ -2916,7 +2917,7 @@ class Program
         new D().Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B.P.get;C.P.set;C.P.get;B.P.set;\r\nB.P.get;D.P.set;D.P.get;B.P.set;").
+            CompileAndVerify(source, expectedOutput: $"B.P.get;C.P.set;C.P.get;B.P.set;{Environment.NewLine}B.P.get;D.P.set;D.P.get;B.P.set;").
                 VerifyIL("C.Test",
 @"{
   // Code size       25 (0x19)
