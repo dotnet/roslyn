@@ -267,5 +267,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 
             return false;
         }
+
+        internal static class TestAccessor
+        {
+            public static bool TryMatch(string text, out JsonOptions options)
+                => s_languageCommentDetector.TryMatch(text, out options);
+        }
     }
 }
