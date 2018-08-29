@@ -30,6 +30,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
         }
 
         [Fact]
+        public void TestIncompleteForm1()
+        {
+            NoMatch("lan=regex");
+        }
+
+        [Fact]
+        public void TestIncompleteForm2()
+        {
+            NoMatch("lang=rege");
+        }
+
+        [Fact]
+        public void TestMissingEquals()
+        {
+            NoMatch("lang regex");
+        }
+
+        [Fact]
         public void TestEndingInP()
         {
             Match("lang=regexp");
