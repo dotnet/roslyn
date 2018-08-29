@@ -1849,7 +1849,7 @@ End Structure
                                         Optional latestReferences As Boolean = False,
                                         Optional addXmlReferences As Boolean = False,
                                         Optional diagnostics() As DiagnosticDescription = Nothing)
-            TestExpressionTrees(sourceFile, result.Value.Replace(vbLf, vbCrLf), checked, optimize, latestReferences, addXmlReferences, diagnostics)
+            TestExpressionTrees(sourceFile, result.Value.Replace(vbLf, Environment.NewLine), checked, optimize, latestReferences, addXmlReferences, diagnostics)
         End Sub
 
         Private Class ExpressionTreeTest

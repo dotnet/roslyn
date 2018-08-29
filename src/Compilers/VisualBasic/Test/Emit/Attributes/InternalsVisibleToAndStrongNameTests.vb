@@ -1,4 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#If NET46
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -20,7 +21,9 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
 #Region "Helpers"
 
     Public Sub New()
-        SigningTestHelpers.InstallKey()
+        If ExecutionConditionUtil.IsWindows Then
+            SigningTestHelpers.InstallKey()
+        End If
     End Sub
 
     Private Shared ReadOnly s_keyPairFile As String = SigningTestHelpers.KeyPairFile
@@ -91,7 +94,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey))
     End Sub
 
-    <Fact>
+    <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     Public Sub PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver_RelativeToCurrentParent()
         Dim keyFileDir = Path.GetDirectoryName(s_keyPairFile)
         Dim keyFileName = Path.GetFileName(s_keyPairFile)
@@ -2293,3 +2296,4 @@ BC37254: Public sign was specified and requires a public key, but no public key 
     End Sub
 
 End Class
+#End If

@@ -4516,7 +4516,7 @@ content
         End Sub
 
         <WorkItem(814052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/814052")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub XmlnsNamespaceTooLong()
             Dim identifier = New String("a"c, MetadataWriter.PdbLengthLimit)
             XmlnsNamespaceTooLongCore(identifier.Substring(6), tooLong:=False)
