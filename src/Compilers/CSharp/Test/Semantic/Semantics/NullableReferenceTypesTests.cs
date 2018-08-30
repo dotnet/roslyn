@@ -34470,9 +34470,46 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2.F").WithLocation(15, 13));
         }
 
-        [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
         [Fact]
         public void ForEach_11()
+        {
+            var source =
+@"using System.Collections.Generic;
+class A
+{
+    public static implicit operator B?(A a) => null;
+}
+class B
+{
+}
+class C
+{
+    static void F(IEnumerable<A> e)
+    {
+        foreach (var x in e)
+            x.ToString();
+        foreach (B y in e)
+            y.ToString();
+        foreach (B? z in e)
+            z.ToString();
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (15,18): warning CS8601: Possible null reference assignment.
+                //         foreach (B y in e)
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "B").WithLocation(15, 18),
+                // (16,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(16, 13),
+                // (18,13): warning CS8602: Possible dereference of a null reference.
+                //             z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(18, 13));
+        }
+
+        [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
+        [Fact]
+        public void ForEach_12()
         {
             var source =
 @"using System.Collections;
@@ -34519,7 +34556,7 @@ class C
 
         [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
         [Fact]
-        public void ForEach_12()
+        public void ForEach_13()
         {
             var source =
 @"using System.Collections;
@@ -34566,7 +34603,7 @@ class C
 
         [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
         [Fact]
-        public void ForEach_13()
+        public void ForEach_14()
         {
             var source =
 @"using System.Collections;
@@ -34622,7 +34659,7 @@ class C
 
         [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
         [Fact]
-        public void ForEach_14()
+        public void ForEach_15()
         {
             var source =
 @"using System.Collections;
@@ -34668,7 +34705,7 @@ class C
         }
 
         [Fact]
-        public void ForEach_15()
+        public void ForEach_16()
         {
             var source =
 @"using System.Collections;
