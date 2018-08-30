@@ -39,33 +39,9 @@ function Copy-InsertionItems() {
     $insertionDir = Join-Path $configDir "Insertion"
     Create-Directory $insertionDir
 
-    $items = @(
-        "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.json",
-        "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
-        "Vsix\Roslyn.VisualStudio.InteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json",
-        "Vsix\Roslyn.VisualStudio.InteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.json",
-        "Vsix\Roslyn.VisualStudio.Setup\Roslyn.VisualStudio.Setup.vsix",
-        "Vsix\CodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsman",
-        "Vsix\PortableFacades\PortableFacades.vsix",
-        "Vsix\PortableFacades\PortableFacades.vsman",
-        "Vsix\PortableFacades\PortableFacades.vsmand",
-        "Vsix\PortableFacades\PortableFacades.json",
-        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsix",
-        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsman",
-        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsmand",
-        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.json")
 
-
-    foreach ($item in $items) { 
-        $itemPath = Join-Path $configDir $item
-        Copy-Item $itemPath $insertionDir
-    }       
-
-    $devDivPackagesDir = Join-Path $configDir "DevDivPackages\Roslyn"
-    Create-Directory $devDivPackagesDir
-
-    Copy-Item (Join-Path $configDir "NuGet\VS\*.nupkg") $devDivPackagesDir
+    Copy-Item (Join-Path $binariesDir "VSSetup\$config\Insertion\*.*") $insertionDir
+    Copy-Item (Join-Path $configDir "NuGet\VS\*.nupkg") $insertionDir
 }
 
 Push-Location $PSScriptRoot
@@ -106,7 +82,7 @@ try {
 
     switch ($publishType) {
         "vsts" {
-            Exec-Block { & .\publish-assets.ps1 -configDir $configDir -branchName $branchName -mygetApiKey $mygetApiKey -nugetApiKey $nugetApiKey -gitHubUserName $githubUserName -gitHubToken $gitHubToken -gitHubEmail $gitHubEmail -test:$(-not $official) }
+            Exec-Block { & .\publish-assets.ps1 -config $config -branchName $branchName -mygetApiKey $mygetApiKey -nugetApiKey $nugetApiKey -gitHubUserName $githubUserName -gitHubToken $gitHubToken -gitHubEmail $gitHubEmail -test:$(-not $official) }
             break;
         }
         "blob" {
