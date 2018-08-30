@@ -1401,7 +1401,8 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): stack overflow")]
+        [WorkItem(29594, "https://github.com/dotnet/roslyn/issues/29594")]
+        [Fact(Skip = "Stack overflow")]
         public void NonNullTypes_DoNotWarnInsideAttributes()
         {
             string source = @"
@@ -30912,7 +30913,7 @@ F(v).ToString();";
         /// should not result in a warning at the call site.
         /// </summary>
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
+        [Fact(Skip = "Null check on default value temporarily skipped")]
         public void ParameterDefaultValue_FromMetadata()
         {
             var source0 =
@@ -30951,7 +30952,7 @@ F(v).ToString();";
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
+        [Fact(Skip = "Null check on default value temporarily skipped")]
         public void ParameterDefaultValue_01()
         {
             var source =
@@ -31045,7 +31046,7 @@ F(v).ToString();";
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
+        [Fact(Skip = "Null check on default value temporarily skipped")]
         public void ParameterDefaultValue_03()
         {
             var source =
@@ -31354,7 +31355,7 @@ class Client
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): null check on default value temporarily skipped")]
+        [Fact(Skip = "Null check on default value temporarily skipped")]
         public void ParameterDefaultValue_04()
         {
             var source =
@@ -34718,10 +34719,9 @@ public class B
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // PROTOTYPE(NullableReferenceTypes): The result of type inference with null-oblivious
+            // https://github.com/dotnet/roslyn/issues/27961: The result of type inference with null-oblivious
             // depends on the order possible type arguments are considered. For instance,
             // the type inferred for F(x, z) is A? and the type inferred for F(z, x) is A.
-            // See https://github.com/dotnet/roslyn/issues/27961.
             var source =
 @"class C
 {

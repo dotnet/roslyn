@@ -2474,7 +2474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Make a copy; don't modify the collection as we're iterating it.
                     foreach (var candidate in initialCandidates)
                     {
-                        if (!bound.Equals(candidate, TypeCompareKind.AllAspects))
+                        if (!bound.Equals(candidate, TypeCompareKind.CompareNullableModifiersForReferenceTypes))
                         {
                             if (!ImplicitConversionExists(bound, candidate, ref useSiteDiagnostics, conversions, includeNullability))
                             {
@@ -2498,7 +2498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var candidate in initialCandidates)
                     {
-                        if (!bound.Equals(candidate, TypeCompareKind.AllAspects))
+                        if (!bound.Equals(candidate, TypeCompareKind.CompareNullableModifiersForReferenceTypes))
                         {
                             if (!ImplicitConversionExists(candidate, bound, ref useSiteDiagnostics, conversions, includeNullability))
                             {
@@ -2524,7 +2524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var candidate2 in initialCandidates)
                 {
-                    if (!candidate.Equals(candidate2, TypeCompareKind.AllAspects) &&
+                    if (!candidate.Equals(candidate2, TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
                         !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics, conversions, includeNullability))
                     {
                         goto OuterBreak;
@@ -2546,7 +2546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
                     Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
 
-                    best = Merge(best, candidate, conversions.CorLibrary);
+                    best = MergeNullability(MergeTupleNames(MergeDynamic(best, candidate, conversions.CorLibrary), candidate), candidate);
                 }
                 else
                 {
@@ -2578,12 +2578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var firstWithAnnotations = TypeSymbolWithAnnotations.Create(first);
             var secondWithAnnotations = TypeSymbolWithAnnotations.Create(second);
             return MergeNullability(MergeTupleNames(MergeDynamic(firstWithAnnotations, secondWithAnnotations, corLibrary), secondWithAnnotations), secondWithAnnotations).TypeSymbol;
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Remove this overload.
-        internal static TypeSymbolWithAnnotations Merge(TypeSymbolWithAnnotations first, TypeSymbolWithAnnotations second, AssemblySymbol corLibrary)
-        {
-            return MergeNullability(MergeTupleNames(MergeDynamic(first, second, corLibrary), second), second);
         }
 
         /// <summary>
@@ -2678,7 +2672,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Pass includeNullability to ClassifyImplicitConversionFromType.
             return conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteDiagnostics).Exists;
         }
 

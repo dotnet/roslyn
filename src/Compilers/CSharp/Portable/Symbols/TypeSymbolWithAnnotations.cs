@@ -159,8 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 isAnnotated = true;
             }
-            // PROTOTYPE(NullableReferenceTypes): this defaulting logic should be removed. There are many paths that currently don't have an explicit context at the moment.
-            nonNullTypesContext = nonNullTypesContext ?? NonNullTypesFalseContext.Instance;
             return CreateNonLazyType(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated,
                                      treatUnconstrainedTypeParameterAsNullable: !IsIndexedTypeParameter(typeSymbol),
                                      customModifiers.NullToEmpty());
@@ -1011,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var newUnderlying = _underlying.SubstituteTypeCore(typeMap, withTupleUnification);
                 if (!newUnderlying.IsSameAs(this._underlying))
                 {
-                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.AllAspects) ||
+                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.CompareNullableModifiersForReferenceTypes) ||
                             newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
                         newUnderlying.CustomModifiers.IsEmpty)
                     {
