@@ -36,12 +36,10 @@ function Print-Usage() {
 # Create the Insertion folder. This is where the insertion tool pulls all of its 
 # binaries from. 
 function Copy-InsertionItems() {
-    $insertionDir = Join-Path $configDir "Insertion"
-    Create-Directory $insertionDir
+    $devDivPackagesDir = Join-Path $configDir "DevDivPackages\Roslyn"
+    Create-Directory $devDivPackagesDir
 
-
-    Copy-Item (Join-Path $binariesDir "VSSetup\$config\Insertion\*.*") $insertionDir
-    Copy-Item (Join-Path $configDir "NuGet\VS\*.nupkg") $insertionDir
+    Copy-Item (Join-Path $configDir "NuGet\VS\*.nupkg") $devDivPackagesDir
 }
 
 Push-Location $PSScriptRoot
@@ -72,11 +70,6 @@ try {
 
     Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$true -build -cibuild:$true -official:$official -release:$release -sign -signType $signType -pack -testDesktop:$testDesktop -binaryLog -procdump }
     Copy-InsertionItems
-
-    # Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
-    # and ready to be inserted 
-    $sentinelFile = Join-Path $configDir AllTestsPassed.sentinel
-    New-Item -Force $sentinelFile -type file
 
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | Stop-Process
 
