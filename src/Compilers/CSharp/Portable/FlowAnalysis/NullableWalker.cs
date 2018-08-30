@@ -3637,6 +3637,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected override void VisitForEachExpression(BoundForEachStatement node)
+        {
+            var expr = node.Expression;
+            VisitRvalue(expr);
+            CheckPossibleNullReceiver(expr);
+        }
+
         public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
             // declare and assign all iteration variables

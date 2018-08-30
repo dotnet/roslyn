@@ -34339,6 +34339,278 @@ class C
         }
 
         [Fact]
+        public void ForEach_11()
+        {
+            var source =
+@"using System.Collections.Generic;
+class A
+{
+    public static implicit operator B?(A a) => null;
+}
+class B
+{
+}
+class C
+{
+    static void F(IEnumerable<A> e)
+    {
+        foreach (var x in e)
+            x.ToString();
+        foreach (B y in e)
+            y.ToString();
+        foreach (B? z in e)
+        {
+            z.ToString();
+            if (z != null) z.ToString();
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            // PROTOTYPE(NullableReferenceTypes): Location of WRN_NullabilityMismatchInAssignment should be `y` rather than `B`.
+            // PROTOTYPE(NullableReferenceTypes): Reword WRN_NullabilityMismatchInAssignment since there is not an explicit assignment.
+            comp.VerifyDiagnostics(
+                // (15,18): warning CS8601: Possible null reference assignment.
+                //         foreach (B y in e)
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "B").WithLocation(15, 18),
+                // (16,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(16, 13),
+                // (19,13): warning CS8602: Possible dereference of a null reference.
+                //             z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(19, 13));
+        }
+
+        [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
+        [Fact]
+        public void ForEach_12()
+        {
+            var source =
+@"using System.Collections;
+using System.Collections.Generic;
+class C
+{
+    static void F()
+    {
+        foreach (var x in (IEnumerable?)null) // 1
+        {
+        }
+        foreach (var y in (IEnumerable<object>)default) // 2
+        {
+        }
+        foreach (var z in default(IEnumerable)) // 3
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (7,27): error CS0186: Use of null is not valid in this context
+                //         foreach (var x in (IEnumerable?)null) // 1
+                Diagnostic(ErrorCode.ERR_NullNotValid, "(IEnumerable?)null").WithLocation(7, 27),
+                // (10,27): error CS0186: Use of null is not valid in this context
+                //         foreach (var y in (IEnumerable<object>)default) // 2
+                Diagnostic(ErrorCode.ERR_NullNotValid, "(IEnumerable<object>)default").WithLocation(10, 27),
+                // (13,27): error CS0186: Use of null is not valid in this context
+                //         foreach (var z in default(IEnumerable)) // 3
+                Diagnostic(ErrorCode.ERR_NullNotValid, "default(IEnumerable)").WithLocation(13, 27),
+                // (7,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var x in (IEnumerable?)null) // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable?)null").WithLocation(7, 27),
+                // (10,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (var y in (IEnumerable<object>)default) // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(IEnumerable<object>)default").WithLocation(10, 27),
+                // (10,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var y in (IEnumerable<object>)default) // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable<object>)default").WithLocation(10, 27),
+                // (13,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var z in default(IEnumerable)) // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(IEnumerable)").WithLocation(13, 27));
+        }
+
+        [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
+        [Fact]
+        public void ForEach_13()
+        {
+            var source =
+@"using System.Collections;
+using System.Collections.Generic;
+class C
+{
+    static void F1(object[]? c1)
+    {
+        foreach (var x in c1) // 1
+        {
+        }
+        foreach (var y in (IEnumerable)c1) // 2
+        {
+        }
+        if (c1 == null) return;
+        foreach (var z in c1)
+        {
+        }
+    }
+    static void F2(IList<object>? c2)
+    {
+        foreach (var x in c2) // 3
+        {
+        }
+        foreach (var y in (IEnumerable?)c2) // 4
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (7,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var x in c1) // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1").WithLocation(7, 27),
+                // (10,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (var y in (IEnumerable)c1) // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(IEnumerable)c1").WithLocation(10, 27),
+                // (10,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var y in (IEnumerable)c1) // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable)c1").WithLocation(10, 27),
+                // (20,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var x in c2) // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2").WithLocation(20, 27),
+                // (23,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var y in (IEnumerable?)c2) // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable?)c2").WithLocation(23, 27));
+        }
+
+        [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
+        [Fact]
+        public void ForEach_14()
+        {
+            var source =
+@"using System.Collections;
+using System.Collections.Generic;
+class C
+{
+    static void F1<T>(T t1) where T : class?, IEnumerable<object>?
+    {
+        foreach (var x in t1) // 1
+        {
+        }
+        foreach (var y in (IEnumerable<object>?)t1) // 2
+        {
+        }
+        foreach (var z in (IEnumerable<object>)t1) // 3
+        {
+        }
+    }
+    static void F2<T>(T t2) where T : class?
+    {
+        foreach (var w in (IEnumerable?)t2) // 4
+        {
+        }
+        foreach (var v in (IEnumerable)t2) // 5
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (7,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var x in t1) // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(7, 27),
+                // (10,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var y in (IEnumerable<object>?)t1) // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable<object>?)t1").WithLocation(10, 27),
+                // (13,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (var z in (IEnumerable<object>)t1) // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(IEnumerable<object>)t1").WithLocation(13, 27),
+                // (13,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var z in (IEnumerable<object>)t1) // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable<object>)t1").WithLocation(13, 27),
+                // (19,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var w in (IEnumerable?)t2) // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable?)t2").WithLocation(19, 27),
+                // (22,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (var v in (IEnumerable)t2) // 5
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(IEnumerable)t2").WithLocation(22, 27),
+                // (22,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var v in (IEnumerable)t2) // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable)t2").WithLocation(22, 27));
+        }
+
+        [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
+        [Fact]
+        public void ForEach_15()
+        {
+            var source =
+@"using System.Collections;
+using System.Collections.Generic;
+class C
+{
+    static void F1<T>(T t1) where T : IEnumerable?
+    {
+        foreach (var x in t1) // 1
+        {
+        }
+        foreach (var w in (IEnumerable?)t1) // 2
+        {
+        }
+        foreach (var v in (IEnumerable)t1) // 3
+        {
+        }
+    }
+    static void F2<T>(T t2)
+    {
+        foreach (var y in (IEnumerable<object>?)t2) // 4
+        {
+        }
+        foreach (var z in (IEnumerable<object>)t2) // 5
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (7,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var x in t1) // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(7, 27),
+                // (10,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var w in (IEnumerable?)t1) // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable?)t1").WithLocation(10, 27),
+                // (13,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (var v in (IEnumerable)t1) // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(IEnumerable)t1").WithLocation(13, 27),
+                // (13,27): warning CS8602: Possible dereference of a null reference.
+                //         foreach (var v in (IEnumerable)t1) // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable)t1").WithLocation(13, 27));
+        }
+
+        [Fact]
+        public void ForEach_16()
+        {
+            var source =
+@"using System.Collections;
+class Enumerable : IEnumerable
+{
+    public IEnumerator? GetEnumerator() => null;
+}
+class C
+{
+    static void F(Enumerable e)
+    {
+        foreach (var x in e) // 1
+        {
+        }
+        foreach (var y in (IEnumerable?)e)
+        {
+        }
+        foreach (var z in (IEnumerable)e)
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullReferenceReceiver using Enumerable.GetEnumerator. 
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TypeInference_01()
         {
             var source =
