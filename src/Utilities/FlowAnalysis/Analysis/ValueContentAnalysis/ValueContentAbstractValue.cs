@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         public static readonly ValueContentAbstractValue InvalidState = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Invalid);
         public static readonly ValueContentAbstractValue MayBeContainsNonLiteralState = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Maybe);
         public static readonly ValueContentAbstractValue DoesNotContainLiteralOrNonLiteralState = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.No);
-        public static readonly ValueContentAbstractValue ContainsEmpyStringLiteralState = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(string.Empty), ValueContainsNonLiteralState.No);
+        public static readonly ValueContentAbstractValue ContainsEmptyStringLiteralState = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(string.Empty), ValueContainsNonLiteralState.No);
         public static readonly ValueContentAbstractValue ContainsZeroIntergralLiteralState = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(0), ValueContainsNonLiteralState.No);
         public static readonly ValueContentAbstractValue ContainsOneIntergralLiteralState = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(1), ValueContainsNonLiteralState.No);
         private static readonly ValueContentAbstractValue ContainsTrueLiteralState = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(true), ValueContainsNonLiteralState.No);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 case SpecialType.System_String:
                     if (((string)literal).Length == 0)
                     {
-                        return ContainsEmpyStringLiteralState;
+                        return ContainsEmptyStringLiteralState;
                     }
 
                     break;
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                     case string stringVal:
                         if (stringVal.Length == 0)
                         {
-                            return ContainsEmpyStringLiteralState;
+                            return ContainsEmptyStringLiteralState;
                         }
 
                         break;

@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 if (operation.Field.Name.Equals("Empty", StringComparison.Ordinal) &&
                     operation.Field.ContainingType.SpecialType == SpecialType.System_String)
                 {
-                    return ValueContentAbstractValue.ContainsEmpyStringLiteralState;
+                    return ValueContentAbstractValue.ContainsEmptyStringLiteralState;
                 }
 
                 return value;
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             {
                 if (operation.Parts.IsEmpty)
                 {
-                    return ValueContentAbstractValue.ContainsEmpyStringLiteralState;
+                    return ValueContentAbstractValue.ContainsEmptyStringLiteralState;
                 }
 
                 ValueContentAbstractValue mergedValue = Visit(operation.Parts[0], argument);
