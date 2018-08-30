@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        internal override bool HasNullableReferenceTypeConstraint
+        internal override bool? ReferenceTypeConstraintIsNullable
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

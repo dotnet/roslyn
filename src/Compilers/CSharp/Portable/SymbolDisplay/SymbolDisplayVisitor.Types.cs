@@ -779,13 +779,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             AddSpace();
 
                             bool needComma = false;
+                            var typeParameterSymbol = typeParam as TypeParameterSymbol;
 
                             //class/struct constraint must be first
                             if (typeParam.HasReferenceTypeConstraint)
                             {
                                 AddKeyword(SyntaxKind.ClassKeyword);
                                 if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                                    (typeParam as TypeParameterSymbol)?.HasNullableReferenceTypeConstraint == true) // PROTOTYPE(NullableReferenceTypes): Switch to public API when we will have one.
+                                    typeParameterSymbol?.ReferenceTypeConstraintIsNullable == true) // PROTOTYPE(NullableReferenceTypes): Switch to public API when we will have one.
                                 {
                                     AddPunctuation(SyntaxKind.QuestionToken);
                                 }
@@ -803,15 +804,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 needComma = true;
                             }
 
-                            foreach (var baseType in typeParam.ConstraintTypes)
+                            ImmutableArray<TypeSymbolWithAnnotations>? annotatedConstraints = typeParameterSymbol?.ConstraintTypesNoUseSiteDiagnostics; // PROTOTYPE(NullableReferenceTypes): Switch to public API when we will have one.
+
+                            for (int i = 0; i < typeParam.ConstraintTypes.Length; i++)
                             {
+                                ITypeSymbol baseType = typeParam.ConstraintTypes[i];
                                 if (needComma)
                                 {
                                     AddPunctuation(SyntaxKind.CommaToken);
                                     AddSpace();
                                 }
 
-                                baseType.Accept(this.NotFirstVisitor);
+                                if (annotatedConstraints.HasValue)
+                                {
+                                    VisitTypeSymbolWithAnnotations(annotatedConstraints.GetValueOrDefault()[i], this.NotFirstVisitor);
+                                }
+                                else
+                                {
+                                    baseType.Accept(this.NotFirstVisitor);
+                                }
 
                                 needComma = true;
                             }

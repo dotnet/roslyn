@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(originalDefinition)
         {
             _containingSymbol = containingSymbol;
-            _map = containingSymbol.TypeSubstitution.WithAlphaRename(originalDefinition, this, nonNullTypesContext: this, out _typeParameters);
+            _map = containingSymbol.TypeSubstitution.WithAlphaRename(originalDefinition, this, nonNullTypesContext: originalDefinition, out _typeParameters);
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters

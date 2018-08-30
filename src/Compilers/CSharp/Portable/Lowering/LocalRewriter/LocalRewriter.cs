@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool hasConstraintsWithNullableReferenceTypes = typeParameters.Any(
-               typeParameter => typeParameter.HasNullableReferenceTypeConstraint ||
+               typeParameter => typeParameter.ReferenceTypeConstraintIsNullable == true ||
                                 typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
                                     typeConstraint => typeConstraint.ContainsNullableReferenceTypes()));
 

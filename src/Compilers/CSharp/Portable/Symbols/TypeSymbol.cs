@@ -118,6 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static readonly EqualityComparer<TypeSymbol> EqualsIncludingNullableComparer = new TypeSymbolComparer(TypeCompareKind.CompareNullableModifiersForReferenceTypes);
 
+        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullablWitUnknownMatchesAnyComparer = 
+                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions |
+                                                                                         TypeCompareKind.CompareNullableModifiersForReferenceTypes |
+                                                                                         TypeCompareKind.UnknownNullableModifierMatchesAny);
+
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
@@ -1284,8 +1289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typeParameters2 = implicitImpl.TypeParameters;
                 var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
 
-                var typeMap1 = new TypeMap(nonNullTypesContext: interfaceMethod, typeParameters1, indexedTypeParameters, allowAlpha: true);
-                var typeMap2 = new TypeMap(nonNullTypesContext: implicitImpl, typeParameters2, indexedTypeParameters, allowAlpha: true);
+                var typeMap1 = new TypeMap(nonNullTypesContext: interfaceMethod.OriginalDefinition, typeParameters1, indexedTypeParameters, allowAlpha: true);
+                var typeMap2 = new TypeMap(nonNullTypesContext: implicitImpl.OriginalDefinition, typeParameters2, indexedTypeParameters, allowAlpha: true);
 
                 // Report any mismatched method constraints.
                 for (int i = 0; i < arity; i++)
@@ -1304,6 +1309,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // A is defined in metadata, there is no location for A.M. Instead, we simply report the
                         // error on B if the match to I.M is in a base class.)
                         diagnostics.Add(ErrorCode.ERR_ImplBadConstraints, GetImplicitImplementationDiagnosticLocation(interfaceMethod, implementingType, implicitImpl), typeParameter2.Name, implicitImpl, typeParameter1.Name, interfaceMethod);
+                    }
+                    else if (!MemberSignatureComparer.HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
+                    {
+                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraints, GetImplicitImplementationDiagnosticLocation(interfaceMethod, implementingType, implicitImpl),
+                                        typeParameter2.Name, implicitImpl, typeParameter1.Name, interfaceMethod);
                     }
                 }
             }

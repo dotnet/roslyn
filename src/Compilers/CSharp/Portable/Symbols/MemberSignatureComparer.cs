@@ -420,8 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var indexed = builder.ToImmutableAndFree();
 
-                typeMap1 = new TypeMap(nonNullTypesContext: member1, member1.GetMemberTypeParameters(), indexed, true);
-                typeMap2 = new TypeMap(nonNullTypesContext: member2, typeParameters2, indexed, true);
+                typeMap1 = new TypeMap(nonNullTypesContext: member1.OriginalDefinition, member1.GetMemberTypeParameters(), indexed, true);
+                typeMap2 = new TypeMap(nonNullTypesContext: member2.OriginalDefinition, typeParameters2, indexed, true);
             }
             else
             {
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return typeParameters.IsEmpty ?
                 null :
                 new TypeMap(
-                    nonNullTypesContext: member,
+                    nonNullTypesContext: member.OriginalDefinition,
                     typeParameters,
                     IndexedTypeParameterSymbol.Take(member.GetMemberArity()),
                     true);
@@ -658,6 +658,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var substitutedTypes1 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
             var substitutedTypes2 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
+
+            SubstituteConstraintTypes(constraintTypes1, typeMap1, substitutedTypes1);
+            SubstituteConstraintTypes(constraintTypes2, typeMap2, substitutedTypes2);
+
+            return AreConstraintTypesSubset(substitutedTypes1, substitutedTypes2, typeParameter2) &&
+                AreConstraintTypesSubset(substitutedTypes2, substitutedTypes1, typeParameter1);
+        }
+
+        public static bool HaveSameNullabilityInConstraints(TypeParameterSymbol typeParameter1, TypeMap typeMap1, TypeParameterSymbol typeParameter2, TypeMap typeMap2)
+        {
+            if (!typeParameter1.IsValueType)
+            {
+
+                bool? isNotNullableIfReferenceType1 = typeParameter1.IsNotNullableIfReferenceType;
+                bool? isNotNullableIfReferenceType2 = typeParameter2.IsNotNullableIfReferenceType;
+                if (isNotNullableIfReferenceType1.HasValue && isNotNullableIfReferenceType2.HasValue && 
+                    isNotNullableIfReferenceType1.GetValueOrDefault() != isNotNullableIfReferenceType2.GetValueOrDefault())
+                {
+                    return false;
+                }
+            }
+
+            // Check that constraintTypes1 is a subset of constraintTypes2 and
+            // also that constraintTypes2 is a subset of constraintTypes1
+
+            var constraintTypes1 = typeParameter1.ConstraintTypesNoUseSiteDiagnostics;
+            var constraintTypes2 = typeParameter2.ConstraintTypesNoUseSiteDiagnostics;
+
+            // The two sets of constraints may differ in size but still be considered
+            // the same (duplicated constraints, ignored "object" constraints), but
+            // if both are zero size, the sets must be equal.
+            if ((constraintTypes1.Length == 0) && (constraintTypes2.Length == 0))
+            {
+                return true;
+            }
+
+            var substitutedTypes1 = new HashSet<TypeSymbol>(TypeSymbol.EqualsAllIgnoreOptionsPlusNullablWitUnknownMatchesAnyComparer);
+            var substitutedTypes2 = new HashSet<TypeSymbol>(TypeSymbol.EqualsAllIgnoreOptionsPlusNullablWitUnknownMatchesAnyComparer);
 
             SubstituteConstraintTypes(constraintTypes1, typeMap1, substitutedTypes1);
             SubstituteConstraintTypes(constraintTypes2, typeMap2, substitutedTypes2);
