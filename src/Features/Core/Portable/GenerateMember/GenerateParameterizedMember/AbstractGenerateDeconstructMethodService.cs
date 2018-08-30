@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
     {
         public async Task<ImmutableArray<CodeAction>> GenerateDeconstructMethodAsync(
             Document document,
-            SyntaxNode targetVariables,
+            SyntaxNode leftSide,
             INamedTypeSymbol typeToGenerateIn,
             CancellationToken cancellationToken)
         {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
                 var state = await State.GenerateDeconstructMethodStateAsync(
-                    (TService)this, semanticDocument, targetVariables, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
+                    (TService)this, semanticDocument, leftSide, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
 
                 return state != null ? GetActions(document, state, cancellationToken) : ImmutableArray<CodeAction>.Empty;
             }

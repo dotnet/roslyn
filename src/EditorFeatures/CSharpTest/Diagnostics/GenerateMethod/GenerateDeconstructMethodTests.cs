@@ -42,6 +42,33 @@ class Class
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestDeconstructionDeclaration_TypeParamters()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class<T>
+{
+    void Method<U>()
+    {
+        (T x, U y) = [|this|];
+    }
+}",
+@"using System;
+
+class Class<T>
+{
+    private void Deconstruct(out T x, out object y)
+    {
+        throw new NotImplementedException();
+    }
+
+    void Method<U>()
+    {
+        (T x, U y) = this;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDeconstructionDeclaration_OtherDeconstructMethods()
         {
             await TestInRegularAndScriptAsync(
@@ -234,6 +261,38 @@ class Class
     void Method()
     {
         foreach ((int x, int y) in new[] { this }) { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestSimpleDeconstructionForeach_AnotherType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(D d)
+    {
+        foreach ((int x, int y) in new[] { [|d|] }) { }
+    }
+}
+class D
+{
+}",
+@"using System;
+
+class Class
+{
+    void Method(D d)
+    {
+        foreach ((int x, int y) in new[] { d }) { }
+    }
+}
+class D
+{
+    internal void Deconstruct(out int x, out int y)
+    {
+        throw new NotImplementedException();
     }
 }");
         }

@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: null,
-                    typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+                    typeParameters: default,
                     parameters);
 
                 this.SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
 
-                return await TryFinishInitializingState(service, document, cancellationToken).ConfigureAwait(false);
+                return await TryFinishInitializingStateAsync(service, document, cancellationToken).ConfigureAwait(false);
             }
 
             private static ImmutableArray<IParameterSymbol> TryMakeParameters(
