@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                 rule,
                                 member.Locations[0],
                                 effectiveSeverity,
-                                additionalLocations: member.Locations,
+                                additionalLocations: null,
                                 properties: null,
                                 member.ContainingType.Name,
                                 member.Name);
@@ -373,27 +373,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
 
             private bool IsEntryPoint(IMethodSymbol methodSymbol)
-            {
-                if (methodSymbol.Name != WellKnownMemberNames.EntryPointMethodName ||
-                    !methodSymbol.IsStatic)
-                {
-                    return false;
-                }
-
-                if (methodSymbol.ReturnsVoid)
-                {
-                    return true;
-                }
-
-                if (methodSymbol.IsAsync &&
-                    (methodSymbol.ReturnType.OriginalDefinition == _taskType ||
-                    methodSymbol.ReturnType.OriginalDefinition == _genericTaskType))
-                {
-                    return true;
-                }
-
-                return false;
-            }
+                => methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName &&
+                   methodSymbol.IsStatic &&
+                   (methodSymbol.ReturnsVoid ||
+                    methodSymbol.ReturnType.OriginalDefinition == _taskType ||
+                    methodSymbol.ReturnType.OriginalDefinition == _genericTaskType);
         }
     }
 }

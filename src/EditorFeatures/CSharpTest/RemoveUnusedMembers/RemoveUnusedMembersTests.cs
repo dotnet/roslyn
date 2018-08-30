@@ -201,7 +201,7 @@ class MyClass
 
 class MyClass
 {
-    private static Task [|Main|]() => return Task.CompletedTask;
+    private static Task [|Main|]() => Task.CompletedTask;
 }");
         }
 
