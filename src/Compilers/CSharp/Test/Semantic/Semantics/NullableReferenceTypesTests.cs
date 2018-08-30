@@ -34366,6 +34366,8 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            // PROTOTYPE(NullableReferenceTypes): Location of WRN_NullabilityMismatchInAssignment should be `y` rather than `B`.
+            // PROTOTYPE(NullableReferenceTypes): Reword WRN_NullabilityMismatchInAssignment since there is not an explicit assignment.
             comp.VerifyDiagnostics(
                 // (15,18): warning CS8601: Possible null reference assignment.
                 //         foreach (B y in e)
