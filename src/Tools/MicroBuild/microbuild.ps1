@@ -60,9 +60,12 @@ function Copy-InsertionItems() {
     foreach ($item in $items) { 
         $itemPath = Join-Path $configDir $item
         Copy-Item $itemPath $insertionDir
-    }
+    }       
 
-    Copy-Item (Join-Path $configDir "NuGet\VS\*.nupkg") $insertionDir
+    $devDivPackagesDir = Join-Path $configDir "DevDivPackages\Roslyn"
+    Create-Directory $devDivPackagesDir
+
+    Copy-Item (Join-Path $configDir "NuGet\VS\*.nupkg") $devDivPackagesDir
 }
 
 Push-Location $PSScriptRoot
