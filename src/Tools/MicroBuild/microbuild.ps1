@@ -33,15 +33,6 @@ function Print-Usage() {
     Write-Host "  -help                     Print this message"
 }
 
-# Create the Insertion folder. This is where the insertion tool pulls all of its 
-# binaries from. 
-function Copy-InsertionItems() {
-    $devDivPackagesDir = Join-Path $configDir "DevDivPackages\Roslyn"
-    Create-Directory $devDivPackagesDir
-
-    Copy-Item (Join-Path $configDir "NuGet\VS\*.nupkg") $devDivPackagesDir
-}
-
 Push-Location $PSScriptRoot
 try {
     . (Join-Path $PSScriptRoot "..\..\..\build\scripts\build-utils.ps1")
@@ -69,7 +60,6 @@ try {
     $setupDir = Join-Path $repoDir "src\Setup"
 
     Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$true -build -cibuild:$true -official:$official -release:$release -sign -signType $signType -pack -testDesktop:$testDesktop -binaryLog -procdump }
-    Copy-InsertionItems
 
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | Stop-Process
 

@@ -18,7 +18,7 @@
     <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.0'">false</GenerateRuntimeConfigurationFiles>
 
     <!-- Place VS insertion (CoreXT) packages to a separate directory -->
-    <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(ArtifactsPackagesDir)VS\</PackageOutputPath>
+    <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(ArtifactsConfigurationDir)DevDivPackages\Roslyn\</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetNetFX20)' == 'true'">
