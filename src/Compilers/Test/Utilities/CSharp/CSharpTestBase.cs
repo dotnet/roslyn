@@ -52,21 +52,9 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        // PROTOTYPE(NullableReferenceTypes): we should remove NullableOptOutForAssemblyAttribute
         protected const string NonNullTypesAttributesDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    /// <summary>
-    /// Opt out of nullability warnings that could originate from definitions in the given assembly.
-    /// The attribute is not preserved in metadata and ignored if present in metadata.
-    /// </summary>
-    [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = true)]
-    class NullableOptOutForAssemblyAttribute : Attribute
-    {
-        /// <param name=""assemblyName"">An assembly name - a simple name plus its PublicKey, if any.""/></param>
-        public NullableOptOutForAssemblyAttribute(string assemblyName) { }
-    }
-
     /// <summary>
     /// Control whether unannotated reference types are treated as non-null or null-oblivious.
     /// </summary>
