@@ -86,7 +86,7 @@
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>
     <MicrosoftPortableTargetsVersion>0.1.2-dev</MicrosoftPortableTargetsVersion>
     <MicrosoftServiceHubClientVersion>1.3.23</MicrosoftServiceHubClientVersion>
-    <MicrosoftSourceLinkVersion>1.0.0-beta-63119-01</MicrosoftSourceLinkVersion>
+    <MicrosoftSourceLinkVersion>1.0.0-beta-63201-01</MicrosoftSourceLinkVersion>
     <MicrosoftSymbolUploaderBuildTaskVersion>1.0.0-beta-63008-01</MicrosoftSymbolUploaderBuildTaskVersion>
     <MicrosoftTplDataflowVersion>4.5.24</MicrosoftTplDataflowVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
