@@ -29,6 +29,7 @@ namespace System
 
 When you have an async-stream, you can enumerate its items using a special `foreach` statement: `foreach await (var item in asyncStream) { ... }`.
 Similarly, if you have an async-disposable, you can use and dispose it with a special `using` statement: `using await (var resource = asyncDisposable) { ... }`
+A `using await` statement is just like a `using` statement, but it uses `IAsyncDisposable` instead of `IDisposable`, and `await DisposeAsync()` instead of `Dispose()`.
 
 The user can implement those interfaces manually, or can take advantage of the compiler generating a state-machine from a user-defined method (called an "async-iterator" method).
 An async-iterator method is a method that:
@@ -58,8 +59,25 @@ PROTOTYPE(async-streams): TODO: async LINQ
 ### Detailed design for async `foreach` statement
 PROTOTYPE(async-streams): TODO
 
-### Detailed design for async `using` statement
-PROTOTYPE(async-streams): TODO
+```C#
+E e = ((C)(x)).GetAsyncEnumerator()
+try
+{
+    while (await e.WaitForNextAsync()) /* outer loop */
+    {
+        while (true) /* inner loop */
+        {
+            V v = (V)e.TryGetNext(out bool success);
+            if (!success) goto outer_loop_continue;
+            /* loop.Body */
+            /* loop.ContinueLabel: */
+        }
+        outer_loop_continue:
+    }
+    /* loop.BreakLabel: */
+}
+finally { await e.DisposeAsync(); }
+```
 
 ### Detailed design for async-iterator methods
 
@@ -158,7 +176,6 @@ if (this.promiseIsActive)
    this.promiseOfValueOrEnd.SetResult(false);
 }
 ```
-PROTOTYPE(async-streams): maybe the end-of-method handling should also initialize/reset the promise? (the scenario is an `await` followed by a `yield` and then the end-of-method)
 
 When we reach an `await` and the awaitable result wasn't already completed, we need to reset the promise if it was inactive:
 ```C#
@@ -170,7 +187,7 @@ if (!this.promiseIsActive)
 ```
 
 When we reach a `yield return`, we save the "current" value and fulfill the promise of value-or-end with `true` to signal that a value is available:
-```
+```C#
 this.current = expression;
 this.state = <next_state>;
 if (this._promiseIsActive)
@@ -209,6 +226,5 @@ catch (Exception ex)
     {
         throw;
     }
-    this.promiseOfValueOrEnd.SetException(ex);
 }
 ```

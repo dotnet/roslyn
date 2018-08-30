@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Produces a MoveNext() method for an async method or an async-iterator method.
     /// </summary>
-    internal partial class AsyncMethodToStateMachineRewriter : MethodToStateMachineRewriter
+    internal sealed class AsyncMethodToStateMachineRewriter : MethodToStateMachineRewriter
     {
         /// <summary>
         /// The method being rewritten.
@@ -231,6 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CloseMethod(newBody);
         }
 
+        // PROTOTYPE(async-streams): use an exception filter instead, to avoid re-throwing:
+        // catch (Exception ex) where { this.state = finishedState; value = promiseIsActive } // pseudo-code for a BoundSequence
+        // {
+        //     this.promiseOfValueOrEnd.SetException(ex);
+        // }
         private BoundBlock GenerateExceptionHandling(LocalSymbol exceptionLocal)
         {
             // this.state = finishedState

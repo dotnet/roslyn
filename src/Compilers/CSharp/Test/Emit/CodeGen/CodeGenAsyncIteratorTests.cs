@@ -1,14 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     using static Instruction;
@@ -28,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         // Test missing types/members
         // Test with yield or await in try/catch/finally
         // More tests with exception thrown
-        // Test yield break
         // There is a case in GetIteratorElementType with IsDirectlyInIterator that relates to speculation, needs testing
         // yield break disallowed in finally and top-level script (see BindYieldBreakStatement); same for yield return (see BindYieldReturnStatement)
         // test local function
@@ -79,7 +74,7 @@ class C
 
                 verifier.VerifyIL("C.M", @"
 {
-  // Code size       52 (0x34)
+  // Code size       45 (0x2d)
   .maxstack  2
   .locals init (C.<M>d__0 V_0)
   IL_0000:  newobj     ""C.<M>d__0..ctor()""
@@ -91,17 +86,14 @@ class C
   IL_0012:  ldc.i4.m1
   IL_0013:  stfld      ""int C.<M>d__0.<>1__state""
   IL_0018:  ldloc.0
-  IL_0019:  ldfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
-  IL_001e:  pop
-  IL_001f:  ldloc.0
-  IL_0020:  ldloc.0
-  IL_0021:  newobj     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>..ctor(System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>>)""
-  IL_0026:  stfld      ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0019:  ldloc.0
+  IL_001a:  newobj     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>..ctor(System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>>)""
+  IL_001f:  stfld      ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0024:  ldloc.0
+  IL_0025:  ldc.i4.1
+  IL_0026:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
   IL_002b:  ldloc.0
-  IL_002c:  ldc.i4.1
-  IL_002d:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
-  IL_0032:  ldloc.0
-  IL_0033:  ret
+  IL_002c:  ret
 }", sequencePoints: "C.M", source: source);
 
                 verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.TryGetNext(out bool)", @"
@@ -145,15 +137,15 @@ class C
 {
   // Code size       70 (0x46)
   .maxstack  2
-  .locals init (C.<M>d__0 V_0,
-                System.Threading.Tasks.ValueTask<bool> V_1)
+  .locals init (System.Threading.Tasks.ValueTask<bool> V_0,
+                C.<M>d__0 V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
   IL_0006:  ldc.i4.s   -2
   IL_0008:  bne.un.s   IL_0014
-  IL_000a:  ldloca.s   V_1
+  IL_000a:  ldloca.s   V_0
   IL_000c:  initobj    ""System.Threading.Tasks.ValueTask<bool>""
-  IL_0012:  ldloc.1
+  IL_0012:  ldloc.0
   IL_0013:  ret
   IL_0014:  ldarg.0
   IL_0015:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
@@ -163,10 +155,10 @@ class C
   IL_0022:  ldc.i4.m1
   IL_0023:  bne.un.s   IL_0034
   IL_0025:  ldarg.0
-  IL_0026:  stloc.0
+  IL_0026:  stloc.1
   IL_0027:  ldarg.0
   IL_0028:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
-  IL_002d:  ldloca.s   V_0
+  IL_002d:  ldloca.s   V_1
   IL_002f:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<C.<M>d__0>(ref C.<M>d__0)""
   IL_0034:  ldarg.0
   IL_0035:  ldarg.0
@@ -601,7 +593,7 @@ class C
         }
 
         [Fact]
-        public void AsyncIteratorWitYieldAndAwait()
+        public void AsyncIteratorWithYieldAndAwait()
         {
             string source = @"
 using static System.Console;
@@ -823,22 +815,58 @@ class C
         }
 
         [Fact]
-        public void AsyncIteratorWithYieldOnly()
+        public void AsyncIteratorWithYieldReturnOnly()
         {
             string source = @"
 class C
 {
-    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
     {
         yield return 1;
     }
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (var i in M())
+        {
+            System.Console.Write(i);
+        }
+    }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60)
+                // (4,67): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 67)
                 );
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
+
+        [Fact]
+        public void AsyncIteratorWithYieldBreakOnly()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield break;
+    }
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (var i in M())
+        {
+            System.Console.Write(""SKIPPED"");
+        }
+        System.Console.Write(""none"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (4,67): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 67)
+                );
+            CompileAndVerify(comp, expectedOutput: "none");
         }
 
         [Fact]
@@ -852,7 +880,6 @@ class C
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
-            // PROTOTYPE(async-streams): There should be warning for missing yield too
             comp.VerifyDiagnostics(
                 // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M()

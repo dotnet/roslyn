@@ -2171,8 +2171,8 @@ class C
             var model = comp.GetSemanticModel(tree);
             var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
 
-            var ctrlFlowAnalaysis = model.AnalyzeControlFlow(loop);
-            Assert.Equal(0, ctrlFlowAnalaysis.ExitPoints.Count());
+            var ctrlFlowAnalysis = model.AnalyzeControlFlow(loop);
+            Assert.Equal(0, ctrlFlowAnalysis.ExitPoints.Count());
         }
 
         [Fact]

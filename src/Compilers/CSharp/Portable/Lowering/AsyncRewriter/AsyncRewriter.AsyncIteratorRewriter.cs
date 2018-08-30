@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class AsyncRewriter : StateMachineRewriter
     {
-        // PROTOTYPE(async-streams): Consider making AsyncRewriter an abstract base
-
         /// <summary>
         /// This rewriter rewrites an async-iterator method. See async-streams.md for design overview.
         /// </summary>
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private FieldSymbol _promiseOfValueOrEndField; // this struct implements the IValueTaskSource logic
             private FieldSymbol _promiseIsActiveField;
-            private FieldSymbol _currentField; // stores the current/yieled value
+            private FieldSymbol _currentField; // stores the current/yielded value
 
             internal AsyncIteratorRewriter(
                 BoundStatement body,
@@ -65,17 +63,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the fields are initialized from entry-point method (which replaces the async-iterator method), so they need to be public
 
                 base.GenerateControlFields();
+                NamedTypeSymbol boolType = F.SpecialType(SpecialType.System_Boolean);
 
                 // Add a field: ManualResetValueTaskSourceLogic<bool> promiseOfValueOrEnd
                 _promiseOfValueOrEndField = F.StateMachineField(
-                    F.WellKnownType(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T)
-                        .Construct(F.SpecialType(SpecialType.System_Boolean)),
-                    GeneratedNames.MakeAsyndIteratorPromiseOfValueOrEndFieldName(), isPublic: true);
+                    F.WellKnownType(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T).Construct(boolType),
+                    GeneratedNames.MakeAsyncIteratorPromiseOfValueOrEndFieldName(), isPublic: true);
 
                 // Add a field: bool promiseIsActive
                 _promiseIsActiveField = F.StateMachineField(
-                    F.SpecialType(SpecialType.System_Boolean),
-                    GeneratedNames.MakeAsyndIteratorPromiseIsActiveFieldName(), isPublic: true);
+                    boolType,
+                    GeneratedNames.MakeAsyncIteratorPromiseIsActiveFieldName(), isPublic: true);
 
                 // Add a field: T current
                 _currentField = F.StateMachineField(method.IteratorElementType, GeneratedNames.MakeIteratorCurrentFieldName());
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the async method's result type is a type parameter of the method, then the AsyncTaskMethodBuilder<T>
                 // needs to use the method's type parameters inside the rewritten method body. All other methods generated
                 // during async rewriting are members of the synthesized state machine struct, and use the type parameters
-                // structs type parameters.
+                // from the struct.
                 AsyncMethodBuilderMemberCollection methodScopeAsyncMethodBuilderMemberCollection;
                 if (!AsyncMethodBuilderMemberCollection.TryCreate(F, method, null, out methodScopeAsyncMethodBuilderMemberCollection))
                 {
@@ -99,7 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-                LocalSymbol builderVariable = F.SynthesizedLocal(methodScopeAsyncMethodBuilderMemberCollection.BuilderType, null);
 
                 // local.$builder = System.Runtime.CompilerServices.AsyncTaskMethodBuilder<typeArgs>.Create();
                 bodyBuilder.Add(
@@ -115,12 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.Field(F.Local(stateMachineVariable), stateField.AsMember(frameType)),
                         F.Literal(StateMachineStates.NotStartedStateMachine)));
 
-                // builder = local.$stateField.builder;
-                bodyBuilder.Add(
-                    F.Assignment(
-                        F.Local(builderVariable),
-                        F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType))));
-
                 // local._valueOrEndPromise = new ManualResetValueTaskSourceLogic<bool>(stateMachine);
                 MethodSymbol mrvtslCtor =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor)
@@ -131,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.Field(F.Local(stateMachineVariable), _promiseOfValueOrEndField.AsMember(frameType)),
                         F.New(mrvtslCtor, F.Local(stateMachineVariable))));
 
-                // PROTOTYPE(async-streams): Why do we need AsMember?
                 // local._promiseIsActive = true;
                 bodyBuilder.Add(
                     F.Assignment(
@@ -142,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(F.Return(F.Local(stateMachineVariable)));
 
                 return F.Block(
-                    ImmutableArray.Create(builderVariable),
                     bodyBuilder.ToImmutableAndFree());
             }
 
@@ -175,7 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OpenMethodImplementation( IAsyncEnumerableOfElementType_WaitForNextAsync, hasMethodBodyDependency: false);
 
                 BoundFieldAccess promiseIsActiveField = F.Field(F.This(), _promiseIsActiveField);
-                LocalSymbol instSymbol = F.SynthesizedLocal(this.stateMachineType);
 
                 var ifFinished = F.If(
                     // if (State == StateMachineStates.FinishedStateMachine)
@@ -187,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Binary(BinaryOperatorKind.LogicalOr, promiseIsActiveField.Type,
                         F.Not(promiseIsActiveField),
                         F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.NotStartedStateMachine))),
-                    thenClause: GenerateCallStart(instSymbol)); // var inst = this; this._builder.Start(ref inst);
+                    thenClause: GenerateCallStart()); // var inst = this; this._builder.Start(ref inst);
 
                 MethodSymbol valueTask_ctor =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor)
@@ -200,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // return new ValueTask<bool>(this, _valueOrEndPromise.Version);
                 var returnStatement = F.Return(F.New(valueTask_ctor, F.This(), F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_get_Version)));
 
-                F.CloseMethod(F.Block(ImmutableArray.Create(instSymbol), ifFinished, ifNotRunningOrNotStarted, returnStatement));
+                F.CloseMethod(F.Block(ifFinished, ifNotRunningOrNotStarted, returnStatement));
             }
 
             /// <summary>
@@ -211,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Produce the implementation for `T TryGetNext(out bool success)`:
                 // if (this._promiseIsActive)
                 // {
-                //     if (_valueOrEndPromise.GetStatus(_valueOrEndPromise.Version) == ValueTaskSourceStatus.Pending) throw new Exception();
+                //     if (_valueOrEndPromise.GetStatus(_valueOrEndPromise.Version) == ValueTaskSourceStatus.Pending) throw new Exception(); // PROTOTYPE(NullableReferenceTypes): Add this safeguard code
                 //     _promiseIsActive = false;
                 // }
                 // else
@@ -226,8 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // }
                 // success = true;
                 // return _current;
-
-                // PROTOTYPE(async-streams): Add safeguard code (throwing exception if method incorrectly called)
 
                 NamedTypeSymbol IAsyncEnumeratorOfElementType =
                     F.WellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T)
@@ -247,13 +233,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // var inst = this;
                 // this._builder.Start(ref inst);
-                LocalSymbol instSymbol = F.SynthesizedLocal(this.stateMachineType);
-                BoundBlock startBlock = GenerateCallStart(instSymbol);
+                BoundBlock startBlock = GenerateCallStart();
 
                 // if (this._promiseIsActive)
                 // {
                 //     if (_valueOrEndPromise.GetStatus(_valueOrEndPromise.Version) == ValueTaskSourceStatus.Pending) throw new Exception();
-                //     if (State == StateMachineStates.NotStartedStateMachine) throw new Exception("You should call WaitForNextAsync first");
+                //     if (State == StateMachineStates.NotStartedStateMachine) throw new Exception("You should call WaitForNextAsync first"); // PROTOTYPE(NullableReferenceTypes): Add this safeguard code
                 //     _promiseIsActive = false;
                 // }
                 // else
@@ -287,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 blockBuilder.Add(
                     F.Return(F.Field(F.This(), _currentField))); // return _current;
 
-                F.CloseMethod(F.Block(ImmutableArray.Create(instSymbol), blockBuilder.ToImmutableAndFree()));
+                F.CloseMethod(F.Block(blockBuilder.ToImmutableAndFree()));
 
                 BoundStatement generateAssignToSuccessParameter(bool value)
                 {
@@ -301,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void GenerateIValueTaskSourceImplementation_GetResult()
             {
-                // Produce the implementation for `bool IValueTaskSource<bool>GetResult(short token)`:
+                // Produce the implementation for `bool IValueTaskSource<bool>.GetResult(short token)`:
                 // return this._valueOrEndPromise.GetResult(token);
 
                 NamedTypeSymbol IValueTaskSourceOfBool =
@@ -384,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void GenerateIStrongBox_get_Value()
             {
-                // Produce the implementation for `ManualResetValueTaskSourceLogic<bool> IStrongBox<ManualResetValueTaskSourceLogic<bool>>.Value { get; }`:
+                // Produce the implementation for `ref ManualResetValueTaskSourceLogic<bool> IStrongBox<ManualResetValueTaskSourceLogic<bool>>.Value { get; }`:
                 // return ref _valueOrEndPromise;
 
                 NamedTypeSymbol MrvtslOfBool =
@@ -447,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Generate code to start the state machine via builder.
             /// </summary>
-            private BoundBlock GenerateCallStart(LocalSymbol instSymbol)
+            private BoundBlock GenerateCallStart()
             {
                 // Produce:
                 // var inst = this;
@@ -455,6 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // PROTOTYPE(async-streams): Can we factor this code? (copied and modified from below)
 
+                LocalSymbol instSymbol = F.SynthesizedLocal(this.stateMachineType);
                 MethodSymbol startMethod = _asyncMethodBuilderMemberCollection.Start.Construct(this.stateMachineType);
                 BoundLocal instLocal = F.Local(instSymbol);
 
@@ -472,12 +458,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                          ImmutableArray.Create<BoundExpression>(instLocal)));
 
                 return F.Block(
+                    ImmutableArray.Create(instSymbol),
                     F.Assignment(instLocal, F.This()), // var inst = this;
                     startCall); // this._builder.Start(ref inst);
             }
 
             /// <summary>
-            /// Generates the GetEnumerator method.
+            /// Generates the GetAsyncEnumerator method.
             /// </summary>
             private void GenerateIAsyncEnumerableImplementation_GetAsyncEnumerator()
             {

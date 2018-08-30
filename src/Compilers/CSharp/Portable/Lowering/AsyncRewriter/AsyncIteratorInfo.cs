@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Spiritual equivalent of `promise != null`
         internal FieldSymbol PromiseIsActiveField { get; }
 
-        // Stores the current/yieled value
+        // Stores the current/yielded value
         internal FieldSymbol CurrentField { get; }
 
         // Method to reset the promise: `void ManualResetValueTaskSourceLogic<T>.Reset()`
