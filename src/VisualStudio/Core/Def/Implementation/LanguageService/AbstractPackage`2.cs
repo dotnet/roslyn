@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
         }
 
-        protected override async Task LoadComponentsInUIContextAsync(CancellationToken cancellationToken)
+        protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

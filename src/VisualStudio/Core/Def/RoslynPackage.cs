@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
         }
 
-        protected override async Task LoadComponentsInUIContextAsync(CancellationToken cancellationToken)
+        protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
