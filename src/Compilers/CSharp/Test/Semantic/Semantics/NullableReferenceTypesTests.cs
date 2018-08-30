@@ -34491,7 +34491,10 @@ class C
         foreach (B y in e)
             y.ToString();
         foreach (B? z in e)
+        {
             z.ToString();
+            if (z != null) z.ToString();
+        }
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
@@ -34502,9 +34505,9 @@ class C
                 // (16,13): warning CS8602: Possible dereference of a null reference.
                 //             y.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(16, 13),
-                // (18,13): warning CS8602: Possible dereference of a null reference.
+                // (19,13): warning CS8602: Possible dereference of a null reference.
                 //             z.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(18, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(19, 13));
         }
 
         [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
@@ -34571,6 +34574,10 @@ class C
         foreach (var y in (IEnumerable)c1) // 2
         {
         }
+        if (c1 == null) return;
+        foreach (var z in c1)
+        {
+        }
     }
     static void F2(IList<object>? c2)
     {
@@ -34593,12 +34600,12 @@ class C
                 // (10,27): warning CS8602: Possible dereference of a null reference.
                 //         foreach (var y in (IEnumerable)c1) // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable)c1").WithLocation(10, 27),
-                // (16,27): warning CS8602: Possible dereference of a null reference.
+                // (20,27): warning CS8602: Possible dereference of a null reference.
                 //         foreach (var x in c2) // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2").WithLocation(16, 27),
-                // (19,27): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2").WithLocation(20, 27),
+                // (23,27): warning CS8602: Possible dereference of a null reference.
                 //         foreach (var y in (IEnumerable?)c2) // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable?)c2").WithLocation(19, 27));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable?)c2").WithLocation(23, 27));
         }
 
         [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
