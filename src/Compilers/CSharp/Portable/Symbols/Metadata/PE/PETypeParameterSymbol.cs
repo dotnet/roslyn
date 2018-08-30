@@ -276,14 +276,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool HasNullableReferenceTypeConstraint
+        internal override bool? ReferenceTypeConstraintIsNullable
         {
             get
             {
                 // PROTOTYPE(NullableReferenceTypes): Support external annotations.
-                return HasReferenceTypeConstraint && 
-                       ((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out ImmutableArray<bool> nullableTransformFlags) &&
-                       nullableTransformFlags.Length == 1 && nullableTransformFlags[0];
+                if (!HasReferenceTypeConstraint)
+                {
+                    return false;
+                }
+
+                if (((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out ImmutableArray<bool> nullableTransformFlags) &&
+                    nullableTransformFlags.Length == 1 && nullableTransformFlags[0])
+                {
+                    return true;
+                }
+
+                if (NonNullTypes == true)
+                {
+                    return false;
+                }
+
+                return null;
             }
         }
 

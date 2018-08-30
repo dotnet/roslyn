@@ -6645,11 +6645,7 @@ class C<T> where T : struct? {}
         {
             var tree = UsingNode(@"
 class C<T> where T : class? {}
-", TestOptions.Regular7_3,
-                // (2,27): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // class C<T> where T : class? {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("static null checking", "8.0").WithLocation(2, 27)
-);
+", TestOptions.Regular7_3);
 
             N(SyntaxKind.CompilationUnit);
             {

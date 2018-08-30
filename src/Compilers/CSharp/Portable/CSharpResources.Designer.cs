@@ -14424,6 +14424,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Nullability in constraints for type parameter &apos;{0}&apos; of method &apos;{1}&apos; doesn&apos;t match the constraints for type parameter &apos;{2}&apos; of interface method &apos;{3}&apos;. Consider using an explicit interface implementation instead..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInConstraints {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraints", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability in constraints for type parameter doesn&apos;t match the constraints for type parameter in implicitly implemented interface method&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInConstraints_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraints_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; of &apos;{1}&apos; doesn&apos;t match the target delegate &apos;{2}&apos;..
         /// </summary>
         internal static string WRN_NullabilityMismatchInParameterTypeOfTargetDelegate {

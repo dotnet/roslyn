@@ -27,7 +27,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ```
-The parameter-less constructor is emitted for simple type references with top-level nullability;
+The parameter-less constructor is emitted for simple type references with top-level nullability and for type parameter definitions that have a `class?` constraint;
 the constructor with `bool[]` parameter is emitted for type references with nested types and nullability.
 ```c#
 // C# representation of metadata
@@ -174,6 +174,10 @@ The top-level nullability of `x ?? y` is `!` if `x` is `!` and otherwise the top
 A warning is reported if there is a nested nullability mismatch between `x` and `y`.
 
 ## Type parameters
+A `class?` constraint is allowed, which, like class, requires the type argument to be a reference type, but allows it to be nullable.
+[Nullable strawman](https://github.com/dotnet/csharplang/issues/790)
+[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+
 A warning is reported for nullable type argument for type parameter with `class` constraint or non-nullable reference type or interface type constraint.
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
 ```c#

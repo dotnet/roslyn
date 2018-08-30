@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckNullableAnnotationsInConstraints(DiagnosticBag diagnostics)
         {
-            if (this.HasNullableReferenceTypeConstraint ||
+            if (this.ReferenceTypeConstraintIsNullable == true ||
                 this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.ContainsNullableReferenceTypes()))
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, this.GetNonNullSyntaxNode().Location, ModifyCompilationForAttributeEmbedding());
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsUnmanagedAttribute(this));
             }
 
-            if (this.HasNullableReferenceTypeConstraint)
+            if (this.ReferenceTypeConstraintIsNullable == true)
             {
                 AddSynthesizedAttribute(
                     ref attributes,
@@ -384,6 +384,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             base.DecodeWellKnownAttribute(ref arguments);
+        }
+
+        protected bool? CalculateReferenceTypeConstraintIsNullable(TypeParameterConstraintKind constraints)
+        {
+            if ((constraints & TypeParameterConstraintKind.ReferenceType) == 0)
+            {
+                return false;
+            }
+
+            if ((constraints & TypeParameterConstraintKind.NullableReferenceType) == TypeParameterConstraintKind.NullableReferenceType)
+            {
+                return true;
+            }
+
+            if (NonNullTypes == true)
+            {
+                return false;
+            }
+
+            return null;
         }
     }
 
@@ -444,12 +464,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool HasNullableReferenceTypeConstraint
+        internal override bool? ReferenceTypeConstraintIsNullable
         {
             get
             {
-                TypeParameterConstraintKind constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.NullableReferenceType) == TypeParameterConstraintKind.NullableReferenceType;
+                return CalculateReferenceTypeConstraintIsNullable(this.GetDeclaredConstraints());
             }
         }
 
@@ -547,12 +566,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool HasNullableReferenceTypeConstraint
+        internal override bool? ReferenceTypeConstraintIsNullable
         {
             get
             {
-                TypeParameterConstraintKind constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.NullableReferenceType) == TypeParameterConstraintKind.NullableReferenceType;
+                return CalculateReferenceTypeConstraintIsNullable(this.GetDeclaredConstraints());
             }
         }
 
@@ -769,12 +787,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool HasNullableReferenceTypeConstraint
+        internal override bool? ReferenceTypeConstraintIsNullable
         {
             get
             {
                 TypeParameterSymbol typeParameter = this.OverriddenTypeParameter;
-                return ((object)typeParameter != null) && typeParameter.HasNullableReferenceTypeConstraint;
+                return ((object)typeParameter != null) ? typeParameter.ReferenceTypeConstraintIsNullable : false;
             }
         }
 

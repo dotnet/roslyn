@@ -520,16 +520,30 @@ class C<T> where T : struct
                 // (10,8): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F3").WithLocation(10, 8),
+                // (10,8): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     T? F3;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "F3").WithLocation(10, 8),
                 // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
                 //     A() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5),
+                // (11,5): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                //     B() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "B").WithArguments("field", "F3").WithLocation(11, 5),
+                // (11,5): warning CS8618: Non-nullable field 'F2' is uninitialized.
+                //     B() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "B").WithArguments("field", "F2").WithLocation(11, 5)
+            );
 
             // [NonNullTypes] missing
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,8): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     T? F3;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F3").WithLocation(10, 8));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "F3").WithLocation(10, 8),
+                // (10,8): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     T? F3;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "F3").WithLocation(10, 8)
+            );
 
             // PROTOTYPE(NullableReferenceTypes): Test with [NonNullTypes(Warnings=false)].
         }
