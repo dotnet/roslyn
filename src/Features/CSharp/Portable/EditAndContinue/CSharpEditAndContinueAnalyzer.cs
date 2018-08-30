@@ -2102,6 +2102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     ReportError(RudeEditKind.InsertGenericMethod);
                 }
 
+                if (method.ExplicitInterfaceSpecifier != null)
+                {
+                    ReportError(RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier);
+                }
+
                 ClassifyPossibleReadOnlyRefAttributesForType(method, method.ReturnType);
                 ClassifyPossibleInModifierForParameters(method.ParameterList);
             }
