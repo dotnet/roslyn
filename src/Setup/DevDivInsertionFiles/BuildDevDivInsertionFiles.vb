@@ -53,7 +53,8 @@ Public Class BuildDevDivInsertionFiles
     Public Sub Execute()
         Retry(Sub()
                   DeleteDirContents(_outputDirectory)
-                  DeleteDirContents(_outputPackageDirectory)
+                  DeleteDirContents(Path.Combine(_outputPackageDirectory, "NativeDependencies"))
+                  DeleteDirContents(Path.Combine(_outputPackageDirectory, "ManagedDependencies"))
               End Sub)
 
         ' Build a dependency map
