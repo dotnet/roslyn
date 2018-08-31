@@ -3480,7 +3480,7 @@ End Module
         ''' </summary>
         <WorkItem(545508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545508")>
         <Fact()>
-        Public Sub NormalizeNewlines()
+        Public Sub NormalizeNewlinesTest()
             For Each eol In {vbCr, vbLf, vbCrLf}
                 Dim sourceBuilder = New StringBuilder()
                 sourceBuilder.AppendLine("Module M")

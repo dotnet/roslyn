@@ -108,7 +108,7 @@ function Process-Arguments() {
         exit 1
     }
 
-    if (($cibuild -and $anyVsi)) {
+    if ((-not $official -and $anyVsi)) {
         # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
         $script:skipAnalyzers = $true
     }
@@ -253,7 +253,7 @@ function Build-Artifacts() {
         Run-SignTool
     }
 
-    if ($pack -and ($cibuild -or $official)) {
+    if ($pack -and $cibuild) {
         Build-DeployToSymStore
     }
 
@@ -478,7 +478,7 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
-    if ($cibuild -or $official) {
+    if ($cibuild) {
         # Use a 75 minute timeout on CI
         $args += " -xml -timeout:75"
     }
@@ -714,7 +714,7 @@ catch {
 }
 finally {
     Pop-Location
-    if ($cibuild) {
+    if (-not $official) {
         Stop-VSProcesses
         Stop-BuildProcesses
     }

@@ -604,7 +604,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputFilePath(outputFilePath));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateOutputFilePath(outputFilePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -619,7 +627,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputRefFilePath(outputRefFilePath));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateOutputRefFilePath(outputRefFilePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -634,7 +650,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateName(name));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateName(name);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -649,7 +673,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateFilePath(filePath));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateFilePath(filePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
