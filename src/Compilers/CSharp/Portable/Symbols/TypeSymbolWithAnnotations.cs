@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private TypeSymbol _defaultType;
             private INonNullTypesContext _nonNullTypesContext;
             private bool _isAnnotated;
-            private bool _treatUnconstrainedTypeParameterAsNullable;
+            private bool _treatPossiblyNullableReferenceTypeTypeParameterAsNullable;
             private Extensions _extensions;
 
             /// <summary>
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
                 _isAnnotated = type.IsAnnotated;
-                _treatUnconstrainedTypeParameterAsNullable = type._treatUnconstrainedTypeParameterAsNullable;
+                _treatPossiblyNullableReferenceTypeTypeParameterAsNullable = type._treatPossiblyNullableReferenceTypeTypeParameterAsNullable;
                 Interlocked.CompareExchange(ref _nonNullTypesContext, type.NonNullTypesContext, null);
                 Interlocked.CompareExchange(ref _extensions, type._extensions, null);
                 return (object)Interlocked.CompareExchange(ref _defaultType, type._defaultType, null) == null;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return (object)_defaultType == null ?
                     default :
-                    new TypeSymbolWithAnnotations(_defaultType, _nonNullTypesContext, _isAnnotated, _treatUnconstrainedTypeParameterAsNullable, _extensions);
+                    new TypeSymbolWithAnnotations(_defaultType, _nonNullTypesContext, _isAnnotated, _treatPossiblyNullableReferenceTypeTypeParameterAsNullable, _extensions);
             }
 
             internal string GetDebuggerDisplay() => ToType().GetDebuggerDisplay();
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The field is necessary to allow representing distinct instances for a type parameter
         /// type (IsNullable=true and IsNullable=false) in flow analysis.
         /// </summary>
-        private readonly bool _treatUnconstrainedTypeParameterAsNullable;
+        private readonly bool _treatPossiblyNullableReferenceTypeTypeParameterAsNullable; // PROTOTYPE(NullableReferenceTypes): Should consider to get rid of this black magic
 
         /// <summary>
         /// [NonNullTypes] context used for determining whether unannotated types are not nullable.
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public readonly INonNullTypesContext NonNullTypesContext;
 
-        private TypeSymbolWithAnnotations(TypeSymbol defaultType, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatUnconstrainedTypeParameterAsNullable, Extensions extensions)
+        private TypeSymbolWithAnnotations(TypeSymbol defaultType, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatPossiblyNullableReferenceTypeTypeParameterAsNullable, Extensions extensions)
         {
             Debug.Assert((object)defaultType != null);
             Debug.Assert(!defaultType.IsNullableType() || isAnnotated);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(extensions != null);
             _defaultType = defaultType;
             IsAnnotated = isAnnotated;
-            _treatUnconstrainedTypeParameterAsNullable = treatUnconstrainedTypeParameterAsNullable;
+            _treatPossiblyNullableReferenceTypeTypeParameterAsNullable = treatPossiblyNullableReferenceTypeTypeParameterAsNullable;
             NonNullTypesContext = nonNullTypesContext;
             _extensions = extensions;
         }
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // PROTOTYPE(NullableReferenceTypes): this defaulting logic should be removed. There are many paths that currently don't have an explicit context at the moment.
             nonNullTypesContext = nonNullTypesContext ?? NonNullTypesFalseContext.Instance;
             return CreateNonLazyType(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated,
-                                     treatUnconstrainedTypeParameterAsNullable: !IsIndexedTypeParameter(typeSymbol),
+                                     treatPossiblyNullableReferenceTypeTypeParameterAsNullable: !IsIndexedTypeParameter(typeSymbol),
                                      customModifiers.NullToEmpty());
         }
 
@@ -187,17 +187,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var context = isNullableIfReferenceType == null ? NonNullTypesFalseContext.Instance : NonNullTypesTrueContext.Instance;
             bool isAnnotated = isNullableIfReferenceType == true;
-            bool treatUnconstrainedTypeParameterAsNullable = false;
+            bool treatPossiblyNullableReferenceTypeTypeParameterAsNullable = false;
 
             if (isAnnotated && !typeSymbol.IsValueType)
             {
                 // string? (leave annotated)
                 // T? where T : class (leave annotated)
-                if (!IsIndexedTypeParameter(typeSymbol) && typeSymbol.IsUnconstrainedTypeParameter())
+                if (!IsIndexedTypeParameter(typeSymbol) && typeSymbol.IsPossiblyNullableReferenceTypeTypeParameter())
                 {
                     // T? (leave unannotated)
                     isAnnotated = false;
-                    treatUnconstrainedTypeParameterAsNullable = true;
+                    treatPossiblyNullableReferenceTypeTypeParameterAsNullable = true;
                 }
             }
             else
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAnnotated = typeSymbol.IsNullableType();
             }
 
-            return CreateNonLazyType(typeSymbol, context, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: treatUnconstrainedTypeParameterAsNullable, customModifiers.NullToEmpty());
+            return CreateNonLazyType(typeSymbol, context, isAnnotated: isAnnotated, treatPossiblyNullableReferenceTypeTypeParameterAsNullable: treatPossiblyNullableReferenceTypeTypeParameterAsNullable, customModifiers.NullToEmpty());
         }
 
         private static bool IsIndexedTypeParameter(TypeSymbol typeSymbol)
@@ -217,14 +217,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    typeSymbol is IndexedTypeParameterSymbolForOverriding;
         }
 
-        private static TypeSymbolWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatUnconstrainedTypeParameterAsNullable, ImmutableArray<CustomModifier> customModifiers)
+        private static TypeSymbolWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, INonNullTypesContext nonNullTypesContext, bool isAnnotated, bool treatPossiblyNullableReferenceTypeTypeParameterAsNullable, ImmutableArray<CustomModifier> customModifiers)
         {
-            return new TypeSymbolWithAnnotations(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated, treatUnconstrainedTypeParameterAsNullable: treatUnconstrainedTypeParameterAsNullable, Extensions.Create(customModifiers));
+            return new TypeSymbolWithAnnotations(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated, treatPossiblyNullableReferenceTypeTypeParameterAsNullable: treatPossiblyNullableReferenceTypeTypeParameterAsNullable, Extensions.Create(customModifiers));
         }
 
         private static TypeSymbolWithAnnotations CreateLazyNullableType(CSharpCompilation compilation, TypeSymbolWithAnnotations underlying)
         {
-            return new TypeSymbolWithAnnotations(defaultType: underlying._defaultType, nonNullTypesContext: underlying.NonNullTypesContext, isAnnotated: true, treatUnconstrainedTypeParameterAsNullable: false, Extensions.CreateLazy(compilation, underlying));
+            return new TypeSymbolWithAnnotations(defaultType: underlying._defaultType, nonNullTypesContext: underlying.NonNullTypesContext, isAnnotated: true, treatPossiblyNullableReferenceTypeTypeParameterAsNullable: false, Extensions.CreateLazy(compilation, underlying));
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!typeSymbol.IsValueType)
                 {
-                    return CreateNonLazyType(typeSymbol, NonNullTypesContext, isAnnotated: true, treatUnconstrainedTypeParameterAsNullable: false, this.CustomModifiers);
+                    return CreateNonLazyType(typeSymbol, NonNullTypesContext, isAnnotated: true, treatPossiblyNullableReferenceTypeTypeParameterAsNullable: false, this.CustomModifiers);
                 }
                 else
                 {
@@ -303,8 +303,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 if (NonNullTypesContext.NonNullTypes == true)
                 {
-                    return _treatUnconstrainedTypeParameterAsNullable &&
-                        TypeSymbol.IsUnconstrainedTypeParameter();
+                    return _treatPossiblyNullableReferenceTypeTypeParameterAsNullable &&
+                        TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter();
                 }
                 if (TypeSymbol.IsValueType)
                 {
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newTypeWithModifiers.TypeSymbol,
                 newTypeWithModifiers.NonNullTypesContext,
                 isAnnotated: newIsAnnotated,
-                treatUnconstrainedTypeParameterAsNullable: newTypeWithModifiers._treatUnconstrainedTypeParameterAsNullable,
+                treatPossiblyNullableReferenceTypeTypeParameterAsNullable: newTypeWithModifiers._treatPossiblyNullableReferenceTypeTypeParameterAsNullable,
                 newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
         }
 
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this;
             }
 
-            return CreateNonLazyType(typeSymbol, NonNullTypesTrueContext.Instance, isAnnotated: false, treatUnconstrainedTypeParameterAsNullable: false, CustomModifiers);
+            return CreateNonLazyType(typeSymbol, NonNullTypesTrueContext.Instance, isAnnotated: false, treatPossiblyNullableReferenceTypeTypeParameterAsNullable: false, CustomModifiers);
         }
 
         public TypeSymbolWithAnnotations SetUnknownNullabilityForReferenceTypes()
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!typeSymbol.IsValueType)
                 {
                     typeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
-                    return CreateNonLazyType(typeSymbol, NonNullTypesFalseContext.Instance, isAnnotated: false, treatUnconstrainedTypeParameterAsNullable: false, CustomModifiers);
+                    return CreateNonLazyType(typeSymbol, NonNullTypesFalseContext.Instance, isAnnotated: false, treatPossiblyNullableReferenceTypeTypeParameterAsNullable: false, CustomModifiers);
                 }
             }
 
@@ -812,13 +812,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override TypeSymbolWithAnnotations WithModifiers(TypeSymbolWithAnnotations type, ImmutableArray<CustomModifier> customModifiers)
             {
-                return TypeSymbolWithAnnotations.CreateNonLazyType(type._defaultType, type.NonNullTypesContext, type.IsAnnotated, type._treatUnconstrainedTypeParameterAsNullable, customModifiers);
+                return TypeSymbolWithAnnotations.CreateNonLazyType(type._defaultType, type.NonNullTypesContext, type.IsAnnotated, type._treatPossiblyNullableReferenceTypeTypeParameterAsNullable, customModifiers);
             }
 
             internal override TypeSymbolWithAnnotations WithNonNullTypesContext(TypeSymbolWithAnnotations type, INonNullTypesContext nonNullTypesContext)
             {
                 Debug.Assert(nonNullTypesContext != null);
-                return TypeSymbolWithAnnotations.CreateNonLazyType(type._defaultType, nonNullTypesContext, type.IsAnnotated, type._treatUnconstrainedTypeParameterAsNullable, _customModifiers);
+                return TypeSymbolWithAnnotations.CreateNonLazyType(type._defaultType, nonNullTypesContext, type.IsAnnotated, type._treatPossiblyNullableReferenceTypeTypeParameterAsNullable, _customModifiers);
             }
 
             internal override TypeSymbol AsTypeSymbolOnly(TypeSymbol typeSymbol) => typeSymbol;
@@ -830,18 +830,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override TypeSymbolWithAnnotations WithTypeAndModifiers(TypeSymbolWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
             {
-                return TypeSymbolWithAnnotations.CreateNonLazyType(typeSymbol, type.NonNullTypesContext, isAnnotated: type.IsAnnotated, treatUnconstrainedTypeParameterAsNullable: type._treatUnconstrainedTypeParameterAsNullable, customModifiers);
+                return TypeSymbolWithAnnotations.CreateNonLazyType(typeSymbol, type.NonNullTypesContext, isAnnotated: type.IsAnnotated, treatPossiblyNullableReferenceTypeTypeParameterAsNullable: type._treatPossiblyNullableReferenceTypeTypeParameterAsNullable, customModifiers);
             }
 
             internal override TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type)
             {
-                return TypeSymbolWithAnnotations.CreateNonLazyType(type._defaultType, type.NonNullTypesContext, isAnnotated: true, treatUnconstrainedTypeParameterAsNullable: type._treatUnconstrainedTypeParameterAsNullable, _customModifiers);
+                return TypeSymbolWithAnnotations.CreateNonLazyType(type._defaultType, type.NonNullTypesContext, isAnnotated: true, treatPossiblyNullableReferenceTypeTypeParameterAsNullable: type._treatPossiblyNullableReferenceTypeTypeParameterAsNullable, _customModifiers);
             }
 
             internal override TypeSymbolWithAnnotations AsNotNullableReferenceType(TypeSymbolWithAnnotations type)
             {
                 var defaultType = type._defaultType;
-                return TypeSymbolWithAnnotations.CreateNonLazyType(defaultType, type.NonNullTypesContext, isAnnotated: defaultType.IsNullableType(), treatUnconstrainedTypeParameterAsNullable: false, _customModifiers);
+                return TypeSymbolWithAnnotations.CreateNonLazyType(defaultType, type.NonNullTypesContext, isAnnotated: defaultType.IsNullableType(), treatPossiblyNullableReferenceTypeTypeParameterAsNullable: false, _customModifiers);
             }
 
             internal override bool TypeSymbolEquals(TypeSymbolWithAnnotations type, TypeSymbolWithAnnotations other, TypeCompareKind comparison)
@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return TypeSymbolWithAnnotations.Create(resolvedType, customModifiers: customModifiers);
                 }
 
-                return TypeSymbolWithAnnotations.CreateNonLazyType(resolvedType, type.NonNullTypesContext, isAnnotated: true, treatUnconstrainedTypeParameterAsNullable: false, customModifiers);
+                return TypeSymbolWithAnnotations.CreateNonLazyType(resolvedType, type.NonNullTypesContext, isAnnotated: true, treatPossiblyNullableReferenceTypeTypeParameterAsNullable: false, customModifiers);
             }
 
             internal override TypeSymbolWithAnnotations WithNonNullTypesContext(TypeSymbolWithAnnotations type, INonNullTypesContext nonNullTypesContext)
@@ -984,7 +984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return TypeSymbolWithAnnotations.Create(typeSymbol, customModifiers: customModifiers);
                 }
 
-                return TypeSymbolWithAnnotations.CreateNonLazyType(typeSymbol, type.NonNullTypesContext, isAnnotated: true, type._treatUnconstrainedTypeParameterAsNullable, customModifiers);
+                return TypeSymbolWithAnnotations.CreateNonLazyType(typeSymbol, type.NonNullTypesContext, isAnnotated: true, type._treatPossiblyNullableReferenceTypeTypeParameterAsNullable, customModifiers);
             }
 
             internal override TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type)

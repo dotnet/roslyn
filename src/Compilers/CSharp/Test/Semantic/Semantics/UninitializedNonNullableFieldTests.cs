@@ -516,6 +516,14 @@ class C<T> where T : struct
 
             // [NonNullTypes(false)]
             comp = CreateCompilation(new[] { source, NonNullTypesFalse, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): It feels like the following warning is confusing 
+            // (11,5): warning CS8618: Non-nullable field 'F3' is uninitialized.
+            //     B() { }
+            //
+            // We might want to understand why the following error causes it
+            // (10,8): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+            //     T? F3;
             comp.VerifyDiagnostics(
                 // (10,8): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     T? F3;

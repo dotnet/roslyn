@@ -914,11 +914,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (typeParameter.HasReferenceTypeConstraint && !typeArgument.IsReferenceType)
+            if (typeParameter.HasReferenceTypeConstraint)
             {
-                // "The type '{2}' must be a reference type in order to use it as parameter '{1}' in the generic type or method '{0}'"
-                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_RefConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.TypeSymbol)));
-                return false;
+                if (!typeArgument.IsReferenceType)
+                {
+                    // "The type '{2}' must be a reference type in order to use it as parameter '{1}' in the generic type or method '{0}'"
+                    diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_RefConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.TypeSymbol)));
+                    return false;
+                }
+
+                if (conversions.IncludeNullability && warningsBuilderOpt != null &&
+                    typeParameter.ReferenceTypeConstraintIsNullable == false &&
+                    typeArgument.IsNullable == true)
+                {
+                    var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, containingSymbol.ConstructedFrom(), typeParameter, typeArgument);
+                    warningsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
+                }
             }
 
             if (typeParameter.HasUnmanagedTypeConstraint && (typeArgument.IsManagedType || !typeArgument.TypeSymbol.IsNonNullableValueType()))
@@ -953,7 +964,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (conversions.IncludeNullability && warningsBuilderOpt != null)
                     {
-                        if (!SatisfiesConstraintType(conversions, typeArgument, constraintType, ref useSiteDiagnostics))
+                        if (!SatisfiesConstraintType(conversions, typeArgument, constraintType, ref useSiteDiagnostics) ||
+                            (typeArgument.IsNullable == true && !typeArgument.IsValueType &&
+                             TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType, ConsList<TypeParameterSymbol>.Empty) == true))
                         {
                             var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
                             warningsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
@@ -1050,9 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // "An identity conversion (6.1.1).
             // An implicit reference conversion (6.1.6). ..."
 
-            // When nullability is considered, top-level nullability must be implicitly convertible.
-            if ((!conversions.IncludeNullability || ConversionsBase.HasTopLevelNullabilityImplicitConversion(typeArgument, constraintType)) &&
-                conversions.HasIdentityOrImplicitReferenceConversion(typeArgument.TypeSymbol, constraintType.TypeSymbol, ref useSiteDiagnostics))
+            if (conversions.HasIdentityOrImplicitReferenceConversion(typeArgument.TypeSymbol, constraintType.TypeSymbol, ref useSiteDiagnostics))
             {
                 return true;
             }
