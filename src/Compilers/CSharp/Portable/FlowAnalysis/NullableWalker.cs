@@ -1845,15 +1845,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!isConstantFalse)
                 {
                     ApplyConversion(
-                    node.Consequence,
-                    consequence,
-                    consequenceConversion,
-                    resultTypeWithAnnotations,
-                    consequenceResult,
-                    checkConversion: true,
-                    fromExplicitCast: false,
-                    useLegacyWarnings: false,
-                    AssignmentKind.Assignment);
+                        node.Consequence,
+                        consequence,
+                        consequenceConversion,
+                        resultTypeWithAnnotations,
+                        consequenceResult,
+                        checkConversion: true,
+                        fromExplicitCast: false,
+                        useLegacyWarnings: false,
+                        AssignmentKind.Assignment);
                 }
 
                 if (!isConstantTrue)
