@@ -3440,8 +3440,8 @@ Module M
                             </x>
     Sub Main()
         For Each y In F.<y>
-            Console.Write("{0}" & vbLf, y.ToString().Replace(vbCrLf, vbLf))
-            Console.Write("[{0}]" & vbLf, y.Value)
+            Console.Write("{0}" & Environment.NewLine, y.ToString())
+            Console.Write("[{0}]" & Environment.NewLine, y.Value.Replace(vbLf, Environment.NewLine))
         Next
     End Sub
 End Module

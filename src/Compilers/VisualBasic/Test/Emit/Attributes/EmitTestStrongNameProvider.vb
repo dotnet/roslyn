@@ -53,6 +53,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
 
     <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     Public Sub BadInputStream()
+        SigningTestHelpers.InstallKey()
         Dim testProvider = New StrongNameProviderWithBadInputStream(s_defaultDesktopProvider)
         Dim options = TestOptions.DebugDll.WithStrongNameProvider(testProvider).WithCryptoKeyContainer("RoslynTestContainer")
 

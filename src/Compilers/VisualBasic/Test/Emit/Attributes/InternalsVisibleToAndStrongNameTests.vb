@@ -21,9 +21,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
 #Region "Helpers"
 
     Public Sub New()
-        If ExecutionConditionUtil.IsWindows Then
-            SigningTestHelpers.InstallKey()
-        End If
+        SigningTestHelpers.InstallKey()
     End Sub
 
     Private Shared ReadOnly s_keyPairFile As String = SigningTestHelpers.KeyPairFile
@@ -94,7 +92,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey))
     End Sub
 
-    <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
+    <Fact>
     Public Sub PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver_RelativeToCurrentParent()
         Dim keyFileDir = Path.GetDirectoryName(s_keyPairFile)
         Dim keyFileName = Path.GetFileName(s_keyPairFile)

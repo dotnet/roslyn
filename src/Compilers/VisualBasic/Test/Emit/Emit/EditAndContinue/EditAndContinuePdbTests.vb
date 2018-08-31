@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Inherits EditAndContinueTestBase
 
         <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <MemberData(NameOf(PdbFormats))>
+        <MemberData(NameOf(ExternalPdbFormats))>
         Public Sub MethodExtents(format As DebugInformationFormat)
             Dim source0 = MarkedSource("
 Imports System
