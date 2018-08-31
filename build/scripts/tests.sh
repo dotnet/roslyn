@@ -69,9 +69,7 @@ do
     echo Running "${runtime} ${file_name[@]}"
     if [[ "${runtime}" == "dotnet" ]]; then
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
-        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll' ]] || \
-           [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests.dll' ]] || \
-           [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll' ]] || \
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll' ]] || \
            [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] || \
            [[ "${file_name[@]}" == *'Roslyn.Compilers.VisualBasic.IOperation.UnitTests.dll' ]] 
         then
@@ -81,7 +79,9 @@ do
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono
     fi
-    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
+
+    # https://github.com/dotnet/roslyn/issues/29380
+    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}" -parallel none 
     then
         echo "Assembly ${file_name[@]} passed"
     else

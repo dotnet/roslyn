@@ -205,5 +205,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String =
             BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
+
+        Public ReadOnly Property Option_Regular_Expressions As String =
+            ServicesVSResources.Regular_Expressions
+
+        Public ReadOnly Property Option_Colorize_regular_expressions As String =
+            ServicesVSResources.Colorize_regular_expressions
+
+        Public ReadOnly Property Option_Report_invalid_regular_expressions As String =
+            ServicesVSResources.Report_invalid_regular_expressions
+
+        Public ReadOnly Property Option_Highlight_related_components_under_cursor As String =
+            ServicesVSResources.Highlight_related_components_under_cursor
     End Module
 End Namespace
