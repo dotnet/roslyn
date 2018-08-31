@@ -468,6 +468,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 solution: invocationDocument.Project.Solution,
                 documents: null,
                 progress: progress,
+                options: FindReferencesSearchOptions.Default,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             var referencedSymbols = progress.GetReferencedSymbols();
             return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)

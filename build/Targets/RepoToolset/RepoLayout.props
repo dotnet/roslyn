@@ -33,5 +33,9 @@
     <ArtifactsToolsetDir>$(ArtifactsDir)toolset\</ArtifactsToolsetDir>
     <ArtifactsConfigurationDir>$(ArtifactsDir)$(Configuration)\</ArtifactsConfigurationDir>
     <ArtifactsSymStoreDirectory>$(ArtifactsConfigurationDir)SymStore\</ArtifactsSymStoreDirectory>
+    <ArtifactsTmpDir>$(ArtifactsConfigurationDir)tmp\</ArtifactsTmpDir>
+    <ArtifactsPackagesDir>$(ArtifactsConfigurationDir)NuGet\</ArtifactsPackagesDir>
+    <ArtifactsShippingPackagesDir>$(ArtifactsPackagesDir)Shipping\</ArtifactsShippingPackagesDir>
+    <ArtifactsNonShippingPackagesDir>$(ArtifactsPackagesDir)NonShipping\</ArtifactsNonShippingPackagesDir>
   </PropertyGroup>
 </Project>

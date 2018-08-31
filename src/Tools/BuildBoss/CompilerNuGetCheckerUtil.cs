@@ -103,7 +103,7 @@ namespace BuildBoss
 
             allGood &= VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(@"DevDivPackages\Roslyn", "VS.Tools.Roslyn"),
+                        FindNuGetPackage(@"NuGet\VS", "VS.Tools.Roslyn"),
                         string.Empty,
                         dllRelativeNames);
             return allGood;
@@ -171,7 +171,8 @@ namespace BuildBoss
                         PathComparer.Equals("EnvDTE.dll", item) ||
                         PathComparer.Equals("Microsoft.Composition", item) ||
                         PathComparer.Equals("System.Threading.Tasks.Dataflow.dll", item) ||
-                        PathComparer.Equals("System.Runtime.InteropServices.RuntimeInformation.dll", item))
+                        PathComparer.Equals("System.Runtime.InteropServices.RuntimeInformation.dll", item) ||
+                        PathComparer.Equals("Newtonsoft.Json", item))
                     {
                         continue;
                     }

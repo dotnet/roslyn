@@ -9,6 +9,15 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net46</TargetFramework>
     <DefineConstants>$(DefineConstants);WORKSPACE_MSBUILD</DefineConstants>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for analyzing MSBuild projects and solutions. This should be used with at least one
+      of the following packages to add the appropriate language support:
+      - Microsoft.CodeAnalysis.CSharp.Workspaces
+      - Microsoft.CodeAnalysis.VisualBasic.Workspaces
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">

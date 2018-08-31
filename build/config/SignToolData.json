@@ -150,7 +150,8 @@
       "certificate": "NuGet",
       "strongName": null,
       "values": [
-        "Nuget\\PerBuildPreRelease\\*.nupkg",
+        "Nuget\\NonShipping\\*.nupkg",
+        "Nuget\\Shipping\\*.nupkg",
         "Nuget\\PreRelease\\*.nupkg",
         "Nuget\\Release\\*.nupkg"
       ]

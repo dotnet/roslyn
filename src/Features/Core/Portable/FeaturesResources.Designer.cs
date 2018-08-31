@@ -465,6 +465,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding a method with an explicit interface specifier will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_f" +
+                        "rom_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Alias ambiguous type &apos;{0}&apos;.
         /// </summary>
         internal static string Alias_ambiguous_type_0 {
@@ -934,14 +944,23 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert to query.
+        ///   Looks up a localized string similar to Convert to LINQ.
         /// </summary>
-        internal static string Convert_to_query {
+        internal static string Convert_to_linq {
             get {
-                return ResourceManager.GetString("Convert_to_query", resourceCulture);
+                return ResourceManager.GetString("Convert_to_linq", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to LINQ (call form).
+        /// </summary>
+        internal static string Convert_to_linq_call_form {
+            get {
+                return ResourceManager.GetString("Convert_to_linq_call_form", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to Convert to struct.
         /// </summary>

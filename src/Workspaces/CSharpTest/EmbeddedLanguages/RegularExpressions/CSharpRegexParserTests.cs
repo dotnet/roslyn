@@ -5,11 +5,13 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             bool allowNullReference = false,
             bool allowOutOfMemory = false)
         {
-            var tree = TryParseTree(stringText, options, conversionFailureOk: false,
+            var (tree, sourceText) = TryParseTree(stringText, options, conversionFailureOk: false,
                 allowIndexOutOfRange, allowNullReference, allowOutOfMemory);
 
             // Tests are allowed to not run the subtree tests.  This is because some
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     allowOutOfMemory);
             }
 
-            var actual = TreeToText(tree).Replace("\"", "\"\"");
+            var actual = TreeToText(sourceText, tree).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actual);
         }
 
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             return (token, tree, allChars);
         }
 
-        private RegexTree TryParseTree(
+        private (RegexTree, SourceText) TryParseTree(
             string stringText, RegexOptions options,
             bool conversionFailureOk,
             bool allowIndexOutOfRange,
@@ -135,10 +137,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             if (tree == null)
             {
                 Assert.True(allChars.IsDefault);
-                return null;
+                return default;
             }
 
             CheckInvariants(tree, allChars);
+            var sourceText = token.SyntaxTree.GetText();
+            var treeAndText = (tree, sourceText);
 
             Regex regex = null;
             try
@@ -149,24 +153,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             {
                 // bug with .net regex parser.  Can happen with patterns like: (?<-0
                 Assert.NotEmpty(tree.Diagnostics);
-                return tree;
+                return treeAndText;
             }
             catch (NullReferenceException) when (allowNullReference)
             {
                 // bug with .net regex parser.  can happen with patterns like: (?(?S))
-                return tree;
+                return treeAndText;
             }
             catch (OutOfMemoryException) when (allowOutOfMemeory)
             {
                 // bug with .net regex parser.  can happen with patterns like: a{2147483647,}
-                return tree;
+                return treeAndText;
             }
             catch (ArgumentException ex)
             {
                 Assert.NotEmpty(tree.Diagnostics);
-                Assert.True(tree.Diagnostics.Any(d => ex.Message.Contains(d.Message)));
 
-                return tree;
+                // Ensure the diagnostic we emit is the same as the .Net one.  Note: we can only
+                // do this in en-US as that's the only culture where we control the text exactly
+                // and can ensure it exactly matches Regex.  We depend on localization to do a 
+                // good enough job here for other languages.
+                if (Thread.CurrentThread.CurrentCulture.Name == "en-US")
+                {
+                    Assert.True(tree.Diagnostics.Any(d => ex.Message.Contains(d.Message)));
+                }
+
+                return treeAndText;
             }
 
             Assert.Empty(tree.Diagnostics);
@@ -177,31 +189,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Assert.True(regex.GetGroupNames().Where(v => !int.TryParse(v, out _)).OrderBy(v => v).SequenceEqual(
                 tree.CaptureNamesToSpan.Keys.OrderBy(v => v)));
 
-            return tree;
+            return treeAndText;
         }
 
-        private string TreeToText(RegexTree tree)
+        private string TreeToText(SourceText text, RegexTree tree)
         {
             var element = new XElement("Tree",
                 NodeToElement(tree.Root));
 
-            if (tree.Diagnostics.Length > 0) {
+            if (tree.Diagnostics.Length > 0)
+            {
                 element.Add(new XElement("Diagnostics",
                     tree.Diagnostics.Select(d =>
                         new XElement("Diagnostic",
                             new XAttribute("Message", d.Message),
-                            new XAttribute("Start", d.Span.Start),
-                            new XAttribute("Length", d.Span.Length)))));
+                            new XAttribute("Span", d.Span),
+                            GetTextAttribute(text, d.Span)))));
             }
 
             element.Add(new XElement("Captures",
                 tree.CaptureNumbersToSpan.OrderBy(kvp => kvp.Key).Select(kvp =>
-                    new XElement("Capture", new XAttribute("Name", kvp.Key), new XAttribute("Span", kvp.Value))),
+                    new XElement("Capture", new XAttribute("Name", kvp.Key), new XAttribute("Span", kvp.Value), GetTextAttribute(text, kvp.Value))),
                 tree.CaptureNamesToSpan.OrderBy(kvp => kvp.Key).Select(kvp =>
-                    new XElement("Capture", new XAttribute("Name", kvp.Key), new XAttribute("Span", kvp.Value)))));
+                    new XElement("Capture", new XAttribute("Name", kvp.Key), new XAttribute("Span", kvp.Value), GetTextAttribute(text, kvp.Value)))));
 
             return element.ToString();
         }
+
+        private static XAttribute GetTextAttribute(SourceText text, TextSpan span)
+            => new XAttribute("Text", text.ToString(span));
 
         private XElement NodeToElement(RegexNode node)
         {

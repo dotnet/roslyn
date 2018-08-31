@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable JSON editor features.
+        ///   Looks up a localized string similar to =======.
         /// </summary>
         internal static string Enable_JSON_editor_features {
             get {
@@ -1436,6 +1436,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Reference_to_undefined_group_number_0 {
             get {
                 return ResourceManager.GetString("Reference_to_undefined_group_number_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex issue: {0}.
+        /// </summary>
+        internal static string Regex_issue_0 {
+            get {
+                return ResourceManager.GetString("Regex_issue_0", resourceCulture);
             }
         }
         

@@ -5,6 +5,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
 {
+    // All these tests came from the example at:
+    // https://docs.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference
     public partial class CSharpRegexParserTests
     {
         [Fact]
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""[aeiou]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -90,11 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..68)"" />
-    <Capture Name=""1"" Span=""[10..31)"" />
-    <Capture Name=""2"" Span=""[52..68)"" />
-    <Capture Name=""duplicateWord"" Span=""[10..31)"" />
-    <Capture Name=""nextWord"" Span=""[52..68)"" />
+    <Capture Name=""0"" Span=""[10..68)"" Text=""(?&lt;duplicateWord&gt;\w+)\s\k&lt;duplicateWord&gt;\W(?&lt;nextWord&gt;\w+)"" />
+    <Capture Name=""1"" Span=""[10..31)"" Text=""(?&lt;duplicateWord&gt;\w+)"" />
+    <Capture Name=""2"" Span=""[52..68)"" Text=""(?&lt;nextWord&gt;\w+)"" />
+    <Capture Name=""duplicateWord"" Span=""[10..31)"" Text=""(?&lt;duplicateWord&gt;\w+)"" />
+    <Capture Name=""nextWord"" Span=""[52..68)"" Text=""(?&lt;nextWord&gt;\w+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -163,13 +165,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..42)"" />
-    <Capture Name=""1"" Span=""[10..26)"" />
-    <Capture Name=""2"" Span=""[38..42)"" />
-    <Capture Name=""3"" Span=""[11..22)"" />
-    <Capture Name=""4"" Span=""[27..38)"" />
-    <Capture Name=""One"" Span=""[11..22)"" />
-    <Capture Name=""Two"" Span=""[27..38)"" />
+    <Capture Name=""0"" Span=""[10..42)"" Text=""((?&lt;One&gt;abc)\d+)?(?&lt;Two&gt;xyz)(.*)"" />
+    <Capture Name=""1"" Span=""[10..26)"" Text=""((?&lt;One&gt;abc)\d+)"" />
+    <Capture Name=""2"" Span=""[38..42)"" Text=""(.*)"" />
+    <Capture Name=""3"" Span=""[11..22)"" Text=""(?&lt;One&gt;abc)"" />
+    <Capture Name=""4"" Span=""[27..38)"" Text=""(?&lt;Two&gt;xyz)"" />
+    <Capture Name=""One"" Span=""[11..22)"" Text=""(?&lt;One&gt;abc)"" />
+    <Capture Name=""Two"" Span=""[27..38)"" Text=""(?&lt;Two&gt;xyz)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -211,9 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
-    <Capture Name=""2"" Span=""[17..21)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""(\w+)\s(\1)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(\w+)"" />
+    <Capture Name=""2"" Span=""[17..21)"" Text=""(\1)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -242,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""\Bqu\w+"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -275,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..20)"" />
+    <Capture Name=""0"" Span=""[10..20)"" Text=""\bare\w*\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -327,8 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
-    <Capture Name=""1"" Span=""[12..23)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""\G(\w+\s?\w*),?"" />
+    <Capture Name=""1"" Span=""[12..23)"" Text=""(\w+\s?\w*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -394,9 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..43)"" />
-    <Capture Name=""1"" Span=""[13..26)"" />
-    <Capture Name=""digit"" Span=""[13..26)"" />
+    <Capture Name=""0"" Span=""[10..43)"" Text=""\D+(?&lt;digit&gt;\d+)\D+(?&lt;digit&gt;\d+)?"" />
+    <Capture Name=""1"" Span=""[13..26)"" Text=""(?&lt;digit&gt;\d+)"" />
+    <Capture Name=""digit"" Span=""[13..26)"" Text=""(?&lt;digit&gt;\d+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -469,10 +471,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..46)"" />
-    <Capture Name=""1"" Span=""[10..45)"" />
-    <Capture Name=""2"" Span=""[18..41)"" />
-    <Capture Name=""3"" Span=""[20..40)"" />
+    <Capture Name=""0"" Span=""[10..46)"" Text=""(\s\d{4}(-(\d{4}&amp;#124;present))?,?)+"" />
+    <Capture Name=""1"" Span=""[10..45)"" Text=""(\s\d{4}(-(\d{4}&amp;#124;present))?,?)"" />
+    <Capture Name=""2"" Span=""[18..41)"" Text=""(-(\d{4}&amp;#124;present))"" />
+    <Capture Name=""3"" Span=""[20..40)"" Text=""(\d{4}&amp;#124;present)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -625,14 +627,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..72)"" />
-    <Capture Name=""1"" Span=""[11..27)"" />
-    <Capture Name=""2"" Span=""[12..22)"" />
-    <Capture Name=""3"" Span=""[16..21)"" />
-    <Capture Name=""4"" Span=""[30..40)"" />
-    <Capture Name=""5"" Span=""[41..71)"" />
-    <Capture Name=""6"" Span=""[49..67)"" />
-    <Capture Name=""7"" Span=""[51..66)"" />
+    <Capture Name=""0"" Span=""[10..72)"" Text=""^((\w+(\s?)){2,}),\s(\w+\s\w+),(\s\d{4}(-(\d{4}|present))?,?)+"" />
+    <Capture Name=""1"" Span=""[11..27)"" Text=""((\w+(\s?)){2,})"" />
+    <Capture Name=""2"" Span=""[12..22)"" Text=""(\w+(\s?))"" />
+    <Capture Name=""3"" Span=""[16..21)"" Text=""(\s?)"" />
+    <Capture Name=""4"" Span=""[30..40)"" Text=""(\w+\s\w+)"" />
+    <Capture Name=""5"" Span=""[41..71)"" Text=""(\s\d{4}(-(\d{4}|present))?,?)"" />
+    <Capture Name=""6"" Span=""[49..67)"" Text=""(-(\d{4}|present))"" />
+    <Capture Name=""7"" Span=""[51..66)"" Text=""(\d{4}|present)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -683,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""^[0-9-[2468]]+$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -731,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""[a-z-[0-9]]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -781,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..40)"" />
+    <Capture Name=""0"" Span=""[10..40)"" Text=""[\p{IsBasicLatin}-[\x00-\x7F]]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -847,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..50)"" />
+    <Capture Name=""0"" Span=""[10..50)"" Text=""[\u0000-\uFFFF-[\s\p{P}\p{IsGreek}\x85]]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -913,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..27)"" />
+    <Capture Name=""0"" Span=""[10..27)"" Text=""[a-z-[d-w-[m-o]]]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -966,13 +968,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Start=""25"" Length=""0"" />
+    <Diagnostic Message=""Not enough )'s"" Span=""[25..25)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
-    <Capture Name=""1"" Span=""[10..25)"" />
-    <Capture Name=""2"" Span=""[11..21)"" />
-    <Capture Name=""3"" Span=""[15..20)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""((\w+(\s?)){2,}"" />
+    <Capture Name=""1"" Span=""[10..25)"" Text=""((\w+(\s?)){2,}"" />
+    <Capture Name=""2"" Span=""[11..21)"" Text=""(\w+(\s?))"" />
+    <Capture Name=""3"" Span=""[15..20)"" Text=""(\s?)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1014,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""[a-z-[djp]]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1146,14 +1148,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..78)"" />
-    <Capture Name=""1"" Span=""[17..63)"" />
-    <Capture Name=""2"" Span=""[18..36)"" />
-    <Capture Name=""3"" Span=""[37..61)"" />
-    <Capture Name=""4"" Span=""[19..29)"" />
-    <Capture Name=""5"" Span=""[38..54)"" />
-    <Capture Name=""Close"" Span=""[38..54)"" />
-    <Capture Name=""Open"" Span=""[19..29)"" />
+    <Capture Name=""0"" Span=""[10..78)"" Text=""^[^&lt;&gt;]*(((?'Open'&lt;)[^&lt;&gt;]*)+((?'Close-Open'&gt;)[^&lt;&gt;]*)+)*(?(Open)(?!))$"" />
+    <Capture Name=""1"" Span=""[17..63)"" Text=""(((?'Open'&lt;)[^&lt;&gt;]*)+((?'Close-Open'&gt;)[^&lt;&gt;]*)+)"" />
+    <Capture Name=""2"" Span=""[18..36)"" Text=""((?'Open'&lt;)[^&lt;&gt;]*)"" />
+    <Capture Name=""3"" Span=""[37..61)"" Text=""((?'Close-Open'&gt;)[^&lt;&gt;]*)"" />
+    <Capture Name=""4"" Span=""[19..29)"" Text=""(?'Open'&lt;)"" />
+    <Capture Name=""5"" Span=""[38..54)"" Text=""(?'Close-Open'&gt;)"" />
+    <Capture Name=""Close"" Span=""[38..54)"" Text=""(?'Close-Open'&gt;)"" />
+    <Capture Name=""Open"" Span=""[19..29)"" Text=""(?'Open'&lt;)"" />
   </Captures>
 </Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
@@ -1205,13 +1207,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group name Open"" Start=""20"" Length=""4"" />
+    <Diagnostic Message=""Reference to undefined group name Open"" Span=""[20..24)"" Text=""Open"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..35)"" />
-    <Capture Name=""1"" Span=""[10..34)"" />
-    <Capture Name=""2"" Span=""[11..27)"" />
-    <Capture Name=""Close"" Span=""[11..27)"" />
+    <Capture Name=""0"" Span=""[10..35)"" Text=""((?'Close-Open'&gt;)[^&lt;&gt;]*)+"" />
+    <Capture Name=""1"" Span=""[10..34)"" Text=""((?'Close-Open'&gt;)[^&lt;&gt;]*)"" />
+    <Capture Name=""2"" Span=""[11..27)"" Text=""(?'Close-Open'&gt;)"" />
+    <Capture Name=""Close"" Span=""[11..27)"" Text=""(?'Close-Open'&gt;)"" />
   </Captures>
 </Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
@@ -1250,8 +1252,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..20)"" />
-    <Capture Name=""1"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..20)"" Text=""(\w)\1+.\b"" />
+    <Capture Name=""1"" Span=""[10..14)"" Text=""(\w)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1279,7 +1281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""\d{4}\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1308,7 +1310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..18)"" />
+    <Capture Name=""0"" Span=""[10..18)"" Text=""\d{1,2},"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1393,8 +1395,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..55)"" />
-    <Capture Name=""1"" Span=""[14..31)"" />
+    <Capture Name=""0"" Span=""[10..55)"" Text=""(?&lt;!(Saturday|Sunday) )\b\w+ \d{1,2}, \d{4}\b"" />
+    <Capture Name=""1"" Span=""[14..31)"" Text=""(Saturday|Sunday)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1438,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""(?&lt;=\b20)\d{2}\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1483,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""\b\w+\b(?!\p{P})"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1579,14 +1581,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..57)"" />
-    <Capture Name=""1"" Span=""[10..56)"" />
-    <Capture Name=""2"" Span=""[11..29)"" />
-    <Capture Name=""3"" Span=""[30..54)"" />
-    <Capture Name=""4"" Span=""[12..22)"" />
-    <Capture Name=""5"" Span=""[31..47)"" />
-    <Capture Name=""Close"" Span=""[31..47)"" />
-    <Capture Name=""Open"" Span=""[12..22)"" />
+    <Capture Name=""0"" Span=""[10..57)"" Text=""(((?'Open'&lt;)[^&lt;&gt;]*)+((?'Close-Open'&gt;)[^&lt;&gt;]*)+)*"" />
+    <Capture Name=""1"" Span=""[10..56)"" Text=""(((?'Open'&lt;)[^&lt;&gt;]*)+((?'Close-Open'&gt;)[^&lt;&gt;]*)+)"" />
+    <Capture Name=""2"" Span=""[11..29)"" Text=""((?'Open'&lt;)[^&lt;&gt;]*)"" />
+    <Capture Name=""3"" Span=""[30..54)"" Text=""((?'Close-Open'&gt;)[^&lt;&gt;]*)"" />
+    <Capture Name=""4"" Span=""[12..22)"" Text=""(?'Open'&lt;)"" />
+    <Capture Name=""5"" Span=""[31..47)"" Text=""(?'Close-Open'&gt;)"" />
+    <Capture Name=""Close"" Span=""[31..47)"" Text=""(?'Close-Open'&gt;)"" />
+    <Capture Name=""Open"" Span=""[12..22)"" Text=""(?'Open'&lt;)"" />
   </Captures>
 </Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
@@ -1627,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""\b(?!un)\w+\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1675,7 +1677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""\b(?ix: d \w+)\s"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1705,7 +1707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?:\w+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1757,7 +1759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..27)"" />
+    <Capture Name=""0"" Span=""[10..27)"" Text=""(?:\b(?:\w+)\W*)+"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1813,7 +1815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..29)"" />
+    <Capture Name=""0"" Span=""[10..29)"" Text=""(?:\b(?:\w+)\W*)+\."" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1843,12 +1845,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group name Open"" Start=""19"" Length=""4"" />
+    <Diagnostic Message=""Reference to undefined group name Open"" Span=""[19..23)"" Text=""Open"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" />
-    <Capture Name=""1"" Span=""[10..26)"" />
-    <Capture Name=""Close"" Span=""[10..26)"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""(?'Close-Open'&gt;)"" />
+    <Capture Name=""1"" Span=""[10..26)"" Text=""(?'Close-Open'&gt;)"" />
+    <Capture Name=""Close"" Span=""[10..26)"" Text=""(?'Close-Open'&gt;)"" />
   </Captures>
 </Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
@@ -1876,7 +1878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""[^&lt;&gt;]*"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1921,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""\b\w+(?=\sis\b)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1963,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..19)"" />
+    <Capture Name=""0"" Span=""[10..19)"" Text=""[a-z-[m]]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2006,7 +2008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""^\D\d{1,5}\D*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2037,7 +2039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""[^0-9]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2084,9 +2086,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..30)"" />
-    <Capture Name=""1"" Span=""[10..29)"" />
-    <Capture Name=""2"" Span=""[23..27)"" />
+    <Capture Name=""0"" Span=""[10..30)"" Text=""(\p{IsGreek}+(\s)?)+"" />
+    <Capture Name=""1"" Span=""[10..29)"" Text=""(\p{IsGreek}+(\s)?)"" />
+    <Capture Name=""2"" Span=""[23..27)"" Text=""(\s)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2180,11 +2182,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..65)"" />
-    <Capture Name=""1"" Span=""[12..31)"" />
-    <Capture Name=""2"" Span=""[25..29)"" />
-    <Capture Name=""3"" Span=""[40..64)"" />
-    <Capture Name=""4"" Span=""[58..62)"" />
+    <Capture Name=""0"" Span=""[10..65)"" Text=""\b(\p{IsGreek}+(\s)?)+\p{Pd}\s(\p{IsBasicLatin}+(\s)?)+"" />
+    <Capture Name=""1"" Span=""[12..31)"" Text=""(\p{IsGreek}+(\s)?)"" />
+    <Capture Name=""2"" Span=""[25..29)"" Text=""(\s)"" />
+    <Capture Name=""3"" Span=""[40..64)"" Text=""(\p{IsBasicLatin}+(\s)?)"" />
+    <Capture Name=""4"" Span=""[58..62)"" Text=""(\s)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2237,8 +2239,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..28)"" />
-    <Capture Name=""1"" Span=""[21..28)"" />
+    <Capture Name=""0"" Span=""[10..28)"" Text=""\b.*[.?!;:](\s|\z)"" />
+    <Capture Name=""1"" Span=""[21..28)"" Text=""(\s|\z)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2262,7 +2264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""^.+"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2287,7 +2289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""[^o]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2330,7 +2332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""\bth[^o]\w+\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2361,8 +2363,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..19)"" />
-    <Capture Name=""1"" Span=""[10..18)"" />
+    <Capture Name=""0"" Span=""[10..19)"" Text=""(\P{Sc})+"" />
+    <Capture Name=""1"" Span=""[10..18)"" Text=""(\P{Sc})"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2395,7 +2397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..20)"" />
+    <Capture Name=""0"" Span=""[10..20)"" Text=""[^\p{P}\d]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2440,7 +2442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..22)"" />
+    <Capture Name=""0"" Span=""[10..22)"" Text=""\b[A-Z]\w*\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2465,7 +2467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""\S+?"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2487,7 +2489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""y\s"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2548,7 +2550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..32)"" />
+    <Capture Name=""0"" Span=""[10..32)"" Text=""gr[ae]y\s\S+?[\s\p{P}]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2580,7 +2582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..19)"" />
+    <Capture Name=""0"" Span=""[10..19)"" Text=""[\s\p{P}]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2612,7 +2614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..19)"" />
+    <Capture Name=""0"" Span=""[10..19)"" Text=""[\p{P}\d]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2637,7 +2639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..18)"" />
+    <Capture Name=""0"" Span=""[10..18)"" Text=""[^aeiou]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2666,8 +2668,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
-    <Capture Name=""1"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""(\w)\1"" />
+    <Capture Name=""1"" Span=""[10..14)"" Text=""(\w)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2741,7 +2743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..56)"" />
+    <Capture Name=""0"" Span=""[10..56)"" Text=""[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Pc}\p{Lm}] "" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2793,7 +2795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""[^a-zA-Z_0-9]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2815,7 +2817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""\P{Nd}"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2875,8 +2877,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..29)"" />
-    <Capture Name=""1"" Span=""[10..28)"" />
+    <Capture Name=""0"" Span=""[10..29)"" Text=""(\(?\d{3}\)?[\s-])?"" />
+    <Capture Name=""1"" Span=""[10..28)"" Text=""(\(?\d{3}\)?[\s-])"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2963,8 +2965,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..42)"" />
-    <Capture Name=""1"" Span=""[11..29)"" />
+    <Capture Name=""0"" Span=""[10..42)"" Text=""^(\(?\d{3}\)?[\s-])?\d{3}-\d{4}$"" />
+    <Capture Name=""1"" Span=""[11..29)"" Text=""(\(?\d{3}\)?[\s-])"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2994,7 +2996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..15)"" />
+    <Capture Name=""0"" Span=""[10..15)"" Text=""[0-9]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3016,7 +3018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""\p{Nd}"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3055,8 +3057,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..20)"" />
-    <Capture Name=""1"" Span=""[12..17)"" />
+    <Capture Name=""0"" Span=""[10..20)"" Text=""\b(\S+)\s?"" />
+    <Capture Name=""1"" Span=""[12..17)"" Text=""(\S+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3101,7 +3103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""[^ \f\n\r\t\v]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3155,7 +3157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..32)"" />
+    <Capture Name=""0"" Span=""[10..32)"" Text=""[^\f\n\r\t\v\x85\p{Z}]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3188,8 +3190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
-    <Capture Name=""1"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""(\s|$)"" />
+    <Capture Name=""1"" Span=""[10..16)"" Text=""(\s|$)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3248,9 +3250,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" />
-    <Capture Name=""1"" Span=""[15..18)"" />
-    <Capture Name=""2"" Span=""[20..26)"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""\b\w+(e)?s(\s|$)"" />
+    <Capture Name=""1"" Span=""[15..18)"" Text=""(e)"" />
+    <Capture Name=""2"" Span=""[20..26)"" Text=""(\s|$)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3294,7 +3296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""[ \f\n\r\t\v]"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3326,8 +3328,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..19)"" />
-    <Capture Name=""1"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..19)"" Text=""(\W){1,2}"" />
+    <Capture Name=""1"" Span=""[10..14)"" Text=""(\W)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3355,8 +3357,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..15)"" />
-    <Capture Name=""1"" Span=""[10..15)"" />
+    <Capture Name=""0"" Span=""[10..15)"" Text=""(\w+)"" />
+    <Capture Name=""1"" Span=""[10..15)"" Text=""(\w+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3375,7 +3377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..12)"" />
+    <Capture Name=""0"" Span=""[10..12)"" Text=""\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3424,9 +3426,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" />
-    <Capture Name=""1"" Span=""[12..17)"" />
-    <Capture Name=""2"" Span=""[17..21)"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""\b(\w+)(\W){1,2}"" />
+    <Capture Name=""1"" Span=""[12..17)"" Text=""(\w+)"" />
+    <Capture Name=""2"" Span=""[17..21)"" Text=""(\W)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3473,8 +3475,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
-    <Capture Name=""1"" Span=""[13..17)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""(?&gt;(\w)\1+).\b"" />
+    <Capture Name=""1"" Span=""[13..17)"" Text=""(\w)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3522,9 +3524,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" />
-    <Capture Name=""1"" Span=""[10..22)"" />
-    <Capture Name=""2"" Span=""[13..18)"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""(\b(\w+)\W+)+"" />
+    <Capture Name=""1"" Span=""[10..22)"" Text=""(\b(\w+)\W+)"" />
+    <Capture Name=""2"" Span=""[13..18)"" Text=""(\w+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3563,8 +3565,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..20)"" />
-    <Capture Name=""1"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..20)"" Text=""(\w)\1+.\b"" />
+    <Capture Name=""1"" Span=""[10..14)"" Text=""(\w)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3638,8 +3640,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..40)"" />
-    <Capture Name=""1"" Span=""[17..33)"" />
+    <Capture Name=""0"" Span=""[10..40)"" Text=""\p{Sc}*(\s?\d+[.,]?\d*)\p{Sc}*"" />
+    <Capture Name=""1"" Span=""[17..33)"" Text=""(\s?\d+[.,]?\d*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3716,9 +3718,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..48)"" />
-    <Capture Name=""1"" Span=""[16..41)"" />
-    <Capture Name=""amount"" Span=""[16..41)"" />
+    <Capture Name=""0"" Span=""[10..48)"" Text=""p{Sc}*(?&lt;amount&gt;\s?\d+[.,]?\d*)\p{Sc}*"" />
+    <Capture Name=""1"" Span=""[16..41)"" Text=""(?&lt;amount&gt;\s?\d+[.,]?\d*)"" />
+    <Capture Name=""amount"" Span=""[16..41)"" Text=""(?&lt;amount&gt;\s?\d+[.,]?\d*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3762,8 +3764,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
-    <Capture Name=""1"" Span=""[11..19)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""^(\w+\s?)+$"" />
+    <Capture Name=""1"" Span=""[11..19)"" Text=""(\w+\s?)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3807,7 +3809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""(?ix) d \w+ \s"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3855,7 +3857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""\b(?ix: d \w+)\s"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3888,7 +3890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..20)"" />
+    <Capture Name=""0"" Span=""[10..20)"" Text=""\bthe\w*\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3933,7 +3935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""\b(?i:t)he\w*\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3984,9 +3986,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
-    <Capture Name=""1"" Span=""[11..16)"" />
-    <Capture Name=""2"" Span=""[18..23)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""^(\w+)\s(\d+)$"" />
+    <Capture Name=""1"" Span=""[11..16)"" Text=""(\w+)"" />
+    <Capture Name=""2"" Span=""[18..23)"" Text=""(\d+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4044,9 +4046,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..27)"" />
-    <Capture Name=""1"" Span=""[11..16)"" />
-    <Capture Name=""2"" Span=""[18..23)"" />
+    <Capture Name=""0"" Span=""[10..27)"" Text=""^(\w+)\s(\d+)\r*$"" />
+    <Capture Name=""1"" Span=""[11..16)"" Text=""(\w+)"" />
+    <Capture Name=""2"" Span=""[18..23)"" Text=""(\d+)"" />
   </Captures>
 </Tree>", RegexOptions.Multiline);
         }
@@ -4110,9 +4112,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..31)"" />
-    <Capture Name=""1"" Span=""[15..20)"" />
-    <Capture Name=""2"" Span=""[22..27)"" />
+    <Capture Name=""0"" Span=""[10..31)"" Text=""(?m)^(\w+)\s(\d+)\r*$"" />
+    <Capture Name=""1"" Span=""[15..20)"" Text=""(\w+)"" />
+    <Capture Name=""2"" Span=""[22..27)"" Text=""(\d+)"" />
   </Captures>
 </Tree>", RegexOptions.Multiline);
         }
@@ -4142,7 +4144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""(?s)^.+"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4243,8 +4245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..52)"" />
-    <Capture Name=""1"" Span=""[12..20)"" />
+    <Capture Name=""0"" Span=""[10..52)"" Text=""\b(\d{2}-)*(?(1)\d{7}|\d{3}-\d{2}-\d{4})\b"" />
+    <Capture Name=""1"" Span=""[12..20)"" Text=""(\d{2}-)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4325,9 +4327,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..37)"" />
-    <Capture Name=""1"" Span=""[15..27)"" />
-    <Capture Name=""2"" Span=""[16..21)"" />
+    <Capture Name=""0"" Span=""[10..37)"" Text=""\b\(?((\w+),?\s?)+[\.!?]\)?"" />
+    <Capture Name=""1"" Span=""[15..27)"" Text=""((\w+),?\s?)"" />
+    <Capture Name=""2"" Span=""[16..21)"" Text=""(\w+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4416,7 +4418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..43)"" />
+    <Capture Name=""0"" Span=""[10..43)"" Text=""(?n)\b\(?((?&gt;\w+),?\s?)+[\.!?]\)?"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4502,7 +4504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..42)"" />
+    <Capture Name=""0"" Span=""[10..42)"" Text=""\b\(?(?n:(?&gt;\w+),?\s?)+[\.!?]\)?"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4585,8 +4587,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..39)"" />
-    <Capture Name=""1"" Span=""[15..29)"" />
+    <Capture Name=""0"" Span=""[10..39)"" Text=""\b\(?((?&gt;\w+),?\s?)+[\.!?]\)?"" />
+    <Capture Name=""1"" Span=""[15..29)"" Text=""((?&gt;\w+),?\s?)"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
         }
@@ -4701,8 +4703,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     </EndOfFile>
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..81)"" />
-    <Capture Name=""1"" Span=""[21..38)"" />
+    <Capture Name=""0"" Span=""[10..81)"" Text=""(?x)\b \(? ( (?&gt;\w+) ,?\s? )+  [\.!?] \)? # Matches an entire sentence."" />
+    <Capture Name=""1"" Span=""[21..38)"" Text=""( (?&gt;\w+) ,?\s? )"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4735,7 +4737,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..18)"" />
+    <Capture Name=""0"" Span=""[10..18)"" Text=""\bb\w+\s"" />
   </Captures>
 </Tree>", RegexOptions.RightToLeft);
         }
@@ -4800,7 +4802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..36)"" />
+    <Capture Name=""0"" Span=""[10..36)"" Text=""(?&lt;=\d{1,2}\s)\w+,?\s\d{4}"" />
   </Captures>
 </Tree>", RegexOptions.RightToLeft);
         }
@@ -4842,8 +4844,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
-    <Capture Name=""1"" Span=""[12..20)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""\b(\w+\s*)+"" />
+    <Capture Name=""1"" Span=""[12..20)"" Text=""(\w+\s*)"" />
   </Captures>
 </Tree>", RegexOptions.ECMAScript);
         }
@@ -4895,10 +4897,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" />
-    <Capture Name=""1"" Span=""[10..22)"" />
-    <Capture Name=""2"" Span=""[11..15)"" />
-    <Capture Name=""3"" Span=""[15..19)"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""((a+)(\1) ?)+"" />
+    <Capture Name=""1"" Span=""[10..22)"" Text=""((a+)(\1) ?)"" />
+    <Capture Name=""2"" Span=""[11..15)"" Text=""(a+)"" />
+    <Capture Name=""3"" Span=""[15..19)"" Text=""(\1)"" />
   </Captures>
 </Tree>", RegexOptions.ECMAScript);
         }
@@ -4957,9 +4959,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..28)"" />
-    <Capture Name=""1"" Span=""[12..18)"" />
-    <Capture Name=""2"" Span=""[20..26)"" />
+    <Capture Name=""0"" Span=""[10..28)"" Text=""\b(D\w+)\s(d\w+)\b"" />
+    <Capture Name=""1"" Span=""[12..18)"" Text=""(D\w+)"" />
+    <Capture Name=""2"" Span=""[20..26)"" Text=""(d\w+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5033,8 +5035,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..37)"" />
-    <Capture Name=""1"" Span=""[12..18)"" />
+    <Capture Name=""0"" Span=""[10..37)"" Text=""\b(D\w+)(?ixn) \s (d\w+) \b"" />
+    <Capture Name=""1"" Span=""[12..18)"" Text=""(D\w+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5099,9 +5101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..89)"" />
-    <Capture Name=""1"" Span=""[12..48)"" />
-    <Capture Name=""2"" Span=""[50..87)"" />
+    <Capture Name=""0"" Span=""[10..89)"" Text=""\b((?# case-sensitive comparison)D\w+)\s((?#case-insensitive comparison)d\w+)\b"" />
+    <Capture Name=""1"" Span=""[12..48)"" Text=""((?# case-sensitive comparison)D\w+)"" />
+    <Capture Name=""2"" Span=""[50..87)"" Text=""((?#case-insensitive comparison)d\w+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5184,8 +5186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..39)"" />
-    <Capture Name=""1"" Span=""[15..29)"" />
+    <Capture Name=""0"" Span=""[10..39)"" Text=""\b\(?((?&gt;\w+),?\s?)+[\.!?]\)?"" />
+    <Capture Name=""1"" Span=""[15..29)"" Text=""((?&gt;\w+),?\s?)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5290,9 +5292,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..58)"" />
-    <Capture Name=""1"" Span=""[12..25)"" />
-    <Capture Name=""n2"" Span=""[12..25)"" />
+    <Capture Name=""0"" Span=""[10..58)"" Text=""\b(?&lt;n2&gt;\d{2}-)*(?(n2)\d{7}|\d{3}-\d{2}-\d{4})\b"" />
+    <Capture Name=""1"" Span=""[12..25)"" Text=""(?&lt;n2&gt;\d{2}-)"" />
+    <Capture Name=""n2"" Span=""[12..25)"" Text=""(?&lt;n2&gt;\d{2}-)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5380,8 +5382,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..45)"" />
-    <Capture Name=""1"" Span=""[12..43)"" />
+    <Capture Name=""0"" Span=""[10..45)"" Text=""\b(\d{2}-\d{7}|\d{3}-\d{2}-\d{4})\b"" />
+    <Capture Name=""1"" Span=""[12..43)"" Text=""(\d{2}-\d{7}|\d{3}-\d{2}-\d{4})"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5427,8 +5429,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..22)"" />
-    <Capture Name=""1"" Span=""[14..19)"" />
+    <Capture Name=""0"" Span=""[10..22)"" Text=""\bgr(a|e)y\b"" />
+    <Capture Name=""1"" Span=""[14..19)"" Text=""(a|e)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5475,8 +5477,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
-    <Capture Name=""1"" Span=""[13..17)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""(?&gt;(\w)\1+).\b"" />
+    <Capture Name=""1"" Span=""[13..17)"" Text=""(\w)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5524,9 +5526,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" />
-    <Capture Name=""1"" Span=""[10..22)"" />
-    <Capture Name=""2"" Span=""[13..18)"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""(\b(\w+)\W+)+"" />
+    <Capture Name=""1"" Span=""[10..22)"" Text=""(\b(\w+)\W+)"" />
+    <Capture Name=""2"" Span=""[13..18)"" Text=""(\w+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5564,7 +5566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..19)"" />
+    <Capture Name=""0"" Span=""[10..19)"" Text=""\b91*9*\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5606,7 +5608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""\ban+\w*?\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5638,7 +5640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""\ban?\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5681,7 +5683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""\b\d+\,\d{3}\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5721,7 +5723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""\b\d{2,}\b\D+"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5756,8 +5758,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
-    <Capture Name=""1"" Span=""[10..16)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""(00\s){2,4}"" />
+    <Capture Name=""1"" Span=""[10..16)"" Text=""(00\s)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5803,7 +5805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""\b\w*?oo\w*?\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5836,7 +5838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..18)"" />
+    <Capture Name=""0"" Span=""[10..18)"" Text=""\b\w+?\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5913,9 +5915,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..50)"" />
-    <Capture Name=""1"" Span=""[14..23)"" />
-    <Capture Name=""2"" Span=""[38..44)"" />
+    <Capture Name=""0"" Span=""[10..50)"" Text=""^\s*(System.)??Console.Write(Line)??\(??"" />
+    <Capture Name=""1"" Span=""[14..23)"" Text=""(System.)"" />
+    <Capture Name=""2"" Span=""[38..44)"" Text=""(Line)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5948,8 +5950,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
-    <Capture Name=""1"" Span=""[10..19)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""(System.)??"" />
+    <Capture Name=""1"" Span=""[10..19)"" Text=""(System.)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6016,8 +6018,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..36)"" />
-    <Capture Name=""1"" Span=""[12..23)"" />
+    <Capture Name=""0"" Span=""[10..36)"" Text=""\b(\w{3,}?\.){2}?\w{3,}?\b"" />
+    <Capture Name=""1"" Span=""[12..23)"" Text=""(\w{3,}?\.)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6093,8 +6095,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..38)"" />
-    <Capture Name=""1"" Span=""[17..27)"" />
+    <Capture Name=""0"" Span=""[10..38)"" Text=""\b[A-Z](\w*?\s*?){1,10}[.!?]"" />
+    <Capture Name=""1"" Span=""[17..27)"" Text=""(\w*?\s*?)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6148,8 +6150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" />
-    <Capture Name=""1"" Span=""[13..23)"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""b.*([0-9]{4})\b"" />
+    <Capture Name=""1"" Span=""[13..23)"" Text=""([0-9]{4})"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6207,8 +6209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..27)"" />
-    <Capture Name=""1"" Span=""[15..25)"" />
+    <Capture Name=""0"" Span=""[10..27)"" Text=""\b.*?([0-9]{4})\b"" />
+    <Capture Name=""1"" Span=""[15..25)"" Text=""([0-9]{4})"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6238,8 +6240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..15)"" />
-    <Capture Name=""1"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..15)"" Text=""(a?)*"" />
+    <Capture Name=""1"" Span=""[10..14)"" Text=""(a?)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6293,8 +6295,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..29)"" />
-    <Capture Name=""1"" Span=""[10..24)"" />
+    <Capture Name=""0"" Span=""[10..29)"" Text=""(a\1|(?(1)\1)){0,2}"" />
+    <Capture Name=""1"" Span=""[10..24)"" Text=""(a\1|(?(1)\1))"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6346,8 +6348,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..27)"" />
-    <Capture Name=""1"" Span=""[10..24)"" />
+    <Capture Name=""0"" Span=""[10..27)"" Text=""(a\1|(?(1)\1)){2}"" />
+    <Capture Name=""1"" Span=""[10..24)"" Text=""(a\1|(?(1)\1))"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6376,8 +6378,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" />
-    <Capture Name=""1"" Span=""[10..14)"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""(\w)\1"" />
+    <Capture Name=""1"" Span=""[10..14)"" Text=""(\w)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6413,9 +6415,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..29)"" />
-    <Capture Name=""1"" Span=""[10..21)"" />
-    <Capture Name=""char"" Span=""[10..21)"" />
+    <Capture Name=""0"" Span=""[10..29)"" Text=""(?&lt;char&gt;\w)\k&lt;char&gt;"" />
+    <Capture Name=""1"" Span=""[10..21)"" Text=""(?&lt;char&gt;\w)"" />
+    <Capture Name=""char"" Span=""[10..21)"" Text=""(?&lt;char&gt;\w)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6451,8 +6453,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" />
-    <Capture Name=""2"" Span=""[10..18)"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""(?&lt;2&gt;\w)\k&lt;2&gt;"" />
+    <Capture Name=""2"" Span=""[10..18)"" Text=""(?&lt;2&gt;\w)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6500,8 +6502,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..27)"" />
-    <Capture Name=""1"" Span=""[10..17)"" />
+    <Capture Name=""0"" Span=""[10..27)"" Text=""(?&lt;1&gt;a)(?&lt;1&gt;\1b)*"" />
+    <Capture Name=""1"" Span=""[10..17)"" Text=""(?&lt;1&gt;a)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6578,10 +6580,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..44)"" />
-    <Capture Name=""1"" Span=""[12..23)"" />
-    <Capture Name=""2"" Span=""[23..30)"" />
-    <Capture Name=""3"" Span=""[31..42)"" />
+    <Capture Name=""0"" Span=""[10..44)"" Text=""\b(\p{Lu}{2})(\d{2})?(\p{Lu}{2})\b"" />
+    <Capture Name=""1"" Span=""[12..23)"" Text=""(\p{Lu}{2})"" />
+    <Capture Name=""2"" Span=""[23..30)"" Text=""(\d{2})"" />
+    <Capture Name=""3"" Span=""[31..42)"" Text=""(\p{Lu}{2})"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6619,7 +6621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..21)"" />
+    <Capture Name=""0"" Span=""[10..21)"" Text=""\bgr[ae]y\b"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6690,8 +6692,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..95)"" />
-    <Capture Name=""1"" Span=""[12..48)"" />
+    <Capture Name=""0"" Span=""[10..95)"" Text=""\b((?# case sensitive comparison)D\w+)\s(?ixn)((?#case insensitive comparison)d\w+)\b"" />
+    <Capture Name=""1"" Span=""[12..48)"" Text=""((?# case sensitive comparison)D\w+)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -6784,9 +6786,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     </EndOfFile>
   </CompilationUnit>
   <Captures>
-    <Capture Name=""0"" Span=""[10..80)"" />
-    <Capture Name=""1"" Span=""[15..23)"" />
-    <Capture Name=""2"" Span=""[24..36)"" />
+    <Capture Name=""0"" Span=""[10..80)"" Text=""\{\d+(,-*\d+)*(\:\w{1,4}?)*\}(?x) # Looks for a composite format item."" />
+    <Capture Name=""1"" Span=""[15..23)"" Text=""(,-*\d+)"" />
+    <Capture Name=""2"" Span=""[24..36)"" Text=""(\:\w{1,4}?)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
