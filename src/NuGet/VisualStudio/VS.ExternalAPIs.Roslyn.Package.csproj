@@ -85,7 +85,7 @@
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.Workspaces\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic\Microsoft.CodeAnalysis.VisualBasic.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" TargetDir="" />
+      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces.MSBuild\net46\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.CSharp\Microsoft.VisualStudio.LanguageServices.CSharp.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.Implementation\Microsoft.VisualStudio.LanguageServices.Implementation.dll" TargetDir="" />
