@@ -34,6 +34,9 @@ namespace Roslyn.Test.Utilities
         /// on Windows. These types can be added using extra assemblies but that is not done in our unit tests.
         /// </summary>
         public const string TestExecutionNeedsWindowsTypes = "Test execution depends on windows only types";
+
+        public const string TestExecutionHasCOMInterop = "Test execution depends on COM Interop";
+        public const string TestHasWindowsPaths = "Test depends on Windows style paths";
     }
 
     public class ConditionalFactAttribute : FactAttribute
