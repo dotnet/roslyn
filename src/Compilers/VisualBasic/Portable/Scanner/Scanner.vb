@@ -554,13 +554,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             End If
 
-            tList.Add(MakeLineContinuationTrivia(GetText(1)))
-            ' Leading Whitespace on line after _
-            If Here > 1 Then
-                tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
-            End If
+            AddLineContinuationAndOptionalWhitespaces(tList, Here)
             Return True
         End Function
+
+        Private Sub AddLineContinuationAndOptionalWhitespaces(tList As SyntaxListBuilder, Here As Integer)
+            ' Add the Line Continuation Character '_' triva.
+            tList.Add(MakeLineContinuationTrivia(GetText(1)))
+            If Here > 1 Then
+                ' Add any whitespace trivia.
+                tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
+            End If
+        End Sub
 
         Private Sub PeekWhitespace(ByRef Here As Integer, ByRef Ch As Char)
             While TryGet(Here, Ch) AndAlso IsWhitespace(Ch)
@@ -587,7 +592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Eg.  LineContinuation ( EndOfLine | EndOfFile | LineContinuationComment) 
             If Not TryGet(ch) OrElse Not IsAfterWhitespace() OrElse Not IsUnderscore(ch) Then
                 Return False
-            ElseIf Not TryGet(Here, ch) OrElse Not (IsWhitespace(ch) OrElse PeekStartComment(Here, AllowREM:=False) > 0) Then
+            ElseIf Not TryGet(Here, ch) OrElse (Not IsWhitespace(ch) AndAlso PeekStartComment(Here, AllowREM:=False) <= 0) Then
                 ' We don't have a space or ' but we might have an EOF after _ and that is not an error
                 ' This case if different then above because we don't want to skip whitespace after _
                 If Not Original_Scanner(atNewLine, tList, ch) Then
@@ -596,20 +601,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 ' We have a Line Continuation
                 PeekWhitespace(Here, ch)
+                ' followed optional whitespace(s)
                 If PeekStartComment(Here, AllowREM:=False) <= 0 Then
-                    '... without comment but have 0 Or more spaces after _.
+                    '... without a comment.
                     ' so process as V15.5
                     If Not Original_Scanner(atNewLine, tList, ch, Here) Then
                         Return False
                     End If
                 Else
-                    ' ... with 0 or more spaces followed by a comment.
-                    ' Add the Line Continuation Character '_' triva.
-                    tList.Add(MakeLineContinuationTrivia(GetText(1)))
-                    If Here > 1 Then
-                        ' Add any whitespace trivia.
-                        tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
-                    End If
+                    ' ... with a comment.
+                    AddLineContinuationAndOptionalWhitespaces(tList, Here)
                     ' Scan the comment trivia.
                     Dim comment As SyntaxTrivia = ScanComment(AllowREM:=False)
                     comment = Parser.CheckFeatureAvailability(Feature.CommentsAfterLineContinuation, comment, Options.LanguageVersion)
@@ -620,26 +621,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             End If
 
+            ' if there is another line.
             If atNewLine AndAlso CanGet() Then
-                ProcessNextLineIfBlamkOrBlamkWithComment(tList, ch, Here)
+                ' We need to check it.
+                ProcessNextLineToCheckIfBlamkOrBlamkWithComment(tList, ch, Here)
             End If
 
             Return True
         End Function
 
-        Private Sub ProcessNextLineIfBlamkOrBlamkWithComment(tList As SyntaxListBuilder, ByRef ch As Char, ByRef Here As Integer)
+        Private Sub ProcessNextLineToCheckIfBlamkOrBlamkWithComment(tList As SyntaxListBuilder, ch As Char, Here As Integer)
             Dim newLine = SkipLineBreak(ch, 0)
             Here = GetWhitespaceLength(newLine)
             Dim spaces = Here - newLine
             Dim startComment = PeekStartComment(Here, AllowREM:=False)
-
-            ' If the line following the line continuation is blank, or blank with a comment,
-            ' do not include the new line character since that would confuse code handling
-            ' implicit line continuations. (See Scanner::EatLineContinuation.) Otherwise,
-            ' include the new line and any additional spaces as trivia.
-            If startComment = 0 AndAlso
-                TryGet(Here, ch) AndAlso
-                Not IsNewLine(ch) Then
+            ' To see if the following the line continuation is ..
+            '    * blank
+            '    * blank with a comment
+            '    So as not confuse code handling Implicit Line Continuations (See Scanner::EatLineContinuation.)
+            '    do not include the newline character.
+            ' Otherwise include the new line and any additional spaces as trivia.
+            If startComment = 0 AndAlso TryGet(Here, ch) AndAlso Not IsNewLine(ch) Then
 
                 tList.Add(MakeEndOfLineTrivia(GetText(newLine)))
                 If spaces > 0 Then
