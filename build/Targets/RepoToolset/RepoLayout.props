@@ -34,8 +34,10 @@
     <ArtifactsConfigurationDir>$(ArtifactsDir)$(Configuration)\</ArtifactsConfigurationDir>
     <ArtifactsSymStoreDirectory>$(ArtifactsConfigurationDir)SymStore\</ArtifactsSymStoreDirectory>
     <ArtifactsTmpDir>$(ArtifactsConfigurationDir)tmp\</ArtifactsTmpDir>
+    <ArtifactsLogDir>$(ArtifactsConfigurationDir)Logs\</ArtifactsLogDir>
     <ArtifactsPackagesDir>$(ArtifactsConfigurationDir)NuGet\</ArtifactsPackagesDir>
     <ArtifactsShippingPackagesDir>$(ArtifactsPackagesDir)Shipping\</ArtifactsShippingPackagesDir>
     <ArtifactsNonShippingPackagesDir>$(ArtifactsPackagesDir)NonShipping\</ArtifactsNonShippingPackagesDir>
+    <VisualStudioSetupOutputPath>$(ArtifactsConfigurationDir)Vsix\</VisualStudioSetupOutputPath>
   </PropertyGroup>
 </Project>
