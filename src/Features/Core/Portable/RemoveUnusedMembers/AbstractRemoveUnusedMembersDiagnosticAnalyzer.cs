@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         private static ImmutableArray<DiagnosticDescriptor> CreateDescriptors(bool forceEnableRules)
         {
             // TODO: Enable these rules by default once we have designed the Tools|Option location and UI for such code quality rules.
+            // https://github.com/dotnet/roslyn/issues/29519
 
             // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
             var removeUnusedMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
@@ -48,6 +49,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     removeUnreadMembersRule, removeUnreadMembersRuleUnnecessaryWithFadingRule);
         }
 
+        // See CreateDescriptors method above for the indices.
+        // We should be able to cleanup the implementation to avoid hard coded indices
+        // once https://github.com/dotnet/roslyn/issues/29519 is implemented.
         private DiagnosticDescriptor RemoveUnusedMemberRule => SupportedDiagnostics[1];
         private DiagnosticDescriptor RemoveUnreadMemberRule => SupportedDiagnostics[3];
 
@@ -283,6 +287,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                 : _removeUnreadMembersRule;
                             var effectiveSeverity = rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options);
 
+                            // Most of the members should have a single location, except for partial methods.
+                            // We report the diagnostic on the first location of the member.
                             var diagnostic = DiagnosticHelper.Create(
                                 rule,
                                 member.Locations[0],
