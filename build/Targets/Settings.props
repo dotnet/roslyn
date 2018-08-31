@@ -50,10 +50,6 @@
     <SignAssembly>true</SignAssembly>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GenerateFullPaths>true</GenerateFullPaths>
-    <!-- The new SDK introduced a GenerateAssemblyInfo target, which is disabled by GenerateAssemblyInfo=false.
-         Otherwise, it writes to the same file (GeneratedAssemblyInfoFile) as our GenerateAssemblyInfoFile target.
-         Follow-up issue to reconcile the two: https://github.com/dotnet/roslyn/issues/19645 -->
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
     <TargetFrameworkRootPath>$(NuGetPackageRoot)\roslyntools.referenceassemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\framework</TargetFrameworkRootPath>
