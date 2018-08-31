@@ -798,7 +798,8 @@ namespace N1
         public void NonNullTypesAttribute_Injected_WithNonAmbiguousUserDefinedType()
         {
             var source = @"
-[module: N1.NonNullTypesAttribute(true)]
+using N1;
+[module: NonNullTypesAttribute(true)]
 namespace N1
 {
     public class NonNullTypesAttribute : System.Attribute
@@ -814,7 +815,7 @@ namespace N1
         [Fact]
         public void NonNullTypesAttribute_WithoutUsage()
         {
-            var comp = CreateEmptyCompilation("namespace System { public struct Void { } public class Object { } public abstract class ValueType { } }", parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation("class C { }", parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
             Action<ModuleSymbol> sourceValidator = module =>
@@ -836,7 +837,7 @@ namespace N1
                 Assert.Null(embedded);
 
                 var system = (INamespaceSymbol)module.GlobalNamespace.GetMember("System");
-                Assert.Equal(NamespaceKind.Module, system.NamespaceKind);
+                Assert.Null(system);
             };
             CompileAndVerify(comp, sourceSymbolValidator: sourceValidator, symbolValidator: peValidator, verify: Verification.Skipped);
         }
@@ -862,12 +863,8 @@ namespace System
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
-                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
-                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1)
                 );
@@ -1787,14 +1784,13 @@ public sealed class B : A<object>
         }
 
         [Fact]
-        public void NonNullTypes_WithObsolete()
+        public void NonNullTypes_False_Circular()
         {
             string source = @"
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    [NonNullTypes(true)]
-    [System.Obsolete(""obsolete"")]
+    [NonNullTypesAttribute(false)]
     class NonNullTypesAttribute : Attribute
     {
         public NonNullTypesAttribute(bool flag = true) { }
@@ -1803,7 +1799,67 @@ namespace System.Runtime.CompilerServices
 ";
             var comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics();
+
+            VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), false);
+        }
+
+        [Fact]
+        public void NonNullTypes_True_Circular()
+        {
+            string source = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [NonNullTypes(true)]
+    class NonNullTypesAttribute : System.Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyEmitDiagnostics();
+
+            VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), true);
+        }
+
+        [Fact]
+        public void NonNullTypes_WithObsolete()
+        {
+            string source = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [NonNullTypes(true)]
+    [System.Obsolete(""obsolete"")]
+    class NonNullTypesAttribute : System.Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyEmitDiagnostics();
             Assert.False(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute").IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void Embedded_WithObsolete()
+        {
+            string source = @"
+namespace Microsoft.CodeAnalysis
+{
+    [Embedded]
+    [System.Obsolete(""obsolete"")]
+    class EmbeddedAttribute : System.Attribute
+    {
+        public EmbeddedAttribute() { }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GetMember("Microsoft.CodeAnalysis.EmbeddedAttribute").IsImplicitlyDeclared);
         }
 
         [Fact]
@@ -1914,6 +1970,14 @@ namespace System
         Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
         Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
         GenericParameter = 16384, All = 32767 }
+}
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false)]
+    class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
 }
 ";
             var comp = CreateEmptyCompilation(source);
@@ -2837,6 +2901,34 @@ public class Oblivious { }
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
             compilation.VerifyDiagnostics();
             VerifyNonNullTypes(compilation.GetMember("Oblivious"), false);
+        }
+
+        [Fact]
+        public void NonNullTypes_OnModule_WithExtraConstructor()
+        {
+            var obliviousLib = @"
+[module: System.Runtime.CompilerServices.NonNullTypesAttribute(false)]
+public class Oblivious { }
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.All)]
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+        public NonNullTypesAttribute(string x) { }
+    }
+}
+";
+
+            var obliviousComp = CreateCompilation(obliviousLib);
+            obliviousComp.VerifyDiagnostics();
+            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
+
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
+            compilation.VerifyDiagnostics();
+            VerifyNonNullTypes(compilation.GetMember("Oblivious"), expectNonNullTypes: false);
         }
 
         [Fact]
@@ -31685,17 +31777,9 @@ class P
         01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
         4d 75 6c 74 69 70 6c 65 00
     )
-    // ""The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above).""
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 76 54 68 65 20 4e 6f 6e 4e 75 6c 6c 54 79
-        70 65 73 20 61 74 74 72 69 62 75 74 65 20 69 73
-        20 6e 6f 74 20 73 75 70 70 6f 72 74 65 64 20 69
-        6e 20 74 68 69 73 20 76 65 72 73 69 6f 6e 20 6f
-        66 20 79 6f 75 72 20 63 6f 6d 70 69 6c 65 72 2e
-        20 50 6c 65 61 73 65 20 75 73 65 20 61 20 43 23
-        20 38 2e 30 20 63 6f 6d 70 69 6c 65 72 20 28 6f
-        72 20 61 62 6f 76 65 29 2e 00 00
-    )
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) =
+        {string('The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above).')}
+
     .method public hidebysig specialname rtspecialname instance void .ctor ( [opt] bool flag ) cil managed
     {
         .param [1] = bool(true)

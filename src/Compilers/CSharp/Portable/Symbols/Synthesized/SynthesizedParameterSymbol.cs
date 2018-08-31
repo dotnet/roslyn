@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class SynthesizedParameterSymbolWithDefaultValue : SynthesizedParameterSymbolBase
         {
             private readonly ConstantValue _defaultValue;
-            public SynthesizedParameterSymbolWithDefaultValue(MethodSymbol container, TypeSymbolWithAnnotations type, int ordinal, ConstantValue defaultValue,  string name = "")
+            public SynthesizedParameterSymbolWithDefaultValue(MethodSymbol container, TypeSymbolWithAnnotations type, int ordinal, ConstantValue defaultValue, string name)
                 : base(container, type, ordinal, RefKind.None, name)
             {
                 Debug.Assert(!defaultValue.IsBad);

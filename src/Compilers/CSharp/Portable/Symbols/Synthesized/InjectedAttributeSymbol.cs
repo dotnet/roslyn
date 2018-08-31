@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// But we track their usage and only emit them if they are used.
     /// Their method bodies are always compiled, in case we do need to emit them.
     /// </summary>
-    internal abstract class InjectedAttributeSymbol : SynthesizedEmbeddedAttributeSymbol
+    internal abstract class InjectedAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
     {
         // All the diagnostics involved in constructing this symbol will only be produced
         // if the symbol is referenced and so ends up emitted.

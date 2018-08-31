@@ -4,18 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class SourceNamespaceSymbol : NamespaceSymbol
+    internal sealed partial class SourceNamespaceSymbol : NamespaceSymbol
     {
         private readonly SourceModuleSymbol _module;
         private readonly Symbol _container;
@@ -32,11 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private int _flags;
 
         private LexicalSortKey _lazyLexicalSortKey = LexicalSortKey.NotInitialized;
+        private bool _isInjected;
 
         internal SourceNamespaceSymbol(
             SourceModuleSymbol module, Symbol container,
             MergedNamespaceDeclaration mergedDeclaration,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool isInjected = false)
         {
             _module = module;
             _container = container;
@@ -46,28 +44,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.AddRange(singleDeclaration.Diagnostics);
             }
+
+            _isInjected = isInjected;
         }
+
+        public override bool IsImplicitlyDeclared
+            => _isInjected;
 
         internal MergedNamespaceDeclaration MergedDeclaration
-        {
-            get { return _mergedDeclaration; }
-        }
+            => _mergedDeclaration;
 
         public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _container;
-            }
-        }
+            => _container;
 
         public override AssemblySymbol ContainingAssembly
-        {
-            get
-            {
-                return _module.ContainingAssembly;
-            }
-        }
+            => _module.ContainingAssembly;
 
         internal IEnumerable<Imports> GetBoundImportsMerged()
         {
@@ -105,8 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_locations.IsDefault)
                 {
                     ImmutableInterlocked.InterlockedCompareExchange(ref _locations,
-                        _mergedDeclaration.NameLocations,
-                        default(ImmutableArray<Location>));
+                        _isInjected ? ImmutableArray.Create(Location.None) : _mergedDeclaration.NameLocations,
+                        default);
                 }
 
                 return _locations;
@@ -120,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ComputeDeclaringReferencesCore();
+                return _isInjected ? ImmutableArray<SyntaxReference>.Empty : ComputeDeclaringReferencesCore();
             }
         }
 
@@ -576,33 +567,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         Add(makeEmptyNamespace(Microsoft));
                     }
+                    return;
                 }
-                else if (isSystem(containingNamespace) && !_dictionary.ContainsKey(Runtime))
+
+                switch (containingNamespace.Name)
                 {
-                    Add(makeEmptyNamespace(Runtime));
-                }
-                else if (isRuntime(containingNamespace) && !_dictionary.ContainsKey(CompilerServices))
-                {
-                    Add(makeEmptyNamespace(CompilerServices));
-                }
-                else if (isMicrosoft(containingNamespace) && !_dictionary.ContainsKey(CodeAnalysis))
-                {
-                    Add(makeEmptyNamespace(CodeAnalysis));
-                }
-                else if (isCompilerServices(containingNamespace) && !_dictionary.ContainsKey("NonNullTypesAttribute"))
-                {
-                    Add(InjectedNonNullTypesAttributeSymbol.Create(containingNamespace));
-                }
-                else if (isCodeAnalysis(containingNamespace) && !_dictionary.ContainsKey("EmbeddedAttribute"))
-                {
-                    Add(InjectedEmbeddedAttributeSymbol.Create(containingNamespace));
+                    case System:
+                        if (isSystem(containingNamespace) && !_dictionary.ContainsKey(Runtime))
+                        {
+                            Add(makeEmptyNamespace(Runtime));
+                        }
+                        return;
+                    case Runtime:
+                        if (isRuntime(containingNamespace) && !_dictionary.ContainsKey(CompilerServices))
+                        {
+                            Add(makeEmptyNamespace(CompilerServices));
+                        }
+                        return;
+                    case Microsoft:
+                        if (isMicrosoft(containingNamespace) && !_dictionary.ContainsKey(CodeAnalysis))
+                        {
+                            Add(makeEmptyNamespace(CodeAnalysis));
+                        }
+                        return;
+                    case CompilerServices:
+                        if (isCompilerServices(containingNamespace) && !_dictionary.ContainsKey("NonNullTypesAttribute"))
+                        {
+                            Add(InjectedNonNullTypesAttributeSymbol.Create(containingNamespace));
+                        }
+                        return;
+                    case CodeAnalysis:
+                        if (isCodeAnalysis(containingNamespace) && !_dictionary.ContainsKey("EmbeddedAttribute"))
+                        {
+                            Add(InjectedEmbeddedAttributeSymbol.Create(containingNamespace));
+                        }
+                        return;
                 }
 
                 SourceNamespaceSymbol makeEmptyNamespace(string name)
                 {
                     var mergedDeclaration = MergedNamespaceDeclaration.Create(name);
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var result = new InjectedNamespaceSymbol(containingNamespace._module, containingNamespace, mergedDeclaration, diagnostics);
+                    var result = new SourceNamespaceSymbol(containingNamespace._module, containingNamespace, mergedDeclaration, diagnostics, isInjected: true);
                     diagnostics.Free();
                     return result;
                 }

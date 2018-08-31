@@ -691,14 +691,7 @@ class C
                 {
                     var actualNamespace = usings[i];
                     Assert.Equal(SymbolKind.Namespace, actualNamespace.Kind);
-                    if (actualNamespace.Name == "System")
-                    {
-                        Assert.Equal(NamespaceKind.Compilation, ((NamespaceSymbol)actualNamespace).Extent.Kind);
-                    }
-                    else
-                    {
-                        Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
-                    }
+                    Assert.Equal(actualNamespace.Name == "System" ? NamespaceKind.Compilation : NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
                     Assert.Equal(expectedNames[i], actualNamespace.ToTestDisplayString());
                 }
             });
@@ -741,14 +734,7 @@ namespace A
 
                     var actualNamespace = imports.Usings.Single().NamespaceOrType;
                     Assert.Equal(SymbolKind.Namespace, actualNamespace.Kind);
-                    if (actualNamespace.Name == "System")
-                    {
-                        Assert.Equal(NamespaceKind.Compilation, ((NamespaceSymbol)actualNamespace).Extent.Kind);
-                    }
-                    else
-                    {
-                        Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
-                    }
+                    Assert.Equal(actualNamespace.Name == "System" ? NamespaceKind.Compilation : NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
                     Assert.Equal(expectedNames[i], actualNamespace.ToTestDisplayString());
                 }
             });

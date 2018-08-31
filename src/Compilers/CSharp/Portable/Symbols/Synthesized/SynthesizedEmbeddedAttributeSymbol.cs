@@ -13,6 +13,18 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    internal sealed class SynthesizedEmbeddedAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
+    {
+        public SynthesizedEmbeddedAttributeSymbol(
+            AttributeDescription description,
+            CSharpCompilation compilation,
+            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getAdditionalConstructors,
+            DiagnosticBag diagnostics)
+            : base(description, compilation, getAdditionalConstructors, diagnostics)
+        {
+        }
+    }
+
     /// <summary>
     /// Represents a compiler generated and embedded attribute type.
     /// This type has the following properties:
@@ -22,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// 4) It has System.Runtime.CompilerServices.CompilerGeneratedAttribute
     /// 5) It has a parameter-less constructor
     /// </summary>
-    internal class SynthesizedEmbeddedAttributeSymbol : NamedTypeSymbol
+    internal abstract class SynthesizedEmbeddedAttributeSymbolBase : NamedTypeSymbol
     {
         private readonly string _name;
         private readonly NamedTypeSymbol _baseType;
@@ -30,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<MethodSymbol> _constructors;
         private readonly ModuleSymbol _module;
 
-        public SynthesizedEmbeddedAttributeSymbol(
+        public SynthesizedEmbeddedAttributeSymbolBase(
             AttributeDescription description,
             CSharpCompilation compilation,
             Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getAdditionalConstructors,
@@ -60,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public SynthesizedEmbeddedAttributeSymbol(
+        public SynthesizedEmbeddedAttributeSymbolBase(
             AttributeDescription description,
             NamespaceSymbol containingNamespace,
             CSharpCompilation compilation,
@@ -210,27 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
-            {
-                // System_Attribute is missing. Don't generate anything
-                return;
-            }
-
-            var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            factory.CurrentFunction = this;
-
-            var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
-            if (baseConstructorCall == null)
-            {
-                // This may happen if Attribute..ctor is not found or is inaccessible
-                return;
-            }
-
-            var block = factory.Block(
-                factory.ExpressionStatement(baseConstructorCall),
-                factory.Return());
-
-            factory.CloseMethod(block);
+            GenerateMethodBodyCore(compilationState, diagnostics);
         }
     }
 }

@@ -266,5 +266,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ReturnType.TypeSymbol.GetUseSiteDiagnostic();
         }
         #endregion
+
+        protected void GenerateMethodBodyCore(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        {
+            var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            factory.CurrentFunction = this;
+            if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
+            {
+                // System_Attribute was not found or was inaccessible
+                factory.CloseMethod(factory.Block());
+                return;
+            }
+
+            var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+            if (baseConstructorCall == null)
+            {
+                // Attribute..ctor was not found or was inaccessible
+                factory.CloseMethod(factory.Block());
+                return;
+            }
+
+            var block = factory.Block(
+                factory.ExpressionStatement(baseConstructorCall),
+                factory.Return());
+
+            factory.CloseMethod(block);
+        }
     }
 }

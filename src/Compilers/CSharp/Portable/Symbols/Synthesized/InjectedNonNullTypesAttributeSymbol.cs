@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Makes the System.Runtime.CompilerServices.NonNullTypesAttribute available in every compilation.
     /// </summary>
-    internal class InjectedNonNullTypesAttributeSymbol : InjectedAttributeSymbol
+    internal sealed class InjectedNonNullTypesAttributeSymbol : InjectedAttributeSymbol
     {
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
         private SymbolCompletionState _state;
@@ -166,22 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
                 var containingType = (InjectedAttributeSymbol)ContainingType;
-                var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, containingType.Diagnostics);
-
-                var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, containingType.Diagnostics);
-                factory.CurrentFunction = this;
-                if (containingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol || baseConstructorCall == null)
-                {
-                    // System_Attribute or Attribute..ctor were not found or were inaccessible
-                    factory.CloseMethod(factory.Block());
-                    return;
-                }
-
-                var block = factory.Block(
-                    factory.ExpressionStatement(baseConstructorCall),
-                    factory.Return());
-
-                factory.CloseMethod(block);
+                GenerateMethodBodyCore(compilationState, containingType.Diagnostics);
             }
         }
     }

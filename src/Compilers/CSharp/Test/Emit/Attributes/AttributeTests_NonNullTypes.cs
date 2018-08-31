@@ -36,7 +36,7 @@ internal class TestType2 { }
         public void CannotReferenceNonNullTypesAttributesFromADifferentAssembly_Internal()
         {
             var reference = CreateCompilation(@"
-[assembly:System.Runtime.CompilerServices.InternalsVisibleToAttribute(""Source"")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute(""Source"")]
 namespace System.Runtime.CompilerServices
 {
     internal class NonNullTypesAttribute : System.Attribute { public NonNullTypesAttribute(bool flag = true) { } }
@@ -53,8 +53,8 @@ internal class TestType2 { }
 
             var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
 
-            // NonNullTypesAttribute from referenced assembly is ignored, and we use the injected on instead
-            var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference() });
+            // NonNullTypesAttribute from referenced assembly is ignored, and we use the injected one instead
+            var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference() }, assemblyName: "Source");
             comp.VerifyDiagnostics();
             True(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
 
@@ -83,7 +83,7 @@ internal class TestType1 { }
             var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
 
             // NonNullTypesAttribute from module conflicts with injected symbol
-            var comp = CreateCompilation(code, references: new[] { reference }, assemblyName: "Source");
+            var comp = CreateCompilation(code, references: new[] { reference });
             comp.VerifyDiagnostics(
                 // error CS0101: The namespace 'System.Runtime.CompilerServices' already contains a definition for 'NonNullTypesAttribute'
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("NonNullTypesAttribute", "System.Runtime.CompilerServices").WithLocation(1, 1)
@@ -99,7 +99,7 @@ internal class TestType1 { }
             var reference = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
-    internal class NonNullTypesAttribute : System.Attribute { public NonNullTypesAttribute(bool flag = true) { } }
+    public class NonNullTypesAttribute : System.Attribute { public NonNullTypesAttribute(bool flag = true) { } }
 }
 
 [System.Runtime.CompilerServices.NonNullTypes]
@@ -113,6 +113,7 @@ public class TestType2 { }
 
             var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
 
+            // NonNullTypesAttribute from referenced assembly is ignored, and we use the injected one instead
             var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference() });
             comp.VerifyDiagnostics();
 
@@ -148,14 +149,7 @@ namespace System.Runtime.CompilerServices
 
             var moduleRef = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
 
-            var code = @"
-class Test
-{
-    public void M(in int p)
-    {
-        // This should trigger generating another NonNullTypesAttribute
-    }
-}";
+            var code = " /* NonNullTypesAttribute is injected when not present in source */ ";
 
             CreateCompilation(code, references: new[] { moduleRef }).VerifyEmitDiagnostics(
                 // error CS0101: The namespace 'System.Runtime.CompilerServices' already contains a definition for 'NonNullTypesAttribute'

@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             AttributeDescription description,
             Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getAdditionalConstructors = null)
         {
+            Debug.Assert(symbol is null);
             var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
             var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
             Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);

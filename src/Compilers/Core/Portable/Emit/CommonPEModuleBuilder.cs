@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private bool _needsNonNullTypesAttribute;
         /// <summary>
-        /// Track usage of the NonNullTypes injected type, so it can be added to module to be emitted.
+        /// Track usage of the NonNullTypesAttribute injected type, so it can be added to module to be emitted.
         /// </summary>
         protected bool NeedsNonNullTypesAttribute
         {
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private bool _needsEmbeddedAttribute;
         /// <summary>
-        /// Track usage of the Embedded injected type, so it can be added to module to be emitted.
+        /// Track usage of the EmbeddedAttribute injected type, so it can be added to module to be emitted.
         /// </summary>
         protected bool NeedsEmbeddedAttribute
         {

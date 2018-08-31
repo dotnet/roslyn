@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     partial void M(int x2) {}
   }
 }";
+            // PROTOTYPE(NullableReferenceTypes): should implicitly injected symbols be filtered out?
             var q = new AsyncQueue<CompilationEvent>();
             CreateCompilationWithMscorlib45(source)
                 .WithEventQueue(q)

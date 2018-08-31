@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Makes the Microsoft.CodeAnalysis.EmbeddedAttribute available in every compilation.
     /// </summary>
-    internal class InjectedEmbeddedAttributeSymbol : InjectedAttributeSymbol
+    internal sealed class InjectedEmbeddedAttributeSymbol : InjectedAttributeSymbol
     {
         private InjectedEmbeddedAttributeSymbol(
             AttributeDescription description,
@@ -55,21 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
                 var containingType = (InjectedAttributeSymbol)ContainingType;
-                var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, containingType.Diagnostics);
-                factory.CurrentFunction = this;
-                var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, containingType.Diagnostics);
-                if (containingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol || baseConstructorCall == null)
-                {
-                    // System_Attribute or Attribute..ctor were not found or were inaccessible
-                    factory.CloseMethod(factory.Block());
-                    return;
-                }
-
-                var block = factory.Block(
-                    factory.ExpressionStatement(baseConstructorCall),
-                    factory.Return());
-
-                factory.CloseMethod(block);
+                GenerateMethodBodyCore(compilationState, containingType.Diagnostics);
             }
         }
     }
