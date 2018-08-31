@@ -37,6 +37,5 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildDevDivInsertionFiles.vb" />
-    <Compile Include="NugetUtilities.vb" />
   </ItemGroup>
 </Project>

@@ -44,7 +44,7 @@ steps:
         /p:TreatWarningsAsErrors=true 
         /p:DeployExtension=false 
         /p:TrackFileAccess=false
-        /p:OfficialBuild=true 
+        /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
         /p:VisualStudioVersion=14.0 
         /flp1:Summary;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.log 
         /flp2:WarningsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.wrn 
