@@ -248,7 +248,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    // PROTOTYPE(NullableReferenceTypes): what if the Nullable<T> type is missing? (are we missing diagnostics?)
                     return Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol), NonNullTypesContext));
                 }
             }

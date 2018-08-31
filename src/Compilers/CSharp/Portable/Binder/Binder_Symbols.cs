@@ -372,7 +372,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (ShouldCheckConstraints && constructedType.IsNullableType())
                         {
-                            ReportUseSiteDiagnostics(constructedType.TypeSymbol.OriginalDefinition, diagnostics, syntax);
                             var type = (NamedTypeSymbol)constructedType.TypeSymbol;
                             var location = syntax.Location;
                             var conversions = this.Conversions.WithNullability(includeNullability: true);
