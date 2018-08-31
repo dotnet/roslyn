@@ -1250,8 +1250,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 {
                     var right = ParseRightSideOfCharacterClassRange();
 
-                    if (TryGetRangeComponentValue(left, isRight: false, out var leftCh) &&
-                        TryGetRangeComponentValue(right, isRight: true, out var rightCh) &&
+                    if (TryGetRangeComponentValue(left, out var leftCh) &&
+                        TryGetRangeComponentValue(right, out var rightCh) &&
                         leftCh > rightCh)
                     {
                         minusToken = minusToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private bool IsEscapedMinus(RegexNode node)
             => node is RegexSimpleEscapeNode simple && IsTextChar(simple.TypeToken, '-');
 
-        private bool TryGetRangeComponentValue(RegexExpressionNode component, bool isRight, out char ch)
+        private bool TryGetRangeComponentValue(RegexExpressionNode component, out char ch)
         {
             // Don't bother examining the component if it has any errors already.  This also means
             // we don't have to worry about running into invalid escape sequences and the like.
@@ -1289,18 +1289,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             switch (component.Kind)
             {
                 case RegexKind.SimpleEscape:
-                    ch = ((RegexSimpleEscapeNode)component).TypeToken.VirtualChars[0];
-                    switch (ch)
-                    {
-                        case 'a': ch = '\u0007'; break; // bell
-                        case 'b': ch = '\b'; break;     // backspace
-                        case 'e': ch = '\u001B'; break; // escape
-                        case 'f': ch = '\f'; break;     // form feed
-                        case 'n': ch = '\n'; break;     // new line
-                        case 'r': ch = '\r'; break;     // carriage return
-                        case 't': ch = '\t'; break;     // tab
-                        case 'v': ch = '\u000B'; break; // vertical tab
-                    }
+                    var escapeNode = (RegexSimpleEscapeNode)component;
+                    ch = MapEscapeChar(escapeNode.TypeToken.VirtualChars[0]);
                     return true;
 
                 case RegexKind.ControlEscape:
@@ -1447,6 +1437,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // is legal [a-\-] (even though \- is less than 'a'). Similarly, the following are
             // *illegal* [b-\-a] and [b-\-\-a].  That's because the range that is checked is
             // actually "b-a", even though it has all the \- escapes in the middle.
+            //
+            // This is tracked with: https://github.com/dotnet/corefx/issues/31786
 
             var first = ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true);
             if (!IsEscapedMinus(first))
