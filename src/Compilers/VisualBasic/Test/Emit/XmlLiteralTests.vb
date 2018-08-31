@@ -3471,7 +3471,7 @@ End Module
 [
                                     begin  nested  end
                                 ]
-]]>.Value.Replace(vbCrLf, vbLf))
+]]>)
         End Sub
 
         ''' <summary>
