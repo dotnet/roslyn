@@ -495,11 +495,20 @@ function Deploy-VsixViaTool() {
     }
 
     Write-Host "Installing all Roslyn VSIX"
-    $vsixFiles = Get-ChildItem -Path $vsSetupDir -Include "*.vsix"
-    foreach ($vsixFile in $vsixFiles) {
-        $name = Split-Path -leaf $vsixFile
+
+    # VSIX files need to be installed in this specific order:
+    $orderedVsixFileNames = @(	
+        "Roslyn.Compilers.Extension.vsix",	
+        "Roslyn.VisualStudio.Setup.vsix",	
+        "Roslyn.VisualStudio.InteractiveComponents.vsix",	
+        "ExpressionEvaluatorPackage.vsix",	
+        "Roslyn.VisualStudio.DiagnosticsWindow.vsix",	
+        "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
+
+    foreach ($vsixFileName in $orderedVsixFileNames) {
+        $vsixFile = Join-Path $vsSetupDir $vsixFileName
         $fullArg = "$baseArgs $vsixFile"
-        Write-Host "`tInstalling $name"
+        Write-Host "`tInstalling $vsixFileName"
         Exec-Console $vsixExe $fullArg
     }
 }
