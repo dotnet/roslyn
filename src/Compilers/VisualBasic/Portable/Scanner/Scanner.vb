@@ -580,26 +580,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If feature is not support error is added to trivia
         ''' </returns>
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
-            Dim ch As Char
-            If Not TryGet(ch) OrElse Not IsAfterWhitespace() OrElse Not IsUnderscore(ch) Then
-                Return False
-            End If
-
             Dim Here = 1
             Dim atNewLine As Boolean
+            Dim ch As Char
             ' Line continuation is valid at the end of the line, or at the end of the file, or followed by a trailing comment.
-            ' Eg.  LineContinuation ( EndOfLine | EndOfFile | LineContinuationComment)
-            If TryGet(Here, ch) = False OrElse Not (IsWhitespace(ch) OrElse PeekStartComment(Here, AllowREM:=False) > 0) Then
+            ' Eg.  LineContinuation ( EndOfLine | EndOfFile | LineContinuationComment) 
+            If Not TryGet(ch) OrElse Not IsAfterWhitespace() OrElse Not IsUnderscore(ch) Then
+                Return False
+            ElseIf Not TryGet(Here, ch) OrElse Not (IsWhitespace(ch) OrElse PeekStartComment(Here, AllowREM:=False) > 0) Then
                 ' We don't have a space or ' but we might have an EOF after _ and that is not an error
                 ' This case if different then above because we don't want to skip whitespace after _
                 If Not Original_Scanner(atNewLine, tList, ch) Then
                     Return False
                 End If
             Else
-
+                ' We have a Line Continuation
                 PeekWhitespace(Here, ch)
-                If PeekStartComment(Here, AllowREM:=False) > 0 Then
-                    ' If you get here you have a Line Continuation with have 0 or more spaces followed by a  comment
+                If PeekStartComment(Here, AllowREM:=False) <= 0 Then
+                    '... without comment but have 0 Or more spaces after _.
+                    ' so process as V15.5
+                    If Not Original_Scanner(atNewLine, tList, ch, Here) Then
+                        Return False
+                    End If
+                Else
+                    ' ... with 0 or more spaces followed by a comment.
                     tList.Add(MakeLineContinuationTrivia(GetText(1)))
                     If Here > 1 Then
                         tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
@@ -610,11 +614,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     tList.Add(comment)
                     ch = Peek()
                     atNewLine = IsNewLine(ch)
-                Else
-                    ' We have a Line Continuation without comment but have 0 or more spaces after _, so process as V15.5
-                    If Not Original_Scanner(atNewLine, tList, ch, Here) Then
-                        Return False
-                    End If
                 End If
             End If
 
