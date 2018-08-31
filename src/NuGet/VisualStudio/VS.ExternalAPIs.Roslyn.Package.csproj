@@ -44,6 +44,7 @@
     <ProjectReference Include="..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\VisualStudio\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\VisualStudio\Core\SolutionExplorerShim\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.csproj" PrivateAssets="all"/>
+    <ProjectReference Include="..\..\VisualStudio\Core\SolutionExplorerShim\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\VisualStudio\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\VisualStudio\VisualBasic\Impl\Microsoft.VisualStudio.LanguageServices.VisualBasic.vbproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\VisualStudio\Xaml\Impl\Microsoft.VisualStudio.LanguageServices.Xaml.csproj" PrivateAssets="all"/>
@@ -63,6 +64,7 @@
   <Target Name="_GetFilesToPackage">
     <PropertyGroup>
       <_Dlls>$(ArtifactsConfigurationDir)Dlls\</_Dlls>
+      <_Vsix>$(ArtifactsConfigurationDir)Vsix\</_Vsix>
     </PropertyGroup>
 
     <ItemGroup>
@@ -111,6 +113,13 @@
       <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices\Microsoft.VisualStudio.LanguageServices.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
+
+      <!-- Include a few dependencies of Roslyn. These right now are consumed out of the ExternalAPIs NuGet package to do assembly consistency checking in the main VS
+           repo. We should remove these and insert the packages directly, but for now we'll include these to limit the work needed to consume this package. -->
+      <_File Include="$(_Vsix)Roslyn.VisualStudio.Setup\Humanizer.dll" TargetDir="" />
+      <_File Include="$(_Vsix)Roslyn.VisualStudio.Setup\ICSharpCode.Decompiler.dll" TargetDir="" />
+      <_File Include="$(_Vsix)Roslyn.VisualStudio.Setup\System.Composition.Hosting.dll" TargetDir="" />
+      <_File Include="$(_Vsix)Roslyn.VisualStudio.Setup\System.Composition.TypedParts.dll" TargetDir="" />
     </ItemGroup>
 
     <!-- Add xml doc comment files -->
