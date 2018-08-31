@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 TextSpan triggerSpan,
                 SymbolAndProjectId renameSymbolAndProjectId,
                 bool forceRenameOverloads,
+                bool isCaseSensitiveAttribute,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);
 
                 _shortenedTriggerSpan = this.TriggerSpan != triggerSpan;
-                _isCaseSensitiveAttribute = RenameSymbol.Language != LanguageNames.VisualBasic;
+                _isCaseSensitiveAttribute = isCaseSensitiveAttribute;
             }
 
             private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     // We're only renaming the attribute prefix part.  We want to adjust the span of 
                     // the reference we've found to only update the prefix portion.
-                    searchName = this.RenameSymbol.Name.GetWithoutAttributeSuffix(_isCaseSensitiveAttribute);
+                    searchName = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
                 }
 
                 var spanText = GetSpanText(location.Document, location.TextSpan, cancellationToken);
@@ -148,6 +149,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new TextSpan(location.TextSpan.Start + position, replacementText.Length);
             }
 
+            private string GetWithoutAttributeSuffix(string value) => value.GetWithoutAttributeSuffix(isCaseSensitive: _isCaseSensitiveAttribute);
+
             private static string GetSpanText(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
             {
                 var sourceText = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
@@ -159,8 +162,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (this.RenameSymbol.IsAttribute() || (this.RenameSymbol.Kind == SymbolKind.Alias && ((IAliasSymbol)this.RenameSymbol).Target.IsAttribute()))
                 {
-                    var name = this.RenameSymbol.Name;
-                    if (name.TryGetWithoutAttributeSuffix(isCaseSensitive: _isCaseSensitiveAttribute, result: out name))
+                    var name = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
+                    if (name != null)
                     {
                         return true;
                     }
@@ -195,9 +198,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public string GetFinalSymbolName(string replacementText)
             {
-                if (_isRenamingAttributePrefix && !replacementText.TryGetWithoutAttributeSuffix(_isCaseSensitiveAttribute, out var _))
+                if (_isRenamingAttributePrefix)
                 {
-                    return replacementText + AttributeSuffix;
+                    var isTextWithAttribute = GetWithoutAttributeSuffix(replacementText) != null;
+                    if (!isTextWithAttribute)
+                    {
+                        return replacementText + AttributeSuffix;
+                    }
                 }
 
                 return replacementText;

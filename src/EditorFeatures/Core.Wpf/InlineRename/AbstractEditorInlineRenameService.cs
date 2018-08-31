@@ -217,8 +217,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             return new SymbolInlineRenameInfo(
-                refactorNotifyServices, document, triggerToken.Span, 
-                symbolAndProjectId, forceRenameOverloads, cancellationToken);
+                refactorNotifyServices, document, triggerToken.Span,
+                symbolAndProjectId, forceRenameOverloads, syntaxFactsService.IsCaseSensitive, cancellationToken);
         }
 
         private SyntaxToken GetTriggerToken(Document document, int position, CancellationToken cancellationToken)
