@@ -69,6 +69,31 @@ public class C<T>
         }
 
         [Fact]
+        public void UnconstrainedAndErrorNullableFields()
+        {
+            var source = @"
+public class C<T>
+{
+    public T? field;
+    public Unknown? field2;
+}
+";
+
+            var c = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            c.VerifyDiagnostics(
+                // (5,12): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //     public Unknown? field2;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(5, 12),
+                // (4,15): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public T? field;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "field").WithLocation(4, 15),
+                // (2,14): warning CS8618: Non-nullable field 'field' is uninitialized.
+                // public class C<T>
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "field").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
         public void NoNullableAnalysisWithoutNonNullTypes()
         {
             CSharpCompilation c = CreateCompilation(@"
@@ -21969,6 +21994,32 @@ class C
             //// (7,9): warning CS8602: Possible dereference of a null reference.
             ////         ((x, _) = t).Item2.ToString();
             //Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((x, _) = t).Item2").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void Discard_02()
+        {
+            // https://github.com/dotnet/roslyn/issues/29635 Need to re-infer discards
+            var source =
+@"class C<T>
+{
+    [System.Runtime.CompilerServices.NonNullTypes(true)]
+    void F(object o1, object? o2, C<object> o3, C<object?> o4)
+    {
+        _ /*T:object*/ = o1;
+        _ /*T:object*/ = o2;
+        _ /*T:C<object!>*/ = o3;
+        _ /*T:C<object?>*/ = o4;
+    }
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    void F(C<object> o)
+    {
+        _ /*T:C<object>*/ = o;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
         }
 
         [Fact]

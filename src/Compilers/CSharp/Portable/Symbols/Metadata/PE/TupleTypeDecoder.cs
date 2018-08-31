@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _namesIndex = elementNames.IsDefault ? 0 : elementNames.Length;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Share code with `TypeSymbolWithAnnotations` version below.
         public static TypeSymbol DecodeTupleTypesIfApplicable(
             TypeSymbol metadataType,
             EntityHandle targetHandle,

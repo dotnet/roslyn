@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
 
-            // PROTOTYPE(NullableReferenceTypes): AllInOneCSharpCode has no ! operator.
             var syntaxKindsMissing = new HashSet<SyntaxKind>();
             syntaxKindsMissing.Add(SyntaxKind.SuppressNullableWarningExpression);
 
