@@ -638,6 +638,66 @@ class C
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 17));
         }
 
+        [Fact]
+        public void MissingNullable()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Enum { }
+    public class Attribute { }
+}";
+            var source2 = @"
+class C<T> where T : struct
+{
+    void M()
+    {
+        T? local = null;
+        _ = local;
+    }
+}
+";
+            var comp = CreateEmptyCompilation(new[] { source, source2 });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //         T? local = null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T?").WithArguments("System.Nullable`1").WithLocation(6, 9)
+                );
+
+            var source3 = @"
+class C<T> where T : struct
+{
+    void M(T? nullable) { }
+}
+";
+            var comp2 = CreateEmptyCompilation(new[] { source, source3 });
+            comp2.VerifyDiagnostics(
+                // (4,12): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     void M(T? nullable) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T?").WithArguments("System.Nullable`1").WithLocation(4, 12)
+                );
+
+            var source4 = @"
+class C<T> where T : struct
+{
+    void M<U>() where U : T? { }
+}
+";
+            var comp3 = CreateEmptyCompilation(new[] { source, source4 });
+            comp3.VerifyDiagnostics(
+                // (4,27): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     void M<U>() where U : T? { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T?").WithArguments("System.Nullable`1").WithLocation(4, 27),
+                // (4,12): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     void M<U>() where U : T? { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "U").WithArguments("System.Nullable`1").WithLocation(4, 12)
+                );
+        }
+
         [ConditionalFact(typeof(DesktopOnly))]
         public void UnannotatedAssemblies_WithSomeExtraAnnotations()
         {
