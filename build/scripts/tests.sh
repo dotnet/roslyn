@@ -69,13 +69,6 @@ do
     echo Running "${runtime} ${file_name[@]}"
     if [[ "${runtime}" == "dotnet" ]]; then
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
-        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll' ]] || \
-           [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] || \
-           [[ "${file_name[@]}" == *'Roslyn.Compilers.VisualBasic.IOperation.UnitTests.dll' ]] 
-        then
-            echo "Skipping ${file_name[@]}"
-            continue
-        fi
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono
     fi
