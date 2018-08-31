@@ -2,8 +2,10 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -647,6 +649,165 @@ class C
         this.s = s;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializePropertyWithRequiredAccessibilityOmitIfDefault()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int [|test2|])
+    {
+    }
+}",
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int test2)
+    {
+        Test2 = test2;
+    }
+
+    int Test2 { get; }
+}", index: 0, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializePropertyWithRequiredAccessibilityNever()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int [|test2|])
+    {
+    }
+}",
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int test2)
+    {
+        Test2 = test2;
+    }
+
+    int Test2 { get; }
+}", index: 0, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializePropertyWithRequiredAccessibilityAlways()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int [|test2|])
+    {
+    }
+}",
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int test2)
+    {
+        Test2 = test2;
+    }
+
+    public int Test2 { get; }
+}", index: 0, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeFieldWithRequiredAccessibilityOmitIfDefault()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int [|test2|])
+    {
+    }
+}",
+@"
+class C
+{
+    readonly int test = 5;
+    readonly int test2;
+
+    public C(int test, int [|test2|])
+    {
+        this.test2 = test2;
+    }
+}", index: 1, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeFieldWithRequiredAccessibilityNever()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int [|test2|])
+    {
+    }
+}",
+@"
+class C
+{
+    readonly int test = 5;
+    readonly int test2;
+
+    public C(int test, int [|test2|])
+    {
+        this.test2 = test2;
+    }
+}", index: 1, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeFieldWithRequiredAccessibilityAlways()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int [|test2|])
+    {
+    }
+}",
+@"
+class C
+{
+    readonly int test = 5;
+    private readonly int test2;
+
+    public C(int test, int [|test2|])
+    {
+        this.test2 = test2;
+    }
+}", index: 1, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning)));
         }
     }
 }
