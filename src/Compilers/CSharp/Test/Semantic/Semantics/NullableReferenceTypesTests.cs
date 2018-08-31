@@ -25558,7 +25558,8 @@ public class C<T> {}
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_01()
         {
             string lib = @"
@@ -26593,7 +26594,8 @@ partial class C
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_07()
         {
             string moduleAttributes = @"
@@ -26714,7 +26716,8 @@ partial class C
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_08()
         {
             string moduleAttributes = @"
@@ -26833,7 +26836,8 @@ partial class C
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_09()
         {
             string moduleAttributes = @"
@@ -26950,7 +26954,8 @@ partial class C
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_10()
         {
             string moduleAttributes = @"
@@ -27142,7 +27147,8 @@ partial class C
             c.VerifyDiagnostics(expected);
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_11()
         {
             string moduleAttributes = @"
@@ -27334,7 +27340,8 @@ partial class C
             c.VerifyDiagnostics(expected);
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_12()
         {
             string moduleAttributes = @"
@@ -27526,7 +27533,8 @@ partial class C
             c.VerifyDiagnostics(expected);
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_13()
         {
             string source = @"
@@ -27569,7 +27577,8 @@ class C
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_14()
         {
             string source = @"
@@ -27649,7 +27658,8 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_15()
         {
             string source = @"
@@ -27728,7 +27738,8 @@ class CL6 : CL4<string?>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_16()
         {
             string source = @"
@@ -27795,7 +27806,8 @@ class CL6 : CL4<string?>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_17()
         {
             string source = @"
@@ -27831,7 +27843,8 @@ class CL0<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_18()
         {
             string source = @"
@@ -27899,7 +27912,8 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_19()
         {
             string source = @"
@@ -27932,7 +27946,8 @@ class CL0<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_20()
         {
             string source = @"
@@ -28009,7 +28024,8 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_21()
         {
             string source = @"
@@ -28042,7 +28058,8 @@ class CL0<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_22()
         {
             string source = @"
@@ -28109,7 +28126,8 @@ class C
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_23()
         {
             string source = @"
@@ -28218,7 +28236,8 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_24()
         {
             string source = @"
@@ -28305,7 +28324,8 @@ delegate void CL2<T>(T? x) where T : class;
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_25()
         {
             string source = @"
@@ -28348,7 +28368,8 @@ class C
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
+        [WorkItem(29616, "https://github.com/dotnet/roslyn/issues/29616")]
+        [Fact(Skip = "NonNullTypes does not control warnings")]
         public void NonNullTypes_26()
         {
             string source = @"
