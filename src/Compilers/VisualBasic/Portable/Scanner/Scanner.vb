@@ -604,13 +604,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
                 Else
                     ' ... with 0 or more spaces followed by a comment.
+                    ' Add the Line Continuation Character '_' triva.
                     tList.Add(MakeLineContinuationTrivia(GetText(1)))
                     If Here > 1 Then
+                        ' Add any whitespace trivia.
                         tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
                     End If
+                    ' Scan the comment trivia.
                     Dim comment As SyntaxTrivia = ScanComment(AllowREM:=False)
                     comment = Parser.CheckFeatureAvailability(Feature.CommentsAfterLineContinuation, comment, Options.LanguageVersion)
-
+                    ' Add the comment trivia.
                     tList.Add(comment)
                     ch = Peek()
                     atNewLine = IsNewLine(ch)
