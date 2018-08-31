@@ -22,9 +22,14 @@
         <target state="translated">작업은 비워 둘 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_query">
-        <source>Convert to query</source>
-        <target state="new">Convert to query</target>
+      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
+        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
+        <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq">
+        <source>Convert to LINQ</source>
+        <target state="new">Convert to LINQ</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_0">
@@ -35,6 +40,11 @@
       <trans-unit id="Convert_to_class">
         <source>Convert to class</source>
         <target state="new">Convert to class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq_call_form">
+        <source>Convert to LINQ (call form)</source>
+        <target state="new">Convert to LINQ (call form)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">

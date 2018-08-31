@@ -338,12 +338,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Cases:
             '   (1 + 1) * 8
             '   (1 + 1).ToString
+            '   (1 + 1)()
             If TypeOf expression Is BinaryExpressionSyntax OrElse
                TypeOf expression Is UnaryExpressionSyntax Then
 
                 Dim parentExpression = TryCast(node.Parent, ExpressionSyntax)
                 If parentExpression IsNot Nothing Then
-                    If parentExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
+                    If parentExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression) OrElse
+                       parentExpression.IsKind(SyntaxKind.InvocationExpression) Then
                         Return False
                     End If
 
