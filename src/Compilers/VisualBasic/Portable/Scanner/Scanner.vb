@@ -554,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             End If
 
-            AddLineContinuationAndOptionalWhitespaces(tList, Here)
+            'AddLineContinuationAndOptionalWhitespaces(tList, Here)
             Return True
         End Function
 
@@ -594,23 +594,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             ElseIf Not TryGet(Here, ch) OrElse (Not IsWhitespace(ch) AndAlso PeekStartComment(Here, AllowREM:=False) <= 0) Then
                 ' We don't have a space or ' but we might have an EOF after _ and that is not an error
-                ' This case if different then above because we don't want to skip whitespace after _
                 If Not Original_Scanner(atNewLine, tList, ch) Then
                     Return False
                 End If
+                AddLineContinuationAndOptionalWhitespaces(tList, Here)
             Else
                 ' We have a Line Continuation
                 PeekWhitespace(Here, ch)
                 ' followed optional whitespace(s)
-                If PeekStartComment(Here, AllowREM:=False) <= 0 Then
+                Dim HasComment = PeekStartComment(Here, AllowREM:=False) > 0
+                If Not HasComment AndAlso Not Original_Scanner(atNewLine, tList, ch, Here) Then
                     '... without a comment.
                     ' so process as V15.5
-                    If Not Original_Scanner(atNewLine, tList, ch, Here) Then
-                        Return False
-                    End If
-                Else
+                    Return False
+                End If
+                AddLineContinuationAndOptionalWhitespaces(tList, Here)
+                If HasComment Then
                     ' ... with a comment.
-                    AddLineContinuationAndOptionalWhitespaces(tList, Here)
                     ' Scan the comment trivia.
                     Dim comment As SyntaxTrivia = ScanComment(AllowREM:=False)
                     comment = Parser.CheckFeatureAvailability(Feature.CommentsAfterLineContinuation, comment, Options.LanguageVersion)
