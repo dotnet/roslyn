@@ -139,5 +139,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => syntaxFacts.IsAnonymousFunction(node) ||
                syntaxFacts.IsLocalFunctionStatement(node);
 
+        public static SyntaxNode GetExpressionOfElementAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out _);
+            return expression;
+        }
+
+        public static SyntaxNode GetArgumentListOfElementAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfElementAccessExpression(node, out _, out var argumentList);
+            return argumentList;
+        }
     }
 }

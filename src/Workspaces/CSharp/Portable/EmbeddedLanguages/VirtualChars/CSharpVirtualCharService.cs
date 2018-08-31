@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -22,6 +23,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
         protected override ImmutableArray<VirtualChar> TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
+            // C# preprocessor directives can contain string literals.  However, these string
+            // literals do not behave like normal literals.  Because they are used for paths (i.e.
+            // in a #line directive), the language does not do any escaping within them.  i.e. if
+            // you have a \ it's just a \   Note that this is not a verbatim string.  You can't put
+            // a double quote in it either, and you cannot have newlines and whatnot.
+            //
+            // We technically could convert this trivially to an array of virtual chars.  After all,
+            // there would just be a 1:1 correspondance with the literal contents and the chars
+            // returned.  However, we don't even both returning anything here.  That's because
+            // there's no useful features we can offer here.  Because there are no escape characters
+            // we won't classify any escape characters.  And there is no way that these strings would
+            // be Regex/Json snippets.  So it's easier to just bail out and return nothing.
+            if (IsInDirective(token.Parent))
+            {
+                return default;
+            }
+
             Debug.Assert(!token.ContainsDiagnostics);
             if (token.Kind() == SyntaxKind.StringLiteralToken)
             {
@@ -40,6 +58,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             {
                 return default;
             }
+        }
+
+        private bool IsInDirective(SyntaxNode node)
+        {
+            while (node != null)
+            {
+                if (node is DirectiveTriviaSyntax)
+                {
+                    return true;
+                }
+
+                node = node.Parent;
+            }
+
+            return false;
         }
 
         private ImmutableArray<VirtualChar> TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
