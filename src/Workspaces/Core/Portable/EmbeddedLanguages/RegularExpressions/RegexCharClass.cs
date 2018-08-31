@@ -1,4 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// LICENSING NOTE: The license for this file is from the originating 
+// source and not the general https://github.com/dotnet/roslyn license.
+// See https://github.com/dotnet/corefx/blob/68b76c30eafb3647c11e3f766a2645b130ca1448/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
