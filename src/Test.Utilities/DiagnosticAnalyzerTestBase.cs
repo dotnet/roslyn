@@ -9,6 +9,7 @@ using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
@@ -117,22 +118,12 @@ namespace Test.Utilities
 
         protected static DiagnosticResult GetGlobalResult(string id, string message)
         {
-            return new DiagnosticResult
-            {
-                Id = id,
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Message = message
-            };
+            return new DiagnosticResult(id, DiagnosticHelpers.DefaultDiagnosticSeverity).WithMessage(message);
         }
 
         protected static DiagnosticResult GetGlobalResult(DiagnosticDescriptor rule, params string[] messageArguments)
         {
-            return new DiagnosticResult
-            {
-                Id = rule.Id,
-                Severity = rule.DefaultSeverity,
-                Message = string.Format(rule.MessageFormat.ToString(), messageArguments)
-            };
+            return new DiagnosticResult(rule).WithMessage(string.Format(rule.MessageFormat.ToString(), messageArguments));
         }
 
         protected static DiagnosticResult GetBasicResultAt(int line, int column, string id, string message)
@@ -167,44 +158,28 @@ namespace Test.Utilities
 
         private static DiagnosticResult GetResultAt(string path, int line, int column, string id, string message)
         {
-            var location = new DiagnosticResultLocation(path, line, column);
-
-            return new DiagnosticResult
-            {
-                Locations = new[] { location },
-                Id = id,
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Message = message
-            };
+            return new DiagnosticResult(id, DiagnosticHelpers.DefaultDiagnosticSeverity).WithLocation(path, line, column).WithMessage(message);
         }
 
         protected static DiagnosticResult GetResultAt(string path, string id, string message, params string[] locationStrings)
         {
-            return new DiagnosticResult
+            var result = new DiagnosticResult(id, DiagnosticHelpers.DefaultDiagnosticSeverity).WithMessage(message);
+            foreach (var location in ParseResultLocations(path, locationStrings))
             {
-                Locations = ParseResultLocations(path, locationStrings),
-                Id = id,
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Message = message
-            };
+                result = result.WithLocation(location.path, location.location);
+            }
+
+            return result;
         }
 
         private static DiagnosticResult GetResultAt(string path, int line, int column, DiagnosticDescriptor rule, params object[] messageArguments)
         {
-            var location = new DiagnosticResultLocation(path, line, column);
-
-            return new DiagnosticResult
-            {
-                Locations = new[] { location },
-                Id = rule.Id,
-                Severity = rule.DefaultSeverity,
-                Message = string.Format(rule.MessageFormat.ToString(), messageArguments)
-            };
+            return new DiagnosticResult(rule).WithLocation(path, line, column).WithArguments(messageArguments);
         }
 
-        private static DiagnosticResultLocation[] ParseResultLocations(string defaultPath, string[] locationStrings)
+        private static (string path, LinePosition location)[] ParseResultLocations(string defaultPath, string[] locationStrings)
         {
-            var builder = new List<DiagnosticResultLocation>();
+            var builder = new List<(string path, LinePosition location)>();
 
             foreach (string str in locationStrings)
             {
@@ -217,7 +192,7 @@ namespace Test.Utilities
 
                 Assert.True(int.TryParse(tokens[2], out int column) && line >= -1, "Column must be >= -1 in location string: " + str);
 
-                builder.Add(new DiagnosticResultLocation(path, line, column));
+                builder.Add((path, new LinePosition(line, column)));
             }
 
             return builder.ToArray();
@@ -333,20 +308,23 @@ namespace Test.Utilities
         protected void Verify(string source, string language, DiagnosticAnalyzer analyzer, IEnumerable<TestAdditionalDocument> additionalFiles, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, compilationOptions, parseOptions, additionalFiles: additionalFiles);
-            diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, expected);
+            diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
         }
 
         private void Verify(string source, string language, DiagnosticAnalyzer analyzer, ReferenceFlags referenceFlags, TestValidationMode validationMode, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, compilationOptions, parseOptions, referenceFlags: referenceFlags, validationMode: validationMode);
-            diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, expected);
+            diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
         }
 
         private void Verify(FileAndSource[] sources, string language, DiagnosticAnalyzer analyzer, TestValidationMode validationMode, bool allowUnsafeCode, ReferenceFlags referenceFlags, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(sources, language, analyzer, compilationOptions, parseOptions, validationMode, referenceFlags: referenceFlags, allowUnsafeCode: allowUnsafeCode);
-            diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, expected);
+            diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
         }
+
+        protected static string GetDefaultPath(string language) =>
+            language == LanguageNames.CSharp ? CSharpDefaultFilePath : VisualBasicDefaultFilePath;
 
         protected IEnumerable<TestAdditionalDocument> GetAdditionalTextFiles(string fileName, string text) =>
             ImmutableArray.Create(GetAdditionalTextFile(fileName, text));

@@ -4,6 +4,7 @@ using System;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers;
 using Test.Utilities;
 using Xunit;
@@ -103,21 +104,16 @@ End Class";
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column)
-            => GetExpectedDiagnostic(LanguageNames.CSharp, line, column);
+            => GetExpectedDiagnostic(line, column);
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column)
-            => GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column);
+            => GetExpectedDiagnostic(line, column);
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column)
-            => new DiagnosticResult
-            {
-                Id = DiagnosticIds.UpgradeMSBuildWorkspaceRuleId,
-                Message = CodeAnalysisDiagnosticsResources.UpgradeMSBuildWorkspaceMessage,
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb", line, column)
-                }
-            };
+        private static DiagnosticResult GetExpectedDiagnostic(int line, int column)
+        {
+            return new DiagnosticResult(DiagnosticIds.UpgradeMSBuildWorkspaceRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+               .WithLocation(line, column)
+               .WithMessageFormat(CodeAnalysisDiagnosticsResources.UpgradeMSBuildWorkspaceMessage);
+        }
     }
 }
