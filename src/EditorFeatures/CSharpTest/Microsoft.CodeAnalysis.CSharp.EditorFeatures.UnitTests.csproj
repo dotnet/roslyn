@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures.csproj" />
     <ProjectReference Include="..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <!-- PrivateAssets due to https://github.com/dotnet/roslyn/issues/29292 -->
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
@@ -74,149 +75,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PerfTests\CSharpPerfFindRefs.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfFindRefsIEnumerable.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfGoldilocksTyping.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfGoldilocksTypingFullSolutionDiagnostics.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfGoldilocksTypingFullSolutionDiagnosticsMultipliedDelay.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfNavigateTo.xml" />
-    <None Include="PerfTests\CSharpPerfNavigateToRoslyn.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfPaste.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfRename.xml" />
-    <None Include="PerfTests\CSharpPerfRenameRoslyn.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfRenameTypeRoslyn.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfSolutionLoad.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPgoTyping.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpVenusPgoTyping.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\MiniPicassoPgo.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Repl\CSharpPerfReplOpenInteractiveWindow.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Repl\CSharpPerfReplPasteLargeSubmission.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Repl\CSharpPerfReplRepeatedSimpleSubmission.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Repl\CSharpPerfReplResetInteractiveWindow.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Repl\CSharpPerfReplSimpleSubmission.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Repl\CSharpPerfReplTypeClass.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Repl\CSharpPerfReplTypeMultipleClasses.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\CSharpClassesAtEndBase.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\CSharpClassesAtEndTyping.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\CSharpGoldilocksInput.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\CSharpGoldilocksInput-MultipliedDelay.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\LargeMethod.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\LargeMethodCS.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\PasteLargeSubmissionCS.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\Scrolling.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\searchTextCs.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\TypeClassInReplCS.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\TypeFileCS.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\TypeMultipleClassesInRepl-1-CS.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\Sources\TypeMultipleClassesInRepl-2-CS.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="StressTests\CSharpStress.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="StressTests\CSharpStressOpenCloseDoc.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="StressTests\CSharpStressOpenCloseSolution.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="StressTests\CSharpStressRoslynOnly.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="PerfTests\CSharpPerfGoldilocksTypingFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="PerfTests\CSharpPerfFullSolutionDiagnostics.xml">
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfLightBulb.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfBuildWithThirdPartyAnalyzers.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-    <Content Include="PerfTests\Sources\CSharpPgoTypingInput.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PerfTests\Sources\CSharpVenusPgoTypingInput.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
@@ -224,9 +83,6 @@
   <!-- These are None\content items above. Don't pass them to the compiler. -->
   <ItemGroup>
     <Compile Remove="Interactive\CommandArgumentsParsingTest.cs" />
-    <Compile Remove="PerfTests\Sources\CSharpClassesAtEndBase.cs" />
-    <Compile Remove="PerfTests\Sources\LargeMethod.cs" />
-    <Compile Remove="PerfTests\Sources\Scrolling.cs" />
     <Compile Remove="ReorderParameters\ReorderParametersTests.Cascading.cs" />
     <Compile Remove="ReorderParameters\ReorderParametersTests.cs" />
     <Compile Remove="ReorderParameters\ReorderParametersTests.InvocationErrors.cs" />

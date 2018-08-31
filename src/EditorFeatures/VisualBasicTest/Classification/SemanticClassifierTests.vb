@@ -531,6 +531,44 @@ End Class"
                 [Class]("AttributeUsage"))
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestRegex1() As Task
+            Await TestAsync(
+"
+imports System.Text.RegularExpressions
+
+class Program
+    sub Goo()
+        ' language=regex
+        var r = ""$(\b\G\z)|(?<name>sub){0,5}?^""
+    end sub
+end class",
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Grouping("?"),
+Regex.Grouping("<"),
+Regex.Grouping("name"),
+Regex.Grouping(">"),
+Regex.Text("sub"),
+Regex.Grouping(")"),
+Regex.Quantifier("{"),
+Regex.Quantifier("0"),
+Regex.Quantifier(","),
+Regex.Quantifier("5"),
+Regex.Quantifier("}"),
+Regex.Quantifier("?"),
+Regex.Anchor("^"))
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConstField() As Task
             Dim code =

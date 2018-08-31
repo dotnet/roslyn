@@ -18,11 +18,6 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <!-- TODO: Remove. OfficialBuildId should be set directly by the build definition  -->
-    <OfficialBuildId Condition="'$(OfficialBuild)' == 'true'">$(BUILD_BUILDNUMBER)</OfficialBuildId>
-  </PropertyGroup>
-
   <Choose>
     <When Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">
       <PropertyGroup>
@@ -74,8 +69,8 @@
   
   <PropertyGroup>
     <_PreReleaseLabel>$(PreReleaseVersionLabel)</_PreReleaseLabel>
-    <_PreReleaseLabel Condition="'$(CIBuild)' == 'true' and '$(OfficialBuild)' != 'true'">ci</_PreReleaseLabel>
-    <_PreReleaseLabel Condition="'$(CIBuild)' != 'true'">dev</_PreReleaseLabel>
+    <_PreReleaseLabel Condition="'$(ContinuousIntegrationBuild)' == 'true' and '$(OfficialBuild)' != 'true'">ci</_PreReleaseLabel>
+    <_PreReleaseLabel Condition="'$(ContinuousIntegrationBuild)' != 'true'">dev</_PreReleaseLabel>
 
     <!--
       If DotNetFinalVersionKind is specified, overrides the package version produced by the build like so:

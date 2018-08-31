@@ -73,7 +73,7 @@
 
   <PropertyGroup Condition="'$(TargetFrameworks)' != ''">
     <IntermediateOutputPath>$(IntermediateOutputPath)$(TargetFramework.ToLowerInvariant())\</IntermediateOutputPath>
-    <OutputPath Condition="'$(RoslynProjectType)' != 'SourcePackage'">$(OutputPath)$(TargetFramework.ToLowerInvariant())\</OutputPath>
+    <OutputPath Condition="'$(RoslynProjectType)' != 'SourcePackage' and '$(RoslynProjectType)' != 'Custom'">$(OutputPath)$(TargetFramework.ToLowerInvariant())\</OutputPath>
     <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(Language)' == 'C#'">$(IntermediateOutputPath)$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
