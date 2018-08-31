@@ -603,10 +603,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
                     End If
                     Dim comment As SyntaxTrivia = ScanComment()
-                    If Not CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
-                        comment = comment.WithDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1,
-                                                                                                    New VisualBasicRequiredLanguageVersion(Feature.CommentsAfterLineContinuation.GetLanguageVersion()))})
-                    End If
+                    comment = Parser.CheckFeatureAvailability(Feature.CommentsAfterLineContinuation, comment, Options.LanguageVersion)
+                    'If Not CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
+                    '    comment = comment.WithDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1,
+                    '                                                                                New VisualBasicRequiredLanguageVersion(Feature.CommentsAfterLineContinuation.GetLanguageVersion()))})
+                    'End If
                     tList.Add(comment)
                     ch = Peek()
                     atNewLine = IsNewLine(ch)

@@ -2360,7 +2360,7 @@ End Module]]>,
         Dim tree = ParseAndVerify(code:=<![CDATA[#Enable Warning _ 'Comment]]>,
                                   options:=New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
                                     <errors>
-                                        <error id="37306" message="Please use language version 15.5 or greater to use comments after line continuation character." start="24" end="25"/>
+                                        <error id="36716" message="Please use language version 15.5 or greater to use comments after line continuation character." start="24" end="25"/>
                                     </errors>)
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
@@ -2420,7 +2420,7 @@ End Module]]>,
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc41007 _ 'Comment]]>,
                                   New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
             <errors>
-                <error id="37306" message="Please use language version 15.5 or greater to use comments after line continuation character." start="24" end="25"/>
+                <error id="36716" message="Please use language version 15.5 or greater to use comments after line continuation character." start="24" end="25"/>
             </errors>)
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
