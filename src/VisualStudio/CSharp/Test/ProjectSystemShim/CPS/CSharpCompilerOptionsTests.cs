@@ -104,19 +104,35 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void InvalidProjectOutputBinPaths_CPS()
+        public void InvalidProjectOutputBinPaths_CPS1()
         {
             using (var environment = new TestEnvironment())
             using (var project1 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", binOutputPath: null)) // Null binOutputPath
-            using (var project2 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test2", binOutputPath: String.Empty)) // Empty binOutputPath
-            using (var project3 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test3", binOutputPath: "Test.dll")) // Non-rooted binOutputPath
             {
                 // Null output path is allowed.
                 Assert.Equal(null, project1.BinOutputPath);
+            }
+        }
 
+        [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void InvalidProjectOutputBinPaths_CPS2()
+        {
+            using (var environment = new TestEnvironment())
+            using (var project2 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test2", binOutputPath: String.Empty)) // Empty binOutputPath
+            {
                 // Empty output path is not allowed, it gets reset to null.
                 Assert.Equal(null, project2.BinOutputPath);
+            }
+        }
 
+        [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void InvalidProjectOutputBinPaths_CPS3()
+        {
+            using (var environment = new TestEnvironment())
+            using (var project3 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test3", binOutputPath: "Test.dll")) // Non-rooted binOutputPath
+            {
                 // Non-rooted output path is not allowed, it gets reset to a temp rooted path.
                 Assert.Equal(Path.Combine(Path.GetTempPath(), "Test.dll"), project3.BinOutputPath);
             }
