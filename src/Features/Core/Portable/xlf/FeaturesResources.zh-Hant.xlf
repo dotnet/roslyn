@@ -72,6 +72,31 @@
         <target state="translated">將不會更新中繼資料中所找到的相關方法簽章。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unread_private_members">
+        <source>Remove unread private members</source>
+        <target state="new">Remove unread private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_member">
+        <source>Remove unused member</source>
+        <target state="new">Remove unused member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_private_members">
+        <source>Remove unused private members</source>
+        <target state="new">Remove unused private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Type '{0}' has a private member '{1}' that can be removed as the value assigned to it is never read.</source>
+        <target state="new">Type '{0}' has a private member '{1}' that can be removed as the value assigned to it is never read.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_has_an_unused_private_member_1_which_can_be_removed">
+        <source>Type '{0}' has an unused private member '{1}' which can be removed.</source>
+        <target state="new">Type '{0}' has an unused private member '{1}' which can be removed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">泛型多載</target>

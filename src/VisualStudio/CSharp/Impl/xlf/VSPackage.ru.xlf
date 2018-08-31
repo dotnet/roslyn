@@ -33,8 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
-        <target state="translated">Выделить ссылки на символ под курсором;Выделить связанные ключевые слова под курсором;Войти в режим структуры при открытии файлов;Показывать разделители линий процедур;Формировать комментарии XML-документации; Показывать диагностики для закрытых файлов;Предварительный просмотр для отслеживания переименований;Размещать "системные" директивы сначала при сортировке директив Using;Не размещать "ref" или "out" в пользовательских структурах</target>
+        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
+        <target state="needs-review-translation">Выделить ссылки на символ под курсором;Выделить связанные ключевые слова под курсором;Войти в режим структуры при открытии файлов;Показывать разделители линий процедур;Формировать комментарии XML-документации; Показывать диагностики для закрытых файлов;Предварительный просмотр для отслеживания переименований;Размещать "системные" директивы сначала при сортировке директив Using;Не размещать "ref" или "out" в пользовательских структурах</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

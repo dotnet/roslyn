@@ -33,8 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
-        <target state="translated">Verweise auf Symbole unter dem Cursor markieren;Zugehörige Schlüsselwörter unter dem Cursor markieren;Gliederungsmodus beim Öffnen von Dateien starten;Zeilentrennzeichen zwischen Prozeduren anzeigen;XML-Dokumentationskommentare generieren;Diagnoseinformationen für geschlossene Dateien anzeigen;Vorschau für das Nachverfolgen der Umbenennung anzeigen;Beim Sortieren von "Using"-Direktiven "System"-Direktiven zuerst platzieren;"ref" oder "out" nicht für benutzerdefinierte Strukturen zulassen</target>
+        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
+        <target state="needs-review-translation">Verweise auf Symbole unter dem Cursor markieren;Zugehörige Schlüsselwörter unter dem Cursor markieren;Gliederungsmodus beim Öffnen von Dateien starten;Zeilentrennzeichen zwischen Prozeduren anzeigen;XML-Dokumentationskommentare generieren;Diagnoseinformationen für geschlossene Dateien anzeigen;Vorschau für das Nachverfolgen der Umbenennung anzeigen;Beim Sortieren von "Using"-Direktiven "System"-Direktiven zuerst platzieren;"ref" oder "out" nicht für benutzerdefinierte Strukturen zulassen</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
