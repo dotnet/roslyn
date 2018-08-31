@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable JSON editor features.
+        ///   Looks up a localized string similar to =======.
         /// </summary>
         internal static string Enable_JSON_editor_features {
             get {
