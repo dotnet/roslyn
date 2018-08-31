@@ -8,15 +8,14 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <ServiceablePackage>true</ServiceablePackage>
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
-    <!-- This is required to prevent downgrade references from CscCore/VbcCode since we must
-         reference Microsoft.NETCore.App to target the shared framework (bug
-         https://github.com/dotnet/sdk/issues/1159) and NETCore.App
-         contains a reference to C# + VB CodeAnalysis. This ensures that the project
-         reference is a higher version than the NuGet reference. -->
-    <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for C#, Microsoft.CodeAnalysis.CSharp.dll.
+    </PackageDescription>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -33,10 +32,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="BoundTree\BoundNodes.xml" />
-    <Content Include="Syntax\Syntax.xml" />
-    <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
-    <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
+    <None Include="BoundTree\BoundNodes.xml" />
+    <None Include="Syntax\Syntax.xml" />
+    <None Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
+    <None Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
     <None Include="FlowAnalysis\Flow Analysis Design.docx" />
     <None Include="Symbols\PublicSymbolTable.cd" />
     <None Include="..\CSharpCodeAnalysisRules.ruleset">

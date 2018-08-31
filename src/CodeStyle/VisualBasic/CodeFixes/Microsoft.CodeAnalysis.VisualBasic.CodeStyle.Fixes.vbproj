@@ -7,7 +7,31 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace></RootNamespace>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <IsAnalyzer>true</IsAnalyzer>
+    <NuspecPackageId>Microsoft.CodeAnalysis.VisualBasic.CodeStyle</NuspecPackageId>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") code style analyzers for Visual Basic.
+    </PackageDescription>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
+
+  <Target Name="_GetFilesToPackage">
+    <ItemGroup>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle\Microsoft.CodeAnalysis.CodeStyle.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.resources.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.resources.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
+
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/vb/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+    </ItemGroup>
+  </Target>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
