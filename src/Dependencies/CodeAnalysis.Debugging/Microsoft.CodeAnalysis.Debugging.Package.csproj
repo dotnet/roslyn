@@ -3,8 +3,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
-    <PackageId>Microsoft.CodeAnalysis.Debugging</PackageId>
     <RoslynProjectType>SourcePackage</RoslynProjectType>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Debugging</PackageId>
+    <NuspecFile>$(PackageId).nuspec</NuspecFile>
+    <NuspecBasePath>$(OutputPath)</NuspecBasePath>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <PackageDescription>
+      Package containing sources of Microsoft .NET Compiler Platform ("Roslyn") debug information encoders and decoders.
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />

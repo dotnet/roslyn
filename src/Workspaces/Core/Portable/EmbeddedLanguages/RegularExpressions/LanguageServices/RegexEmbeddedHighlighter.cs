@@ -42,17 +42,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         private ImmutableArray<TextSpan> GetHighlights(
-            Document document, RegexTree tree, int position)
+            Document document, RegexTree tree, int positionInDocument)
         {
-            var referencesOnTheRight = GetReferences(document, tree, position, caretOnLeft: true);
+            var referencesOnTheRight = GetReferences(document, tree, positionInDocument, caretOnLeft: true);
             if (!referencesOnTheRight.IsEmpty)
             {
                 return referencesOnTheRight;
             }
 
+            if (positionInDocument == 0)
+            {
+                return default;
+            }
+
             // Nothing was on the right of the caret.  Return anything we were able to find on 
-            // the left of the caret
-            var referencesOnTheLeft = GetReferences(document, tree, position - 1, caretOnLeft: false);
+            // the left of the caret.
+            var referencesOnTheLeft = GetReferences(document, tree, positionInDocument - 1, caretOnLeft: false);
             return referencesOnTheLeft;
         }
 

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             _descriptor = new DiagnosticDescriptor(DiagnosticId,
                 new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                 new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                "REGEX",
+                category: "REGEX",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
 

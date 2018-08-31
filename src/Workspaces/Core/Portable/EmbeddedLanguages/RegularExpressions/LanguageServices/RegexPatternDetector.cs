@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         /// 
         /// Option names are the values from the <see cref="RegexOptions"/> enum.
         /// </summary>
-        private static readonly Regex s_languageCommentDetector = 
-            new Regex(@"lang(uage)?\s*=\s*regex(p)?((\s*,\s*)(?<option>[a-zA-Z]+))*",
+        private static readonly Regex s_languageCommentDetector =
+            new Regex(@"\blang(uage)?\s*=\s*regex(p)?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private static readonly Dictionary<string, RegexOptions> s_nameToOption =
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         public RegexPatternDetector(
             SemanticModel semanticModel,
             RegexEmbeddedLanguage langauge,
-            INamedTypeSymbol regexType, 
+            INamedTypeSymbol regexType,
             HashSet<string> methodNamesOfInterest)
         {
             _language = langauge;
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return true;
             }
 
-            if (!IsMethodOrConstructorArgument(token, syntaxFacts) && 
+            if (!IsMethodOrConstructorArgument(token, syntaxFacts) &&
                 !HasRegexLanguageComment(token, syntaxFacts, out _))
             {
                 return true;
@@ -146,30 +146,44 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 // Note: ToString on SyntaxTrivia is non-allocating.  It will just return the
                 // underlying text that the trivia is already pointing to.
                 var text = trivia.ToString();
-                var match = s_languageCommentDetector.Match(text);
-                if (match.Success)
+                var (matched, matchOptions) = TryMatch(text);
+                if (matched)
                 {
-                    options = RegexOptions.None;
-
-                    var optionGroup = match.Groups["option"];
-                    foreach (Capture capture in optionGroup.Captures)
-                    {
-                        if (s_nameToOption.TryGetValue(capture.Value, out var specificOption))
-                        {
-                            options |= specificOption;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
+                    options = matchOptions;
                     return true;
                 }
             }
 
             options = default;
             return false;
+        }
+
+        private static (bool success, RegexOptions options) TryMatch(string text)
+        {
+            var options = RegexOptions.None;
+            var match = s_languageCommentDetector.Match(text);
+            if (!match.Success)
+            {
+                return default;
+            }
+
+            var optionGroup = match.Groups["option"];
+            foreach (Capture capture in optionGroup.Captures)
+            {
+                if (s_nameToOption.TryGetValue(capture.Value, out var specificOption))
+                {
+                    options |= specificOption;
+                }
+                else
+                {
+                    // hit something we don't understand.  bail out.  that will help ensure
+                    // users don't have weird behavior just because they misspelled something.
+                    // instead, they will know they need to fix it up.
+                    return default;
+                }
+            }
+
+            return (true, options);
         }
 
         private static bool IsMethodOrConstructorArgument(SyntaxToken token, ISyntaxFactsService syntaxFacts)
@@ -227,15 +241,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 if (_methodNamesOfInterest.Contains(name))
                 {
                     // Is a string argument to a method that looks like it could be a Regex method.  
-                    // Need to do deeper analysis
-                    var method = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
-                    if (method != null &&
-                        method.DeclaredAccessibility == Accessibility.Public &&
-                        method.IsStatic &&
-                        _regexType.Equals(method.ContainingType))
+                    // Need to do deeper analysis.
+
+                    // Note we do not use GetAllSymbols here because we don't want to incur the
+                    // allocation.
+                    var symbolInfo = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken);
+                    var method = symbolInfo.Symbol;
+                    if (TryAnalyzeInvocation(stringLiteral, argumentNode, method, cancellationToken, out options))
                     {
-                        return AnalyzeStringLiteral(
-                            stringLiteral, argumentNode, cancellationToken, out options);
+                        return true;
+                    }
+
+                    foreach (var candidate in symbolInfo.CandidateSymbols)
+                    {
+                        if (TryAnalyzeInvocation(stringLiteral, argumentNode, candidate, cancellationToken, out options))
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -261,6 +283,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             return false;
         }
 
+        private bool TryAnalyzeInvocation(
+            SyntaxToken stringLiteral, SyntaxNode argumentNode, ISymbol method,
+            CancellationToken cancellationToken, out RegexOptions options)
+        {
+            if (method != null &&
+                method.DeclaredAccessibility == Accessibility.Public &&
+                method.IsStatic &&
+                _regexType.Equals(method.ContainingType))
+            {
+                return AnalyzeStringLiteral(
+                    stringLiteral, argumentNode, cancellationToken, out options);
+            }
+
+            options = default;
+            return false;
+        }
+
         public RegexTree TryParseRegexPattern(SyntaxToken token, CancellationToken cancellationToken)
         {
             if (!this.IsRegexPattern(token, cancellationToken, out var options))
@@ -273,7 +312,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         private bool AnalyzeStringLiteral(
-            SyntaxToken stringLiteral, SyntaxNode argumentNode, 
+            SyntaxToken stringLiteral, SyntaxNode argumentNode,
             CancellationToken cancellationToken, out RegexOptions options)
         {
             options = default;
@@ -343,6 +382,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             return null;
+        }
+
+        internal static class TestAccessor
+        {
+            public static (bool success, RegexOptions options) TryMatch(string text)
+                => RegexPatternDetector.TryMatch(text);
         }
     }
 }

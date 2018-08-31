@@ -294,10 +294,44 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Return Create(DirectCast(boundNode, BoundBadVariable).Expression)
                 Case BoundKind.NullableIsTrueOperator
                     Return CreateBoundNullableIsTrueOperator(DirectCast(boundNode, BoundNullableIsTrueOperator))
-                Case Else
+
+                Case BoundKind.AddressOfOperator,
+                     BoundKind.ArrayLiteral,
+                     BoundKind.Attribute,
+                     BoundKind.ByRefArgumentWithCopyBack,
+                     BoundKind.CompoundAssignmentTargetPlaceholder,
+                     BoundKind.EraseStatement,
+                     BoundKind.Label,
+                     BoundKind.LateAddressOfOperator,
+                     BoundKind.MethodGroup,
+                     BoundKind.MidResult,
+                     BoundKind.NamespaceExpression,
+                     BoundKind.OnErrorStatement,
+                     BoundKind.PropertyGroup,
+                     BoundKind.RangeVariable,
+                     BoundKind.RedimClause,
+                     BoundKind.RedimStatement,
+                     BoundKind.ResumeStatement,
+                     BoundKind.TypeAsValueExpression,
+                     BoundKind.TypeExpression,
+                     BoundKind.TypeOrValueExpression,
+                     BoundKind.XmlCData,
+                     BoundKind.XmlComment,
+                     BoundKind.XmlDocument,
+                     BoundKind.XmlElement,
+                     BoundKind.XmlEmbeddedExpression,
+                     BoundKind.XmlMemberAccess,
+                     BoundKind.XmlNamespace,
+                     BoundKind.XmlProcessingInstruction,
+                     BoundKind.UnboundLambda,
+                     BoundKind.UnstructuredExceptionHandlingStatement
+
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
                     Dim isImplicit As Boolean = boundNode.WasCompilerGenerated
                     Return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode), isImplicit)
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(boundNode.Kind)
             End Select
         End Function
 
