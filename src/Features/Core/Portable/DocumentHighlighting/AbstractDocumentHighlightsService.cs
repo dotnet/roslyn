@@ -94,25 +94,28 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var embeddedLanguageProvider = document.GetLanguageService<IEmbeddedLanguageProvider>();
-            foreach (var language in embeddedLanguageProvider.GetEmbeddedLanguages())
+            var embeddedLanguagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
+            if (embeddedLanguagesProvider != null)
             {
-                var highlighter = language.Highlighter;
-                if (highlighter != null)
+                foreach (var language in embeddedLanguagesProvider.GetEmbeddedLanguages())
                 {
-                    var highlights = await highlighter.GetHighlightsAsync(
-                        document, position, cancellationToken).ConfigureAwait(false);
-
-                    if (highlights.Length > 0)
+                    var highlighter = language.Highlighter;
+                    if (highlighter != null)
                     {
-                        var result = ArrayBuilder<HighlightSpan>.GetInstance();
-                        foreach (var span in highlights)
-                        {
-                            result.Add(new HighlightSpan(span, HighlightSpanKind.None));
-                        }
+                        var highlights = await highlighter.GetHighlightsAsync(
+                            document, position, cancellationToken).ConfigureAwait(false);
 
-                        return ImmutableArray.Create(new DocumentHighlights(
-                            document, result.ToImmutableAndFree()));
+                        if (!highlights.IsDefaultOrEmpty)
+                        {
+                            var result = ArrayBuilder<HighlightSpan>.GetInstance();
+                            foreach (var span in highlights)
+                            {
+                                result.Add(new HighlightSpan(span, HighlightSpanKind.None));
+                            }
+
+                            return ImmutableArray.Create(new DocumentHighlights(
+                                document, result.ToImmutableAndFree()));
+                        }
                     }
                 }
             }

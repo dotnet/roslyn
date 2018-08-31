@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             // TODO let's think about what to do here. for now, let call it synchronously. also, there is no actual async-ness for the
             // TryGetExistingDataAsync, API just happen to be async since our persistent API is async API. but both caller and implementor are
             // actually not async.
-            var existingData = _state.TryGetExistingDataAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var existingData = _state.TryGetExistingDataAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             if (existingData == null)
             {
                 return ImmutableArray<TodoItem>.Empty;
