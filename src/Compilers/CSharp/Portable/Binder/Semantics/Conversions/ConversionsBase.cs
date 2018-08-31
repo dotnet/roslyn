@@ -835,14 +835,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.SuppressNullableWarningExpression:
-                    var innerExpression = ((BoundSuppressNullableWarningExpression)sourceExpression).Expression;
-                    var innerConversion = ClassifyImplicitBuiltInConversionFromExpression(innerExpression, innerExpression.Type, destination, ref useSiteDiagnostics);
-                    if (innerConversion.Exists)
                     {
-                        return innerConversion;
+                        var innerExpression = ((BoundSuppressNullableWarningExpression)sourceExpression).Expression;
+                        var innerConversion = ClassifyImplicitBuiltInConversionFromExpression(innerExpression, innerExpression.Type, destination, ref useSiteDiagnostics);
+                        if (innerConversion.Exists)
+                        {
+                            return innerConversion;
+                        }
+                        break;
                     }
-                    break;
 
+                case BoundKind.ExpressionWithNullability:
+                    {
+                        var innerExpression = ((BoundExpressionWithNullability)sourceExpression).Expression;
+                        var innerConversion = ClassifyImplicitBuiltInConversionFromExpression(innerExpression, innerExpression.Type, destination, ref useSiteDiagnostics);
+                        if (innerConversion.Exists)
+                        {
+                            return innerConversion;
+                        }
+                        break;
+                    }
                 case BoundKind.TupleLiteral:
                     var tupleConversion = ClassifyImplicitTupleLiteralConversion((BoundTupleLiteral)sourceExpression, destination, ref useSiteDiagnostics);
                     if (tupleConversion.Exists)
