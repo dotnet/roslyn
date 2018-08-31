@@ -1376,6 +1376,8 @@ static class Program
         Goo(1, 10);
         Goo(default, ""String parameter 1"");
         Goo(""String parameter 2"", ""Should not print"");
+        Goo((int?)null, 4);
+        Goo((int?)5, 10);
     }
 
     static void Goo<T>(T x1, T x2)
@@ -1389,6 +1391,8 @@ static class Program
 1
 String parameter 1
 String parameter 2
+4
+5
 ");
 
             comp.VerifyIL("Program.Goo<T>(T, T)", expectedIL: @"
@@ -1423,6 +1427,7 @@ static class Program
     {
         Goo(10);
         Goo(""String parameter"");
+        Goo((int?)3);
     }
 
     static void Goo<T>(T x)
@@ -1434,6 +1439,7 @@ static class Program
             var comp = CompileAndVerify(source, expectedOutput: @"
 0
 String parameter
+3
 ");
 
             comp.VerifyIL("Program.Goo<T>(T)", expectedIL: @"

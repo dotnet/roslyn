@@ -1418,6 +1418,38 @@ public class C
         [Fact]
         public void TypeParameterLHS()
         {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    static void Main() => M(""Non Null Input"");
+    static void M<T>(T t)
+    {
+        t ??= default;
+        Console.WriteLine(t);
+    }
+}
+", expectedOutput: "Non Null Input");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M<T>(T)", expectedIL: @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  box        ""T""
+  IL_0008:  brtrue.s   IL_0012
+  IL_000a:  ldarga.s   V_0
+  IL_000c:  initobj    ""T""
+  IL_0012:  ldarg.0
+  IL_0013:  box        ""T""
+  IL_0018:  call       ""void System.Console.WriteLine(object)""
+  IL_001d:  ret
+}
+");
+
             CompileAndVerify(@"
 using System;
 class C
@@ -1426,6 +1458,8 @@ class C
     {
         Verify<object>(null, ""Assignment Evaluated"");
         Verify<int>(default, 10);
+        Verify<int?>(null, 1);
+        Verify<int?>(2, 10);
     }
     static void Verify<T>(T t1, T t2)
     {
@@ -1437,7 +1471,88 @@ Assignment Evaluated
 Assignment Evaluated
 0
 0
+1
+1
+2
+2
 ");
+        }
+
+        [Fact]
+        public void ConstrainedTypeParameter()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        M1(null, ""Test String"");
+        M2((int?)null, 1);
+    }
+    static void M1<T>(T t1, T t2) where T : class
+    {
+        t1 ??= t2;
+        Console.WriteLine(t1);
+    }
+    static void M2<T>(T? t1, T t2) where T : struct
+    {
+        t1 ??= t2;
+        Console.WriteLine(t1);
+    }
+}", expectedOutput: @"
+Test String
+1
+");
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1<T>(T, T)", expectedIL: @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000b
+  IL_0008:  ldarg.1
+  IL_0009:  starg.s    V_0
+  IL_000b:  ldarg.0
+  IL_000c:  box        ""T""
+  IL_0011:  call       ""void System.Console.WriteLine(object)""
+  IL_0016:  ret
+}
+");
+            verifier.VerifyIL("C.M2<T>(T?, T)", expectedIL: @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (T? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool T?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0013
+  IL_000b:  ldarga.s   V_0
+  IL_000d:  ldarg.1
+  IL_000e:  call       ""T?..ctor(T)""
+  IL_0013:  ldarg.0
+  IL_0014:  box        ""T?""
+  IL_0019:  call       ""void System.Console.WriteLine(object)""
+  IL_001e:  ret
+}
+");
+
+            CreateCompilation(@"
+class C
+{
+    void M<T>(T t1, T t2) where T : struct
+    {
+        t1 ??= t2;
+    }
+}").VerifyDiagnostics(new DiagnosticDescription[] {
+                // (6,9): error CS0019: Operator '??=' cannot be applied to operands of type 'T' and 'T'
+                //         t1 ??= t2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "t1 ??= t2").WithArguments("??=", "T", "T").WithLocation(6, 9)
+            });
         }
 
         [Fact]

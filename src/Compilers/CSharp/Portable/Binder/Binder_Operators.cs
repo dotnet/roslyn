@@ -3374,8 +3374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 optLeftType.GetNullableUnderlyingType() :
                 optLeftType;
 
-            // SPEC: The left hand side must be either the null literal, or not a non-nullable value type. Method groups
-            // SPEC: and lambdas are neither.
+            // SPEC: The left hand side must be either the null literal or it must have a type. Lambdas and method groups do not have a type,
+            // SPEC: so using one is an error.
             if (leftOperand.Kind == BoundKind.UnboundLambda || leftOperand.Kind == BoundKind.MethodGroup)
             {
                 return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
