@@ -19335,7 +19335,7 @@ class C
         z3.ToString();
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
             // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
@@ -19462,7 +19462,7 @@ class C
         if (o != null) F(() => { return o; }).ToString();
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
             // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
@@ -19573,7 +19573,7 @@ class C
         D<I<object>> b = () => y;
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
             // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
@@ -19643,7 +19643,7 @@ class C
         if (y != null) F(() => y).ToString();
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
             // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
@@ -21828,7 +21828,7 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Deconstruction should infer `string?` for `var x`.
+            // https://github.com/dotnet/roslyn/issues/29618: Deconstruction should infer `string?` for `var x`.
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = null;
@@ -21855,7 +21855,7 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Deconstruction should infer `string?` for `var x`.
+            // https://github.com/dotnet/roslyn/issues/29618: Deconstruction should infer `string?` for `var x`.
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = null;
@@ -21886,7 +21886,7 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Deconstruction should infer `string?` for `var x`.
+            // https://github.com/dotnet/roslyn/issues/29618: Deconstruction should infer `string?` for `var x`.
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = null;
@@ -21943,7 +21943,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Deconstruction should infer `string?` for `var y`.
+            // https://github.com/dotnet/roslyn/issues/29618: Deconstruction should infer `string?` for `var y`.
             comp.VerifyDiagnostics();
             //// (11,13): warning CS8602: Possible dereference of a null reference.
             ////             y.ToString();
@@ -25558,7 +25558,7 @@ public class C<T> {}
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_01()
         {
             string lib = @"
@@ -26593,7 +26593,7 @@ partial class C
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_07()
         {
             string moduleAttributes = @"
@@ -26714,7 +26714,7 @@ partial class C
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_08()
         {
             string moduleAttributes = @"
@@ -26833,7 +26833,7 @@ partial class C
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_09()
         {
             string moduleAttributes = @"
@@ -26950,7 +26950,7 @@ partial class C
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_10()
         {
             string moduleAttributes = @"
@@ -27142,7 +27142,7 @@ partial class C
             c.VerifyDiagnostics(expected);
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_11()
         {
             string moduleAttributes = @"
@@ -27334,7 +27334,7 @@ partial class C
             c.VerifyDiagnostics(expected);
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_12()
         {
             string moduleAttributes = @"
@@ -27526,7 +27526,7 @@ partial class C
             c.VerifyDiagnostics(expected);
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_13()
         {
             string source = @"
@@ -27569,7 +27569,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_14()
         {
             string source = @"
@@ -27649,7 +27649,7 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_15()
         {
             string source = @"
@@ -27728,7 +27728,7 @@ class CL6 : CL4<string?>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_16()
         {
             string source = @"
@@ -27795,7 +27795,7 @@ class CL6 : CL4<string?>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_17()
         {
             string source = @"
@@ -27831,7 +27831,7 @@ class CL0<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_18()
         {
             string source = @"
@@ -27899,7 +27899,7 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_19()
         {
             string source = @"
@@ -27932,7 +27932,7 @@ class CL0<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_20()
         {
             string source = @"
@@ -28009,7 +28009,7 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_21()
         {
             string source = @"
@@ -28042,7 +28042,7 @@ class CL0<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_22()
         {
             string source = @"
@@ -28109,7 +28109,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_23()
         {
             string source = @"
@@ -28218,7 +28218,7 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_24()
         {
             string source = @"
@@ -28305,7 +28305,7 @@ delegate void CL2<T>(T? x) where T : class;
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_25()
         {
             string source = @"
@@ -28348,7 +28348,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        [Fact(Skip = "NonNullTypes does not control warnings")] // https://github.com/dotnet/roslyn/issues/29616
         public void NonNullTypes_26()
         {
             string source = @"
@@ -35921,7 +35921,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "b.A.F").WithLocation(26, 13));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Handle struct properties that are not auto-properties.
+        // https://github.com/dotnet/roslyn/issues/29619: Handle struct properties that are not auto-properties.
         [Fact(Skip = "Struct property not auto-property")]
         public void ModifyMembers_StructPropertyExplicitAccessors()
         {
@@ -36031,7 +36031,7 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P").WithLocation(8, 13));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Handle struct properties that are not auto-properties.
+        // https://github.com/dotnet/roslyn/issues/29619: Handle struct properties that are not auto-properties.
         [Fact(Skip = "Struct property not auto-property")]
         public void ModifyMembers_StructPropertyNoBackingField()
         {
@@ -36524,7 +36524,7 @@ class C
         }
 
         // Valid struct since the property is not backed by a field.
-        // PROTOTYPE(NullableReferenceTypes): Handle struct properties that are not auto-properties.
+        // https://github.com/dotnet/roslyn/issues/29619: Handle struct properties that are not auto-properties.
         [Fact(Skip = "Struct property not auto-property")]
         public void Members_PropertyCycle_Struct()
         {
