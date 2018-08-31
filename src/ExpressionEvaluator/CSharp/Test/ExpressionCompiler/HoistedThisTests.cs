@@ -961,7 +961,7 @@ class C
                 var testData = new CompilationTestData();
                 context.CompileExpression("42", out error, testData);
                 Assert.Null(error);
-                Assert.Equal(1, testData.Methods.Where(m => !m.Key.IsImplicitlyDeclared).Count());
+                Assert.Equal(1, testData.GetExplicitlyDeclaredMethods().Count());
             });
         }
 
