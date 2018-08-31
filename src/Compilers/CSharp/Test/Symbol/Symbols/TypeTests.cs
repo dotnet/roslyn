@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class TypeTests : CSharpTestBase
     {
-        // PROTOTYPE(NullableReferenceTypes): StackOverflowException in
-        // SetUnknownNullabilityForReferenceTypes.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Bug18280()
         {
             string brackets = "[][][][][][][][][][][][][][][][][][][][]";
@@ -37,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var arr = x.Type.TypeSymbol;
 
             arr.GetHashCode();
+            // PROTOTYPE(NullableReferenceTypes): StackOverflowException in SetUnknownNullabilityForReferenceTypes.
+            //arr.SetUnknownNullabilityForReferenceTypes();
         }
 
         [Fact]

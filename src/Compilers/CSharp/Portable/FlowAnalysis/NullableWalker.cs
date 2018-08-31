@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal sealed class VariableState
         {
-            // PROTOTYPE(NullableReferenceTypes): Reference the collections directly from the original
-            // NullableWalker ratherthan coping the collections. (Items are added to the collections
+            // Consider referencing the collections directly from the original NullableWalker
+            // rather than coping the collections. (Items are added to the collections
             // but never replaced so the collections are lazily populated but otherwise immutable.)
             internal readonly ImmutableDictionary<VariableIdentifier, int> VariableSlot;
             internal readonly ImmutableArray<VariableIdentifier> VariableBySlot;
@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            _resultType = _invalidType; // PROTOTYPE(NullableReferenceTypes): Move to `Visit` method?
+            _resultType = _invalidType;
             var result = base.VisitExpressionWithoutStackGuard(node);
 #if DEBUG
             // Verify Visit method set _result.
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
                     return TypeSymbolWithAnnotations.Create(resultType);
                 }
-                // PROTOTYPE(NullableReferenceTypes): Update method based on operand types.
+                // Update method based on operand types: see https://github.com/dotnet/roslyn/issues/29605.
                 if ((object)methodOpt != null && methodOpt.ParameterCount == 2)
                 {
                     return methodOpt.ReturnType;
@@ -1418,7 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
         {
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 TypeSymbolWithAnnotations leftType = _resultType;
                 bool warnOnNullReferenceArgument = (binary.OperatorKind.IsUserDefined() && (object)binary.MethodOpt != null && binary.MethodOpt.ParameterCount == 2);
@@ -1897,7 +1897,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitRvalue(receiverOpt);
                 CheckPossibleNullReceiver(receiverOpt);
-                // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
+                // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
             }
 
             // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
@@ -1919,7 +1919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 _resultType = method.ReturnType;
             }
@@ -3041,7 +3041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             useLegacyWarnings,
                             assignmentKind);
 
-                        // PROTOTYPE(NullableReferenceTypes): Update method based on operandType
+                        // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
                         // (see NullableReferenceTypesTests.ImplicitConversions_07).
                         var methodOpt = conversion.Method;
                         Debug.Assert((object)methodOpt != null);
@@ -3215,7 +3215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckPossibleNullReceiver(receiverOpt);
             }
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 _resultType = default;
             }
@@ -3326,9 +3326,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            // PROTOTYPE(NullableReferenceTypes): Assign each of the deconstructed values.
+            // https://github.com/dotnet/roslyn/issues/29618: Assign each of the deconstructed values,
+            // and handle deconstruction conversion for node.Right.
             VisitLvalue(node.Left);
-            // PROTOTYPE(NullableReferenceTypes): Handle deconstruction conversion node.Right.
             VisitRvalue(node.Right.Operand);
             SetResult(node);
             return null;
@@ -3439,7 +3439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations resultType;
             Debug.Assert(!IsConditionalState);
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 TypeSymbolWithAnnotations leftOnRightType = GetAdjustedResult(leftType, MakeSlot(node.Left));
 
@@ -3602,7 +3602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 VisitRvalue(receiverOpt);
 
@@ -3719,7 +3719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitUnaryOperator(node);
             TypeSymbolWithAnnotations resultType = default;
 
-            // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
+            // Update method based on inferred operand type: see https://github.com/dotnet/roslyn/issues/29605.
             if (node.OperatorKind.IsUserDefined())
             {
                 if (node.OperatorKind.IsLifted())
@@ -3779,7 +3779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
                 return TypeSymbolWithAnnotations.Create(node.Type);
             }
-            // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand types.
+            // Update method based on inferred operand types: see https://github.com/dotnet/roslyn/issues/29605.
             if ((object)node.LogicalOperator != null && node.LogicalOperator.ParameterCount == 2)
             {
                 return node.LogicalOperator.ReturnType;
@@ -3793,7 +3793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression node, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)
         {
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 TypeSymbolWithAnnotations leftType = _resultType;
                 // PROTOTYPE(NullableReferenceTypes): Update operator methods based on inferred operand types.
@@ -3872,7 +3872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
+                // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
                 _resultType = node.GetResult.ReturnType;
             }
             return result;
@@ -3939,7 +3939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitAsOperator(node);
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 bool? isNullable = null;
                 if (!node.Type.IsValueType)
@@ -3982,7 +3982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.VisitSuppressNullableWarningExpression(node);
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 _resultType = _resultType.IsNull ? default : _resultType.WithTopLevelNonNullabilityForReferenceTypes();
             }
@@ -4018,7 +4018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitLiteral(node);
 
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 var constant = node.ConstantValue;
 

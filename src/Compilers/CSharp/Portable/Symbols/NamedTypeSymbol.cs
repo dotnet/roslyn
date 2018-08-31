@@ -843,7 +843,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(params TypeSymbol[] typeArguments)
         {
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, nonNullTypesContext: null);
+            // PROTOTYPE(NullableReferenceTypes): We should fix the callers to pass an explicit context.
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesFalseContext.Instance);
         }
 
         /// <summary>
@@ -865,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments, INonNullTypesContext nonNullTypesContext = null)
         {
             // PROTOTYPE(NullableReferenceTypes): We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments, false, nonNullTypesContext);
+            return ConstructWithoutModifiers(typeArguments, false, nonNullTypesContext ?? NonNullTypesFalseContext.Instance);
         }
 
         /// <summary>
@@ -875,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public NamedTypeSymbol Construct(IEnumerable<TypeSymbol> typeArguments)
         {
             // PROTOTYPE(NullableReferenceTypes): We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, nonNullTypesContext: null);
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesFalseContext.Instance);
         }
 
         /// <summary>

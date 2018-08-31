@@ -1405,7 +1405,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    // PROTOTYPE(NullableReferenceTypes): this TypeSymbolWithAnnotations has bad annotation and context
                                     newArguments[i] = ((OutVariablePendingInference)argument).SetInferredType(TypeSymbolWithAnnotations.Create(candidateType), null);
                                 }
                             }
@@ -1417,7 +1416,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    // PROTOTYPE(NullableReferenceTypes): this TypeSymbolWithAnnotations has bad annotation and context
                                     newArguments[i] = ((BoundDiscardExpression)argument).SetInferredType(TypeSymbolWithAnnotations.Create(candidateType));
                                 }
                             }

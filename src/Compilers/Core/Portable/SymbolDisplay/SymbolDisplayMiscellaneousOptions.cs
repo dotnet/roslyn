@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Append '?' to nullable reference types.
-        /// PROTOTYPE(NullableReferenceTypes): review design for this option before shipping. See https://github.com/dotnet/roslyn/issues/26198
+        /// (Review design for this option before shipping. See https://github.com/dotnet/roslyn/issues/26198)
         /// </summary>
         IncludeNullableReferenceTypeModifier = 1 << 6,
     }

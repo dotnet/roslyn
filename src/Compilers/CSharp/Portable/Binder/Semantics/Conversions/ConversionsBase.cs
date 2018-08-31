@@ -1366,9 +1366,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type1 != null);
             Debug.Assert((object)type2 != null);
 
-            // PROTOTYPE(NullableReferenceTypes): If two types differ only by nullability and
+            // https://github.com/dotnet/roslyn/issues/27961: If two types differ only by nullability and
             // one has IsNullable unset and the other doesn't, which do we choose in inference?
-            // See test TypeInference_04.
+            // See NullableReferenceTypesTests.TypeInference_04.
             var compareKind = includeNullability ?
                 TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny :
                 TypeCompareKind.AllIgnoreOptions;

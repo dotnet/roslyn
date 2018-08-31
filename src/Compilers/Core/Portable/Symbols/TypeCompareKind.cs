@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis
         /// Has no impact without CompareNullableModifiersForReferenceTypes.
         /// </summary>
         UnknownNullableModifierMatchesAny = 16,
-        AllAspects = CompareNullableModifiersForReferenceTypes, // PROTOTYPE(NullableReferenceTypes): Remove if not used.
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames,
         AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames
     }
