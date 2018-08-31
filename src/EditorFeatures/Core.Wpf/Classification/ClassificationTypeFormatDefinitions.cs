@@ -372,8 +372,178 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
+        #region Regex
+
+        // When https://github.com/dotnet/roslyn/issues/29173 is addressed, this section
+        // can be removed.  Right now it serves as an easy way to recompile while flipping
+        // between different themes.
+#if dark_theme
+        private static readonly Color s_regexTextColor = Color.FromRgb(0xd6, 0x9d, 0x85);
+        private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0xff, 0xd6, 0x8f);
+        private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
+        private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x8a, 0xff);
+        private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xd7, 0x45, 0x8c);
+        private static readonly Color s_regexCommentColor = Color.FromRgb(87, 166, 74);
+#else
+        private static readonly Color s_regexTextColor = Color.FromRgb(0x80, 0x00, 0x00);
+        private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0x9e, 0x5b, 0x71);
+        private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
+        private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x73, 0xff);
+        private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xff, 0x00, 0xc1);
+        private static readonly Color s_regexCommentColor = Color.FromRgb(0, 128, 0);
+#endif
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexComment)]
+        [Name(ClassificationTypeNames.RegexComment)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexCommentFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexCommentFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Comment;
+                this.ForegroundColor = s_regexCommentColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexCharacterClass)]
+        [Name(ClassificationTypeNames.RegexCharacterClass)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexCharacterClassFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexCharacterClassFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Character_Class;
+                this.ForegroundColor = s_characterClassColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexAnchor)]
+        [Name(ClassificationTypeNames.RegexAnchor)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexAnchorFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexAnchorFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
+                this.ForegroundColor = s_regexAnchorAndQuantifierColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexQuantifier)]
+        [Name(ClassificationTypeNames.RegexQuantifier)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexQuantifierFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexQuantifierFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
+                this.ForegroundColor = s_regexAnchorAndQuantifierColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexGrouping)]
+        [Name(ClassificationTypeNames.RegexGrouping)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexGroupingFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexGroupingFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
+                this.ForegroundColor = s_regexGroupingAndAlternationColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexAlternation)]
+        [Name(ClassificationTypeNames.RegexAlternation)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexAlternationFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexAlternationFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
+                this.ForegroundColor = s_regexGroupingAndAlternationColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexText)]
+        [Name(ClassificationTypeNames.RegexText)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexTextFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexTextFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
+                this.ForegroundColor = s_regexTextColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexSelfEscapedCharacter)]
+        [Name(ClassificationTypeNames.RegexSelfEscapedCharacter)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexSelfEscapedCharacterFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexSelfEscapedCharacterFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_SelfEscapedCharacter;
+
+                // by default, we make a self-escaped character just the bolded form of the normal
+                // text color.
+                this.ForegroundColor = s_regexTextColor;
+                this.IsBold = true;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexOtherEscape)]
+        [Name(ClassificationTypeNames.RegexOtherEscape)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexOtherEscapeFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexOtherEscapeFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_OtherEscape;
+                this.ForegroundColor = s_regexOtherEscapeColor;
+            }
+        }
+        #endregion
+
         #region JSON
-        
+
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonComment)]
         [Name(ClassificationTypeNames.JsonComment)]
@@ -389,7 +559,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(87, 166, 74);
             }
         }
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonNumber)]
         [Name(ClassificationTypeNames.JsonNumber)]
@@ -405,7 +574,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(181, 206, 168);
             }
         }
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonString)]
         [Name(ClassificationTypeNames.JsonString)]
@@ -421,7 +589,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(214, 157, 133);
             }
         }
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonKeyword)]
         [Name(ClassificationTypeNames.JsonKeyword)]
@@ -437,7 +604,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(86, 156, 214);
             }
         }
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonText)]
         [Name(ClassificationTypeNames.JsonText)]
@@ -453,7 +619,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(220, 220, 220);
             }
         }
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonOperator)]
         [Name(ClassificationTypeNames.JsonOperator)]
@@ -469,7 +634,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(180, 180, 180);
             }
         }
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonPunctuation)]
         [Name(ClassificationTypeNames.JsonPunctuation)]
@@ -485,7 +649,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(220, 220, 220);
             }
         }
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonObject)]
         [Name(ClassificationTypeNames.JsonObject)]
@@ -501,7 +664,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(216, 80, 80);
             }
         }
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonArray)]
         [Name(ClassificationTypeNames.JsonArray)]
@@ -517,7 +679,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(216, 80, 80);
             }
         }
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonPropertyName)]
         [Name(ClassificationTypeNames.JsonPropertyName)]
@@ -533,7 +694,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(202, 121, 236);
             }
         }
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonConstructorName)]
         [Name(ClassificationTypeNames.JsonConstructorName)]
@@ -551,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
-#region VB XML Literals - Attribute Name 
+        #region VB XML Literals - Attribute Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralAttributeName)]
         [Name(ClassificationTypeNames.XmlLiteralAttributeName)]

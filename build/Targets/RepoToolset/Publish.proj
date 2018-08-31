@@ -31,7 +31,7 @@
     <PublishToSourceBuildStorage Condition="'$(DotNetOutputBlobFeedDir)' != ''">true</PublishToSourceBuildStorage>
     
     <PublishToSymbolServer>false</PublishToSymbolServer>
-    <PublishToSymbolServer Condition="'$(UsingToolSymbolUploader)' == 'true' and '$(AzureFeedUrl)' == '' and '$(CIBuild)' == 'true'">true</PublishToSymbolServer>
+    <PublishToSymbolServer Condition="'$(UsingToolSymbolUploader)' == 'true' and '$(AzureFeedUrl)' == '' and '$(ContinuousIntegrationBuild)' == 'true'">true</PublishToSymbolServer>
   </PropertyGroup>
 
   <!-- TODO: Roslyn specific -->

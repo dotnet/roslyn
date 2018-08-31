@@ -75,6 +75,16 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.XmlDocCommentComment, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.XmlDocCommentCDataSection, sourceFormatMap, targetFormatMap);
 
+            UpdateForegroundColor(ClassificationTypeNames.RegexComment, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexText, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexCharacterClass, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexQuantifier, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexAnchor, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexAlternation, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexGrouping, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexOtherEscape, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexSelfEscapedCharacter, sourceFormatMap, targetFormatMap);
+
             UpdateForegroundColor(ClassificationTypeNames.JsonComment, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.JsonNumber, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.JsonString, sourceFormatMap, targetFormatMap);

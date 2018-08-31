@@ -108,7 +108,7 @@ function Process-Arguments() {
         exit 1
     }
 
-    if (($cibuild -and $anyVsi)) {
+    if ((-not $official -and $anyVsi)) {
         # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
         $script:skipAnalyzers = $true
     }
@@ -164,7 +164,11 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     }
 
     if ($official) {
-        $args += " /p:OfficialBuild=true"
+        $args += " /p:OfficialBuildId=" + $env:BUILD_BUILDNUMBER
+    }
+
+    if ($cibuild) {
+        $args += " /p:ContinuousIntegrationBuild=true"
     }
 
     if ($bootstrapDir -ne "") {
@@ -249,7 +253,7 @@ function Build-Artifacts() {
         Run-SignTool
     }
 
-    if ($pack -and ($cibuild -or $official)) {
+    if ($pack -and $cibuild) {
         Build-DeployToSymStore
     }
 
@@ -284,30 +288,9 @@ function Build-ExtraSignArtifacts() {
 
 function Build-InsertionItems() {
 
-    # Create the PerfTests directory under Binaries\$(Configuration).  There are still a number
-    # of tools (in roslyn and roslyn-internal) that depend on this combined directory.
-    function Create-PerfTests() {
-        $target = Join-Path $configDir "PerfTests"
-        Write-Host "PerfTests: $target"
-        Create-Directory $target
-
-        Push-Location $configDir
-        foreach ($subDir in @("Dlls", "UnitTests")) {
-            Push-Location $subDir
-            foreach ($path in Get-ChildItem -re -in "PerfTests") {
-                Write-Host "`tcopying $path"
-                Copy-Item -force -recurse "$path\*" $target
-            }
-            Pop-Location
-        }
-        Pop-Location
-    }
-
     $setupDir = Join-Path $repoDir "src\Setup"
     Push-Location $setupDir
     try {
-        Create-PerfTests
-
         Write-Host "Building VS Insertion artifacts"
         Exec-Console (Join-Path $configDir "Exes\Roslyn.BuildDevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $(Get-PackagesDir)"
 
@@ -317,14 +300,6 @@ function Build-InsertionItems() {
         if (-not $official) {
             $extraArgs = " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
         }
-
-        $insertionDir = Join-Path $configDir "DevDivInsertionFiles"
-        $vsToolsDir = Join-Path $insertionDir "VS.Tools.Roslyn"
-
-        $packageOutDir = Join-Path $configDir "DevDivPackages\Roslyn"
-        Create-Directory $packageOutDir
-
-        Copy-Item (Join-Path $configDir "NuGet\NonShipping\VS.*.nupkg") -Destination $packageOutDir
 
         Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" -buildArgs $extraArgs
@@ -503,7 +478,7 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
-    if ($cibuild -or $official) {
+    if ($cibuild) {
         # Use a 75 minute timeout on CI
         $args += " -xml -timeout:75"
     }
@@ -738,7 +713,7 @@ catch {
 }
 finally {
     Pop-Location
-    if ($cibuild) {
+    if (-not $official) {
         Stop-VSProcesses
         Stop-BuildProcesses
     }

@@ -3,10 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     <RoslynProjectType>Custom</RoslynProjectType>
-    
-    <!-- The package is not published to NuGet.org -->
+
+    <!-- The package is inserted to Visual Studio CoreXT package store -->
     <IsShipping>false</IsShipping>
-    
+    <IsVisualStudioInsertionPackage>true</IsVisualStudioInsertionPackage>
+
     <IsPackable>true</IsPackable>
     <PackageId>VS.ExternalAPIs.Roslyn</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
