@@ -26,9 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private static readonly ImmutableDictionary<string, string> s_projectLanguageToErrorCodePrefixMap =
             ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, new[]
             {
-                        new KeyValuePair<string, string> (LanguageNames.CSharp, "CS"),
-                        new KeyValuePair<string, string> (LanguageNames.VisualBasic, "BC"),
-                        new KeyValuePair<string, string> (LanguageNames.FSharp, "FS"),
+                new KeyValuePair<string, string> (LanguageNames.CSharp, "CS"),
+                new KeyValuePair<string, string> (LanguageNames.VisualBasic, "BC"),
+                new KeyValuePair<string, string> (LanguageNames.FSharp, "FS"),
             });
 
         [ImportingConstructor]
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             VisualStudioProjectFactory projectFactory,
             VisualStudioWorkspaceImpl workspace,
             IProjectCodeModelFactory projectCodeModelFactory,
-            ExternalErrorDiagnosticUpdateSource externalErrorDiagnosticUpdateSource)
+            [Import(AllowDefault = true)] /* not present in unit tests */ ExternalErrorDiagnosticUpdateSource externalErrorDiagnosticUpdateSource)
         {
             _projectFactory = projectFactory;
             _workspace = workspace;
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             object hierarchy,
             string binOutputPath)
         {
-            var visualStudioProject = CreateVisualStudioProject(languageName, projectUniqueName, projectFilePath, binOutputPath, (IVsHierarchy)hierarchy);
+            var visualStudioProject = CreateVisualStudioProject(languageName, projectUniqueName, projectFilePath, (IVsHierarchy)hierarchy, projectGuid);
 
             ProjectExternalErrorReporter errorReporter = null;
 
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 errorReporter = new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, _workspace, _externalErrorDiagnosticUpdateSource);
             }
 
-            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, errorReporter);
+            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, errorReporter, projectGuid, binOutputPath);
         }
 
         // TODO: this is a workaround. Factory has to be refactored so that all callers supply their own error reporters
@@ -75,21 +75,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             string binOutputPath,
             ProjectExternalErrorReporter errorReporter)
         {
-            var visualStudioProject = CreateVisualStudioProject(languageName, projectUniqueName, projectFilePath, binOutputPath, (IVsHierarchy)hierarchy);
-            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, errorReporter);
+            var visualStudioProject = CreateVisualStudioProject(languageName, projectUniqueName, projectFilePath, (IVsHierarchy)hierarchy, projectGuid);
+            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, errorReporter, projectGuid, binOutputPath);
         }
 
-        private VisualStudioProject CreateVisualStudioProject(string languageName, string projectUniqueName, string projectFilePath, string binOutputPath, IVsHierarchy hierarchy)
+        private VisualStudioProject CreateVisualStudioProject(string languageName, string projectUniqueName, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)
         {
             var creationInfo = new VisualStudioProjectCreationInfo
             {
                 FilePath = projectFilePath,
                 Hierarchy = hierarchy,
+                ProjectGuid = projectGuid,
             };
 
             var visualStudioProject = _projectFactory.CreateAndAddToWorkspace(projectUniqueName, languageName, creationInfo);
-
-            visualStudioProject.OutputFilePath = binOutputPath;
 
             if (languageName == LanguageNames.FSharp)
             {
@@ -100,13 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 // so we're caught in the middle doing this.
                 shell.LoadPackage(Guids.FSharpPackageId, out var unused);
             }
-
-            if (binOutputPath != null)
-            {
-                // HACK HACK HACK: properly give a way to set this through the CPS shim
-                visualStudioProject.OutputRefFilePath = Path.Combine(Path.GetDirectoryName(binOutputPath), "ref", Path.GetFileName(binOutputPath));
-            }
-
+            
             return visualStudioProject;
         }
     }

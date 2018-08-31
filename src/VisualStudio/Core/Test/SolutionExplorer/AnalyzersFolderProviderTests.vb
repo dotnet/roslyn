@@ -60,7 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     }
                 }
 
-                Dim mapper = New HierarchyItemMapper(environment.ProjectTracker)
+                Dim mapper = New HierarchyItemToProjectIdMap(environment.Workspace)
 
                 Dim provider As IAttachedCollectionSourceProvider = New AnalyzersFolderItemProvider(mapper, environment.Workspace, New FakeAnalyzersCommandHandler)
 

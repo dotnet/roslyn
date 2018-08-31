@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Gate that is used to guard modifications to <see cref="_taskQueue"/>.
         /// </summary>
-        private static readonly object _gate = new object();
+        private readonly object _taskQueueGate = new object();
 
         /// <summary>
         /// We create a queue of tasks against the IVsFileChangeEx service for two reasons. First, we are obtaining the service asynchronously, and don't want to
@@ -25,25 +25,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// For performance and correctness reasons, NOTHING should ever do a block on this; figure out how to do your work without a block and add any work to
         /// the end of the queue.
         /// </summary>
-        private static Task<IVsFileChangeEx> _taskQueue;
+        private Task<IVsFileChangeEx> _taskQueue;
         private readonly static Func<Task<IVsFileChangeEx>, object, IVsFileChangeEx> _executeActionDelegate =
             (precedingTask, state) => { ((Action<IVsFileChangeEx>)state)(precedingTask.Result); return precedingTask.Result; };
 
         public FileChangeWatcher(Task<IVsFileChangeEx> fileChangeService)
         {
-            lock (_gate)
-            {
-                // Once we already have a queue started, we don't need to start another one -- we might otherwise get things running in parallel which won't end well
-                if (_taskQueue == null)
-                {
-                    _taskQueue = fileChangeService;
-                }
-            }
+            _taskQueue = fileChangeService;
         }
 
         private void EnqueueWork(Action<IVsFileChangeEx> action)
         {
-            lock (_gate)
+            lock (_taskQueueGate)
             {
                 _taskQueue = _taskQueue.ContinueWith(
                     _executeActionDelegate,
@@ -255,8 +248,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public class FileWatchingToken : IFileWatchingToken
             {
                 /// <summary>
-                /// If this has a value, the cookie for the explicit file watch we had to do. If it's null, it means it was contained in the
-                /// directory and we didn't have to do an explicit watch.
+                /// The cookie we have for requesting a watch on this file. Any files that didn't need
+                /// to be watched specifically are equal to <see cref="_noOpFileWatchingToken"/>, so
+                /// any other instance is something that should be watched. Null means we either haven't
+                /// done the subscription (and it's still in the queue) or we had some sort of error
+                /// subscribing in the first place.
                 /// </summary>
                 public uint? Cookie;
             }

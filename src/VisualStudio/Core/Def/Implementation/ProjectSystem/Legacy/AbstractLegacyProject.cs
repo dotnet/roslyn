@@ -75,8 +75,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             ConnectHierarchyEvents();
             RefreshBinOutputPath();
 
-            _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, serviceProvider);
-            _editAndContinueProject = new VsENCRebuildableProjectImpl(Workspace, VisualStudioProject, serviceProvider);
+            // TODO: remove this terrible hack, which is working around shims throwing in not-good ways
+            try
+            {
+                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, serviceProvider);
+                _editAndContinueProject = new VsENCRebuildableProjectImpl(Workspace, VisualStudioProject, serviceProvider);
+            }
+            catch (Exception)
+            {
+            }
 
             _batchScopeCreator = componentModel.GetService<SolutionEventsBatchScopeCreator>();
             _batchScopeCreator.StartTrackingProject(VisualStudioProject, Hierarchy);
@@ -101,6 +108,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
+            // We have tests that assert that XOML files should not get added; this was similar
+            // behavior to how ASP.NET projects would add .aspx files even though we ultimately ignored
+            // them. XOML support is planned to go away for Dev16, but for now leave the logic there.
+            if (filename.EndsWith(".xoml"))
+            {
+                return;
+            }
+
             ImmutableArray<string> folders = default;
 
             var itemid = Hierarchy.TryGetItemId(filename);
@@ -115,6 +130,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         protected void RemoveFile(string filename)
         {
             AssertIsForeground();
+
+            // We have tests that assert that XOML files should not get added; this was similar
+            // behavior to how ASP.NET projects would add .aspx files even though we ultimately ignored
+            // them. XOML support is planned to go away for Dev16, but for now leave the logic there.
+            if (filename.EndsWith(".xoml"))
+            {
+                return;
+            }
 
             VisualStudioProject.RemoveSourceFile(filename);
         }

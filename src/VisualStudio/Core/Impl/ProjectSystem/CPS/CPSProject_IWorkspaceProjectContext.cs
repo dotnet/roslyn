@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
@@ -39,10 +40,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.FilePath = value;
         }
 
-        public Guid Guid { get; set; }
-        public bool LastDesignTimeBuildSucceeded { get; set; }
+        public Guid Guid
+        {
+            get;
+            set; // VisualStudioProject doesn't allow GUID to be changed after creation
+        }
 
-        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, ProjectExternalErrorReporter errorReporterOpt)
+        public bool LastDesignTimeBuildSucceeded
+        {
+            get => _visualStudioProject.HasAllInformation;
+            set => _visualStudioProject.HasAllInformation = value;
+        }
+
+        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, ProjectExternalErrorReporter errorReporterOpt, Guid projectGuid, string binOutputPath)
         {
             _visualStudioProject = visualStudioProject;
             _visualStudioWorkspace = visualStudioWorkspace;
@@ -55,12 +65,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 _visualStudioProjectOptionsProcessor = new VisualStudioProjectOptionsProcessor(_visualStudioProject, visualStudioWorkspace.Services);
             }
+
+            Guid = projectGuid;
+            BinOutputPath = binOutputPath;
         }
 
         public string BinOutputPath
         {
             get => _visualStudioProject.OutputFilePath;
-            set => _visualStudioProject.OutputFilePath = value;
+            set
+            {
+                // If we don't have a path, always set it to null
+                if (string.IsNullOrEmpty(value))
+                {
+                    _visualStudioProject.OutputFilePath = null;
+                    _visualStudioProject.OutputRefFilePath = null;
+                    return;
+                }
+
+                // If we only have a non-rooted path, make it full. This is apparently working around cases
+                // where CPS pushes us a temporary path when they're loading. It's possible this hack
+                // can be removed now, but we still have tests asserting it.
+                if (!PathUtilities.IsAbsolute(value))
+                {
+                    var rootDirectory = _visualStudioProject.FilePath != null
+                                        ? Path.GetDirectoryName(_visualStudioProject.FilePath)
+                                        : Path.GetTempPath();
+
+                    _visualStudioProject.OutputFilePath = Path.Combine(rootDirectory, value);
+                }
+                else
+                {
+                    _visualStudioProject.OutputFilePath = value;
+                }
+
+                // Compute the ref path based on the non-ref path. Ideally this should come from the
+                // project system but we don't have a way to fetch that.
+                _visualStudioProject.OutputRefFilePath = 
+                    Path.Combine(Path.GetDirectoryName(_visualStudioProject.OutputFilePath),
+                    "ref",
+                    Path.GetFileName(_visualStudioProject.OutputFilePath));
+            }
         }
 
         public ProjectId Id => _visualStudioProject.Id;

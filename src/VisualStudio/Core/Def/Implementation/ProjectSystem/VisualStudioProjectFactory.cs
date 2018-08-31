@@ -18,7 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
         [ImportingConstructor]
-        public VisualStudioProjectFactory(VisualStudioWorkspaceImpl visualStudioWorkspaceImpl, HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        // TODO: remove the AllowDefault = true on HostDiagnosticUpdateSource by making it a proper mock
+        public VisualStudioProjectFactory(VisualStudioWorkspaceImpl visualStudioWorkspaceImpl, [Import(AllowDefault = true)] HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
