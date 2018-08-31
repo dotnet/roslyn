@@ -432,6 +432,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return _lineBufferOffset + num < _bufferLen
         End Function
 
+        Private Function TryGet(ByRef Ch As Char) As Boolean
+            Dim ok = CanGet()
+            Ch = If(ok, Peek(), Ch)
+            Return ok
+        End Function
+
+        Private Function TryGet(num As Integer, ByRef Ch As Char) As Boolean
+            Dim ok = CanGet(num)
+            Ch = If(ok, Peek(num), Ch)
+            Return ok
+        End Function
+
         Private Function RemainingLength() As Integer
             Dim result = _bufferLen - _lineBufferOffset
             Debug.Assert(CanGet(result - 1))
@@ -562,7 +574,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If feature is not support error is added to trivia
         ''' </returns>
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
-            If Not CanGet() Then
+            Dim ch As Char
+            If Not TryGet(ch) Then
                 Return False
             End If
 
@@ -570,7 +583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             End If
 
-            Dim ch As Char = Peek()
+
             If Not IsUnderscore(ch) Then
                 Return False
             End If
@@ -579,16 +592,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim atNewLine As Boolean
             ' Line continuation is valid at the end of the line, or at the end of the file, or followed by a trailing comment.
             ' Eg.  LineContinuation ( EndOfLine | EndOfFile | LineContinuationComment)
-            If CanGet(Here) AndAlso (IsWhitespace(Peek(Here)) OrElse IsSingleQuote(Peek(Here))) Then
-                While CanGet(Here)
-                    ch = Peek(Here)
-                    If IsWhitespace(ch) Then
-                        Here += 1
-                    Else
-                        Exit While
-                    End If
+            If TryGet(Here, ch) AndAlso (IsWhitespace(ch) OrElse IsSingleQuote(ch)) Then
+                While TryGet(Here, ch) AndAlso IsWhitespace(ch)
+                    Here += 1
                 End While
-                If CanGet(Here) AndAlso IsSingleQuote(Peek(Here)) Then
+                If TryGet(Here, ch) AndAlso IsSingleQuote(ch) Then
                     ' If you get here you have a Line Continuation with have 0 or more spaces followed by a  comment
                     tList.Add(MakeLineContinuationTrivia(GetText(1)))
                     If Here > 1 Then
@@ -611,9 +619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 ' We don't have a space or ' but we might have an EOF after _ and that is not an error
                 ' This case if different then above because we don't want to skip whitespace after _
-                If CanGet(Here) Then
-                    ch = Peek(Here)
-                End If
+                TryGet(Here, ch)
                 If Not Original_Scanner(atNewLine, tList, ch) Then
                     Return False
                 End If
@@ -630,8 +636,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' implicit line continuations. (See Scanner::EatLineContinuation.) Otherwise,
                 ' include the new line and any additional spaces as trivia.
                 If startComment = 0 AndAlso
-                    CanGet(Here) AndAlso
-                    Not IsNewLine(Peek(Here)) Then
+                    TryGet(Here, ch) AndAlso
+                    Not IsNewLine(ch) Then
 
                     tList.Add(MakeEndOfLineTrivia(GetText(newLine)))
                     If spaces > 0 Then
