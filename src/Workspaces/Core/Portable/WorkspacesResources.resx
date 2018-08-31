@@ -697,6 +697,7 @@
   <data name="Variables_captured_colon" xml:space="preserve">
     <value>Variables captured:</value>
   </data>
+>>>>>>> jsonParsing
   <data name="Alternation_conditions_cannot_be_comments" xml:space="preserve">
     <value>Alternation conditions cannot be comments</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a|(?#b)</comment>
@@ -819,7 +820,6 @@
   </data>
   <data name="x_y_range_in_reverse_order" xml:space="preserve">
     <value>[x-y] range in reverse order</value>
-    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: [b-a]</comment>
   </data>
   <data name="Regex_issue_0" xml:space="preserve">
     <value>Regex issue: {0}</value>

@@ -1090,7 +1090,7 @@
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="new">[x-y] range in reverse order</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [b-a]</note>
+        <note />
       </trans-unit>
       <trans-unit id="Variables_captured_colon">
         <source>Variables captured:</source>
