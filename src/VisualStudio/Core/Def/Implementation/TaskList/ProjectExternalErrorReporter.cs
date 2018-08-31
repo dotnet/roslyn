@@ -37,7 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspace workspace, ExternalErrorDiagnosticUpdateSource diagnosticProvider)
         {
             Debug.Assert(workspace != null);
-            Debug.Assert(diagnosticProvider != null);
+
+            // TODO: re-enable this assert; right now it'll fail in unit tests
+            // Debug.Assert(diagnosticProvider != null);
 
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;

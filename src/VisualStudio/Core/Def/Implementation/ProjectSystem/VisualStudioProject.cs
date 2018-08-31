@@ -45,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string _filePath;
         private CompilationOptions _compilationOptions;
         private ParseOptions _parseOptions;
+        private bool _hasAllInformation = true;
         private string _intermediateOutputFilePath;
         private string _outputFilePath;
         private string _outputRefFilePath;
@@ -232,6 +233,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        s => s.WithProjectName(Id, value),
                        w => w.OnProjectNameChanged(Id, value, _filePath));
         }
+        
+        // internal to match the visibility of the Workspace-level API -- this is something
+        // we use but we haven't made officially public yet.
+        internal bool HasAllInformation
+        {
+            get => _hasAllInformation;
+            set => ChangeProjectProperty(ref _hasAllInformation,
+                       value,
+                       s => s.WithHasAllInformation(Id, value),
+                       w => w.OnHasAllInformationChanged(Id, value));
+        }
+
 
         #region Batching
 
