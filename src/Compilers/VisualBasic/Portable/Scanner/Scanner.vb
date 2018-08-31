@@ -549,13 +549,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function Original_Scanner(ByRef atNewLine As Boolean, ByRef tList As SyntaxListBuilder, ch As Char, Optional Here As Integer = 1) As Boolean
             atNewLine = IsNewLine(ch)
-            If Not atNewLine AndAlso CanGet(Here) Then
-                ' If we get here we have an error, return trivia is Nothing
-                Return False
-            End If
-
-            'AddLineContinuationAndOptionalWhitespaces(tList, Here)
-            Return True
+            Return Not (atNewLine OrElse Not CanGet(Here))
+            'If Not atNewLine AndAlso CanGet(Here) Then
+            '    ' If we get here we have an error, return trivia is Nothing
+            '    Return False
+            'End If
+            'Return True
         End Function
 
         Private Sub AddLineContinuationAndOptionalWhitespaces(tList As SyntaxListBuilder, Here As Integer)
@@ -588,38 +587,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim Here = 1
             Dim atNewLine As Boolean
             Dim ch As Char
+            Dim HasOptionalWhiteSpaceOrComment = True
+            Dim HasComment = False
             ' Line continuation is valid at the end of the line, or at the end of the file, or followed by a trailing comment.
             ' Eg.  LineContinuation ( EndOfLine | EndOfFile | LineContinuationComment) 
             If Not TryGet(ch) OrElse Not IsAfterWhitespace() OrElse Not IsUnderscore(ch) Then
                 Return False
             ElseIf Not TryGet(Here, ch) OrElse (Not IsWhitespace(ch) AndAlso PeekStartComment(Here, AllowREM:=False) <= 0) Then
                 ' We don't have a space or ' but we might have an EOF after _ and that is not an error
-                If Not Original_Scanner(atNewLine, tList, ch) Then
+                If Original_Scanner(atNewLine, tList, ch) Then
                     Return False
                 End If
-                AddLineContinuationAndOptionalWhitespaces(tList, Here)
-            Else
+                HasOptionalWhiteSpaceOrComment = False
+            End If
+            If HasOptionalWhiteSpaceOrComment Then
                 ' We have a Line Continuation
                 PeekWhitespace(Here, ch)
                 ' followed optional whitespace(s)
-                Dim HasComment = PeekStartComment(Here, AllowREM:=False) > 0
-                If Not HasComment AndAlso Not Original_Scanner(atNewLine, tList, ch, Here) Then
+                HasComment = PeekStartComment(Here, AllowREM:=False) > 0
+                If Not HasComment AndAlso Original_Scanner(atNewLine, tList, ch, Here) Then
                     '... without a comment.
                     ' so process as V15.5
                     Return False
                 End If
-                AddLineContinuationAndOptionalWhitespaces(tList, Here)
-                If HasComment Then
-                    ' ... with a comment.
-                    ' Scan the comment trivia.
-                    Dim comment As SyntaxTrivia = ScanComment(AllowREM:=False)
-                    comment = Parser.CheckFeatureAvailability(Feature.CommentsAfterLineContinuation, comment, Options.LanguageVersion)
-                    ' Add the comment trivia.
-                    tList.Add(comment)
-                    ch = Peek()
-                    atNewLine = IsNewLine(ch)
-                End If
             End If
+            AddLineContinuationAndOptionalWhitespaces(tList, Here)
+            If HasComment Then
+                ' ... with a comment.
+                ' Scan the comment trivia.
+                Dim comment As SyntaxTrivia = ScanComment(AllowREM:=False)
+                comment = Parser.CheckFeatureAvailability(Feature.CommentsAfterLineContinuation, comment, Options.LanguageVersion)
+                ' Add the comment trivia.
+                tList.Add(comment)
+                ch = Peek()
+                atNewLine = IsNewLine(ch)
+            End If
+
 
             ' if there is another line.
             If atNewLine AndAlso CanGet() Then
