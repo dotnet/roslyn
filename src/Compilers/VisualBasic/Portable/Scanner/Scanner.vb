@@ -547,14 +547,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MakeEndOfLineTrivia(GetNextChar)
         End Function
 
-        Private Function Original_Scanner(ByRef atNewLine As Boolean, ByRef tList As SyntaxListBuilder, ch As Char, Optional Here As Integer = 1) As Boolean
+        Private Function IsPreLineContinuationCommentErrorState(ByRef atNewLine As Boolean, ByRef tList As SyntaxListBuilder, ch As Char, Optional Here As Integer = 1) As Boolean
             atNewLine = IsNewLine(ch)
-            Return Not (atNewLine OrElse Not CanGet(Here))
-            'If Not atNewLine AndAlso CanGet(Here) Then
-            '    ' If we get here we have an error, return trivia is Nothing
-            '    Return False
-            'End If
-            'Return True
+            '   Return Not (atNewLine OrElse Not CanGet(Here))
+            If Not atNewLine AndAlso CanGet(Here) Then
+                ' If we get here we have an error, return trivia is Nothing
+                Return True
+            End If
+            Return False
         End Function
 
         Private Sub AddLineContinuationAndOptionalWhitespaces(tList As SyntaxListBuilder, Here As Integer)
@@ -595,7 +595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             ElseIf Not TryGet(Here, ch) OrElse (Not IsWhitespace(ch) AndAlso PeekStartComment(Here, AllowREM:=False) <= 0) Then
                 ' We don't have a space or ' but we might have an EOF after _ and that is not an error
-                If Original_Scanner(atNewLine, tList, ch) Then
+                If IsPreLineContinuationCommentErrorState(atNewLine, tList, ch) Then
                     Return False
                 End If
                 HasOptionalWhiteSpaceOrComment = False
@@ -605,7 +605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 PeekWhitespace(Here, ch)
                 ' followed optional whitespace(s)
                 HasComment = PeekStartComment(Here, AllowREM:=False) > 0
-                If Not HasComment AndAlso Original_Scanner(atNewLine, tList, ch, Here) Then
+                If Not HasComment AndAlso IsPreLineContinuationCommentErrorState(atNewLine, tList, ch, Here) Then
                     '... without a comment.
                     ' so process as V15.5
                     Return False
@@ -622,7 +622,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ch = Peek()
                 atNewLine = IsNewLine(ch)
             End If
-
 
             ' if there is another line.
             If atNewLine AndAlso CanGet() Then
