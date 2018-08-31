@@ -19,7 +19,16 @@
   <Target Name="Build">
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)microbuild.ps1 -restore -official $(ScriptArgs) " />
 
-    <MSBuild Projects="PublishBlobAssets.proj" Condition="'$(PB_PublishType)' == 'blob'" />
+    <ItemGroup>
+      <_PublishProps Include="Configuration=$(Configuration)"/>
+      <_PublishProps Include="CIBuild=true"/>
+      <_PublishProps Include="AzureFeedUrl=$(PB_PublishBlobFeedUrl)" Condition="'$(PB_PublishType)' == 'blob'" />
+      <_PublishProps Include="AzureAccountKey=$(PB_PublishBlobFeedKey)" Condition="'$(PB_PublishType)' == 'blob'" />
+    </ItemGroup>
+
+    <MSBuild Projects="..\..\..\build\Targets\RepoToolset\Publish.proj" 
+             Properties="@(_PublishProps)" 
+             Targets="Publish" />
   </Target>
 
 </Project>

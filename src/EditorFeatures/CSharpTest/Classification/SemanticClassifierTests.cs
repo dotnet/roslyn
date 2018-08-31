@@ -2185,6 +2185,7 @@ struct Type<T>
                     var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
                     var provider = new SemanticClassificationViewTaggerProvider(
+                        workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                         workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                         workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                         workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
@@ -2216,6 +2217,7 @@ struct Type<T>
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
                 var provider = new SemanticClassificationBufferTaggerProvider(
+                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                     workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
@@ -2626,6 +2628,13 @@ class X
                 Keyword("var"),
                 Escape(@"{{"),
                 Escape(@"}}"));
+        }
+
+        [WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestDirectiveStringLiteral()
+        {
+            await TestInMethodAsync(@"#line 1 ""a\b""");
         }
     }
 }

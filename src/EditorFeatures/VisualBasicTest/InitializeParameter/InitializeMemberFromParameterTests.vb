@@ -411,5 +411,49 @@ class C
     public ReadOnly Property T As String
 end class")
         End Function
+
+        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeFieldWithParameterNameSelected1() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    private s As String
+
+    public sub new([|s|] As String)
+
+    end sub
+end class",
+"
+class C
+    private s As String
+
+    public sub new(s As String)
+        Me.s = s
+    end sub
+end class")
+        End Function
+
+        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeFieldWithParameterNameSelected2() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    private s As String
+
+    public sub new(i as integer, [|s|] As String)
+
+    end sub
+end class",
+"
+class C
+    private s As String
+
+    public sub new(i as integer, s As String)
+        Me.s = s
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

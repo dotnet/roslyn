@@ -74,7 +74,7 @@
   <PropertyGroup Condition="'$(TargetFrameworks)' != ''">
     <IntermediateOutputPath>$(IntermediateOutputPath)$(TargetFramework.ToLowerInvariant())\</IntermediateOutputPath>
     <OutputPath Condition="'$(RoslynProjectType)' != 'SourcePackage'">$(OutputPath)$(TargetFramework.ToLowerInvariant())\</OutputPath>
-    <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(Language)' == 'CSharp'">$(IntermediateOutputPath)$(AssemblyName).xml</DocumentationFile>
+    <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(Language)' == 'C#'">$(IntermediateOutputPath)$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
   <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
