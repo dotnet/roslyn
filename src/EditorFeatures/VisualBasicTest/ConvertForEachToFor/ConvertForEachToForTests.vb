@@ -243,6 +243,23 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        Public Async Function CommentNotSupportedCommentsAfterLineContinuation() As Task
+            Dim initial = "
+Class Test
+    Sub Method()
+        For Each [||] a _ ' test
+            In ' test
+            New Integer() {1, 2, 3}
+        Next
+    End Sub
+End Class
+"
+
+            Await TestMissingInRegularAndScriptAsync(initial)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function LineContinuation() As Task
             Dim initial = "

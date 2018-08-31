@@ -215,6 +215,16 @@ Sub M()
 </ClassDeclaration>, "Sub")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<ClassDeclaration>
+Sub M()
+        Exit _ ' Test
+|
+</ClassDeclaration>, "Sub")
+        End Function
+
         <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterAsyncTest() As Task

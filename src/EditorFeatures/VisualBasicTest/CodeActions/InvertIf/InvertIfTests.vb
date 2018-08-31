@@ -414,7 +414,7 @@ End Module")
     Sub Main()
 #End ExternalSource
         goo()
-#ExternalSource File.vb 1 
+#ExternalSource File.vb 1
         [||]If a Then
             aMethod()
         Else
@@ -426,7 +426,7 @@ End Module",
     Sub Main()
 #End ExternalSource
         goo()
-#ExternalSource File.vb 1 
+#ExternalSource File.vb 1
         If Not a Then
             bMethod()
         Else
@@ -441,7 +441,7 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
-#ExternalSource File.vb 1 
+#ExternalSource File.vb 1
         [||]If a Then
             aMethod()
         Else
@@ -452,7 +452,7 @@ End Module")
 End Module",
 "Module Program
     Sub Main()
-#ExternalSource File.vb 1 
+#ExternalSource File.vb 1
         If Not a Then
             bMethod()
         Else
@@ -470,7 +470,7 @@ End Module")
 "Module Program
     Sub Main()
         [||]If a Then
-#ExternalSource File.vb 1 
+#ExternalSource File.vb 1
             aMethod()
 #End ExternalSource
         Else
@@ -489,7 +489,7 @@ End Module")
         If a Then
             aMethod()
         [||]Else If b Then
-#ExternalSource File.vb 1 
+#ExternalSource File.vb 1
             bMethod()
 #End ExternalSource
         Else
@@ -506,7 +506,7 @@ End Module")
     Sub Main()
         [||]If a Then
             aMethod()
-#ExternalSource File.vb 1 
+#ExternalSource File.vb 1
         Else If b Then
             bMethod()
 #End ExternalSource
@@ -526,7 +526,7 @@ End Module")
         [||]If a Then
             aMethod()
         Else
-#ExternalSource File.vb 1 
+#ExternalSource File.vb 1
             bMethod()
 #End ExternalSource
         End If
@@ -541,7 +541,7 @@ End Module")
 "Module Program
     Sub Main()
         [||]If a Then
-#ExternalSource File.vb 1 
+#ExternalSource File.vb 1
             aMethod()
         Else
             bMethod()
@@ -559,7 +559,7 @@ End Module")
     Sub Main()
         [||]If a Then
             aMethod()
-#ExternalSource File.vb 1 
+#ExternalSource File.vb 1
         Else
 #End ExternalSource
             bMethod()
@@ -620,10 +620,10 @@ End Module")
         Public Async Function TestTriviaAfterSingleLineIfStatement() As Task
             Await TestFixOneAsync(
 "
-        [||]If a Then aMethod() Else bMethod() ' I will stay put 
+        [||]If a Then aMethod() Else bMethod() ' I will stay put
 ",
 "
-        If Not a Then bMethod() Else aMethod() ' I will stay put 
+        If Not a Then bMethod() Else aMethod() ' I will stay put
 ")
         End Function
 
@@ -636,7 +636,7 @@ End Module")
             aMethod()
         Else
             bMethod()
-        End If ' I will stay put 
+        End If ' I will stay put
     End Sub
 End Module",
 "Module Program
@@ -645,7 +645,7 @@ End Module",
             bMethod()
         Else
             aMethod()
-        End If ' I will stay put 
+        End If ' I will stay put
     End Sub
 End Module")
         End Function
@@ -679,6 +679,31 @@ End Module",
 "Module Program
     Sub Main()
         If (Not a Or Not b) _
+        And Not c Then
+            bMethod()
+        Else
+            aMethod()
+        End If
+    End Sub
+End Module")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        Public Async Function TestKeepExplicitLineContinuationTriviaMethodCommentsAfterLineContinuation() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main()
+        I[||]f a And b _ ' Test
+        Or c Then
+            aMethod()
+        Else
+            bMethod()
+        End If
+    End Sub
+End Module",
+"Module Program
+    Sub Main()
+        If (Not a Or Not b) _ ' Test
         And Not c Then
             bMethod()
         Else
@@ -784,7 +809,7 @@ End Module")
 "Module Program
     Sub Main(args As String())
         Dim x() As String
-        [||]If x.Length > 0x0 Then 
+        [||]If x.Length > 0x0 Then
             GreaterThanZero()
         Else
             EqualsZero()
@@ -794,7 +819,7 @@ End Module",
 "Module Program
     Sub Main(args As String())
         Dim x() As String
-        If x.Length = 0x0 Then 
+        If x.Length = 0x0 Then
             EqualsZero()
         Else
             GreaterThanZero()
@@ -885,13 +910,13 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
-        ' Invert If 
+        ' Invert If
         I[||]f False Then Return Else : Console.WriteLine(1)
     End Sub
 End Module",
 "Module Program
     Sub Main()
-        ' Invert If 
+        ' Invert If
         If True Then Else Return
         Console.WriteLine(1)
     End Sub
@@ -905,13 +930,13 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
-        ' Invert the 1st If 
+        ' Invert the 1st If
         I[||]f True Then Console.WriteLine(1) Else If True Then Return
     End Sub
 End Module",
 "Module Program
     Sub Main()
-        ' Invert the 1st If 
+        ' Invert the 1st If
         If False Then If True Then Return Else : Else Console.WriteLine(1)
     End Sub
 End Module")
@@ -923,13 +948,13 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
-        ' Invert If 
+        ' Invert If
         Dim x = Sub() I[||]f True Then Dim y Else Console.WriteLine(), z = 1
     End Sub
 End Module",
 "Module Program
     Sub Main()
-        ' Invert If 
+        ' Invert If
         Dim x = (Sub() If False Then Console.WriteLine() Else Dim y), z = 1
     End Sub
 End Module")

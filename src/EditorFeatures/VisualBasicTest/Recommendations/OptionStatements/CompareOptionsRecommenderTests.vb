@@ -23,5 +23,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Op
 <File>Option Compare _
 |</File>, "Binary", "Text")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<File>Option Compare _ ' Test
+|</File>, "Binary", "Text")
+        End Function
     End Class
 End Namespace
