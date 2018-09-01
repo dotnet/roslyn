@@ -850,8 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(false); // PROTOTYPE(NullableReferenceTypes): Can we reach this?
-                return false;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
