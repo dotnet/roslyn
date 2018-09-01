@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         // Disable diagnosing documentation comments by default so that we don't need to
         // document every public member of every test input.
-        // PROTOTYPE(NullableReferenceTypes): Use default for LanguageVersion rather than LanguageVersion.CSharp7.3.
         public static readonly CSharpParseOptions RegularDefault = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse);
         public static readonly CSharpParseOptions Regular = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp8);
         public static readonly CSharpParseOptions ScriptDefault = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.Parse);

@@ -36,8 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public override bool VisitNamedType(NamedTypeSymbol symbol)
         {
-            // PROTOTYPE(NullableReferenceTypes): Check BaseType and Interfaces type arguments.
-            if (AddIfUsesIsNullable(symbol, symbol.TypeParameters))
+            if (AddIfUsesIsNullable(symbol, symbol.BaseTypeNoUseSiteDiagnostics) ||
+                AddIfUsesIsNullable(symbol, symbol.InterfacesNoUseSiteDiagnostics()) ||
+                AddIfUsesIsNullable(symbol, symbol.TypeParameters))
             {
                 return true;
             }
@@ -110,6 +111,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return false;
         }
 
+        private bool AddIfUsesIsNullable(Symbol symbol, ImmutableArray<NamedTypeSymbol> interfaces)
+        {
+            foreach (var type in interfaces)
+            {
+                if (UsesIsNullable(type))
+                {
+                    Add(symbol);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private bool AddIfUsesIsNullable(Symbol symbol, TypeSymbolWithAnnotations type)
         {
             if (UsesIsNullable(type))
@@ -119,6 +133,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
             return false;
         }
+
+        private bool AddIfUsesIsNullable(Symbol symbol, TypeSymbol type)
+        {
+            if (UsesIsNullable(type))
+            {
+                Add(symbol);
+                return true;
+            }
+            return false;
+        }
+
 
         private bool UsesIsNullable(TypeSymbolWithAnnotations type)
         {
