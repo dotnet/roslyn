@@ -96,7 +96,7 @@ public class C<T>
         [Fact]
         public void NoNullableAnalysisWithoutNonNullTypes()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            var source = @"
 class C
 {
     void M(string z)
@@ -105,9 +105,61 @@ class C
         z.ToString();
     }
 }
-");
+[System.Runtime.CompilerServices.NonNullTypes]
+class C2
+{
+    void M(string z)
+    {
+        z = null; // 1
+        z.ToString(); // 2
+    }
+}
+";
+            var c = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition });
+            c.VerifyDiagnostics(
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         z = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(15, 13),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(16, 9)
+                );
 
-            c.VerifyDiagnostics();
+            var c2 = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition}, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            c2.VerifyDiagnostics(
+                // (10,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [System.Runtime.CompilerServices.NonNullTypes]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(10, 2)
+                );
+        }
+
+        [Fact]
+        public void NonNullTypesOnPartialSymbol()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.NonNullTypes]
+partial class C
+{
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    partial void M();
+}
+[System.Runtime.CompilerServices.NonNullTypes]
+partial class C
+{
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    partial void M() { }
+}
+
+";
+            var c = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition });
+            c.VerifyDiagnostics(
+                // (8,2): error CS0579: Duplicate 'System.Runtime.CompilerServices.NonNullTypes' attribute
+                // [System.Runtime.CompilerServices.NonNullTypes]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypes").WithLocation(8, 2),
+                // (11,6): error CS0579: Duplicate 'System.Runtime.CompilerServices.NonNullTypes' attribute
+                //     [System.Runtime.CompilerServices.NonNullTypes(false)]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypes").WithLocation(11, 6)
+                );
         }
 
         [Fact]
@@ -30985,7 +31037,7 @@ F(v).ToString();";
         /// should not result in a warning at the call site.
         /// </summary>
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "Null check on default value temporarily skipped")]
+        [Fact]
         public void ParameterDefaultValue_FromMetadata()
         {
             var source0 =
@@ -31024,7 +31076,7 @@ F(v).ToString();";
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "Null check on default value temporarily skipped")]
+        [Fact]
         public void ParameterDefaultValue_01()
         {
             var source =
@@ -31118,7 +31170,7 @@ F(v).ToString();";
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "Null check on default value temporarily skipped")]
+        [Fact]
         public void ParameterDefaultValue_03()
         {
             var source =
@@ -31252,6 +31304,12 @@ class P
                 // (33,28): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F6<object, object>(default);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(33, 28),
+                // (39,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 0
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(39, 15),
+                // (41,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, T>(default); // 0
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(41, 18),
                 // (46,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F0<T>(default); // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(46, 15),
@@ -31261,6 +31319,15 @@ class P
                 // (50,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F6<T, T>(default); // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(50, 18),
+                // (66,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(66, 15),
+                // (69,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F3<T>(default); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(69, 15),
+                // (72,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, T>(default); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(72, 18),
                 // (78,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F0<T>(default); // 4
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(78, 15),
@@ -31275,11 +31342,31 @@ class P
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(84, 15),
                 // (86,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F6<T, T>(default); // 4
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(86, 18));
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(86, 18),
+                // (91,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(91, 15),
+                // (93,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F5<T>(default); // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(93, 15),
+                // (95,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, T>(default); // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(95, 18),
+                // (100,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 6
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(100, 15),
+                // (102,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, U>(default); // 6
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(102, 18)
+                );
 
             // No warnings with C#7.3.
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics();
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                );
         }
 
         [Fact]
@@ -31427,7 +31514,7 @@ class Client
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "Null check on default value temporarily skipped")]
+        [Fact]
         public void ParameterDefaultValue_04()
         {
             var source =

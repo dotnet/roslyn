@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             visitor.Visit(symbol);
         }
 
+        private void Add(Symbol symbol)
+            => _builder.Add(symbol);
+
         public override bool VisitNamespace(NamespaceSymbol symbol)
         {
             return VisitList(symbol.GetMembers());
@@ -76,9 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
             return result;
         }
-
-        private void Add(Symbol symbol)
-            => _builder.Add(symbol);
 
         /// <summary>
         /// Check the parameters of a method or property, but report that method/property rather than

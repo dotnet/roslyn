@@ -234,36 +234,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // PROTOTYPE(NullableReferenceTypes): calling IsNullable causes cycle
-            //if (parameterType.IsNullable == false &&
-            //    parameterType.IsReferenceType &&
-            //    convertedExpression.ConstantValue?.IsNull == true &&
-            //    !suppressNullableWarning(convertedExpression))
-            //{
-            //    diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, parameterSyntax.Default.Value.Location);
-            //}
+            if (parameterType.IsReferenceType &&
+                convertedExpression.ConstantValue?.IsNull == true &&
+                !suppressNullableWarning(convertedExpression) &&
+                DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureStaticNullChecking.RequiredVersion())
+            {
+                // Note: Eagerly calling IsNullable causes a cycle, so we delay the check
+                diagnostics.Add(new LazyNullAsNonNullableDiagnosticInfo(parameterType), parameterSyntax.Default.Value.Location);
+            }
 
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
             VerifyParamDefaultValueMatchesAttributeIfAny(value, defaultSyntax.Value, diagnostics);
             return value;
 
-            //bool suppressNullableWarning(BoundExpression expr)
-            //{
-            //    while (true)
-            //    {
-            //        switch (expr.Kind)
-            //        {
-            //            case BoundKind.Conversion:
-            //                expr = ((BoundConversion)expr).Operand;
-            //                break;
-            //            case BoundKind.SuppressNullableWarningExpression:
-            //                return true;
-            //            default:
-            //                return false;
-            //        }
-            //    }
-            //}
+            bool suppressNullableWarning(BoundExpression expr)
+            {
+                while (true)
+                {
+                    switch (expr.Kind)
+                    {
+                        case BoundKind.Conversion:
+                            expr = ((BoundConversion)expr).Operand;
+                            break;
+                        case BoundKind.SuppressNullableWarningExpression:
+                            return true;
+                        default:
+                            return false;
+                    }
+                }
+            }
         }
 
         public override string MetadataName
