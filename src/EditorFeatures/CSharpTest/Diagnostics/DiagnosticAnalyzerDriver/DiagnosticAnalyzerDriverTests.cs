@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
-            // PROTOTYPE(NullableReferenceTypes): AllInOneCSharpCode has no ! operator.
             var syntaxKindsMissing = new HashSet<SyntaxKind>();
-            syntaxKindsMissing.Add(SyntaxKind.SuppressNullableWarningExpression);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular))

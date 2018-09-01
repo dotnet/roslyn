@@ -144,7 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return false;
         }
 
-
         private bool UsesIsNullable(TypeSymbolWithAnnotations type)
         {
             if (type.IsNull)
