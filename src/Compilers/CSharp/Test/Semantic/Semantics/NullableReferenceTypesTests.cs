@@ -149,7 +149,6 @@ partial class C
     [System.Runtime.CompilerServices.NonNullTypes(false)]
     partial void M() { }
 }
-
 ";
             var c = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition });
             c.VerifyDiagnostics(
@@ -160,6 +159,25 @@ partial class C
                 //     [System.Runtime.CompilerServices.NonNullTypes(false)]
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypes").WithLocation(11, 6)
                 );
+        }
+
+        [Fact(Skip = "Hits assertion in CheckValueKind")]
+        public void SuppressionAsLValue()
+        {
+            var source = @"
+class C
+{
+    void M(string? x)
+    {
+        ref string y = ref x;
+        ref string y2 = ref x;
+        (y2! = ref y) = ref y;
+    }
+}
+";
+            // PROTOTYPE(NullableReferenceTypes): should we produce an error for misuse of suppression on an L-value?
+            var c = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -31073,6 +31091,20 @@ F(v).ToString();";
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         C.F(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void ParameterDefaultValue_WithSuppression()
+        {
+            var source0 =
+@"class C
+{
+    void F(object o = null!)
+    {
+    }
+}";
+            var comp = CreateCompilation( new[] { source0, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
