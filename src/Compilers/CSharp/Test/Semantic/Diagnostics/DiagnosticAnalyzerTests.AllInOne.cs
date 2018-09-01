@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
 
             var syntaxKindsMissing = new HashSet<SyntaxKind>();
-            syntaxKindsMissing.Add(SyntaxKind.SuppressNullableWarningExpression);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
