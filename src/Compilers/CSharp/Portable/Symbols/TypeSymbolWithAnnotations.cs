@@ -148,7 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static TypeSymbolWithAnnotations Create(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, bool isAnnotated = false, ImmutableArray<CustomModifier> customModifiers = default)
         {
             Debug.Assert(nonNullTypesContext != null);
-            Debug.Assert((nonNullTypesContext as Symbol)?.IsDefinition != false);
+            // PROTOTYPE(NullableReferenceTypes): Enable the assert below.
+            //Debug.Assert((nonNullTypesContext as Symbol)?.IsDefinition != false);
 
             if (typeSymbol is null)
             {
