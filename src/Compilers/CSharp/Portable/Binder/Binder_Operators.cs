@@ -2053,11 +2053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = expr.Type;
             if (type?.IsValueType == true)
             {
-                // Report diagnostic if the type is a value type.
-                // PROTOTYPE(NullableReferenceTypes): Rather than checking for reference types,
-                // check whether the suppression is necessary (in NullableWalker) and warn if not.
-                // PROTOTYPE(NullableReferenceTypes): Should be a warning, not an error.
-                Error(diagnostics, ErrorCode.ERR_NotNullableOperatorNotReferenceType, node);
+                Error(diagnostics, ErrorCode.WRN_SuppressionOperatorNotReferenceType, node);
             }
             return new BoundSuppressNullableWarningExpression(node, expr, type);
         }
