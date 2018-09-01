@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression SetInferredType(TypeSymbolWithAnnotations type)
         {
             Debug.Assert((object)Type == null && !type.IsNull);
-            // PROTOTYPE(NullableReferenceTypes): we're dropping the annotation
             return this.Update(type.TypeSymbol);
         }
 
