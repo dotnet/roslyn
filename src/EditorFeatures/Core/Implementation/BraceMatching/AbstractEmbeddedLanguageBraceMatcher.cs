@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
+            var languagesProvider = document.GetLanguageService<IEditorFeaturesEmbeddedLanguagesProvider>();
             if (languagesProvider != null)
             {
                 foreach (var language in languagesProvider.GetEmbeddedLanguages())
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                             document, position, cancellationToken).ConfigureAwait(false);
                         if (result != null)
                         {
-                            return new BraceMatchingResult(result.Value.LeftSpan, result.Value.RightSpan);
+                            return result;
                         }
                     }
                 }

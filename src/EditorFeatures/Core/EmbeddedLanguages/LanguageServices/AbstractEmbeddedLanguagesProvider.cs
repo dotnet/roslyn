@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// <summary>
     /// Abstract implementation of the C# and VB embedded language providers.
     /// </summary>
-    internal abstract class AbstractFeaturesEmbeddedLanguagesProvider : AbstractEmbeddedLanguagesProvider, IFeaturesEmbeddedLanguagesProvider
+    internal abstract class AbstractEditorFeaturesEmbeddedLanguagesProvider : AbstractFeaturesEmbeddedLanguagesProvider, IEditorFeaturesEmbeddedLanguagesProvider
     {
-        private readonly ImmutableArray<IFeaturesEmbeddedLanguage> _embeddedLanguages;
+        private readonly ImmutableArray<IEditorFeaturesEmbeddedLanguage> _embeddedLanguages;
          
-        protected AbstractFeaturesEmbeddedLanguagesProvider(
+        protected AbstractEditorFeaturesEmbeddedLanguagesProvider(
             int stringLiteralTokenKind,
             int interpolatedTextTokenKind,
             ISyntaxFactsService syntaxFacts,
@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             IVirtualCharService virtualCharService)
             : base(stringLiteralTokenKind, interpolatedTextTokenKind, syntaxFacts, semanticFacts, virtualCharService)
         {
-            _embeddedLanguages = ImmutableArray.Create<IFeaturesEmbeddedLanguage>(
-                new RegexFeaturesEmbeddedLanguage(stringLiteralTokenKind, syntaxFacts, semanticFacts, virtualCharService));
+            _embeddedLanguages = ImmutableArray.Create<IEditorFeaturesEmbeddedLanguage>(
+                new RegexEditorFeaturesEmbeddedLanguage(stringLiteralTokenKind, syntaxFacts, semanticFacts, virtualCharService));
         }
 
-        public new ImmutableArray<IFeaturesEmbeddedLanguage> GetEmbeddedLanguages()
+        public new ImmutableArray<IEditorFeaturesEmbeddedLanguage> GetEmbeddedLanguages()
             => _embeddedLanguages;
     }
 }

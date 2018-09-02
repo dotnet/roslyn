@@ -78,45 +78,5 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 
             return Task.CompletedTask;
         }
-
-        //public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        //{
-        //    var firstDiagnostic = context.Diagnostics[0];
-
-        //    if (_diagnosticIdToCodeFixProvider.TryGetValue(firstDiagnostic.Id, out var provider))
-        //    {
-        //        context.RegisterCodeFix(new MyCodeAction(
-        //            provider.Title,
-        //            c => FixAsync(context.Document, firstDiagnostic, c)),
-        //            context.Diagnostics);
-        //    }
-
-        //    return Task.CompletedTask;
-        //}
-
-        //protected override Task FixAllAsync(
-        //    Document document, ImmutableArray<Diagnostic> diagnostics,
-        //    SyntaxEditor editor, CancellationToken cancellationToken)
-        //{
-        //    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-        //    foreach (var diagnostic in diagnostics)
-        //    {
-        //        if (_diagnosticIdToCodeFixProvider.TryGetValue(diagnostic.Id, out var provider))
-        //        {
-        //            // Defer to the underlying IEmbeddedCodeFixProvider to actually fix.
-        //            provider.Fix(editor, diagnostic, cancellationToken);
-        //        }
-        //    }
-
-        //    return Task.CompletedTask;
-        //}
-
-        //private class MyCodeAction : CodeAction.DocumentChangeAction
-        //{
-        //    public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
-        //        : base(title, createChangedDocument)
-        //    {
-        //    }
-        //}
     }
 }
