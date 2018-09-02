@@ -9,14 +9,14 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers
 {
-    internal abstract class AbstractEmbeddedLanguagesTokenClassifier : ISyntaxClassifier
+    internal abstract class AbstractEmbeddedLanguagesClassifier : ISyntaxClassifier
     {
         private readonly IEmbeddedLanguagesProvider _languagesProvider;
 
         public ImmutableArray<Type> SyntaxNodeTypes { get; }
         public ImmutableArray<int> SyntaxTokenKinds { get; }
 
-        protected AbstractEmbeddedLanguagesTokenClassifier(IEmbeddedLanguagesProvider languagesProvider)
+        protected AbstractEmbeddedLanguagesClassifier(IEmbeddedLanguagesProvider languagesProvider)
         {
             _languagesProvider = languagesProvider;
             SyntaxNodeTypes = languagesProvider.GetEmbeddedLanguages()
