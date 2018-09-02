@@ -12,27 +12,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     {
         private class FallbackEmbeddedClassifier : AbstractSyntaxClassifier
         {
-            private readonly FallbackEmbeddedLanguage _language;
+            private readonly EmbeddedLanguageInfo _info;
 
             public override ImmutableArray<int> SyntaxTokenKinds { get; }
 
-            public FallbackEmbeddedClassifier(FallbackEmbeddedLanguage language)
+            public FallbackEmbeddedClassifier(EmbeddedLanguageInfo info)
             {
-                _language = language;
-                SyntaxTokenKinds = ImmutableArray.Create(language._stringLiteralTokenKind, language._interpolatedTextTokenKind);
+                _info = info;
+                SyntaxTokenKinds = ImmutableArray.Create(info.StringLiteralTokenKind, info.InterpolatedTextTokenKind);
             }
 
             public override void AddClassifications(
                 Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
                 ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
             {
-                if (_language._stringLiteralTokenKind != token.RawKind &&
-                    _language._interpolatedTextTokenKind != token.RawKind)
+                if (_info.StringLiteralTokenKind != token.RawKind &&
+                    _info.InterpolatedTextTokenKind != token.RawKind)
                 {
                     return;
                 }
 
-                var virtualChars = _language._virtualCharService.TryConvertToVirtualChars(token);
+                var virtualChars = _info.VirtualCharService.TryConvertToVirtualChars(token);
                 if (virtualChars.IsDefaultOrEmpty)
                 {
                     return;

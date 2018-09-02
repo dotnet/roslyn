@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
@@ -16,13 +15,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
     {
         private readonly ImmutableArray<IEmbeddedLanguageFeatures> _embeddedLanguages;
          
-        protected AbstractEmbeddedLanguageFeaturesProvider(
-            int stringLiteralTokenKind,
-            int interpolatedTextTokenKind,
-            ISyntaxFactsService syntaxFacts,
-            ISemanticFactsService semanticFacts,
-            IVirtualCharService virtualCharService)
-            : base(stringLiteralTokenKind, interpolatedTextTokenKind, syntaxFacts, semanticFacts, virtualCharService)
+        protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info)
+            : base(info)
         {
             _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguageFeatures>(
                 new RegexEmbeddedLanguageFeatures(stringLiteralTokenKind, syntaxFacts, semanticFacts, virtualCharService));

@@ -2,32 +2,16 @@
 
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
     internal class RegexEmbeddedLanguage : IEmbeddedLanguage
     {
-        public int StringLiteralKind { get; }
-        public ISyntaxFactsService SyntaxFacts { get; }
-        public ISemanticFactsService SemanticFacts { get; }
-        public IVirtualCharService VirtualCharService { get; }
-
         public ISyntaxClassifier Classifier { get; }
 
-        public RegexEmbeddedLanguage(
-            int stringLiteralKind,
-            ISyntaxFactsService syntaxFacts,
-            ISemanticFactsService semanticFacts,
-            IVirtualCharService virtualCharService)
+        public RegexEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
-            StringLiteralKind = stringLiteralKind;
-            SyntaxFacts = syntaxFacts;
-            SemanticFacts = semanticFacts;
-            VirtualCharService = virtualCharService;
-
-            Classifier = new RegexEmbeddedClassifier(this);
+            Classifier = new RegexEmbeddedClassifier(info);
         }
     }
 }

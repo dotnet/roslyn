@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
+    using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
     using static EmbeddedSyntaxHelpers;
 
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
@@ -22,21 +23,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
 
-        private readonly RegexEmbeddedLanguage _language;
+        private readonly EmbeddedLanguageInfo _info;
 
         public override ImmutableArray<int> SyntaxTokenKinds { get; }
 
-        public RegexEmbeddedClassifier(RegexEmbeddedLanguage language)
+        public RegexEmbeddedClassifier(EmbeddedLanguageInfo info)
         {
-            _language = language;
-            SyntaxTokenKinds = ImmutableArray.Create(language.StringLiteralKind);
+            _info = info;
+            SyntaxTokenKinds = ImmutableArray.Create(info.StringLiteralTokenKind);
         }
 
         public override void AddClassifications(
             Workspace workspace, SyntaxToken token, SemanticModel semanticModel, 
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (_language.StringLiteralKind != token.RawKind)
+            if (_info.StringLiteralTokenKind != token.RawKind)
             {
                 return;
             }
@@ -47,12 +48,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             // Do some quick syntactic checks before doing any complex work.
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, _language.SyntaxFacts))
+            if (RegexPatternDetector.IsDefinitelyNotPattern(token, _info.SyntaxFacts))
             {
                 return;
             }
 
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
             var tree = detector?.TryParseRegexPattern(token, cancellationToken);
             if (tree == null)
             {
