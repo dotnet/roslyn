@@ -3,8 +3,6 @@
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
@@ -12,14 +10,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     {
         public IBraceMatcher BraceMatcher { get; }
 
-        public RegexEmbeddedLanguageEditorFeatures(
-            int stringLiteralKind,
-            ISyntaxFactsService syntaxFacts,
-            ISemanticFactsService semanticFacts,
-            IVirtualCharService virtualCharService)
-            : base(stringLiteralKind, syntaxFacts, semanticFacts, virtualCharService)
+        public RegexEmbeddedLanguageEditorFeatures(EmbeddedLanguageInfo info) : base(info)
         {
-            BraceMatcher = new RegexEmbeddedBraceMatcher(this);
+            BraceMatcher = new RegexEmbeddedBraceMatcher(info);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
@@ -16,14 +17,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     {
         public const string DiagnosticId = "RE0001";
 
-        private readonly RegexEmbeddedLanguage _language;
+        private readonly EmbeddedLanguageInfo _info;
 
-        public RegexDiagnosticAnalyzer(RegexEmbeddedLanguage language)
+        public RegexDiagnosticAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
                    new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
-            _language = language;
+            _info = info;
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
 
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
             if (detector == null)
             {
                 return;
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             SemanticModelAnalysisContext context, RegexPatternDetector detector, 
             SyntaxToken token, CancellationToken cancellationToken)
         {
-            if (token.RawKind == _language.StringLiteralKind)
+            if (token.RawKind == _info.StringLiteralTokenKind)
             {
                 var tree = detector.TryParseRegexPattern(token, cancellationToken);
                 if (tree != null)

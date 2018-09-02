@@ -3,7 +3,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
+Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
     <ExportLanguageService(GetType(IEmbeddedLanguageFeaturesProvider), LanguageNames.VisualBasic), [Shared]>
@@ -13,11 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
         Public Shared Shadows Instance As New VisualBasicEmbeddedLanguageFeaturesProvider()
 
         Public Sub New()
-            MyBase.New(SyntaxKind.StringLiteralToken,
-                       SyntaxKind.InterpolatedStringTextToken,
-                       VisualBasicSyntaxFactsService.Instance,
-                       VisualBasicSemanticFactsService.Instance,
-                       VisualBasicVirtualCharService.Instance)
+            MyBase.New(VisualBasicEmbeddedLanguagesProvider.Info)
         End Sub
     End Class
 End Namespace

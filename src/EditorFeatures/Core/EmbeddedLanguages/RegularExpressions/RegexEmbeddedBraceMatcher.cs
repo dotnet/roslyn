@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -23,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     /// </summary>
     internal sealed class RegexEmbeddedBraceMatcher : IBraceMatcher
     {
-        private readonly RegexEmbeddedLanguageEditorFeatures _language;
+        private readonly EmbeddedLanguageInfo _info;
 
-        public RegexEmbeddedBraceMatcher(RegexEmbeddedLanguageEditorFeatures language)
+        public RegexEmbeddedBraceMatcher(EmbeddedLanguageInfo info)
         {
-            _language = language;
+            _info = info;
         }
 
         public async Task<BraceMatchingResult?> FindBracesAsync(
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
             var tree = detector?.TryParseRegexPattern(token, cancellationToken);
 
             if (tree == null)

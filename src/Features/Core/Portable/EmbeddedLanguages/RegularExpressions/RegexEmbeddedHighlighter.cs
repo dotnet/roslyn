@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
     internal sealed class RegexEmbeddedHighlighter : IDocumentHighlightsService
     {
-        private readonly RegexEmbeddedLanguage _language;
+        private readonly EmbeddedLanguageInfo _info;
 
-        public RegexEmbeddedHighlighter(RegexEmbeddedLanguage language)
+        public RegexEmbeddedHighlighter(EmbeddedLanguageInfo info)
         {
-            _language = language;
+            _info = info;
         }
 
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, _language.SyntaxFacts))
+            if (RegexPatternDetector.IsDefinitelyNotPattern(token, _info.SyntaxFacts))
             {
                 return default;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
             var tree = detector?.TryParseRegexPattern(token, cancellationToken);
 
             if (tree == null)
