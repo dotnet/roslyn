@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguageEditorFeaturesProvider>();
             if (languagesProvider != null)
             {
-                foreach (var language in languagesProvider.GetEmbeddedLanguages())
+                foreach (var language in languagesProvider.Languages)
                 {
                     var braceMatcher = language.BraceMatcher;
                     if (braceMatcher != null)

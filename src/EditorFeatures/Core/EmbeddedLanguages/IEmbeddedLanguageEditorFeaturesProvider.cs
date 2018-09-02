@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
     /// </summary>
     internal interface IEmbeddedLanguageEditorFeaturesProvider : IEmbeddedLanguageFeaturesProvider
     {
-        new ImmutableArray<IEmbeddedLanguageEditorFeatures> GetEmbeddedLanguages();
+        new ImmutableArray<IEmbeddedLanguageEditorFeatures> Languages { get; }
     }
 }

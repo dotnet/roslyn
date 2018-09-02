@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         protected AbstractEmbeddedLanguagesClassifier(IEmbeddedLanguagesProvider languagesProvider)
         {
             _languagesProvider = languagesProvider;
-            SyntaxNodeTypes = languagesProvider.GetEmbeddedLanguages()
+            SyntaxNodeTypes = languagesProvider.Languages
                                                .SelectMany(p => p.Classifier.SyntaxNodeTypes)
                                                .Distinct()
                                                .ToImmutableArray();
-            SyntaxTokenKinds = languagesProvider.GetEmbeddedLanguages()
+            SyntaxTokenKinds = languagesProvider.Languages
                                                 .SelectMany(p => p.Classifier.SyntaxTokenKinds)
                                                 .Distinct()
                                                 .ToImmutableArray();
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
 
         public void AddClassifications(Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            foreach (var language in _languagesProvider.GetEmbeddedLanguages())
+            foreach (var language in _languagesProvider.Languages)
             {
                 var classifier = language.Classifier;
                 if (classifier != null)
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
 
         public void AddClassifications(Workspace workspace, SyntaxNode node, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            foreach (var language in _languagesProvider.GetEmbeddedLanguages())
+            foreach (var language in _languagesProvider.Languages)
             {
                 var classifier = language.Classifier;
                 if (classifier != null)

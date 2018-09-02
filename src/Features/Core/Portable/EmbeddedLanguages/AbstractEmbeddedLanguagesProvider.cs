@@ -2,8 +2,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
@@ -13,16 +11,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
     /// </summary>
     internal abstract class AbstractEmbeddedLanguageFeaturesProvider : AbstractEmbeddedLanguagesProvider, IEmbeddedLanguageFeaturesProvider
     {
-        private readonly ImmutableArray<IEmbeddedLanguageFeatures> _embeddedLanguages;
+        new public ImmutableArray<IEmbeddedLanguageFeatures> Languages { get; }
          
-        protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info)
-            : base(info)
+        protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info) : base(info)
         {
-            _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguageFeatures>(
+            Languages = ImmutableArray.Create<IEmbeddedLanguageFeatures>(
                 new RegexEmbeddedLanguageFeatures(info));
         }
-
-        public new ImmutableArray<IEmbeddedLanguageFeatures> GetEmbeddedLanguages()
-            => _embeddedLanguages;
     }
 }

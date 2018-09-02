@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguageFeaturesProvider>();
             if (languagesProvider != null)
             {
-                foreach (var language in languagesProvider.GetEmbeddedLanguages())
+                foreach (var language in languagesProvider.Languages)
                 {
                     var highlighter = language.Highlighter;
                     if (highlighter != null)

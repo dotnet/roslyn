@@ -13,15 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
     internal abstract class AbstractEmbeddedLanguageEditorFeaturesProvider 
         : AbstractEmbeddedLanguageFeaturesProvider, IEmbeddedLanguageEditorFeaturesProvider
     {
-        private readonly ImmutableArray<IEmbeddedLanguageEditorFeatures> _embeddedLanguages;
+        new public ImmutableArray<IEmbeddedLanguageEditorFeatures> Languages { get; }
          
         protected AbstractEmbeddedLanguageEditorFeaturesProvider(EmbeddedLanguageInfo info) : base(info)
         {
-            _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguageEditorFeatures>(
+            Languages = ImmutableArray.Create<IEmbeddedLanguageEditorFeatures>(
                 new RegexEmbeddedLanguageEditorFeatures(info));
         }
-
-        public new ImmutableArray<IEmbeddedLanguageEditorFeatures> GetEmbeddedLanguages()
-            => _embeddedLanguages;
     }
 }

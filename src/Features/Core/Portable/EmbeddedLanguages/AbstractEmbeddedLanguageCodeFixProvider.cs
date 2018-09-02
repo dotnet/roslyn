@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             // Create a mapping from each IEmbeddedCodeFixProvider.FixableDiagnosticIds back to the
             // IEmbeddedCodeFixProvider itself.  That way, when we hear about diagnostics, we know
             // which provider to actually do the fixing.
-            foreach (var language in languagesProvider.GetEmbeddedLanguages())
+            foreach (var language in languagesProvider.Languages)
             {
                 var codeFixProvider = language.CodeFixProvider;
                 if (codeFixProvider != null)

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 
             var analyzers = ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
 
-            foreach (var language in languagesProvider.GetEmbeddedLanguages())
+            foreach (var language in languagesProvider.Languages)
             {
                 var analyzer = language.DiagnosticAnalyzer;
                 if (analyzer != null)
