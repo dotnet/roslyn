@@ -33,11 +33,5 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         }
 
         public IEmbeddedClassifier Classifier { get; }
-
-        // None of the rest of these services are supported.
-        public IEmbeddedBraceMatcher BraceMatcher => null;
-        public IEmbeddedHighlighter Highlighter => null;
-        public IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer => null;
-        public IEmbeddedCodeFixProvider CodeFixProvider => null;
     }
 }
