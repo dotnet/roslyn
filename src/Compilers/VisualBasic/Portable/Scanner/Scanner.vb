@@ -535,8 +535,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MakeEndOfLineTrivia(GetNextChar)
         End Function
 
+        Private Function TryGet(ByRef Ch As Char) As Boolean
+            Dim ok = CanGet()
+            Ch = If(ok, Peek(), Ch)
+            Return ok
+        End Function
+
+        Private Function TryGet(num As Integer, ByRef Ch As Char) As Boolean
+            Dim ok = CanGet(num)
+            Ch = If(ok, Peek(num), Ch)
+            Return ok
+        End Function
+
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
-            If Not CanGet() Then
+            Dim ch As Char = ChrW(0)
+            If Not TryGet(ch) Then
                 Return False
             End If
 
@@ -544,16 +557,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             End If
 
-            Dim ch As Char = Peek()
             If Not IsUnderscore(ch) Then
                 Return False
             End If
 
             Dim Here = 1
-            Dim skipWhitespaces = CanGet(Here) AndAlso (IsWhitespace(Peek(Here)) OrElse IsSingleQuote(Peek(Here)))
+            Dim skipWhitespaces = TryGet(Here, ch) AndAlso (IsWhitespace(ch) OrElse IsSingleQuote(ch))
             If skipWhitespaces Then
-                While CanGet(Here)
-                    ch = Peek(Here)
+                While TryGet(Here, ch)
                     If IsWhitespace(ch) Then
                         Here += 1
                     Else
@@ -561,9 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
                 End While
             Else
-                If CanGet(Here) Then
-                    ch = Peek(Here)
-                End If
+                TryGet(Here, ch)
             End If
 
             Dim foundComment = CanGet(Here) AndAlso IsSingleQuote(Peek(Here))
