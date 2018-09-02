@@ -2,16 +2,15 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 
-namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpEmbeddedLanguageCodeFixProvider)), Shared]
     internal class CSharpEmbeddedLanguageCodeFixProvider : AbstractEmbeddedLanguageCodeFixProvider
     {
         public CSharpEmbeddedLanguageCodeFixProvider()
-            : base(CSharpEmbeddedLanguagesProvider.Instance)
+            : base(CSharpEmbeddedLanguageFeaturesProvider.Instance)
         {
         }
     }

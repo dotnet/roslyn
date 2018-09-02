@@ -2,18 +2,18 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices
+namespace Microsoft.CodeAnalysis.CSharp.Editor.EmbeddedLanguages
 {
-    [ExportLanguageService(typeof(IFeaturesEmbeddedLanguagesProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpFeaturesEmbeddedLanguagesProvider : AbstractEmbeddedLanguagesProvider, IFeaturesEmbeddedLanguagesProvider
+    [ExportLanguageService(typeof(IEmbeddedLanguageEditorFeaturesProvider), LanguageNames.CSharp), Shared]
+    internal class CSharpEmbeddedLanguageEditorFeaturesProvider : AbstractEmbeddedLanguageEditorFeaturesProvider
     {
-        public static IFeaturesEmbeddedLanguagesProvider Instance = new CSharpFeaturesEmbeddedLanguagesProvider();
+        public static IEmbeddedLanguageFeaturesProvider Instance = new CSharpEmbeddedLanguageEditorFeaturesProvider();
 
-        public CSharpFeaturesEmbeddedLanguagesProvider()
+        public CSharpEmbeddedLanguageEditorFeaturesProvider()
             : base((int)SyntaxKind.StringLiteralToken,
                    (int)SyntaxKind.InterpolatedStringTextToken,
                    CSharpSyntaxFactsService.Instance,
