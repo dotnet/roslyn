@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
 {
     /// <summary>
     /// Services related to a specific embedded language.
     /// </summary>
-    internal interface IEditorFeaturesEmbeddedLanguage : IFeaturesEmbeddedLanguage
+    internal interface IEmbeddedLanguageEditorFeatures : IEmbeddedLanguageFeatures
     {
         /// <summary>
         /// A optional brace matcher that can match braces in an embedded language string.
