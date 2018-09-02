@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             : base(info)
         {
             _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguageFeatures>(
-                new RegexEmbeddedLanguageFeatures(stringLiteralTokenKind, syntaxFacts, semanticFacts, virtualCharService));
+                new RegexEmbeddedLanguageFeatures(info));
         }
 
         public new ImmutableArray<IEmbeddedLanguageFeatures> GetEmbeddedLanguages()
