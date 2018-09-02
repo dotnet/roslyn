@@ -63,9 +63,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
-                ' SetCompilerOptions only handles versions 15.3 and up
-                Assert.Equal(LanguageVersion.VisualBasic15, options.LanguageVersion)
-                Assert.Equal(LanguageVersion.VisualBasic15, options.SpecifiedLanguageVersion)
+                ' SetCompilerOptions only handles versions 15.3 and up, so we are ignoring the
+                ' /langversion:14 above in favor of the legacy value. Since the legacy value was
+                ' not set, it'll just be default.
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
+                Assert.Equal(LanguageVersion.Default, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -85,8 +87,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
-                Assert.Equal(LanguageVersion.VisualBasic15, options.LanguageVersion)
-                Assert.Equal(LanguageVersion.VisualBasic15, options.SpecifiedLanguageVersion)
+                ' SetCompilerOptions only handles versions 15.3 and up, so we are ignoring the
+                ' /langversion:14 above in favor of the legacy value. Since the legacy value was
+                ' not set, it'll just be default.
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
+                Assert.Equal(LanguageVersion.Default, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -107,7 +112,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
                 Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
-                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.SpecifiedLanguageVersion)
+                Assert.Equal(LanguageVersion.Default, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -149,7 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
                 Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
-                Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(), options.SpecifiedLanguageVersion)
+                Assert.Equal(LanguageVersion.Latest, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
