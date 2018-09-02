@@ -1,20 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
     /// <summary>
     /// Abstract implementation of the C# and VB embedded language providers.
     /// </summary>
-    internal abstract class AbstractFeaturesEmbeddedLanguagesProvider : AbstractEmbeddedLanguagesProvider, IFeaturesEmbeddedLanguagesProvider
+    internal abstract class AbstractEmbeddedLanguageFeaturesProvider : AbstractEmbeddedLanguagesProvider, IEmbeddedLanguageFeaturesProvider
     {
-        private readonly ImmutableArray<IFeaturesEmbeddedLanguage> _embeddedLanguages;
+        private readonly ImmutableArray<IEmbeddedLanguageFeatures> _embeddedLanguages;
          
-        protected AbstractFeaturesEmbeddedLanguagesProvider(
+        protected AbstractEmbeddedLanguageFeaturesProvider(
             int stringLiteralTokenKind,
             int interpolatedTextTokenKind,
             ISyntaxFactsService syntaxFacts,
@@ -22,11 +24,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             IVirtualCharService virtualCharService)
             : base(stringLiteralTokenKind, interpolatedTextTokenKind, syntaxFacts, semanticFacts, virtualCharService)
         {
-            _embeddedLanguages = ImmutableArray.Create<IFeaturesEmbeddedLanguage>(
-                new RegexFeaturesEmbeddedLanguage(stringLiteralTokenKind, syntaxFacts, semanticFacts, virtualCharService));
+            _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguageFeatures>(
+                new RegexEmbeddedLanguageFeatures(stringLiteralTokenKind, syntaxFacts, semanticFacts, virtualCharService));
         }
 
-        public new ImmutableArray<IFeaturesEmbeddedLanguage> GetEmbeddedLanguages()
+        public new ImmutableArray<IEmbeddedLanguageFeatures> GetEmbeddedLanguages()
             => _embeddedLanguages;
     }
 }

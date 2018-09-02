@@ -3,19 +3,19 @@
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
-    internal class RegexFeaturesEmbeddedLanguage : RegexEmbeddedLanguage, IFeaturesEmbeddedLanguage
+    internal class RegexEmbeddedLanguageFeatures : RegexEmbeddedLanguage, IEmbeddedLanguageFeatures
     {
         public IDocumentHighlightsService Highlighter { get; }
         public DiagnosticAnalyzer DiagnosticAnalyzer { get; }
         public SyntaxEditorBasedCodeFixProvider CodeFixProvider { get; }
 
-        public RegexFeaturesEmbeddedLanguage(
+        public RegexEmbeddedLanguageFeatures(
             int stringLiteralKind,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,

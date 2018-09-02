@@ -5,14 +5,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
     internal abstract class AbstractEmbeddedLanguageDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
 
         protected AbstractEmbeddedLanguageDiagnosticAnalyzer(
-            IFeaturesEmbeddedLanguagesProvider languagesProvider)
+            IEmbeddedLanguageFeaturesProvider languagesProvider)
         {
             var supportedDiagnostics = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
 

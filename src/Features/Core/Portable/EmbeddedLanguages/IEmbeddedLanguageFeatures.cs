@@ -3,13 +3,14 @@
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
     /// <summary>
     /// Services related to a specific embedded language.
     /// </summary>
-    internal interface IFeaturesEmbeddedLanguage : IEmbeddedLanguage
+    internal interface IEmbeddedLanguageFeatures : IEmbeddedLanguage
     {
         /// <summary>
         /// A optional highlighter that can highlight spans for an embedded language string.
