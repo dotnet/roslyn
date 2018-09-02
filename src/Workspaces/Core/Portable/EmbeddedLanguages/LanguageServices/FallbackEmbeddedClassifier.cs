@@ -1,23 +1,28 @@
 ﻿// Copyright(c) Microsoft.All Rights Reserved.Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
     internal partial class FallbackEmbeddedLanguage
     {
-        private class FallbackEmbeddedClassifier : IEmbeddedClassifier
+        private class FallbackEmbeddedClassifier : AbstractSyntaxClassifier
         {
             private readonly FallbackEmbeddedLanguage _language;
+
+            public override ImmutableArray<int> SyntaxTokenKinds { get; }
 
             public FallbackEmbeddedClassifier(FallbackEmbeddedLanguage language)
             {
                 _language = language;
+                SyntaxTokenKinds = ImmutableArray.Create(language._stringLiteralTokenKind, language._interpolatedTextTokenKind);
             }
 
-            public void AddClassifications(
+            public override void AddClassifications(
                 Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
                 ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
             {

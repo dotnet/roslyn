@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
@@ -17,21 +18,29 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     /// <summary>
     /// Classifier impl for embedded regex strings.
     /// </summary>
-    internal sealed class RegexEmbeddedClassifier : IEmbeddedClassifier
+    internal sealed class RegexEmbeddedClassifier : AbstractSyntaxClassifier
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
 
         private readonly RegexEmbeddedLanguage _language;
 
+        public override ImmutableArray<int> SyntaxTokenKinds { get; }
+
         public RegexEmbeddedClassifier(RegexEmbeddedLanguage language)
         {
             _language = language;
+            SyntaxTokenKinds = ImmutableArray.Create(language.StringLiteralKind);
         }
 
-        public void AddClassifications(
+        public override void AddClassifications(
             Workspace workspace, SyntaxToken token, SemanticModel semanticModel, 
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
+            if (_language.StringLiteralKind != token.RawKind)
+            {
+                return;
+            }
+
             if (!workspace.Options.GetOption(RegularExpressionsOptions.ColorizeRegexPatterns, semanticModel.Language))
             {
                 return;
