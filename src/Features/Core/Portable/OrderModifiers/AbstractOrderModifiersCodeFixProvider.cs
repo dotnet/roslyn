@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(
+        internal override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);

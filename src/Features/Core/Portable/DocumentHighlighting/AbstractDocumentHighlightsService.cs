@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var result = await TryGetEmbeddedLanguageHighlightsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var result = await TryGetEmbeddedLanguageHighlightsAsync(
+                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefaultOrEmpty)
             {
                 return result;
@@ -92,29 +93,22 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
-            Document document, int position, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var embeddedLanguagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
-            if (embeddedLanguagesProvider != null)
+            var languagesProvider = document.GetLanguageService<IFeaturesEmbeddedLanguagesProvider>();
+            if (languagesProvider != null)
             {
-                foreach (var language in embeddedLanguagesProvider.GetEmbeddedLanguages())
+                foreach (var language in languagesProvider.GetEmbeddedLanguages())
                 {
                     var highlighter = language.Highlighter;
                     if (highlighter != null)
                     {
-                        var highlights = await highlighter.GetHighlightsAsync(
-                            document, position, cancellationToken).ConfigureAwait(false);
+                        var highlights = await highlighter.GetDocumentHighlightsAsync(
+                            document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
 
                         if (!highlights.IsDefaultOrEmpty)
                         {
-                            var result = ArrayBuilder<HighlightSpan>.GetInstance();
-                            foreach (var span in highlights)
-                            {
-                                result.Add(new HighlightSpan(span, HighlightSpanKind.None));
-                            }
-
-                            return ImmutableArray.Create(new DocumentHighlights(
-                                document, result.ToImmutableAndFree()));
+                            return highlights;
                         }
                     }
                 }

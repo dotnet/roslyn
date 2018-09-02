@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             return Task.CompletedTask;
         }
 
-        protected sealed override async Task FixAllAsync(
+        internal sealed override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, 
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
