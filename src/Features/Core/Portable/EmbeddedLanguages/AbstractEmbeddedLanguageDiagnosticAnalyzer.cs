@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -8,15 +12,20 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
     internal abstract class AbstractEmbeddedLanguageDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
+        private readonly ImmutableArray<AbstractCodeStyleDiagnosticAnalyzer> _analyzers;
+        private readonly DiagnosticAnalyzerCategory _category;
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected AbstractEmbeddedLanguageDiagnosticAnalyzer(
             IEmbeddedLanguageFeaturesProvider languagesProvider)
         {
             var supportedDiagnostics = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
 
-            var analyzers = ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
+            var analyzers = ArrayBuilder<AbstractCodeStyleDiagnosticAnalyzer>.GetInstance();
 
+            var category = default(DiagnosticAnalyzerCategory?);
+            Debug.Assert(languagesProvider.Languages.Length > 0);
             foreach (var language in languagesProvider.Languages)
             {
                 var analyzer = language.DiagnosticAnalyzer;
@@ -24,20 +33,25 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                 {
                     analyzers.Add(analyzer);
                     supportedDiagnostics.AddRange(analyzer.SupportedDiagnostics);
+
+                    category = category ?? analyzer.GetAnalyzerCategory();
+                    if (category != analyzer.GetAnalyzerCategory())
+                    {
+                        throw new InvalidOperationException("All embedded analyzers must have the same analyzer category.");
+                    }
                 }
             }
 
+            _category = category.Value;
             _analyzers = analyzers.ToImmutableAndFree();
             this.SupportedDiagnostics = supportedDiagnostics.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => ((IBuiltInAnalyzer)_analyzers[0]).GetAnalyzerCategory();
+            => _category;
 
         public bool OpenFileOnly(Workspace workspace)
-            => ((IBuiltInAnalyzer)_analyzers[0]).OpenFileOnly(workspace);
+            => _analyzers.Any(a => a.OpenFileOnly(workspace));
 
         public override void Initialize(AnalysisContext context)
         {

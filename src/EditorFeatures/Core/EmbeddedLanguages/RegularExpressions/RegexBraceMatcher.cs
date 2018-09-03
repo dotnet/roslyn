@@ -6,12 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
@@ -24,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     /// </summary>
     internal sealed class RegexBraceMatcher : IBraceMatcher
     {
-        private readonly RegexEmbeddedLanguageEditorFeatures _language;
+        private readonly RegexEmbeddedLanguage _language;
 
-        public RegexBraceMatcher(RegexEmbeddedLanguageEditorFeatures language)
+        public RegexBraceMatcher(RegexEmbeddedLanguage language)
         {
             _language = language;
         }
@@ -41,14 +38,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return null;
             }
 
-            var tree = await _language.TryGetTreeAtPositionAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
-            if (tree == null)
-            {
-                return default;
-            }
-
-            return GetMatchingBraces(tree, position);
+            var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            return tree == null ? null : GetMatchingBraces(tree, position);
         }
 
         private static BraceMatchingResult? GetMatchingBraces(RegexTree tree, int position)

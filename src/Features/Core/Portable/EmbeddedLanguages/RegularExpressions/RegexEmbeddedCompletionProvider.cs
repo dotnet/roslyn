@@ -123,14 +123,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
 
-            var position = context.Position;
-            var treeAndStringToken = await _language.TryGetTreeAndTokenAtPositionAsync(
-                context.Document, position, context.CancellationToken).ConfigureAwait(false);
-            if (treeAndStringToken == null)
-            {
-                return;
-            }
-
             if (context.Trigger.Kind != CompletionTriggerKind.Invoke &&
                 context.Trigger.Kind != CompletionTriggerKind.InvokeAndCommitIfUnique &&
                 context.Trigger.Kind != CompletionTriggerKind.Insertion)
@@ -138,8 +130,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
 
-            var (tree, stringToken) = treeAndStringToken.Value;
-            if (position <= stringToken.SpanStart || position >= stringToken.Span.End)
+            var position = context.Position;
+            var (tree, stringToken) = await _language.TryGetTreeAndTokenAtPositionAsync(
+                context.Document, position, context.CancellationToken).ConfigureAwait(false);
+
+            if (tree == null ||
+                position <= stringToken.SpanStart ||
+                position >= stringToken.Span.End)
             {
                 return;
             }

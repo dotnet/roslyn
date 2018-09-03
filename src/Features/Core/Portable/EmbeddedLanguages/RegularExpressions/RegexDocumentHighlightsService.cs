@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -17,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
     internal sealed class RegexDocumentHighlightsService : IDocumentHighlightsService
     {
-        private readonly RegexEmbeddedLanguageFeatures _language;
+        private readonly RegexEmbeddedLanguage _language;
 
-        public RegexDocumentHighlightsService(RegexEmbeddedLanguageFeatures language)
+        public RegexDocumentHighlightsService(RegexEmbeddedLanguage language)
         {
             _language = language;
         }
@@ -33,14 +34,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return default;
             }
 
-            var tree = await _language.TryGetTreeAtPositionAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
-            if (tree == null)
-            {
-                return default;
-            }
-
-            return ImmutableArray.Create(new DocumentHighlights(document, GetHighlights(document, tree, position)));
+            var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            return tree == null
+                ? default
+                : ImmutableArray.Create(new DocumentHighlights(document, GetHighlights(document, tree, position)));
         }
 
         private ImmutableArray<HighlightSpan> GetHighlights(
