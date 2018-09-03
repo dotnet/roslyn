@@ -621,9 +621,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task ValidateChecksumAsync(Checksum givenSolutionChecksum, Solution solution)
         {
-            // have this to avoid error on async
-            await Task.CompletedTask.ConfigureAwait(false);
-
 #if DEBUG
             var currentSolutionChecksum = await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false);
 
@@ -631,8 +628,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return;
             }
-
-            Debug.Assert(false, "checksum not same");
 
             var map = await solution.GetAssetMapAsync(_cancellationToken).ConfigureAwait(false);
             await RemoveDuplicateChecksumsAsync(givenSolutionChecksum, map).ConfigureAwait(false);
@@ -649,9 +644,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             Logger.Log(FunctionId.SolutionCreator_AssetDifferences, sb.ToString());
-#endif
 
-            return;
+            Debug.Fail("Differences detected in solution checksum: " + sb.ToString());
+#else
+
+            // have this to avoid error on async
+            await Task.CompletedTask.ConfigureAwait(false);
+#endif
         }
 
         private async Task RemoveDuplicateChecksumsAsync(Checksum givenSolutionChecksum, Dictionary<Checksum, object> map)
