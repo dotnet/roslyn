@@ -34,6 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(async-streams): Why does AsyncRewriter have logic to ignore accessibility?
             }
 
+            protected override void VerifyPresenceOfRequiredAPIs(MethodSymbol method, DiagnosticBag bag)
+            {
+                EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext, bag);
+                EnsureWellKnownMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor, bag);
+            }
+
             protected override void GenerateMethodImplementations()
             {
                 // IAsyncStateMachine and constructor
@@ -297,7 +306,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult)
                     .AsMember(IValueTaskSourceOfBool);
 
-                // PROTOTYPE(async-streams): Should we be looking those members up as optional?
                 MethodSymbol promise_GetResult =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult)
                     .AsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);

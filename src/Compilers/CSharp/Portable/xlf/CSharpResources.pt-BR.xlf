@@ -5974,8 +5974,8 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
-        <source>The return type of an async method must be void, Task or Task&lt;T&gt;</source>
-        <target state="translated">O tipo de retorno de um método assíncrono deve ser void, Task ou Task&lt;T&gt;</target>
+        <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;</source>
+        <target state="needs-review-translation">O tipo de retorno de um método assíncrono deve ser void, Task ou Task&lt;T&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantReturnVoid">

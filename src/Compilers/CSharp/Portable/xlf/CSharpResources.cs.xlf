@@ -5974,8 +5974,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
-        <source>The return type of an async method must be void, Task or Task&lt;T&gt;</source>
-        <target state="translated">Návratový typ asynchronní metody musí být void, Task nebo Task&lt;T&gt;.</target>
+        <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;</source>
+        <target state="needs-review-translation">Návratový typ asynchronní metody musí být void, Task nebo Task&lt;T&gt;.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantReturnVoid">

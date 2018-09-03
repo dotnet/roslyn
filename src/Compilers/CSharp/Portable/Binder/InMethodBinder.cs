@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturnRef, _methodSymbol.Locations[0], _methodSymbol);
                     }
-                    else
+                    else if (!returnType.IsErrorType())
                     {
                         Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
                     }

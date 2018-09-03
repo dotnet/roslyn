@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
         // PROTOTYPE(async-streams)
-        // Test missing types/members
+        // Test missing remaining types/members once BCL APIs are finalized (MRVTSL, IStrongBox, IValueTaskSource)
+        // test missing AsyncTaskMethodBuilder<T> or missing members Create(), Task, ...
         // Test with yield or await in try/catch/finally
         // More tests with exception thrown
         // There is a case in GetIteratorElementType with IsDirectlyInIterator that relates to speculation, needs testing
@@ -32,17 +33,444 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         // test yield in async lambda (still error)
         // test exception handling (should capture and return the exception via the promise)
         // test IAsyncEnumerable<U> M<U>() ...
-        // test missing AsyncTaskMethodBuilder<T> or missing members Create(), Task, ...
         // test with IAsyncEnumerable<dynamic>
         // other tests with dynamic?
         // test should cover both case with AwaitOnCompleted and AwaitUnsafeOnCompleted
         // test `async IAsyncEnumerable<int> M() { return TaskLike(); }`
         // Can we avoid making IAsyncEnumerable<T> special from the start? Making mark it with an attribute like we did for task-like?
-        // Test normal break in async-iterator
-        // WaitForNextAsync is resilient to be called out of turn. Test that.
         // Test a plain return statement
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> WaitForNextAsync();
+        T TryGetNext(out bool success);
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.VerifyDiagnostics(
+                // (4,60): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, or IAsyncEnumerable<T>
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 60),
+                // (4,38): error CS0234: The type or namespace name 'IAsyncEnumerable<>' does not exist in the namespace 'System.Collections.Generic' (are you missing an assembly reference?)
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IAsyncEnumerable<int>").WithArguments("IAsyncEnumerable<>", "System.Collections.Generic").WithLocation(4, 38)
+                );
+        }
+
+        [Fact]
+        public void MissingMember_IAsyncIEnumerable_GetAsyncEnumerator()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+    }
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> WaitForNextAsync();
+        T TryGetNext(out bool success);
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.IAsyncEnumerable`1.GetAsyncEnumerator'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }").WithArguments("System.Collections.Generic.IAsyncEnumerable`1", "GetAsyncEnumerator").WithLocation(5, 5)
+                );
+        }
+
+        [Fact]
+        public void MissingType_IAsyncIEnumerator()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.VerifyDiagnostics(
+                // (14,9): error CS0246: The type or namespace name 'IAsyncEnumerator<>' could not be found (are you missing a using directive or an assembly reference?)
+                //         IAsyncEnumerator<T> GetAsyncEnumerator();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IAsyncEnumerator<T>").WithArguments("IAsyncEnumerator<>").WithLocation(14, 9),
+                // (14,9): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'IAsyncEnumerable<T>.GetAsyncEnumerator()'. 'T' is covariant.
+                //         IAsyncEnumerator<T> GetAsyncEnumerator();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "IAsyncEnumerator<T>").WithArguments("System.Collections.Generic.IAsyncEnumerable<T>.GetAsyncEnumerator()", "T", "covariant", "invariantly").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void MissingMember_IAsyncIEnumerator_WaitForNextAsync()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        T TryGetNext(out bool success);
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.IAsyncEnumerator`1.WaitForNextAsync'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }").WithArguments("System.Collections.Generic.IAsyncEnumerator`1", "WaitForNextAsync").WithLocation(5, 5)
+                );
+        }
+
+        [Fact]
+        public void MissingMember_IAsyncIEnumerator_TryGetNext()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> WaitForNextAsync();
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.IAsyncEnumerator`1.TryGetNext'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }").WithArguments("System.Collections.Generic.IAsyncEnumerator`1", "TryGetNext").WithLocation(5, 5)
+                );
+        }
+
+        [Fact]
+        public void MissingType_IAsyncDisposable()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+    public interface IAsyncEnumerator<out T>
+    {
+        System.Threading.Tasks.ValueTask<bool> WaitForNextAsync();
+        T TryGetNext(out bool success);
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(5, 5)
+                );
+        }
+
+        [Fact]
+        public void MissingMember_IAsyncDisposable_DisposeAsync()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> WaitForNextAsync();
+        T TryGetNext(out bool success);
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(5, 5)
+                );
+        }
+
+        [Fact]
+        public void MissingType_ValueTask()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> WaitForNextAsync();
+        T TryGetNext(out bool success);
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask_T);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.IAsyncEnumerator`1.WaitForNextAsync'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }").WithArguments("System.Collections.Generic.IAsyncEnumerator`1", "WaitForNextAsync").WithLocation(5, 5),
+                // (5,5): error CS0656: Missing compiler required member 'System.Threading.Tasks.ValueTask`1..ctor'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }").WithArguments("System.Threading.Tasks.ValueTask`1", ".ctor").WithLocation(5, 5)
+                );
+        }
+
+        [Fact]
+        public void MissingMember_ValueTask_ctor()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> WaitForNextAsync();
+        T TryGetNext(out bool success);
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.MakeMemberMissing(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0656: Missing compiler required member 'System.Threading.Tasks.ValueTask`1..ctor'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }").WithArguments("System.Threading.Tasks.ValueTask`1", ".ctor").WithLocation(5, 5)
+                );
+        }
+
+        [Fact]
+        public void AsyncIteratorWithBreak()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+        break;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
+            comp.VerifyDiagnostics(
+                // (8,9): error CS0139: No enclosing loop out of which to break or continue
+                //         break;
+                Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void CallingWaitForNextAsyncTwice()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return 4;
+        Write("" 5 "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        var enumerator = M().GetAsyncEnumerator();
+        await enumerator.WaitForNextAsync();
+        Write(""3 "");
+        await enumerator.WaitForNextAsync();
+        var value = enumerator.TryGetNext(out var success);
+        Write($""{value} "");
+        await enumerator.WaitForNextAsync();
+        Write(""5"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "");
+            // PROTOTYPE WaitForNextAsync is resilient to be called out of turn. Test that.
+        }
+
+        [Fact]
+>>>>>>> 0eb20fb... Add tests for missing types/members. Improve diagnostics
         public void AsyncIteratorWithAwaitCompletedAndYield()
         {
             string source = @"

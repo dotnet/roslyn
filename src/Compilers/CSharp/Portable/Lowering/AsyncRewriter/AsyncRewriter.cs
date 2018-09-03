@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
                 : new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
 
-            if (!rewriter.VerifyPresenceOfRequiredAPIs())
+            if (!rewriter.VerifyPresenceOfRequiredAPIs(method))
             {
                 return body;
             }
@@ -81,12 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>
         /// Returns true if all types and members we need are present and good
         /// </returns>
-        protected bool VerifyPresenceOfRequiredAPIs()
+        protected bool VerifyPresenceOfRequiredAPIs(MethodSymbol method)
         {
             DiagnosticBag bag = DiagnosticBag.GetInstance();
 
-            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
-            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
+            VerifyPresenceOfRequiredAPIs(method, bag);
 
             bool hasErrors = bag.HasAnyErrors();
             if (hasErrors)
@@ -96,6 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bag.Free();
             return !hasErrors && _constructedSuccessfully;
+        }
+
+        protected virtual void VerifyPresenceOfRequiredAPIs(MethodSymbol method, DiagnosticBag bag)
+        {
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
         }
 
         private Symbol EnsureWellKnownMember(WellKnownMember member, DiagnosticBag bag)

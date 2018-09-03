@@ -418,9 +418,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation)
                 && !this.IsVoidReturningAsync() && !this.IsEnumerableReturningAsync(this.DeclaringCompilation))
             {
-                // PROTOTYPE(async-streams): Update diagnostic message
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
+                // PROTOTYPE(async-streams): Update diagnostic message
             }
 
             for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
