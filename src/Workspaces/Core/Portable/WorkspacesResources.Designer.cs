@@ -1762,10 +1762,13 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to This grouping construct applies or disables the specified options within a subexpression. The options are:
         ///
-        ///  i	Use case-insensitive matching.
-        ///  m	Use multiline mode, where ^ and $ match the beginning and end of each line (instead of the beginning and end of the input string).
-        ///  s	Use single-line mode, where the period (.) matches every character (instead of every character except \n).
-        ///  n	Do not capture unnamed groups. The only valid captures are explicitly named or numbered groups of the form (?&lt;name [rest of string was truncated]&quot;;.
+        ///	i	Use case-insensitive matching.
+        ///	m	Use multiline mode, where ^ and $ match the beginning and end of each line
+        ///		(instead of the beginning and end of the input string).
+        ///	s	Use single-line mode, where the period (.) matches every character
+        ///		(instead of every character except \n).
+        ///	n	Do not capture unnamed groups. The only valid captures are explicitly
+        ///		named or numbered groups of the form (? [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_group_options_long {
             get {
@@ -1821,9 +1824,11 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Enables or disables specific pattern matching options for the remainder of a regular expression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
         ///
-        ///  i	Use case-insensitive matching.
-        ///  m	Use multiline mode, where ^ and $ match the beginning and end of each line (instead of the beginning and end of the input string).
-        ///  s	Use single-line mode, where the period (.) matches every character (instead of every character except [rest of string was truncated]&quot;;.
+        ///	i	Use case-insensitive matching.
+        ///	m	Use multiline mode, where ^ and $ match the beginning and end of each line
+        ///		(instead of the beginning and end of the input string).
+        ///	s	Use single-line mode, where the period (.) matches every character
+        ///		(instead of every character exc [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_inline_options_long {
             get {
@@ -2379,14 +2384,14 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to \W matches any non-word character. It matches any character except for those in the following Unicode categories:
         ///
-        ///  Ll	Letter, Lowercase
-        ///  Lu	Letter, Uppercase
-        ///  Lt	Letter, Titlecase
-        ///  Lo	Letter, Other
-        ///  Lm	Letter, Modifier
-        ///  Mn	Mark, Nonspacing
-        ///  Nd	Number, Decimal Digit
-        ///  Pc	Punctuation, Connector
+        ///	Ll	Letter, Lowercase
+        ///	Lu	Letter, Uppercase
+        ///	Lt	Letter, Titlecase
+        ///	Lo	Letter, Other
+        ///	Lm	Letter, Modifier
+        ///	Mn	Mark, Nonspacing
+        ///	Nd	Number, Decimal Digit
+        ///	Pc	Punctuation, Connector
         ///
         ///If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9].
         /// </summary>
@@ -2830,13 +2835,13 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to \s matches any white-space character. It is equivalent to the following escape sequences and Unicode categories:
         ///
-        ///  \f	The form feed character, \u000C
-        ///  \n	The newline character, \u000A
-        ///  \r	The carriage return character, \u000D
-        ///  \t	The tab character, \u0009
-        ///  \v	The vertical tab character, \u000B
-        ///  \x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
-        ///  \p{Z}	Matches any separator character
+        ///	\f	The form feed character, \u000C
+        ///	\n	The newline character, \u000A
+        ///	\r	The carriage return character, \u000D
+        ///	\t	The tab character, \u0009
+        ///	\v	The vertical tab character, \u000B
+        ///	\x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
+        ///	\p{Z}	Matches any separator character
         ///
         ///If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v].
         /// </summary>
@@ -2878,14 +2883,14 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to \w matches any word character. A word character is a member of any of the following Unicode categories:
         ///
-        ///  Ll	Letter, Lowercase
-        ///  Lu	Letter, Uppercase
-        ///  Lt	Letter, Titlecase
-        ///  Lo	Letter, Other
-        ///  Lm	Letter, Modifier
-        ///  Mn	Mark, Nonspacing
-        ///  Nd	Number, Decimal Digit
-        ///  Pc	Punctuation, Connector
+        ///	Ll	Letter, Lowercase
+        ///	Lu	Letter, Uppercase
+        ///	Lt	Letter, Titlecase
+        ///	Lo	Letter, Other
+        ///	Lm	Letter, Modifier
+        ///	Mn	Mark, Nonspacing
+        ///	Nd	Number, Decimal Digit
+        ///	Pc	Punctuation, Connector
         ///
         ///If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9].
         /// </summary>
