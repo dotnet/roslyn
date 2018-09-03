@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         // test should cover both case with AwaitOnCompleted and AwaitUnsafeOnCompleted
         // test `async IAsyncEnumerable<int> M() { return TaskLike(); }`
         // Can we avoid making IAsyncEnumerable<T> special from the start? Making mark it with an attribute like we did for task-like?
-        // Test a plain return statement
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
         {
@@ -432,6 +431,90 @@ class C
                 // (8,9): error CS0139: No enclosing loop out of which to break or continue
                 //         break;
                 Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void AsyncIteratorWithReturnInt()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+        return 1;
+    }
+    async System.Collections.Generic.IAsyncEnumerable<int> M2()
+    {
+        return 1;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return 1;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
+                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60)
+                );
+        }
+
+        [Fact]
+        public void AsyncIteratorWithReturnNull()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+        return null;
+    }
+    async System.Collections.Generic.IAsyncEnumerable<int> M2()
+    {
+        return null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return null;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
+                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60)
+                );
+        }
+
+        [Fact]
+        public void AsyncIteratorWithReturnDefault()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+        return default;
+    }
+    async System.Collections.Generic.IAsyncEnumerable<int> M2()
+    {
+        return default;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return default;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
+                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60)
                 );
         }
 
@@ -1314,34 +1397,6 @@ class C
                 // (4,60): error CS0161: 'C.M()': not all code paths return a value
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 60)
-                );
-        }
-
-        [Fact]
-        public void TestMissingIAsyncEnumerable()
-        {
-            string source = @"
-class C
-{
-    async System.Collections.Generic.IAsyncEnumerable<int> M()
-    {
-        yield return 1;
-    }
-}";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
-            comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
-
-            // PROTOTYPE(async-streams) error CS1983 should mention IAsyncEnumerable
-            comp.VerifyDiagnostics(
-                // (4,60): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 60),
-                // (4,60): error CS1624: The body of 'C.M()' cannot be an iterator block because 'IAsyncEnumerable<int>' is not an iterator interface type
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "M").WithArguments("C.M()", "System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(4, 60),
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60)
                 );
         }
 
