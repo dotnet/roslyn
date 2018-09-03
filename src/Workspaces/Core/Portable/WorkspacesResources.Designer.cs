@@ -1377,11 +1377,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.
-        ///
-        ///Like the positive character class, the | character can be used to match any one of a number of single characters.
-        ///
-        ///The | character can also be used to perform an either/or match with multiple characters or subexpressions, which can include any combination of character literals and regular expression language elements. (The character class does not provide this functionality [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern..
         /// </summary>
         internal static string regex_alternation_long {
             get {
@@ -1399,7 +1395,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the s option, . matches any character..
+        ///   Looks up a localized string similar to The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the &apos;s&apos; option, . matches any character..
         /// </summary>
         internal static string regex_any_character_group_long {
             get {
@@ -1435,11 +1431,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group. This grouping construct has the following format:
-        ///
-        ///(?&lt;name1-name2&gt;subexpression)  
-        ///
-        ///where name1 is the current group (optional), name2 is a previously defined group, and subexpression is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+        ///    
+        ///&apos;name1&apos; is the current group (optional), &apos;name2&apos; is a previously defined group, and &apos;subexpression&apos; is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Be [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_balancing_group_long {
             get {
@@ -1502,13 +1496,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A character class defines a set of characters. Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+        ///   Looks up a localized string similar to Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
         ///
-        ///A character class subtraction expression has the following form:
-        ///
-        ///[ base_group -[ excluded_group ]]
-        ///
-        ///The square brackets ([]) and hyphen (-) are mandatory. The base_group is a positive character group or a negative character group. The excluded_group component is another positive or negative character  [rest of string was truncated]&quot;;.
+        ///&apos;base_group&apos; is a positive or negative character group or range. The &apos;excluded_group&apos; component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions)..
         /// </summary>
         internal static string regex_character_class_subtraction_long {
             get {
@@ -1544,11 +1534,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This language element attempts to match one of two patterns depending on whether it can match an initial pattern. Its syntax is:
+        ///   Looks up a localized string similar to This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
         ///
-        ///(?( expression ) yes | no )
-        ///
-        ///where expression is the initial pattern to match, yes is the pattern to match if expression is matched, and no is the optional pattern to match if expression is not matched. The regular expression engine treats expression as a zero-width assertion; that is, the regular expression engine does not advance in the input stream after it evaluates expre [rest of string was truncated]&quot;;.
+        ///&apos;expression&apos; is the initial pattern to match, &apos;yes&apos; is the pattern to match if expression is matched, and &apos;no&apos; is the optional pattern to match if expression is not matched..
         /// </summary>
         internal static string regex_conditional_expression_match_long {
             get {
@@ -1566,17 +1554,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group. Its syntax is:
+        ///   Looks up a localized string similar to This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
         ///
-        ///(?( name ) yes | no )
-        ///
-        ///or
-        ///
-        ///(?( number ) yes | no )
-        ///
-        ///where name is the name and number is the number of a capturing group, yes is the expression to match if name or number has a match, and no is the optional expression to match if it does not.
-        ///
-        ///If name does not correspond to the name of a capturing group that is used in the regular expression pattern, the alte [rest of string was truncated]&quot;;.
+        ///&apos;name&apos; is the name (or number) of a capturing group, &apos;yes&apos; is the expression to match if &apos;name&apos; (or &apos;number&apos;) has a match, and &apos;no&apos; is the optional expression to match if it does not..
         /// </summary>
         internal static string regex_conditional_group_match_long {
             get {
@@ -1688,7 +1668,7 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
         ///
-        ///Note that \Z matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern..
+        ///The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern..
         /// </summary>
         internal static string regex_end_of_string_or_before_ending_newline_long {
             get {
@@ -1706,9 +1686,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string.
+        ///   Looks up a localized string similar to The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
         ///
-        ///If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line. Note that $ matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern..
+        ///The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern..
         /// </summary>
         internal static string regex_end_of_string_or_line_long {
             get {
@@ -1780,13 +1760,12 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following grouping construct applies or disables the specified options within a subexpression:
+        ///   Looks up a localized string similar to This grouping construct applies or disables the specified options within a subexpression. The options are:
         ///
-        ///(?imnsx-imnsx: subexpression )
-        ///
-        ///where subexpression is any valid regular expression pattern. For example, (?i-s:) turns on case insensitivity and disables single-line mode.
-        ///
-        ///The group options construct is not a capturing group. That is, although any portion of a string that is captured by subexpression is included in the match, it is not included in a captured group nor used to populate the GroupCollect [rest of string was truncated]&quot;;.
+        ///  i	Use case-insensitive matching.
+        ///  m	Use multiline mode, where ^ and $ match the beginning and end of each line (instead of the beginning and end of the input string).
+        ///  s	Use single-line mode, where the period (.) matches every character (instead of every character except \n).
+        ///  n	Do not capture unnamed groups. The only valid captures are explicitly named or numbered groups of the form (?&lt;name [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_group_options_long {
             get {
@@ -1840,15 +1819,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You can set or disable specific pattern matching options for the remainder of a regular expression by using the syntax
+        ///   Looks up a localized string similar to Enables or disables specific pattern matching options for the remainder of a regular expression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
         ///
-        ///(?imnsx-imnsx)  
-        ///
-        ///You list the options you want to enable after the question mark, and the options you want to disable after the minus sign. The following table describes each option.
-        ///
-        ///i 	Use case-insensitive matching.
-        ///m 	Use multiline mode, where ^ and $ match the beginning and end of each line (instead of the beginning and end of the input string).
-        ///s 	Use single-line mode, where  [rest of string was truncated]&quot;;.
+        ///  i	Use case-insensitive matching.
+        ///  m	Use multiline mode, where ^ and $ match the beginning and end of each line (instead of the beginning and end of the input string).
+        ///  s	Use single-line mode, where the period (.) matches every character (instead of every character except [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_inline_options_long {
             get {
@@ -2163,15 +2138,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following grouping construct captures a matched subexpression:
-        ///
-        ///( subexpression )
-        ///
-        ///where subexpression is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.
-        ///
-        ///Note
-        ///
-        ///By default, the (subexpression) language element captures the matched subexpression.  [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to This grouping construct captures a matched &apos;subexpression&apos;, where &apos;subexpression&apos; is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern..
         /// </summary>
         internal static string regex_matched_subexpression_long {
             get {
@@ -2225,19 +2192,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A named backreference is defined by using the following syntax:
+        ///   Looks up a localized string similar to A named or numbered backreference.
         ///
-        ///\k&lt; name &gt;
-        ///
-        ///or:
-        ///
-        ///\k&lt; number &gt;
-        ///
-        ///where name is the name of a capturing group defined in the regular expression pattern. If name is not defined in the regular expression pattern, a parsing error occurs, and the regular expression engine throws an ArgumentException. 
-        ///
-        ///In a named backreference with \k, name can also be the string representation of a number.
-        ///
-        ///If name is the string representation of a number, and no capturing group has th [rest of string was truncated]&quot;;.
+        ///&apos;name&apos; is the name of a capturing group defined in the regular expression pattern..
         /// </summary>
         internal static string regex_named_backreference_long {
             get {
@@ -2255,15 +2212,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following grouping construct captures a matched subexpression and lets you access it by name or by number:
+        ///   Looks up a localized string similar to Captures a matched subexpression and lets you access it by name or by number.
         ///
-        ///(?&lt;name&gt;subexpression)  
+        ///&apos;name&apos; is a valid group name, and &apos;subexpression&apos; is any valid regular expression pattern. &apos;name&apos; must not contain any punctuation characters and cannot begin with a number.
         ///
-        ///where name is a valid group name, and subexpression is any valid regular expression pattern. name must not contain any punctuation characters and cannot begin with a number.
-        ///
-        ///Note
-        ///
-        ///If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the on [rest of string was truncated]&quot;;.
+        ///If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing gro [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_named_matched_subexpression_long {
             get {
@@ -2281,13 +2234,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters may be specified individually, as a range, or both.
+        ///   Looks up a localized string similar to A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
         ///
-        ///The syntax for specifying a list of individual characters is as follows:
-        ///
-        ///[^character_group]
-        ///
-        ///where character_group is a list of the individual characters that cannot appear in the input string for a match to succeed. character_group can consist of any combination of one or more literal characters, escape cha [rest of string was truncated]&quot;;.
+        ///Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from &quot;0&quot; through &quot;9&quot;, the range of lowercase letters from &quot;a&quot; through &quot;f&quot;, and the range of uppercase letters from &quot;A&quot; through &quot;F&quot;, use [0-9a-fA-F]..
         /// </summary>
         internal static string regex_negative_character_group_long {
             get {
@@ -2305,7 +2254,27 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Unicode standard assigns each character a general category. For example, a particular character can be an uppercase letter (represented by the Lu category), a decimal digit (the Nd category), a math symbol (the Sm category), or a paragraph separator (the Zl category). Specific character sets in the Unicode standard also occupy a specific range or block of consecutive code points. For example, the basic Latin character set is found from \u0000 through \u007F, while the Arabic character set is found from  [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to A negative character range specifies a list of characters that must not appear in an input string for a match to occur. &apos;firstCharacter&apos; is the character that begins the range, and &apos;lastCharacter&apos; is the character that ends the range.
+        ///
+        ///Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from &quot;0&quot; through &quot;9&quot;, the range of lowercase letters from &quot;a&quot; through &quot;f&quot;, and the range of uppercase letters from &quot;A&quot; through &quot;F&quot;, use [0-9a-fA-F]..
+        /// </summary>
+        internal static string regex_negative_character_range_long {
+            get {
+                return ResourceManager.GetString("regex_negative_character_range_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to negative character range.
+        /// </summary>
+        internal static string regex_negative_character_range_short {
+            get {
+                return ResourceManager.GetString("regex_negative_character_range_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name..
         /// </summary>
         internal static string regex_negative_unicode_category_long {
             get {
@@ -2408,20 +2377,18 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to \W matches any non-word character. The \W language element is equivalent to the following character class:
+        ///   Looks up a localized string similar to \W matches any non-word character. It matches any character except for those in the following Unicode categories:
         ///
-        ///[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Pc}\p{Lm}]  
+        ///  Ll	Letter, Lowercase
+        ///  Lu	Letter, Uppercase
+        ///  Lt	Letter, Titlecase
+        ///  Lo	Letter, Other
+        ///  Lm	Letter, Modifier
+        ///  Mn	Mark, Nonspacing
+        ///  Nd	Number, Decimal Digit
+        ///  Pc	Punctuation, Connector
         ///
-        ///In other words, it matches any character except for those in the Unicode categories listed in the following table.
-        ///
-        ///Ll 	Letter, Lowercase
-        ///Lu 	Letter, Uppercase
-        ///Lt 	Letter, Titlecase
-        ///Lo 	Letter, Other
-        ///Lm 	Letter, Modifier
-        ///Mn 	Mark, Nonspacing
-        ///Nd 	Number, Decimal Digit
-        ///Pc 	Punctuation, Connector. This category includes ten characters, the mos [rest of string was truncated]&quot;;.
+        ///If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9].
         /// </summary>
         internal static string regex_non_word_character_long {
             get {
@@ -2439,13 +2406,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following grouping construct represents a nonbacktracking subexpression (also known as a &quot;greedy&quot; subexpression):
+        ///   Looks up a localized string similar to This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
         ///
-        ///(?&gt; subexpression )
-        ///
-        ///where subexpression is any regular expression pattern.
-        ///
-        ///Ordinarily, if a regular expression includes an optional or alternative matching pattern and a match does not succeed, the regular expression engine can branch in multiple directions to match an input string with a pattern. If a match is not found when it takes the first branch, the regular expression engine  [rest of string was truncated]&quot;;.
+        ///This option is recommended if you know that backtracking will not succeed. Preven [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_nonbacktracking_subexpression_long {
             get {
@@ -2463,13 +2426,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following grouping construct does not capture the substring that is matched by a subexpression:
+        ///   Looks up a localized string similar to This construct does not capture the substring that is matched by a subexpression:
         ///
-        ///(?:subexpression)  
-        ///
-        ///where subexpression is any valid regular expression pattern. The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
-        ///
-        ///Note
+        ///The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
         ///
         ///If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs..
         /// </summary>
@@ -2516,11 +2475,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A numbered backreference uses the following syntax:
+        ///   Looks up a localized string similar to A numbered backreference, where &apos;number&apos; is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
         ///
-        ///\ number
-        ///
-        ///where number is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group. If number is not defined in the regular expression pattern, a parsing error occurs, and the regular expression engine throws an ArgumentException. In addition, if number identifies a capturing group in a particular ordinal position, but that capturing group has been assigned a numeric name [rest of string was truncated]&quot;;.
+        ///There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot b [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_numbered_backreference_long {
             get {
@@ -2583,13 +2540,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur. This list of characters may be specified individually, as a range, or both.
-        ///
-        ///The syntax for specifying a list of individual characters is as follows:
-        ///
-        ///[character_group]
-        ///
-        ///where character_group is a list of the individual characters that can appear in the input string for a match to succeed. character_group can consist of any combination of one or more literal characters, escap [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur..
         /// </summary>
         internal static string regex_positive_character_group_long {
             get {
@@ -2603,6 +2554,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_positive_character_group_short {
             get {
                 return ResourceManager.GetString("regex_positive_character_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  &apos;firstCharacter&apos; is the character that begins the range and &apos;lastCharacter&apos; is the character that ends the range. .
+        /// </summary>
+        internal static string regex_positive_character_range_long {
+            get {
+                return ResourceManager.GetString("regex_positive_character_range_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to positive character range.
+        /// </summary>
+        internal static string regex_positive_character_range_short {
+            get {
+                return ResourceManager.GetString("regex_positive_character_range_short", resourceCulture);
             }
         }
         
@@ -2796,7 +2765,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Unicode standard assigns each character a general category. For example, a particular character can be an uppercase letter (represented by the Lu category), a decimal digit (the Nd category), a math symbol (the Sm category), or a paragraph separator (the Zl category). Specific character sets in the Unicode standard also occupy a specific range or block of consecutive code points. For example, the basic Latin character set is found from \u0000 through \u007F, while the Arabic character set is found from  [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name..
         /// </summary>
         internal static string regex_unicode_category_long {
             get {
@@ -2859,15 +2828,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to \s matches any white-space character. It is equivalent to the escape sequences and Unicode categories listed in the following table.
+        ///   Looks up a localized string similar to \s matches any white-space character. It is equivalent to the following escape sequences and Unicode categories:
         ///
-        ///\f 	The form feed character, \u000C.
-        ///\n 	The newline character, \u000A.
-        ///\r 	The carriage return character, \u000D.
-        ///\t 	The tab character, \u0009.
-        ///\v 	The vertical tab character, \u000B.
-        ///\x85 	The ellipsis or NEXT LINE (NEL) character (…), \u0085.
-        ///\p{Z} 	Matches any separator character.
+        ///  \f	The form feed character, \u000C
+        ///  \n	The newline character, \u000A
+        ///  \r	The carriage return character, \u000D
+        ///  \t	The tab character, \u0009
+        ///  \v	The vertical tab character, \u000B
+        ///  \x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
+        ///  \p{Z}	Matches any separator character
         ///
         ///If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v].
         /// </summary>
@@ -2907,16 +2876,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to \w matches any word character. A word character is a member of any of the Unicode categories listed in the following table.
+        ///   Looks up a localized string similar to \w matches any word character. A word character is a member of any of the following Unicode categories:
         ///
-        ///Ll 	Letter, Lowercase
-        ///Lu 	Letter, Uppercase
-        ///Lt 	Letter, Titlecase
-        ///Lo 	Letter, Other
-        ///Lm 	Letter, Modifier
-        ///Mn 	Mark, Nonspacing
-        ///Nd 	Number, Decimal Digit
-        ///Pc 	Punctuation, Connector. This category includes ten characters, the most commonly used of which is the LOWLINE character (_), u+005F.
+        ///  Ll	Letter, Lowercase
+        ///  Lu	Letter, Uppercase
+        ///  Lt	Letter, Titlecase
+        ///  Lo	Letter, Other
+        ///  Lm	Letter, Modifier
+        ///  Mn	Mark, Nonspacing
+        ///  Nd	Number, Decimal Digit
+        ///  Pc	Punctuation, Connector
         ///
         ///If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9].
         /// </summary>
@@ -2945,13 +2914,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following grouping construct defines a zero-width negative lookahead assertion:
+        ///   Looks up a localized string similar to Aa zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
         ///
-        ///(?! subexpression )
-        ///
-        ///where subexpression is any regular expression pattern. For the match to be successful, the input string must not match the regular expression pattern in subexpression, although the matched string is not included in the match result.
-        ///
-        ///A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, i [rest of string was truncated]&quot;;.
+        ///A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar bu [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_zero_width_negative_lookahead_assertion_long {
             get {
@@ -2969,13 +2934,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following grouping construct defines a zero-width negative lookbehind assertion:
+        ///   Looks up a localized string similar to Azero-width negative lookbehind assertion, where for a match to be successful, &apos;subexpression&apos; must not occur at the input string to the left of the current position. Any substring that does not match &apos;subexpression&apos; is not included in the match result.
         ///
-        ///(?&lt;! subexpression )
-        ///
-        ///where subexpression is any regular expression pattern. For a match to be successful, subexpression must not occur at the input string to the left of the current position. However, any substring that does not match subexpression is not included in the match result.
-        ///
-        ///Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define p [rest of string was truncated]&quot;;.
+        ///Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_zero_width_negative_lookbehind_assertion_long {
             get {
@@ -2993,13 +2954,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following grouping construct defines a zero-width positive lookahead assertion:
+        ///   Looks up a localized string similar to Aa zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in &apos;subexpression&apos;. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
         ///
-        ///(?= subexpression )
-        ///
-        ///where subexpression is any regular expression pattern. For a match to be successful, the input string must match the regular expression pattern in subexpression, although the matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
-        ///
-        ///Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. I [rest of string was truncated]&quot;;.
+        ///Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in th [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_zero_width_positive_lookahead_assertion_long {
             get {
@@ -3017,13 +2974,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following grouping construct defines a zero-width positive lookbehind assertion:
+        ///   Looks up a localized string similar to A zero-width positive lookbehind assertion, where for a match to be successful, &apos;subexpression&apos; must occur at the input string to the left of the current position. &apos;subexpression&apos; is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
         ///
-        ///(?&lt;= subexpression )
-        ///
-        ///where subexpression is any regular expression pattern. For a match to be successful, subexpression must occur at the input string to the left of the current position, although subexpression is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
-        ///
-        ///Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The p [rest of string was truncated]&quot;;.
+        ///Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result..
         /// </summary>
         internal static string regex_zero_width_positive_lookbehind_assertion_long {
             get {
