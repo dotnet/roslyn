@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         /// <summary>
         /// A optional highlighter that can highlight spans for an embedded language string.
         /// </summary>
-        IDocumentHighlightsService Highlighter { get; }
+        IDocumentHighlightsService DocumentHighlightsService { get; }
 
         /// <summary>
         /// An optional analyzer that produces diagnostics for an embedded language string.

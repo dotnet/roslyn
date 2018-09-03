@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// Brace matching impl for embedded regex strings.
     /// </summary>
-    internal sealed class RegexEmbeddedBraceMatcher : IBraceMatcher
+    internal sealed class RegexBraceMatcher : IBraceMatcher
     {
         private readonly RegexEmbeddedLanguageEditorFeatures _language;
 
-        public RegexEmbeddedBraceMatcher(RegexEmbeddedLanguageEditorFeatures language)
+        public RegexBraceMatcher(RegexEmbeddedLanguageEditorFeatures language)
         {
             _language = language;
         }

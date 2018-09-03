@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         public RegexEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
             Info = info;
-            Classifier = new RegexEmbeddedClassifier(info);
+            Classifier = new RegexSyntaxClassifier(info);
         }
     }
 }

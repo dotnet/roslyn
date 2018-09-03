@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             AbstractEmbeddedLanguageFeaturesProvider provider, EmbeddedLanguageInfo info) 
             : base(provider, info)
         {
-            BraceMatcher = new RegexEmbeddedBraceMatcher(this);
+            BraceMatcher = new RegexBraceMatcher(this);
         }
     }
 }

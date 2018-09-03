@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal sealed class RegexEmbeddedHighlighter : IDocumentHighlightsService
+    internal sealed class RegexDocumentHighlightsService : IDocumentHighlightsService
     {
         private readonly RegexEmbeddedLanguageFeatures _language;
 
-        public RegexEmbeddedHighlighter(RegexEmbeddedLanguageFeatures language)
+        public RegexDocumentHighlightsService(RegexEmbeddedLanguageFeatures language)
         {
             _language = language;
         }

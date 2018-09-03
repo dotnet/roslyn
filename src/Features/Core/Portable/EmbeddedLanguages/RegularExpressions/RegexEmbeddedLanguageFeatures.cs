@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     {
         private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
 
-        public IDocumentHighlightsService Highlighter { get; }
+        public IDocumentHighlightsService DocumentHighlightsService { get; }
         public DiagnosticAnalyzer DiagnosticAnalyzer { get; }
         public CompletionProvider CompletionProvider { get; }
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         {
             _provider = provider;
 
-            Highlighter = new RegexEmbeddedHighlighter(this);
+            DocumentHighlightsService = new RegexDocumentHighlightsService(this);
             DiagnosticAnalyzer = new RegexDiagnosticAnalyzer(info);
             CompletionProvider = new RegexEmbeddedCompletionProvider(this);
         }

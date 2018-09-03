@@ -6,11 +6,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
     using static EmbeddedSyntaxHelpers;
 
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     /// <summary>
     /// Classifier impl for embedded regex strings.
     /// </summary>
-    internal sealed class RegexEmbeddedClassifier : AbstractSyntaxClassifier
+    internal sealed class RegexSyntaxClassifier : AbstractSyntaxClassifier
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
         public override ImmutableArray<int> SyntaxTokenKinds { get; }
 
-        public RegexEmbeddedClassifier(EmbeddedLanguageInfo info)
+        public RegexSyntaxClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
             SyntaxTokenKinds = ImmutableArray.Create(info.StringLiteralTokenKind);
