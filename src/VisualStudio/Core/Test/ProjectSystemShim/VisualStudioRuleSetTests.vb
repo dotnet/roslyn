@@ -50,9 +50,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' Signing up for file change notifications is lazy, so read the rule set to force it.
                 Dim generalDiagnosticOption = visualStudioRuleSet.Target.GetGeneralDiagnosticOption()
 
+                fileChangeWatcher.WaitForQueue_TestOnly()
                 Assert.Equal(expected:=1, actual:=fileChangeService.WatchedFileCount)
             End Using
 
+            fileChangeWatcher.WaitForQueue_TestOnly()
             Assert.Equal(expected:=0, actual:=fileChangeService.WatchedFileCount)
         End Sub
 
@@ -90,9 +92,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' Signing up for file change notifications is lazy, so read the rule set to force it.
                 Dim generalDiagnosticOption = visualStudioRuleSet.Target.GetGeneralDiagnosticOption()
 
+                fileChangeWatcher.WaitForQueue_TestOnly()
                 Assert.Equal(expected:=2, actual:=fileChangeService.WatchedFileCount)
             End Using
 
+            fileChangeWatcher.WaitForQueue_TestOnly()
             Assert.Equal(expected:=0, actual:=fileChangeService.WatchedFileCount)
         End Sub
 
@@ -132,6 +136,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' Signing up for file change notifications is lazy, so read the rule set to force it.
                 Dim generalDiagnosticOption = ruleSet1.Target.GetGeneralDiagnosticOption()
 
+                fileChangeWatcher.WaitForQueue_TestOnly()
                 fileChangeService.FireUpdate(includePath)
                 Assert.True(handlerCalled)
             End Using
@@ -160,6 +165,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 ' Signing up for file change notifications is lazy, so read the rule set to force it.
                 Dim generalDiagnosticOption = ruleSet1.Target.GetGeneralDiagnosticOption()
+                fileChangeWatcher.WaitForQueue_TestOnly()
                 fileChangeService.FireUpdate(ruleSetPath)
 
                 Using ruleSet2 = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
@@ -167,11 +173,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                     ' Signing up for file change notifications is lazy, so read the rule set to force it.
                     generalDiagnosticOption = ruleSet2.Target.GetGeneralDiagnosticOption()
 
+                    fileChangeWatcher.WaitForQueue_TestOnly()
                     Assert.Equal(expected:=1, actual:=fileChangeService.WatchedFileCount)
                     Assert.NotSame(ruleSet1.Target, ruleSet2.Target)
                 End Using
             End Using
 
+            fileChangeWatcher.WaitForQueue_TestOnly()
             Assert.Equal(expected:=0, actual:=fileChangeService.WatchedFileCount)
         End Sub
 
@@ -201,11 +209,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Using ruleSet2 = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
+                    fileChangeWatcher.WaitForQueue_TestOnly()
                     Assert.Equal(expected:=1, actual:=fileChangeService.WatchedFileCount)
                     Assert.Same(ruleSet1.Target, ruleSet2.Target)
                 End Using
             End Using
 
+            fileChangeWatcher.WaitForQueue_TestOnly()
             Assert.Equal(expected:=0, actual:=fileChangeService.WatchedFileCount)
         End Sub
 
@@ -231,6 +241,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Using ruleSet = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
                 Dim generalDiagnosticOption = ruleSet.Target.GetGeneralDiagnosticOption()
+                fileChangeWatcher.WaitForQueue_TestOnly()
 
                 Assert.Equal(expected:=ReportDiagnostic.Default, actual:=generalDiagnosticOption)
 
