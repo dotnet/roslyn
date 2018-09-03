@@ -97,14 +97,16 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                     properties.Add(NewPositionKey, change.NewPosition.ToString());
                 }
 
-                // Keep everything sorted in the order the underlying embedded
-                // language provided it.
+                // Keep everything sorted in the order we just produced the items in.
                 var sortText = index.ToString("0000");
 
                 var item = CompletionItem.Create(
-                    embeddedItem.DisplayText,
+                    displayText: embeddedItem.DisplayText,
+                    filterText: null,
                     sortText: sortText,
+                    suffixText: "    " + embeddedItem.Suffix,
                     properties: properties.ToImmutable(),
+                    tags: default,
                     rules: s_rules);
 
                 context.AddItem(item);
@@ -302,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             {
                 return;
             }
-
+            
             AddIfMissing(context, CreateItem(stringToken, $"(  {regex_subexpression}  )", regex_matched_subexpression_short, regex_matched_subexpression_long, context, parentOpt, positionOffset: "(".Length, insertionText: "()"));
             AddIfMissing(context, CreateItem(stringToken, $"(?<  {regex_name}  >  {regex_subexpression}  )", regex_named_matched_subexpression_short, regex_named_matched_subexpression_long, context, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<>)"));
             AddIfMissing(context, CreateItem(stringToken, $"(?<  {regex_name1}  -  {regex_name2}  >  {regex_subexpression}  )", regex_balancing_group_short, regex_balancing_group_long, context, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<->)"));
@@ -341,18 +343,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                     continue;
                 }
 
-                if (shortDesc != "")
-                {
-                    displayText += $"  -  {shortDesc}";
-                }
-
                 var description = longDesc.Length > 0
                     ? longDesc
                     : string.Format(regex_unicode_general_category_0, name);
 
                 AddIfMissing(context, new RegexItem(
-                    displayText,
-                    description,
+                    displayText, shortDesc, description,
                     change: CompletionChange.Create(
                         new TextChange(new TextSpan(context.Position, 0), name), newPosition: null)));
             }
@@ -414,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private RegexItem CreateItem(
             SyntaxToken stringToken, string displayText, 
-            string shortDescription, string longDescription,
+            string suffix, string description,
             EmbeddedCompletionContext context, RegexNode parentOpt, 
             int? positionOffset = null, string insertionText = null)
         {
@@ -427,10 +423,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             insertionText = insertionText ?? displayText;
             var escapedInsertionText = _language.EscapeText(insertionText, stringToken);
-            if (shortDescription != "")
-            {
-                displayText += $"  -  {shortDescription}";
-            }
 
             if (escapedInsertionText != insertionText)
             {
@@ -438,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
 
             return new RegexItem(
-                displayText, longDescription, 
+                displayText, suffix, description,
                 CompletionChange.Create(
                     new TextChange(replacementSpan, escapedInsertionText),
                     newPosition));
@@ -543,13 +535,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     internal struct RegexItem
     {
         public readonly string DisplayText;
+        public readonly string Suffix;
         public readonly string Description;
         public readonly CompletionChange Change;
 
         public RegexItem(
-            string displayText, string description, CompletionChange change)
+            string displayText, string suffix, string description, CompletionChange change)
         {
             DisplayText = displayText;
+            Suffix = suffix;
             Description = description;
             Change = change;
         }

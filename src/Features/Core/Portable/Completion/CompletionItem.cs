@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.Completion
         public string SortText { get; }
 
         /// <summary>
+        /// Text to place after <see cref="DisplayText"/> in the display layer.
+        /// </summary>
+        internal string SuffixText { get; }
+
+        /// <summary>
         /// The span of the syntax element associated with this item.
         /// 
         /// The span identifies the text in the document that is used to filter the initial list presented to the user,
@@ -66,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion
             string displayText,
             string filterText,
             string sortText,
+            string suffixText,
             TextSpan span,
             ImmutableDictionary<string, string> properties,
             ImmutableArray<string> tags,
@@ -74,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.DisplayText = displayText ?? "";
             this.FilterText = filterText ?? this.DisplayText;
             this.SortText = sortText ?? this.DisplayText;
+            this.SuffixText = suffixText ?? "";
             this.Span = span;
             this.Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             this.Tags = tags.NullToEmpty();
@@ -90,11 +97,33 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<string> tags = default,
             CompletionItemRules rules = null)
         {
+            return Create(
+                displayText: displayText,
+                filterText: filterText,
+                sortText: sortText,
+                suffixText: "",
+                properties: properties,
+                tags: tags,
+                rules: rules);
+        }
+
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+        internal static CompletionItem Create(
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+            string displayText,
+            string filterText,
+            string sortText,
+            string suffixText,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<string> tags,
+            CompletionItemRules rules)
+        {
             return new CompletionItem(
                 span: default,
                 displayText: displayText,
                 filterText: filterText,
                 sortText: sortText,
+                suffixText: suffixText,
                 properties: properties,
                 tags: tags,
                 rules: rules);
@@ -126,6 +155,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayText: displayText,
                 filterText: filterText,
                 sortText: sortText,
+                suffixText: "",
                 properties: properties,
                 tags: tags,
                 rules: rules);
@@ -136,6 +166,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<string> displayText = default,
             Optional<string> filterText = default,
             Optional<string> sortText = default,
+            Optional<string> suffixText = default,
             Optional<ImmutableDictionary<string, string>> properties = default,
             Optional<ImmutableArray<string>> tags = default,
             Optional<CompletionItemRules> rules = default)
@@ -144,6 +175,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var newDisplayText = displayText.HasValue ? displayText.Value : this.DisplayText;
             var newFilterText = filterText.HasValue ? filterText.Value : this.FilterText;
             var newSortText = sortText.HasValue ? sortText.Value : this.SortText;
+            var newSuffixText = suffixText.HasValue ? suffixText.Value : this.SuffixText;
             var newProperties = properties.HasValue ? properties.Value : this.Properties;
             var newTags = tags.HasValue ? tags.Value : this.Tags;
             var newRules = rules.HasValue ? rules.Value : this.Rules;
@@ -152,6 +184,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 newDisplayText == this.DisplayText &&
                 newFilterText == this.FilterText &&
                 newSortText == this.SortText &&
+                newSuffixText == this.SuffixText &&
                 newProperties == this.Properties &&
                 newTags == this.Tags &&
                 newRules == this.Rules)
@@ -164,6 +197,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 filterText: newFilterText,
                 span: newSpan,
                 sortText: newSortText,
+                suffixText: newSuffixText,
                 properties: newProperties,
                 tags: newTags,
                 rules: newRules);

@@ -1000,14 +1000,14 @@ If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v
   <data name="regex_non_word_character_long" xml:space="preserve">
     <value>\W matches any non-word character. It matches any character except for those in the following Unicode categories:
 
-	Ll	Letter, Lowercase
-	Lu	Letter, Uppercase
-	Lt	Letter, Titlecase
-	Lo	Letter, Other
-	Lm	Letter, Modifier
-	Mn	Mark, Nonspacing
-	Nd	Number, Decimal Digit
-	Pc	Punctuation, Connector
+    Ll	Letter, Lowercase
+    Lu	Letter, Uppercase
+    Lt	Letter, Titlecase
+    Lo	Letter, Other
+    Lm	Letter, Modifier
+    Mn	Mark, Nonspacing
+    Nd	Number, Decimal Digit
+    Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</value>
   </data>
@@ -1056,13 +1056,13 @@ If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]
   <data name="regex_white_space_character_long" xml:space="preserve">
     <value>\s matches any white-space character. It is equivalent to the following escape sequences and Unicode categories:
 
-	\f	The form feed character, \u000C
-	\n	The newline character, \u000A
-	\r	The carriage return character, \u000D
-	\t	The tab character, \u0009
-	\v	The vertical tab character, \u000B
-	\x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
-	\p{Z}	Matches any separator character
+    \f	The form feed character, \u000C
+    \n	The newline character, \u000A
+    \r	The carriage return character, \u000D
+    \t	The tab character, \u0009
+    \v	The vertical tab character, \u000B
+    \x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
+    \p{Z}	Matches any separator character
 
 If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</value>
   </data>
@@ -1072,14 +1072,14 @@ If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]
   <data name="regex_word_character_long" xml:space="preserve">
     <value>\w matches any word character. A word character is a member of any of the following Unicode categories:
 
-	Ll	Letter, Lowercase
-	Lu	Letter, Uppercase
-	Lt	Letter, Titlecase
-	Lo	Letter, Other
-	Lm	Letter, Modifier
-	Mn	Mark, Nonspacing
-	Nd	Number, Decimal Digit
-	Pc	Punctuation, Connector
+    Ll	Letter, Lowercase
+    Lu	Letter, Uppercase
+    Lt	Letter, Titlecase
+    Lo	Letter, Other
+    Lm	Letter, Modifier
+    Mn	Mark, Nonspacing
+    Nd	Number, Decimal Digit
+    Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</value>
   </data>
@@ -1131,17 +1131,17 @@ The balancing group definition uses 'name2' as a stack. The beginning character 
     <value>expression</value>
   </data>
   <data name="regex_group_options_long" xml:space="preserve">
-    <value>This grouping construct applies or disables the specified options within a subexpression. The options are:
+    <value>This grouping construct applies or disables the specified options within a subexpression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
 
-	i	Use case-insensitive matching.
-	m	Use multiline mode, where ^ and $ match the beginning and end of each line
-		(instead of the beginning and end of the input string).
-	s	Use single-line mode, where the period (.) matches every character
-		(instead of every character except \n).
-	n	Do not capture unnamed groups. The only valid captures are explicitly
-		named or numbered groups of the form (?&lt;name&gt; subexpression).
-	x	Exclude unescaped white space from the pattern, and enable comments
-		after a number sign (#).</value>
+    i	Use case-insensitive matching.
+    m	Use multiline mode, where ^ and $ match the beginning and end of each line
+	(instead of the beginning and end of the input string).
+    s	Use single-line mode, where the period (.) matches every character
+	(instead of every character except \n).
+    n	Do not capture unnamed groups. The only valid captures are explicitly
+	named or numbered groups of the form (?&lt;name&gt; subexpression).
+    x	Exclude unescaped white space from the pattern, and enable comments
+	after a number sign (#).</value>
   </data>
   <data name="regex_group_options_short" xml:space="preserve">
     <value>group options</value>
@@ -1383,15 +1383,15 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="regex_inline_options_long" xml:space="preserve">
     <value>Enables or disables specific pattern matching options for the remainder of a regular expression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
 
-	i	Use case-insensitive matching.
-	m	Use multiline mode, where ^ and $ match the beginning and end of each line
-		(instead of the beginning and end of the input string).
-	s	Use single-line mode, where the period (.) matches every character
-		(instead of every character except \n).
-	n	Do not capture unnamed groups. The only valid captures are explicitly named
-		or numbered groups of the form (?&lt;name&gt; subexpression).
-	x	Exclude unescaped white space from the pattern, and enable comments
-		after a number sign (#).</value>
+    i	Use case-insensitive matching.
+    m	Use multiline mode, where ^ and $ match the beginning and end of each line
+	(instead of the beginning and end of the input string).
+    s	Use single-line mode, where the period (.) matches every character
+	(instead of every character except \n).
+    n	Do not capture unnamed groups. The only valid captures are explicitly named
+	or numbered groups of the form (?&lt;name&gt; subexpression).
+    x	Exclude unescaped white space from the pattern, and enable comments
+	after a number sign (#).</value>
   </data>
   <data name="regex_inline_options_short" xml:space="preserve">
     <value>inline options</value>
