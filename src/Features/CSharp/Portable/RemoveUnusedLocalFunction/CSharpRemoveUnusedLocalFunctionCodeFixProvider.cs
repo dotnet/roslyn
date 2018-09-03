@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
             return Task.CompletedTask;
         }
 
-        internal override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
 

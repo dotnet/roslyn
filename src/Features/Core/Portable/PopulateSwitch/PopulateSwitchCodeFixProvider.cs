@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return cases.Length;
         }
 
-        internal override Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, 
             ImmutableArray<Diagnostic> diagnostics, 
             SyntaxEditor editor, 

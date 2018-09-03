@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             return Task.CompletedTask;
         }
 
-        internal override async Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
