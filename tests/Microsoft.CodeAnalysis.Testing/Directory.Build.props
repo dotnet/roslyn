@@ -1,0 +1,24 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>  
+  <PropertyGroup>
+    <ImportNetSdkFromRepoToolset>false</ImportNetSdkFromRepoToolset>
+    
+    <!-- Opt-out repo features -->
+    <UsingToolXliff>false</UsingToolXliff>
+  </PropertyGroup>
+
+  <Import Project="Sdk.props" Sdk="RoslynTools.RepoToolset" />
+
+  <!-- StyleCop Analyzers configuration -->
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)..\..\RoslynSDK.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="all" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\..\stylecop.json" Link="stylecop.json" />
+    <None Include="$(CodeAnalysisRuleSet)" Condition="'$(CodeAnalysisRuleSet)' != ''" Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>
