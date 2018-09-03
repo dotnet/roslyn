@@ -3,7 +3,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
@@ -14,7 +13,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     {
         public IDocumentHighlightsService DocumentHighlightsService { get; }
         public ImmutableArray<AbstractCodeStyleDiagnosticAnalyzer> DiagnosticAnalyzers { get; }
-        public SyntaxEditorBasedCodeFixProvider CodeFixProvider { get; }
+
+        // No CodeFixProvider for any regex diagnostics.
+        public SyntaxEditorBasedCodeFixProvider CodeFixProvider => null;
 
         public RegexEmbeddedLanguageFeatures(EmbeddedLanguageInfo info) : base(info)
         {

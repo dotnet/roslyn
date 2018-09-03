@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -11,6 +13,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
     internal abstract class AbstractEmbeddedLanguageDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private readonly ImmutableArray<AbstractCodeStyleDiagnosticAnalyzer> _analyzers;
+        private readonly DiagnosticAnalyzerCategory _category;
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected AbstractEmbeddedLanguageDiagnosticAnalyzer(
             IEmbeddedLanguageFeaturesProvider languagesProvider)
@@ -20,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             var analyzers = ArrayBuilder<AbstractCodeStyleDiagnosticAnalyzer>.GetInstance();
 
             var analyzerCategory = default(DiagnosticAnalyzerCategory?);
+
+            Debug.Assert(languagesProvider.Languages.Length > 0);
             foreach (var language in languagesProvider.Languages)
             {
                 foreach (var analyzer in language.DiagnosticAnalyzers)
@@ -31,22 +38,21 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 
                     if (analyzerCategory != analyzer.GetAnalyzerCategory())
                     {
-                        throw new InvalidOperationException("All diagnostic analyzers must share the same category.");
+                        throw new InvalidOperationException("All embedded analyzers must have the same analyzer category.");
                     }
                 }
             }
 
+            _category = analyzerCategory.Value;
             _analyzers = analyzers.ToImmutableAndFree();
             this.SupportedDiagnostics = supportedDiagnostics.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => _analyzers[0].GetAnalyzerCategory();
+            => _category;
 
         public bool OpenFileOnly(Workspace workspace)
-            => _analyzers[0].OpenFileOnly(workspace);
+            => _analyzers.Any(a => a.OpenFileOnly(workspace));
 
         public override void Initialize(AnalysisContext context)
         {
