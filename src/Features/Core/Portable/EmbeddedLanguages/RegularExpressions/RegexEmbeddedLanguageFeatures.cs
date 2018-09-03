@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         public RegexEmbeddedLanguageFeatures(EmbeddedLanguageInfo info) : base(info)
         {
-            DocumentHighlightsService = new RegexDocumentHighlightsService(info);
+            DocumentHighlightsService = new RegexDocumentHighlightsService(this);
             DiagnosticAnalyzers = ImmutableArray.Create<AbstractCodeStyleDiagnosticAnalyzer>(
                 new RegexDiagnosticAnalyzer(info));
         }
