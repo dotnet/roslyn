@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         public RegexEmbeddedLanguageEditorFeatures(EmbeddedLanguageInfo info) : base(info)
         {
-            BraceMatcher = new RegexBraceMatcher(info);
+            BraceMatcher = new RegexBraceMatcher(this);
         }
     }
 }

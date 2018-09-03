@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     /// </summary>
     internal sealed class RegexBraceMatcher : IBraceMatcher
     {
-        private readonly EmbeddedLanguageInfo _info;
+        private readonly RegexEmbeddedLanguage _language;
 
-        public RegexBraceMatcher(EmbeddedLanguageInfo info)
+        public RegexBraceMatcher(RegexEmbeddedLanguage language)
         {
-            _info = info;
+            _language = language;
         }
 
         public async Task<BraceMatchingResult?> FindBracesAsync(
@@ -41,24 +41,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return null;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, syntaxFacts))
-            {
-                return null;
-            }
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
-            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
-
-            if (tree == null)
-            {
-                return null;
-            }
-
-            return GetMatchingBraces(tree, position);
+            var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            return tree == null ? null : GetMatchingBraces(tree, position);
         }
 
         private static BraceMatchingResult? GetMatchingBraces(RegexTree tree, int position)
