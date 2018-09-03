@@ -9,9 +9,8 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
     {
         public IBraceMatcher BraceMatcher { get; }
 
-        public JsonEmbeddedLanguageEditorFeatures(
-            AbstractEmbeddedLanguageEditorFeaturesProvider provider,
-            EmbeddedLanguageInfo info) : base(provider, info)
+        public JsonEmbeddedLanguageEditorFeatures(AbstractEmbeddedLanguageEditorFeaturesProvider provider, EmbeddedLanguageInfo info)
+            : base(provider, info)
         {
             BraceMatcher = new JsonEmbeddedBraceMatcher(info);
         }
