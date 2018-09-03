@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             Classifier = new RegexSyntaxClassifier(info);
         }
 
-        internal async Task<(RegexTree tree, SyntaxToken token)?> TryGetTreeAndTokenAtPositionAsync(
+        internal async Task<(RegexTree tree, SyntaxToken token)> TryGetTreeAndTokenAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -30,26 +30,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (RegexPatternDetector.IsDefinitelyNotPattern(token, syntaxFacts))
             {
-                return null;
+                return default;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, this.Info);
             var tree = detector?.TryParseRegexPattern(token, cancellationToken);
-            if (tree == null)
-            {
-                return null;
-            }
-
-            return (tree, token);
+            return tree == null ? default : (tree, token);
         }
 
         internal async Task<RegexTree> TryGetTreeAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var treeAndToken = await TryGetTreeAndTokenAtPositionAsync(
+            var (tree, _) = await TryGetTreeAndTokenAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            return treeAndToken?.tree;
+            return tree;
         }
     }
 }

@@ -36,12 +36,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
 
             var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (tree == null)
-            {
-                return default;
-            }
-
-            return ImmutableArray.Create(new DocumentHighlights(document, GetHighlights(document, tree, position)));
+            return tree == null 
+                ? default
+                : ImmutableArray.Create(new DocumentHighlights(document, GetHighlights(document, tree, position)));
         }
 
         private ImmutableArray<HighlightSpan> GetHighlights(
