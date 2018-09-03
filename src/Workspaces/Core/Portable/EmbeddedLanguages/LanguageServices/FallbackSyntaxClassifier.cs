@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
     internal partial class FallbackEmbeddedLanguage
     {
-        private class FallbackEmbeddedClassifier : AbstractSyntaxClassifier
+        private class FallbackSyntaxClassifier : AbstractSyntaxClassifier
         {
             private readonly EmbeddedLanguageInfo _info;
 
             public override ImmutableArray<int> SyntaxTokenKinds { get; }
 
-            public FallbackEmbeddedClassifier(EmbeddedLanguageInfo info)
+            public FallbackSyntaxClassifier(EmbeddedLanguageInfo info)
             {
                 _info = info;
                 SyntaxTokenKinds = ImmutableArray.Create(info.StringLiteralTokenKind, info.InterpolatedTextTokenKind);
