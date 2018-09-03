@@ -111,7 +111,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 index++;
             }
 
-            context.CompletionListSpan = embeddedContext.CompletionListSpan;
             context.IsExclusive = true;
         }
 
@@ -523,8 +522,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     internal class EmbeddedCompletionContext
     {
         private readonly CompletionContext _context;
-
-        public TextSpan CompletionListSpan;
 
         public readonly List<RegexItem> Items = new List<RegexItem>();
         public readonly HashSet<string> Names = new HashSet<string>();
