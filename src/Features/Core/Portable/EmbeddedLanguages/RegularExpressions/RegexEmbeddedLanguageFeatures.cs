@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
     internal class RegexEmbeddedLanguageFeatures : RegexEmbeddedLanguage, IEmbeddedLanguageFeatures
     {
-        public IDocumentHighlightsService Highlighter { get; }
+        public IDocumentHighlightsService DocumentHighlightsService { get; }
         public ImmutableArray<AbstractCodeStyleDiagnosticAnalyzer> DiagnosticAnalyzers { get; }
         public SyntaxEditorBasedCodeFixProvider CodeFixProvider { get; }
 
         public RegexEmbeddedLanguageFeatures(EmbeddedLanguageInfo info) : base(info)
         {
-            Highlighter = new RegexEmbeddedHighlighter(info);
+            DocumentHighlightsService = new RegexDocumentHighlightsService(info);
             DiagnosticAnalyzers = ImmutableArray.Create<AbstractCodeStyleDiagnosticAnalyzer>(
                 new RegexDiagnosticAnalyzer(info));
         }

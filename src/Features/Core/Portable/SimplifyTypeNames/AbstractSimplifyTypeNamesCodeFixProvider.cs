@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 diagnosticId), context.Diagnostics);
         }
 
-        internal override async Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {

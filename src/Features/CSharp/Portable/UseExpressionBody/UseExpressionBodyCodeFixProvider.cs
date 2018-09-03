@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 diagnostic);
         }
 
-        internal override async Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {

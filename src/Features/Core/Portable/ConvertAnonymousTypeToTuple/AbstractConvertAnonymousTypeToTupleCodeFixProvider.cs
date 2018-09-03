@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
             }
         }
 
-        internal override Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {

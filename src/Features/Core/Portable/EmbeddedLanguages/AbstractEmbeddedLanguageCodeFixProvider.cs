@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             return false;
         }
 
-        internal override Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             if (TryGetProvider(diagnostics, out var provider))
             {
-                return provider.FixAllAsync(document, diagnostics, editor, cancellationToken);
+                return provider.InternalFixAllAsync(document, diagnostics, editor, cancellationToken);
             }
 
             return Task.CompletedTask;

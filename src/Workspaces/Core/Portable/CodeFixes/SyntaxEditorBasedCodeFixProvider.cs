@@ -49,8 +49,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return document.WithSyntaxRoot(newRoot);
         }
 
-        internal abstract Task FixAllAsync(
+        protected abstract Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken);
+
+        internal Task InternalFixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
+        {
+            return FixAllAsync(document, diagnostics, editor, cancellationToken);
+        }
 
         /// <summary>
         /// Whether or not this diagnostic should be included when performing a FixAll.  This is

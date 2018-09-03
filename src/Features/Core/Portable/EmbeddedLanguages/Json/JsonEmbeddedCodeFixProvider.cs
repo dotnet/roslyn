@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             _provider.AddComment(editor, stringLiteral, commentContents);
         }
 
-        internal override Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {

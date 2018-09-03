@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             {
                 foreach (var language in languagesProvider.Languages)
                 {
-                    var highlighter = language.Highlighter;
+                    var highlighter = language.DocumentHighlightsService;
                     if (highlighter != null)
                     {
                         var highlights = await highlighter.GetDocumentHighlightsAsync(

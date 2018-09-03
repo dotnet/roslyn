@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             return Task.CompletedTask;
         }
 
-        internal override Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
