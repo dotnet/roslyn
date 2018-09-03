@@ -32,6 +32,11 @@
         <target state="translated">元素無效。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="new">Highlight related components under cursor</target>
@@ -60,6 +65,11 @@
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
         <target state="new">Parentheses preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -1561,16 +1571,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
         <target state="translated">無法套用變更 -- 未預期的錯誤: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences_colon">
-        <source>Field preferences:</source>
-        <target state="translated">欄位喜好設定:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly">
-        <source>Prefer readonly</source>
-        <target state="translated">偏好唯讀</target>
         <note />
       </trans-unit>
       <trans-unit id="Manage_naming_styles">

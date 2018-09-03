@@ -3,29 +3,31 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
+namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
 {
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
 
     /// <summary>
     /// Brace matching impl for embedded json strings.
     /// </summary>
-    internal class JsonEmbeddedBraceMatcher : IEmbeddedBraceMatcher
+    internal class JsonEmbeddedBraceMatcher : IBraceMatcher
     {
-        private readonly JsonEmbeddedLanguage _language;
+        private readonly EmbeddedLanguageInfo _info;
 
-        public JsonEmbeddedBraceMatcher(JsonEmbeddedLanguage language)
+        public JsonEmbeddedBraceMatcher(EmbeddedLanguageInfo info)
         {
-            _language = language;
+            _info = info;
         }
 
-        public async Task<EmbeddedBraceMatchingResult?> FindBracesAsync(
+        public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             var option = document.Project.Solution.Workspace.Options.GetOption(JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, document.Project.Language);
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = JsonPatternDetector.GetOrCreate(semanticModel, _language);
+            var detector = JsonPatternDetector.GetOrCreate(semanticModel, _info);
             if (!detector.IsDefinitelyJson(token, cancellationToken))
             {
                 return default;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             return GetMatchingBraces(tree, position);
         }
 
-        private static EmbeddedBraceMatchingResult? GetMatchingBraces(JsonTree tree, int position)
+        private static BraceMatchingResult? GetMatchingBraces(JsonTree tree, int position)
         {
             var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position));
             if (virtualChar == null)
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             return null;
         }
 
-        private static EmbeddedBraceMatchingResult? FindBraceHighlights(JsonTree tree, VirtualChar ch)
+        private static BraceMatchingResult? FindBraceHighlights(JsonTree tree, VirtualChar ch)
         {
             var node = FindObjectOrArrayNode(tree.Root, ch);
             switch (node)
@@ -90,14 +92,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             return default;
         }
 
-        private static EmbeddedBraceMatchingResult? Create(JsonToken open, JsonToken close)
+        private static BraceMatchingResult? Create(JsonToken open, JsonToken close)
         {
             if (open.IsMissing || close.IsMissing)
             {
                 return default;
             }
 
-            return new EmbeddedBraceMatchingResult(open.GetSpan(), close.GetSpan());
+            return new BraceMatchingResult(open.GetSpan(), close.GetSpan());
         }
 
         private static JsonValueNode FindObjectOrArrayNode(JsonNode node, VirtualChar ch)

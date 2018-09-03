@@ -34,8 +34,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             return Task.CompletedTask;
         }
 
-        private async Task FixWithEditorAsync(
-            Document document, SyntaxEditor editor, ImmutableArray<Diagnostic> diagnostics,
+        internal override async Task FixAllAsync(
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
             var declarators = new List<TSymbolSyntax>();
@@ -88,15 +90,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     editor.RemoveNode(fieldDeclarators.Key);
                 }
             }
-        }
-
-        protected override Task FixAllAsync(
-            Document document,
-            ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor,
-            CancellationToken cancellationToken)
-        {
-            return FixWithEditorAsync(document, editor, diagnostics, cancellationToken);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

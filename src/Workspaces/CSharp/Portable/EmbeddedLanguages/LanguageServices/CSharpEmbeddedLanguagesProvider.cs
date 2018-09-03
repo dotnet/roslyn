@@ -2,7 +2,6 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -11,24 +10,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices
     [ExportLanguageService(typeof(IEmbeddedLanguagesProvider), LanguageNames.CSharp), Shared]
     internal class CSharpEmbeddedLanguagesProvider : AbstractEmbeddedLanguagesProvider
     {
+        public static EmbeddedLanguageInfo Info = new EmbeddedLanguageInfo(
+            (int)SyntaxKind.StringLiteralToken,
+            (int)SyntaxKind.InterpolatedStringTextToken,
+            CSharpSyntaxFactsService.Instance,
+            CSharpSemanticFactsService.Instance,
+            CSharpVirtualCharService.Instance);
         public static IEmbeddedLanguagesProvider Instance = new CSharpEmbeddedLanguagesProvider();
 
-        public CSharpEmbeddedLanguagesProvider()
-            : base((int)SyntaxKind.StringLiteralToken,
-                   (int)SyntaxKind.InterpolatedStringTextToken,
-                   CSharpSyntaxFactsService.Instance,
-                   CSharpSemanticFactsService.Instance,
-                   CSharpVirtualCharService.Instance)
+        public CSharpEmbeddedLanguagesProvider() : base(Info)
         {
-        }
-        internal override void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents)
-        {
-            var triviaList = SyntaxFactory.TriviaList(
-                SyntaxFactory.Comment($"/*{commentContents}*/"),
-                SyntaxFactory.ElasticSpace);
-            var newStringLiteral = stringLiteral.WithLeadingTrivia(
-                stringLiteral.LeadingTrivia.AddRange(triviaList));
-            editor.ReplaceNode(stringLiteral.Parent, stringLiteral.Parent.ReplaceToken(stringLiteral, newStringLiteral));
         }
     }
 }

@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
             Return False
         End Function
 
-        Protected Overrides Async Function FixAllAsync(
+        Friend Overrides Async Function FixAllAsync(
             document As Document, diagnostics As ImmutableArray(Of Diagnostic),
             editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
 

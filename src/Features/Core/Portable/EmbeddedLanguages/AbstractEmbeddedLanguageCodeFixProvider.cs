@@ -1,39 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
-    /// <summary>
-    /// A CodeFixProvider that hooks up the diagnostics produced by <see
-    /// cref="IEmbeddedDiagnosticAnalyzer"/> and to the appropriate <see
-    /// cref="IEmbeddedCodeFixProvider"/>.
-    /// </summary>
     internal abstract class AbstractEmbeddedLanguageCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        private readonly Dictionary<string, IEmbeddedCodeFixProvider> _diagnosticIdToCodeFixProvider;
+        private readonly Dictionary<string, SyntaxEditorBasedCodeFixProvider> _diagnosticIdToCodeFixProvider;
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
 
         protected AbstractEmbeddedLanguageCodeFixProvider(
-            IEmbeddedLanguagesProvider embeddedLanguagesProvider)
+            IEmbeddedLanguageFeaturesProvider languagesProvider)
         {
-            _diagnosticIdToCodeFixProvider = new Dictionary<string, IEmbeddedCodeFixProvider>();
+            _diagnosticIdToCodeFixProvider = new Dictionary<string, SyntaxEditorBasedCodeFixProvider>();
 
             // Create a mapping from each IEmbeddedCodeFixProvider.FixableDiagnosticIds back to the
             // IEmbeddedCodeFixProvider itself.  That way, when we hear about diagnostics, we know
             // which provider to actually do the fixing.
-            foreach (var language in embeddedLanguagesProvider.GetEmbeddedLanguages())
+            foreach (var language in languagesProvider.Languages)
             {
                 var codeFixProvider = language.CodeFixProvider;
                 if (codeFixProvider != null)
@@ -52,42 +42,35 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var firstDiagnostic = context.Diagnostics[0];
-
-            if (_diagnosticIdToCodeFixProvider.TryGetValue(firstDiagnostic.Id, out var provider))
+            if (TryGetProvider(context.Diagnostics, out var provider))
             {
-                context.RegisterCodeFix(new MyCodeAction(
-                    provider.Title,
-                    c => FixAsync(context.Document, firstDiagnostic, c)),
-                    context.Diagnostics);
+                return provider.RegisterCodeFixesAsync(context);
             }
 
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        private bool TryGetProvider(ImmutableArray<Diagnostic> diagnostics, out SyntaxEditorBasedCodeFixProvider provider)
+        {
+            if (diagnostics.Length > 0)
+            {
+                return _diagnosticIdToCodeFixProvider.TryGetValue(diagnostics[0].Id, out provider);
+            }
+
+            provider = null;
+            return false;
+        }
+
+        internal override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            foreach (var diagnostic in diagnostics)
+            if (TryGetProvider(diagnostics, out var provider))
             {
-                if (_diagnosticIdToCodeFixProvider.TryGetValue(diagnostic.Id, out var provider))
-                {
-                    // Defer to the underlying IEmbeddedCodeFixProvider to actually fix.
-                    provider.Fix(editor, diagnostic, cancellationToken);
-                }
+                return provider.FixAllAsync(document, diagnostics, editor, cancellationToken);
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(title, createChangedDocument)
-            {
-            }
         }
     }
 }

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             Document document, Diagnostic diagnostic,
             SyntaxEditor editor, CancellationToken cancellationToken);
 
-        protected override async Task FixAllAsync(
+        internal override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
             CancellationToken cancellationToken)
         {

@@ -1,14 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
+    using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
     using static EmbeddedSyntaxHelpers;
 
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
@@ -17,33 +19,41 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     /// <summary>
     /// Classifier impl for embedded regex strings.
     /// </summary>
-    internal sealed class RegexEmbeddedClassifier : IEmbeddedClassifier
+    internal sealed class RegexEmbeddedClassifier : AbstractSyntaxClassifier
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
 
-        private readonly RegexEmbeddedLanguage _language;
+        private readonly EmbeddedLanguageInfo _info;
 
-        public RegexEmbeddedClassifier(RegexEmbeddedLanguage language)
+        public override ImmutableArray<int> SyntaxTokenKinds { get; }
+
+        public RegexEmbeddedClassifier(EmbeddedLanguageInfo info)
         {
-            _language = language;
+            _info = info;
+            SyntaxTokenKinds = ImmutableArray.Create(info.StringLiteralTokenKind);
         }
 
-        public void AddClassifications(
+        public override void AddClassifications(
             Workspace workspace, SyntaxToken token, SemanticModel semanticModel, 
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
+            if (_info.StringLiteralTokenKind != token.RawKind)
+            {
+                return;
+            }
+
             if (!workspace.Options.GetOption(RegexFeatureOptions.ColorizeRegexPatterns, semanticModel.Language))
             {
                 return;
             }
 
             // Do some quick syntactic checks before doing any complex work.
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, _language.SyntaxFacts))
+            if (RegexPatternDetector.IsDefinitelyNotPattern(token, _info.SyntaxFacts))
             {
                 return;
             }
 
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
             var tree = detector?.TryParseRegexPattern(token, cancellationToken);
             if (tree == null)
             {

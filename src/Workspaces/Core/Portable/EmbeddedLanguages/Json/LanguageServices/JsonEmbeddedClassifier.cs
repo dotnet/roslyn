@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 {
+    using System.Collections.Immutable;
+    using Microsoft.CodeAnalysis.Classification.Classifiers;
     using static EmbeddedSyntaxHelpers;
 
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
@@ -17,21 +19,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
     /// <summary>
     /// Classifier impl for embedded json strings.
     /// </summary>
-    internal class JsonEmbeddedClassifier : IEmbeddedClassifier
+    internal class JsonEmbeddedClassifier : AbstractSyntaxClassifier
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
-        private readonly JsonEmbeddedLanguage _language;
+        private readonly EmbeddedLanguageInfo _info;
 
-        public JsonEmbeddedClassifier(JsonEmbeddedLanguage language)
+        public override ImmutableArray<int> SyntaxTokenKinds { get; }
+
+        public JsonEmbeddedClassifier(EmbeddedLanguageInfo info)
         {
-            _language = language;
+            _info = info;
+            SyntaxTokenKinds = ImmutableArray.Create(info.StringLiteralTokenKind);
         }
 
-        public void AddClassifications(
-            Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
+        public override void AddClassifications(
+            Workspace workspace, SyntaxToken token, SemanticModel semanticModel, 
+            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            Debug.Assert(token.RawKind == _language.StringLiteralKind);
+            if (_info.StringLiteralTokenKind != token.RawKind)
+            {
+                return;
+            }
 
             if (!workspace.Options.GetOption(JsonFeatureOptions.ColorizeJsonPatterns, token.Language))
             {
@@ -39,12 +47,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             }
 
             // Do some quick syntactic checks before doing any complex work.
-            if (JsonPatternDetector.IsDefinitelyNotJson(token, _language.SyntaxFacts))
+            if (JsonPatternDetector.IsDefinitelyNotJson(token, _info.SyntaxFacts))
             {
                 return;
             }
 
-            var detector = JsonPatternDetector.GetOrCreate(semanticModel, _language);
+            var detector = JsonPatternDetector.GetOrCreate(semanticModel, _info);
             if (!detector.IsDefinitelyJson(token, cancellationToken))
             {
                 return;
