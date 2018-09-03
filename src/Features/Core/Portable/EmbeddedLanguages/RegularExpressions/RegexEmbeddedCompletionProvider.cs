@@ -1,37 +1,53 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
+    using System.Collections.Immutable;
+    using Microsoft.CodeAnalysis.Completion.Providers;
     using static WorkspacesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal class RegexEmbeddedCompletionProvider : IEmbeddedCompletionProvider
+    internal class RegexEmbeddedCompletionProvider : CompletionProvider
     {
-        private readonly RegexEmbeddedLanguage _language;
+        private const string StartKey = nameof(StartKey);
+        private const string LengthKey = nameof(LengthKey);
+        private const string NewTextKey = nameof(NewTextKey);
+        private const string NewPositionKey = nameof(NewPositionKey);
+        private const string DescriptionKey = nameof(DescriptionKey);
 
-        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
+        // Always soft-select these completion items.  Also, never filter down.
+        private static readonly CompletionItemRules s_rules =
+            CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
+                                       .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
+
+        private readonly RegexEmbeddedLanguageFeatures _language;
+
+        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguageFeatures language)
         {
             _language = language;
         }
 
-        public bool ShouldTriggerCompletion(SourceText text, int caretPosition, EmbeddedCompletionTrigger trigger, OptionSet options)
+        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            if (trigger.Kind == EmbeddedCompletionTriggerKind.Invoke ||
-                trigger.Kind == EmbeddedCompletionTriggerKind.InvokeAndCommitIfUnique)
+            if (trigger.Kind == CompletionTriggerKind.Invoke ||
+                trigger.Kind == CompletionTriggerKind.InvokeAndCommitIfUnique)
             {
                 return true;
             }
 
-            if (trigger.Kind == EmbeddedCompletionTriggerKind.Insertion)
+            if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
                 return IsTriggerCharacter(trigger.Character);
             }
@@ -53,7 +69,53 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             return false;
         }
 
-        public async Task ProvideCompletionsAsync(EmbeddedCompletionContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
+        {
+            var embeddedContext = new EmbeddedCompletionContext(context);
+            await ProvideCompletionsAsync(embeddedContext).ConfigureAwait(false);
+
+            if (embeddedContext.Items.Count == 0)
+            {
+                return;
+            }
+
+            var index = 0;
+            foreach (var embeddedItem in embeddedContext.Items)
+            {
+                var change = embeddedItem.Change;
+                var textChange = change.TextChange;
+
+                var properties = ImmutableDictionary.CreateBuilder<string, string>();
+                properties.Add(StartKey, textChange.Span.Start.ToString());
+                properties.Add(LengthKey, textChange.Span.Length.ToString());
+                properties.Add(NewTextKey, textChange.NewText);
+                properties.Add(DescriptionKey, embeddedItem.Description);
+                properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, this.Name);
+
+                if (change.NewPosition != null)
+                {
+                    properties.Add(NewPositionKey, change.NewPosition.ToString());
+                }
+
+                // Keep everything sorted in the order the underlying embedded
+                // language provided it.
+                var sortText = index.ToString("0000");
+
+                var item = CompletionItem.Create(
+                    embeddedItem.DisplayText,
+                    sortText: sortText,
+                    properties: properties.ToImmutable(),
+                    rules: s_rules);
+
+                context.AddItem(item);
+                index++;
+            }
+
+            context.CompletionListSpan = embeddedContext.CompletionListSpan;
+            context.IsExclusive = true;
+        }
+
+        private async Task ProvideCompletionsAsync(EmbeddedCompletionContext context)
         {
             if (!context.Options.GetOption(RegularExpressionsOptions.ProvideRegexCompletions, context.Document.Project.Language))
             {
@@ -68,9 +130,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
-            if (context.Trigger.Kind != EmbeddedCompletionTriggerKind.Invoke &&
-                context.Trigger.Kind != EmbeddedCompletionTriggerKind.InvokeAndCommitIfUnique &&
-                context.Trigger.Kind != EmbeddedCompletionTriggerKind.Insertion)
+            if (context.Trigger.Kind != CompletionTriggerKind.Invoke &&
+                context.Trigger.Kind != CompletionTriggerKind.InvokeAndCommitIfUnique &&
+                context.Trigger.Kind != CompletionTriggerKind.Insertion)
             {
                 return;
             }
@@ -95,7 +157,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
-            if (context.Trigger.Kind == EmbeddedCompletionTriggerKind.Insertion)
+            if (context.Trigger.Kind == CompletionTriggerKind.Insertion)
             {
                 // The user was typing a character, and we had nothing to add for them.  Just bail
                 // out immediately as we cannot help in this circumstance.
@@ -287,10 +349,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                     ? longDesc
                     : string.Format(regex_unicode_general_category_0, name);
 
-                AddIfMissing(context, new EmbeddedCompletionItem(
+                AddIfMissing(context, new RegexItem(
                     displayText,
                     description,
-                    change: new EmbeddedCompletionChange(
+                    change: CompletionChange.Create(
                         new TextChange(new TextSpan(context.Position, 0), name), newPosition: null)));
             }
         }
@@ -341,7 +403,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             AddIfMissing(context, CreateItem(stringToken, @"\W", regex_non_word_character_short, regex_non_word_character_long, context, parentOpt));
         }
 
-        private void AddIfMissing(EmbeddedCompletionContext context, EmbeddedCompletionItem item)
+        private void AddIfMissing(EmbeddedCompletionContext context, RegexItem item)
         {
             if (context.Names.Add(item.DisplayText))
             {
@@ -349,7 +411,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
         }
 
-        private EmbeddedCompletionItem CreateItem(
+        private RegexItem CreateItem(
             SyntaxToken stringToken, string displayText, 
             string shortDescription, string longDescription,
             EmbeddedCompletionContext context, RegexNode parentOpt, 
@@ -374,9 +436,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 newPosition += escapedInsertionText.Length - insertionText.Length;
             }
 
-            return new EmbeddedCompletionItem(
+            return new RegexItem(
                 displayText, longDescription, 
-                new EmbeddedCompletionChange(
+                CompletionChange.Create(
                     new TextChange(replacementSpan, escapedInsertionText),
                     newPosition));
         }
@@ -428,6 +490,69 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             return false;
+        }
+
+        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        {
+            if (!item.Properties.TryGetValue(StartKey, out var startString) ||
+                !item.Properties.TryGetValue(LengthKey, out var lengthString) ||
+                !item.Properties.TryGetValue(NewTextKey, out var newText))
+            {
+                return SpecializedTasks.Default<CompletionChange>();
+            }
+
+            item.Properties.TryGetValue(NewPositionKey, out var newPositionString);
+
+            return Task.FromResult(CompletionChange.Create(
+                new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText),
+                newPositionString == null ? default(int?) : int.Parse(newPositionString)));
+        }
+
+        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            if (!item.Properties.TryGetValue(DescriptionKey, out var description))
+            {
+                return SpecializedTasks.Default<CompletionDescription>();
+            }
+
+            return Task.FromResult(CompletionDescription.Create(
+                ImmutableArray.Create(new TaggedText(TextTags.Text, description))));
+        }
+    }
+
+    internal class EmbeddedCompletionContext
+    {
+        private readonly CompletionContext _context;
+
+        public TextSpan CompletionListSpan;
+
+        public readonly List<RegexItem> Items = new List<RegexItem>();
+        public readonly HashSet<string> Names = new HashSet<string>();
+
+        public EmbeddedCompletionContext(CompletionContext context)
+        {
+            _context = context;
+        }
+
+        public int Position => _context.Position;
+        public OptionSet Options => _context.Options;
+        public Document Document => _context.Document;
+        public CompletionTrigger Trigger => _context.Trigger;
+        public CancellationToken CancellationToken => _context.CancellationToken;
+    }
+
+    internal struct RegexItem
+    {
+        public readonly string DisplayText;
+        public readonly string Description;
+        public readonly CompletionChange Change;
+
+        public RegexItem(
+            string displayText, string description, CompletionChange change)
+        {
+            DisplayText = displayText;
+            Description = description;
+            Change = change;
         }
     }
 }

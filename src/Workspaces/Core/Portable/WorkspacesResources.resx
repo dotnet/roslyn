@@ -744,6 +744,96 @@
     <value>Regex issue: {0}</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</comment>
   </data>
+  <data name="Refactoring_Only" xml:space="preserve">
+    <value>Refactoring Only</value>
+  </data>
+  <data name="regex_number_decimal_digit" xml:space="preserve">
+    <value>number, decimal digit</value>
+  </data>
+  <data name="regex_number_letter" xml:space="preserve">
+    <value>number, letter</value>
+  </data>
+  <data name="regex_number_other" xml:space="preserve">
+    <value>number, other</value>
+  </data>
+  <data name="regex_other_control" xml:space="preserve">
+    <value>other, control</value>
+  </data>
+  <data name="regex_other_format" xml:space="preserve">
+    <value>other, format</value>
+  </data>
+  <data name="regex_other_not_assigned" xml:space="preserve">
+    <value>other, not assigned</value>
+  </data>
+  <data name="regex_other_private_use" xml:space="preserve">
+    <value>other, private use</value>
+  </data>
+  <data name="regex_other_surrogate" xml:space="preserve">
+    <value>other, surrogate</value>
+  </data>
+  <data name="regex_punctuation_close" xml:space="preserve">
+    <value>punctuation, close</value>
+  </data>
+  <data name="regex_punctuation_connector" xml:space="preserve">
+    <value>punctuation, connector</value>
+  </data>
+  <data name="regex_punctuation_dash" xml:space="preserve">
+    <value>punctuation, dash</value>
+  </data>
+  <data name="regex_punctuation_final_quote" xml:space="preserve">
+    <value>punctuation, final quote</value>
+  </data>
+  <data name="regex_punctuation_initial_quote" xml:space="preserve">
+    <value>punctuation, initial quote</value>
+  </data>
+  <data name="regex_punctuation_open" xml:space="preserve">
+    <value>punctuation, open</value>
+  </data>
+  <data name="regex_punctuation_other" xml:space="preserve">
+    <value>punctuation, other</value>
+  </data>
+  <data name="regex_separator_line" xml:space="preserve">
+    <value>separator, line</value>
+  </data>
+  <data name="regex_separator_paragraph" xml:space="preserve">
+    <value>separator, paragraph</value>
+  </data>
+  <data name="regex_separator_space" xml:space="preserve">
+    <value>separator, space</value>
+  </data>
+  <data name="regex_symbol_currency" xml:space="preserve">
+    <value>symbol, currency</value>
+  </data>
+  <data name="regex_symbol_math" xml:space="preserve">
+    <value>symbol, math</value>
+  </data>
+  <data name="regex_symbol_modifier" xml:space="preserve">
+    <value>symbol, modifier</value>
+  </data>
+  <data name="regex_symbol_other" xml:space="preserve">
+    <value>symbol, other</value>
+  </data>
+  <data name="regex_letter_lowercase" xml:space="preserve">
+    <value>letter, lowercase</value>
+  </data>
+  <data name="regex_letter_modifier" xml:space="preserve">
+    <value>letter, modifier</value>
+  </data>
+  <data name="regex_letter_other" xml:space="preserve">
+    <value>letter, other</value>
+  </data>
+  <data name="regex_letter_titlecase" xml:space="preserve">
+    <value>letter, titlecase</value>
+  </data>
+  <data name="regex_mark_enclosing" xml:space="preserve">
+    <value>mark, enclosing</value>
+  </data>
+  <data name="regex_mark_nonspacing" xml:space="preserve">
+    <value>mark, nonspacing</value>
+  </data>
+  <data name="regex_mark_spacing_combining" xml:space="preserve">
+    <value>mark, spacing combining</value>
+  </data>
   <data name="regex_contiguous_matches_long" xml:space="preserve">
     <value>The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</value>
   </data>
@@ -1375,27 +1465,6 @@ The square brackets ([]) and hyphen (-) are mandatory. The base_group is a posit
   <data name="regex_excluded_group" xml:space="preserve">
     <value>excluded-group</value>
   </data>
-  <data name="regex_letter_lowercase" xml:space="preserve">
-    <value>letter, lowercase</value>
-  </data>
-  <data name="regex_letter_modifier" xml:space="preserve">
-    <value>letter, modifier</value>
-  </data>
-  <data name="regex_letter_other" xml:space="preserve">
-    <value>letter, other</value>
-  </data>
-  <data name="regex_letter_titlecase" xml:space="preserve">
-    <value>letter, titlecase</value>
-  </data>
-  <data name="regex_mark_enclosing" xml:space="preserve">
-    <value>mark, enclosing</value>
-  </data>
-  <data name="regex_mark_nonspacing" xml:space="preserve">
-    <value>mark, nonspacing</value>
-  </data>
-  <data name="regex_mark_spacing_combining" xml:space="preserve">
-    <value>mark, spacing combining</value>
-  </data>
   <data name="regex_match_at_least_n_times_lazy_long" xml:space="preserve">
     <value>The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</value>
   </data>
@@ -1468,72 +1537,6 @@ The square brackets ([]) and hyphen (-) are mandatory. The base_group is a posit
   <data name="regex_match_zero_or_one_time_short" xml:space="preserve">
     <value>match zero or one time</value>
   </data>
-  <data name="regex_number_decimal_digit" xml:space="preserve">
-    <value>number, decimal digit</value>
-  </data>
-  <data name="regex_number_letter" xml:space="preserve">
-    <value>number, letter</value>
-  </data>
-  <data name="regex_number_other" xml:space="preserve">
-    <value>number, other</value>
-  </data>
-  <data name="regex_other_control" xml:space="preserve">
-    <value>other, control</value>
-  </data>
-  <data name="regex_other_format" xml:space="preserve">
-    <value>other, format</value>
-  </data>
-  <data name="regex_other_not_assigned" xml:space="preserve">
-    <value>other, not assigned</value>
-  </data>
-  <data name="regex_other_private_use" xml:space="preserve">
-    <value>other, private use</value>
-  </data>
-  <data name="regex_other_surrogate" xml:space="preserve">
-    <value>other, surrogate</value>
-  </data>
-  <data name="regex_punctuation_close" xml:space="preserve">
-    <value>punctuation, close</value>
-  </data>
-  <data name="regex_punctuation_connector" xml:space="preserve">
-    <value>punctuation, connector</value>
-  </data>
-  <data name="regex_punctuation_dash" xml:space="preserve">
-    <value>punctuation, dash</value>
-  </data>
-  <data name="regex_punctuation_final_quote" xml:space="preserve">
-    <value>punctuation, final quote</value>
-  </data>
-  <data name="regex_punctuation_initial_quote" xml:space="preserve">
-    <value>punctuation, initial quote</value>
-  </data>
-  <data name="regex_punctuation_open" xml:space="preserve">
-    <value>punctuation, open</value>
-  </data>
-  <data name="regex_punctuation_other" xml:space="preserve">
-    <value>punctuation, other</value>
-  </data>
-  <data name="regex_separator_line" xml:space="preserve">
-    <value>separator, line</value>
-  </data>
-  <data name="regex_separator_paragraph" xml:space="preserve">
-    <value>separator, paragraph</value>
-  </data>
-  <data name="regex_separator_space" xml:space="preserve">
-    <value>separator, space</value>
-  </data>
-  <data name="regex_symbol_currency" xml:space="preserve">
-    <value>symbol, currency</value>
-  </data>
-  <data name="regex_symbol_math" xml:space="preserve">
-    <value>symbol, math</value>
-  </data>
-  <data name="regex_symbol_modifier" xml:space="preserve">
-    <value>symbol, modifier</value>
-  </data>
-  <data name="regex_symbol_other" xml:space="preserve">
-    <value>symbol, other</value>
-  </data>
   <data name="regex_unicode_general_category_0" xml:space="preserve">
     <value>Unicode General Category: {0}</value>
   </data>
@@ -1552,8 +1555,5 @@ x 	Exclude unescaped white space from the pattern, and enable comments after a n
   </data>
   <data name="regex_inline_options_short" xml:space="preserve">
     <value>inline options</value>
-  </data>
-  <data name="Refactoring_Only" xml:space="preserve">
-    <value>Refactoring Only</value>
   </data>
 </root>

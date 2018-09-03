@@ -2,8 +2,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
@@ -12,28 +10,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// </summary>
     internal abstract class AbstractEmbeddedLanguagesProvider : IEmbeddedLanguagesProvider
     {
-        private readonly ImmutableArray<IEmbeddedLanguage> _embeddedLanguages;
+        public ImmutableArray<IEmbeddedLanguage> Languages { get; }
          
-        protected AbstractEmbeddedLanguagesProvider(
-            int stringLiteralTokenKind,
-            int interpolatedTextTokenKind,
-            ISyntaxFactsService syntaxFacts,
-            ISemanticFactsService semanticFacts,
-            IVirtualCharService virtualCharService)
+        protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
         {
-            _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>(
-                new RegexEmbeddedLanguage(this, stringLiteralTokenKind, syntaxFacts, semanticFacts, virtualCharService),
-                new FallbackEmbeddedLanguage(stringLiteralTokenKind, interpolatedTextTokenKind, syntaxFacts, semanticFacts, virtualCharService));
+            Languages = ImmutableArray.Create<IEmbeddedLanguage>(
+                new RegexEmbeddedLanguage(info),
+                new FallbackEmbeddedLanguage(info));
         }
-
-        public ImmutableArray<IEmbeddedLanguage> GetEmbeddedLanguages()
-            => _embeddedLanguages;
-
-        /// <summary>
-        /// Escapes the provided text given the rules of the language for this specific token.
-        /// For example, in a normal c# string literal (```""```), this will escape backslashes.
-        /// However, in a verbatim string literal (```@""```) it will not.
-        /// </summary>
-        internal abstract string EscapeText(string text, SyntaxToken token);
     }
 }

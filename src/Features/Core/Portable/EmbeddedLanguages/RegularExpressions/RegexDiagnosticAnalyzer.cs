@@ -1,46 +1,54 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
     /// <summary>
     /// Analyzer that reports diagnostics in strings that we know are regex text.
     /// </summary>
-    internal sealed class RegexDiagnosticAnalyzer : IEmbeddedDiagnosticAnalyzer
+    internal sealed class RegexDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         public const string DiagnosticId = "RE0001";
 
-        private readonly RegexEmbeddedLanguage _language;
-        private readonly DiagnosticDescriptor _descriptor;
+        private readonly EmbeddedLanguageInfo _info;
 
-        public RegexDiagnosticAnalyzer(RegexEmbeddedLanguage language)
+        public RegexDiagnosticAnalyzer(EmbeddedLanguageInfo info)
+            : base(DiagnosticId,
+                   new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
+                   new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
-            _language = language;
-
-            _descriptor = new DiagnosticDescriptor(DiagnosticId,
-                new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                category: "REGEX",
-                DiagnosticSeverity.Warning,
-                isEnabledByDefault: true);
-
-            SupportedDiagnostics = ImmutableArray.Create(_descriptor);
+            _info = info;
         }
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public void Analyze(SemanticModelAnalysisContext context, OptionSet optionSet)
+        public override bool OpenFileOnly(Workspace workspace)
+            => false;
+
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSemanticModelAction(Analyze);
+
+        public void Analyze(SemanticModelAnalysisContext context)
         {
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
+
+            var options = context.Options;
+            var optionSet = options.GetDocumentOptionSetAsync(
+                semanticModel.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
 
             var option = optionSet.GetOption(RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
             if (!option)
@@ -48,7 +56,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
             if (detector == null)
             {
                 return;
@@ -82,16 +90,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             SemanticModelAnalysisContext context, RegexPatternDetector detector, 
             SyntaxToken token, CancellationToken cancellationToken)
         {
-            if (token.RawKind == _language.StringLiteralKind)
+            if (token.RawKind == _info.StringLiteralTokenKind)
             {
                 var tree = detector.TryParseRegexPattern(token, cancellationToken);
                 if (tree != null)
                 {
                     foreach (var diag in tree.Diagnostics)
                     {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            _descriptor,
+                        context.ReportDiagnostic(DiagnosticHelper.Create(
+                            Descriptor,
                             Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
+                            ReportDiagnostic.Warn,
+                            additionalLocations: null,
+                            properties: null,
                             diag.Message));
                     }
                 }

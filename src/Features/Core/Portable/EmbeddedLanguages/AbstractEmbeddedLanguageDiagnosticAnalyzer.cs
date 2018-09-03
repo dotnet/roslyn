@@ -2,32 +2,28 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
     internal abstract class AbstractEmbeddedLanguageDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private readonly ImmutableArray<IEmbeddedDiagnosticAnalyzer> _analyzers;
+        private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
 
         protected AbstractEmbeddedLanguageDiagnosticAnalyzer(
-            IEmbeddedLanguagesProvider languagesProvider)
+            IEmbeddedLanguageFeaturesProvider languagesProvider)
         {
             var supportedDiagnostics = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
 
-            var analyzers = ArrayBuilder<IEmbeddedDiagnosticAnalyzer>.GetInstance();
+            var analyzers = ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
 
-            if (languagesProvider != null)
+            foreach (var language in languagesProvider.Languages)
             {
-                foreach (var language in languagesProvider.GetEmbeddedLanguages())
+                var analyzer = language.DiagnosticAnalyzer;
+                if (analyzer != null)
                 {
-                    var analyzer = language.DiagnosticAnalyzer;
-                    if (analyzer != null)
-                    {
-                        analyzers.Add(analyzer);
-                        supportedDiagnostics.AddRange(analyzer.SupportedDiagnostics);
-                    }
+                    analyzers.Add(analyzer);
+                    supportedDiagnostics.AddRange(analyzer.SupportedDiagnostics);
                 }
             }
 
@@ -38,33 +34,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+            => ((IBuiltInAnalyzer)_analyzers[0]).GetAnalyzerCategory();
 
         public bool OpenFileOnly(Workspace workspace)
-            => false;
+            => ((IBuiltInAnalyzer)_analyzers[0]).OpenFileOnly(workspace);
 
         public override void Initialize(AnalysisContext context)
         {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.EnableConcurrentExecution();
-
-            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
-        }
-
-        private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
-        {
-            var cancellationToken = context.CancellationToken;
-            var options = context.Options;
-            var optionSet = options.GetDocumentOptionSetAsync(
-                context.SemanticModel.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             foreach (var analyzer in _analyzers)
             {
-                analyzer.Analyze(context, optionSet);
+                analyzer.Initialize(context);
             }
         }
     }
