@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Tools\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit\Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="xunit.runner.json">
