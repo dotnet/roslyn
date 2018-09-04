@@ -79,7 +79,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             <ImportingConstructor>
             Public Sub New(exportProvider As Composition.ExportProvider)
-                MyBase.New(exportProvider.AsExportProvider(), exportProvider.GetExportedValue(Of MockServiceProvider))
+                MyBase.New(exportProvider, exportProvider.GetExportedValue(Of MockServiceProvider))
             End Sub
 
             Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))

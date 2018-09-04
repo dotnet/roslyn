@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-#if NET46
+#if NET472
         public string Dump(string methodName = null)
         {
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))

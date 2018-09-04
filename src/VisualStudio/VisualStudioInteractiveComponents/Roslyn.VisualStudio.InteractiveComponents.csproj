@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.InteractiveComponents</RootNamespace>
     <RoslynProjectType>Vsix</RoslynProjectType>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
 
     <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
