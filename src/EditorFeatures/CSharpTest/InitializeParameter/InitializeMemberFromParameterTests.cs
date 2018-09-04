@@ -627,7 +627,7 @@ class C
 
         [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestInitializeFieldWithParameterNameSelected2()
+        public async Task TestInitializeClassField_ParameterNameSelected2()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -652,61 +652,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestInitializePropertyWithRequiredAccessibilityOmitIfDefault()
-        {
-            await TestInRegularAndScript1Async(
-@"
-class C
-{
-    readonly int test = 5;
-
-    public C(int test, int [|test2|])
-    {
-    }
-}",
-@"
-class C
-{
-    readonly int test = 5;
-
-    public C(int test, int test2)
-    {
-        Test2 = test2;
-    }
-
-    int Test2 { get; }
-}", index: 0, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning)));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestInitializePropertyWithRequiredAccessibilityNever()
-        {
-            await TestInRegularAndScript1Async(
-@"
-class C
-{
-    readonly int test = 5;
-
-    public C(int test, int [|test2|])
-    {
-    }
-}",
-@"
-class C
-{
-    readonly int test = 5;
-
-    public C(int test, int test2)
-    {
-        Test2 = test2;
-    }
-
-    int Test2 { get; }
-}", index: 0, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning)));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestInitializePropertyWithRequiredAccessibilityAlways()
+        public async Task TestInitializeClassProperty_RequiredAccessibilityOmitIfDefault()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -729,11 +675,65 @@ class C
     }
 
     public int Test2 { get; }
-}", index: 0, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning)));
+}", index: 0, parameters: OmitIfDefault_Warning);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestInitializeFieldWithRequiredAccessibilityOmitIfDefault()
+        public async Task TestInitializeClassProperty_RequiredAccessibilityNever()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int [|test2|])
+    {
+    }
+}",
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int test2)
+    {
+        Test2 = test2;
+    }
+
+    public int Test2 { get; }
+}", index: 0, parameters: Never_Warning);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeClassProperty_RequiredAccessibilityAlways()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int [|test2|])
+    {
+    }
+}",
+@"
+class C
+{
+    readonly int test = 5;
+
+    public C(int test, int test2)
+    {
+        Test2 = test2;
+    }
+
+    public int Test2 { get; }
+}", index: 0, parameters: Always_Warning);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeClassField_RequiredAccessibilityOmitIfDefault()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -751,15 +751,15 @@ class C
     readonly int test = 5;
     readonly int test2;
 
-    public C(int test, int [|test2|])
+    public C(int test, int test2)
     {
         this.test2 = test2;
     }
-}", index: 1, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning)));
+}", index: 1, parameters: OmitIfDefault_Warning);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestInitializeFieldWithRequiredAccessibilityNever()
+        public async Task TestInitializeClassField_RequiredAccessibilityNever()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -777,15 +777,15 @@ class C
     readonly int test = 5;
     readonly int test2;
 
-    public C(int test, int [|test2|])
+    public C(int test, int test2)
     {
         this.test2 = test2;
     }
-}", index: 1, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning)));
+}", index: 1, parameters: Never_Warning);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestInitializeFieldWithRequiredAccessibilityAlways()
+        public async Task TestInitializeClassField_RequiredAccessibilityAlways()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -803,11 +803,153 @@ class C
     readonly int test = 5;
     private readonly int test2;
 
-    public C(int test, int [|test2|])
+    public C(int test, int test2)
     {
         this.test2 = test2;
     }
-}", index: 1, parameters: new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning)));
+}", index: 1, parameters: Always_Warning);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeStructProperty_RequiredAccessibilityOmitIfDefault()
+        {
+            await TestInRegularAndScript1Async(
+@"
+struct S
+{
+    public Test(int [|test|])
+    {
+    }
+}",
+@"
+struct S
+{
+    public Test(int test)
+    {
+        Test = test;
+    }
+
+    public int Test { get; }
+}", index: 0, parameters: OmitIfDefault_Warning);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeStructProperty_RequiredAccessibilityNever()
+        {
+            await TestInRegularAndScript1Async(
+@"
+struct S
+{
+    public Test(int [|test|])
+    {
+    }
+}",
+@"
+struct S
+{
+    public Test(int test)
+    {
+        Test = test;
+    }
+
+    public int Test { get; }
+}", index: 0, parameters: Never_Warning);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeStructProperty_RequiredAccessibilityAlways()
+        {
+            await TestInRegularAndScript1Async(
+@"
+struct S
+{
+    public Test(int [|test|])
+    {
+    }
+}",
+@"
+struct S
+{
+    public Test(int test)
+    {
+        Test = test;
+    }
+
+    public int Test { get; }
+}", index: 0, parameters: Always_Warning);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeStructField_RequiredAccessibilityOmitIfDefault()
+        {
+            await TestInRegularAndScript1Async(
+@"
+struct S
+{
+    public Test(int [|test|])
+    {
+    }
+}",
+@"
+struct S
+{
+    readonly int test;
+
+    public Test(int test)
+    {
+        this.test = test;
+    }
+}", index: 1, parameters: OmitIfDefault_Warning);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeStructField_RequiredAccessibilityNever()
+        {
+            await TestInRegularAndScript1Async(
+@"
+struct S
+{
+    public Test(int [|test|])
+    {
+    }
+}",
+@"
+struct S
+{
+    readonly int test;
+
+    public Test(int test)
+    {
+        this.test = test;
+    }
+}", index: 1, parameters: Never_Warning);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeStructField_RequiredAccessibilityAlways()
+        {
+            await TestInRegularAndScript1Async(
+@"
+struct S
+{
+    public Test(int [|test|])
+    {
+    }
+}",
+@"
+struct S
+{
+    private readonly int test;
+
+    public Test(int test)
+    {
+        this.test = test;
+    }
+}", index: 1, parameters: Always_Warning);
+        }
+
+        private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning));
+        private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning));
+        private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning));
     }
 }

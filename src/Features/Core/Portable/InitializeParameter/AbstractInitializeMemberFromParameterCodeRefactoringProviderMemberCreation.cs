@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
@@ -109,8 +111,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var parameterNameParts = this.GetParameterWordParts(parameter);
                 var rules = await this.GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var field = await CreateFieldAsync(document, parameter, rules, parameterNameParts, cancellationToken).ConfigureAwait(false);
-                var property = await CreatePropertyAsync(document, parameter, rules, parameterNameParts, cancellationToken).ConfigureAwait(false);
+                var field = await CreateFieldAsync(document, functionDeclaration, parameter, rules, parameterNameParts, cancellationToken).ConfigureAwait(false);
+                var property = CreateProperty(parameter, rules, parameterNameParts);
 
                 // Offer to generate either a property or a field.  Currently we place the property
                 // suggestion first (to help users with the immutable object+property pattern). But
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private async Task<IFieldSymbol> CreateFieldAsync(
-            Document document, IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts, CancellationToken cancellationToken)
+            Document document, SyntaxNode functionDeclaration, IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
@@ -135,11 +137,33 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 {
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
-                    // We do not add an accessibility level if the user turned the setting off
                     var accessibilityLevel = Accessibility.Private;
                     if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
                     {
-                        accessibilityLevel = Accessibility.NotApplicable;
+                        // C#: always remove modifier for fields if "omit if default" or "never" option is set
+                        if (functionDeclaration.Language == LanguageNames.CSharp)
+                        {
+                            accessibilityLevel = Accessibility.NotApplicable;
+                        }
+                        // VB: only remove modifier if code is in C# or if it's within a class or module
+                        else if (functionDeclaration.Language == LanguageNames.VisualBasic)
+                        {
+                            var service = document.GetLanguageService<ISyntaxFactsService>();
+                            var containingTypeNode = service.GetContainingTypeDeclaration(functionDeclaration, functionDeclaration.SpanStart);
+
+                            if (containingTypeNode != null)
+                            {
+                                var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                                var containingTypeSymbol = (INamedTypeSymbol) model.GetDeclaredSymbol(containingTypeNode, cancellationToken);
+                                switch (containingTypeSymbol.TypeKind)
+                                {
+                                    case TypeKind.Class:
+                                    case TypeKind.Module:
+                                        accessibilityLevel = Accessibility.NotApplicable;
+                                        break;
+                                }
+                            }
+                        }
                     }
 
                     return CodeGenerationSymbolFactory.CreateFieldSymbol(
@@ -168,33 +192,23 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return uniqueName;
         }
 
-        private async Task<IPropertySymbol> CreatePropertyAsync(
-            Document document, IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts, CancellationToken cancellationToken)
+        private IPropertySymbol CreateProperty(
+            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
-
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(SymbolKind.Property, Accessibility.Public))
                 {
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
-                    // We do not add an accessibility level if the user turned the setting off
-                    var accessibilityLevel = Accessibility.Public;
-                    if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
-                    {
-                        accessibilityLevel = Accessibility.NotApplicable;
-                    }
-
                     var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         default,
-                        accessibilityLevel,
+                        Accessibility.Public,
                         default);
 
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
                         default,
-                        accessibilityLevel,
+                        Accessibility.Public,
                         new DeclarationModifiers(),
                         parameter.Type,
                         RefKind.None,
