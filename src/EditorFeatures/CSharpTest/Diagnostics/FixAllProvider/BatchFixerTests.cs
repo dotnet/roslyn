@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
                     var symbol = context.SemanticModel.GetSymbolInfo(node).Symbol;
                     if (symbol != null && symbol.Kind == SymbolKind.Field)
                     {
-                        var diagnostic = Diagnostic.Create(Descriptor, node.GetLocation());
+                        var diagnostic = CodeAnalysis.Diagnostic.Create(Descriptor, node.GetLocation());
                         context.ReportDiagnostic(diagnostic);
                     }
                 }

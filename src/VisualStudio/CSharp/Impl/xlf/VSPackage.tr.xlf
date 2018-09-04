@@ -33,8 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
-        <target state="translated">İmlecin altındaki sembole başvuruları vurgula;İmlecin altındaki ilişkili anahtar sözcükleri vurgula;Dosyalar açıldığında anahat moduna gir;Yordam satır ayraçlarını göster;XML belge açıklamaları oluştur;Kapatılan dosyalar için tanılamaları göster;Yeniden adlandırma izlemesi için önizleme göster;Kullanımları sıralarken önce 'System' yönergelerini yerleştir;Özel yapılara ref veya out koyma</target>
+        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
+        <target state="needs-review-translation">İmlecin altındaki sembole başvuruları vurgula;İmlecin altındaki ilişkili anahtar sözcükleri vurgula;Dosyalar açıldığında anahat moduna gir;Yordam satır ayraçlarını göster;XML belge açıklamaları oluştur;Kapatılan dosyalar için tanılamaları göster;Yeniden adlandırma izlemesi için önizleme göster;Kullanımları sıralarken önce 'System' yönergelerini yerleştir;Özel yapılara ref veya out koyma</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

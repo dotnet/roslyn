@@ -26,7 +26,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     [UseExportProvider]
-    public abstract class AbstractCodeActionOrUserDiagnosticTest
+    public abstract class AbstractCodeActionOrUserDiagnosticTest : TestBase
     {
         public struct TestParameters
         {

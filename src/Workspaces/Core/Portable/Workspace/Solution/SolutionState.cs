@@ -604,7 +604,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputFilePath(outputFilePath));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateOutputFilePath(outputFilePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -619,7 +627,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputRefFilePath(outputRefFilePath));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateOutputRefFilePath(outputRefFilePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -634,7 +650,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateName(name));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateName(name);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -649,7 +673,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateFilePath(filePath));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateFilePath(filePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -1045,33 +1077,55 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Create a new solution instance with the corresponding project updated to include a new 
-        /// document instanced defined by the document info.
+        /// Create a new solution instance with the corresponding projects updated to include new 
+        /// documents defined by the document info.
         /// </summary>
-        public SolutionState AddDocument(DocumentInfo documentInfo)
+        public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            if (documentInfo == null)
+            if (documentInfos.IsDefault)
             {
-                throw new ArgumentNullException(nameof(documentInfo));
+                throw new ArgumentNullException(nameof(documentInfos));
             }
 
-            CheckContainsProject(documentInfo.Id.ProjectId);
-            CheckNotContainsDocument(documentInfo.Id);
+            if (documentInfos.IsEmpty)
+            {
+                return this;
+            }
 
-            var oldProject = this.GetProjectState(documentInfo.Id.ProjectId);
+            // The documents might be contributing to multiple different projects; split them by project and then we'll process
+            // project-at-a-time.
+            var documentInfosByProjectId = documentInfos.ToLookup(d => d.Id.ProjectId);
 
-            var state = DocumentState.Create(
-                documentInfo,
-                oldProject.ParseOptions,
-                oldProject.LanguageServices,
-                _solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind);
+            var newSolutionState = this;
 
-            var newProject = oldProject.AddDocument(state);
+            foreach (var documentInfosInProject in documentInfosByProjectId)
+            {
+                CheckContainsProject(documentInfosInProject.Key);
+                var oldProject = this.GetProjectState(documentInfosInProject.Key);
 
-            return this.ForkProject(
-                newProject,
-                CompilationTranslationAction.AddDocument(state),
-                newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProject, SpecializedCollections.SingletonEnumerable(state.Id)));
+                var newDocumentStatesForProjectBuilder = ArrayBuilder<DocumentState>.GetInstance();
+
+                foreach (var documentInfo in documentInfosInProject)
+                {
+                    CheckNotContainsDocument(documentInfo.Id);
+
+                    newDocumentStatesForProjectBuilder.Add(DocumentState.Create(
+                        documentInfo,
+                        oldProject.ParseOptions,
+                        oldProject.LanguageServices,
+                        _solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind));
+                }
+
+                var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
+
+                var newProjectState = oldProject.AddDocuments(newDocumentStatesForProject);
+
+                newSolutionState = newSolutionState.ForkProject(newProjectState, 
+                    CompilationTranslationAction.AddDocuments(newDocumentStatesForProject),
+                    newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProjectState, documentInfosInProject.Select(d => d.Id)));
+            }
+
+            return newSolutionState;
         }
 
         public SolutionState AddAdditionalDocument(DocumentInfo documentInfo)

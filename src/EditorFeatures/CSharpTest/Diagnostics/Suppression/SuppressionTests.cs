@@ -468,7 +468,7 @@ int Method()
                     public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                     {
                         var classDecl = (ClassDeclarationSyntax)context.Node;
-                        context.ReportDiagnostic(Diagnostic.Create(Decsciptor, classDecl.Identifier.GetLocation()));
+                        context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Decsciptor, classDecl.Identifier.GetLocation()));
                     }
                 }
 
@@ -530,7 +530,7 @@ class Class
                     public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                     {
                         var classDecl = (ClassDeclarationSyntax)context.Node;
-                        context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()));
+                        context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()));
                     }
                 }
 
@@ -595,7 +595,7 @@ class Class
                     public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                     {
                         var classDecl = (ClassDeclarationSyntax)context.Node;
-                        context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()));
+                        context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()));
                     }
                 }
 
@@ -647,7 +647,7 @@ using System;
                 public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                 {
                     var classDecl = (ClassDeclarationSyntax)context.Node;
-                    context.ReportDiagnostic(Diagnostic.Create(Decsciptor, classDecl.GetLocation()));
+                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Decsciptor, classDecl.GetLocation()));
                 }
             }
 
@@ -760,39 +760,39 @@ class Class
                         {
                             case SyntaxKind.ClassDeclaration:
                                 var classDecl = (ClassDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDecl.Identifier.GetLocation()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, classDecl.Identifier.GetLocation()));
                                 break;
 
                             case SyntaxKind.NamespaceDeclaration:
                                 var ns = (NamespaceDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, ns.Name.GetLocation()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, ns.Name.GetLocation()));
                                 break;
 
                             case SyntaxKind.MethodDeclaration:
                                 var method = (MethodDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, method.Identifier.GetLocation()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, method.Identifier.GetLocation()));
                                 break;
 
                             case SyntaxKind.PropertyDeclaration:
                                 var property = (PropertyDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, property.Identifier.GetLocation()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, property.Identifier.GetLocation()));
                                 break;
 
                             case SyntaxKind.FieldDeclaration:
                                 var field = (FieldDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, field.Declaration.Variables.First().Identifier.GetLocation()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, field.Declaration.Variables.First().Identifier.GetLocation()));
                                 break;
 
                             case SyntaxKind.EventDeclaration:
                                 var e = (EventDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, e.Identifier.GetLocation()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, e.Identifier.GetLocation()));
                                 break;
 
                             case SyntaxKind.EnumDeclaration:
                                 // Report diagnostic on each descendant comment trivia
                                 foreach (var trivia in context.Node.DescendantTrivia().Where(t => t.Kind() == SyntaxKind.SingleLineCommentTrivia || t.Kind() == SyntaxKind.MultiLineCommentTrivia))
                                 {
-                                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, trivia.GetLocation()));
+                                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, trivia.GetLocation()));
                                 }
                                 break;
                         }
@@ -1571,7 +1571,7 @@ class Class { }
 
                 public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
+                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, Location.None));
                 }
             }
 
