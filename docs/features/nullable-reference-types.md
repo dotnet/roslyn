@@ -104,13 +104,28 @@ string t = default; // assigns ?, warning
 T t = default; // assigns ?, warning
 ```
 
-### Conversions
+### Implicit conversions
 _Describe valid top-level and variance conversions._
 _Describe warnings from user-defined conversions._
 
+### Explicit conversions
+The top-level nullability of `(X)y` is the nullability of `y`.
+The top-level nullability of `(X?)y` is `?`.
+A W warning is reported is reported when converting `?` to `!`.
+```c#
+var s = (string)default(string); // x is string?, warning converting null
+var t = (string?)"";             // y is string?
+```
+A warning is reported if the type of `y` including nested nullability is not explicitly convertible to `X`.
+```c#
+var x =  new List<string>();
+var y = (List<string?>)x;        // warning
+var z = (IEnumerable<string?>)x; // no warning
+```
+
 ### Assignment
 For `x = y`, the nullability of the converted type of `y` is used for `x`.
-Warnings are reported if there is a mismatch between top-level or nested nullability comparing the inferred nullability of `x` and the declared type of `y`.
+A warning is reported if there is a mismatch between top-level or nested nullability comparing the inferred nullability of `x` and the declared type of `y`.
 The warning is a W warning when assigning `?` to `!` and the target is a local.
 ```c#
 notNull = maybeNull; // assigns ?, warning

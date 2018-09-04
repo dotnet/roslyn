@@ -23210,9 +23210,12 @@ class CL0<T>
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
             c.VerifyDiagnostics(
-                 // (10,26): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
-                 //         CL0<string> u1 = x1;
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL0<string?>", "CL0<string>").WithLocation(10, 26)
+                // (10,26): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
+                //         CL0<string> u1 = x1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL0<string?>", "CL0<string>").WithLocation(10, 26),
+                // (11,26): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
+                //         CL0<string> v1 = (CL0<string>)x1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(CL0<string>)x1").WithArguments("CL0<string?>", "CL0<string>").WithLocation(11, 26)
                 );
         }
 
@@ -29381,9 +29384,21 @@ class C<T>
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             // PROTOTYPE(NullableReferenceTypes): Should there be a warning on c1 too?
             comp.VerifyDiagnostics(
+                // (6,18): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                //         var c1 = (C<object>?)y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(C<object>?)y").WithArguments("C<object?>", "C<object>").WithLocation(6, 18),
                 // (7,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var c2 = (C<object?>)x; // warn
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C<object?>)x").WithLocation(7, 18)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C<object?>)x").WithLocation(7, 18),
+                // (7,18): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
+                //         var c2 = (C<object?>)x; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(C<object?>)x").WithArguments("C<object>", "C<object?>").WithLocation(7, 18),
+                // (8,18): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                //         var c3 = (C<object>?)y!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(C<object>?)y!").WithArguments("C<object?>", "C<object>").WithLocation(8, 18),
+                // (9,18): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
+                //         var c4 = (C<object?>)x!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(C<object?>)x!").WithArguments("C<object>", "C<object?>").WithLocation(9, 18)
                 );
         }
 
@@ -33698,24 +33713,36 @@ class C
                 // (15,9): warning CS8602: Possible dereference of a null reference.
                 //         ((A<string?>?)default).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((A<string?>?)default).F").WithLocation(15, 9),
+                // (19,10): warning CS8619: Nullability of reference types in value of type 'A<string>' doesn't match target type 'B2'.
+                //         ((B2?)x1).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(B2?)x1").WithArguments("A<string>", "B2").WithLocation(19, 10),
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         ((B2?)x1).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((B2?)x1).F").WithLocation(19, 9),
                 // (20,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         ((B2)y1).F.ToString();
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(B2)y1").WithLocation(20, 10),
+                // (20,10): warning CS8619: Nullability of reference types in value of type 'A<string>' doesn't match target type 'B2'.
+                //         ((B2)y1).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(B2)y1").WithArguments("A<string>", "B2").WithLocation(20, 10),
                 // (20,10): warning CS8602: Possible dereference of a null reference.
                 //         ((B2)y1).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(B2)y1").WithLocation(20, 10),
                 // (20,9): warning CS8602: Possible dereference of a null reference.
                 //         ((B2)y1).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((B2)y1).F").WithLocation(20, 9),
+                // (24,10): warning CS8619: Nullability of reference types in value of type 'B1' doesn't match target type 'A<string?>'.
+                //         ((A<string?>?)x2).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(A<string?>?)x2").WithArguments("B1", "A<string?>").WithLocation(24, 10),
                 // (24,9): warning CS8602: Possible dereference of a null reference.
                 //         ((A<string?>?)x2).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((A<string?>?)x2).F").WithLocation(24, 9),
                 // (25,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         ((A<string?>)y2).F.ToString();
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(A<string?>)y2").WithLocation(25, 10),
+                // (25,10): warning CS8619: Nullability of reference types in value of type 'B1' doesn't match target type 'A<string?>'.
+                //         ((A<string?>)y2).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(A<string?>)y2").WithArguments("B1", "A<string?>").WithLocation(25, 10),
                 // (25,10): warning CS8602: Possible dereference of a null reference.
                 //         ((A<string?>)y2).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(A<string?>)y2").WithLocation(25, 10),
@@ -33734,9 +33761,15 @@ class C
                 // (30,9): warning CS8602: Possible dereference of a null reference.
                 //         ((B2)y3).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((B2)y3).F").WithLocation(30, 9),
+                // (34,10): warning CS8619: Nullability of reference types in value of type 'B2' doesn't match target type 'A<string>'.
+                //         ((A<string>?)x4).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(A<string>?)x4").WithArguments("B2", "A<string>").WithLocation(34, 10),
                 // (35,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         ((A<string>)y4).F.ToString();
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(A<string>)y4").WithLocation(35, 10),
+                // (35,10): warning CS8619: Nullability of reference types in value of type 'B2' doesn't match target type 'A<string>'.
+                //         ((A<string>)y4).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(A<string>)y4").WithArguments("B2", "A<string>").WithLocation(35, 10),
                 // (35,10): warning CS8602: Possible dereference of a null reference.
                 //         ((A<string>)y4).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(A<string>)y4").WithLocation(35, 10));
