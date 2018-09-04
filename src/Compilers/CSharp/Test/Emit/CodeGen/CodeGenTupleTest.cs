@@ -21317,7 +21317,7 @@ namespace System
         }
 
         // https://github.com/dotnet/roslyn/issues/25141
-#if NET46
+#if NET472
         [Fact]
         public void ValueTupleBase_AssemblyUnification()
         {

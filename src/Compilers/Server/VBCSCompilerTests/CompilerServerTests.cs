@@ -101,7 +101,7 @@ End Module")
 
         private static void ReferenceNetstandardDllIfCoreClr(TempDirectory currentDirectory, List<string> arguments)
         {
-#if !NET46
+#if !NET472
             var filePath = Path.Combine(currentDirectory.Path, "netstandard.dll");
             File.WriteAllBytes(filePath, TestResources.NetFX.netstandard20.netstandard);
             arguments.Add("/nostdlib");
@@ -232,7 +232,7 @@ End Module")
 
         private static void VerifyResult((int ExitCode, string Output) result)
         {
-            Assert.Equal("", result.Output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", result.Output);
             Assert.Equal(0, result.ExitCode);
         }
 

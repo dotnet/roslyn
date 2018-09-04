@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             CompilerServerLogger.Log("Constructing pipe '{0}'.", pipeName);
 
-#if NET46
+#if NET472
             SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
             PipeSecurity security = new PipeSecurity();
 

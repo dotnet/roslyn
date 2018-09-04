@@ -1,7 +1,7 @@
 ﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RoslynProjectType>Custom</RoslynProjectType>
 
     <!-- The package is inserted to Visual Studio CoreXT package store -->
@@ -37,7 +37,7 @@
       <_File Include="$(MSBuildProjectDirectory)\Init.cmd" TargetDir="" />
 
       <!-- Workaround for https://github.com/dotnet/roslyn/issues/17864 -->
-      <_File Remove="$(ArtifactsConfigurationDir)Exes\csc\net46\csc.exe"/>
+      <_File Remove="$(ArtifactsConfigurationDir)Exes\csc\net472\csc.exe"/>
       <_File Include="$(IntermediateOutputPath)csc.exe"/>
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
@@ -52,10 +52,10 @@
 
   <Target Name="_Generate32BitCsc" 
           AfterTargets="Build"
-          Inputs="$(ArtifactsConfigurationDir)Exes\csc\net46\csc.exe"
+          Inputs="$(ArtifactsConfigurationDir)Exes\csc\net472\csc.exe"
           Outputs="$(IntermediateOutputPath)csc.exe">
 
-    <Copy SourceFiles="$(ArtifactsConfigurationDir)Exes\csc\net46\csc.exe" DestinationFiles="$(IntermediateOutputPath)csc.exe"/>
+    <Copy SourceFiles="$(ArtifactsConfigurationDir)Exes\csc\net472\csc.exe" DestinationFiles="$(IntermediateOutputPath)csc.exe"/>
     <RoslynTools.SetCorFlags FilePath="$(IntermediateOutputPath)csc.exe" AddFlags="Prefers32Bit,Requires32Bit" />
 
     <ItemGroup>
