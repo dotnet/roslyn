@@ -27,6 +27,8 @@
                    @(CustomAdditionalCompileOutputs)"
           Returns="@(VbcCommandLineArgs)"
           DependsOnTargets="$(CoreCompileDependsOn);_BeforeVBCSCoreCompile">
+    <CallTarget Targets="$(TargetsTriggeredBeforeCompilation)" Condition="'$(TargetsTriggeredBeforeCompilation)' != ''" />
+    
     <PropertyGroup>
       <_NoWarnings Condition="'$(WarningLevel)' == '0'">true</_NoWarnings>
       <_NoWarnings Condition="'$(WarningLevel)' == '1'">false</_NoWarnings>
