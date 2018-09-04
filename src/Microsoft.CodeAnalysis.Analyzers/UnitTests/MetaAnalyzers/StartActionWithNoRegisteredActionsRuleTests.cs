@@ -5,6 +5,7 @@ using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Test.Utilities;
 using Xunit;
@@ -547,16 +548,9 @@ End Class
             string message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsMessage, parameterName, arg2);
 
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.StartActionWithNoRegisteredActionsRuleId,
-                Message = message,
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.StartActionWithNoRegisteredActionsRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(fileName, line, column)
+                .WithMessageFormat(message);
         }
 
         private enum StartActionKind
