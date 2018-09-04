@@ -22,6 +22,11 @@
         <target state="translated">Элемент недопустим.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="new">Highlight related components under cursor</target>
@@ -45,6 +50,11 @@
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
         <target state="new">Parentheses preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -1541,16 +1551,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Не удается применить изменения, так как возникла непредвиденная ошибка: "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences_colon">
-        <source>Field preferences:</source>
-        <target state="translated">Предпочтения для полей:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly">
-        <source>Prefer readonly</source>
-        <target state="translated">Предпочитать только для чтения</target>
         <note />
       </trans-unit>
       <trans-unit id="Manage_naming_styles">

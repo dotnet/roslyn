@@ -108,7 +108,7 @@ function Process-Arguments() {
         exit 1
     }
 
-    if ((-not $official -and $anyVsi)) {
+    if ($cibuild -and -not $official -and $anyVsi) {
         # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
         $script:skipAnalyzers = $true
     }
@@ -297,7 +297,7 @@ function Build-InsertionItems() {
         # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
         # matter, just that it's provided some value.
         $extraArgs = ""
-        if (-not $official) {
+        if ($cibuild -and -not $official) {
             $extraArgs = " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
         }
 
@@ -713,7 +713,7 @@ catch {
 }
 finally {
     Pop-Location
-    if (-not $official) {
+    if ($cibuild -and -not $official) {
         Stop-VSProcesses
         Stop-BuildProcesses
     }
