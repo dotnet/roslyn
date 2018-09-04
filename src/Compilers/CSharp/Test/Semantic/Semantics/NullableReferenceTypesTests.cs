@@ -760,9 +760,13 @@ namespace NotMicrosoft.CodeAnalysis { }
                 }
                 else
                 {
-                    Assert.Equal(new[] {
-                        "System.AttributeUsageAttribute(System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Delegate)" },
-                        actualNonNullTypes);
+                    Assert.Equal(1, actualNonNullTypes.Count());
+                    var expected = "System.AttributeUsageAttribute(System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Delegate)";
+                    if (actualNonNullTypes.Single() != expected)
+                    {
+                        Assert.True(false, actualNonNullTypes.Single());
+                    }
+                    Assert.Equal(new[] { expected }, actualNonNullTypes);
                     Assert.Empty(actualEmbedded);
                 }
             };
