@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         // More tests with exception thrown
         // There is a case in GetIteratorElementType with IsDirectlyInIterator that relates to speculation, needs testing
         // yield break disallowed in finally and top-level script (see BindYieldBreakStatement); same for yield return (see BindYieldReturnStatement)
-        // test local function
         // binding for yield return (BindYieldReturnStatement) validates escape rules, needs testing
         // test yield in async lambda (still error)
         // test exception handling (should capture and return the exception via the promise)
@@ -75,6 +74,50 @@ namespace System
                 // (4,38): error CS0234: The type or namespace name 'IAsyncEnumerable<>' does not exist in the namespace 'System.Collections.Generic' (are you missing an assembly reference?)
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IAsyncEnumerable<int>").WithArguments("IAsyncEnumerable<>", "System.Collections.Generic").WithLocation(4, 38)
+                );
+        }
+
+        [Fact]
+        public void MissingType_IAsyncIEnumerable_LocalFunction()
+        {
+            string source = @"
+class C
+{
+    void Method()
+    {
+        _ = local();
+
+        async System.Collections.Generic.IAsyncEnumerable<int> local()
+        {
+            await System.Threading.Tasks.Task.CompletedTask;
+            yield return 3;
+        }
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> WaitForNextAsync();
+        T TryGetNext(out bool success);
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.VerifyDiagnostics(
+                // (8,42): error CS0234: The type or namespace name 'IAsyncEnumerable<>' does not exist in the namespace 'System.Collections.Generic' (are you missing an assembly reference?)
+                //         async System.Collections.Generic.IAsyncEnumerable<int> local()
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IAsyncEnumerable<int>").WithArguments("IAsyncEnumerable<>", "System.Collections.Generic").WithLocation(8, 42),
+                // (8,64): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, or IAsyncEnumerable<T>
+                //         async System.Collections.Generic.IAsyncEnumerable<int> local()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "local").WithLocation(8, 64)
                 );
         }
 
@@ -1186,6 +1229,12 @@ label2:
 
             void verify(Instruction[] spec)
             {
+                verifyMethod(spec);
+                verifyLocalFunction(spec);
+            }
+
+            void verifyMethod(Instruction[] spec)
+            {
                 (string code, string expectation) = generateCode(spec);
 
                 string source = $@"
@@ -1204,6 +1253,34 @@ class C
             Write($""{{i}} "");
         }}
         Write(""Done"");
+    }}
+}}";
+                var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+                comp.VerifyDiagnostics();
+                var verifier = CompileAndVerify(comp, expectedOutput: expectation);
+            }
+
+            void verifyLocalFunction(Instruction[] spec)
+            {
+                (string code, string expectation) = generateCode(spec);
+
+                string source = $@"
+using static System.Console;
+class C
+{{
+    static async System.Threading.Tasks.Task Main()
+    {{
+        Write(""0 "");
+        foreach await (var i in local())
+        {{
+            Write($""{{i}} "");
+        }}
+        Write(""Done"");
+
+        async System.Collections.Generic.IAsyncEnumerable<int> local()
+        {{
+            {code}
+        }}
     }}
 }}";
                 var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
@@ -1902,6 +1979,35 @@ namespace System.Threading.Tasks
                 var symbol = comp.GetWellKnownTypeMember(member);
                 Assert.Equal(expected, symbol.ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        public void AsyncLocalFunctionWithUnknownReturnType()
+        {
+            string source = @"
+class C
+{
+    void Method()
+    {
+        _ = local();
+
+        async Unknown local()
+        {
+            await System.Threading.Tasks.Task.CompletedTask;
+            yield return 3;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.VerifyDiagnostics(
+                // (8,15): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //         async Unknown local()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(8, 15),
+                // (8,23): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, or IAsyncEnumerable<T>
+                //         async Unknown local()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "local").WithLocation(8, 23)
+                );
         }
     }
 }
