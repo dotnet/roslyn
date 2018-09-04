@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyNullableAttribute;
         private ImmutableArray<NamedTypeSymbol> _lazyInjectedTypes;
+        private bool _needsNonNullTypesAttribute;
+        private bool _needsEmbeddedAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -59,6 +61,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             _metadataName = (emitOptions.OutputNameOverride == null) ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension: null);
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
+        }
+
+        protected override void EnsureNonNullTypesAttributeExists()
+        {
+            Debug.Assert(!InjectedSymbolsAreFrozen);
+            _needsNonNullTypesAttribute = true;
+        }
+
+        protected override void EnsureEmbeddedAttributeExists()
+        {
+            Debug.Assert(!InjectedSymbolsAreFrozen);
+            _needsEmbeddedAttribute = true;
         }
 
         public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _sourceAssembly;
@@ -223,41 +237,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
         {
-            if (this.NeedsGeneratedIsReadOnlyAttribute && _lazyIsReadOnlyAttribute is null)
+            if (this.NeedsGeneratedIsReadOnlyAttribute)
             {
-                NeedsEmbeddedAttribute = true;
-
-                CreateEmbeddedAttribute(
+                CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsReadOnlyAttribute,
                     diagnostics,
                     AttributeDescription.IsReadOnlyAttribute);
             }
 
-            if (this.NeedsGeneratedIsByRefLikeAttribute && _lazyIsByRefLikeAttribute is null)
+            if (this.NeedsGeneratedIsByRefLikeAttribute)
             {
-                NeedsEmbeddedAttribute = true;
-
-                CreateEmbeddedAttribute(
+                CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsByRefLikeAttribute,
                     diagnostics,
                     AttributeDescription.IsByRefLikeAttribute);
             }
 
-            if (this.NeedsGeneratedIsUnmanagedAttribute && _lazyIsUnmanagedAttribute is null)
+            if (this.NeedsGeneratedIsUnmanagedAttribute)
             {
-                NeedsEmbeddedAttribute = true;
-
-                CreateEmbeddedAttribute(
+                CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsUnmanagedAttribute,
                     diagnostics,
                     AttributeDescription.IsUnmanagedAttribute);
             }
 
-            if (this.NeedsGeneratedNullableAttribute && _lazyNullableAttribute is null)
+            if (this.NeedsGeneratedNullableAttribute)
             {
-                NeedsEmbeddedAttribute = true;
-
-                CreateEmbeddedAttribute(
+                CreateEmbeddedAttributeIfNeeded(
                     ref _lazyNullableAttribute,
                     diagnostics,
                     AttributeDescription.NullableAttribute,
@@ -278,13 +284,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             ArrayBuilder<NamedTypeSymbol> builder = null;
-            if (NeedsNonNullTypesAttribute)
+            if (_needsNonNullTypesAttribute)
             {
                 addInjectedAttribute(AttributeDescription.NonNullTypesAttribute, canUseFromSource: true);
-                NeedsEmbeddedAttribute = true;
+                EnsureEmbeddedAttributeExists();
             }
 
-            if (NeedsEmbeddedAttribute)
+            if (_needsEmbeddedAttribute)
             {
                 addInjectedAttribute(AttributeDescription.CodeAnalysisEmbeddedAttribute, canUseFromSource: false);
             }
@@ -313,23 +319,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        private void CreateEmbeddedAttribute(
+        private void CreateEmbeddedAttributeIfNeeded(
             ref SynthesizedEmbeddedAttributeSymbol symbol,
             DiagnosticBag diagnostics,
             AttributeDescription description,
             Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getAdditionalConstructors = null)
         {
-            Debug.Assert(symbol is null);
-            var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
-            var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-            Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
-
-            if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+            if ((object)symbol == null)
             {
-                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
-            }
+                EnsureEmbeddedAttributeExists();
 
-            symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, getAdditionalConstructors, diagnostics);
+                var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+                Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+
+                if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+                {
+                    diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
+                }
+
+                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, getAdditionalConstructors, diagnostics);
+            }
         }
 
         private static ImmutableArray<MethodSymbol> GetAdditionalNullableAttributeConstructors(

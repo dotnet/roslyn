@@ -67,7 +67,7 @@ If there is no `[NonNullTypes]` attribute at any containing scope, including the
 [NonNullTypes(false), Nullable(new[] { false, true })] string[] ObliviousMaybeNull; // string?[]~
 [NonNullTypes(true), Nullable(new[] { false, true })] string[] NotNullMaybeNull; // string?[]!
 ```
-The `NonNullTypesAttribute` is always implicitly included in a compilation, but is only emitted if it is referenced in source. It cannot be defined explicitly in source or referenced from metadata.
+The `NonNullTypesAttribute` is always implicitly included in a compilation, but is only emitted if it is referenced in source. It cannot be referenced from metadata (assembly or module).
 `NonNullTypesAttribute` can only be used in C# 8.0 compilations (or above).
 
 ## Declaration warnings

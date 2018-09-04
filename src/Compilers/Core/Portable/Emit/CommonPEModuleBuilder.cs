@@ -421,35 +421,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
-        private bool _needsNonNullTypesAttribute;
-        /// <summary>
-        /// Track usage of the NonNullTypesAttribute injected type, so it can be added to module to be emitted.
-        /// </summary>
-        protected bool NeedsNonNullTypesAttribute
-        {
-            get => _needsNonNullTypesAttribute;
-            set
-            {
-                Debug.Assert(!InjectedSymbolsAreFrozen);
-                _needsNonNullTypesAttribute = value;
-            }
-        }
-
-        private bool _needsEmbeddedAttribute;
-        /// <summary>
-        /// Track usage of the EmbeddedAttribute injected type, so it can be added to module to be emitted.
-        /// </summary>
-        protected bool NeedsEmbeddedAttribute
-        {
-            get => _needsEmbeddedAttribute;
-            set
-            {
-                Debug.Assert(!InjectedSymbolsAreFrozen);
-                _needsEmbeddedAttribute = value;
-            }
-        }
-
-        protected virtual bool InjectedSymbolsAreFrozen { get; }
+        protected abstract bool InjectedSymbolsAreFrozen { get; }
 
         protected PEModuleBuilder(
             TCompilation compilation,
@@ -526,6 +498,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 !InjectedSymbolsAreFrozen)
             {
                 typeReferenceIndexer = new Cci.TypeReferenceIndexer(context);
+                Debug.Assert(names != null);
 
                 // Run this reference indexer on the assembly- and module-level attributes first.
                 // We'll run it on all other types below.
@@ -582,10 +555,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        protected virtual ImmutableArray<TNamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics)
-        {
-            return ImmutableArray<TNamedTypeSymbol>.Empty;
-        }
+        protected abstract ImmutableArray<TNamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics);
 
         internal abstract Cci.IAssemblyReference Translate(TAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);

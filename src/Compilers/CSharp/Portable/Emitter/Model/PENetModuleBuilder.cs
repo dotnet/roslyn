@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,5 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public override int CurrentGenerationOrdinal => 0;
         public override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context) => SpecializedCollections.EmptyEnumerable<Cci.IFileReference>();
         public override ISourceAssemblySymbolInternal SourceAssemblyOpt => null;
+
+        protected override void EnsureNonNullTypesAttributeExists() => throw ExceptionUtilities.Unreachable;
+        protected override void EnsureEmbeddedAttributeExists() => throw ExceptionUtilities.Unreachable;
+        protected override ImmutableArray<NamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics) => ImmutableArray<NamedTypeSymbol>.Empty;
+        protected override bool InjectedSymbolsAreFrozen => true;
     }
 }

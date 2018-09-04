@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private bool _needsGeneratedNullableAttribute_Value;
         private NamedTypeSymbol _nonNullTypesAttribute;
 
+        protected abstract void EnsureNonNullTypesAttributeExists();
+        protected abstract void EnsureEmbeddedAttributeExists();
+
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
         /// The value is set during lowering the symbols that need that attribute, and is frozen on first trial to get it.
@@ -960,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (!InjectedSymbolsAreFrozen && namedTypeSymbol.Equals(_nonNullTypesAttribute))
             {
-                NeedsNonNullTypesAttribute = true;
+                EnsureNonNullTypesAttributeExists();
             }
 
             return namedTypeSymbol;
