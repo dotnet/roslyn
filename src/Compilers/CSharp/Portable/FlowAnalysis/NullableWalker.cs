@@ -2841,7 +2841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion,
                 targetType,
                 operandType,
-                checkConversion: !fromExplicitCast,
+                checkConversion: true,
                 fromExplicitCast: fromExplicitCast,
                 useLegacyWarnings: fromExplicitCast,
                 AssignmentKind.Assignment,

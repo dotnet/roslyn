@@ -110,7 +110,7 @@ _Describe warnings from user-defined conversions._
 
 ### Assignment
 For `x = y`, the nullability of the converted type of `y` is used for `x`.
-Warnings are reported if there is a mismatch between top-level or nested nullability comparing the inferred nullability of `x` and the declared type of `y`.
+A warning is reported if there is a mismatch between top-level or nested nullability comparing the inferred nullability of `x` and the declared type of `y`.
 The warning is a W warning when assigning `?` to `!` and the target is a local.
 ```c#
 notNull = maybeNull; // assigns ?, warning
@@ -152,11 +152,12 @@ var x = (string)maybeNull; // x is string?, W warning
 var y = (string)oblivious; // y is string~, no warning
 var z = (string?)notNull; // y is string?, no warning
 ```
-Explicit casts change nested nullability.
-_Should a warning be reported when there is not an implicit nullable conversion (for instance `(List<object>)new List<object?>()`)?_
+A warning is reported if the type of operand including nested nullability is not explicitly convertible to the target type.
 ```c#
-List<object?> x = ...;
-var y = (List<object>)x; // y is List<object!>!, no warning
+sealed class MyList<T> : IEnumerable<T> { }
+var x =  new MyList<string?>();
+var y = (IEnumerable<object>)x;  // warning
+var z = (IEnumerable<object?>)x; // no warning
 ```
 
 ### Array creation
