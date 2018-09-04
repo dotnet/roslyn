@@ -77,6 +77,10 @@ namespace Microsoft.CodeAnalysis
         {
             // Track the existence of some new projects. Note this call only adds new ProjectIds, but doesn't add any references. Any caller who wants to add a new project
             // with references will first call this, and then call WithAdditionalProjectReferences to add references as well.
+
+            // Since we're adding a new project here, there aren't any references to it, or at least not yet. (If there are, they'll be added
+            // later with WithAdditionalProjectReferences). Thus, the new projects aren't topologically sorted relative to any other project
+            // and form their own dependency set. Thus, sticking them at the end is fine.
             var newTopologicallySortedProjects = _lazyTopologicallySortedProjects;
 
             if (!newTopologicallySortedProjects.IsDefault)
@@ -98,6 +102,7 @@ namespace Microsoft.CodeAnalysis
                 newDependencySets = builder.ToImmutable();
             }
 
+            // The rest of the references map is unchanged, since no new references are added in this call.
             return new ProjectDependencyGraph(
                 _projectIds.Union(projectIds),
                 referencesMap: _referencesMap,
@@ -129,7 +134,7 @@ namespace Microsoft.CodeAnalysis
             var newReverseTransitiveReferencesMap = ComputeNewReverseTransitiveReferencesMapForAdditionalProjectReferences(_reverseTransitiveReferencesMap, projectId, referencedProjectIds);
 
             // Note: rather than updating our dependency sets and topologically sorted data, we'll throw that away since incremental update is
-            // tricky, and those are rarely used.
+            // tricky, and those are rarely used. If somebody needs them, it'll be lazily computed.
             return new ProjectDependencyGraph(
                 _projectIds,
                 referencesMap: newReferencesMap,
@@ -159,8 +164,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Computes a new <see cref="_lazyReverseReferencesMap"/> for the addition of additional project references. Must be called on a non-null
-        /// map.
+        /// Computes a new <see cref="_lazyReverseReferencesMap"/> for the addition of additional project references.
+        /// Must be called on a non-null map.
         /// </summary>
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseReferencesMapForAdditionalProjectReferences(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseReferencesMap,
@@ -219,7 +224,7 @@ namespace Microsoft.CodeAnalysis
                 existingTransitiveReferencesMap.TryGetValue(projectIdToUpdate, out var existingTransitiveReferences);
 
                 // The projects who need to have their caches updated are projectIdToUpdate (since we're obviously updating it!)
-                // and also anything that depended on us.
+                // and also anything that depended on it.
                 if (projectIdToUpdate == projectId || existingTransitiveReferences?.Contains(projectId) == true)
                 {
                     // This needs an update. If we know what to include in, we'll union it with the existing ones. Otherwise, we don't know
