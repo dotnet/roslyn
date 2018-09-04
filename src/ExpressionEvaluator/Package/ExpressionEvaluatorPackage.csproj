@@ -6,7 +6,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RoslynProjectType>Vsix</RoslynProjectType>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
 
     <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>

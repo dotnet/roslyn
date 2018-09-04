@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-#if NET46
+#if NET472
         internal static bool CheckIdentityUnix(PipeStream stream)
         {
             // Identity verification is unavailable in the MSBuild task,

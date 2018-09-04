@@ -17,6 +17,6 @@
     <tags>VSSDK</tags>
   </metadata>
   <files>
-    <file src="$filePath$" target="lib\net46" />
+    <file src="$filePath$" target="lib\net472" />
   </files>
 </package>

@@ -6,7 +6,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Exe</OutputType>
     <RootNamespace>RoslynPublish</RootNamespace>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <SignAssembly>false</SignAssembly>
     <AutomaticBindingRedirects>true</AutomaticBindingRedirects>
