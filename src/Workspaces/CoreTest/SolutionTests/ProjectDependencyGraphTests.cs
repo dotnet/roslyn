@@ -254,6 +254,25 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(solution, "A", new string[] { "B" });
         }
 
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTransitiveReferencesWithMultipleReferences()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A    B -> C    D -> E
+            //
+            // and then add A referencing B and D in one call, to make sure that works.
+
+            var solution = CreateSolutionFromReferenceMap("A B:C C D:E E");
+            VerifyTransitiveReferences(solution, "A", new string[] { });
+
+            solution = AddProjectReferences(solution, "A", new string[] { "B", "D" });
+
+            VerifyDirectReferences(solution, "A", new string[] { "B", "D" });
+            VerifyTransitiveReferences(solution, "A", new string[] { "B", "C", "D", "E" });
+        }
+
         private void VerifyDirectReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
