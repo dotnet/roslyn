@@ -2,6 +2,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 

@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnnecessaryParentheses = "CodeActions.RemoveUnnecessaryParentheses";
             public const string CodeActionsRemoveUnusedLocalFunction = "CodeActions.RemoveUnusedLocalFunction";
+            public const string CodeActionsRemoveUnusedMembers = "CodeActions.RemoveUnusedMembers";
             public const string CodeActionsRemoveUnusedVariable = "CodeActions.RemoveUnusedVariable";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
             public const string CodeActionsRemoveUnreachableCode = "CodeActions.RemoveUnreachableCode";
@@ -213,6 +214,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string TypeInferenceService = nameof(TypeInferenceService);
             public const string Venus = nameof(Venus);
             public const string ValidateFormatString = nameof(ValidateFormatString);
+            public const string ValidateRegexString = nameof(ValidateRegexString);
             public const string VsLanguageBlock = nameof(VsLanguageBlock);
             public const string VsNavInfo = nameof(VsNavInfo);
             public const string WinForms = nameof(WinForms);
