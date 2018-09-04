@@ -420,7 +420,23 @@ namespace Microsoft.CodeAnalysis
             var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
             var newDependencyGraph = _dependencyGraph
                                         .WithAdditionalProjects(SpecializedCollections.SingletonEnumerable(projectId))
-                                        .WithAdditionalProjectReferences(projectId, projectState.ProjectReferences.Select(r => r.ProjectId).ToList());
+                                        .WithAdditionalProjectReferences(projectId,
+                                            projectState.ProjectReferences.Where(r => _projectIdToProjectStateMap.ContainsKey(r.ProjectId)).Select(r => r.ProjectId).ToList());
+
+            // It's possible that another project already in newStateMap has a reference to this project that we're adding, since we allow
+            // dangling references like that. If so, we'll need to link those in too.
+            foreach (var newState in newStateMap)
+            {
+                foreach (var projectReference in newState.Value.ProjectReferences)
+                { 
+                    if (projectReference.ProjectId == projectId)
+                    {
+                        newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(newState.Key, ImmutableArray.Create(projectId));
+                        break;
+                    }
+                }
+            }
+            
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newLinkedFilesMap = CreateLinkedFilesMapWithAddedProject(newStateMap[projectId]);
 

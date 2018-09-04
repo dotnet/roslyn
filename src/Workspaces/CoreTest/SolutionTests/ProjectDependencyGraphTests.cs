@@ -178,7 +178,6 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyDirectReferences(solution, "A", new string[] { "B", "C" });
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTransitiveReferencesIncrementalUpdateWithProjectThatHasUnknownReferences()
         {
@@ -206,6 +205,32 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             dependencyGraph = dependencyGraph.WithAdditionalProjectReferences(projectAId, new[] { projectBId });
 
             VerifyTransitiveReferences(solution, dependencyGraph, project: "A", expectedResults: new string[] { "B" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTransitiveReferencesWithDanglingProjectReference()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B
+            //
+            // but we're going to add A as a reference with B not existing yet. Then we'll add in B and ask.
+
+            var solution = CreateSolution();
+            var projectAId = ProjectId.CreateNewId("A");
+            var projectBId = ProjectId.CreateNewId("B");
+
+            var projectAInfo = ProjectInfo.Create(projectAId, VersionStamp.Create(), "A", "A", LanguageNames.CSharp,
+                                    projectReferences: new[] { new ProjectReference(projectBId) });
+
+            solution = solution.AddProject(projectAInfo);
+
+            VerifyDirectReferences(solution, "A", new string[] { });
+            VerifyTransitiveReferences(solution, "A", new string[] { });
+
+            solution = solution.AddProject(projectBId, "B", "B", LanguageNames.CSharp);
+
+            VerifyTransitiveReferences(solution, "A", new string[] { "B" });
         }
 
         private void VerifyDirectReferences(Solution solution, string project, string[] expectedResults)
