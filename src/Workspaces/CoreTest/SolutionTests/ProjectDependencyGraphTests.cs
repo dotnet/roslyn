@@ -152,6 +152,27 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTransitiveReferencesIncrementalUpdateInMiddleLongerChain()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C   D -> E -> F
+            //
+            // but we will add the C-> D link last, to verify that when we add the C to D link we update the references of A. This is similar
+            // to the previous test but with a longer chain.
+
+            var solution = CreateSolutionFromReferenceMap("A:B B:C C D:E E:F F");
+            VerifyTransitiveReferences(solution, "A", new string[] { "B", "C" });
+            VerifyTransitiveReferences(solution, "B", new string[] { "C" });
+            VerifyTransitiveReferences(solution, "D", new string[] { "E", "F" });
+            VerifyTransitiveReferences(solution, "E", new string[] { "F" });
+
+            solution = AddProjectReferences(solution, "C", new string[] { "D" });
+
+            VerifyTransitiveReferences(solution, "A", new string[] { "B", "C", "D", "E", "F" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTransitiveReferencesIncrementalUpdateWithReferencesAlreadyTransitivelyIncluded()
         {
             // We are going to create a solution with the references:
