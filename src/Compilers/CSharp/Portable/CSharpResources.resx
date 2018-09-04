@@ -2635,6 +2635,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_AsyncForEachMissingMember" xml:space="preserve">
     <value>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</value>
   </data>
+  <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach await'?</value>
+  </data>
+  <data name="ERR_AsyncForEachMissingMemberWrongAsync" xml:space="preserve">
+    <value>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'. Did you mean 'foreach' rather than 'foreach await'?</value>
+  </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
   </data>

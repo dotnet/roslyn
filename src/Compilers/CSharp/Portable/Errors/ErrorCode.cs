@@ -1589,6 +1589,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AsyncForEachMissingMember = 9001,
         ERR_BadGetAsyncEnumerator = 9002,
         ERR_MultipleIAsyncEnumOfT = 9003,
+        ERR_ForEachMissingMemberWrongAsync = 9004,
+        ERR_AsyncForEachMissingMemberWrongAsync = 9005,
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)

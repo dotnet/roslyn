@@ -710,6 +710,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public definition for &apos;{1}&apos;. Did you mean &apos;foreach&apos; rather than &apos;foreach await&apos;?.
+        /// </summary>
+        internal static string ERR_AsyncForEachMissingMemberWrongAsync {
+            get {
+                return ResourceManager.GetString("ERR_AsyncForEachMissingMemberWrongAsync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: an attribute argument cannot use type parameters.
         /// </summary>
         internal static string ERR_AttrArgWithTypeVars {
@@ -4927,6 +4936,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ForEachMissingMember {
             get {
                 return ResourceManager.GetString("ERR_ForEachMissingMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;foreach await&apos;?.
+        /// </summary>
+        internal static string ERR_ForEachMissingMemberWrongAsync {
+            get {
+                return ResourceManager.GetString("ERR_ForEachMissingMemberWrongAsync", resourceCulture);
             }
         }
         
