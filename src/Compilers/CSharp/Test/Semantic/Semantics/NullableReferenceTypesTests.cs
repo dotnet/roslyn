@@ -746,28 +746,29 @@ namespace NotMicrosoft.CodeAnalysis { }
 
                 var actualNonNullTypes = nonNullTypesAttribute.GetAttributes().Select(a => a.ToString()).ToArray();
                 var actualEmbedded = embeddedAttribute.GetAttributes().Select(a => a.ToString()).ToArray();
-                if (module is PEModuleSymbol)
+
+                // https://github.com/dotnet/roslyn/issues/29672 AttributeData.ToString() prints out a different order on CoreCLR
+                if (ExecutionConditionUtil.IsDesktop)
                 {
-                    Assert.Equal(new[] {
+                    if (module is PEModuleSymbol)
+                    {
+                        Assert.Equal(new[] {
                         "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
                         "Microsoft.CodeAnalysis.EmbeddedAttribute",
                         "System.AttributeUsageAttribute(System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Delegate)" },
-                        actualNonNullTypes);
-                    Assert.Equal(new[] {
+                            actualNonNullTypes);
+                        Assert.Equal(new[] {
                         "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
                         "Microsoft.CodeAnalysis.EmbeddedAttribute" },
-                        actualEmbedded);
-                }
-                else
-                {
-                    Assert.Equal(1, actualNonNullTypes.Count());
-                    var expected = "System.AttributeUsageAttribute(System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Delegate)";
-                    if (actualNonNullTypes.Single() != expected)
-                    {
-                        Assert.True(false, actualNonNullTypes.Single());
+                            actualEmbedded);
                     }
-                    Assert.Equal(new[] { expected }, actualNonNullTypes);
-                    Assert.Empty(actualEmbedded);
+                    else
+                    {
+                        Assert.Equal(new[] {
+                        "System.AttributeUsageAttribute(System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Delegate)" },
+                            actualNonNullTypes);
+                        Assert.Empty(actualEmbedded);
+                    }
                 }
             };
 
