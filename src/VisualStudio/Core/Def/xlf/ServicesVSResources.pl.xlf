@@ -12,9 +12,24 @@
         <target state="new">Apply '{0}' keymapping scheme</target>
         <note />
       </trans-unit>
+      <trans-unit id="Colorize_regular_expressions">
+        <source>Colorize regular expressions</source>
+        <target state="new">Colorize regular expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Element jest nieprawidłowy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_components_under_cursor">
+        <source>Highlight related components under cursor</source>
+        <target state="new">Highlight related components under cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -35,6 +50,21 @@
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
         <target state="new">Parentheses preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular_Expressions">
+        <source>Regular Expressions</source>
+        <target state="new">Regular Expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_regular_expressions">
+        <source>Report invalid regular expressions</source>
+        <target state="new">Report invalid regular expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
@@ -1526,16 +1556,6 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Nie można zastosować zmian — nieoczekiwany błąd: „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences_colon">
-        <source>Field preferences:</source>
-        <target state="translated">Preferencje pola:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly">
-        <source>Prefer readonly</source>
-        <target state="translated">Preferuj tylko do odczytu</target>
         <note />
       </trans-unit>
       <trans-unit id="Manage_naming_styles">

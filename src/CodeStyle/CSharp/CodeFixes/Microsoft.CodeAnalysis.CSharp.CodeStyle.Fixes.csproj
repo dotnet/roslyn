@@ -7,7 +7,31 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <TargetFramework>netstandard1.3</TargetFramework>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <IsAnalyzer>true</IsAnalyzer>
+    <NuSpecPackageId>Microsoft.CodeAnalysis.CSharp.CodeStyle</NuSpecPackageId>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") code style analyzers for C#.
+    </PackageDescription>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
+
+  <Target Name="_GetFilesToPackage">
+    <ItemGroup>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle\Microsoft.CodeAnalysis.CodeStyle.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.resources.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.resources.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
+
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+    </ItemGroup>
+  </Target>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
