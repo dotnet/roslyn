@@ -9,6 +9,25 @@
 
   <Import Project="Sdk.props" Sdk="RoslynTools.RepoToolset" />
 
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(Language)' == 'VB'">
+      <PropertyGroup>
+        <LangVersion>15.5</LangVersion>
+      </PropertyGroup>
+    </When>
+
+    <When Condition="'$(Language)' == 'C#'">
+      <PropertyGroup>
+        <LangVersion>7.3</LangVersion>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
   <!-- StyleCop Analyzers configuration -->
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
