@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
     using CopyAnalysisDomain = PredicatedAnalysisDataDomain<CopyAnalysisData, CopyAbstractValue>;
+    using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
+    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToAnalysis.PointsToBlockAnalysisResult, PointsToAnalysis.PointsToAbstractValue>;
 
     /// <summary>
     /// Dataflow analysis to track <see cref="AnalysisEntity"/> instances that share the same value.
     /// </summary>
-    internal partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyBlockAnalysisResult, CopyAbstractValue>
+    internal partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyBlockAnalysisResult, CopyAbstractValue>
     {
         private static readonly CopyAnalysisDomain s_AnalysisDomain = new CopyAnalysisDomain(CoreCopyAnalysisDataDomain.Instance);
 
@@ -19,17 +20,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         {
         }
 
-        public static DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> GetOrComputeResult(
+        public static CopyAnalysisResult GetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
-            DataFlowAnalysisResult<PointsToAnalysis.PointsToBlockAnalysisResult, PointsToAnalysis.PointsToAbstractValue> pointsToAnalysisResultOpt = null,
+            PointsToAnalysisResult pointsToAnalysisResultOpt = null,
             bool pessimisticAnalysis = true)
         {
-            var operationVisitor = new CopyDataFlowOperationVisitor(CopyAbstractValueDomain.Default, owningSymbol, 
-                wellKnownTypeProvider, cfg, pessimisticAnalysis, pointsToAnalysisResultOpt);
+            var analysisContext = new CopyAnalysisContext(CopyAbstractValueDomain.Default, wellKnownTypeProvider, cfg,
+                owningSymbol, pessimisticAnalysis, pointsToAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
+            return GetOrComputeResultForAnalysisContext(analysisContext);
+        }
+
+        private static CopyAnalysisResult GetOrComputeResultForAnalysisContext(CopyAnalysisContext analysisContext)
+        {
+            var operationVisitor = new CopyDataFlowOperationVisitor(analysisContext);
             var copyAnalysis = new CopyAnalysis(operationVisitor);
-            return copyAnalysis.GetOrComputeResultCore(cfg, cacheResult: true);
+            return copyAnalysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
         [Conditional("DEBUG")]
@@ -38,6 +45,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             data.AssertValidCopyAnalysisData();
         }
 
-        internal override CopyBlockAnalysisResult ToResult(BasicBlock basicBlock, DataFlowAnalysisInfo<CopyAnalysisData> blockAnalysisData) => new CopyBlockAnalysisResult(basicBlock, blockAnalysisData);
+        internal override CopyAnalysisResult ToResult(CopyAnalysisContext analysisContext, CopyAnalysisResult dataFlowAnalysisResult) => dataFlowAnalysisResult;
+        internal override CopyBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DataFlowAnalysisInfo<CopyAnalysisData> blockAnalysisData)
+            => new CopyBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

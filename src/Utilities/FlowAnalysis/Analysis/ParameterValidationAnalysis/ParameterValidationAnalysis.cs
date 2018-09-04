@@ -11,11 +11,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 {
     using ParameterValidationAnalysisData = IDictionary<AbstractLocation, ParameterValidationAbstractValue>;
     using ParameterValidationAnalysisDomain = MapAbstractDomain<AbstractLocation, ParameterValidationAbstractValue>;
+    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToAnalysis.PointsToBlockAnalysisResult, PointsToAnalysis.PointsToAbstractValue>;
 
     /// <summary>
     /// Dataflow analysis to track <see cref="ParameterValidationAbstractValue"/> of <see cref="AbstractLocation"/>/<see cref="IOperation"/> instances.
     /// </summary>
-    internal partial class ParameterValidationAnalysis : ForwardDataFlowAnalysis<ParameterValidationAnalysisData, ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue>
+    internal partial class ParameterValidationAnalysis : ForwardDataFlowAnalysis<ParameterValidationAnalysisData, ParameterValidationAnalysisContext, ParameterValidationAnalysisResult, ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue>
     {
         public static readonly ParameterValidationAnalysisDomain ParameterValidationAnalysisDomainInstance = new ParameterValidationAnalysisDomain(ParameterValidationAbstractValueDomain.Default);
 
@@ -33,57 +34,48 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             Debug.Assert(topmostBlock != null);
 
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-            ParameterValidationResultWithHazardousUsages GetOrComputeLocationAnalysisResultForInvokedMethod(IBlockOperation methodTopmostBlock, IMethodSymbol method)
-            {
-                // getOrComputeLocationAnalysisResultOpt = null, so we do interprocedural analysis only one level down.
-                Debug.Assert(methodTopmostBlock != null);
-                return GetOrComputeResult(methodTopmostBlock, method, wellKnownTypeProvider, getOrComputeLocationAnalysisResultOpt: null, pessimisticAnalysis: pessimisticAnalysis);
-            };
-
-            ParameterValidationResultWithHazardousUsages result = GetOrComputeResult(topmostBlock, owningSymbol, wellKnownTypeProvider, GetOrComputeLocationAnalysisResultForInvokedMethod, pessimisticAnalysis);
+            var cfg = topmostBlock.GetEnclosingControlFlowGraph();
+            var pointsToAnalysisResult = ComputePointsToAnalysisResultForParameterValidationAnalysis(cfg, owningSymbol, wellKnownTypeProvider);
+            var analysisContext = new ParameterValidationAnalysisContext(ParameterValidationAbstractValueDomain.Default,
+                wellKnownTypeProvider, cfg, owningSymbol, pessimisticAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext);
+            var result = GetOrComputeResultForAnalysisContext(analysisContext);
             return result.HazardousParameterUsages;
         }
 
-        private static ParameterValidationResultWithHazardousUsages GetOrComputeResult(
-            IBlockOperation topmostBlock,
+        public static PointsToAnalysisResult ComputePointsToAnalysisResultForParameterValidationAnalysis(
+            ControlFlowGraph cfg,
             ISymbol owningSymbol,
-            WellKnownTypeProvider wellKnownTypeProvider,
-            Func<IBlockOperation, IMethodSymbol, ParameterValidationResultWithHazardousUsages> getOrComputeLocationAnalysisResultOpt,
-            bool pessimisticAnalysis)
+            WellKnownTypeProvider wellKnownTypeProvider)
         {
-            var cfg = topmostBlock.GetEnclosingControlFlowGraph();
             var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider);
             var copyAnalysisResult = CopyAnalysis.CopyAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, pointsToAnalysisResultOpt: pointsToAnalysisResult);
             // Do another analysis pass to improve the results from PointsTo and Copy analysis.
-            pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, copyAnalysisResult);
-            return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, pointsToAnalysisResult, getOrComputeLocationAnalysisResultOpt, pessimisticAnalysis);
+            return PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, copyAnalysisResult);
         }
 
-        private static ParameterValidationResultWithHazardousUsages GetOrComputeResult(
-            ControlFlowGraph cfg,
-            ISymbol owningSymbol,
-            WellKnownTypeProvider wellKnownTypeProvider,
-            DataFlowAnalysisResult<PointsToAnalysis.PointsToBlockAnalysisResult, PointsToAnalysis.PointsToAbstractValue> pointsToAnalysisResult,
-            Func<IBlockOperation, IMethodSymbol, ParameterValidationResultWithHazardousUsages> getOrComputeLocationAnalysisResultOpt,
-            bool pessimisticAnalysis)
+        private static ParameterValidationAnalysisResult GetOrComputeResultForAnalysisContext(ParameterValidationAnalysisContext analysisContext)
         {
-            var operationVisitor = new ParameterValidationDataFlowOperationVisitor(ParameterValidationAbstractValueDomain.Default,
-                owningSymbol, wellKnownTypeProvider, cfg, getOrComputeLocationAnalysisResultOpt, pointsToAnalysisResult, pessimisticAnalysis);
+            var operationVisitor = new ParameterValidationDataFlowOperationVisitor(analysisContext);
             var analysis = new ParameterValidationAnalysis(ParameterValidationAnalysisDomainInstance, operationVisitor);
-            var analysisResult = analysis.GetOrComputeResultCore(cfg, cacheResult: true);
+            return analysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
+        }
 
-            var newOperationVisitor = new ParameterValidationDataFlowOperationVisitor(ParameterValidationAbstractValueDomain.Default,
-                    owningSymbol, wellKnownTypeProvider, cfg, getOrComputeLocationAnalysisResultOpt, pointsToAnalysisResult, pessimisticAnalysis, trackHazardousParameterUsages: true);
+        internal override ParameterValidationAnalysisResult ToResult(
+            ParameterValidationAnalysisContext analysisContext,
+            DataFlowAnalysisResult<ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue> dataFlowAnalysisResult)
+        {
+            analysisContext = analysisContext.WithTrackHazardousParameterUsages();
+            var newOperationVisitor = new ParameterValidationDataFlowOperationVisitor(analysisContext);
             var resultBuilder = new DataFlowAnalysisResultBuilder<ParameterValidationAnalysisData>();
-            foreach (var block in cfg.Blocks)
+            foreach (var block in analysisContext.ControlFlowGraph.Blocks)
             {
-                var data = ParameterValidationAnalysisDomainInstance.Clone(analysisResult[block].InputData);
+                var data = ParameterValidationAnalysisDomainInstance.Clone(dataFlowAnalysisResult[block].InputData);
                 data = Flow(newOperationVisitor, block, data);
             }
 
-            return new ParameterValidationResultWithHazardousUsages(analysisResult, newOperationVisitor.HazardousParameterUsages);
+            return new ParameterValidationAnalysisResult(dataFlowAnalysisResult, newOperationVisitor.HazardousParameterUsages);
         }
 
-        internal override ParameterValidationBlockAnalysisResult ToResult(BasicBlock basicBlock, DataFlowAnalysisInfo<ParameterValidationAnalysisData> blockAnalysisData) => new ParameterValidationBlockAnalysisResult(basicBlock, blockAnalysisData);
+        internal override ParameterValidationBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DataFlowAnalysisInfo<ParameterValidationAnalysisData> blockAnalysisData) => new ParameterValidationBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

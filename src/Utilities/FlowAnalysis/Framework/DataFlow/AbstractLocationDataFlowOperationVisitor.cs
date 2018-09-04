@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -12,21 +11,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Operation visitor to flow the abstract dataflow analysis values for <see cref="AbstractLocation"/>s across a given statement in a basic block.
     /// </summary>
-    internal abstract class AbstractLocationDataFlowOperationVisitor<TAnalysisData, TAbstractAnalysisValue> : DataFlowOperationVisitor<TAnalysisData, TAbstractAnalysisValue>
+    internal abstract class AbstractLocationDataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        where TAnalysisResult : IDataFlowAnalysisResult
     {
-        protected AbstractLocationDataFlowOperationVisitor(
-            AbstractValueDomain<TAbstractAnalysisValue> valueDomain,
-            ISymbol owningSymbol,
-            WellKnownTypeProvider wellKnownTypeProvider,
-            ControlFlowGraph cfg,
-            bool pessimisticAnalysis,
-            bool predicateAnalysis,
-            DataFlowAnalysisResult<CopyAnalysis.CopyBlockAnalysisResult, CopyAnalysis.CopyAbstractValue> copyAnalysisResultOpt,
-            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt)
-            : base(valueDomain, owningSymbol, wellKnownTypeProvider, cfg, pessimisticAnalysis, predicateAnalysis,
-                  copyAnalysisResultOpt, pointsToAnalysisResultOpt)
+        protected AbstractLocationDataFlowOperationVisitor(TAnalysisContext analysisContext)
+            : base(analysisContext)
         {
-            Debug.Assert(pointsToAnalysisResultOpt != null);
+            Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
         }
 
         protected abstract TAbstractAnalysisValue GetAbstractValue(AbstractLocation location);

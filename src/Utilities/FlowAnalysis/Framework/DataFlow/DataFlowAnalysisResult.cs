@@ -11,22 +11,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// Result from execution of a <see cref="DataFlowAnalysis"/> on a control flow graph.
     /// It stores:
     ///  (1) Analysis values for all operations in the graph and
-    ///  (2) <see cref="AbstractBlockAnalysisResult{TAnalysisData, TAbstractAnalysisValue}"/> for every basic block in the graph.
+    ///  (2) <see cref="AbstractBlockAnalysisResult"/> for every basic block in the graph.
     ///  (3) Merged analysis state for all the unhandled throw operations in the graph.
     /// </summary>
-    internal class DataFlowAnalysisResult<TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisResult: class
+    internal class DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> : IDataFlowAnalysisResult
+        where TBlockAnalysisResult: AbstractBlockAnalysisResult
     {
-        private readonly ImmutableDictionary<BasicBlock, TAnalysisResult> _basicBlockStateMap;
+        private readonly ImmutableDictionary<BasicBlock, TBlockAnalysisResult> _basicBlockStateMap;
         private readonly ImmutableDictionary<IOperation, TAbstractAnalysisValue> _operationStateMap;
         private readonly ImmutableDictionary<IOperation, PredicateValueKind> _predicateValueKindMap;
         private readonly TAbstractAnalysisValue _defaultUnknownValue;
 
         public DataFlowAnalysisResult(
-            ImmutableDictionary<BasicBlock, TAnalysisResult> basicBlockStateMap,
+            ImmutableDictionary<BasicBlock, TBlockAnalysisResult> basicBlockStateMap,
             ImmutableDictionary<IOperation, TAbstractAnalysisValue> operationStateMap,
             ImmutableDictionary<IOperation, PredicateValueKind> predicateValueKindMap,
-            TAnalysisResult mergedStateForUnhandledThrowOperationsOpt,
+            TBlockAnalysisResult mergedStateForUnhandledThrowOperationsOpt,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
         {
@@ -38,7 +38,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _defaultUnknownValue = defaultUnknownValue;
         }
 
-        public TAnalysisResult this[BasicBlock block] => _basicBlockStateMap[block];
+        protected DataFlowAnalysisResult(DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> other)
+            : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap,
+                   other.MergedStateForUnhandledThrowOperationsOpt, other.ControlFlowGraph, other._defaultUnknownValue)
+        {
+        }
+
+        public TBlockAnalysisResult this[BasicBlock block] => _basicBlockStateMap[block];
         public TAbstractAnalysisValue this[IOperation operation]
         {
             get
@@ -80,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         public PredicateValueKind GetPredicateKind(IOperation operation) => _predicateValueKindMap.TryGetValue(operation, out var valueKind) ? valueKind : PredicateValueKind.Unknown;
-        public TAnalysisResult MergedStateForUnhandledThrowOperationsOpt;
+        public TBlockAnalysisResult MergedStateForUnhandledThrowOperationsOpt;
         public ControlFlowGraph ControlFlowGraph { get; }
     }
 }

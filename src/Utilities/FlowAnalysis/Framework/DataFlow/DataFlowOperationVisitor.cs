@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Operation visitor to flow the abstract dataflow analysis values across a given statement in a basic block.
     /// </summary>
-    internal abstract class DataFlowOperationVisitor<TAnalysisData, TAbstractAnalysisValue> : OperationVisitor<object, TAbstractAnalysisValue>
+    internal abstract class DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> : OperationVisitor<object, TAbstractAnalysisValue>
+        where TAnalysisContext: AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        where TAnalysisResult: IDataFlowAnalysisResult
     {
-        private readonly DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> _copyAnalysisResultOpt;
-        private readonly DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> _pointsToAnalysisResultOpt;
         private readonly ImmutableHashSet<CaptureId> _lValueFlowCaptures;
         private readonly ImmutableDictionary<IOperation, TAbstractAnalysisValue>.Builder _valueCacheBuilder;
         private readonly ImmutableDictionary<IOperation, PredicateValueKind>.Builder _predicateValueKindCacheBuilder;
@@ -37,12 +37,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity);
         protected abstract void SetValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity);
         protected abstract void ResetCurrentAnalysisData();
-        protected bool HasPointsToAnalysisResult => _pointsToAnalysisResultOpt != null || IsPointsToAnalysis;
+        protected bool HasPointsToAnalysisResult => DataFlowAnalysisContext.PointsToAnalysisResultOpt != null || IsPointsToAnalysis;
         protected virtual bool IsPointsToAnalysis => false;
         public Dictionary<ThrowBranchWithExceptionType, TAnalysisData> AnalysisDataForUnhandledThrowOperations { get; private set; }
 
-        public AbstractValueDomain<TAbstractAnalysisValue> ValueDomain { get; }
-        protected ISymbol OwningSymbol { get; }
+        protected TAnalysisContext DataFlowAnalysisContext { get; }
+        public AbstractValueDomain<TAbstractAnalysisValue> ValueDomain => DataFlowAnalysisContext.ValueDomain;
+        protected ISymbol OwningSymbol => DataFlowAnalysisContext.OwningSymbol;
+        protected WellKnownTypeProvider WellKnownTypeProvider => DataFlowAnalysisContext.WellKnownTypeProvider;
+        protected Func<TAnalysisContext, TAnalysisResult> GetOrComputeAnalysisResultForInvokedMethod
+            => DataFlowAnalysisContext.GetOrComputeAnalysisResultForInvokedMethod;
+
         protected TAnalysisData CurrentAnalysisData
         {
             get => _currentAnalysisData;
@@ -57,7 +62,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected ControlFlowConditionKind FlowBranchConditionKind { get; private set; }
         protected PointsToAbstractValue ThisOrMePointsToAbstractValue { get; }
         protected AnalysisEntityFactory AnalysisEntityFactory { get; }
-        protected WellKnownTypeProvider WellKnownTypeProvider { get; }
 
         /// <summary>
         /// This boolean field determines if the caller requires an optimistic OR a pessimistic analysis for such cases.
@@ -70,12 +74,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// For dispose analysis, we want to perform an optimistic points to analysis as we assume a disposable field is not likely to be re-assigned to a separate object in helper method invocations in Dispose.
         /// For value content analysis, we want to perform a pessimistic points to analysis to be conservative and avoid missing out true violations.
         /// </remarks>
-        protected bool PessimisticAnalysis { get; }
+        protected bool PessimisticAnalysis => DataFlowAnalysisContext.PessimisticAnalysis;
 
         /// <summary>
         /// Indicates if we this visitor needs to analyze predicates of conditions.
         /// </summary>
-        protected bool PredicateAnalysis { get; }
+        protected bool PredicateAnalysis => DataFlowAnalysisContext.PredicateAnalysis;
 
         /// <summary>
         /// PERF: Track if we are within an <see cref="IAnonymousObjectCreationOperation"/>.
@@ -84,58 +88,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected bool IsLValueFlowCapture(CaptureId captureId) => _lValueFlowCaptures.Contains(captureId);
 
-        protected DataFlowOperationVisitor(
-            AbstractValueDomain<TAbstractAnalysisValue> valueDomain,
-            ISymbol owningSymbol,
-            WellKnownTypeProvider wellKnownTypeProvider,
-            ControlFlowGraph cfg,
-            bool pessimisticAnalysis,
-            bool predicateAnalysis,
-            DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> copyAnalysisResultOpt,
-            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt)
+        protected DataFlowOperationVisitor(TAnalysisContext analysisContext)
         {
-            Debug.Assert(owningSymbol != null);
-            Debug.Assert(owningSymbol.Kind == SymbolKind.Method ||
-                owningSymbol.Kind == SymbolKind.Field ||
-                owningSymbol.Kind == SymbolKind.Property ||
-                owningSymbol.Kind == SymbolKind.Event);
-            Debug.Assert(owningSymbol.OriginalDefinition == owningSymbol);
-            Debug.Assert(wellKnownTypeProvider != null);
+            DataFlowAnalysisContext = analysisContext;
 
-            ValueDomain = valueDomain;
-            OwningSymbol = owningSymbol;
-            WellKnownTypeProvider = wellKnownTypeProvider;
-            PessimisticAnalysis = pessimisticAnalysis;
-            PredicateAnalysis = predicateAnalysis;
-            _copyAnalysisResultOpt = copyAnalysisResultOpt;
-            _pointsToAnalysisResultOpt = pointsToAnalysisResultOpt;
-            _lValueFlowCaptures = LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(cfg);
+            _lValueFlowCaptures = LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(analysisContext.ControlFlowGraph);
             _valueCacheBuilder = ImmutableDictionary.CreateBuilder<IOperation, TAbstractAnalysisValue>();
             _predicateValueKindCacheBuilder = ImmutableDictionary.CreateBuilder<IOperation, PredicateValueKind>();
             _pendingArgumentsToReset = new List<IArgumentOperation>();
             _flowCaptureReferencesWithPredicatedData = new HashSet<AnalysisEntity>();
             _visitedFlowBranchConditions = new HashSet<IOperation>();
-            ThisOrMePointsToAbstractValue = GetThisOrMeInstancePointsToValue(owningSymbol);
+            ThisOrMePointsToAbstractValue = GetThisOrMeInstancePointsToValue(analysisContext.OwningSymbol);
 
             AnalysisEntityFactory = new AnalysisEntityFactory(
-                getPointsToAbstractValueOpt: (pointsToAnalysisResultOpt != null || IsPointsToAnalysis) ?
+                getPointsToAbstractValueOpt: (analysisContext.PointsToAnalysisResultOpt != null || IsPointsToAnalysis) ?
                     GetPointsToAbstractValue :
                     (Func<IOperation, PointsToAbstractValue>)null,
                 getIsInsideAnonymousObjectInitializer: () => IsInsideAnonymousObjectInitializer,
-                containingTypeSymbol: owningSymbol.ContainingType);
+                containingTypeSymbol: analysisContext.OwningSymbol.ContainingType);
         }
 
-        public override int GetHashCode()
-        {
-            return HashUtilities.Combine(GetType().GetHashCode(),
-                HashUtilities.Combine(ValueDomain.GetHashCode(),
-                HashUtilities.Combine(OwningSymbol.GetHashCode(),
-                HashUtilities.Combine(WellKnownTypeProvider.Compilation.GetHashCode(),
-                HashUtilities.Combine(PessimisticAnalysis.GetHashCode(),
-                HashUtilities.Combine(PredicateAnalysis.GetHashCode(),
-                HashUtilities.Combine(_copyAnalysisResultOpt?.GetHashCode() ?? 0,
-                    _pointsToAnalysisResultOpt?.GetHashCode() ?? 0)))))));
-        }
+        public override int GetHashCode() => HashUtilities.Combine(GetType().GetHashCode(), DataFlowAnalysisContext.GetHashCode());
 
         private static PointsToAbstractValue GetThisOrMeInstancePointsToValue(ISymbol owningSymbol)
         {
@@ -351,14 +324,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return true;
                 }
 
-                if (_pointsToAnalysisResultOpt != null &&
-                    isPredicateAlwaysFalseForBranch(_pointsToAnalysisResultOpt.GetPredicateKind(branch.BranchValueOpt)))
+                if (DataFlowAnalysisContext.PointsToAnalysisResultOpt != null &&
+                    isPredicateAlwaysFalseForBranch(DataFlowAnalysisContext.PointsToAnalysisResultOpt.GetPredicateKind(branch.BranchValueOpt)))
                 {
                     return true;
                 }
 
-                if (_copyAnalysisResultOpt != null &&
-                    isPredicateAlwaysFalseForBranch(_copyAnalysisResultOpt.GetPredicateKind(branch.BranchValueOpt)))
+                if (DataFlowAnalysisContext.CopyAnalysisResultOpt != null &&
+                    isPredicateAlwaysFalseForBranch(DataFlowAnalysisContext.CopyAnalysisResultOpt.GetPredicateKind(branch.BranchValueOpt)))
                 {
                     return true;
                 }
@@ -483,49 +456,49 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected virtual CopyAbstractValue GetCopyAbstractValue(IOperation operation)
         {
-            if (_copyAnalysisResultOpt == null)
+            if (DataFlowAnalysisContext.CopyAnalysisResultOpt == null)
             {
                 return CopyAbstractValue.Unknown;
             }
             else
             {
-                return _copyAnalysisResultOpt[operation];
+                return DataFlowAnalysisContext.CopyAnalysisResultOpt[operation];
             }
         }
 
         protected virtual PointsToAbstractValue GetPointsToAbstractValue(IOperation operation)
         {
-            if (_pointsToAnalysisResultOpt == null)
+            if (DataFlowAnalysisContext.PointsToAnalysisResultOpt == null)
             {
                 return PointsToAbstractValue.Unknown;
             }
             else
             {
-                return _pointsToAnalysisResultOpt[operation];
+                return DataFlowAnalysisContext.PointsToAnalysisResultOpt[operation];
             }
         }
 
         protected bool TryGetPointsToAbstractValueAtCurrentBlockEntry(AnalysisEntity analysisEntity, out PointsToAbstractValue pointsToAbstractValue)
         {
             Debug.Assert(CurrentBasicBlock != null);
-            Debug.Assert(_pointsToAnalysisResultOpt != null);
-            var inputData = _pointsToAnalysisResultOpt[CurrentBasicBlock].InputData;
+            Debug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
+            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt[CurrentBasicBlock].InputData;
             return inputData.TryGetValue(analysisEntity, out pointsToAbstractValue);
         }
 
         protected bool TryGetPointsToAbstractValueAtCurrentBlockExit(AnalysisEntity analysisEntity, out PointsToAbstractValue pointsToAbstractValue)
         {
             Debug.Assert(CurrentBasicBlock != null);
-            Debug.Assert(_pointsToAnalysisResultOpt != null);
-            var outputData = _pointsToAnalysisResultOpt[CurrentBasicBlock].OutputData;
+            Debug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
+            var outputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt[CurrentBasicBlock].OutputData;
             return outputData.TryGetValue(analysisEntity, out pointsToAbstractValue);
         }
 
         protected bool TryGetNullAbstractValueAtCurrentBlockEntry(AnalysisEntity analysisEntity, out NullAbstractValue nullAbstractValue)
         {
             Debug.Assert(CurrentBasicBlock != null);
-            Debug.Assert(_pointsToAnalysisResultOpt != null);
-            var inputData = _pointsToAnalysisResultOpt[CurrentBasicBlock].InputData;
+            Debug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
+            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt[CurrentBasicBlock].InputData;
             if (inputData.TryGetValue(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
             {
                 nullAbstractValue = pointsToAbstractValue.NullState;
@@ -539,8 +512,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected bool TryGetMergedNullAbstractValueAtUnhandledThrowOperationsInGraph(AnalysisEntity analysisEntity, out NullAbstractValue nullAbstractValue)
         {
             Debug.Assert(CurrentBasicBlock != null);
-            Debug.Assert(_pointsToAnalysisResultOpt != null);
-            var inputData = _pointsToAnalysisResultOpt.MergedStateForUnhandledThrowOperationsOpt?.InputData;
+            Debug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
+            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt.MergedStateForUnhandledThrowOperationsOpt?.InputData;
             if (inputData == null || !inputData.TryGetValue(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
             {
                 nullAbstractValue = NullAbstractValue.MaybeNull;
@@ -659,8 +632,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(PredicateAnalysis);
 
             return basicBlock.IsReachable &&
-                (_copyAnalysisResultOpt == null || _copyAnalysisResultOpt[basicBlock].IsReachable) &&
-                (_pointsToAnalysisResultOpt == null || _pointsToAnalysisResultOpt[basicBlock].IsReachable);
+                (DataFlowAnalysisContext.CopyAnalysisResultOpt == null || DataFlowAnalysisContext.CopyAnalysisResultOpt[basicBlock].IsReachable) &&
+                (DataFlowAnalysisContext.PointsToAnalysisResultOpt == null || DataFlowAnalysisContext.PointsToAnalysisResultOpt[basicBlock].IsReachable);
         }
 
         private void PerformPredicateAnalysis(IOperation operation)
@@ -1565,8 +1538,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             TAbstractAnalysisValue value;
             if (operation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate())
             {
-                // Invocation of a lambda or local function.
-                value = VisitInvocation_LambdaOrDelegateOrLocalFunction(operation, argument);
+                // Invocation of a lambda or delegate or local function.
+                value = VisitInvocation_LambdaOrDelegateOrLocalFunction(operation, argument, out var resolvedMethodTargetsOpt);
+
+                // Check if we have known possible set of invoked methods.
+                if (resolvedMethodTargetsOpt != null)
+                {
+                    foreach ((IMethodSymbol method, IOperation instance) in resolvedMethodTargetsOpt)
+                    {
+                        PostVisitInvocation(method, instance, operation.Arguments);
+                    }
+                }
             }
             else
             {
@@ -1579,38 +1561,257 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     PerformPredicateAnalysis(operation);
                 }
-            }
 
-            // Invocation might invalidate all the analysis data on the invoked instance.
-            // Conservatively reset all the instance analysis data.
-            ResetInstanceAnalysisData(operation.Instance);
-
-            if (operation.IsLockOperation(WellKnownTypeProvider.Monitor))
-            {
-                // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
-                Debug.Assert(operation.Arguments.Length >= 1);
-
-                HandleEnterLockOperation(operation.Arguments[0].Value);
+                PostVisitInvocation(operation.TargetMethod, operation.Instance, operation.Arguments);
             }
 
             return value;
+
+            // Local functions.
+            void PostVisitInvocation(IMethodSymbol targetMethod, IOperation instance, ImmutableArray<IArgumentOperation> arguments)
+            {
+                // Invocation might invalidate all the analysis data on the invoked instance.
+                // Conservatively reset all the instance analysis data.
+                ResetInstanceAnalysisData(instance);
+
+                if (targetMethod.IsLockMethod(WellKnownTypeProvider.Monitor))
+                {
+                    // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
+                    Debug.Assert(arguments.Length >= 1);
+
+                    HandleEnterLockOperation(arguments[0].Value);
+                }
+            }
         }
 
-        public virtual TAbstractAnalysisValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IInvocationOperation operation, object argument)
+        private TAbstractAnalysisValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IInvocationOperation operation, object argument)
         {
-            return base.VisitInvocation(operation, argument);
+            var value = base.VisitInvocation(operation, argument);
+            return VisitInvocation_NonLambdaOrDelegateOrLocalFunction(operation.TargetMethod, operation.Instance, operation.Arguments,
+                invokedAsDelegate: false, originalOperation: operation, defaultValue: value);
         }
 
-        public virtual TAbstractAnalysisValue VisitInvocation_LambdaOrDelegateOrLocalFunction(IInvocationOperation operation, object argument)
+        private TAbstractAnalysisValue VisitInvocation_LambdaOrDelegateOrLocalFunction(
+            IInvocationOperation operation,
+            object argument,
+            out HashSet<(IMethodSymbol method, IOperation instance)> resolvedMethodTargetsOpt)
         {
             var value = base.VisitInvocation(operation, argument);
 
-            // Currently, we are not performing flow analysis for invocations of lambda or delegate or local function.
+            var knownTargetInvocations = false;
+            HashSet<(IMethodSymbol method, IOperation instance)> methodTargetsOptBuilder = null;
+            HashSet<IFlowAnonymousFunctionOperation> lambdaTargetsOpt = null;
+
+            if (HasPointsToAnalysisResult)
+            {
+                if (operation.TargetMethod.MethodKind == MethodKind.LocalFunction)
+                {
+                    Debug.Assert(operation.Instance == null);
+
+                    knownTargetInvocations = true;
+                    AddMethodTarget(operation.TargetMethod, instance: null);
+                }
+                else if (operation.Instance != null)
+                {
+                    Debug.Assert(operation.TargetMethod.MethodKind == MethodKind.LambdaMethod ||
+                        operation.TargetMethod.MethodKind == MethodKind.DelegateInvoke);
+
+                    var invocationTarget = GetPointsToAbstractValue(operation.Instance);
+                    if (invocationTarget.Kind == PointsToAbstractValueKind.KnownLocations)
+                    {
+                        knownTargetInvocations = true;
+                        foreach (var location in invocationTarget.Locations)
+                        {
+                            if (!HandleCreationOpt(location.CreationOpt))
+                            {
+                                knownTargetInvocations = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (knownTargetInvocations)
+            {
+                resolvedMethodTargetsOpt = methodTargetsOptBuilder;
+                AnalyzePossibleTargetInvocations();
+            }
+            else
+            {
+                resolvedMethodTargetsOpt = null;
+                ResetCurrentAnalysisData();
+            }
+
+            return value;
+
+            // Local functions.
+            void AddMethodTarget(IMethodSymbol method, IOperation instance)
+            {
+                Debug.Assert(knownTargetInvocations);
+
+                methodTargetsOptBuilder = methodTargetsOptBuilder ?? new HashSet<(IMethodSymbol method, IOperation instance)>();
+                methodTargetsOptBuilder.Add((method, instance));
+            }
+
+            void AddLambdaTarget(IFlowAnonymousFunctionOperation lambda)
+            {
+                Debug.Assert(knownTargetInvocations);
+
+                lambdaTargetsOpt = lambdaTargetsOpt ?? new HashSet<IFlowAnonymousFunctionOperation>();
+                lambdaTargetsOpt.Add(lambda);
+            }
+
+            bool HandleCreationOpt(IOperation creationOpt)
+            {
+                Debug.Assert(knownTargetInvocations);
+
+                switch (creationOpt)
+                {
+                    case ILocalFunctionOperation localFunctionOperation:
+                        AddMethodTarget(localFunctionOperation.Symbol, instance: null);
+                        return true;
+
+                    case IMethodReferenceOperation methodReferenceOperation:
+                        AddMethodTarget(methodReferenceOperation.Method, methodReferenceOperation.Instance);
+                        return true;
+
+                    case IDelegateCreationOperation delegateCreationOperation:
+                        return HandleDelegateCreationTarget(delegateCreationOperation);
+
+                    default:
+                        return false;
+                }
+            }
+
+            bool HandleDelegateCreationTarget(IDelegateCreationOperation delegateCreationOperation)
+            {
+                Debug.Assert(knownTargetInvocations);
+
+                switch (delegateCreationOperation.Target)
+                {
+                    case IFlowAnonymousFunctionOperation lambdaOperation:
+                        AddLambdaTarget(lambdaOperation);
+                        return true;
+
+                    case IMethodReferenceOperation methodReferenceOperation:
+                        AddMethodTarget(methodReferenceOperation.Method, methodReferenceOperation.Instance);
+                        return true;
+
+                    default:
+                        return false;
+                }
+            }
+
+            void AnalyzePossibleTargetInvocations()
+            {
+                Debug.Assert(knownTargetInvocations);
+                Debug.Assert(methodTargetsOptBuilder != null || lambdaTargetsOpt != null);
+
+                var savedCurrentAnalysisData = GetClonedCurrentAnalysisData();
+                TAnalysisData mergedCurrentAnalysisData = default(TAnalysisData);
+                var first = true;
+                var defaultValue = value;
+
+                if (methodTargetsOptBuilder != null)
+                {
+                    foreach ((IMethodSymbol method, IOperation instance) in methodTargetsOptBuilder)
+                    {
+                        mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
+                            computeValueForInvocation: () => method.MethodKind == MethodKind.LocalFunction ?
+                                VisitInvocation_LocalFunction(method, operation.Arguments, operation, defaultValue) :
+                                VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, instance, operation.Arguments,
+                                    invokedAsDelegate: true, originalOperation: operation, defaultValue: defaultValue),
+                            inputAnalysisData: savedCurrentAnalysisData,
+                            mergedAnalysisData: mergedCurrentAnalysisData,
+                            first: ref first);
+                    }
+                }
+
+                if (lambdaTargetsOpt != null)
+                {
+                    foreach (var lambda in lambdaTargetsOpt)
+                    {
+                        mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
+                            computeValueForInvocation: () => VisitInvocation_Lambda(lambda, operation.Arguments, operation, defaultValue),
+                            inputAnalysisData: savedCurrentAnalysisData,
+                            mergedAnalysisData: mergedCurrentAnalysisData,
+                            first: ref first);
+                    }
+                }
+
+                CurrentAnalysisData = mergedCurrentAnalysisData;
+            }
+
+            TAnalysisData AnalyzePossibleTargetInvocation(Func<TAbstractAnalysisValue> computeValueForInvocation, TAnalysisData inputAnalysisData, TAnalysisData mergedAnalysisData, ref bool first)
+            {
+                CurrentAnalysisData = GetClonedAnalysisData(inputAnalysisData);
+                var invocationValue = computeValueForInvocation();
+
+                if (first)
+                {
+                    first = false;
+                    value = invocationValue;
+                    return CurrentAnalysisData;
+                }
+                else
+                {
+                    value = ValueDomain.Merge(value, invocationValue);
+                    return MergeAnalysisData(mergedAnalysisData, CurrentAnalysisData);
+                }
+            }
+        }
+
+        public virtual TAbstractAnalysisValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
+            IMethodSymbol method,
+            IOperation visitedInstance,
+            ImmutableArray<IArgumentOperation> visitedArguments,
+            bool invokedAsDelegate,
+            IOperation originalOperation,
+            TAbstractAnalysisValue defaultValue)
+        {
+            // TODO: Implement inter-procedural analysis.
+            // https://github.com/dotnet/roslyn-analyzers/issues/1547
+
+            Debug.Assert(!method.IsLambdaOrLocalFunctionOrDelegate());
+            if (invokedAsDelegate)
+            {
+                // Currently, we are not performing flow analysis for delegate invocations.
+                // Pessimistically assume that all the current state could change and reset all our current analysis data.
+                // TODO: Analyze invocations and flow the values from it's exit block to CurrentAnalysisData.
+                // https://github.com/dotnet/roslyn-analyzers/issues/1547
+                ResetCurrentAnalysisData();
+            }
+
+            return defaultValue;
+        }
+
+        public virtual TAbstractAnalysisValue VisitInvocation_LocalFunction(
+            IMethodSymbol localFunction,
+            ImmutableArray<IArgumentOperation> visitedArguments,
+            IOperation originalOperation,
+            TAbstractAnalysisValue defaultValue)
+        {
+            // Currently, we are not performing flow analysis for local function invocations.
             // Pessimistically assume that all the current state could change and reset all our current analysis data.
-            // TODO: Analyze lambda and local functions and flow the values from it's exit block to CurrentAnalysisData.
+            // TODO: Analyze invocations and flow the values from it's exit block to CurrentAnalysisData.
             // https://github.com/dotnet/roslyn-analyzers/issues/1547
             ResetCurrentAnalysisData();
-            return value;
+            return defaultValue;
+        }
+
+        public virtual TAbstractAnalysisValue VisitInvocation_Lambda(
+            IFlowAnonymousFunctionOperation lambda,
+            ImmutableArray<IArgumentOperation> visitedArguments,
+            IOperation originalOperation,
+            TAbstractAnalysisValue defaultValue)
+        {
+            // Currently, we are not performing flow analysis for lambda invocations.
+            // Pessimistically assume that all the current state could change and reset all our current analysis data.
+            // TODO: Analyze invocations and flow the values from it's exit block to CurrentAnalysisData.
+            // https://github.com/dotnet/roslyn-analyzers/issues/1547
+            ResetCurrentAnalysisData();
+            return defaultValue;
         }
 
         public virtual void HandleEnterLockOperation(IOperation lockedObject)

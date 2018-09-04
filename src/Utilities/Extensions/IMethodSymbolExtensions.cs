@@ -382,5 +382,15 @@ namespace Analyzer.Utilities.Extensions
 
             throw new ArgumentException("Invalid paramater", nameof(parameterSymbol));
         }
+
+        public static bool IsLockMethod(this IMethodSymbol method, INamedTypeSymbol systemThreadingMonitor)
+        {
+            // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
+            return method.Name == "Enter" &&
+                   method.ContainingType.Equals(systemThreadingMonitor) &&
+                   method.ReturnsVoid &&
+                   method.Parameters.Length >= 1 &&
+                   method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
+        }
     }
 }
