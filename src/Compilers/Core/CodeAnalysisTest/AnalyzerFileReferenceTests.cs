@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 // This file references the DesktopAnalyzerAssemblyLoader, which is only present in desktop
-#if NET46
+#if NET472
 
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,4 @@
-﻿#if NET46
+﻿#if NET472
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;

@@ -14,7 +14,7 @@
     <serviceable>$Serviceable$</serviceable>
     <repository type="$RepositoryType$" url="$RepositoryUrl$" commit="$RepositoryCommit$" />
     <dependencies>
-      <group targetFramework="netstandard1.3">
+      <group targetFramework="netstandard2.0">
         <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
         <dependency id="System.Composition" version="$SystemCompositionVersion$" />
         <dependency id="System.Diagnostics.Contracts" version="$SystemDiagnosticsContractsVersion$" />
@@ -23,7 +23,7 @@
         <dependency id="System.Text.RegularExpressions" version="$SystemTextRegularExpressionsVersion$" />
         <dependency id="System.Threading.Tasks.Parallel" version="$SystemThreadingTasksParallelVersion$" />
       </group>
-      <group targetFramework="net46">
+      <group targetFramework="net472">
         <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
         <dependency id="System.Composition" version="$SystemCompositionVersion$" />
         <dependency id="SQLitePCLRaw.bundle_green" version="$SQLitePCLRawbundle_greenVersion$" />
@@ -34,19 +34,19 @@
     <file src="$ThirdPartyNoticesFilePath$" target="" />
   
     <!-- Include PDB unless embedded into DLL -->
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" target="lib\net46" />
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.xml" target="lib\net46" />
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.pdb*" target="lib\net46" />
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" target="lib\net46" />
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.xml" target="lib\net46" />
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.pdb*" target="lib\net46" />
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" target="lib\netstandard1.3" />
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.xml" target="lib\netstandard1.3" />
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.pdb*" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" target="lib\net472" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.xml" target="lib\net472" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.pdb*" target="lib\net472" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" target="lib\net472" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.xml" target="lib\net472" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.pdb*" target="lib\net472" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" target="lib\netstandard2.0" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.xml" target="lib\netstandard2.0" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.pdb*" target="lib\netstandard2.0" />
 
     <!-- Satellite assemblies -->
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.Desktop\**\Microsoft.CodeAnalysis.Workspaces.Desktop.resources.dll" target="lib\net46" />
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\**\Microsoft.CodeAnalysis.Workspaces.resources.dll" target="lib\net46" />
-    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\**\Microsoft.CodeAnalysis.Workspaces.resources.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces.Desktop\**\Microsoft.CodeAnalysis.Workspaces.Desktop.resources.dll" target="lib\net472" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\**\Microsoft.CodeAnalysis.Workspaces.resources.dll" target="lib\net472" />
+    <file src="Dlls\Microsoft.CodeAnalysis.Workspaces\**\Microsoft.CodeAnalysis.Workspaces.resources.dll" target="lib\netstandard2.0" />
   </files>
 </package>
