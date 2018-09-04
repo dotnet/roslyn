@@ -104,24 +104,9 @@ string t = default; // assigns ?, warning
 T t = default; // assigns ?, warning
 ```
 
-### Implicit conversions
+### Conversions
 _Describe valid top-level and variance conversions._
 _Describe warnings from user-defined conversions._
-
-### Explicit conversions
-The top-level nullability of `(X)y` is the nullability of `y`.
-The top-level nullability of `(X?)y` is `?`.
-A W warning is reported is reported when converting `?` to `!`.
-```c#
-var s = (string)default(string); // x is string?, warning converting null
-var t = (string?)"";             // y is string?, no warning
-```
-A warning is reported if the type of `y` including nested nullability is not explicitly convertible to `X`.
-```c#
-var x =  new List<string>();
-var y = (List<string?>)x;        // warning
-var z = (IEnumerable<string?>)x; // no warning
-```
 
 ### Assignment
 For `x = y`, the nullability of the converted type of `y` is used for `x`.
@@ -167,11 +152,11 @@ var x = (string)maybeNull; // x is string?, W warning
 var y = (string)oblivious; // y is string~, no warning
 var z = (string?)notNull; // y is string?, no warning
 ```
-Explicit casts change nested nullability.
-_Should a warning be reported when there is not an implicit nullable conversion (for instance `(List<object>)new List<object?>()`)?_
+A warning is reported if the type of operand including nested nullability is not explicitly convertible to the target type.
 ```c#
-List<object?> x = ...;
-var y = (List<object>)x; // y is List<object!>!, no warning
+var x =  new List<string>();
+var y = (List<string?>)x;        // warning
+var z = (IEnumerable<string?>)x; // no warning
 ```
 
 ### Array creation

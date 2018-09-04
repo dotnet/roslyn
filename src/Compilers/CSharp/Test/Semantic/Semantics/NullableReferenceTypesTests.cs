@@ -29382,7 +29382,6 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should there be a warning on c1 too?
             comp.VerifyDiagnostics(
                 // (6,18): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         var c1 = (C<object>?)y;
