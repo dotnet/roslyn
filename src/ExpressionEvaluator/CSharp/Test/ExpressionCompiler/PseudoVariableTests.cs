@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     out error,
                     testData);
                 Assert.Null(error);
-                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Count(), 1);
+                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       25 (0x19)
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     aliases,
                     out error,
                     testData);
-                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Count(), 1);
+                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       22 (0x16)
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     aliases,
                     out error,
                     testData);
-                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Count(), 1);
+                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       40 (0x28)

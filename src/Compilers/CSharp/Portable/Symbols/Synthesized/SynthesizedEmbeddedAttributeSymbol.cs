@@ -49,10 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             _name = description.Name;
-            _baseType = compilation.GetWellKnownType(WellKnownType.System_Attribute);
-
-            // Report errors in case base type was missing or bad
-            Binder.ReportUseSiteDiagnostics(_baseType, diagnostics, Location.None);
+            _baseType = MakeBaseType(compilation, diagnostics);
 
             var builder = ArrayBuilder<MethodSymbol>.GetInstance();
             builder.Add(new SynthesizedEmbeddedAttributeConstructorSymbol(this, m => ImmutableArray<ParameterSymbol>.Empty));
@@ -80,14 +77,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             _name = description.Name;
-            _baseType = compilation.GetWellKnownType(WellKnownType.System_Attribute);
-
-            // Report errors in case base type was missing or bad
-            Binder.ReportUseSiteDiagnostics(_baseType, diagnostics, Location.None);
-
+            _baseType = MakeBaseType(compilation, diagnostics);
             _constructors = getConstructors(compilation, this, diagnostics);
             _namespace = containingNamespace;
             _module = containingNamespace.ContainingModule;
+        }
+
+        private static NamedTypeSymbol MakeBaseType(CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol result = compilation.GetWellKnownType(WellKnownType.System_Attribute);
+
+            // Report errors in case base type was missing or bad
+            Binder.ReportUseSiteDiagnostics(result, diagnostics, Location.None);
+            return result;
         }
 
         public new ImmutableArray<MethodSymbol> Constructors => _constructors;

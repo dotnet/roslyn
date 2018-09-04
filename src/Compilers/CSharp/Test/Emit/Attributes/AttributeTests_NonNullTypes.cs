@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
 using Xunit;
-using static Xunit.Assert;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -28,8 +27,8 @@ internal class TestType2 { }
 
             var comp = CreateCompilation(code);
             comp.VerifyEmitDiagnostics();
-            True(comp.GetMember("TestType1").NonNullTypes);
-            False(comp.GetMember("TestType2").NonNullTypes);
+            Assert.True(comp.GetMember("TestType1").NonNullTypes);
+            Assert.False(comp.GetMember("TestType2").NonNullTypes);
         }
 
         [Fact]
@@ -48,18 +47,18 @@ internal class TestType1 { }
 [System.Runtime.CompilerServices.NonNullTypesAttribute]
 internal class TestType2 { }
 ");
-            False(reference.GetMember("TestType1").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
-            False(reference.GetMember("TestType2").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.False(reference.GetMember("TestType1").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.False(reference.GetMember("TestType2").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
 
             var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
 
             // NonNullTypesAttribute from referenced assembly is ignored, and we use the injected one instead
             var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference() }, assemblyName: "Source");
             comp.VerifyDiagnostics();
-            True(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.True(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
 
             var system = (INamespaceSymbol)comp.GlobalNamespace.GetMember("System");
-            Equal(NamespaceKind.Compilation, system.NamespaceKind);
+            Assert.Equal(NamespaceKind.Compilation, system.NamespaceKind);
         }
 
         [Fact]
@@ -78,7 +77,7 @@ internal class TestType1 { }
             var reference = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
 
             var system = (INamespaceSymbol)module.GlobalNamespace.GetMember("System");
-            Equal(NamespaceKind.Compilation, system.NamespaceKind);
+            Assert.Equal(NamespaceKind.Compilation, system.NamespaceKind);
 
             var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
 
@@ -90,7 +89,7 @@ internal class TestType1 { }
                 );
 
             system = (INamespaceSymbol)comp.GlobalNamespace.GetMember("System");
-            Equal(NamespaceKind.Compilation, system.NamespaceKind);
+            Assert.Equal(NamespaceKind.Compilation, system.NamespaceKind);
         }
 
         [Fact]
@@ -108,8 +107,8 @@ public class TestType1 { }
 [System.Runtime.CompilerServices.NonNullTypesAttribute(false)]
 public class TestType2 { }
 ");
-            False(reference.GetMember("TestType1").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
-            False(reference.GetMember("TestType2").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.False(reference.GetMember("TestType1").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.False(reference.GetMember("TestType2").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
 
             var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
 
@@ -117,7 +116,7 @@ public class TestType2 { }
             var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference() });
             comp.VerifyDiagnostics();
 
-            True(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.True(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
         }
 
         [Fact]
@@ -134,8 +133,8 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(code);
             comp.VerifyEmitDiagnostics();
-            True(comp.SourceModule.NonNullTypes);
-            False(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.True(comp.SourceModule.NonNullTypes);
+            Assert.False(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
         }
 
         [Fact]
@@ -150,6 +149,9 @@ namespace System.Runtime.CompilerServices
             var moduleRef = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
 
             var code = " /* NonNullTypesAttribute is injected when not present in source */ ";
+
+            // It is okay to have a duplicate of NonNullTypesAttribute when the other comes from a referenced assembly,
+            // but we don't allow such collisions when the other comes from an added module.
 
             CreateCompilation(code, references: new[] { moduleRef }).VerifyEmitDiagnostics(
                 // error CS0101: The namespace 'System.Runtime.CompilerServices' already contains a definition for 'NonNullTypesAttribute'
@@ -200,12 +202,12 @@ public class D : C { }";
                 var attributeName = AttributeDescription.NonNullTypesAttribute.FullName;
 
                 var referenceAttribute = module.GetReferencedAssemblySymbols().Single(assembly => assembly.Name == "testRef").GetTypeByMetadataName(attributeName);
-                NotNull(referenceAttribute);
+                Assert.NotNull(referenceAttribute);
 
                 var generatedAttribute = module.ContainingAssembly.GetTypeByMetadataName(attributeName);
-                NotNull(generatedAttribute);
+                Assert.NotNull(generatedAttribute);
 
-                False(referenceAttribute.Equals(generatedAttribute));
+                Assert.False(referenceAttribute.Equals(generatedAttribute));
             });
         }
 

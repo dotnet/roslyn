@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private int _flags;
 
         private LexicalSortKey _lazyLexicalSortKey = LexicalSortKey.NotInitialized;
-        private bool _isInjected;
+        private readonly bool _isInjected;
 
         internal SourceNamespaceSymbol(
             SourceModuleSymbol module, Symbol container,
@@ -573,31 +573,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (containingNamespace.Name)
                 {
                     case System:
-                        if (isSystem(containingNamespace) && !_dictionary.ContainsKey(Runtime))
+                        if (containingNamespace.ContainingNamespace.IsGlobalNamespace && !_dictionary.ContainsKey(Runtime))
                         {
                             Add(makeEmptyNamespace(Runtime));
                         }
                         return;
                     case Runtime:
-                        if (isRuntime(containingNamespace) && !_dictionary.ContainsKey(CompilerServices))
+                        if (isSystem(containingNamespace.ContainingNamespace) && !_dictionary.ContainsKey(CompilerServices))
                         {
                             Add(makeEmptyNamespace(CompilerServices));
                         }
                         return;
                     case Microsoft:
-                        if (isMicrosoft(containingNamespace) && !_dictionary.ContainsKey(CodeAnalysis))
+                        if (containingNamespace.ContainingNamespace.IsGlobalNamespace && !_dictionary.ContainsKey(CodeAnalysis))
                         {
                             Add(makeEmptyNamespace(CodeAnalysis));
                         }
                         return;
                     case CompilerServices:
-                        if (isCompilerServices(containingNamespace) && !_dictionary.ContainsKey("NonNullTypesAttribute"))
+                        if (isRuntime(containingNamespace.ContainingNamespace) && !_dictionary.ContainsKey("NonNullTypesAttribute"))
                         {
                             Add(InjectedNonNullTypesAttributeSymbol.Create(containingNamespace));
                         }
                         return;
                     case CodeAnalysis:
-                        if (isCodeAnalysis(containingNamespace) && !_dictionary.ContainsKey("EmbeddedAttribute"))
+                        if (isMicrosoft(containingNamespace.ContainingNamespace) && !_dictionary.ContainsKey("EmbeddedAttribute"))
                         {
                             Add(InjectedEmbeddedAttributeSymbol.Create(containingNamespace));
                         }
@@ -623,19 +623,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return symbol.Name == Runtime && isSystem(symbol.ContainingNamespace);
                 }
 
-                bool isCompilerServices(NamespaceSymbol symbol)
-                {
-                    return symbol.Name == CompilerServices && isRuntime(symbol.ContainingNamespace);
-                }
-
                 bool isMicrosoft(NamespaceSymbol symbol)
                 {
                     return symbol.Name == Microsoft && symbol.ContainingNamespace.IsGlobalNamespace;
-                }
-
-                bool isCodeAnalysis(NamespaceSymbol symbol)
-                {
-                    return symbol.Name == CodeAnalysis && isMicrosoft(symbol.ContainingNamespace);
                 }
             }
         }
