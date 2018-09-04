@@ -26,6 +26,8 @@ using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TaskStatusCenter;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
@@ -77,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             InitializeColors();
 
             // load some services that have to be loaded in UI thread
-            LoadComponentsInUIContextOnceSolutionFullyLoaded(cancellationToken);
+            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
 
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
         }
@@ -93,8 +95,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
         }
 
-        protected override void LoadComponentsInUIContext(CancellationToken cancellationToken)
+        protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
+
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
             this.ComponentModel.GetService<DiagnosticProgressReporter>();
