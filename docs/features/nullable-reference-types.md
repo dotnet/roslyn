@@ -114,7 +114,7 @@ The top-level nullability of `(X?)y` is `?`.
 A W warning is reported is reported when converting `?` to `!`.
 ```c#
 var s = (string)default(string); // x is string?, warning converting null
-var t = (string?)"";             // y is string?
+var t = (string?)"";             // y is string?, no warning
 ```
 A warning is reported if the type of `y` including nested nullability is not explicitly convertible to `X`.
 ```c#

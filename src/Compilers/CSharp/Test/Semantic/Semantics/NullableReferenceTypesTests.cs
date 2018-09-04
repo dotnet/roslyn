@@ -33864,6 +33864,41 @@ class C
         public void ExplicitCast_UserDefined_02()
         {
             var source =
+@"class A<T> where T : class
+{
+}
+class B
+{
+    public static implicit operator A<string?>(B b) => throw null;
+}
+class C
+{
+    public static implicit operator A<string>(C c) => throw null;
+    static void F1(B x1)
+    {
+        var y1 = (A<string?>)x1;
+        var z1 = (A<string>)x1; // 1
+    }
+    static void F2(C x2)
+    {
+        var y2 = (A<string?>)x2; // 2
+        var z2 = (A<string>)x2;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (14,18): warning CS8619: Nullability of reference types in value of type 'A<string?>' doesn't match target type 'A<string>'.
+                //         var z1 = (A<string>)x1; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(A<string>)x1").WithArguments("A<string?>", "A<string>").WithLocation(14, 18),
+                // (18,18): warning CS8619: Nullability of reference types in value of type 'A<string>' doesn't match target type 'A<string?>'.
+                //         var y2 = (A<string?>)x2; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(A<string?>)x2").WithArguments("A<string>", "A<string?>").WithLocation(18, 18));
+        }
+
+        [Fact]
+        public void ExplicitCast_UserDefined_03()
+        {
+            var source =
 @"class A1<T> where T : class
 {
     public static implicit operator B<T?>(A1<T> a) => throw null;
@@ -33895,7 +33930,6 @@ class C<T> where T : class
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullabilityMismatchInAssignment for `y = ((B<T>)x1)`.
             comp.VerifyDiagnostics(
                 // (17,14): warning CS8619: Nullability of reference types in value of type 'B<T?>' doesn't match target type 'B<T>'.
                 //         y = ((B<T>)x1)/*T:B<T!>*/;
