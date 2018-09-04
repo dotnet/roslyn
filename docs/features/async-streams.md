@@ -212,19 +212,11 @@ return;
 
 The `MoveNext()` method of the state machine also includes exception handling.
 For regular `async` methods, we catch any such exception and pass it on to the caller of the state machine, by setting the exception in the task being awaited by the caller.
-For async-iterators, we also catch any such exception and pass it on to the caller of the state machine (`WaitForNextAsync` and `TryGetNext`) via the promise of value-or-end:
+For async-iterators, when the promise of value-or-end is active, we also catch any such exception and pass it on to the caller of the state machine (`WaitForNextAsync` and `TryGetNext`) via the promise:
 
 ```C#
-catch (Exception ex)
+catch (Exception ex) when { this.state = finishedState; promiseIsActive }
 {
-    this.state = finishedState
-    if (promiseIsActive)
-    {
-        this.promiseOfValueOrEnd.SetException(ex);
-    }
-    else
-    {
-        throw;
-    }
+    this.promiseOfValueOrEnd.SetException(ex);
 }
 ```
