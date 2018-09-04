@@ -4814,7 +4814,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("C.F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(12, 29));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29662")]
         public void AddedIteratorStateMachineAttribute()
         {
             var source0 = MarkedSource(@"
@@ -4999,7 +4999,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("C.F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(6, 28));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29662")]
         public void AddedAsyncStateMachineAttribute()
         {
             var source0 = MarkedSource(@"

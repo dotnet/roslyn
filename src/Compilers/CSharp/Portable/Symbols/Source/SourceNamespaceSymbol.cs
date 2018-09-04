@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override bool IsImplicitlyDeclared
-            => _isInjected;
+            => base.IsImplicitlyDeclared || _isInjected;
 
         internal MergedNamespaceDeclaration MergedDeclaration
             => _mergedDeclaration;
