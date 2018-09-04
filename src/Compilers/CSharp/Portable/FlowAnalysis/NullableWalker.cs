@@ -1776,27 +1776,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression consequence;
             BoundExpression alternative;
+            Conversion consequenceConversion;
+            Conversion alternativeConversion;
             TypeSymbolWithAnnotations consequenceResult;
             TypeSymbolWithAnnotations alternativeResult;
             bool? isNullableIfReferenceType;
 
-            if (IsConstantTrue(node.Condition))
+            bool isConstantTrue = IsConstantTrue(node.Condition);
+            bool isConstantFalse = IsConstantFalse(node.Condition);
+            if (isConstantTrue)
             {
-                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
-                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
+                (alternative, alternativeConversion, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
+                (consequence, consequenceConversion, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
                 isNullableIfReferenceType = getIsNullableIfReferenceType(consequence, consequenceResult);
             }
-            else if (IsConstantFalse(node.Condition))
+            else if (isConstantFalse)
             {
-                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
-                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
+                (consequence, consequenceConversion, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
+                (alternative, alternativeConversion, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
                 isNullableIfReferenceType = getIsNullableIfReferenceType(alternative, alternativeResult);
             }
             else
             {
-                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
+                (consequence, consequenceConversion, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
                 Unsplit();
-                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
+                (alternative, alternativeConversion, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
                 Unsplit();
                 IntersectWith(ref this.State, ref consequenceState);
                 isNullableIfReferenceType = (getIsNullableIfReferenceType(consequence, consequenceResult) | getIsNullableIfReferenceType(alternative, alternativeResult));
@@ -1834,7 +1838,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            _resultType = TypeSymbolWithAnnotations.Create(resultType ?? node.Type.SetUnknownNullabilityForReferenceTypes(), isNullableIfReferenceType);
+            var resultTypeWithAnnotations = TypeSymbolWithAnnotations.Create(resultType ?? node.Type.SetUnknownNullabilityForReferenceTypes(), isNullableIfReferenceType);
+
+            if ((object)resultType != null)
+            {
+                if (!isConstantFalse)
+                {
+                    ApplyConversion(
+                        node.Consequence,
+                        consequence,
+                        consequenceConversion,
+                        resultTypeWithAnnotations,
+                        consequenceResult,
+                        checkConversion: true,
+                        fromExplicitCast: false,
+                        useLegacyWarnings: false,
+                        AssignmentKind.Assignment);
+                }
+
+                if (!isConstantTrue)
+                {
+                    ApplyConversion(
+                        node.Alternative,
+                        alternative,
+                        alternativeConversion,
+                        resultTypeWithAnnotations,
+                        alternativeResult,
+                        checkConversion: true,
+                        fromExplicitCast: false,
+                        useLegacyWarnings: false,
+                        AssignmentKind.Assignment);
+                }
+            }
+            _resultType = resultTypeWithAnnotations;
+
             return null;
 
             bool? getIsNullableIfReferenceType(BoundExpression expr, TypeSymbolWithAnnotations type)
@@ -1857,19 +1894,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new BoundExpressionWithNullability(expr.Syntax, expr, type.IsNullable, type.TypeSymbol);
             }
 
-            (BoundExpression, TypeSymbolWithAnnotations) visitConditionalOperand(LocalState state, BoundExpression operand)
+            (BoundExpression, Conversion, TypeSymbolWithAnnotations) visitConditionalOperand(LocalState state, BoundExpression operand)
             {
+                Conversion conversion;
                 SetState(state);
                 if (isByRef)
                 {
                     VisitLvalue(operand);
+                    conversion = Conversion.Identity;
                 }
                 else
                 {
-                    (operand, _) = RemoveConversion(operand, includeExplicitConversions: false);
+                    (operand, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
                     Visit(operand);
                 }
-                return (operand, _resultType);
+                return (operand, conversion, _resultType);
             }
         }
 

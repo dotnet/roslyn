@@ -341,36 +341,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var nullableSyntax = (NullableTypeSyntax)syntax;
                         TypeSyntax typeArgumentSyntax = nullableSyntax.ElementType;
                         TypeSymbolWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
-                        TypeSymbolWithAnnotations constructedType;
-                        if (typeArgument.TypeKind != TypeKind.TypeParameter && (typeArgument.IsValueType || typeArgument.IsErrorType()))
+                        TypeSymbolWithAnnotations constructedType = typeArgument.SetIsAnnotated(Compilation);
+
+                        if (InExecutableBinder)
                         {
-                            NamedTypeSymbol nullableT = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, syntax);
-                            constructedType = TypeSymbolWithAnnotations.Create(nullableT.Construct(ImmutableArray.Create(typeArgument)));
-                        }
-                        else
-                        {
-                            if (InExecutableBinder)
+                            // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
+                            // Types created outside executable context should be checked by the responsible symbol (the method symbol checks its return type, for instance).
+                            // We still need to delay that check when binding in an attribute argument
+                            if (!ShouldCheckConstraintsNullability)
                             {
-                                // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
-                                // Types created outside executable context should be checked by the responsible symbol (the method symbol checks its return type, for instance).
-                                // We still need to delay that check when binding in an attribute argument
-                                if (!ShouldCheckConstraintsNullability)
-                                {
-                                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), nullableSyntax.QuestionToken.GetLocation());
-                                }
-                                else if (!typeArgument.IsValueType)
-                                {
-                                    Symbol.ReportNullableReferenceTypesIfNeeded(Compilation, NonNullTypesContext, diagnostics, nullableSyntax.QuestionToken.GetLocation());
-                                }
+                                diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), nullableSyntax.QuestionToken.GetLocation());
                             }
-                            constructedType = typeArgument.SetIsAnnotated(Compilation);
-                            if (!ShouldCheckConstraints)
+                            else if (!typeArgument.IsValueType)
                             {
-                                diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
+                                Symbol.ReportNullableReferenceTypesIfNeeded(Compilation, NonNullTypesContext, diagnostics, nullableSyntax.QuestionToken.GetLocation());
                             }
                         }
 
-                        if (ShouldCheckConstraints && constructedType.IsNullableType())
+                        if (!ShouldCheckConstraints)
+                        {
+                            diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
+                        }
+                        else if (constructedType.IsNullableType())
                         {
                             ReportUseSiteDiagnostics(constructedType.TypeSymbol.OriginalDefinition, diagnostics, syntax);
                             var type = (NamedTypeSymbol)constructedType.TypeSymbol;
@@ -383,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             type.CheckConstraints(this.Compilation, conversions, location, diagnostics);
                         }
+
                         return constructedType;
                     }
 

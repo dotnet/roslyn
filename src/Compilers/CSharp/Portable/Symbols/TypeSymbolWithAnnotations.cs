@@ -241,13 +241,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // In this case we delay asking this question as long as possible.
             if (typeSymbol.TypeKind != TypeKind.TypeParameter)
             {
-                if (!typeSymbol.IsValueType)
+                if (!typeSymbol.IsValueType && !typeSymbol.IsErrorType())
                 {
                     return CreateNonLazyType(typeSymbol, NonNullTypesContext, isAnnotated: true, treatUnconstrainedTypeParameterAsNullable: false, this.CustomModifiers);
                 }
                 else
                 {
-                    // PROTOTYPE(NullableReferenceTypes): what if the Nullable<T> type is missing? (are we missing diagnostics?)
                     return Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol), NonNullTypesContext));
                 }
             }
@@ -549,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var type = TypeSymbolExtensions.VisitType(
                 typeWithAnnotationsOpt,
                 typeOpt,
-                typeWithAnnotationsPredicateOpt: (t, a, b) => t.IsAnnotated && !t.TypeSymbol.IsValueType,
+                typeWithAnnotationsPredicateOpt: (t, a, b) => t.IsAnnotated && !t.TypeSymbol.IsErrorType() && !t.TypeSymbol.IsValueType,
                 typePredicateOpt: null,
                 arg: (object)null);
             return (object)type != null;

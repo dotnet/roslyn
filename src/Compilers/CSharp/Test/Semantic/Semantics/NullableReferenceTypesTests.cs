@@ -162,19 +162,11 @@ public class C
     }
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): should not warn 
-            c.VerifyDiagnostics(
-                // (7,18): warning CS8626: No best nullability for operands of conditional expression 'uint' and 'int'.
-                //         uint x = true ? a : 1;
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "true ? a : 1").WithArguments("uint", "int").WithLocation(7, 18),
-                // (8,18): warning CS8626: No best nullability for operands of conditional expression 'int' and 'uint'.
-                //         uint y = true ? 1 : a;
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "true ? 1 : a").WithArguments("int", "uint").WithLocation(8, 18)
-                );
+            c.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(26746, "https://github.com/dotnet/roslyn/issues/26746")]
-        public void TernaryWithImplicitUsedDefinedConversion()
+        public void TernaryWithImplicitUsedDefinedConversion_ConstantTrue()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
 public class C
@@ -188,8 +180,58 @@ public class C
     public static implicit operator C?(int i) => throw null;
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): should be warning
-            c.VerifyDiagnostics();
+            c.VerifyDiagnostics(
+                // (8,22): warning CS8601: Possible null reference assignment.
+                //         C y = true ? 1 : c;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "1").WithLocation(8, 22)
+                );
+        }
+
+        [Fact, WorkItem(26746, "https://github.com/dotnet/roslyn/issues/26746")]
+        public void TernaryWithImplicitUsedDefinedConversion_ConstantFalse()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+public class C
+{
+    public void M()
+    {
+        C c = new C();
+        C x = false ? c : 1;
+        C y = false ? 1 : c;
+    }
+    public static implicit operator C?(int i) => throw null;
+}
+", NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            c.VerifyDiagnostics(
+                // (7,27): warning CS8601: Possible null reference assignment.
+                //         C x = false ? c : 1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "1").WithLocation(7, 27)
+                );
+        }
+
+        [Fact, WorkItem(26746, "https://github.com/dotnet/roslyn/issues/26746")]
+        public void TernaryWithImplicitUsedDefinedConversion_NotConstant()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+public class C
+{
+    public void M(bool b)
+    {
+        C c = new C();
+        C x = b ? c : 1;
+        C y = b ? 1 : c;
+    }
+    public static implicit operator C?(int i) => throw null;
+}
+", NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            c.VerifyDiagnostics(
+                // (7,23): warning CS8601: Possible null reference assignment.
+                //         C x = b ? c : 1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "1").WithLocation(7, 23),
+                // (8,19): warning CS8601: Possible null reference assignment.
+                //         C y = b ? 1 : c;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "1").WithLocation(8, 19)
+                );
         }
 
         [Fact, WorkItem(26746, "https://github.com/dotnet/roslyn/issues/26746")]
@@ -211,8 +253,11 @@ public class C
     public static implicit operator int(C i) => throw null;
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): should be warning
-            c.VerifyDiagnostics();
+            c.VerifyDiagnostics(
+                // (11,25): warning CS8604: Possible null reference argument for parameter 'i' in 'C.implicit operator int(C i)'.
+                //         int x2 = true ? c2 : 1;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "c2").WithArguments("i", "C.implicit operator int(C i)").WithLocation(11, 25)
+                );
         }
 
         [Fact]
@@ -591,6 +636,66 @@ class C
                 // (4,17): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     int F() => (int)E.A;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 17));
+        }
+
+        [Fact]
+        public void MissingNullable()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Enum { }
+    public class Attribute { }
+}";
+            var source2 = @"
+class C<T> where T : struct
+{
+    void M()
+    {
+        T? local = null;
+        _ = local;
+    }
+}
+";
+            var comp = CreateEmptyCompilation(new[] { source, source2 });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //         T? local = null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T?").WithArguments("System.Nullable`1").WithLocation(6, 9)
+                );
+
+            var source3 = @"
+class C<T> where T : struct
+{
+    void M(T? nullable) { }
+}
+";
+            var comp2 = CreateEmptyCompilation(new[] { source, source3 });
+            comp2.VerifyDiagnostics(
+                // (4,12): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     void M(T? nullable) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T?").WithArguments("System.Nullable`1").WithLocation(4, 12)
+                );
+
+            var source4 = @"
+class C<T> where T : struct
+{
+    void M<U>() where U : T? { }
+}
+";
+            var comp3 = CreateEmptyCompilation(new[] { source, source4 });
+            comp3.VerifyDiagnostics(
+                // (4,27): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     void M<U>() where U : T? { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T?").WithArguments("System.Nullable`1").WithLocation(4, 27),
+                // (4,12): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     void M<U>() where U : T? { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "U").WithArguments("System.Nullable`1").WithLocation(4, 12)
+                );
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
