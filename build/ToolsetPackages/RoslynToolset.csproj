@@ -2,7 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net46;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>net472;netcoreapp2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Net.Sdk" Version="$(MicrosoftNetSdkVersion)" ExcludeAssets="all" />
@@ -19,7 +19,7 @@
     <PackageReference Include="RoslynTools.BuildTasks" Version="$(RoslynToolsBuildTasksVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynTools.NuGetRepack.BuildTasks" Version="$(RoslynToolsNuGetRepackVersion)" ExcludeAssets="all" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <PackageReference Include="FakeSign" Version="$(FakeSignVersion)" ExcludeAssets="all" />
     <PackageReference Include="MicroBuild.Core.Sentinel" Version="$(MicroBuildCoreSentinelVersion)" ExcludeAssets="all" />
     <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)" ExcludeAssets="all" />
