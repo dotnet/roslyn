@@ -47,6 +47,32 @@ class TestClass {{
             }.RunAsync();
         }
 
+        [Fact]
+        public async Task TestDefaultSelectionMultipleFixers()
+        {
+            var testCode = @"
+class TestClass {
+  int field = [|0|];
+}
+";
+            var fixedCode = $@"
+class TestClass {{
+  int field = 1;
+}}
+";
+
+            // Three CodeFixProviders provide three actions
+            var codeFixes = ImmutableArray.Create(
+                ImmutableArray.Create(1),
+                ImmutableArray.Create(2),
+                ImmutableArray.Create(3));
+            await new CSharpTest(codeFixes)
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
@@ -123,6 +149,37 @@ class TestClass {{
 
             // A single CodeFixProvider provides three actions
             var codeFixes = ImmutableArray.Create(ImmutableArray.Create(1, 2, 3));
+            await new CSharpTest(codeFixes)
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                CodeFixIndex = index,
+                CodeFixEquivalenceKey = equivalenceKey,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData(0, "ReplaceZeroFix_1")]
+        [InlineData(1, "ReplaceZeroFix_2")]
+        [InlineData(2, "ReplaceZeroFix_3")]
+        public async Task TestIndexAndEquivalenceKeyMatchMultipleFixers(int index, string equivalenceKey)
+        {
+            var testCode = @"
+class TestClass {
+  int field = [|0|];
+}
+";
+            var fixedCode = $@"
+class TestClass {{
+  int field = {index + 1};
+}}
+";
+
+            // Three CodeFixProviders provide three actions
+            var codeFixes = ImmutableArray.Create(
+                ImmutableArray.Create(1),
+                ImmutableArray.Create(2),
+                ImmutableArray.Create(3));
             await new CSharpTest(codeFixes)
             {
                 TestCode = testCode,
