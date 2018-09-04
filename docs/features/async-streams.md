@@ -54,7 +54,7 @@ async IAsyncEnumerable<int> GetValuesFromServer()
 }
 ```
 
-PROTOTYPE(async-streams): TODO: async LINQ
+**open issue**: Design async LINQ
 
 ### Detailed design for async `foreach` statement
 PROTOTYPE(async-streams): TODO
@@ -116,7 +116,7 @@ If the promise is active:
 - a call to `WaitForNextAsync` will not move the state machine forward (ie. it won't call `MoveNext()`),
 - a call to `TryGetNext` APIs will throw.
 
-PROTOTYPE(async-streams): The compiler leverages existing BCL types (including some recently added types from the `System.Threading.Tasks.Extensions` NuGet package) in the state machine it generates. But as part of this feature, we may introduce some additional BCL types, so that the state machine can be further simplified and optimized.
+**open issue**: The compiler leverages existing BCL types (including some recently added types from the `System.Threading.Tasks.Extensions` NuGet package) in the state machine it generates. But as part of this feature, we may introduce some additional BCL types, so that the state machine can be further simplified and optimized.
 
 ```C#
 ValueTask<bool> WaitForNextAsync()
