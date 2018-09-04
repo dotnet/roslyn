@@ -155,8 +155,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                             {
                                 var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                                 var containingTypeSymbol = (INamedTypeSymbol) model.GetDeclaredSymbol(containingTypeNode, cancellationToken);
-                                switch (containingTypeSymbol.TypeKind)
-       
+                                switch (containingTypeSymbol.TypeKind) {
                                     case TypeKind.Class:
                                     case TypeKind.Module:
                                         accessibilityLevel = Accessibility.NotApplicable;
