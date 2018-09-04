@@ -14,33 +14,43 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     ///  (2) <see cref="AbstractBlockAnalysisResult"/> for every basic block in the graph.
     ///  (3) Merged analysis state for all the unhandled throw operations in the graph.
     /// </summary>
-    internal class DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> : IDataFlowAnalysisResult
+    internal class DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> : IDataFlowAnalysisResult<TAbstractAnalysisValue>
         where TBlockAnalysisResult: AbstractBlockAnalysisResult
     {
         private readonly ImmutableDictionary<BasicBlock, TBlockAnalysisResult> _basicBlockStateMap;
         private readonly ImmutableDictionary<IOperation, TAbstractAnalysisValue> _operationStateMap;
         private readonly ImmutableDictionary<IOperation, PredicateValueKind> _predicateValueKindMap;
+        private readonly ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> _interproceduralResultsMap;
         private readonly TAbstractAnalysisValue _defaultUnknownValue;
 
         public DataFlowAnalysisResult(
             ImmutableDictionary<BasicBlock, TBlockAnalysisResult> basicBlockStateMap,
             ImmutableDictionary<IOperation, TAbstractAnalysisValue> operationStateMap,
             ImmutableDictionary<IOperation, PredicateValueKind> predicateValueKindMap,
+            TAbstractAnalysisValue returnValue,
+            ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
             TBlockAnalysisResult mergedStateForUnhandledThrowOperationsOpt,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
         {
+            Debug.Assert(basicBlockStateMap != null);
+            Debug.Assert(operationStateMap != null);
+            Debug.Assert(predicateValueKindMap != null);
+            Debug.Assert(interproceduralResultsMap != null);
+
             _basicBlockStateMap = basicBlockStateMap;
             _operationStateMap = operationStateMap;
             _predicateValueKindMap = predicateValueKindMap;
+            ReturnValue = returnValue;
+            _interproceduralResultsMap = interproceduralResultsMap;
             MergedStateForUnhandledThrowOperationsOpt = mergedStateForUnhandledThrowOperationsOpt;
             ControlFlowGraph = cfg;
             _defaultUnknownValue = defaultUnknownValue;
         }
 
         protected DataFlowAnalysisResult(DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> other)
-            : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap,
-                   other.MergedStateForUnhandledThrowOperationsOpt, other.ControlFlowGraph, other._defaultUnknownValue)
+            : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap, other.ReturnValue,
+                   other._interproceduralResultsMap, other.MergedStateForUnhandledThrowOperationsOpt, other.ControlFlowGraph, other._defaultUnknownValue)
         {
         }
 
@@ -85,8 +95,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        public PredicateValueKind GetPredicateKind(IOperation operation) => _predicateValueKindMap.TryGetValue(operation, out var valueKind) ? valueKind : PredicateValueKind.Unknown;
-        public TBlockAnalysisResult MergedStateForUnhandledThrowOperationsOpt;
+        internal DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> GetInterproceduralResult(IOperation operation)
+            => (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>)_interproceduralResultsMap[operation];
+
         public ControlFlowGraph ControlFlowGraph { get; }
+        public TAbstractAnalysisValue ReturnValue { get; }
+        public TBlockAnalysisResult MergedStateForUnhandledThrowOperationsOpt { get; }
+        public PredicateValueKind GetPredicateKind(IOperation operation) => _predicateValueKindMap.TryGetValue(operation, out var valueKind) ? valueKind : PredicateValueKind.Unknown;
     }
 }

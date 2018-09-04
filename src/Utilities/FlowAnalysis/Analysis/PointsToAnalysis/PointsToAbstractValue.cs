@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return new PointsToAbstractValue(lValueCapturedOperations);
         }
 
-        public PointsToAbstractValue MakeNonNull(IOperation operation)
+        public PointsToAbstractValue MakeNonNull(IOperation operation, PointsToAnalysisContext analysisContext)
         {
             Debug.Assert(Kind != PointsToAbstractValueKind.KnownLValueCaptures);
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             if (Kind != PointsToAbstractValueKind.KnownLocations)
             {
-                return Create(AbstractLocation.CreateAllocationLocation(operation, operation.Type), mayBeNull: false);
+                return Create(AbstractLocation.CreateAllocationLocation(operation, operation.Type, analysisContext), mayBeNull: false);
             }
 
             var locations = Locations.Where(location => !location.IsNull).ToImmutableHashSet();
@@ -158,22 +158,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         public NullAbstractValue NullState { get; }
 
         protected override int ComputeHashCode()
-        {
-            int hashCode = HashUtilities.Combine(Kind.GetHashCode(), NullState.GetHashCode());
-
-            hashCode = HashUtilities.Combine(Locations.Count.GetHashCode(), hashCode);
-            foreach (var location in Locations)
-            {
-                hashCode = HashUtilities.Combine(location.GetHashCode(), hashCode);
-            }
-
-            hashCode = HashUtilities.Combine(LValueCapturedOperations.Count.GetHashCode(), hashCode);
-            foreach (var lValueCapturedOperation in LValueCapturedOperations)
-            {
-                hashCode = HashUtilities.Combine(lValueCapturedOperation.GetHashCode(), hashCode);
-            }
-
-            return hashCode;
-        }
+            => HashUtilities.Combine(Locations,
+               HashUtilities.Combine(LValueCapturedOperations,
+               HashUtilities.Combine(Kind.GetHashCode(), NullState.GetHashCode())));
     }
 }

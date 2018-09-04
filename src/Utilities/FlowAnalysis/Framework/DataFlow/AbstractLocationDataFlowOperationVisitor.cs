@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     internal abstract class AbstractLocationDataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisResult : IDataFlowAnalysisResult
+        where TAnalysisResult : IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
         protected AbstractLocationDataFlowOperationVisitor(TAnalysisContext analysisContext)
             : base(analysisContext)
@@ -32,6 +32,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
+        protected abstract void StopTrackingAbstractValue(AbstractLocation location);
+        protected override void StopTrackingDataForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity)
+        {
+            Debug.Assert(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null);
+            if (parameter.RefKind == RefKind.None)
+            {
+                foreach (var location in analysisEntity.InstanceLocation.Locations)
+                {
+                    StopTrackingAbstractValue(location);
+                }
+            }
+        }
+
         protected override void ResetValueTypeInstanceAnalysisData(AnalysisEntity analysisEntity)
         {
         }
@@ -46,21 +59,34 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return defaultValue;
         }
 
-        protected override TAbstractAnalysisValue ComputeAnalysisValueForOutArgument(IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
+        protected override TAbstractAnalysisValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
         {
+            Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+
             if (operation.Value.Type != null)
             {
                 PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
-                return HandleInstanceCreation(operation.Value.Type, instanceLocation, defaultValue);
+                var value = HandleInstanceCreation(operation.Value.Type, instanceLocation, defaultValue);
+                if (operation.Parameter.RefKind == RefKind.Ref)
+                {
+                    // Escaped ref argument must be set to unknown value.
+                    SetAbstractValue(instanceLocation, ValueDomain.UnknownOrMayBeValue);
+                    return defaultValue;
+                }
+                else
+                {
+                    // Escaped out argument is caller's responsibility and must not be set to unknown value.
+                    return value;
+                }
             }
 
             return defaultValue;
         }
 
         protected abstract void SetValueForParameterPointsToLocationOnEntry(IParameterSymbol parameter, PointsToAbstractValue pointsToAbstractValue);
-        protected abstract void SetValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, PointsToAbstractValue pointsToAbstractValue);
+        protected abstract void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, PointsToAbstractValue pointsToAbstractValue);
 
-        protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity)
+        protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue> assignedValueOpt)
         {
             Debug.Assert(analysisEntity.SymbolOpt == parameter);
             if (TryGetPointsToAbstractValueAtCurrentBlockExit(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
@@ -69,12 +95,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected override void SetValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
+        protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
         {
             Debug.Assert(analysisEntity.SymbolOpt == parameter);
             if (TryGetPointsToAbstractValueAtCurrentBlockEntry(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
             {
-                SetValueForParameterPointsToLocationOnExit(parameter, analysisEntity, pointsToAbstractValue);
+                EscapeValueForParameterPointsToLocationOnExit(parameter, analysisEntity, pointsToAbstractValue);
             }
         }
 
@@ -92,8 +118,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected IDictionary<AbstractLocation, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AbstractLocation, TAbstractAnalysisValue> analysisData)
+        protected static IDictionary<AbstractLocation, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AbstractLocation, TAbstractAnalysisValue> analysisData)
             => new Dictionary<AbstractLocation, TAbstractAnalysisValue>(analysisData);
+        protected static IDictionary<AbstractLocation, TAbstractAnalysisValue> GetEmptyAnalysisDataHelper()
+            => GetClonedAnalysisDataHelper(ImmutableDictionary<AbstractLocation, TAbstractAnalysisValue>.Empty);
 
         #region Visitor methods
 

@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Analyzer.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
@@ -49,18 +50,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             return new CopyAbstractValue(AnalysisEntities.Remove(entityToRemove));
         }
 
+        public CopyAbstractValue WithEntitiesRemoved(ImmutableHashSet<AnalysisEntity> entitiesToRemove)
+        {
+            Debug.Assert(entitiesToRemove.All(entityToRemove => AnalysisEntities.Contains(entityToRemove)));
+            Debug.Assert(AnalysisEntities.Count > 1);
+            Debug.Assert(Kind == CopyAbstractValueKind.Known);
+
+            return new CopyAbstractValue(AnalysisEntities.Except(entitiesToRemove));
+        }
+
         public ImmutableHashSet<AnalysisEntity> AnalysisEntities { get; }
         public CopyAbstractValueKind Kind { get; }
 
-        protected override int ComputeHashCode()
-        {
-            int hashCode = HashUtilities.Combine(Kind.GetHashCode(), AnalysisEntities.Count.GetHashCode());
-            foreach (var entity in AnalysisEntities)
-            {
-                hashCode = HashUtilities.Combine(entity.GetHashCode(), hashCode);
-            }
-
-            return hashCode;
-        }
+        protected override int ComputeHashCode() => HashUtilities.Combine(AnalysisEntities, Kind.GetHashCode());
     }
 }

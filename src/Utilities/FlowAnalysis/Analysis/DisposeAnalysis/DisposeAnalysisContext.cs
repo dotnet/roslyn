@@ -3,66 +3,91 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 {
+    using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
     using DisposeAnalysisData = IDictionary<AbstractLocation, DisposeAbstractValue>;
+    using InterproceduralDisposeAnalysisData = InterproceduralAnalysisData<IDictionary<AbstractLocation, DisposeAbstractValue>, DisposeAnalysisContext, DisposeAbstractValue>;
+    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
 
     /// <summary>
     /// Analysis context for execution of <see cref="DisposeAnalysis"/> on a control flow graph.
     /// </summary>
     internal sealed class DisposeAnalysisContext : AbstractDataFlowAnalysisContext<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeAbstractValue>
     {
-        // "PessimisticAnalysis = false"
-        // Invoking an instance method may likely invalidate all the instance field analysis state, i.e.
-        // reference type fields might be re-assigned to point to different objects in the called method.
-        // An optimistic points to analysis assumes that the points to values of instance fields don't change on invoking an instance method.
-        // A pessimistic points to analysis resets all the instance state and assumes the instance field might point to any object, hence has unknown state.
-        // For dispose analysis, we want to perform an optimistic points to analysis as we assume a disposable field is not likely to be re-assigned to a separate object in helper method invocations in Dispose.
-
-        public DisposeAnalysisContext(
-            ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
-            bool trackInstanceFields,
+        private DisposeAnalysisContext(
             AbstractValueDomain<DisposeAbstractValue> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            InterproceduralAnalysisKind interproceduralAnalysisKind,
+            bool pessimisticAnalysis,
             DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt,
-            Func<DisposeAnalysisContext, DisposeAnalysisResult> getOrComputeAnalysisResultForInvokedMethod,
-            DisposeAnalysisData currentAnalysisDataAtCalleeOpt = null,
-            ImmutableArray<DisposeAbstractValue> argumentValuesFromCalleeOpt = default(ImmutableArray<DisposeAbstractValue>),
-            ImmutableHashSet<IMethodSymbol> methodsBeingAnalyzedOpt = null)
-            : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol,
-                  pessimisticAnalysis : false,
+            Func<DisposeAnalysisContext, DisposeAnalysisResult> getOrComputeAnalysisResult,
+            ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
+            bool trackInstanceFields,
+            ControlFlowGraph parentControlFlowGraphOpt,
+            InterproceduralDisposeAnalysisData interproceduralAnalysisDataOpt)
+            : base(valueDomain, wellKnownTypeProvider, controlFlowGraph,
+                  owningSymbol, interproceduralAnalysisKind, pessimisticAnalysis,
                   predicateAnalysis: false,
                   copyAnalysisResultOpt: null,
                   pointsToAnalysisResultOpt: pointsToAnalysisResultOpt,
-                  getOrComputeAnalysisResultForInvokedMethod: getOrComputeAnalysisResultForInvokedMethod,
-                  currentAnalysisDataAtCalleeOpt: currentAnalysisDataAtCalleeOpt,
-                  argumentValuesFromCalleeOpt: argumentValuesFromCalleeOpt,
-                  methodsBeingAnalyzedOpt: methodsBeingAnalyzedOpt)
+                  getOrComputeAnalysisResult: getOrComputeAnalysisResult,
+                  parentControlFlowGraphOpt: parentControlFlowGraphOpt,
+                  interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
         {
             DisposeOwnershipTransferLikelyTypes = disposeOwnershipTransferLikelyTypes;
             TrackInstanceFields = trackInstanceFields;
         }
 
+        public static DisposeAnalysisContext Create(
+            AbstractValueDomain<DisposeAbstractValue> valueDomain,
+            WellKnownTypeProvider wellKnownTypeProvider,
+            ControlFlowGraph controlFlowGraph,
+            ISymbol owningSymbol,
+            InterproceduralAnalysisKind interproceduralAnalysisKind,
+            bool pessimisticAnalysis,
+            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt,
+            Func<DisposeAnalysisContext, DisposeAnalysisResult> getOrComputeAnalysisResult,
+            ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
+            bool trackInstanceFields)
+        {
+            return new DisposeAnalysisContext(
+                valueDomain, wellKnownTypeProvider, controlFlowGraph,
+                owningSymbol, interproceduralAnalysisKind, pessimisticAnalysis,
+                pointsToAnalysisResultOpt, getOrComputeAnalysisResult,
+                disposeOwnershipTransferLikelyTypes, trackInstanceFields,
+                parentControlFlowGraphOpt: null, interproceduralAnalysisDataOpt: null);
+        }
+
+        public override DisposeAnalysisContext ForkForInterproceduralAnalysis(
+            IMethodSymbol invokedMethod,
+            ControlFlowGraph invokedControlFlowGraph,
+            IOperation operation,
+            PointsToAnalysisResult pointsToAnalysisResultOpt,
+            CopyAnalysisResult copyAnalysisResultOpt,
+            InterproceduralDisposeAnalysisData interproceduralAnalysisData)
+        {
+            Debug.Assert(pointsToAnalysisResultOpt != null);
+            Debug.Assert(copyAnalysisResultOpt == null);
+
+            return new DisposeAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, InterproceduralAnalysisKind, PessimisticAnalysis,
+                pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, DisposeOwnershipTransferLikelyTypes, TrackInstanceFields, ControlFlowGraph, interproceduralAnalysisData);
+        }
+
         public ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes { get; }
         public bool TrackInstanceFields { get; }
 
-        public override int GetHashCode(int hashCode)
-        {
-            hashCode = HashUtilities.Combine(hashCode,
-                HashUtilities.Combine(TrackInstanceFields.GetHashCode(), DisposeOwnershipTransferLikelyTypes.Count));
-            foreach (var newKey in DisposeOwnershipTransferLikelyTypes.Select(t => t.GetHashCode()).Order())
-            {
-                hashCode = HashUtilities.Combine(newKey, hashCode);
-            }
-
-            return hashCode;
-        }
+        protected override int GetHashCode(int hashCode)
+            => HashUtilities.Combine(TrackInstanceFields.GetHashCode(),
+               HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes, hashCode));
     }
 }

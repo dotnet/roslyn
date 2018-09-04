@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,6 +9,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalysis
 {
     using ParameterValidationAnalysisData = IDictionary<AbstractLocation, ParameterValidationAbstractValue>;
+    using InterproceduralParameterValidationAnalysisData = InterproceduralAnalysisData<IDictionary<AbstractLocation, ParameterValidationAbstractValue>, ParameterValidationAnalysisContext, ParameterValidationAbstractValue>;
     using ParameterValidationAnalysisDomain = MapAbstractDomain<AbstractLocation, ParameterValidationAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToAnalysis.PointsToBlockAnalysisResult, PointsToAnalysis.PointsToAbstractValue>;
 
@@ -29,28 +29,32 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             IBlockOperation topmostBlock,
             Compilation compilation,
             ISymbol owningSymbol,
+            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
             bool pessimisticAnalysis = true)
         {
             Debug.Assert(topmostBlock != null);
 
-            var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             var cfg = topmostBlock.GetEnclosingControlFlowGraph();
-            var pointsToAnalysisResult = ComputePointsToAnalysisResultForParameterValidationAnalysis(cfg, owningSymbol, wellKnownTypeProvider);
-            var analysisContext = new ParameterValidationAnalysisContext(ParameterValidationAbstractValueDomain.Default,
-                wellKnownTypeProvider, cfg, owningSymbol, pessimisticAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext);
-            var result = GetOrComputeResultForAnalysisContext(analysisContext);
+            var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
+            var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
+                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisKind, pessimisticAnalysis);
+            var result = GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisKind, pessimisticAnalysis, pointsToAnalysisResult);
             return result.HazardousParameterUsages;
         }
 
-        public static PointsToAnalysisResult ComputePointsToAnalysisResultForParameterValidationAnalysis(
+        public static ParameterValidationAnalysisResult GetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
-            WellKnownTypeProvider wellKnownTypeProvider)
+            WellKnownTypeProvider wellKnownTypeProvider,
+            InterproceduralAnalysisKind interproceduralAnalysisKind,
+            bool pessimisticAnalysis,
+            PointsToAnalysisResult pointsToAnalysisResult)
         {
-            var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider);
-            var copyAnalysisResult = CopyAnalysis.CopyAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, pointsToAnalysisResultOpt: pointsToAnalysisResult);
-            // Do another analysis pass to improve the results from PointsTo and Copy analysis.
-            return PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, copyAnalysisResult);
+            Debug.Assert(pointsToAnalysisResult != null);
+
+            var analysisContext = ParameterValidationAnalysisContext.Create(ParameterValidationAbstractValueDomain.Default,
+                wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisKind, pessimisticAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext);
+            return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 
         private static ParameterValidationAnalysisResult GetOrComputeResultForAnalysisContext(ParameterValidationAnalysisContext analysisContext)

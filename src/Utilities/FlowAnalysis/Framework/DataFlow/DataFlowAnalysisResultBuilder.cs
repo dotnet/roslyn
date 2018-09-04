@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Func<BasicBlock, DataFlowAnalysisInfo<TAnalysisData>, TBlockAnalysisResult> getResult,
             ImmutableDictionary<IOperation, TAbstractAnalysisValue> stateMap,
             ImmutableDictionary<IOperation, PredicateValueKind> predicateValueKindMap,
+            TAbstractAnalysisValue returnValue,
+            ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
             TAnalysisData mergedDataForUnhandledThrowOperations,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(resultBuilder.ToImmutable(), stateMap,
-                predicateValueKindMap, mergedStateForUnhandledThrowOperations, cfg, defaultUnknownValue);
+                predicateValueKindMap, returnValue, interproceduralResultsMap, mergedStateForUnhandledThrowOperations, cfg, defaultUnknownValue);
         }
     }
 }

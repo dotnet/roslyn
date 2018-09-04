@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             CoreAnalysisData = new Dictionary<AnalysisEntity, TValue>();
         }
 
+        protected AnalysisEntityBasedPredicateAnalysisData(IDictionary<AnalysisEntity, TValue> fromData)
+        {
+            CoreAnalysisData = new Dictionary<AnalysisEntity, TValue>(fromData);
+        }
+
         protected AnalysisEntityBasedPredicateAnalysisData(AnalysisEntityBasedPredicateAnalysisData<TValue> fromData)
             : base(fromData)
         {

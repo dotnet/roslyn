@@ -22,20 +22,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly Dictionary<ISymbol, PointsToAbstractValue> _instanceLocationsForSymbols;
         private readonly Func<IOperation, PointsToAbstractValue> _getPointsToAbstractValueOpt;
         private readonly Func<bool> _getIsInsideAnonymousObjectInitializer;
+        private readonly ImmutableStack<IOperation> _interproceduralCallStackOpt;
 
         public AnalysisEntityFactory(
             Func<IOperation, PointsToAbstractValue> getPointsToAbstractValueOpt,
             Func<bool> getIsInsideAnonymousObjectInitializer,
-            INamedTypeSymbol containingTypeSymbol)
+            INamedTypeSymbol containingTypeSymbol,
+            AnalysisEntity thisOrMeInstanceFromCalleeOpt,
+            ImmutableStack<IOperation> interproceduralCallStackOpt,
+            IEnumerable<KeyValuePair<ISymbol, PointsToAbstractValue>> instanceLocationsFromCallee)
         {
             _getPointsToAbstractValueOpt = getPointsToAbstractValueOpt;
             _getIsInsideAnonymousObjectInitializer = getIsInsideAnonymousObjectInitializer;
-            _analysisEntityMap = new Dictionary<IOperation, AnalysisEntity>();
-            _instanceLocationsForSymbols = new Dictionary<ISymbol, PointsToAbstractValue>();
+            _interproceduralCallStackOpt = interproceduralCallStackOpt;
 
-            var thisOrMeInstanceLocation = AbstractLocation.CreateThisOrMeLocation(containingTypeSymbol);
-            var instanceLocation = PointsToAbstractValue.Create(thisOrMeInstanceLocation, mayBeNull: false);
-            ThisOrMeInstance = AnalysisEntity.CreateThisOrMeInstance(containingTypeSymbol, instanceLocation);
+            _analysisEntityMap = new Dictionary<IOperation, AnalysisEntity>();
+
+            _instanceLocationsForSymbols = new Dictionary<ISymbol, PointsToAbstractValue>();
+            _instanceLocationsForSymbols.AddRange(instanceLocationsFromCallee);
+
+            if (thisOrMeInstanceFromCalleeOpt != null)
+            {
+                ThisOrMeInstance = thisOrMeInstanceFromCalleeOpt;
+            }
+            else
+            {
+                var thisOrMeInstanceLocation = AbstractLocation.CreateThisOrMeLocation(containingTypeSymbol);
+                var instanceLocation = PointsToAbstractValue.Create(thisOrMeInstanceLocation, mayBeNull: false);
+                ThisOrMeInstance = AnalysisEntity.CreateThisOrMeInstance(containingTypeSymbol, instanceLocation);
+            }
         }
 
         public AnalysisEntity ThisOrMeInstance { get; }
@@ -318,7 +333,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                     else
                     {
-                        var location = AbstractLocation.CreateSymbolLocation(symbolOpt);
+                        var location = AbstractLocation.CreateSymbolLocation(symbolOpt, _interproceduralCallStackOpt);
                         instanceLocationOpt = PointsToAbstractValue.Create(location, mayBeNull: false);
                     }
 

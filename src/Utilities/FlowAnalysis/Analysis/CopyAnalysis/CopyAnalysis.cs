@@ -6,6 +6,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
     using CopyAnalysisDomain = PredicatedAnalysisDataDomain<CopyAnalysisData, CopyAbstractValue>;
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
+    using InterproceduralCopyAnalysisData = InterproceduralAnalysisData<CopyAnalysisData, CopyAnalysisContext, CopyAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToAnalysis.PointsToBlockAnalysisResult, PointsToAnalysis.PointsToAbstractValue>;
 
     /// <summary>
@@ -24,11 +25,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
-            PointsToAnalysisResult pointsToAnalysisResultOpt = null,
-            bool pessimisticAnalysis = true)
+            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
+            bool pessimisticAnalysis = true,
+            bool performPointsToAnalysis = true)
         {
-            var analysisContext = new CopyAnalysisContext(CopyAbstractValueDomain.Default, wellKnownTypeProvider, cfg,
-                owningSymbol, pessimisticAnalysis, pointsToAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
+            var pointsToAnalysisResultOpt = performPointsToAnalysis ?
+                PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
+                    cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisKind, pessimisticAnalysis, performCopyAnalysis: false) :
+                null;
+            var analysisContext = CopyAnalysisContext.Create(CopyAbstractValueDomain.Default, wellKnownTypeProvider,
+                cfg, owningSymbol, interproceduralAnalysisKind, pessimisticAnalysis, pointsToAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 
