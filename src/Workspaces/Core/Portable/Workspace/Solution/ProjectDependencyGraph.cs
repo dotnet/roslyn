@@ -295,6 +295,8 @@ namespace Microsoft.CodeAnalysis
 
         internal ProjectDependencyGraph WithProjectReferences(ProjectId projectId, IEnumerable<ProjectId> referencedProjectIds)
         {
+            Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+
             // This method we can't optimize very well: changing project references arbitrarily could invalidate pretty much anything. The only thing we can reuse is our
             // actual map of project references for all the other projects, so we'll do that
             return new ProjectDependencyGraph(_projectIds, _referencesMap.SetItem(projectId, referencedProjectIds.ToImmutableHashSet()));
