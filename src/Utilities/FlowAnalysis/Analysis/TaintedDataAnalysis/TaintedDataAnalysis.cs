@@ -19,15 +19,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
         }
 
-        internal static TaintedDataCfgAnalysisResult GetOrComputeResult(IBlockOperation topmostBlock, Compilation compilation, IMethodSymbol containingMethod)
+        internal static DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> GetOrComputeResult(IBlockOperation topmostBlock, Compilation compilation, IMethodSymbol containingMethod)
         {
             ControlFlowGraph cfg = topmostBlock.GetEnclosingControlFlowGraph();
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             return GetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider);
         }
 
-
-        public static TaintedDataCfgAnalysisResult GetOrComputeResult(
+        public static DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> GetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider)
@@ -43,7 +42,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 wellKnownTypeProvider,
                 cfg,
                 true /* pessimisticAnalysis */,
-                false /* predicateAnalysis */,
+                false /* predicateAnalysis */,    // TODO paulming: Does it even make sense to have this as an option on TaintedDataOperationVisitor?
                 copyAnalysisResult,
                 pointsToAnalysisResult);
             TaintedDataAnalysis analysis = new TaintedDataAnalysis(visitor);

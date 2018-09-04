@@ -50,33 +50,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             && propertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.HttpRequest
                             && propertyReferenceOperation.Member.MetadataName == "Form")
                         {
-                            if (this.AnalysisEntityFactory.TryCreate(propertyReferenceOperation, out AnalysisEntity analysisEntity))
-                            {
-                               // Remember that the NameValueCollection is tainted.
-                               this.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.Tainted);
-                            }
-
-                            return TaintedDataAbstractValue.NotTainted;
+                            // HttpRequest.Form
+                            return TaintedDataAbstractValue.Tainted;
                         }
                         else if (propertyReferenceOperation.Instance != null
                             && propertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.NameValueCollection
-                            && this.AnalysisEntityFactory.TryCreate(propertyReferenceOperation, out AnalysisEntity analysisEntity)
-                            && this.GetAbstractValue(analysisEntity).Kind == TaintedDataAbstractValueKind.Tainted
-                            )
+                            && this.GetCachedAbstractValue(propertyReferenceOperation.Instance).Kind == TaintedDataAbstractValueKind.Tainted)
                         {
+                            // propertyReferenceOperation.Instance is a NameValueCollection from an HttpRequest.Form
                             return TaintedDataAbstractValue.Tainted;
                         }
-                        ////else if (propertyReferenceOperation.Instance != null
-                        ////    && propertyReferenceOperation.Instance is IPropertyReferenceOperation instancePropertyReferenceOperation
-                        ////    && instancePropertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.HttpRequest
-                        ////    && propertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.NameValueCollection
-                        ////    && instancePropertyReferenceOperation.Member.MetadataName == "Form"
-                        ////    && propertyReferenceOperation.Member.MetadataName == "Item")
-                        ////    //&& propertyReferenceOperation.Member.Parameters.Length == 1
-                        ////    //&& propertyReferenceOperation.Member.Parameters[0].Type == WellKnownTypes.String)
-                        ////{
-                        ////    return TaintedDataAbstractValue.Tainted;
-                        ////}
                         else
                         {
                             return TaintedDataAbstractValue.NotTainted;

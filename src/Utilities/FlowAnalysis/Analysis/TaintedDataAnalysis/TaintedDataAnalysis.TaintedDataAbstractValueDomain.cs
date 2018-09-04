@@ -19,17 +19,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 // The newly computed abstract values for each basic block
                 // must be always greater or equal than the previous value
                 // to ensure termination.
-                throw new System.NotImplementedException();
+                
+                // Unknown < NotTainted < Tainted
+                return oldValue.Kind.CompareTo(newValue.Kind);
             }
 
             public override TaintedDataAbstractValue Merge(TaintedDataAbstractValue value1, TaintedDataAbstractValue value2)
             {
-                //     U N T M
-                //   +---------
-                // U | U N T M
-                // N | N N T M
-                // T | T T T M
-                // M | M M M M
+                //     U N T
+                //   +------
+                // U | U N T
+                // N | N N T
+                // T | T T T
 
                 if (value1 == null)
                 {
@@ -39,16 +40,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     return value1;
                 }
-                else if (value1.Kind == TaintedDataAbstractValueKind.Tainted || value2.Kind == TaintedDataAbstractValueKind.Tainted)
-                {
-                    return value1;
-                }
-                else if (value1.Kind == TaintedDataAbstractValueKind.Unknown || value2.Kind == TaintedDataAbstractValueKind.Unknown)
-                {
-                    return value1;
-                }
 
-                throw new System.NotImplementedException();
+                return this.Compare(value1, value2) >= 0 ? value1 : value2;
             }
         }
     }
