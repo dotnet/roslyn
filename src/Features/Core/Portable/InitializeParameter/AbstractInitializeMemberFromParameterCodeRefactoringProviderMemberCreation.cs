@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             accessibilityLevel = Accessibility.NotApplicable;
                         }
-                        // VB: only remove modifier if code is in C# or if it's within a class or module
+                        // VB: only remove modifier for fields if "omit if default" or "never" option is set and code is within a class or module
                         else if (functionDeclaration.Language == LanguageNames.VisualBasic)
                         {
                             var service = document.GetLanguageService<ISyntaxFactsService>();
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                                 var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                                 var containingTypeSymbol = (INamedTypeSymbol) model.GetDeclaredSymbol(containingTypeNode, cancellationToken);
                                 switch (containingTypeSymbol.TypeKind)
-                                {
+       
                                     case TypeKind.Class:
                                     case TypeKind.Module:
                                         accessibilityLevel = Accessibility.NotApplicable;
