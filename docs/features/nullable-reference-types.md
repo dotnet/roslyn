@@ -154,9 +154,10 @@ var z = (string?)notNull; // y is string?, no warning
 ```
 A warning is reported if the type of operand including nested nullability is not explicitly convertible to the target type.
 ```c#
-var x =  new List<string>();
-var y = (List<string?>)x;        // warning
-var z = (IEnumerable<string?>)x; // no warning
+sealed class MyEnumerable<T> : IEnumerable<T> { }
+var x =  new MyEnumerable<string?>();
+var y = (IEnumerable<object>)x;  // warning
+var z = (IEnumerable<object?>)x; // no warning
 ```
 
 ### Array creation

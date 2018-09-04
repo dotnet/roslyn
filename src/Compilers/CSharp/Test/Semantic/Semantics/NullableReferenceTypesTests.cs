@@ -33775,6 +33775,201 @@ class C
         }
 
         [Fact]
+        public void ExplicitCast_NestedNullability_01()
+        {
+            var source =
+@"class A<T> { }
+class B<T> : A<T> { }
+class C
+{
+    static void F1(A<object> x1, A<object?> y1)
+    {
+        object o;
+        o = (B<object>)x1;
+        o = (B<object?>)x1; // 1
+        o = (B<object>)y1; // 2
+        o = (B<object?>)y1;
+    }
+    static void F2(B<object> x2, B<object?> y2)
+    {
+        object o;
+        o = (A<object>)x2;
+        o = (A<object?>)x2; // 3
+        o = (A<object>)y2; // 4
+        o = (A<object?>)y2;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (9,13): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object?>'.
+                //         o = (B<object?>)x1; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(B<object?>)x1").WithArguments("A<object>", "B<object?>").WithLocation(9, 13),
+                // (10,13): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'B<object>'.
+                //         o = (B<object>)y1; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(B<object>)y1").WithArguments("A<object?>", "B<object>").WithLocation(10, 13),
+                // (17,13): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
+                //         o = (A<object?>)x2; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(A<object?>)x2").WithArguments("B<object>", "A<object?>").WithLocation(17, 13),
+                // (18,13): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
+                //         o = (A<object>)y2; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(A<object>)y2").WithArguments("B<object?>", "A<object>").WithLocation(18, 13));
+        }
+
+        [Fact]
+        public void ExplicitCast_NestedNullability_02()
+        {
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class A<T> : I<T> { }
+class B<T> : IIn<T> { }
+class C<T> : IOut<T> { }
+class D
+{
+    static void F1(A<object> x1, A<object?> y1)
+    {
+        object o;
+        o = (I<object>)x1;
+        o = (I<object?>)x1;
+        o = (I<object>)y1;
+        o = (I<object?>)y1;
+    }
+    static void F2(I<object> x2, I<object?> y2)
+    {
+        object o;
+        o = (A<object>)x2;
+        o = (A<object?>)x2;
+        o = (A<object>)y2;
+        o = (A<object?>)y2;
+    }
+    static void F3(B<object> x3, B<object?> y3)
+    {
+        object o;
+        o = (IIn<object>)x3;
+        o = (IIn<object?>)x3;
+        o = (IIn<object>)y3;
+        o = (IIn<object?>)y3;
+    }
+    static void F4(IIn<object> x4, IIn<object?> y4)
+    {
+        object o;
+        o = (B<object>)x4;
+        o = (B<object?>)x4;
+        o = (B<object>)y4;
+        o = (B<object?>)y4;
+    }
+    static void F5(C<object> x5, C<object?> y5)
+    {
+        object o;
+        o = (IOut<object>)x5;
+        o = (IOut<object?>)x5;
+        o = (IOut<object>)y5;
+        o = (IOut<object?>)y5;
+    }
+    static void F6(IOut<object> x6, IOut<object?> y6)
+    {
+        object o;
+        o = (C<object>)x6;
+        o = (C<object?>)x6;
+        o = (C<object>)y6;
+        o = (C<object?>)y6;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExplicitCast_NestedNullability_03()
+        {
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+sealed class A<T> : I<T> { }
+sealed class B<T> : IIn<T> { }
+sealed class C<T> : IOut<T> { }
+class D
+{
+    static void F1(A<object> x1, A<object?> y1)
+    {
+        object o;
+        o = (I<object>)x1;
+        o = (I<object?>)x1; // 1
+        o = (I<object>)y1; // 2
+        o = (I<object?>)y1;
+    }
+    static void F2(I<object> x2, I<object?> y2)
+    {
+        object o;
+        o = (A<object>)x2;
+        o = (A<object?>)x2; // 3
+        o = (A<object>)y2; // 4
+        o = (A<object?>)y2;
+    }
+    static void F3(B<object> x3, B<object?> y3)
+    {
+        object o;
+        o = (IIn<object>)x3;
+        o = (IIn<object?>)x3; // 5
+        o = (IIn<object>)y3;
+        o = (IIn<object?>)y3;
+    }
+    static void F4(IIn<object> x4, IIn<object?> y4)
+    {
+        object o;
+        o = (B<object>)x4;
+        o = (B<object?>)x4;
+        o = (B<object>)y4; // 6
+        o = (B<object?>)y4;
+    }
+    static void F5(C<object> x5, C<object?> y5)
+    {
+        object o;
+        o = (IOut<object>)x5;
+        o = (IOut<object?>)x5;
+        o = (IOut<object>)y5; // 7
+        o = (IOut<object?>)y5;
+    }
+    static void F6(IOut<object> x6, IOut<object?> y6)
+    {
+        object o;
+        o = (C<object>)x6;
+        o = (C<object?>)x6; // 8
+        o = (C<object>)y6;
+        o = (C<object?>)y6;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'I<object?>'.
+                //         o = (I<object?>)x1; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(I<object?>)x1").WithArguments("A<object>", "I<object?>").WithLocation(13, 13),
+                // (14,13): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'I<object>'.
+                //         o = (I<object>)y1; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(I<object>)y1").WithArguments("A<object?>", "I<object>").WithLocation(14, 13),
+                // (21,13): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'A<object?>'.
+                //         o = (A<object?>)x2; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(A<object?>)x2").WithArguments("I<object>", "A<object?>").WithLocation(21, 13),
+                // (22,13): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'A<object>'.
+                //         o = (A<object>)y2; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(A<object>)y2").WithArguments("I<object?>", "A<object>").WithLocation(22, 13),
+                // (29,13): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'IIn<object?>'.
+                //         o = (IIn<object?>)x3; // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(IIn<object?>)x3").WithArguments("B<object>", "IIn<object?>").WithLocation(29, 13),
+                // (38,13): warning CS8619: Nullability of reference types in value of type 'IIn<object?>' doesn't match target type 'B<object>'.
+                //         o = (B<object>)y4; // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(B<object>)y4").WithArguments("IIn<object?>", "B<object>").WithLocation(38, 13),
+                // (46,13): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
+                //         o = (IOut<object>)y5; // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(IOut<object>)y5").WithArguments("C<object?>", "IOut<object>").WithLocation(46, 13),
+                // (53,13): warning CS8619: Nullability of reference types in value of type 'IOut<object>' doesn't match target type 'C<object?>'.
+                //         o = (C<object?>)x6; // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(C<object?>)x6").WithArguments("IOut<object>", "C<object?>").WithLocation(53, 13));
+        }
+
+        [Fact]
         public void ExplicitCast_UserDefined_01()
         {
             var source =
