@@ -827,4 +827,10 @@ Do you want to proceed?</value>
   <data name="Change_configuration" xml:space="preserve">
     <value>Change configuration</value>
   </data>
+  <data name="Invalid_assembly_name" xml:space="preserve">
+    <value>Invalid assembly name</value>
+  </data>
+  <data name="Invalid_characters_in_assembly_name" xml:space="preserve">
+    <value>Invalid characters in assembly name</value>
+  </data>
 </root>

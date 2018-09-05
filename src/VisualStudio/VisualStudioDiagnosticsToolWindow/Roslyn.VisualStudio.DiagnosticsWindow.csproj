@@ -27,9 +27,6 @@
     <ProjectReference Include="..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj">
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj">
-      <Private>false</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Private>false</Private>
     </ProjectReference>

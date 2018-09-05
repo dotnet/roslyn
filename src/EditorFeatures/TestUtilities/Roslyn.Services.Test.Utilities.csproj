@@ -23,7 +23,6 @@
     <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures.vbproj" />
     <ProjectReference Include="..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\Roslyn.Services.UnitTests.Utilities.csproj" />
-    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Aliases>global,WORKSPACES</Aliases>
     </ProjectReference>

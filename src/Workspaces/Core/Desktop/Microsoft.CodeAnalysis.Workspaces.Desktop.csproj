@@ -51,22 +51,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Xml" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Xml.Linq" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all"/>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
-      <Link>InternalUtilities\DesktopAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
-      <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
-      <Link>InternalUtilities\FileKey.cs</Link>
-    </Compile>
     <Compile Update="WorkspaceDesktopResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

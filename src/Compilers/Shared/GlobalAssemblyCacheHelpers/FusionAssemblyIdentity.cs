@@ -438,15 +438,10 @@ namespace Microsoft.CodeAnalysis
                 if (assemblyName.IndexOf('\0') >= 0)
                 {
 #if SCRIPTING
-
                     throw new ArgumentException(Scripting.ScriptingResources.InvalidCharactersInAssemblyName, nameof(name));
-
-#elif WORKSPACE_DESKTOP || EDITOR_FEATURES
-
-                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.Invalid_characters_in_assembly_name, nameof(name));
-
+#elif EDITOR_FEATURES
+                    throw new ArgumentException(Microsoft.CodeAnalysis.Editor.EditorFeaturesResources.Invalid_characters_in_assembly_name, nameof(name));
 #else
-
                     throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, nameof(name));
 #endif
                 }
@@ -468,15 +463,10 @@ namespace Microsoft.CodeAnalysis
                 if (cultureName.IndexOf('\0') >= 0)
                 {
 #if SCRIPTING
-
                     throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.InvalidCharactersInAssemblyName, nameof(name));
-
-#elif WORKSPACE_DESKTOP || EDITOR_FEATURES
-
-                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.Invalid_characters_in_assembly_name, nameof(name));
-
+#elif EDITOR_FEATURES
+                    throw new ArgumentException(Microsoft.CodeAnalysis.Editor.EditorFeaturesResources.Invalid_characters_in_assembly_name, nameof(name));
 #else
-
                     throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, nameof(name));
 #endif
                 }
