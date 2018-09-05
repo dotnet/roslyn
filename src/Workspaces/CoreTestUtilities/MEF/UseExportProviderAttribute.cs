@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Xunit.Sdk;
 
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </list>
     /// </remarks>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public sealed class UseExportProviderAttribute : BeforeAfterTestAttribute
+    public class UseExportProviderAttribute : BeforeAfterTestAttribute
     {
         /// <summary>
         /// Asynchronous operations are expected to be cancelled at the end of the test that started them. Operations
@@ -66,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             MefHostServices.HookServiceCreation(CreateMefHostServices);
             RoslynServices.HookHostServices(() => _remoteHostServices.Value);
-            DesktopMefHostServices.ResetHostServicesTestOnly();
 
             // make sure we enable this for all unit tests
             AsynchronousOperationListenerProvider.Enable(enable: true, diagnostics: true);
@@ -144,7 +144,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 RoslynServices.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
 
                 // Reset static state variables.
-                DesktopMefHostServices.ResetHostServicesTestOnly();
                 _hostServices = null;
                 ExportProviderCache.SetEnabled_OnlyUseExportProviderAttributeCanCall(false);
             }
@@ -199,27 +198,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private class ExportProviderMefHostServices : MefHostServices, IMefHostExportProvider
         {
-            private readonly MefV1HostServices _mefV1HostServices;
+            private readonly VisualStudioMefHostServices _vsHostServices;
 
             public ExportProviderMefHostServices(ExportProvider exportProvider)
                 : base(new ContainerConfiguration().CreateContainer())
             {
-                _mefV1HostServices = MefV1HostServices.Create(exportProvider.AsExportProvider());
+                _vsHostServices = VisualStudioMefHostServices.Create(exportProvider);
             }
 
             protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
             {
-                return _mefV1HostServices.CreateWorkspaceServices(workspace);
+                return _vsHostServices.CreateWorkspaceServices(workspace);
             }
 
             IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
             {
-                return _mefV1HostServices.GetExports<TExtension, TMetadata>();
+                return _vsHostServices.GetExports<TExtension, TMetadata>();
             }
 
             IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
             {
-                return _mefV1HostServices.GetExports<TExtension>();
+                return _vsHostServices.GetExports<TExtension>();
             }
         }
     }
