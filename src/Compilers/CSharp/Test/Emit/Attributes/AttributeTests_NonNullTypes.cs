@@ -10,6 +10,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AttributeTests_NonNullTypes : CSharpTestBase
     {
         [Fact]
+        public void NonNullTypesAttributeNamespace()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices.NonNullTypesAttribute
+{
+    class C { }
+}
+
+[System.Runtime.CompilerServices.NonNullTypes]
+internal class TestType1 { }
+
+[System.Runtime.CompilerServices.NonNullTypesAttribute(false)]
+internal class TestType2 { }
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyEmitDiagnostics(
+                // (7,34): error CS0616: 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not an attribute class
+                // [System.Runtime.CompilerServices.NonNullTypes]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypesAttribute").WithLocation(7, 34),
+                // (10,34): error CS0616: 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not an attribute class
+                // [System.Runtime.CompilerServices.NonNullTypesAttribute(false)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "NonNullTypesAttribute").WithArguments("System.Runtime.CompilerServices.NonNullTypesAttribute").WithLocation(10, 34)
+                );
+            Assert.Equal(SymbolKind.Namespace, comp.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute").Kind);
+        }
+
+        [Fact]
+        public void NonNullTypesAttributeNamespace_WithoutUsage()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices.NonNullTypesAttribute
+{
+    class C { }
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyEmitDiagnostics();
+            Assert.Equal(SymbolKind.Namespace, comp.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute").Kind);
+        }
+
+        [Fact]
         public void ReferencingNonNullTypesAttributesFromTheSameAssemblyAllowed()
         {
             var code = @"

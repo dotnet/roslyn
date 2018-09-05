@@ -10,6 +10,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AttributeTests_Embedded : CSharpTestBase
     {
         [Fact]
+        public void EmbeddedAttributeNamespace()
+        {
+            var code = @"
+namespace Microsoft.CodeAnalysis.EmbeddedAttribute
+{
+    class C { }
+}
+namespace TestReference
+{
+    [Microsoft.CodeAnalysis.Embedded]
+    internal class TestType1 { }
+
+    [Microsoft.CodeAnalysis.EmbeddedAttribute]
+    internal class TestType2 { }
+
+    internal class TestType3 { }
+}
+class Program
+{
+    public static void Main()
+    {
+        var obj1 = new TestReference.TestType1();
+        var obj2 = new TestReference.TestType2();
+        var obj3 = new TestReference.TestType3();
+    }
+}";
+
+            CreateCompilation(code).VerifyEmitDiagnostics(
+                // (11,29): error CS0616: 'Microsoft.CodeAnalysis.EmbeddedAttribute' is not an attribute class
+                //     [Microsoft.CodeAnalysis.EmbeddedAttribute]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "EmbeddedAttribute").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(11, 29),
+                // (8,29): error CS0616: 'Microsoft.CodeAnalysis.EmbeddedAttribute' is not an attribute class
+                //     [Microsoft.CodeAnalysis.Embedded]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Embedded").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(8, 29)
+                );
+        }
+
+        [Fact]
         public void ReferencingEmbeddedAttributesFromTheSameAssemblySucceeds()
         {
             var code = @"
