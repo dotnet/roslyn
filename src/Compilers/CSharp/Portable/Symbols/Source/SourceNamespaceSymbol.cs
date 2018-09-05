@@ -28,28 +28,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private int _flags;
 
         private LexicalSortKey _lazyLexicalSortKey = LexicalSortKey.NotInitialized;
-        private readonly bool _isInjected;
+        private readonly string _injectedName;
 
         internal SourceNamespaceSymbol(
             SourceModuleSymbol module, Symbol container,
             MergedNamespaceDeclaration mergedDeclaration,
             DiagnosticBag diagnostics,
-            bool isInjected = false)
+            string injectedName = null)
         {
+            Debug.Assert((mergedDeclaration == null) == (injectedName != null));
+
             _module = module;
             _container = container;
             _mergedDeclaration = mergedDeclaration;
 
-            foreach (var singleDeclaration in mergedDeclaration.Declarations)
+            if (mergedDeclaration != null)
             {
-                diagnostics.AddRange(singleDeclaration.Diagnostics);
+                foreach (var singleDeclaration in mergedDeclaration.Declarations)
+                {
+                    diagnostics.AddRange(singleDeclaration.Diagnostics);
+                }
             }
 
-            _isInjected = isInjected;
+            _injectedName = injectedName;
         }
 
+        internal bool IsInjected
+            => _injectedName != null;
+
         public override bool IsImplicitlyDeclared
-            => base.IsImplicitlyDeclared || _isInjected;
+            => base.IsImplicitlyDeclared || _injectedName != null;
 
         internal MergedNamespaceDeclaration MergedDeclaration
             => _mergedDeclaration;
@@ -76,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _mergedDeclaration.Name;
+                return IsInjected ? _injectedName : _mergedDeclaration.Name;
             }
         }
 
@@ -84,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!_lazyLexicalSortKey.IsInitialized)
             {
-                _lazyLexicalSortKey.SetFrom(_mergedDeclaration.GetLexicalSortKey(this.DeclaringCompilation));
+                _lazyLexicalSortKey.SetFrom(IsInjected ? LexicalSortKey.NotInSource : _mergedDeclaration.GetLexicalSortKey(this.DeclaringCompilation));
             }
             return _lazyLexicalSortKey;
         }
@@ -96,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_locations.IsDefault)
                 {
                     ImmutableInterlocked.InterlockedCompareExchange(ref _locations,
-                        _isInjected ? ImmutableArray.Create(Location.None) : _mergedDeclaration.NameLocations,
+                        IsInjected ? ImmutableArray.Create(Location.None) : _mergedDeclaration.NameLocations,
                         default);
                 }
 
@@ -111,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _isInjected ? ImmutableArray<SyntaxReference>.Empty : ComputeDeclaringReferencesCore();
+                return IsInjected ? ImmutableArray<SyntaxReference>.Empty : ComputeDeclaringReferencesCore();
             }
         }
 
@@ -120,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
             // namespace decl node we want to return. here we will wrap the original syntax reference in 
             // the translation syntax reference so that we can lazily manipulate a node return to the caller
-            return _mergedDeclaration.Declarations.SelectAsArray(s_declaringSyntaxReferencesSelector);
+            return IsInjected ? ImmutableArray<SyntaxReference>.Empty : _mergedDeclaration.Declarations.SelectAsArray(s_declaringSyntaxReferencesSelector);
         }
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()
@@ -310,10 +318,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: a name maps into values collection containing types only instead of allocating another 
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
-            var builder = new NameToSymbolMapBuilder(_mergedDeclaration.Children.Length);
-            foreach (var declaration in _mergedDeclaration.Children)
+            var builder = new NameToSymbolMapBuilder(IsInjected ? 1 : _mergedDeclaration.Children.Length);
+            if (!IsInjected)
             {
-                builder.Add(BuildSymbol(declaration, diagnostics));
+                foreach (var declaration in _mergedDeclaration.Children)
+                {
+                    builder.Add(BuildSymbol(declaration, diagnostics));
+                }
             }
             builder.AddInjectedSymbols(containingNamespace: this);
             var result = builder.CreateMap();
@@ -452,6 +463,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsGlobalNamespace)
             {
                 return true;
+            }
+
+            if (this.IsInjected)
+            {
+                return false;
             }
 
             // Check if any namespace declaration block intersects with the given tree/span.
@@ -606,9 +622,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 SourceNamespaceSymbol makeEmptyNamespace(string name)
                 {
-                    var mergedDeclaration = MergedNamespaceDeclaration.Create(name);
+                    Debug.Assert(name != null);
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var result = new SourceNamespaceSymbol(containingNamespace._module, containingNamespace, mergedDeclaration, diagnostics, isInjected: true);
+                    var result = new SourceNamespaceSymbol(containingNamespace._module, containingNamespace, mergedDeclaration: null, diagnostics, injectedName: name);
                     diagnostics.Free();
                     return result;
                 }
