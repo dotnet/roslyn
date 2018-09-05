@@ -49,15 +49,6 @@ namespace Microsoft.Cci
 
         protected override void ProcessMethodBody(IMethodDefinition method)
         {
-            if (method.HasBody())
-            {
-                var body = method.GetBody(Context);
-
-                if (body != null)
-                {
-                    this.Visit(body);
-                }
-            }
         }
 
         protected override void RecordTypeReference(ITypeReference typeReference)
