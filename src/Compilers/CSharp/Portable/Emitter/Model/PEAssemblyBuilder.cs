@@ -286,20 +286,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ArrayBuilder<NamedTypeSymbol> builder = null;
             if (_needsNonNullTypesAttribute)
             {
-                addInjectedAttribute(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute);
+                addInjectedAttribute(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute, canUseFromSource: true);
                 EnsureEmbeddedAttributeExists();
             }
 
             if (_needsEmbeddedAttribute)
             {
-                addInjectedAttribute(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
+                addInjectedAttribute(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute, canUseFromSource: false);
             }
 
             var result = builder is null ? ImmutableArray<NamedTypeSymbol>.Empty : builder.ToImmutableAndFree();
             ImmutableInterlocked.InterlockedInitialize(ref _lazyInjectedTypes, result);
             return _lazyInjectedTypes;
 
-            void addInjectedAttribute(WellKnownType wellKnownType)
+            void addInjectedAttribute(WellKnownType wellKnownType, bool canUseFromSource)
             {
                 NamedTypeSymbol attribute = Compilation.GetWellKnownType(wellKnownType);
 
@@ -308,6 +308,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics.AddRange(injected.Diagnostics);
                     builder = builder ?? ArrayBuilder<NamedTypeSymbol>.GetInstance();
                     builder.Add(attribute);
+                }
+                else if (!canUseFromSource)
+                {
+                    // if the attribute is defined in source, we can't embed it (we'll produce a diagnostic)
+                    diagnostics.Add(ErrorCode.ERR_TypeReserved, attribute.Locations[0], attribute);
                 }
             }
         }
