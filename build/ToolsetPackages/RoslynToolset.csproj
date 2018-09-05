@@ -14,7 +14,6 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" ExcludeAssets="all" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" ExcludeAssets="all" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" ExcludeAssets="all" />
-    <PackageReference Include="RoslynTools.ReferenceAssemblies" Version="$(RoslynToolsReferenceAssembliesVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.DiaSymReader.Pdb2Pdb" Version="$(MicrosoftDiaSymReaderPdb2PdbVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynTools.BuildTasks" Version="$(RoslynToolsBuildTasksVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynTools.NuGetRepack.BuildTasks" Version="$(RoslynToolsNuGetRepackVersion)" ExcludeAssets="all" />
