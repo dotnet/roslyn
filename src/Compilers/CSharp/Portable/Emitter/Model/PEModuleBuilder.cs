@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private bool _needsGeneratedIsUnmanagedAttribute_Value;
         private bool _needsGeneratedAttributes_IsFrozen;
         private bool _needsGeneratedNullableAttribute_Value;
-        private NamedTypeSymbol _nonNullTypesAttribute;
+        private NamedTypeSymbol _injectedNonNullTypesAttribute;
 
         protected abstract void EnsureNonNullTypesAttributeExists();
         protected abstract void EnsureEmbeddedAttributeExists();
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 _embeddedTypesManagerOpt = new NoPia.EmbeddedTypesManager(this);
             }
 
-            _nonNullTypesAttribute = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute);
+            _injectedNonNullTypesAttribute = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute) as InjectedNonNullTypesAttributeSymbol;
         }
 
         public override string Name
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return _embeddedTypesManagerOpt.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics);
             }
 
-            if (!InjectedSymbolsAreFrozen && namedTypeSymbol.Equals(_nonNullTypesAttribute))
+            if (!InjectedSymbolsAreFrozen && namedTypeSymbol.Equals(_injectedNonNullTypesAttribute))
             {
                 EnsureNonNullTypesAttributeExists();
             }

@@ -286,24 +286,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ArrayBuilder<NamedTypeSymbol> builder = null;
             if (_needsNonNullTypesAttribute)
             {
-                addInjectedAttribute(AttributeDescription.NonNullTypesAttribute);
+                addInjectedAttribute(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute);
                 EnsureEmbeddedAttributeExists();
             }
 
             if (_needsEmbeddedAttribute)
             {
-                addInjectedAttribute(AttributeDescription.CodeAnalysisEmbeddedAttribute);
+                addInjectedAttribute(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
             }
 
             var result = builder is null ? ImmutableArray<NamedTypeSymbol>.Empty : builder.ToImmutableAndFree();
             ImmutableInterlocked.InterlockedInitialize(ref _lazyInjectedTypes, result);
             return _lazyInjectedTypes;
 
-            void addInjectedAttribute(AttributeDescription description)
+            void addInjectedAttribute(WellKnownType wellKnownType)
             {
-                string fullName = description.FullName;
-                var attributeMetadataName = MetadataTypeName.FromFullName(fullName);
-                NamedTypeSymbol attribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+                NamedTypeSymbol attribute = Compilation.GetWellKnownType(wellKnownType);
 
                 if (attribute is InjectedAttributeSymbol injected)
                 {
