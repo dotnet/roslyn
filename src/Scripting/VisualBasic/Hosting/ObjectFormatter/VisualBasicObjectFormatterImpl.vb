@@ -2,6 +2,7 @@
 
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
+Imports MemberFilter = Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
