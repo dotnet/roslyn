@@ -152,7 +152,7 @@
         <Import Include="System.Collections.Generic" />
         <Import Include="System.Diagnostics" />
       </ItemGroup>
-      <ItemGroup Condition="'$(TargetNetFX20)' != 'true'">
+      <ItemGroup Condition="'$(TargetFramework)' != 'net20'">
         <Import Include="System.Linq" />
       </ItemGroup>
       <PropertyGroup>
