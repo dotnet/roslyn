@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
-            : base(exportProvider.AsExportProvider())
+            : base(exportProvider)
         {
             _streamingPresenters = streamingPresenters;
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Composition;
+using System.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -11,8 +13,19 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public partial class CommandLineProjectTests : TestBase
+    public class CommandLineProjectTests : TestBase
     {
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestCommandLineProjectWithRelativePathOutsideProjectCone()
+        {
+            string commandLine = @"..\goo.cs";
+            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
+
+            var docInfo = info.Documents.First();
+            Assert.Equal(0, docInfo.Folders.Count);
+            Assert.Equal("goo.cs", docInfo.Name);
+        }
+
         [Fact]
         public void TestCreateWithoutRequiredServices()
         {
@@ -20,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<InvalidOperationException>(delegate
             {
-                var ws = new AdhocWorkspace(); // only includes portable services
+                var ws = new AdhocWorkspace(new MefHostServices(new ContainerConfiguration().CreateContainer())); // no services
                 var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory", ws);
             });
         }
