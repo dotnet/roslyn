@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     public class CompilerServerApiTest : TestBase
     {
         private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
-            1,
+            BuildProtocolConstants.ProtocolVersion,
             RequestLanguage.CSharpCompile,
             ImmutableArray<BuildRequest.Argument>.Empty);
 
@@ -518,6 +518,16 @@ class Hello
 
                     Assert.True(threw);
                 }
+            }
+        }
+
+        [Fact]
+        public async Task IncorrectProtocolReturnsMismatchedVersionResponse()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(1, RequestLanguage.CSharpCompile, new List<BuildRequest.Argument> { }));
+                Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
             }
         }
     }
