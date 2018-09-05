@@ -32,7 +32,6 @@
       is .NET Core.
     -->
     <PackageReference Include="RoslynTools.LightUp.System.Runtime.Loader" Version="$(RoslynToolsLightUpSystemRuntimeLoaderFixedVersion)" PrivateAssets="all" />
-    <PackageReference Include="System.Diagnostics.StackTrace" Version="$(SystemDiagnosticsStackTraceVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">

@@ -78,7 +78,6 @@
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildFixedVersion)" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreFixedVersion)" />
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
-    <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />

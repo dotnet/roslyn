@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-#if NET472
         public string Dump()
         {
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
@@ -94,7 +93,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return syntaxTree.ToString();
             }
         }
-#endif
 
         public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
         {

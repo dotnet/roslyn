@@ -98,8 +98,5 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
-  </ItemGroup>
   <Import Project="..\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
 </Project>
