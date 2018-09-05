@@ -8,13 +8,16 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -25,18 +28,12 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
+using NativeMethods = Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue.Interop.NativeMethods;
 using ShellInterop = Microsoft.VisualStudio.Shell.Interop;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 using VsThreading = Microsoft.VisualStudio.Threading;
-using Document = Microsoft.CodeAnalysis.Document;
-using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.VisualStudio.Shell.Interop;
-using System.Reflection.PortableExecutable;
-using Microsoft.VisualStudio.LanguageServices.EditAndContinue;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {
@@ -65,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         private readonly IDebuggingWorkspaceService _debuggingService;
         private readonly IEditAndContinueService _encService;
         private readonly IActiveStatementTrackingService _trackingService;
+        private readonly IThreadingContext _threadingContext;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticProvider;
         private readonly IDebugEncNotify _debugEncNotify;
         private readonly INotificationService _notifications;
@@ -106,6 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             _debugEncNotify = (IDebugEncNotify)project.ServiceProvider.GetService(typeof(SVsShellDebugger));
 
             var componentModel = (IComponentModel)project.ServiceProvider.GetService(typeof(SComponentModel));
+            _threadingContext = componentModel.GetService<IThreadingContext>();
             _diagnosticProvider = componentModel.GetService<EditAndContinueDiagnosticUpdateSource>();
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _moduleMetadataProvider = componentModel.GetService<IDebuggeeModuleMetadataProvider>();
@@ -221,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     _encService.StartDebuggingSession(_vsProject.Workspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
-                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService);
+                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_threadingContext, _encService, _editorAdaptersFactoryService);
                 }
 
                 string outputPath = _vsProject.ObjOutputPath;

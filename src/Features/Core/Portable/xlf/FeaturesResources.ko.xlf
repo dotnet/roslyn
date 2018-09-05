@@ -22,9 +22,14 @@
         <target state="translated">작업은 비워 둘 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_query">
-        <source>Convert to query</source>
-        <target state="new">Convert to query</target>
+      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
+        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
+        <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq">
+        <source>Convert to LINQ</source>
+        <target state="new">Convert to LINQ</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_0">
@@ -35,6 +40,11 @@
       <trans-unit id="Convert_to_class">
         <source>Convert to class</source>
         <target state="new">Convert to class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq_call_form">
+        <source>Convert to LINQ (call form)</source>
+        <target state="new">Convert to LINQ (call form)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
@@ -60,6 +70,31 @@
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
         <target state="new">Related method signatures found in metadata will not be updated.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unread_private_members">
+        <source>Remove unread private members</source>
+        <target state="new">Remove unread private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_member">
+        <source>Remove unused member</source>
+        <target state="new">Remove unused member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_private_members">
+        <source>Remove unused private members</source>
+        <target state="new">Remove unused private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Type '{0}' has a private member '{1}' that can be removed as the value assigned to it is never read.</source>
+        <target state="new">Type '{0}' has a private member '{1}' that can be removed as the value assigned to it is never read.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_has_an_unused_private_member_1_which_can_be_removed">
+        <source>Type '{0}' has an unused private member '{1}' which can be removed.</source>
+        <target state="new">Type '{0}' has an unused private member '{1}' which can be removed.</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

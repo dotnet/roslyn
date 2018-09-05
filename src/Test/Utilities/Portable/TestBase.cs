@@ -353,21 +353,21 @@ namespace Roslyn.Test.Utilities
         {
             return Diagnostic(
                 code,
-                NormalizeDiagnosticString(squiggledText.Value),
+                NormalizeNewLines(squiggledText),
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
                 argumentOrderDoesNotMatter);
         }
 
-        protected static string NormalizeDiagnosticString(string inputString)
+        public static string NormalizeNewLines(XCData data)
         {
-            if (!inputString.Contains("\r\n") && inputString.Contains("\n"))
+            if (ExecutionConditionUtil.IsWindows)
             {
-                return inputString.Replace("\n", "\r\n");
+                return data.Value.Replace("\n", "\r\n");
             }
 
-            return inputString;
+            return data.Value;
         }
 
         #endregion

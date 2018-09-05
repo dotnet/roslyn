@@ -1404,5 +1404,34 @@ class C
     }
 }");
         }
+
+        [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceTypeWithParameterNameSelected1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C(string [|s|])
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
+        }
     }
 }
