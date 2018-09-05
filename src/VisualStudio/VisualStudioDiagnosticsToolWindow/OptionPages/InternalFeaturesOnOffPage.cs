@@ -45,17 +45,6 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
                 panel.Children.Add(lowMemoryGroup);
 
-                // add OOP feature options
-                var oopFeatureGroup = new StackPanel();
-
-                AddOption(oopFeatureGroup, RemoteFeatureOptions.AddImportEnabled, nameof(RemoteFeatureOptions.AddImportEnabled));
-                AddOption(oopFeatureGroup, RemoteFeatureOptions.DocumentHighlightingEnabled, nameof(RemoteFeatureOptions.DocumentHighlightingEnabled));
-                AddOption(oopFeatureGroup, RemoteFeatureOptions.NavigateToEnabled, nameof(RemoteFeatureOptions.NavigateToEnabled));
-                AddOption(oopFeatureGroup, RemoteFeatureOptions.SymbolFinderEnabled, nameof(RemoteFeatureOptions.SymbolFinderEnabled));
-                AddOption(oopFeatureGroup, RemoteFeatureOptions.SymbolSearchEnabled, nameof(RemoteFeatureOptions.SymbolSearchEnabled));
-
-                panel.Children.Add(oopFeatureGroup);
-
                 // and add the rest of the options
                 base.AddOptions(panel);
             }

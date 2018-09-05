@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {
@@ -20,20 +19,22 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
         private class IncrementalAnalyzer : IncrementalAnalyzerBase
         {
-            public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+            public override async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!document.SupportsSyntaxTree)
                 {
                     // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
-                    return Task.CompletedTask;
+                    return;
                 }
 
-                if (!RemoteFeatureOptions.ShouldComputeIndex(document.Project.Solution.Workspace))
+                var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                if (client != null)
                 {
-                    return Task.CompletedTask;
+                    // let remote host takes care of calcuating the cache
+                    return;
                 }
 
-                return SyntaxTreeIndex.PrecalculateAsync(document, cancellationToken);
+                await SyntaxTreeIndex.PrecalculateAsync(document, cancellationToken).ConfigureAwait(false);
             }
         }
     }
