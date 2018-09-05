@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var serverCallback = new FindLiteralsServerCallback(solution, progress, cancellationToken);
 
             return await solution.TryRunCodeAnalysisRemoteAsync(
-                RemoteFeatureOptions.SymbolFinderEnabled,
                 serverCallback,
                 nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
                 new object[] { value, typeCode },

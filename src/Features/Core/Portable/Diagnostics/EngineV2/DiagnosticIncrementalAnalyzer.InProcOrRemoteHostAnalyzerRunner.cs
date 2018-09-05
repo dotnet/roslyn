@@ -45,13 +45,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
             {
-                var workspace = project.Solution.Workspace;
-                if (!workspace.Options.GetOption(RemoteFeatureOptions.DiagnosticsEnabled))
-                {
-                    // diagnostic service running on remote host is disabled. just run things in in proc
-                    return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
-                }
-
                 var service = project.Solution.Workspace.Services.GetService<IRemoteHostClientService>();
                 if (service == null)
                 {

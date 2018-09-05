@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +11,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -198,8 +196,10 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                if (!RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace))
+                var client = await project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                if (client != null)
                 {
+                    // let remote host calculate the cache
                     return;
                 }
 
