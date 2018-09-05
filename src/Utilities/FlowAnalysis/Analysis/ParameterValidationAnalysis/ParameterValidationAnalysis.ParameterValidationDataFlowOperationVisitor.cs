@@ -14,33 +14,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 {
     using ParameterValidationAnalysisData = IDictionary<AbstractLocation, ParameterValidationAbstractValue>;
 
-    internal partial class ParameterValidationAnalysis : ForwardDataFlowAnalysis<ParameterValidationAnalysisData, ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue>
+    internal partial class ParameterValidationAnalysis : ForwardDataFlowAnalysis<ParameterValidationAnalysisData, ParameterValidationAnalysisContext, ParameterValidationAnalysisResult, ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue>
     {
         /// <summary>
         /// Operation visitor to flow the location validation values across a given statement in a basic block.
         /// </summary>
-        private sealed class ParameterValidationDataFlowOperationVisitor : AbstractLocationDataFlowOperationVisitor<ParameterValidationAnalysisData, ParameterValidationAbstractValue>
+        private sealed class ParameterValidationDataFlowOperationVisitor :
+            AbstractLocationDataFlowOperationVisitor<ParameterValidationAnalysisData, ParameterValidationAnalysisContext, ParameterValidationAnalysisResult, ParameterValidationAbstractValue>
         {
-            private readonly Func<IBlockOperation, IMethodSymbol, ParameterValidationResultWithHazardousUsages> _getOrComputeLocationAnalysisResultOpt;
             private readonly ImmutableDictionary<IParameterSymbol, SyntaxNode>.Builder _hazardousParameterUsageBuilderOpt;
 
-            public ParameterValidationDataFlowOperationVisitor(
-                ParameterValidationAbstractValueDomain valueDomain,
-                ISymbol owningSymbol,
-                WellKnownTypeProvider wellKnownTypeProvider,
-                ControlFlowGraph cfg,
-                Func<IBlockOperation, IMethodSymbol, ParameterValidationResultWithHazardousUsages> getOrComputeLocationAnalysisResultOpt,
-                DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResult,
-                bool pessimisticAnalysis,
-                bool trackHazardousParameterUsages = false)
-                : base(valueDomain, owningSymbol, wellKnownTypeProvider, cfg, pessimisticAnalysis,
-                      predicateAnalysis: false, copyAnalysisResultOpt: null, pointsToAnalysisResultOpt: pointsToAnalysisResult)
+            public ParameterValidationDataFlowOperationVisitor(ParameterValidationAnalysisContext analysisContext)
+                : base(analysisContext)
             {
-                Debug.Assert(owningSymbol.Kind == SymbolKind.Method);
-                Debug.Assert(pointsToAnalysisResult != null);
+                Debug.Assert(analysisContext.OwningSymbol.Kind == SymbolKind.Method);
+                Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
 
-                _getOrComputeLocationAnalysisResultOpt = getOrComputeLocationAnalysisResultOpt;
-                if (trackHazardousParameterUsages)
+                if (analysisContext.TrackHazardousParameterUsages)
                 {
                     _hazardousParameterUsageBuilderOpt = ImmutableDictionary.CreateBuilder<IParameterSymbol, SyntaxNode>();
                 }
@@ -48,8 +38,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             public override int GetHashCode()
             {
-                return HashUtilities.Combine(_hazardousParameterUsageBuilderOpt?.GetHashCode() ?? 0,
-                    HashUtilities.Combine(_getOrComputeLocationAnalysisResultOpt?.GetHashCode() ?? 0, base.GetHashCode()));
+                return HashUtilities.Combine(_hazardousParameterUsageBuilderOpt?.GetHashCode() ?? 0, base.GetHashCode());
             }
 
             public ImmutableDictionary<IParameterSymbol, SyntaxNode> HazardousParameterUsages
@@ -215,7 +204,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 var notValidatedLocations = GetNotValidatedLocations(operation);
                 if (notValidatedLocations.Any())
                 {
-                    if (_getOrComputeLocationAnalysisResultOpt != null)
+                    if (GetOrComputeAnalysisResultForInvokedMethod != null)
                     {
                         IMethodSymbol targetMethod = null;
                         if (operation.Parent is IInvocationOperation invocation)
@@ -267,11 +256,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                                 var methodTopmostBlock = targetMethod.GetTopmostOperationBlock(WellKnownTypeProvider.Compilation);
                                 if (methodTopmostBlock != null)
                                 {
-                                    ParameterValidationResultWithHazardousUsages invokedMethodAnalysisResult = _getOrComputeLocationAnalysisResultOpt(methodTopmostBlock, targetMethod);
-                                    var invokedMethodLocationAnalysisResult = invokedMethodAnalysisResult.ParameterValidationAnalysisResult;
-                                    var hazardousParameterUsagesInInvokedMethod = invokedMethodAnalysisResult.HazardousParameterUsages;
-                                    if (invokedMethodLocationAnalysisResult != null)
+                                    ParameterValidationAnalysisResult invokedMethodAnalysisResult = ComputeAnalysisResultForInvokedMethod(methodTopmostBlock, targetMethod);
+                                    if (invokedMethodAnalysisResult != null)
                                     {
+                                        var hazardousParameterUsagesInInvokedMethod = invokedMethodAnalysisResult.HazardousParameterUsages;
                                         Debug.Assert(hazardousParameterUsagesInInvokedMethod != null);
                                         var operationParameter = operation.Parameter.OriginalDefinition;
 
@@ -286,8 +274,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                                         else if (!targetMethod.IsVirtual && !targetMethod.IsOverride)
                                         {
                                             // Check if this is a non-virtual non-override method that validates the argument.
-                                            BasicBlock invokedMethodExitBlock = invokedMethodLocationAnalysisResult.ControlFlowGraph.GetExit();
-                                            foreach (var kvp in invokedMethodLocationAnalysisResult[invokedMethodExitBlock].OutputData)
+                                            BasicBlock invokedMethodExitBlock = invokedMethodAnalysisResult.ControlFlowGraph.GetExit();
+                                            foreach (var kvp in invokedMethodAnalysisResult[invokedMethodExitBlock].OutputData)
                                             {
                                                 AbstractLocation parameterLocation = kvp.Key;
                                                 ParameterValidationAbstractValue parameterValue = kvp.Value;
@@ -310,6 +298,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 }
 
                 return value;
+
+                // Local functions
+                ParameterValidationAnalysisResult ComputeAnalysisResultForInvokedMethod(IOperation methodTopmostBlock, IMethodSymbol targetMethod)
+                {
+                    if (GetOrComputeAnalysisResultForInvokedMethod == null)
+                    {
+                        return null;
+                    }
+
+                    var cfg = methodTopmostBlock.GetEnclosingControlFlowGraph();
+                    var pointsToAnalysisResult = ComputePointsToAnalysisResultForParameterValidationAnalysis(cfg, targetMethod, WellKnownTypeProvider);
+
+                    // We do not want to analyze more than one level down the call stack.
+                    // Hence, we pass 'getOrComputeAnalysisResultForInvokedMethod = null' for the invoked method analysis.
+                    var analysisContext = new ParameterValidationAnalysisContext(ValueDomain, WellKnownTypeProvider, cfg,
+                        targetMethod, PessimisticAnalysis, pointsToAnalysisResult, getOrComputeAnalysisResultForInvokedMethod: null,
+                        trackHazardousParameterUsages: _hazardousParameterUsageBuilderOpt != null);
+
+                    return GetOrComputeAnalysisResultForInvokedMethod(analysisContext);
+                }
             }
 
             #endregion

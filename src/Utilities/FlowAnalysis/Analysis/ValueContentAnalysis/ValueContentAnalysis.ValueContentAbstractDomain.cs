@@ -3,24 +3,26 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.StringContentAnalysis
+namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
-    internal partial class StringContentAnalysis : ForwardDataFlowAnalysis<StringContentAnalysisData, StringContentBlockAnalysisResult, StringContentAbstractValue>
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
+
+    internal partial class ValueContentAnalysis : ForwardDataFlowAnalysis<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentBlockAnalysisResult, ValueContentAbstractValue>
     {
         /// <summary>
-        /// Abstract value domain for <see cref="StringContentAnalysis"/> to merge and compare <see cref="StringContentAbstractValue"/> values.
+        /// Abstract value domain for <see cref="ValueContentAnalysis"/> to merge and compare <see cref="ValueContentAbstractValue"/> values.
         /// </summary>
-        private sealed class StringContentAbstractValueDomain : AbstractValueDomain<StringContentAbstractValue>
+        private sealed class ValueContentAbstractValueDomain : AbstractValueDomain<ValueContentAbstractValue>
         {
-            public static StringContentAbstractValueDomain Default = new StringContentAbstractValueDomain();
+            public static ValueContentAbstractValueDomain Default = new ValueContentAbstractValueDomain();
 
-            private StringContentAbstractValueDomain() { }
+            private ValueContentAbstractValueDomain() { }
 
-            public override StringContentAbstractValue Bottom => StringContentAbstractValue.UndefinedState;
+            public override ValueContentAbstractValue Bottom => ValueContentAbstractValue.UndefinedState;
 
-            public override StringContentAbstractValue UnknownOrMayBeValue => StringContentAbstractValue.MayBeContainsNonLiteralState;
+            public override ValueContentAbstractValue UnknownOrMayBeValue => ValueContentAbstractValue.MayBeContainsNonLiteralState;
 
-            public override int Compare(StringContentAbstractValue oldValue, StringContentAbstractValue newValue)
+            public override int Compare(ValueContentAbstractValue oldValue, ValueContentAbstractValue newValue)
             {
                 Debug.Assert(oldValue != null);
                 Debug.Assert(newValue != null);
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.StringContentAnalysis
                 }
             }
 
-            public override StringContentAbstractValue Merge(StringContentAbstractValue value1, StringContentAbstractValue value2)
+            public override ValueContentAbstractValue Merge(ValueContentAbstractValue value1, ValueContentAbstractValue value2)
             {
                 return value1.Merge(value2);
             }

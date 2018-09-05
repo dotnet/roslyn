@@ -14,7 +14,7 @@ namespace Test.Utilities
             public const string CopyAnalysis = nameof(CopyAnalysis);
             public const string NullAnalysis = nameof(NullAnalysis);
             public const string PointsToAnalysis = nameof(PointsToAnalysis);
-            public const string StringContentAnalysis = nameof(StringContentAnalysis);
+            public const string ValueContentAnalysis = nameof(ValueContentAnalysis);
             public const string DisposeAnalysis = nameof(DisposeAnalysis);
             public const string ParameterValidationAnalysis = nameof(ParameterValidationAnalysis);
 
