@@ -41,6 +41,8 @@
 
     WPF temp-projects do not import .props and .targets files from NuGet packages.
     (see https://github.com/dotnet/sourcelink/issues/91)
+
+    This breaks SourceLink and Microsoft.NetFramework.ReferenceAssemblies.
   -->
   <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true'">
     <OutDir/>
