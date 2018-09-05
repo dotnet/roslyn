@@ -12,6 +12,117 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenInParametersTests : CompilingTestBase
     {
         [Fact]
+        public void ThreeParamReorder()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public struct S
+    {
+        public int X;
+    }
+
+    private static S _field;
+
+    public static ref S GetField(int order)
+    {
+        Console.WriteLine(""GetField "" + _field.X++ + "" "" + order);
+        return ref _field;
+    }
+
+    public static void Main()
+    {
+        M(y: in GetField(0).X, z: GetField(1).X, x: GetField(2).X);
+    }
+
+    static void M(in int x, in int y, in int z)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+        Console.WriteLine(z);
+    }
+}", expectedOutput: @"GetField 0 0
+GetField 1 1
+GetField 2 2
+3
+3
+3");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (int& V_0,
+                int& V_1)
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""ref C.S C.GetField(int)""
+  IL_0006:  ldflda     ""int C.S.X""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""ref C.S C.GetField(int)""
+  IL_0012:  ldflda     ""int C.S.X""
+  IL_0017:  stloc.1
+  IL_0018:  ldc.i4.2
+  IL_0019:  call       ""ref C.S C.GetField(int)""
+  IL_001e:  ldflda     ""int C.S.X""
+  IL_0023:  ldloc.0
+  IL_0024:  ldloc.1
+  IL_0025:  call       ""void C.M(in int, in int, in int)""
+  IL_002a:  ret
+}");
+
+        }
+
+        [Fact]
+        public void InParamReadonlyFieldReorder()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    private static readonly int _f = 0;
+    public C()
+    {
+        M(y: _f, x: _f + 1);
+    }
+
+    public static void Main()
+    {
+        M(y: _f, x: _f + 1);
+        _ = new C();
+    }
+
+    static void M(in int x, in int y)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+}", expectedOutput: @"1
+0
+1
+0", verify: Verification.Fails);
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (int& V_0,
+                int V_1)
+  IL_0000:  ldsflda    ""int C._f""
+  IL_0005:  stloc.0
+  IL_0006:  ldsfld     ""int C._f""
+  IL_000b:  ldc.i4.1
+  IL_000c:  add
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  ldloc.0
+  IL_0011:  call       ""void C.M(in int, in int)""
+  IL_0016:  newobj     ""C..ctor()""
+  IL_001b:  pop
+  IL_001c:  ret
+}");
+        }
+
+        [Fact]
         public void InParamCallOptionalArg()
         {
             var comp = CompileAndVerify(@"
@@ -30,16 +141,17 @@ class C
     }
 }", expectedOutput: @"1
 0");
-            comp.VerifyIL("C.M", @"
+            comp.VerifyIL("C.Main", @"
 {
-  // Code size       14 (0xe)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldind.i4
-  IL_0002:  call       ""void System.Console.WriteLine(int)""
-  IL_0007:  ldarg.1
-  IL_0008:  call       ""void System.Console.WriteLine(int)""
-  IL_000d:  ret
+  // Code size       11 (0xb)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.0
+  IL_0005:  call       ""void C.M(in int, int)""
+  IL_000a:  ret
 }");
         }
 
@@ -99,6 +211,19 @@ class C : IEnumerable
         Console.WriteLine(x);
         Console.WriteLine(y);
     }
+}");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  3
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  newobj     ""C..ctor()""
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldc.i4.0
+  IL_000a:  callvirt   ""void C.Add(in int, int)""
+  IL_000f:  ret
 }");
         }
 
@@ -164,18 +289,17 @@ class C
     }
 }", expectedOutput: @"1
 0");
-            comp.VerifyIL("C.M", @"
+            comp.VerifyIL("C.Main", @"
 {
-  // Code size       16 (0x10)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldind.i4
-  IL_0002:  call       ""void System.Console.WriteLine(int)""
-  IL_0007:  ldarg.1
-  IL_0008:  ldlen
-  IL_0009:  conv.i4
-  IL_000a:  call       ""void System.Console.WriteLine(int)""
-  IL_000f:  ret
+  // Code size       15 (0xf)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""int[] System.Array.Empty<int>()""
+  IL_0009:  call       ""void C.M(in int, params int[])""
+  IL_000e:  ret
 }");
         }
 
@@ -193,15 +317,15 @@ class C
 
     private static S _field;
 
-    public static ref S GetField()
+    public static ref S GetField(int order)
     {
-        Console.WriteLine(""GetField "" + _field.X++);
+        Console.WriteLine(""GetField "" + _field.X++ + "" "" + order);
         return ref _field;
     }
 
     public static void Main()
     {
-        M(y: in GetField().X, x: GetField().X);
+        M(y: in GetField(0).X, x: GetField(1).X);
     }
 
     static void M(in int x, in int y)
@@ -209,23 +333,25 @@ class C
         Console.WriteLine(x);
         Console.WriteLine(y);
     }
-}", expectedOutput: @"GetField 0
-GetField 1
+}", expectedOutput: @"GetField 0 0
+GetField 1 1
 2
 2");
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       28 (0x1c)
+  // Code size       30 (0x1e)
   .maxstack  2
   .locals init (int& V_0)
-  IL_0000:  call       ""ref C.S C.GetField()""
-  IL_0005:  ldflda     ""int C.S.X""
-  IL_000a:  stloc.0
-  IL_000b:  call       ""ref C.S C.GetField()""
-  IL_0010:  ldflda     ""int C.S.X""
-  IL_0015:  ldloc.0
-  IL_0016:  call       ""void C.M(in int, in int)""
-  IL_001b:  ret
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""ref C.S C.GetField(int)""
+  IL_0006:  ldflda     ""int C.S.X""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""ref C.S C.GetField(int)""
+  IL_0012:  ldflda     ""int C.S.X""
+  IL_0017:  ldloc.0
+  IL_0018:  call       ""void C.M(in int, in int)""
+  IL_001d:  ret
 }");
         }
 
@@ -243,15 +369,15 @@ class C
 
     private static S _field;
 
-    public static ref S GetField()
+    public static ref S GetField(int order)
     {
-        Console.WriteLine(""GetField "" + _field.X++);
+        Console.WriteLine(""GetField "" + _field.X++ + "" "" + order);
         return ref _field;
     }
 
     public static void Main()
     {
-        new C(y: in GetField().X, x: GetField().X);
+        new C(y: in GetField(0).X, x: GetField(1).X);
     }
 
     public C(in int x, in int y)
@@ -259,24 +385,26 @@ class C
         Console.WriteLine(x);
         Console.WriteLine(y);
     }
-}", expectedOutput: @"GetField 0
-GetField 1
+}", expectedOutput: @"GetField 0 0
+GetField 1 1
 2
 2");
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       29 (0x1d)
+  // Code size       31 (0x1f)
   .maxstack  2
   .locals init (int& V_0)
-  IL_0000:  call       ""ref C.S C.GetField()""
-  IL_0005:  ldflda     ""int C.S.X""
-  IL_000a:  stloc.0
-  IL_000b:  call       ""ref C.S C.GetField()""
-  IL_0010:  ldflda     ""int C.S.X""
-  IL_0015:  ldloc.0
-  IL_0016:  newobj     ""C..ctor(in int, in int)""
-  IL_001b:  pop
-  IL_001c:  ret
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""ref C.S C.GetField(int)""
+  IL_0006:  ldflda     ""int C.S.X""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""ref C.S C.GetField(int)""
+  IL_0012:  ldflda     ""int C.S.X""
+  IL_0017:  ldloc.0
+  IL_0018:  newobj     ""C..ctor(in int, in int)""
+  IL_001d:  pop
+  IL_001e:  ret
 }");
         }
 
@@ -294,16 +422,16 @@ class C
 
     private static S _field;
 
-    public static ref S GetField()
+    public static ref S GetField(int order)
     {
-        Console.WriteLine(""GetField "" + _field.X++);
+        Console.WriteLine(""GetField "" + _field.X++ + "" "" + order);
         return ref _field;
     }
 
     public static void Main()
     {
         var c = new C();
-        _ = c[y: in GetField().X, x: in GetField().X];
+        _ = c[y: in GetField(0).X, x: in GetField(1).X];
     }
 
     int this[in int x, in int y]
@@ -315,25 +443,27 @@ class C
             return x;
         }
     }
-}", expectedOutput: @"GetField 0
-GetField 1
+}", expectedOutput: @"GetField 0 0
+GetField 1 1
 2
 2");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       34 (0x22)
+  // Code size       36 (0x24)
   .maxstack  3
   .locals init (int& V_0)
   IL_0000:  newobj     ""C..ctor()""
-  IL_0005:  call       ""ref C.S C.GetField()""
-  IL_000a:  ldflda     ""int C.S.X""
-  IL_000f:  stloc.0
-  IL_0010:  call       ""ref C.S C.GetField()""
-  IL_0015:  ldflda     ""int C.S.X""
-  IL_001a:  ldloc.0
-  IL_001b:  callvirt   ""int C.this[in int, in int].get""
-  IL_0020:  pop
-  IL_0021:  ret
+  IL_0005:  ldc.i4.0
+  IL_0006:  call       ""ref C.S C.GetField(int)""
+  IL_000b:  ldflda     ""int C.S.X""
+  IL_0010:  stloc.0
+  IL_0011:  ldc.i4.1
+  IL_0012:  call       ""ref C.S C.GetField(int)""
+  IL_0017:  ldflda     ""int C.S.X""
+  IL_001c:  ldloc.0
+  IL_001d:  callvirt   ""int C.this[in int, in int].get""
+  IL_0022:  pop
+  IL_0023:  ret
 }");
         }
 
@@ -351,16 +481,17 @@ class C
 
     private static S _field;
 
-    public static ref S GetField()
+    public static ref S GetField(int order)
     {
-        Console.WriteLine(""GetField "" + _field.X++);
+        Console.WriteLine(""GetField "" + _field.X++ + "" "" + order);
         return ref _field;
     }
 
     public static void Main()
     {
         var c = new C();
-        _ = c[y: GetField().X, x: GetField().X + 1];
+        _ = c[y: GetField(0).X, x: GetField(1).X + 1];
+        _ = c[y: GetField(0).X + 2, x: GetField(1).X];
     }
 
     int this[in int x, in int y]
@@ -372,30 +503,49 @@ class C
             return x;
         }
     }
-}", expectedOutput: @"GetField 0
-GetField 1
+}", expectedOutput: @"GetField 0 0
+GetField 1 1
 3
-2");
+2
+GetField 2 0
+GetField 3 1
+4
+5");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       39 (0x27)
-  .maxstack  3
+  // Code size       75 (0x4b)
+  .maxstack  4
   .locals init (int& V_0,
                 int V_1)
   IL_0000:  newobj     ""C..ctor()""
-  IL_0005:  call       ""ref C.S C.GetField()""
-  IL_000a:  ldflda     ""int C.S.X""
-  IL_000f:  stloc.0
-  IL_0010:  call       ""ref C.S C.GetField()""
-  IL_0015:  ldfld      ""int C.S.X""
-  IL_001a:  ldc.i4.1
-  IL_001b:  add
-  IL_001c:  stloc.1
-  IL_001d:  ldloca.s   V_1
-  IL_001f:  ldloc.0
-  IL_0020:  callvirt   ""int C.this[in int, in int].get""
-  IL_0025:  pop
-  IL_0026:  ret
+  IL_0005:  dup
+  IL_0006:  ldc.i4.0
+  IL_0007:  call       ""ref C.S C.GetField(int)""
+  IL_000c:  ldflda     ""int C.S.X""
+  IL_0011:  stloc.0
+  IL_0012:  ldc.i4.1
+  IL_0013:  call       ""ref C.S C.GetField(int)""
+  IL_0018:  ldfld      ""int C.S.X""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add
+  IL_001f:  stloc.1
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  callvirt   ""int C.this[in int, in int].get""
+  IL_0028:  pop
+  IL_0029:  ldc.i4.0
+  IL_002a:  call       ""ref C.S C.GetField(int)""
+  IL_002f:  ldfld      ""int C.S.X""
+  IL_0034:  ldc.i4.2
+  IL_0035:  add
+  IL_0036:  stloc.1
+  IL_0037:  ldc.i4.1
+  IL_0038:  call       ""ref C.S C.GetField(int)""
+  IL_003d:  ldflda     ""int C.S.X""
+  IL_0042:  ldloca.s   V_1
+  IL_0044:  callvirt   ""int C.this[in int, in int].get""
+  IL_0049:  pop
+  IL_004a:  ret
 }");
         }
 

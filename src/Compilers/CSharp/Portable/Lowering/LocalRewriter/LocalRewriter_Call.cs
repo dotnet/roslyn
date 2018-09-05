@@ -691,8 +691,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(refKinds.Count == arguments.Length);
             Debug.Assert(storesToTemps.Count == 0);
 
-            var discardedDiags = DiagnosticBag.GetInstance();
-
             for (int a = 0; a < rewrittenArguments.Length; ++a)
             {
                 BoundExpression argument = rewrittenArguments[a];
@@ -726,7 +724,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsBeginningOfParamArray(p, a, expanded, arguments.Length, rewrittenArguments, argsToParamsOpt, out int paramArrayArgumentCount)
                     && a + paramArrayArgumentCount == rewrittenArguments.Length)
                 {
-                    discardedDiags.Free();
                     return;
                 }
 
@@ -759,8 +756,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 refKinds[p] = argRefKind;
             }
-
-            discardedDiags.Free();
 
             return;
 
