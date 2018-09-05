@@ -22,11 +22,6 @@
         <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IllegalDefaultValueTypeCtor">
-        <source>The default constructor of the value type '{0}' may not be used with 'new(...)'; Use 'default' or a literal expression instead</source>
-        <target state="new">The default constructor of the value type '{0}' may not be used with 'new(...)'; Use 'default' or a literal expression instead</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_IllegalTargetType">
         <source>The type '{0}' may not be used as the target-type of 'new(...)'</source>
         <target state="new">The type '{0}' may not be used as the target-type of 'new(...)'</target>

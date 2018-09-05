@@ -5345,9 +5345,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_IllegalTargetType" xml:space="preserve">
     <value>The type '{0}' may not be used as the target-type of 'new(...)'</value>
   </data>
-  <data name="ERR_IllegalDefaultValueTypeCtor" xml:space="preserve">
-    <value>The default constructor of the value type '{0}' may not be used with 'new(...)'; Use 'default' or a literal expression instead</value>
-  </data>
   <data name="ERR_BadDynamicMethodArgTypelessNew" xml:space="preserve">
     <value>Cannot use 'new(...)' as an argument to a dynamically dispatched operation</value>
   </data>
