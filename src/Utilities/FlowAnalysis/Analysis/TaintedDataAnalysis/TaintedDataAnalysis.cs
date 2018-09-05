@@ -2,6 +2,8 @@
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
+    using TaintedDataAnalysisResult = Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
+
     using Analyzer.Utilities.Extensions;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -9,8 +11,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
     using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
     using Microsoft.CodeAnalysis.Operations;
+    using System;
 
-    internal partial class TaintedDataAnalysis : ForwardDataFlowAnalysis<TaintedDataAnalysisData, TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>
+    internal partial class TaintedDataAnalysis : ForwardDataFlowAnalysis<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>
     {
         private static readonly TaintedDataAnalysisDomain TaintedDataAnalysisDomainInstance = new TaintedDataAnalysisDomain(CoreTaintedDataAnalysisDataDomain.Instance);
 
@@ -36,23 +39,31 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             // Do another analysis pass to improve the results from PointsTo and Copy analysis.
             pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, copyAnalysisResult);
 
-            TaintedDataOperationVisitor visitor = new TaintedDataOperationVisitor(
+            TaintedDataAnalysisContext analysisContext = new TaintedDataAnalysisContext(
                 TaintedDataAbstractValueDomain.Default,
-                owningSymbol,
                 wellKnownTypeProvider,
                 cfg,
+                owningSymbol,
                 true /* pessimisticAnalysis */,
-                false /* predicateAnalysis */,    // TODO paulming: Does it even make sense to have this as an option on TaintedDataOperationVisitor?
-                copyAnalysisResult,
-                pointsToAnalysisResult);
-            TaintedDataAnalysis analysis = new TaintedDataAnalysis(visitor);
-            DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> analysisResult =
-                analysis.GetOrComputeResultCore(cfg, cacheResult: true);
+                pointsToAnalysisResult,
+                GetOrComputeResultForAnalysisContext);
 
-            return null;
+            return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 
-        internal override TaintedDataBlockAnalysisResult ToResult(BasicBlock basicBlock, DataFlowAnalysisInfo<TaintedDataAnalysisData> blockAnalysisData)
+        private static TaintedDataAnalysisResult GetOrComputeResultForAnalysisContext(TaintedDataAnalysisContext analysisContext)
+        {
+            TaintedDataOperationVisitor visitor = new TaintedDataOperationVisitor(analysisContext);
+            TaintedDataAnalysis analysis = new TaintedDataAnalysis(visitor);
+            return analysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
+        }
+
+        internal override TaintedDataAnalysisResult ToResult(TaintedDataAnalysisContext analysisContext, TaintedDataAnalysisResult analysisResult)
+        {
+            return analysisResult;
+        }
+
+        internal override TaintedDataBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DataFlowAnalysisInfo<TaintedDataAnalysisData> blockAnalysisData)
         {
             return new TaintedDataBlockAnalysisResult(basicBlock, blockAnalysisData);
         }

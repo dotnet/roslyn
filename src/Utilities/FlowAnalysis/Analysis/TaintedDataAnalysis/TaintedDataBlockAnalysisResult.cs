@@ -9,7 +9,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// <summary>
     /// Result from execution of <see cref="TaintedDataAnalysis"/> on a basic block.
     /// </summary>
-    internal class TaintedDataBlockAnalysisResult : AbstractBlockAnalysisResult
+    internal sealed class TaintedDataBlockAnalysisResult : AbstractBlockAnalysisResult
     {
         public ImmutableDictionary<AnalysisEntity, TaintedDataAbstractValue> InputData { get; }
         public ImmutableDictionary<AnalysisEntity, TaintedDataAbstractValue> OutputData { get; }

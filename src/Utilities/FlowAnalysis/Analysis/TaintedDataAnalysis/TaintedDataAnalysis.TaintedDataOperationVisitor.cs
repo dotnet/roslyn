@@ -2,9 +2,9 @@
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    using System;
+    using TaintedDataAnalysisResult = Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
+
     using System.Collections.Immutable;
-    using System.Diagnostics;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.FlowAnalysis;
     using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -12,28 +12,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
     using Microsoft.CodeAnalysis.Operations;
 
+
     internal partial class TaintedDataAnalysis
     {
-        private sealed class TaintedDataOperationVisitor : AnalysisEntityDataFlowOperationVisitor<TaintedDataAnalysisData, TaintedDataAbstractValue>
+        private sealed class TaintedDataOperationVisitor : AnalysisEntityDataFlowOperationVisitor<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataAbstractValue>
         {
-            public TaintedDataOperationVisitor(
-                TaintedDataAbstractValueDomain valueDomain,
-                ISymbol owningSymbol,
-                WellKnownTypeProvider wellKnownTypeProvider,
-                ControlFlowGraph cfg,
-                bool pessimisticAnalysis,
-                bool predicateAnalysis,
-                DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> copyAnalysisResultOpt,
-                DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt) 
-                : base(
-                      valueDomain, 
-                      owningSymbol, 
-                      wellKnownTypeProvider, 
-                      cfg, 
-                      pessimisticAnalysis, 
-                      predicateAnalysis, 
-                      copyAnalysisResultOpt, 
-                      pointsToAnalysisResultOpt)
+            public TaintedDataOperationVisitor(TaintedDataAnalysisContext analysisContext)
+                : base(analysisContext)
             {
             }
 
