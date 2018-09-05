@@ -25,13 +25,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static readonly IExportProviderFactory s_defaultHostExportProviderFactory =
             CreateExportProviderFactory(s_defaultHostCatalog);
 
-        // Cache the catalog and export provider factory for DesktopMefHostServices.DefaultAssemblies
-        private static readonly ComposableCatalog s_desktopHostCatalog =
-            CreateAssemblyCatalog(DesktopMefHostServices.DefaultAssemblies);
-
-        private static readonly IExportProviderFactory s_desktopHostExportProviderFactory =
-            CreateExportProviderFactory(s_desktopHostCatalog);
-
         // Cache the catalog and export provider factory for RoslynServices.RemoteHostAssemblies
         private static readonly ComposableCatalog s_remoteHostCatalog =
             CreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies);
@@ -72,10 +65,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (assembliesArray == MefHostServices.DefaultAssemblies)
                 {
                     return s_defaultHostCatalog;
-                }
-                else if (assembliesArray == DesktopMefHostServices.DefaultAssemblies)
-                {
-                    return s_desktopHostCatalog;
                 }
                 else if (assembliesArray == RoslynServices.RemoteHostAssemblies)
                 {
@@ -168,10 +157,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (catalog == s_defaultHostCatalog)
             {
                 return s_defaultHostExportProviderFactory;
-            }
-            else if (catalog == s_desktopHostCatalog)
-            {
-                return s_desktopHostExportProviderFactory;
             }
             else if (catalog == s_remoteHostCatalog)
             {
