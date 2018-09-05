@@ -553,6 +553,8 @@ function Deploy-VsixViaTool() {
 function Run-SignTool() {
     Push-Location $repoDir
     try {
+        Copy-Item (Join-Path $repoDir "Binaries\$buildConfiguration\Vsix\PortableFacades\*.*") (Join-Path $logsDir "PortableFacadesOriginal")
+    
         $signTool = Join-Path (Get-PackageDir "RoslynTools.SignTool") "tools\SignTool.exe"
         $signToolArgs = "-msbuildPath `"$msbuild`""
         if ($binaryLog) {
