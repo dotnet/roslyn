@@ -40,8 +40,7 @@
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>    
-    <TargetFrameworkRootPath>$(NuGetPackageRoot)\roslyntools.referenceassemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\framework</TargetFrameworkRootPath>
-
+    
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring($([System.Convert]::ToInt32(0)), $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>

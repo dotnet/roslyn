@@ -170,87 +170,21 @@
     <RoslynToolsModifyVsixManifestVersion>1.0.0-beta2-63222-01</RoslynToolsModifyVsixManifestVersion>
     <RoslynToolsMSBuildVersion>0.5.0-alpha</RoslynToolsMSBuildVersion>
     <RoslynToolsNuGetRepackVersion>1.0.0-beta2-63223-01</RoslynToolsNuGetRepackVersion>
-    <RoslynToolsReferenceAssembliesVersion>0.1.3</RoslynToolsReferenceAssembliesVersion>
     <RoslynToolsBuildTasksVersion>1.0.0-beta2-63217-01</RoslynToolsBuildTasksVersion>
     <RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>4.3.0</RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <StreamJsonRpcVersion>1.3.23</StreamJsonRpcVersion>
-    <SystemAppContextVersion>4.3.0</SystemAppContextVersion>
-    <SystemCollectionsVersion>4.3.0</SystemCollectionsVersion>
-    <SystemCollectionsConcurrentVersion>4.3.0</SystemCollectionsConcurrentVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemCommandLineExperimentalVersion>0.1.0-alpha-63227-01</SystemCommandLineExperimentalVersion>
-    <SystemConsoleVersion>4.3.0</SystemConsoleVersion>
-    <SystemDataCommonVersion>4.3.0</SystemDataCommonVersion>
-    <SystemDiagnosticsContractsVersion>4.3.0</SystemDiagnosticsContractsVersion>
-    <SystemDiagnosticsDebugVersion>4.3.0</SystemDiagnosticsDebugVersion>
-    <SystemDiagnosticsFileVersionInfoVersion>4.3.0</SystemDiagnosticsFileVersionInfoVersion>
-    <SystemDiagnosticsProcessVersion>4.3.0</SystemDiagnosticsProcessVersion>
-    <SystemDiagnosticsStackTraceVersion>4.3.0</SystemDiagnosticsStackTraceVersion>
-    <SystemDiagnosticsToolsVersion>4.3.0</SystemDiagnosticsToolsVersion>
-    <SystemDiagnosticsTraceSourceVersion>4.3.0</SystemDiagnosticsTraceSourceVersion>
-    <SystemDynamicRuntimeVersion>4.3.0</SystemDynamicRuntimeVersion>
     <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
-    <SystemGlobalizationVersion>4.3.0</SystemGlobalizationVersion>
-    <SystemGlobalizationCalendarsVersion>4.3.0</SystemGlobalizationCalendarsVersion>
-    <SystemIdentityModelTokensJwtVersion>5.0.0</SystemIdentityModelTokensJwtVersion>
-    <SystemIOVersion>4.3.0</SystemIOVersion>
-    <SystemIOCompressionVersion>4.3.0</SystemIOCompressionVersion>
-    <SystemIOCompressionZipFileVersion>4.3.0</SystemIOCompressionZipFileVersion>
-    <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
-    <SystemIOFileSystemDriveInfoVersion>4.3.0</SystemIOFileSystemDriveInfoVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
-    <SystemIOFileSystemWatcherVersion>4.3.0</SystemIOFileSystemWatcherVersion>
-    <SystemIOPipesVersion>4.3.0</SystemIOPipesVersion>
     <SystemIOPipesAccessControlVersion>4.3.0</SystemIOPipesAccessControlVersion>
-    <SystemLinqVersion>4.3.0</SystemLinqVersion>
-    <SystemLinqExpressionsVersion>4.3.0</SystemLinqExpressionsVersion>
-    <SystemLinqParallelVersion>4.3.0</SystemLinqParallelVersion>
-    <SystemNetHttpVersion>4.3.3</SystemNetHttpVersion>
-    <SystemNetNameResolutionVersion>4.3.0</SystemNetNameResolutionVersion>
-    <SystemNetPrimitivesVersion>4.3.0</SystemNetPrimitivesVersion>
-    <SystemNetSecurityVersion>4.3.0</SystemNetSecurityVersion>
-    <SystemNetSocketsVersion>4.3.0</SystemNetSocketsVersion>
-    <SystemObjectModelVersion>4.3.0</SystemObjectModelVersion>
-    <SystemReflectionVersion>4.3.0</SystemReflectionVersion>
-    <SystemReflectionExtensionsVersion>4.3.0</SystemReflectionExtensionsVersion>
     <SystemReflectionMetadataVersion>1.6.0</SystemReflectionMetadataVersion>
-    <SystemReflectionPrimitivesVersion>4.3.0</SystemReflectionPrimitivesVersion>
-    <SystemReflectionTypeExtensionsVersion>4.3.0</SystemReflectionTypeExtensionsVersion>
-    <SystemResourcesResourceManagerVersion>4.3.0</SystemResourcesResourceManagerVersion>
-    <SystemRuntimeVersion>4.3.0</SystemRuntimeVersion>
-    <SystemRuntimeExtensionsVersion>4.3.0</SystemRuntimeExtensionsVersion>
-    <SystemRuntimeHandlesVersion>4.3.0</SystemRuntimeHandlesVersion>
-    <SystemRuntimeInteropServicesVersion>4.3.0</SystemRuntimeInteropServicesVersion>
-    <SystemRuntimeInteropServicesRuntimeInformationVersion>4.3.0</SystemRuntimeInteropServicesRuntimeInformationVersion>
-    <SystemRuntimeNumericsVersion>4.3.0</SystemRuntimeNumericsVersion>
-    <SystemRuntimeSerializationJsonVersion>4.3.0</SystemRuntimeSerializationJsonVersion>
-    <SystemRuntimeSerializationPrimitivesVersion>4.3.0</SystemRuntimeSerializationPrimitivesVersion>
-    <SystemSecurityAccessControlVersion>4.3.0</SystemSecurityAccessControlVersion>
-    <SystemSecurityClaimsVersion>4.3.0</SystemSecurityClaimsVersion>
-    <SystemSecurityCryptographyAlgorithmsVersion>4.3.0</SystemSecurityCryptographyAlgorithmsVersion>
-    <SystemSecurityCryptographyCspVersion>4.3.0</SystemSecurityCryptographyCspVersion>
-    <SystemSecurityCryptographyEncodingVersion>4.3.0</SystemSecurityCryptographyEncodingVersion>
-    <SystemSecurityCryptographyPrimitivesVersion>4.3.0</SystemSecurityCryptographyPrimitivesVersion>
-    <SystemSecurityCryptographyX509CertificatesVersion>4.3.0</SystemSecurityCryptographyX509CertificatesVersion>
-    <SystemSecurityPrincipalWindowsVersion>4.3.0</SystemSecurityPrincipalWindowsVersion>
-    <SystemTextEncodingVersion>4.3.0</SystemTextEncodingVersion>
+
     <SystemTextEncodingCodePagesVersion>4.3.0</SystemTextEncodingCodePagesVersion>
-    <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
-    <SystemTextRegularExpressionsVersion>4.3.0</SystemTextRegularExpressionsVersion>
-    <SystemThreadingVersion>4.3.0</SystemThreadingVersion>
-    <SystemThreadingTasksVersion>4.3.0</SystemThreadingTasksVersion>
     <SystemThreadingTasksDataflowVersion>4.5.24</SystemThreadingTasksDataflowVersion>
-    <SystemThreadingTasksExtensionsVersion>4.3.0</SystemThreadingTasksExtensionsVersion>
-    <SystemThreadingTasksParallelVersion>4.3.0</SystemThreadingTasksParallelVersion>
-    <SystemThreadingThreadVersion>4.3.0</SystemThreadingThreadVersion>
     <SystemValueTupleVersion>4.3.0</SystemValueTupleVersion>
-    <SystemXmlReaderWriterVersion>4.3.0</SystemXmlReaderWriterVersion>
-    <SystemXmlXDocumentVersion>4.3.0</SystemXmlXDocumentVersion>
-    <SystemXmlXmlDocumentVersion>4.3.0</SystemXmlXmlDocumentVersion>
-    <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>
-    <SystemXmlXPathVersion>4.3.0</SystemXmlXPathVersion>
-    <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>
+    <SystemThreadingTasksExtensionsVersion>4.3.0</SystemThreadingTasksExtensionsVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
     <MicrosoftVSSDKBuildToolsVersion>15.8.68-develop-g109a00ff</MicrosoftVSSDKBuildToolsVersion>

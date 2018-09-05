@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -58,13 +60,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         internal static string GetAssemblyLocation(Type type)
         {
-#if NET472 || NETCOREAPP2_0
             return type.GetTypeInfo().Assembly.Location;
-#elif NETSTANDARD2_0
-            throw new PlatformNotSupportedException();
-#else
-#error Unsupported configuration
-#endif
         }
     }
 }

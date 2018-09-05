@@ -19,10 +19,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup Label="Project References">
+  <ItemGroup>
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
-    <PackageReference Include="System.Linq.Expressions" Version="$(SystemLinqExpressionsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="CSharpResources.Designer.cs">
