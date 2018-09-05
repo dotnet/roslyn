@@ -73,12 +73,6 @@ class TestClass {
 ";
             var fixedCode = @"
 class TestClass {
-  int x =  5;
-  int y =  5;
-}
-";
-            var batchFixedCode = @"
-class TestClass {
   int x =   5;
   int y =  5;
 }
@@ -88,7 +82,6 @@ class TestClass {
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                BatchFixedCode = batchFixedCode,
                 NumberOfIncrementalIterations = 3,
                 NumberOfFixAllIterations = 2,
             }.RunAsync();
@@ -109,11 +102,6 @@ class TestClass {
 ";
             var fixedCode = @"
 class TestClass {
-  int field =  5;
-}
-";
-            var batchFixedCode = @"
-class TestClass {
   int field =   5;
 }
 ";
@@ -122,7 +110,6 @@ class TestClass {
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                BatchFixedCode = batchFixedCode,
                 NumberOfIncrementalIterations = declaredIncrementalIterations,
                 NumberOfFixAllIterations = declaredFixAllIterations,
             }.RunAsync();
@@ -208,11 +195,6 @@ class TestClass {
 ";
             var fixedCode = @"
 class TestClass {
-  int field =  5;
-}
-";
-            var batchFixedCode = @"
-class TestClass {
   int field =   5;
 }
 ";
@@ -223,7 +205,6 @@ class TestClass {
                 {
                     TestCode = testCode,
                     FixedCode = fixedCode,
-                    BatchFixedCode = batchFixedCode,
                     NumberOfIncrementalIterations = 2,
                 }.RunAsync();
             });
@@ -244,11 +225,6 @@ class TestClass {
 ";
             var fixedCode = @"
 class TestClass {
-  int field =  5;
-}
-";
-            var batchFixedCode = @"
-class TestClass {
   int field =   5;
 }
 ";
@@ -259,7 +235,6 @@ class TestClass {
                 {
                     TestCode = testCode,
                     FixedCode = fixedCode,
-                    BatchFixedCode = batchFixedCode,
                     NumberOfIncrementalIterations = 2,
                     NumberOfFixAllIterations = declaredFixAllIterations,
                 }.RunAsync();
@@ -335,6 +310,11 @@ class TestClass {
             public override string Language => LanguageNames.CSharp;
 
             protected override string DefaultFileExt => "cs";
+
+            public CSharpTest()
+            {
+                CodeFixValidationMode = CodeFixValidationMode.None;
+            }
 
             protected override CompilationOptions CreateCompilationOptions()
             {
