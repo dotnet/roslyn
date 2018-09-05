@@ -1275,20 +1275,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
+            MethodSymbol containingMethod = this.CurrentFunction;
+
             switch (refKind)
             {
                 case RefKind.Out:
                     refKind = RefKind.Ref;
                     break;
 
-                // "in" arguments are spilled by-value, while "strict-in" arguments are
-                // spilled by-ref. It's the responsibility of the caller to determine
-                // whether or not their argument can be spilled by-ref.
                 case RefKind.In:
-                    refKind = RefKind.None;
-                    break;
-                case RefKindExtensions.StrictIn:
-                    refKind = RefKind.In;
+                    if (!Binder.HasHome(argument,
+                                        Binder.AddressKind.ReadOnly,
+                                        containingMethod,
+                                        Compilation.IsPeVerifyCompatEnabled,
+                                        stackLocalsOpt: null))
+                    {
+                        // If there was an explicit 'in' on the argument then we should have verified
+                        // earlier that we always have a home.
+                        Debug.Assert(argument.GetRefKind() != RefKind.In);
+                        refKind = RefKind.None;
+                    }
                     break;
 
                 case RefKind.None:
@@ -1298,7 +1304,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(refKind);
             }
 
-            MethodSymbol containingMethod = this.CurrentFunction;
             var syntax = argument.Syntax;
             var type = argument.Type;
 

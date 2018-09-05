@@ -404,11 +404,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     RefKind refKind = paramRefKindsOpt.RefKinds(i);
-                    if (refKind == RefKind.In
-                        && !InArgumentRequiresCopy(arg, argumentsBinderOpt, discarded))
-                    {
-                        refKind = RefKindExtensions.StrictIn;
-                    }
 
                     BoundAssignmentOperator store;
                     var temp = _factory.StoreToTemp(arg, out store, refKind);

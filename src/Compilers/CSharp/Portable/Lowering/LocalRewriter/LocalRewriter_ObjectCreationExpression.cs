@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Expanded,
                 node.ArgsToParamsOpt,
                 ref argumentRefKindsOpt,
-                out temps,
-                argumentsBinderOpt: node.BinderOpt);
+                out temps);
 
             BoundExpression rewrittenObjectCreation;
 

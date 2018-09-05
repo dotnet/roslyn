@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -2863,5 +2864,232 @@ moreArguments:
 
             return true;
         }
+
+        internal enum AddressKind
+        {
+            // reference may be written to
+            Writeable,
+
+            // reference itself will not be written to, but may be used for call, callvirt.
+            // for all purposes it is the same as Writeable, except when fetching an address of an array element
+            // where it results in a ".readonly" prefix to deal with array covariance.
+            Constrained,
+
+            // reference itself will not be written to, nor it will be used to modify fields.
+            ReadOnly,
+
+            // same as ReadOnly, but we are not supposed to get a reference to a clone
+            // regardless of compat settings.
+            ReadOnlyStrict,
+        }
+
+        internal static bool IsReadOnly(AddressKind addressKind) => addressKind >= AddressKind.ReadOnly;
+
+        /// <summary>
+        /// Checks if expression directly or indirectly represents a value with its own home. In
+        /// such cases it is possible to get a reference without loading into a temporary.
+        /// </summary>
+        internal static bool HasHome(
+            BoundExpression expression,
+            AddressKind addressKind,
+            MethodSymbol methodOpt,
+            bool peVerifyCompatEnabled,
+            HashSet<LocalSymbol> stackLocalsOpt)
+        {
+            switch (expression.Kind)
+            {
+                case BoundKind.ArrayAccess:
+                    if (addressKind == AddressKind.ReadOnly && !expression.Type.IsValueType && peVerifyCompatEnabled)
+                    {
+                        // due to array covariance getting a reference may throw ArrayTypeMismatch when element is not a struct, 
+                        // passing "readonly." prefix would prevent that, but it is unverifiable, so will make a copy in compat case
+                        return false;
+                    }
+
+                    return true;
+
+                case BoundKind.PointerIndirectionOperator:
+                case BoundKind.RefValueOperator:
+                    return true;
+
+                case BoundKind.ThisReference:
+                    var type = expression.Type;
+                    if (type.IsReferenceType)
+                    {
+                        Debug.Assert(IsReadOnly(addressKind), "`this` is readonly in classes");
+                        return true;
+                    }
+
+                    if (!IsReadOnly(addressKind) && type.IsReadOnly)
+                    {
+                        return methodOpt?.MethodKind == MethodKind.Constructor;
+                    }
+
+                    return true;
+
+                case BoundKind.ThrowExpression:
+                    // vacuously this is true, we can take address of throw without temps
+                    return true;
+
+                case BoundKind.Parameter:
+                    return IsReadOnly(addressKind) || 
+                        ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.In;
+
+                case BoundKind.Local:
+                    // locals have home unless they are byval stack locals or ref-readonly
+                    // locals in a mutating call
+                    var local = ((BoundLocal)expression).LocalSymbol;
+                    return !((CodeGenerator.IsStackLocal(local, stackLocalsOpt) && local.RefKind == RefKind.None) || 
+                        (!IsReadOnly(addressKind) && local.RefKind == RefKind.RefReadOnly));
+
+                case BoundKind.Call:
+                    var methodRefKind = ((BoundCall)expression).Method.RefKind;
+                    return methodRefKind == RefKind.Ref ||
+                           (IsReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly);
+
+                case BoundKind.Dup:
+                    //NB: Dup represents locals that do not need IL slot
+                    var dupRefKind = ((BoundDup)expression).RefKind;
+                    return dupRefKind == RefKind.Ref ||
+                        (IsReadOnly(addressKind) && dupRefKind == RefKind.RefReadOnly);
+
+                case BoundKind.FieldAccess:
+                    return HasHome((BoundFieldAccess)expression, addressKind, methodOpt, peVerifyCompatEnabled, stackLocalsOpt);
+
+                case BoundKind.Sequence:
+                    return HasHome(((BoundSequence)expression).Value, addressKind, methodOpt, peVerifyCompatEnabled, stackLocalsOpt);
+
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)expression;
+                    if (!assignment.IsRef)
+                    {
+                        return false;
+                    }
+                    var lhsRefKind = assignment.Left.GetRefKind();
+                    return lhsRefKind == RefKind.Ref ||
+                        (IsReadOnly(addressKind) && lhsRefKind == RefKind.RefReadOnly);
+
+                case BoundKind.ComplexConditionalReceiver:
+                    Debug.Assert(HasHome(
+                        ((BoundComplexConditionalReceiver)expression).ValueTypeReceiver,
+                        addressKind,
+                        methodOpt,
+                        peVerifyCompatEnabled,
+                        stackLocalsOpt));
+                    Debug.Assert(HasHome(
+                        ((BoundComplexConditionalReceiver)expression).ReferenceTypeReceiver,
+                        addressKind,
+                        methodOpt,
+                        peVerifyCompatEnabled,
+                        stackLocalsOpt));
+                    goto case BoundKind.ConditionalReceiver;
+
+                case BoundKind.ConditionalReceiver:
+                    //ConditionalReceiver is a noop from Emit point of view. - it represents something that has already been pushed. 
+                    //We should never need a temp for it. 
+                    return true;
+
+                case BoundKind.ConditionalOperator:
+                    var ternary = (BoundConditionalOperator)expression;
+                    
+                    // only ref ternary may be referenced as a variable
+                    if (!ternary.IsRef)
+                    {
+                        return false;
+                    }
+ 
+                    // branch that has no home will need a temporary
+                    // if both have no home, just say whole expression has no home 
+                    // so we could just use one temp for the whole thing
+                    return HasHome(ternary.Consequence, addressKind, methodOpt, peVerifyCompatEnabled, stackLocalsOpt)
+                        && HasHome(ternary.Alternative, addressKind, methodOpt, peVerifyCompatEnabled, stackLocalsOpt);
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Special HasHome for fields. 
+        /// Fields have readable homes when they are not constants.
+        /// Fields have writeable homes unless they are readonly and used outside of the constructor.
+        /// </summary>
+        private static bool HasHome(
+            BoundFieldAccess fieldAccess,
+            AddressKind addressKind,
+            MethodSymbol methodOpt,
+            bool peVerifyCompatEnabled,
+            HashSet<LocalSymbol> stackLocalsOpt)
+        {
+            FieldSymbol field = fieldAccess.FieldSymbol;
+
+            // const fields are literal values with no homes. (ex: decimal.Zero)
+            if (field.IsConst)
+            {
+                return false;
+            }
+
+            // in readonly situations where ref to a copy is not allowed, consider fields as addressable
+            if (addressKind == AddressKind.ReadOnlyStrict)
+            {
+                return true;
+            }
+
+            // ReadOnly references can always be taken unless we are in peverify compat mode
+            if (addressKind == AddressKind.ReadOnly && !peVerifyCompatEnabled)
+            {
+                return true;
+            }
+
+            // Some field accesses must be values; values do not have homes.
+            if (fieldAccess.IsByValue)
+            {
+                return false;
+            }
+
+            if (!field.IsReadOnly)
+            {
+                // in a case if we have a writeable struct field with a receiver that only has a readable home we would need to pass it via a temp.
+                // it would be advantageous to make a temp for the field, not for the the outer struct, since the field is smaller and we can get to is by fetching references.
+                // NOTE: this would not be profitable if we have to satisfy verifier, since for verifiability 
+                //       we would not be able to dig for the inner field using references and the outer struct will have to be copied to a temp anyways.
+                if (!peVerifyCompatEnabled)
+                {
+                    Debug.Assert(!IsReadOnly(addressKind));
+
+                    var receiver = fieldAccess.ReceiverOpt;
+                    if (receiver?.Type.IsValueType == true)
+                    {
+                        // Check receiver:
+                        // has writeable home -> return true - the whole chain has writeable home (also a more common case)
+                        // has readable home -> return false - we need to copy the field
+                        // otherwise         -> return true  - the copy will be made at higher level so the leaf field can have writeable home
+
+                        return HasHome(receiver, addressKind, methodOpt, peVerifyCompatEnabled, stackLocalsOpt)
+                            || !HasHome(receiver, AddressKind.ReadOnly, methodOpt, peVerifyCompatEnabled, stackLocalsOpt);
+                    }
+                }
+
+                return true;
+            }
+
+            // while readonly fields have home it is not valid to refer to it when not constructing.
+            if (field.ContainingType != methodOpt.ContainingType)
+            {
+                return false;
+            }
+
+
+            if (field.IsStatic)
+            {
+                return methodOpt.MethodKind == MethodKind.StaticConstructor;
+            }
+            else
+            {
+                return methodOpt.MethodKind == MethodKind.Constructor &&
+                    fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference;
+            }
+        }
+
     }
 }

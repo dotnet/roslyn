@@ -292,8 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref argumentRefKindsOpt,
                 out argTemps,
                 invokedAsExtensionMethod: false,
-                enableCallerInfo: ThreeState.True,
-                argumentsBinderOpt);
+                enableCallerInfo: ThreeState.True);
 
             if (used)
             {

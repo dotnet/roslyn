@@ -135,8 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt,
                     ref argumentRefKindsOpt,
                     out temps,
-                    enableCallerInfo: ThreeState.True,
-                    argumentsBinderOpt: oldNodeOpt?.BinderOpt);
+                    enableCallerInfo: ThreeState.True);
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);
 

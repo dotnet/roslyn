@@ -336,8 +336,8 @@ GetField 1
   IL_0021:  ret
 }");
         }
-        [Fact]
 
+        [Fact]
         public void InIndexerReorderWithCopy()
         {
             var verifier = CompileAndVerify(@"
