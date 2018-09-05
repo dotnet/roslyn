@@ -34,7 +34,6 @@
     <ProjectReference Include="..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" PrivateAssets="all"/>
-    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" PrivateAssets="all"/>
@@ -84,7 +83,6 @@
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.Features\Microsoft.CodeAnalysis.VisualBasic.Features.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.Workspaces\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic\Microsoft.CodeAnalysis.VisualBasic.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.CSharp\Microsoft.VisualStudio.LanguageServices.CSharp.dll" TargetDir="" />

@@ -32,6 +32,16 @@
         <target state="new">Format Document performed additional cleanup</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="new">Invalid assembly name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="new">Invalid characters in assembly name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">プリプロセッサ テキスト</target>
