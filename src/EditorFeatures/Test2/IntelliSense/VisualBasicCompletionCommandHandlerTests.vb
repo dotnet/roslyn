@@ -2943,6 +2943,29 @@ End Class
             End Using
         End Function
 
+        <WorkItem(28767, "https://github.com/dotnet/roslyn/issues/28767")>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionDoesNotRemoveBracketsOnEnum(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+                       <document>
+                          Class C
+                             Sub S
+                                 [$$]
+                             End Sub
+                         End Class
+                       </document>)
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("Enu")
+                Await state.AssertCompletionSession()
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("[Enum]", state.GetLineTextFromCaretPosition().Trim())
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+            End Using
+        End Function
+
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
         Friend Class MockSnippetInfoService
             Implements ISnippetInfoService
