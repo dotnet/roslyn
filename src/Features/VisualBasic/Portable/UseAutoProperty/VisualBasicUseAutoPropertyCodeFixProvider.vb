@@ -36,7 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
             Dim initializer = Await GetFieldInitializer(fieldSymbol, cancellationToken).ConfigureAwait(False)
             If initializer.equalsValue IsNot Nothing Then
-                statement = statement.WithInitializer(initializer.equalsValue)
+                'Before adding initializer, need to remove any end of line trivia from the statement
+                statement = If(statement.GetTrailingTrivia.Any(SyntaxKind.EndOfLineTrivia), statement.WithTrailingTrivia(SyntaxFactory.Space).WithInitializer(initializer.equalsValue), statement.WithInitializer(initializer.equalsValue))
             End If
 
             If initializer.asNewClause IsNot Nothing Then

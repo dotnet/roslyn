@@ -104,8 +104,7 @@ end class")
     end property|]
 end class",
 "class Class1
-    readonly property P as integer
-= 1
+    readonly property P as integer = 1
 end class")
         End Function
 
@@ -152,6 +151,26 @@ end class")
         end get
     end property|]
 end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
+        Public Async Function TestInitializer_Boolean() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class C
+    Private _b As Boolean = True
+    Public Property [|P|]() As Boolean
+        Get
+            Return _b
+        End Get
+        Set(value As Boolean)
+            _b = value
+        End Set
+    End Property
+End Class",
+"Public Class C
+    Public Property P() As Boolean = True
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
