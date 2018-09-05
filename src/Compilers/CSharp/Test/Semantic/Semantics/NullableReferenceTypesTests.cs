@@ -32886,7 +32886,6 @@ static class E
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
             comp.VerifyDiagnostics(
                 // (12,32): warning CS8619: Nullability of reference types in value of type '(string x, string? y)' doesn't match target type '(string, string)?'.
                 //         (string, string)? t1 = (x, y); // 1
@@ -32962,7 +32961,6 @@ class D
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
             comp.VerifyDiagnostics(
                 // (12,31): warning CS8619: Nullability of reference types in value of type '(string x, string?)' doesn't match target type '(string, string)'.
                 //         (string, string) t1 = a1; // 1
@@ -33038,7 +33036,6 @@ class D
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
             comp.VerifyDiagnostics(
                 // (12,18): warning CS8619: Nullability of reference types in value of type '(string x, string? y)' doesn't match target type '(string, string)'.
                 //         var t1 = ((string, string))(x, y); // 1
@@ -33123,7 +33120,6 @@ class D
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
             comp.VerifyDiagnostics(
                 // (12,41): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var t1 = ((string, string)?)(x, y); // 1
@@ -33211,7 +33207,6 @@ class D
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
             comp.VerifyDiagnostics(
                 // (12,18): warning CS8619: Nullability of reference types in value of type '(string x, string?)' doesn't match target type '(string, string)'.
                 //         var t1 = ((string, string))a1; // 1
