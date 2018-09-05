@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The field is necessary to allow representing distinct instances for a type parameter
         /// type (IsNullable=true and IsNullable=false) in flow analysis.
         /// </summary>
-        private readonly bool _treatPossiblyNullableReferenceTypeTypeParameterAsNullable; // PROTOTYPE(NullableReferenceTypes): Should consider to get rid of this black magic
+        private readonly bool _treatPossiblyNullableReferenceTypeTypeParameterAsNullable;
 
         /// <summary>
         /// [NonNullTypes] context used for determining whether unannotated types are not nullable.

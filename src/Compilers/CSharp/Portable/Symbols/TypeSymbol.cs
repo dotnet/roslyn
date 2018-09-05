@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static readonly EqualityComparer<TypeSymbol> EqualsIncludingNullableComparer = new TypeSymbolComparer(TypeCompareKind.CompareNullableModifiersForReferenceTypes);
 
-        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullablWithUnknownMatchesAnyComparer = 
+        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer = 
                                                                   new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions |
                                                                                          TypeCompareKind.CompareNullableModifiersForReferenceTypes |
                                                                                          TypeCompareKind.UnknownNullableModifierMatchesAny);
