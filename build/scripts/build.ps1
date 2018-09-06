@@ -250,7 +250,7 @@ function Build-Artifacts() {
     }
 
     if ($sign) {
-        Run-SignTool
+        Run-MSBuild "build\Targets\RepoToolset\Sign.proj" "/p:DotNetSignType=$signType"
     }
 
     if ($pack -and $cibuild) {
@@ -546,29 +546,6 @@ function Deploy-VsixViaTool() {
         $fullArg = "$baseArgs $filePath"
         Write-Host "`tInstalling $name"
         Exec-Console $vsixExe $fullArg
-    }
-}
-
-# Sign all of our binaries that need to be signed
-function Run-SignTool() {
-    Push-Location $repoDir
-    try {
-        $signTool = Join-Path (Get-PackageDir "RoslynTools.SignTool") "tools\SignTool.exe"
-        $signToolArgs = "-msbuildPath `"$msbuild`""
-        if ($binaryLog) {
-            $signToolArgs += " -msbuildBinaryLog $logsDir\Signing.binlog"
-        }
-        switch ($signType) {
-            "real" { break; }
-            "test" { $signToolArgs += " -testSign"; break; }
-            default { $signToolArgs += " -test"; break; }
-        }
-
-        $signToolArgs += " `"$configDir`""
-        Exec-Console $signTool $signToolArgs
-    }
-    finally {
-        Pop-Location
     }
 }
 
