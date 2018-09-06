@@ -2160,9 +2160,6 @@ IInvocationOperation (void P.M2([System.Boolean[missing]? x = true])) (Operation
                 // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class P
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (9,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     static void M2(bool? x = true)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "bool? x = true").WithLocation(9, 20),
                 // (9,30): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     static void M2(bool? x = true)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "true").WithArguments("System.Boolean").WithLocation(9, 30),
@@ -2208,7 +2205,6 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = tru
     null
 ";
 
-            // PROTOTYPE(NullableReferenceTypes): Why are two errors reported for missing System.Nullable`1.
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (4,12): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     static P M1()
@@ -2216,9 +2212,6 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = tru
                 // (9,7): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     P(bool? x = true)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 7),
-                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     P(bool? x = true)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
                 // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
                 //     P(bool? x = true)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
@@ -2230,9 +2223,6 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = tru
                 // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class P
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (9,7): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     P(bool? x = true)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "bool? x = true").WithLocation(9, 7),
                 // (9,17): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     P(bool? x = true)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "true").WithArguments("System.Boolean").WithLocation(9, 17),
@@ -2311,9 +2301,6 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
                 // (3,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class P
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(3, 7),
-                // (6,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     public int this[int x, int? y = 5]
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "int? y = 5").WithLocation(6, 28),
                 // (6,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = 5]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "5").WithArguments("System.Int32").WithLocation(6, 37),
@@ -2379,9 +2366,6 @@ IInvocationOperation (void P.M2([System.Boolean[missing]? x = null])) (Operation
                 // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class P
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (9,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     static void M2(bool? x = null)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "bool? x = null").WithLocation(9, 20),
                 // (6,19): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //         /*<bind>*/M2()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Object").WithLocation(6, 19),
@@ -2422,8 +2406,10 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = nul
     null
 ";
 
-            // PROTOTYPE(NullableReferenceTypes): Why are two errors reported for missing System.Nullable`1.
             var expectedDiagnostics = new DiagnosticDescription[] {
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
                 // (4,12): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     static P M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(4, 12),
@@ -2433,20 +2419,11 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = nul
                 // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
                 //     P(bool? x = null)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
-                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     P(bool? x = null)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
                 // (9,5): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     P(bool? x = null)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"P(bool? x = null)
     {
     }").WithArguments("System.Void").WithLocation(9, 5),
-                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class P
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (9,7): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     P(bool? x = null)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "bool? x = null").WithLocation(9, 7),
                 // (6,30): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //         return /*<bind>*/new P()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(6, 30),
@@ -2523,9 +2500,6 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
                 // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class P
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (5,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     public int this[int x, int? y = null]
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "int? y = null").WithLocation(5, 28),
                 // (4,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     private int _number = 0;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(4, 27),
@@ -3529,9 +3503,6 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
                 // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class P
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (5,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     public int this[int x, int? y = 0]
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "int? y = 0").WithLocation(5, 28),
                 // (5,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = 0]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(5, 37),
@@ -3627,9 +3598,6 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
                 // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class P
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (5,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     public int this[int x, int? y = null]
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "int? y = null").WithLocation(5, 28),
                 // (4,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     private int _number = 0;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(4, 27),

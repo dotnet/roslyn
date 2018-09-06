@@ -148,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal static TypeSymbolWithAnnotations Create(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, bool isAnnotated = false, ImmutableArray<CustomModifier> customModifiers = default)
         {
+            Debug.Assert(nonNullTypesContext != null);
             // PROTOTYPE(NullableReferenceTypes): Enable the assert below.
             //Debug.Assert((nonNullTypesContext as Symbol)?.IsDefinition != false);
 
@@ -159,8 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 isAnnotated = true;
             }
-            // PROTOTYPE(NullableReferenceTypes): this defaulting logic should be removed. There are many paths that currently don't have an explicit context at the moment.
-            nonNullTypesContext = nonNullTypesContext ?? NonNullTypesFalseContext.Instance;
             return CreateNonLazyType(typeSymbol, nonNullTypesContext, isAnnotated: isAnnotated,
                                      treatPossiblyNullableReferenceTypeTypeParameterAsNullable: !IsIndexedTypeParameter(typeSymbol),
                                      customModifiers.NullToEmpty());
@@ -242,13 +241,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // In this case we delay asking this question as long as possible.
             if (typeSymbol.TypeKind != TypeKind.TypeParameter)
             {
-                if (!typeSymbol.IsValueType)
+                if (!typeSymbol.IsValueType && !typeSymbol.IsErrorType())
                 {
                     return CreateNonLazyType(typeSymbol, NonNullTypesContext, isAnnotated: true, treatPossiblyNullableReferenceTypeTypeParameterAsNullable: false, this.CustomModifiers);
                 }
                 else
                 {
-                    // PROTOTYPE(NullableReferenceTypes): what if the Nullable<T> type is missing? (are we missing diagnostics?)
                     return Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol), NonNullTypesContext));
                 }
             }
@@ -550,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var type = TypeSymbolExtensions.VisitType(
                 typeWithAnnotationsOpt,
                 typeOpt,
-                typeWithAnnotationsPredicateOpt: (t, a, b) => t.IsAnnotated && !t.TypeSymbol.IsValueType,
+                typeWithAnnotationsPredicateOpt: (t, a, b) => t.IsAnnotated && !t.TypeSymbol.IsErrorType() && !t.TypeSymbol.IsValueType,
                 typePredicateOpt: null,
                 arg: (object)null);
             return (object)type != null;
@@ -1011,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var newUnderlying = _underlying.SubstituteTypeCore(typeMap, withTupleUnification);
                 if (!newUnderlying.IsSameAs(this._underlying))
                 {
-                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.AllAspects) ||
+                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.CompareNullableModifiersForReferenceTypes) ||
                             newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
                         newUnderlying.CustomModifiers.IsEmpty)
                     {

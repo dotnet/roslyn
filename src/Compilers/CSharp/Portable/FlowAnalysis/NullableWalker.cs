@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal sealed class VariableState
         {
-            // PROTOTYPE(NullableReferenceTypes): Reference the collections directly from the original
-            // NullableWalker ratherthan coping the collections. (Items are added to the collections
+            // Consider referencing the collections directly from the original NullableWalker
+            // rather than coping the collections. (Items are added to the collections
             // but never replaced so the collections are lazily populated but otherwise immutable.)
             internal readonly ImmutableDictionary<VariableIdentifier, int> VariableSlot;
             internal readonly ImmutableArray<VariableIdentifier> VariableBySlot;
@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            _resultType = _invalidType; // PROTOTYPE(NullableReferenceTypes): Move to `Visit` method?
+            _resultType = _invalidType;
             var result = base.VisitExpressionWithoutStackGuard(node);
 #if DEBUG
             // Verify Visit method set _result.
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
                     return TypeSymbolWithAnnotations.Create(resultType);
                 }
-                // PROTOTYPE(NullableReferenceTypes): Update method based on operand types.
+                // Update method based on operand types: see https://github.com/dotnet/roslyn/issues/29605.
                 if ((object)methodOpt != null && methodOpt.ParameterCount == 2)
                 {
                     return methodOpt.ReturnType;
@@ -1418,7 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
         {
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 TypeSymbolWithAnnotations leftType = _resultType;
                 bool warnOnNullReferenceArgument = (binary.OperatorKind.IsUserDefined() && (object)binary.MethodOpt != null && binary.MethodOpt.ParameterCount == 2);
@@ -1776,27 +1776,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression consequence;
             BoundExpression alternative;
+            Conversion consequenceConversion;
+            Conversion alternativeConversion;
             TypeSymbolWithAnnotations consequenceResult;
             TypeSymbolWithAnnotations alternativeResult;
             bool? isNullableIfReferenceType;
 
-            if (IsConstantTrue(node.Condition))
+            bool isConstantTrue = IsConstantTrue(node.Condition);
+            bool isConstantFalse = IsConstantFalse(node.Condition);
+            if (isConstantTrue)
             {
-                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
-                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
+                (alternative, alternativeConversion, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
+                (consequence, consequenceConversion, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
                 isNullableIfReferenceType = getIsNullableIfReferenceType(consequence, consequenceResult);
             }
-            else if (IsConstantFalse(node.Condition))
+            else if (isConstantFalse)
             {
-                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
-                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
+                (consequence, consequenceConversion, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
+                (alternative, alternativeConversion, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
                 isNullableIfReferenceType = getIsNullableIfReferenceType(alternative, alternativeResult);
             }
             else
             {
-                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
+                (consequence, consequenceConversion, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
                 Unsplit();
-                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
+                (alternative, alternativeConversion, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
                 Unsplit();
                 IntersectWith(ref this.State, ref consequenceState);
                 isNullableIfReferenceType = (getIsNullableIfReferenceType(consequence, consequenceResult) | getIsNullableIfReferenceType(alternative, alternativeResult));
@@ -1834,7 +1838,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            _resultType = TypeSymbolWithAnnotations.Create(resultType ?? node.Type.SetUnknownNullabilityForReferenceTypes(), isNullableIfReferenceType);
+            var resultTypeWithAnnotations = TypeSymbolWithAnnotations.Create(resultType ?? node.Type.SetUnknownNullabilityForReferenceTypes(), isNullableIfReferenceType);
+
+            if ((object)resultType != null)
+            {
+                if (!isConstantFalse)
+                {
+                    ApplyConversion(
+                        node.Consequence,
+                        consequence,
+                        consequenceConversion,
+                        resultTypeWithAnnotations,
+                        consequenceResult,
+                        checkConversion: true,
+                        fromExplicitCast: false,
+                        useLegacyWarnings: false,
+                        AssignmentKind.Assignment);
+                }
+
+                if (!isConstantTrue)
+                {
+                    ApplyConversion(
+                        node.Alternative,
+                        alternative,
+                        alternativeConversion,
+                        resultTypeWithAnnotations,
+                        alternativeResult,
+                        checkConversion: true,
+                        fromExplicitCast: false,
+                        useLegacyWarnings: false,
+                        AssignmentKind.Assignment);
+                }
+            }
+            _resultType = resultTypeWithAnnotations;
+
             return null;
 
             bool? getIsNullableIfReferenceType(BoundExpression expr, TypeSymbolWithAnnotations type)
@@ -1857,19 +1894,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new BoundExpressionWithNullability(expr.Syntax, expr, type.IsNullable, type.TypeSymbol);
             }
 
-            (BoundExpression, TypeSymbolWithAnnotations) visitConditionalOperand(LocalState state, BoundExpression operand)
+            (BoundExpression, Conversion, TypeSymbolWithAnnotations) visitConditionalOperand(LocalState state, BoundExpression operand)
             {
+                Conversion conversion;
                 SetState(state);
                 if (isByRef)
                 {
                     VisitLvalue(operand);
+                    conversion = Conversion.Identity;
                 }
                 else
                 {
-                    (operand, _) = RemoveConversion(operand, includeExplicitConversions: false);
+                    (operand, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
                     Visit(operand);
                 }
-                return (operand, _resultType);
+                return (operand, conversion, _resultType);
             }
         }
 
@@ -1897,7 +1936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitRvalue(receiverOpt);
                 CheckPossibleNullReceiver(receiverOpt);
-                // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
+                // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
             }
 
             // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
@@ -1908,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
                 ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
 
-                method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, conversions, method);
+                method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod, conversions, method);
             }
 
             UpdateStateForCall(node);
@@ -1919,7 +1958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 _resultType = method.ReturnType;
             }
@@ -2051,7 +2090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<Conversion> conversions;
             (arguments, conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
-            VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, expanded, conversions);
+            VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions);
         }
 
         private void VisitArguments(
@@ -2064,7 +2103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<Conversion> conversions;
             (arguments, conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
-            VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded, conversions);
+            VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions);
         }
 
         /// <summary>
@@ -2077,6 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt,
             bool expanded,
+            bool invokedAsExtensionMethod,
             ImmutableArray<Conversion> conversions,
             MethodSymbol method = null)
         {
@@ -2104,7 +2144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
             if (!node.HasErrors && !parameters.IsDefault)
             {
-                VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, results);
+                VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results);
             }
 
             // We do a second pass through the arguments, ignoring any diagnostics produced, but honoring the annotations,
@@ -2119,7 +2159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _disableDiagnostics = true;
                 if (!node.HasErrors && !parameters.IsDefault)
                 {
-                    VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, results); // recompute out vars after state was reset
+                    VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results); // recompute out vars after state was reset
                 }
                 VisitArgumentsEvaluateHonoringAnnotations(arguments, refKindsOpt, annotations);
 
@@ -2288,6 +2328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt,
             bool expanded,
+            bool invokedAsExtensionMethod,
             ImmutableArray<TypeSymbolWithAnnotations> results)
         {
             for (int i = 0; i < arguments.Length; i++)
@@ -2303,7 +2344,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetRefKind(refKindsOpt, i),
                     parameter,
                     parameterType,
-                    results[i]);
+                    results[i],
+                    invokedAsExtensionMethod && i == 0);
             }
         }
 
@@ -2316,7 +2358,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind refKind,
             ParameterSymbol parameter,
             TypeSymbolWithAnnotations parameterType,
-            TypeSymbolWithAnnotations resultType)
+            TypeSymbolWithAnnotations resultType,
+            bool extensionMethodThisArgument)
         {
             var argumentType = resultType.TypeSymbol;
             switch (refKind)
@@ -2324,7 +2367,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.None:
                 case RefKind.In:
                     {
-                        ApplyConversion(argument, argument, conversion, parameterType, resultType, checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Argument, target: parameter);
+                        ApplyConversion(
+                            argument,
+                            argument,
+                            conversion,
+                            parameterType,
+                            resultType,
+                            checkConversion: true,
+                            fromExplicitCast: false,
+                            useLegacyWarnings: false,
+                            AssignmentKind.Argument,
+                            target: parameter,
+                            extensionMethodThisArgument: extensionMethodThisArgument);
                     }
                     break;
                 case RefKind.Out:
@@ -2646,7 +2700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // See Binder.BindNullCoalescingOperator for initial binding.
         private Conversion GenerateConversionForConditionalOperator(BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool reportMismatch)
         {
-            var conversion = GenerateConversion(_conversions, sourceExpression, sourceType, destinationType);
+            var conversion = GenerateConversion(_conversions, sourceExpression, sourceType, destinationType, fromExplicitCast: false, extensionMethodThisArgument: false);
             bool canConvertNestedNullability = conversion.Exists;
             if (!canConvertNestedNullability && reportMismatch)
             {
@@ -2655,10 +2709,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        private static Conversion GenerateConversion(Conversions conversions, BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool fromExplicitCast = false)
+        private static Conversion GenerateConversion(Conversions conversions, BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return UseExpressionForConversion(sourceExpression) ?
+            bool useExpression = UseExpressionForConversion(sourceExpression);
+            if (extensionMethodThisArgument)
+            {
+                return conversions.ClassifyImplicitExtensionMethodThisArgConversion(
+                    useExpression ? sourceExpression : null,
+                    sourceType,
+                    destinationType,
+                    ref useSiteDiagnostics);
+            }
+            return useExpression ?
                 (fromExplicitCast ?
                     conversions.ClassifyConversionFromExpression(sourceExpression, destinationType, ref useSiteDiagnostics, forCast: true) :
                     conversions.ClassifyImplicitConversionFromExpression(sourceExpression, destinationType, ref useSiteDiagnostics)) :
@@ -2802,7 +2865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion,
                 targetType,
                 operandType,
-                checkConversion: !fromExplicitCast,
+                checkConversion: true,
                 fromExplicitCast: fromExplicitCast,
                 useLegacyWarnings: fromExplicitCast,
                 AssignmentKind.Assignment,
@@ -2977,7 +3040,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssignmentKind assignmentKind,
             ParameterSymbol target = null,
             bool reportTopLevelWarnings = true,
-            bool reportNestedWarnings = true)
+            bool reportNestedWarnings = true,
+            bool extensionMethodThisArgument = false)
         {
             Debug.Assert(node != null);
             Debug.Assert(operandOpt != null || !operandType.IsNull);
@@ -3041,7 +3105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             useLegacyWarnings,
                             assignmentKind);
 
-                        // PROTOTYPE(NullableReferenceTypes): Update method based on operandType
+                        // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
                         // (see NullableReferenceTypesTests.ImplicitConversions_07).
                         var methodOpt = conversion.Method;
                         Debug.Assert((object)methodOpt != null);
@@ -3119,11 +3183,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (checkConversion)
                         {
                             // PROTOTYPE(NullableReferenceTypes): Assert conversion is similar to original.
-                            conversion = GenerateConversion(_conversions, operandOpt, operandType.TypeSymbol, targetType, fromExplicitCast);
+                            conversion = GenerateConversion(_conversions, operandOpt, operandType.TypeSymbol, targetType, fromExplicitCast, extensionMethodThisArgument);
                             canConvertNestedNullability = conversion.Exists;
                         }
                         isNullableIfReferenceType = operandType.IsNull ? null : operandType.IsNullable;
                     }
+                    break;
+
+                case ConversionKind.ImplicitNullable:
+                case ConversionKind.ExplicitNullable:
+                case ConversionKind.ImplicitTupleLiteral:
+                case ConversionKind.ImplicitTuple:
+                case ConversionKind.ExplicitTupleLiteral:
+                case ConversionKind.ExplicitTuple:
+                    if (checkConversion)
+                    {
+                        // https://github.com/dotnet/roslyn/issues/29699: Report warnings for user-defined conversions on tuple elements.
+                        conversion = GenerateConversion(_conversions, operandOpt, operandType.TypeSymbol, targetType, fromExplicitCast, extensionMethodThisArgument);
+                        canConvertNestedNullability = conversion.Exists;
+                    }
+                    isNullableIfReferenceType = false;
                     break;
 
                 case ConversionKind.Deconstruction:
@@ -3215,7 +3294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckPossibleNullReceiver(receiverOpt);
             }
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 _resultType = default;
             }
@@ -3326,9 +3405,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            // PROTOTYPE(NullableReferenceTypes): Assign each of the deconstructed values.
+            // https://github.com/dotnet/roslyn/issues/29618: Assign each of the deconstructed values,
+            // and handle deconstruction conversion for node.Right.
             VisitLvalue(node.Left);
-            // PROTOTYPE(NullableReferenceTypes): Handle deconstruction conversion node.Right.
             VisitRvalue(node.Right.Operand);
             SetResult(node);
             return null;
@@ -3439,7 +3518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations resultType;
             Debug.Assert(!IsConditionalState);
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 TypeSymbolWithAnnotations leftOnRightType = GetAdjustedResult(leftType, MakeSlot(node.Left));
 
@@ -3602,7 +3681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 VisitRvalue(receiverOpt);
 
@@ -3719,7 +3798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitUnaryOperator(node);
             TypeSymbolWithAnnotations resultType = default;
 
-            // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
+            // Update method based on inferred operand type: see https://github.com/dotnet/roslyn/issues/29605.
             if (node.OperatorKind.IsUserDefined())
             {
                 if (node.OperatorKind.IsLifted())
@@ -3779,7 +3858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
                 return TypeSymbolWithAnnotations.Create(node.Type);
             }
-            // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand types.
+            // Update method based on inferred operand types: see https://github.com/dotnet/roslyn/issues/29605.
             if ((object)node.LogicalOperator != null && node.LogicalOperator.ParameterCount == 2)
             {
                 return node.LogicalOperator.ReturnType;
@@ -3793,7 +3872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression node, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)
         {
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 TypeSymbolWithAnnotations leftType = _resultType;
                 // PROTOTYPE(NullableReferenceTypes): Update operator methods based on inferred operand types.
@@ -3872,7 +3951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
+                // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
                 _resultType = node.GetResult.ReturnType;
             }
             return result;
@@ -3939,7 +4018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitAsOperator(node);
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 bool? isNullable = null;
                 if (!node.Type.IsValueType)
@@ -3982,7 +4061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.VisitSuppressNullableWarningExpression(node);
 
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 _resultType = _resultType.IsNull ? default : _resultType.WithTopLevelNonNullabilityForReferenceTypes();
             }
@@ -4018,7 +4097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitLiteral(node);
 
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 var constant = node.ConstantValue;
 
