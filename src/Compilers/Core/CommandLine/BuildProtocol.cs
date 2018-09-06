@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     ///  Field Name         Type                Size (bytes)
     /// ----------------------------------------------------
     ///  Length             Integer             4
+    ///  ProtocolVersion    Integer             4
     ///  Language           RequestLanguage     4
     ///  CompilerHash       String              Variable
     ///  Argument Count     UInteger            4
