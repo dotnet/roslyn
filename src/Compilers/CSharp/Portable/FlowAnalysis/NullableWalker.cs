@@ -1947,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
                 ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
 
-                method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, conversions, method);
+                method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod, conversions, method);
             }
 
             UpdateStateForCall(node);
@@ -2090,7 +2090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<Conversion> conversions;
             (arguments, conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
-            VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, expanded, conversions);
+            VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions);
         }
 
         private void VisitArguments(
@@ -2103,7 +2103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<Conversion> conversions;
             (arguments, conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
-            VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded, conversions);
+            VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions);
         }
 
         /// <summary>
@@ -2116,6 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt,
             bool expanded,
+            bool invokedAsExtensionMethod,
             ImmutableArray<Conversion> conversions,
             MethodSymbol method = null)
         {
@@ -2143,7 +2144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
             if (!node.HasErrors && !parameters.IsDefault)
             {
-                VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, results);
+                VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results);
             }
 
             // We do a second pass through the arguments, ignoring any diagnostics produced, but honoring the annotations,
@@ -2158,7 +2159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _disableDiagnostics = true;
                 if (!node.HasErrors && !parameters.IsDefault)
                 {
-                    VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, results); // recompute out vars after state was reset
+                    VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results); // recompute out vars after state was reset
                 }
                 VisitArgumentsEvaluateHonoringAnnotations(arguments, refKindsOpt, annotations);
 
@@ -2327,6 +2328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt,
             bool expanded,
+            bool invokedAsExtensionMethod,
             ImmutableArray<TypeSymbolWithAnnotations> results)
         {
             for (int i = 0; i < arguments.Length; i++)
@@ -2342,7 +2344,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetRefKind(refKindsOpt, i),
                     parameter,
                     parameterType,
-                    results[i]);
+                    results[i],
+                    invokedAsExtensionMethod && i == 0);
             }
         }
 
@@ -2355,7 +2358,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind refKind,
             ParameterSymbol parameter,
             TypeSymbolWithAnnotations parameterType,
-            TypeSymbolWithAnnotations resultType)
+            TypeSymbolWithAnnotations resultType,
+            bool extensionMethodThisArgument)
         {
             var argumentType = resultType.TypeSymbol;
             switch (refKind)
@@ -2363,7 +2367,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.None:
                 case RefKind.In:
                     {
-                        ApplyConversion(argument, argument, conversion, parameterType, resultType, checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Argument, target: parameter);
+                        ApplyConversion(
+                            argument,
+                            argument,
+                            conversion,
+                            parameterType,
+                            resultType,
+                            checkConversion: true,
+                            fromExplicitCast: false,
+                            useLegacyWarnings: false,
+                            AssignmentKind.Argument,
+                            target: parameter,
+                            extensionMethodThisArgument: extensionMethodThisArgument);
                     }
                     break;
                 case RefKind.Out:
@@ -2685,7 +2700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // See Binder.BindNullCoalescingOperator for initial binding.
         private Conversion GenerateConversionForConditionalOperator(BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool reportMismatch)
         {
-            var conversion = GenerateConversion(_conversions, sourceExpression, sourceType, destinationType);
+            var conversion = GenerateConversion(_conversions, sourceExpression, sourceType, destinationType, fromExplicitCast: false, extensionMethodThisArgument: false);
             bool canConvertNestedNullability = conversion.Exists;
             if (!canConvertNestedNullability && reportMismatch)
             {
@@ -2694,10 +2709,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        private static Conversion GenerateConversion(Conversions conversions, BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool fromExplicitCast = false)
+        private static Conversion GenerateConversion(Conversions conversions, BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return UseExpressionForConversion(sourceExpression) ?
+            bool useExpression = UseExpressionForConversion(sourceExpression);
+            if (extensionMethodThisArgument)
+            {
+                return conversions.ClassifyImplicitExtensionMethodThisArgConversion(
+                    useExpression ? sourceExpression : null,
+                    sourceType,
+                    destinationType,
+                    ref useSiteDiagnostics);
+            }
+            return useExpression ?
                 (fromExplicitCast ?
                     conversions.ClassifyConversionFromExpression(sourceExpression, destinationType, ref useSiteDiagnostics, forCast: true) :
                     conversions.ClassifyImplicitConversionFromExpression(sourceExpression, destinationType, ref useSiteDiagnostics)) :
@@ -3016,7 +3040,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssignmentKind assignmentKind,
             ParameterSymbol target = null,
             bool reportTopLevelWarnings = true,
-            bool reportNestedWarnings = true)
+            bool reportNestedWarnings = true,
+            bool extensionMethodThisArgument = false)
         {
             Debug.Assert(node != null);
             Debug.Assert(operandOpt != null || !operandType.IsNull);
@@ -3158,11 +3183,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (checkConversion)
                         {
                             // PROTOTYPE(NullableReferenceTypes): Assert conversion is similar to original.
-                            conversion = GenerateConversion(_conversions, operandOpt, operandType.TypeSymbol, targetType, fromExplicitCast);
+                            conversion = GenerateConversion(_conversions, operandOpt, operandType.TypeSymbol, targetType, fromExplicitCast, extensionMethodThisArgument);
                             canConvertNestedNullability = conversion.Exists;
                         }
                         isNullableIfReferenceType = operandType.IsNull ? null : operandType.IsNullable;
                     }
+                    break;
+
+                case ConversionKind.ImplicitNullable:
+                case ConversionKind.ExplicitNullable:
+                case ConversionKind.ImplicitTupleLiteral:
+                case ConversionKind.ImplicitTuple:
+                case ConversionKind.ExplicitTupleLiteral:
+                case ConversionKind.ExplicitTuple:
+                    if (checkConversion)
+                    {
+                        // https://github.com/dotnet/roslyn/issues/29699: Report warnings for user-defined conversions on tuple elements.
+                        conversion = GenerateConversion(_conversions, operandOpt, operandType.TypeSymbol, targetType, fromExplicitCast, extensionMethodThisArgument);
+                        canConvertNestedNullability = conversion.Exists;
+                    }
+                    isNullableIfReferenceType = false;
                     break;
 
                 case ConversionKind.Deconstruction:

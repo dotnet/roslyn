@@ -1414,7 +1414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var targetType in targetTypes)
             {
-                if (HasIdentityConversionInternal(type, targetType, includeNullability: false)) // PROTOTYPE(NullableReferenceTypes): Test this!
+                if (HasIdentityConversionInternal(type, targetType, includeNullability: false))
                 {
                     return true;
                 }
@@ -1457,6 +1457,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (sourceExpressionOpt?.Kind == BoundKind.TupleLiteral)
             {
+                // GetTupleLiteralConversion is not used with IncludeNullability currently.
+                // If that changes, the delegate below will need to consider top-level nullability.
+                Debug.Assert(!IncludeNullability);
                 var tupleConversion = GetTupleLiteralConversion(
                     (BoundTupleLiteral)sourceExpressionOpt,
                     destination,
@@ -1473,14 +1476,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)sourceType != null)
             {
-                Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Should fail in NullableReferenceTypesTests.Conversions_TupleLiteralExtensionThis.
                 var tupleConversion = ClassifyTupleConversion(
                     sourceType,
                     destination,
                     ref useSiteDiagnostics,
                     ConversionKind.ImplicitTuple,
                     (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) =>
-                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(null, s.TypeSymbol, d.TypeSymbol, ref u), 
+                    {
+                        if (conversions.IncludeNullability && !HasTopLevelNullabilityImplicitConversion(s, d))
+                        {
+                            return Conversion.NoConversion;
+                        }
+                        return conversions.ClassifyImplicitExtensionMethodThisArgConversion(null, s.TypeSymbol, d.TypeSymbol, ref u);
+                    },
                     arg: false);
                 if (tupleConversion.Exists)
                 {
@@ -1858,6 +1866,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion GetImplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
+            // GetTupleLiteralConversion is not used with IncludeNullability currently.
+            // If that changes, the delegate below will need to consider top-level nullability.
+            Debug.Assert(!IncludeNullability);
             return GetTupleLiteralConversion(
                 source,
                 destination,
@@ -1869,6 +1880,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
         {
+            // GetTupleLiteralConversion is not used with IncludeNullability currently.
+            // If that changes, the delegate below will need to consider top-level nullability.
+            Debug.Assert(!IncludeNullability);
             return GetTupleLiteralConversion(
                 source,
                 destination,
@@ -1941,7 +1955,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref useSiteDiagnostics,
                 ConversionKind.ExplicitTuple,
                 (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) =>
-                    conversions.ClassifyConversionFromType(s.TypeSymbol, d.TypeSymbol, ref u, a),
+                {
+                    if (conversions.IncludeNullability && !HasTopLevelNullabilityImplicitConversion(s, d))
+                    {
+                        return Conversion.NoConversion;
+                    }
+                    return conversions.ClassifyConversionFromType(s.TypeSymbol, d.TypeSymbol, ref u, a);
+                },
                 forCast);
         }
 

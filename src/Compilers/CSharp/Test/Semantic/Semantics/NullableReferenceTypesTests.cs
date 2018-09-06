@@ -23850,6 +23850,71 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("IOut<object?>", "IOut<object>", "z", "void C.F(in I<object> x, in IIn<object> y, in IOut<object> z)").WithLocation(12, 26));
         }
 
+        [Fact]
+        public void IdentityConversion_ExtensionThis()
+        {
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+static class E
+{
+    static void F1(object x, object? y)
+    {
+        x.F1A();
+        y.F1A();
+        x.F1B();
+        y.F1B(); // 1
+    }
+    static void F1A(this object? o) { }
+    static void F1B(this object o) { }
+    static void F2(I<object> x, I<object?> y)
+    {
+        x.F2A(); // 2
+        y.F2A();
+        x.F2B();
+        y.F2B(); // 3
+    }
+    static void F2A(this I<object?> o) { }
+    static void F2B(this I<object> o) { }
+    static void F3(IIn<object> x, IIn<object?> y)
+    {
+        x.F3A(); // 4
+        y.F3A();
+        x.F3B();
+        y.F3B();
+    }
+    static void F3A(this IIn<object?> o) { }
+    static void F3B(this IIn<object> o) { }
+    static void F4(IOut<object> x, IOut<object?> y)
+    {
+        x.F4A();
+        y.F4A();
+        x.F4B();
+        y.F4B(); // 5
+    }
+    static void F4A(this IOut<object?> o) { }
+    static void F4B(this IOut<object> o) { }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void E.F1B(object o)'.
+                //         y.F1B(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("o", "void E.F1B(object o)").WithLocation(11, 9),
+                // (17,9): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'o' in 'void E.F2A(I<object?> o)'.
+                //         x.F2A(); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<object>", "I<object?>", "o", "void E.F2A(I<object?> o)").WithLocation(17, 9),
+                // (20,9): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'o' in 'void E.F2B(I<object> o)'.
+                //         y.F2B(); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "o", "void E.F2B(I<object> o)").WithLocation(20, 9),
+                // (26,9): warning CS8620: Nullability of reference types in argument of type 'IIn<object>' doesn't match target type 'IIn<object?>' for parameter 'o' in 'void E.F3A(IIn<object?> o)'.
+                //         x.F3A(); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("IIn<object>", "IIn<object?>", "o", "void E.F3A(IIn<object?> o)").WithLocation(26, 9),
+                // (38,9): warning CS8620: Nullability of reference types in argument of type 'IOut<object?>' doesn't match target type 'IOut<object>' for parameter 'o' in 'void E.F4B(IOut<object> o)'.
+                //         y.F4B(); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("IOut<object?>", "IOut<object>", "o", "void E.F4B(IOut<object> o)").WithLocation(38, 9));
+        }
+
         // PROTOTYPE(NullableReferenceTypes): Update this method to use types from unannotated assemblies
         // rather than `x!`, particularly because `x!` results in IsNullable=false rather than IsNullable=null.
         [Fact]
@@ -32295,16 +32360,18 @@ class B : A
 }
 class C
 {
-    static void F(B? b)
+    static void F(B? x, B y)
     {
-        C c = b; // (ImplicitUserDefined)(ImplicitReference)
+        C c;
+        c = x; // (ImplicitUserDefined)(ImplicitReference)
+        c = y; // (ImplicitUserDefined)(ImplicitReference)
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (12,15): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
-                //         C c = b; // (ImplicitUserDefined)(ImplicitReference)b
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.implicit operator C(A a)").WithLocation(12, 15));
+                // (13,13): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
+                //         c = x; // (ImplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("a", "A.implicit operator C(A a)").WithLocation(13, 13));
         }
 
         [Fact]
@@ -32583,8 +32650,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(21, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: Tuples
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void MultipleTupleConversions_01()
         {
             var source =
@@ -32597,19 +32663,19 @@ class B : A
 }
 class C
 {
-    static void F((B?, B) b)
+    static void F((B?, B) x, (B, B?) y)
     {
-        (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
+        (C, C?) c;
+        c = x; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
+        c = y; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            // https://github.com/dotnet/roslyn/issues/29699: Report warnings for user-defined conversions on tuple elements.
             comp.VerifyDiagnostics(
-                // (12,21): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
-                //         (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.implicit operator C(A a)").WithLocation(12, 21),
-                // (12,21): warning CS8619: Nullability of reference types in value of type '(B?, B)' doesn't match target type '(C, C?)'.
-                //         (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("(B?, B)", "(C, C?)").WithLocation(12, 21));
+                // (13,13): warning CS8619: Nullability of reference types in value of type '(B?, B)' doesn't match target type '(C, C?)'.
+                //         c = x; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("(B?, B)", "(C, C?)").WithLocation(13, 13));
         }
 
         [Fact]
@@ -32641,10 +32707,11 @@ class C
         }
 
         [Fact]
-        public void Conversions_TupleLiteral()
+        public void Conversions_ImplicitTupleLiteral_01()
         {
             var source =
-@"interface I<T> { }
+@"#pragma warning disable 0219
+interface I<T> { }
 interface IIn<in T> { }
 interface IOut<out T> { }
 class A<T> : I<T> { }
@@ -32652,56 +32719,531 @@ class B<T> : IIn<T> { }
 class C<T> : IOut<T> { }
 static class E
 {
-    static void F(string x, string? y)
+    static void F1(string x, string? y)
     {
-        E1((x, y)); // 1
-        E2((x, y));
+        (string, string) t1 = (x, y); // 1
+        (string?, string?) u1 = (x, y);
+        (object, object) v1 = (x, y); // 2
+        (object?, object?) w1 = (x, y);
+        F1A((x, y)); // 3
+        F1B((x, y));
+        F1C((x, y)); // 4
+        F1D((x, y));
     }
-    static void E1((object, object) t) { }
-    static void E2((object?, object?) t) { }
-    static void FA(A<object> x, A<object?> y)
+    static void F1A((string, string) t) { }
+    static void F1B((string?, string?) t) { }
+    static void F1C((object, object) t) { }
+    static void F1D((object?, object?) t) { }
+    static void F2(A<object> x, A<object?> y)
     {
-        EA1((x, y)); // 2
-        EA2((x, y)); // 3
+        (A<object>, A<object>) t2 = (x, y); // 5
+        (A<object?>, A<object?>) u2 = (x, y); // 6
+        (I<object>, I<object>) v2 = (x, y); // 7
+        (I<object?>, I<object?>) w2 = (x, y); // 8
+        F2A((x, y)); // 9
+        F2B((x, y)); // 10
+        F2C((x, y)); // 11
+        F2D((x, y)); // 12
     }
-    static void EA1((I<object>, I<object>) t) { }
-    static void EA2((I<object?>, I<object?>) t) { }
-    static void FB(B<object> x, B<object?> y)
+    static void F2A((A<object>, A<object>) t) { }
+    static void F2B((A<object?>, A<object?>) t) { }
+    static void F2C((I<object>, I<object>) t) { }
+    static void F2D((I<object?>, I<object?>) t) { }
+    static void F3(B<object> x, B<object?> y)
     {
-        EB1((x, y));
-        EB2((x, y)); // 4
+        (B<object>, B<object>) t3 = (x, y); // 13
+        (B<object?>, B<object?>) u3 = (x, y); // 14
+        (IIn<object>, IIn<object>) v3 = (x, y);
+        (IIn<object?>, IIn<object?>) w3 = (x, y); // 15
+        F3A((x, y));
+        F3B((x, y)); // 16
     }
-    static void EB1((IIn<object>, IIn<object>) t) { }
-    static void EB2((IIn<object?>, IIn<object?>) t) { }
-    static void FC(C<object> x, C<object?> y)
+    static void F3A((IIn<object>, IIn<object>) t) { }
+    static void F3B((IIn<object?>, IIn<object?>) t) { }
+    static void F4(C<object> x, C<object?> y)
     {
-        EC1((x, y)); // 5
-        EC2((x, y));
+        (C<object>, C<object>) t4 = (x, y); // 17
+        (C<object?>, C<object?>) u4 = (x, y); // 18
+        (IOut<object>, IOut<object>) v4 = (x, y); // 19
+        (IOut<object?>, IOut<object?>) w4 = (x, y);
+        F4A((x, y)); // 20
+        F4B((x, y));
     }
-    static void EC1((IOut<object>, IOut<object>) t) { }
-    static void EC2((IOut<object?>, IOut<object?>) t) { }
+    static void F4A((IOut<object>, IOut<object>) t) { }
+    static void F4B((IOut<object?>, IOut<object?>) t) { }
+    static void F5<T, U>(U u) where U : T
+    {
+        (T,  T) t5 = (u, default(T));
+        (object, object) v5 = (default(T), u); // 21
+        (object?, object?) w5 = (default(T), u);
+    }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): NullableWalker should call ConversionsBase.GetTupleLiteralConversion.
             // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
-            // PROTOTYPE(NullableReferenceTypes): Not reporting warning for // 1
             comp.VerifyDiagnostics(
-                // (18,17): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'I<object>'.
-                //         EA1((x, y)); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("A<object?>", "I<object>").WithLocation(18, 17),
-                // (19,14): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'I<object?>'.
-                //         EA2((x, y)); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<object>", "I<object?>").WithLocation(19, 14),
-                // (26,14): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'IIn<object?>'.
-                //         EB2((x, y)); // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object>", "IIn<object?>").WithLocation(26, 14),
-                // (32,17): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
-                //         EC1((x, y)); // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(32, 17));
+                // (12,31): warning CS8619: Nullability of reference types in value of type '(string x, string? y)' doesn't match target type '(string, string)'.
+                //         (string, string) t1 = (x, y); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(string x, string? y)", "(string, string)").WithLocation(12, 31),
+                // (14,31): warning CS8619: Nullability of reference types in value of type '(object x, object? y)' doesn't match target type '(object, object)'.
+                //         (object, object) v1 = (x, y); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(object x, object? y)", "(object, object)").WithLocation(14, 31),
+                // (16,13): warning CS8620: Nullability of reference types in argument of type '(string x, string? y)' doesn't match target type '(string, string)' for parameter 't' in 'void E.F1A((string, string) t)'.
+                //         F1A((x, y)); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(string x, string? y)", "(string, string)", "t", "void E.F1A((string, string) t)").WithLocation(16, 13),
+                // (18,13): warning CS8620: Nullability of reference types in argument of type '(object x, object? y)' doesn't match target type '(object, object)' for parameter 't' in 'void E.F1C((object, object) t)'.
+                //         F1C((x, y)); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(object x, object? y)", "(object, object)", "t", "void E.F1C((object, object) t)").WithLocation(18, 13),
+                // (27,37): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?> y)' doesn't match target type '(A<object>, A<object>)'.
+                //         (A<object>, A<object>) t2 = (x, y); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(A<object> x, A<object?> y)", "(A<object>, A<object>)").WithLocation(27, 37),
+                // (28,39): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?> y)' doesn't match target type '(A<object?>, A<object?>)'.
+                //         (A<object?>, A<object?>) u2 = (x, y); // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(A<object> x, A<object?> y)", "(A<object?>, A<object?>)").WithLocation(28, 39),
+                // (29,41): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'I<object>'.
+                //         (I<object>, I<object>) v2 = (x, y); // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("A<object?>", "I<object>").WithLocation(29, 41),
+                // (30,40): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'I<object?>'.
+                //         (I<object?>, I<object?>) w2 = (x, y); // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<object>", "I<object?>").WithLocation(30, 40),
+                // (31,13): warning CS8620: Nullability of reference types in argument of type '(A<object> x, A<object?> y)' doesn't match target type '(A<object>, A<object>)' for parameter 't' in 'void E.F2A((A<object>, A<object>) t)'.
+                //         F2A((x, y)); // 9
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(A<object> x, A<object?> y)", "(A<object>, A<object>)", "t", "void E.F2A((A<object>, A<object>) t)").WithLocation(31, 13),
+                // (32,13): warning CS8620: Nullability of reference types in argument of type '(A<object> x, A<object?> y)' doesn't match target type '(A<object?>, A<object?>)' for parameter 't' in 'void E.F2B((A<object?>, A<object?>) t)'.
+                //         F2B((x, y)); // 10
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(A<object> x, A<object?> y)", "(A<object?>, A<object?>)", "t", "void E.F2B((A<object?>, A<object?>) t)").WithLocation(32, 13),
+                // (33,17): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'I<object>'.
+                //         F2C((x, y)); // 11
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("A<object?>", "I<object>").WithLocation(33, 17),
+                // (34,14): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'I<object?>'.
+                //         F2D((x, y)); // 12
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<object>", "I<object?>").WithLocation(34, 14),
+                // (42,37): warning CS8619: Nullability of reference types in value of type '(B<object> x, B<object?> y)' doesn't match target type '(B<object>, B<object>)'.
+                //         (B<object>, B<object>) t3 = (x, y); // 13
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(B<object> x, B<object?> y)", "(B<object>, B<object>)").WithLocation(42, 37),
+                // (43,39): warning CS8619: Nullability of reference types in value of type '(B<object> x, B<object?> y)' doesn't match target type '(B<object?>, B<object?>)'.
+                //         (B<object?>, B<object?>) u3 = (x, y); // 14
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(B<object> x, B<object?> y)", "(B<object?>, B<object?>)").WithLocation(43, 39),
+                // (45,44): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'IIn<object?>'.
+                //         (IIn<object?>, IIn<object?>) w3 = (x, y); // 15
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object>", "IIn<object?>").WithLocation(45, 44),
+                // (47,14): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'IIn<object?>'.
+                //         F3B((x, y)); // 16
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object>", "IIn<object?>").WithLocation(47, 14),
+                // (53,37): warning CS8619: Nullability of reference types in value of type '(C<object> x, C<object?> y)' doesn't match target type '(C<object>, C<object>)'.
+                //         (C<object>, C<object>) t4 = (x, y); // 17
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(C<object> x, C<object?> y)", "(C<object>, C<object>)").WithLocation(53, 37),
+                // (54,39): warning CS8619: Nullability of reference types in value of type '(C<object> x, C<object?> y)' doesn't match target type '(C<object?>, C<object?>)'.
+                //         (C<object?>, C<object?>) u4 = (x, y); // 18
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(C<object> x, C<object?> y)", "(C<object?>, C<object?>)").WithLocation(54, 39),
+                // (55,47): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
+                //         (IOut<object>, IOut<object>) v4 = (x, y); // 19
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(55, 47),
+                // (57,17): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
+                //         F4A((x, y)); // 20
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(57, 17),
+                // (65,31): warning CS8619: Nullability of reference types in value of type '(object?, object? u)' doesn't match target type '(object, object)'.
+                //         (object, object) v5 = (default(T), u); // 21
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(default(T), u)").WithArguments("(object?, object? u)", "(object, object)").WithLocation(65, 31));
         }
 
         [Fact]
-        public void Conversions_TupleLiteralExtensionThis()
+        public void Conversions_ImplicitTupleLiteral_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class A<T> : I<T> { }
+class B<T> : IIn<T> { }
+class C<T> : IOut<T> { }
+static class E
+{
+    static void F1(string x, string? y)
+    {
+        (string, string)? t1 = (x, y); // 1
+        (string?, string?)? u1 = (x, y);
+        (object, object)? v1 = (x, y); // 2
+        (object?, object?)? w1 = (x, y);
+    }
+    static void F2(A<object> x, A<object?> y)
+    {
+        (A<object>, A<object>)? t2 = (x, y); // 3
+        (A<object?>, A<object?>)? u2 = (x, y); // 4
+        (I<object>, I<object>)? v2 = (x, y); // 5
+        (I<object?>, I<object?>)? w2 = (x, y); // 6
+    }
+    static void F3(B<object> x, B<object?> y)
+    {
+        (IIn<object>, IIn<object>)? v3 = (x, y);
+        (IIn<object?>, IIn<object?>)? w3 = (x, y); // 7
+    }
+    static void F4(C<object> x, C<object?> y)
+    {
+        (IOut<object>, IOut<object>)? v4 = (x, y); // 8
+        (IOut<object?>, IOut<object?>)? w4 = (x, y);
+    }
+    static void F5<T, U>(U u) where U : T
+    {
+        (T,  T)? t5 = (u, default(T));
+        (object, object)? v5 = (default(T), u); // 9
+        (object?, object?)? w5 = (default(T), u);
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (12,32): warning CS8619: Nullability of reference types in value of type '(string x, string? y)' doesn't match target type '(string, string)?'.
+                //         (string, string)? t1 = (x, y); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(string x, string? y)", "(string, string)?").WithLocation(12, 32),
+                // (14,32): warning CS8619: Nullability of reference types in value of type '(object x, object? y)' doesn't match target type '(object, object)?'.
+                //         (object, object)? v1 = (x, y); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(object x, object? y)", "(object, object)?").WithLocation(14, 32),
+                // (19,38): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?> y)' doesn't match target type '(A<object>, A<object>)?'.
+                //         (A<object>, A<object>)? t2 = (x, y); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(A<object> x, A<object?> y)", "(A<object>, A<object>)?").WithLocation(19, 38),
+                // (20,40): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?> y)' doesn't match target type '(A<object?>, A<object?>)?'.
+                //         (A<object?>, A<object?>)? u2 = (x, y); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(A<object> x, A<object?> y)", "(A<object?>, A<object?>)?").WithLocation(20, 40),
+                // (21,42): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'I<object>'.
+                //         (I<object>, I<object>)? v2 = (x, y); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("A<object?>", "I<object>").WithLocation(21, 42),
+                // (22,41): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'I<object?>'.
+                //         (I<object?>, I<object?>)? w2 = (x, y); // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<object>", "I<object?>").WithLocation(22, 41),
+                // (27,45): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'IIn<object?>'.
+                //         (IIn<object?>, IIn<object?>)? w3 = (x, y); // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object>", "IIn<object?>").WithLocation(27, 45),
+                // (31,48): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
+                //         (IOut<object>, IOut<object>)? v4 = (x, y); // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(31, 48),
+                // (37,32): warning CS8619: Nullability of reference types in value of type '(object?, object? u)' doesn't match target type '(object, object)?'.
+                //         (object, object)? v5 = (default(T), u); // 9
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(default(T), u)").WithArguments("(object?, object? u)", "(object, object)?").WithLocation(37, 32));
+        }
+
+        [Fact]
+        public void Conversions_ImplicitTuple()
+        {
+            var source =
+@"#pragma warning disable 0219
+interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class A<T> : I<T> { }
+class B<T> : IIn<T> { }
+class C<T> : IOut<T> { }
+class D
+{
+    static void F1((string x, string?) a1)
+    {
+        (string, string) t1 = a1; // 1
+        (string?, string?) u1 = a1;
+        (object, object) v1 = a1; // 2
+        (object?, object?) w1 = a1;
+    }
+    static void F2((A<object> x, A<object?>) a2)
+    {
+        (A<object>, A<object>) t2 = a2; // 3
+        (A<object?>, A<object?>) u2 = a2; // 4
+        (I<object>, I<object>) v2 = a2; // 5
+        (I<object?>, I<object?>) w2 = a2; // 6
+    }
+    static void F3((B<object> x, B<object?>) a3)
+    {
+        (IIn<object>, IIn<object>) v3 = a3;
+        (IIn<object?>, IIn<object?>) w3 = a3; // 7
+    }
+    static void F4((C<object> x, C<object?>) a4)
+    {
+        (IOut<object>, IOut<object>) v4 = a4; // 8
+        (IOut<object?>, IOut<object?>) w4 = a4;
+    }
+    static void F5<T, U>((U, U) a5) where U : T
+    {
+        (U, T) t5 = a5;
+        (object, object) v5 = a5; // 9
+        (object?, object?) w5 = a5;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (12,31): warning CS8619: Nullability of reference types in value of type '(string x, string?)' doesn't match target type '(string, string)'.
+                //         (string, string) t1 = a1; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a1").WithArguments("(string x, string?)", "(string, string)").WithLocation(12, 31),
+                // (14,31): warning CS8619: Nullability of reference types in value of type '(string x, string?)' doesn't match target type '(object, object)'.
+                //         (object, object) v1 = a1; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a1").WithArguments("(string x, string?)", "(object, object)").WithLocation(14, 31),
+                // (19,37): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?>)' doesn't match target type '(A<object>, A<object>)'.
+                //         (A<object>, A<object>) t2 = a2; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("(A<object> x, A<object?>)", "(A<object>, A<object>)").WithLocation(19, 37),
+                // (20,39): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?>)' doesn't match target type '(A<object?>, A<object?>)'.
+                //         (A<object?>, A<object?>) u2 = a2; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("(A<object> x, A<object?>)", "(A<object?>, A<object?>)").WithLocation(20, 39),
+                // (21,37): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?>)' doesn't match target type '(I<object>, I<object>)'.
+                //         (I<object>, I<object>) v2 = a2; // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("(A<object> x, A<object?>)", "(I<object>, I<object>)").WithLocation(21, 37),
+                // (22,39): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?>)' doesn't match target type '(I<object?>, I<object?>)'.
+                //         (I<object?>, I<object?>) w2 = a2; // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("(A<object> x, A<object?>)", "(I<object?>, I<object?>)").WithLocation(22, 39),
+                // (27,43): warning CS8619: Nullability of reference types in value of type '(B<object> x, B<object?>)' doesn't match target type '(IIn<object?>, IIn<object?>)'.
+                //         (IIn<object?>, IIn<object?>) w3 = a3; // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a3").WithArguments("(B<object> x, B<object?>)", "(IIn<object?>, IIn<object?>)").WithLocation(27, 43),
+                // (31,43): warning CS8619: Nullability of reference types in value of type '(C<object> x, C<object?>)' doesn't match target type '(IOut<object>, IOut<object>)'.
+                //         (IOut<object>, IOut<object>) v4 = a4; // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a4").WithArguments("(C<object> x, C<object?>)", "(IOut<object>, IOut<object>)").WithLocation(31, 43),
+                // (37,31): warning CS8619: Nullability of reference types in value of type '(U, U)' doesn't match target type '(object, object)'.
+                //         (object, object) v5 = a5; // 9
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a5").WithArguments("(U, U)", "(object, object)").WithLocation(37, 31));
+        }
+
+        [Fact]
+        public void Conversions_ExplicitTupleLiteral_01()
+        {
+            var source =
+@"#pragma warning disable 0219
+interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+sealed class A<T> : I<T> { }
+sealed class B<T> : IIn<T> { }
+sealed class C<T> : IOut<T> { }
+class D
+{
+    static void F1(string x, string? y)
+    {
+        var t1 = ((string, string))(x, y); // 1
+        var u1 = ((string?, string?))(x, y);
+        var v1 = ((object, object))(x, y); // 2
+        var w1 = ((object?, object?))(x, y);
+    }
+    static void F2(A<object> x, A<object?> y)
+    {
+        var t2 = ((A<object>, A<object>))(x, y); // 3
+        var u2 = ((A<object?>, A<object?>))(x, y); // 4
+        var v2 = ((I<object>, I<object>))(x, y); // 5
+        var w2 = ((I<object?>, I<object?>))(x, y); // 6
+    }
+    static void F3(B<object> x, B<object?> y)
+    {
+        var v3 = ((IIn<object>, IIn<object>))(x, y);
+        var w3 = ((IIn<object?>, IIn<object?>))(x, y); // 7
+    }
+    static void F4(C<object> x, C<object?> y)
+    {
+        var v4 = ((IOut<object>, IOut<object>))(x, y); // 8
+        var w4 = ((IOut<object?>, IOut<object?>))(x, y);
+    }
+    static void F5<T, U>(T t) where U : T
+    {
+        var t5 = ((U, U))(t, default(T));
+        var v5 = ((object, object))(default(T), t); // 9, 10
+        var w5 = ((object?, object?))(default(T), t);
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (12,18): warning CS8619: Nullability of reference types in value of type '(string x, string? y)' doesn't match target type '(string, string)'.
+                //         var t1 = ((string, string))(x, y); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((string, string))(x, y)").WithArguments("(string x, string? y)", "(string, string)").WithLocation(12, 18),
+                // (14,40): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var v1 = ((object, object))(x, y); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(14, 40),
+                // (14,18): warning CS8619: Nullability of reference types in value of type '(object x, object? y)' doesn't match target type '(object, object)'.
+                //         var v1 = ((object, object))(x, y); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((object, object))(x, y)").WithArguments("(object x, object? y)", "(object, object)").WithLocation(14, 18),
+                // (19,18): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?> y)' doesn't match target type '(A<object>, A<object>)'.
+                //         var t2 = ((A<object>, A<object>))(x, y); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((A<object>, A<object>))(x, y)").WithArguments("(A<object> x, A<object?> y)", "(A<object>, A<object>)").WithLocation(19, 18),
+                // (20,18): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?> y)' doesn't match target type '(A<object?>, A<object?>)'.
+                //         var u2 = ((A<object?>, A<object?>))(x, y); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((A<object?>, A<object?>))(x, y)").WithArguments("(A<object> x, A<object?> y)", "(A<object?>, A<object?>)").WithLocation(20, 18),
+                // (21,46): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'I<object>'.
+                //         var v2 = ((I<object>, I<object>))(x, y); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("A<object?>", "I<object>").WithLocation(21, 46),
+                // (22,45): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'I<object?>'.
+                //         var w2 = ((I<object?>, I<object?>))(x, y); // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<object>", "I<object?>").WithLocation(22, 45),
+                // (27,49): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'IIn<object?>'.
+                //         var w3 = ((IIn<object?>, IIn<object?>))(x, y); // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object>", "IIn<object?>").WithLocation(27, 49),
+                // (31,52): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
+                //         var v4 = ((IOut<object>, IOut<object>))(x, y); // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(31, 52),
+                // (37,37): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var v5 = ((object, object))(default(T), t); // 9, 10
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(T)").WithLocation(37, 37),
+                // (37,49): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var v5 = ((object, object))(default(T), t); // 9, 10
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "t").WithLocation(37, 49),
+                // (37,18): warning CS8619: Nullability of reference types in value of type '(object?, object? t)' doesn't match target type '(object, object)'.
+                //         var v5 = ((object, object))(default(T), t); // 9, 10
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((object, object))(default(T), t)").WithArguments("(object?, object? t)", "(object, object)").WithLocation(37, 18));
+        }
+
+        [Fact]
+        public void Conversions_ExplicitTupleLiteral_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+sealed class A<T> : I<T> { }
+sealed class B<T> : IIn<T> { }
+sealed class C<T> : IOut<T> { }
+class D
+{
+    static void F1(string x, string? y)
+    {
+        var t1 = ((string, string)?)(x, y); // 1
+        var u1 = ((string?, string?)?)(x, y);
+        var v1 = ((object, object)?)(x, y); // 2
+        var w1 = ((object?, object?)?)(x, y);
+    }
+    static void F2(A<object> x, A<object?> y)
+    {
+        var t2 = ((A<object>, A<object>)?)(x, y); // 3
+        var u2 = ((A<object?>, A<object?>)?)(x, y); // 4
+        var v2 = ((I<object>, I<object>)?)(x, y); // 5
+        var w2 = ((I<object?>, I<object?>)?)(x, y); // 6
+    }
+    static void F3(B<object> x, B<object?> y)
+    {
+        var v3 = ((IIn<object>, IIn<object>)?)(x, y);
+        var w3 = ((IIn<object?>, IIn<object?>)?)(x, y); // 7
+    }
+    static void F4(C<object> x, C<object?> y)
+    {
+        var v4 = ((IOut<object>, IOut<object>)?)(x, y); // 8
+        var w4 = ((IOut<object?>, IOut<object?>)?)(x, y);
+    }
+    static void F5<T, U>(T t) where U : T
+    {
+        var t5 = ((U, U)?)(t, default(T));
+        var v5 = ((object, object)?)(default(T), t); // 9
+        var w5 = ((object?, object?)?)(default(T), t);
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (12,41): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var t1 = ((string, string)?)(x, y); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(12, 41),
+                // (12,18): warning CS8619: Nullability of reference types in value of type '(string x, string? y)' doesn't match target type '(string, string)?'.
+                //         var t1 = ((string, string)?)(x, y); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((string, string)?)(x, y)").WithArguments("(string x, string? y)", "(string, string)?").WithLocation(12, 18),
+                // (14,41): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var v1 = ((object, object)?)(x, y); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(14, 41),
+                // (14,18): warning CS8619: Nullability of reference types in value of type '(object x, object? y)' doesn't match target type '(object, object)?'.
+                //         var v1 = ((object, object)?)(x, y); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((object, object)?)(x, y)").WithArguments("(object x, object? y)", "(object, object)?").WithLocation(14, 18),
+                // (19,47): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'A<object>'.
+                //         var t2 = ((A<object>, A<object>)?)(x, y); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("A<object?>", "A<object>").WithLocation(19, 47),
+                // (20,46): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'A<object?>'.
+                //         var u2 = ((A<object?>, A<object?>)?)(x, y); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<object>", "A<object?>").WithLocation(20, 46),
+                // (21,47): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'I<object>'.
+                //         var v2 = ((I<object>, I<object>)?)(x, y); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("A<object?>", "I<object>").WithLocation(21, 47),
+                // (22,46): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'I<object?>'.
+                //         var w2 = ((I<object?>, I<object?>)?)(x, y); // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<object>", "I<object?>").WithLocation(22, 46),
+                // (27,50): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'IIn<object?>'.
+                //         var w3 = ((IIn<object?>, IIn<object?>)?)(x, y); // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object>", "IIn<object?>").WithLocation(27, 50),
+                // (31,53): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
+                //         var v4 = ((IOut<object>, IOut<object>)?)(x, y); // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(31, 53),
+                // (37,38): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var v5 = ((object, object)?)(default(T), t); // 9
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(T)").WithLocation(37, 38),
+                // (37,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var v5 = ((object, object)?)(default(T), t); // 9
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "t").WithLocation(37, 50),
+                // (37,18): warning CS8619: Nullability of reference types in value of type '(object?, object? t)' doesn't match target type '(object, object)?'.
+                //         var v5 = ((object, object)?)(default(T), t); // 9
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((object, object)?)(default(T), t)").WithArguments("(object?, object? t)", "(object, object)?").WithLocation(37, 18));
+        }
+
+        [Fact]
+        public void Conversions_ExplicitTuple()
+        {
+            var source =
+@"#pragma warning disable 0219
+interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+sealed class A<T> : I<T> { }
+sealed class B<T> : IIn<T> { }
+sealed class C<T> : IOut<T> { }
+class D
+{
+    static void F1((string x, string?) a1)
+    {
+        var t1 = ((string, string))a1; // 1
+        var u1 = ((string?, string?))a1;
+        var v1 = ((object, object))a1; // 2
+        var w1 = ((object?, object?))a1;
+    }
+    static void F2((A<object> x, A<object?>) a2)
+    {
+        var t2 = ((A<object>, A<object>))a2; // 3
+        var u2 = ((A<object?>, A<object?>))a2; // 4
+        var v2 = ((I<object>, I<object>))a2; // 5
+        var w2 = ((I<object?>, I<object?>))a2; // 6
+    }
+    static void F3((B<object> x, B<object?>) a3)
+    {
+        var v3 = ((IIn<object>, IIn<object>))a3;
+        var w3 = ((IIn<object?>, IIn<object?>))a3; // 7
+    }
+    static void F4((C<object> x, C<object?>) a4)
+    {
+        var v4 = ((IOut<object>, IOut<object>))a4; // 8
+        var w4 = ((IOut<object?>, IOut<object?>))a4;
+    }
+    static void F5<T, U>((T, T) a5) where U : T
+    {
+        var t5 = ((U, U))a5;
+        var v5 = ((object, object))default((T, T)); // 9
+        var w5 = ((object?, object?))default((T, T));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (12,18): warning CS8619: Nullability of reference types in value of type '(string x, string?)' doesn't match target type '(string, string)'.
+                //         var t1 = ((string, string))a1; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((string, string))a1").WithArguments("(string x, string?)", "(string, string)").WithLocation(12, 18),
+                // (14,18): warning CS8619: Nullability of reference types in value of type '(string x, string?)' doesn't match target type '(object, object)'.
+                //         var v1 = ((object, object))a1; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((object, object))a1").WithArguments("(string x, string?)", "(object, object)").WithLocation(14, 18),
+                // (19,18): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?>)' doesn't match target type '(A<object>, A<object>)'.
+                //         var t2 = ((A<object>, A<object>))a2; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((A<object>, A<object>))a2").WithArguments("(A<object> x, A<object?>)", "(A<object>, A<object>)").WithLocation(19, 18),
+                // (20,18): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?>)' doesn't match target type '(A<object?>, A<object?>)'.
+                //         var u2 = ((A<object?>, A<object?>))a2; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((A<object?>, A<object?>))a2").WithArguments("(A<object> x, A<object?>)", "(A<object?>, A<object?>)").WithLocation(20, 18),
+                // (21,18): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?>)' doesn't match target type '(I<object>, I<object>)'.
+                //         var v2 = ((I<object>, I<object>))a2; // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((I<object>, I<object>))a2").WithArguments("(A<object> x, A<object?>)", "(I<object>, I<object>)").WithLocation(21, 18),
+                // (22,18): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?>)' doesn't match target type '(I<object?>, I<object?>)'.
+                //         var w2 = ((I<object?>, I<object?>))a2; // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((I<object?>, I<object?>))a2").WithArguments("(A<object> x, A<object?>)", "(I<object?>, I<object?>)").WithLocation(22, 18),
+                // (27,18): warning CS8619: Nullability of reference types in value of type '(B<object> x, B<object?>)' doesn't match target type '(IIn<object?>, IIn<object?>)'.
+                //         var w3 = ((IIn<object?>, IIn<object?>))a3; // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((IIn<object?>, IIn<object?>))a3").WithArguments("(B<object> x, B<object?>)", "(IIn<object?>, IIn<object?>)").WithLocation(27, 18),
+                // (31,18): warning CS8619: Nullability of reference types in value of type '(C<object> x, C<object?>)' doesn't match target type '(IOut<object>, IOut<object>)'.
+                //         var v4 = ((IOut<object>, IOut<object>))a4; // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((IOut<object>, IOut<object>))a4").WithArguments("(C<object> x, C<object?>)", "(IOut<object>, IOut<object>)").WithLocation(31, 18),
+                // (37,18): warning CS8619: Nullability of reference types in value of type '(T, T)' doesn't match target type '(object, object)'.
+                //         var v5 = ((object, object))default((T, T)); // 9
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((object, object))default((T, T))").WithArguments("(T, T)", "(object, object)").WithLocation(37, 18));
+        }
+
+        [Fact]
+        public void Conversions_ImplicitTupleLiteral_ExtensionThis()
         {
             var source =
 @"interface I<T> { }
@@ -32712,52 +33254,190 @@ class B<T> : IIn<T> { }
 class C<T> : IOut<T> { }
 static class E
 {
-    static void F(string x, string? y)
+    static void F1(string x, string? y)
     {
-        (x, y).E1(); // 1
-        (x, y).E2();
+        (x, y).F1A(); // 1
+        (x, y).F1B();
     }
-    static void E1(this (object, object) t) { }
-    static void E2(this (object?, object?) t) { }
-    static void FA(A<object> x, A<object?> y)
+    static void F1A(this (object, object) t) { }
+    static void F1B(this (object?, object?) t) { }
+    static void F2(A<object> x, A<object?> y)
     {
-        (x, y).EA1(); // 2
-        (x, y).EA2(); // 3
+        (x, y).F2A(); // 2
+        (x, y).F2B(); // 3
     }
-    static void EA1(this (I<object>, I<object>) t) { }
-    static void EA2(this (I<object?>, I<object?>) t) { }
-    static void FB(B<object> x, B<object?> y)
+    static void F2A(this (I<object>, I<object>) t) { }
+    static void F2B(this (I<object?>, I<object?>) t) { }
+    static void F3(B<object> x, B<object?> y)
     {
-        (x, y).EB1();
-        (x, y).EB2(); // 4
+        (x, y).F3A();
+        (x, y).F3B(); // 4
     }
-    static void EB1(this (IIn<object>, IIn<object>) t) { }
-    static void EB2(this (IIn<object?>, IIn<object?>) t) { }
-    static void FC(C<object> x, C<object?> y)
+    static void F3A(this (IIn<object>, IIn<object>) t) { }
+    static void F3B(this (IIn<object?>, IIn<object?>) t) { }
+    static void F4(C<object> x, C<object?> y)
     {
-        (x, y).EC1(); // 5
-        (x, y).EC2();
+        (x, y).F4A(); // 5
+        (x, y).F4B();
     }
-    static void EC1(this (IOut<object>, IOut<object>) t) { }
-    static void EC2(this (IOut<object?>, IOut<object?>) t) { }
+    static void F4A(this (IOut<object>, IOut<object>) t) { }
+    static void F4B(this (IOut<object?>, IOut<object?>) t) { }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): NullableWalker should call ConversionsBase.ClassifyImplicitExtensionMethodThisArgConversion.
             // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
-            // PROTOTYPE(NullableReferenceTypes): Not reporting warning for // 1
             comp.VerifyDiagnostics(
+                // (11,9): warning CS8620: Nullability of reference types in argument of type '(object x, object? y)' doesn't match target type '(object, object)' for parameter 't' in 'void E.F1A((object, object) t)'.
+                //         (x, y).F1A(); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(object x, object? y)", "(object, object)", "t", "void E.F1A((object, object) t)").WithLocation(11, 9),
                 // (18,13): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'I<object>'.
-                //         (x, y).EA1(); // 2
+                //         (x, y).F2A(); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("A<object?>", "I<object>").WithLocation(18, 13),
                 // (19,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'I<object?>'.
-                //         (x, y).EA2(); // 3
+                //         (x, y).F2B(); // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<object>", "I<object?>").WithLocation(19, 10),
                 // (26,10): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'IIn<object?>'.
-                //         (x, y).EB2(); // 4
+                //         (x, y).F3B(); // 4
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object>", "IIn<object?>").WithLocation(26, 10),
                 // (32,13): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
-                //         (x, y).EC1(); // 5
+                //         (x, y).F4A(); // 5
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(32, 13));
+        }
+
+        [Fact]
+        public void Conversions_ImplicitTuple_ExtensionThis_01()
+        {
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class A<T> : I<T> { }
+class B<T> : IIn<T> { }
+class C<T> : IOut<T> { }
+static class E
+{
+    static void F1((string x, string?) t1)
+    {
+        t1.F1A(); // 1
+        t1.F1B();
+    }
+    static void F1A(this (object, object) t) { }
+    static void F1B(this (object?, object?) t) { }
+    static void F2((A<object>, A<object?>) t2)
+    {
+        t2.F2A(); // 2
+        t2.F2B(); // 3
+    }
+    static void F2A(this (I<object>, I<object>) t) { }
+    static void F2B(this (I<object?>, I<object?>) t) { }
+    static void F3((B<object>, B<object?>) t3)
+    {
+        t3.F3A();
+        t3.F3B(); // 4
+    }
+    static void F3A(this (IIn<object>, IIn<object>) t) { }
+    static void F3B(this (IIn<object?>, IIn<object?>) t) { }
+    static void F4((C<object>, C<object?>) t4)
+    {
+        t4.F4A(); // 5
+        t4.F4B();
+    }
+    static void F4A(this (IOut<object>, IOut<object>) t) { }
+    static void F4B(this (IOut<object?>, IOut<object?>) t) { }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8620: Nullability of reference types in argument of type '(string x, string?)' doesn't match target type '(object, object)' for parameter 't' in 'void E.F1A((object, object) t)'.
+                //         t1.F1A(); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t1").WithArguments("(string x, string?)", "(object, object)", "t", "void E.F1A((object, object) t)").WithLocation(11, 9),
+                // (18,9): warning CS8620: Nullability of reference types in argument of type '(A<object>, A<object?>)' doesn't match target type '(I<object>, I<object>)' for parameter 't' in 'void E.F2A((I<object>, I<object>) t)'.
+                //         t2.F2A(); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t2").WithArguments("(A<object>, A<object?>)", "(I<object>, I<object>)", "t", "void E.F2A((I<object>, I<object>) t)").WithLocation(18, 9),
+                // (19,9): warning CS8620: Nullability of reference types in argument of type '(A<object>, A<object?>)' doesn't match target type '(I<object?>, I<object?>)' for parameter 't' in 'void E.F2B((I<object?>, I<object?>) t)'.
+                //         t2.F2B(); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t2").WithArguments("(A<object>, A<object?>)", "(I<object?>, I<object?>)", "t", "void E.F2B((I<object?>, I<object?>) t)").WithLocation(19, 9),
+                // (26,9): warning CS8620: Nullability of reference types in argument of type '(B<object>, B<object?>)' doesn't match target type '(IIn<object?>, IIn<object?>)' for parameter 't' in 'void E.F3B((IIn<object?>, IIn<object?>) t)'.
+                //         t3.F3B(); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t3").WithArguments("(B<object>, B<object?>)", "(IIn<object?>, IIn<object?>)", "t", "void E.F3B((IIn<object?>, IIn<object?>) t)").WithLocation(26, 9),
+                // (32,9): warning CS8620: Nullability of reference types in argument of type '(C<object>, C<object?>)' doesn't match target type '(IOut<object>, IOut<object>)' for parameter 't' in 'void E.F4A((IOut<object>, IOut<object>) t)'.
+                //         t4.F4A(); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t4").WithArguments("(C<object>, C<object?>)", "(IOut<object>, IOut<object>)", "t", "void E.F4A((IOut<object>, IOut<object>) t)").WithLocation(32, 9));
+        }
+
+        [Fact]
+        public void Conversions_ImplicitTuple_ExtensionThis_02()
+        {
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+static class E
+{
+    static void F1((string, string)? t1)
+    {
+        t1.F1A(); // 1
+        t1.F1B();
+    }
+    static void F1A(this (string?, string?)? t) { }
+    static void F1B(this (string, string)? t) { }
+    static void F2((I<object?>, I<object?>)? t2)
+    {
+        t2.F2A();
+        t2.F2B(); // 2
+    }
+    static void F2A(this (I<object?>, I<object?>)? t) { }
+    static void F2B(this (I<object>, I<object>)? t) { }
+    static void F3((IIn<object?>, IIn<object?>)? t3)
+    {
+        t3.F3A();
+        t3.F3B(); // 3
+    }
+    static void F3A(this (IIn<object?>, IIn<object?>)? t) { }
+    static void F3B(this (IIn<object>, IIn<object>)? t) { }
+    static void F4((IOut<object?>, IOut<object?>)? t4)
+    {
+        t4.F4A();
+        t4.F4B(); // 4
+    }
+    static void F4A(this (IOut<object?>, IOut<object?>)? t) { }
+    static void F4B(this (IOut<object>, IOut<object>)? t) { }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8620: Nullability of reference types in argument of type '(string, string)?' doesn't match target type '(string?, string?)?' for parameter 't' in 'void E.F1A((string?, string?)? t)'.
+                //         t1.F1A(); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t1").WithArguments("(string, string)?", "(string?, string?)?", "t", "void E.F1A((string?, string?)? t)").WithLocation(8, 9),
+                // (16,9): warning CS8620: Nullability of reference types in argument of type '(I<object?>, I<object?>)?' doesn't match target type '(I<object>, I<object>)?' for parameter 't' in 'void E.F2B((I<object>, I<object>)? t)'.
+                //         t2.F2B(); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t2").WithArguments("(I<object?>, I<object?>)?", "(I<object>, I<object>)?", "t", "void E.F2B((I<object>, I<object>)? t)").WithLocation(16, 9),
+                // (23,9): warning CS8620: Nullability of reference types in argument of type '(IIn<object?>, IIn<object?>)?' doesn't match target type '(IIn<object>, IIn<object>)?' for parameter 't' in 'void E.F3B((IIn<object>, IIn<object>)? t)'.
+                //         t3.F3B(); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t3").WithArguments("(IIn<object?>, IIn<object?>)?", "(IIn<object>, IIn<object>)?", "t", "void E.F3B((IIn<object>, IIn<object>)? t)").WithLocation(23, 9),
+                // (30,9): warning CS8620: Nullability of reference types in argument of type '(IOut<object?>, IOut<object?>)?' doesn't match target type '(IOut<object>, IOut<object>)?' for parameter 't' in 'void E.F4B((IOut<object>, IOut<object>)? t)'.
+                //         t4.F4B(); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t4").WithArguments("(IOut<object?>, IOut<object?>)?", "(IOut<object>, IOut<object>)?", "t", "void E.F4B((IOut<object>, IOut<object>)? t)").WithLocation(30, 9));
+        }
+
+        [Fact]
+        public void Conversions_ImplicitTuple_ExtensionThis_03()
+        {
+            var source =
+@"static class E
+{
+    static void F((string, (string, string)?) t)
+    {
+        t.FA(); // 1
+        t.FB();
+        FA(t);
+        FB(t);
+    }
+    static void FA(this (object, (string?, string?)?) t) { }
+    static void FB(this (object, (string, string)?) t) { }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (5,9): warning CS8620: Nullability of reference types in argument of type '(string, (string, string)?)' doesn't match target type '(object, (string?, string?)?)' for parameter 't' in 'void E.FA((object, (string?, string?)?) t)'.
+                //         t.FA(); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t").WithArguments("(string, (string, string)?)", "(object, (string?, string?)?)", "t", "void E.FA((object, (string?, string?)?) t)").WithLocation(5, 9));
         }
 
         [Fact]
