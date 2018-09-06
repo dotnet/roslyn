@@ -2439,7 +2439,7 @@ internal class Derived : Base
         {
             string source = @"class C { void M(int p = 0) { int x = 1 + 2; } }";
 
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics(
                 // (1,35): warning CS0219: The variable 'x' is assigned but its value is never used
                 // class C { void M(int p = 0) { int x = 1 + 2; } }

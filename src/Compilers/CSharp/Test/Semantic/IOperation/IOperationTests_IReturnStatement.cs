@@ -149,7 +149,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -177,7 +177,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -211,7 +211,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (7,9): warning CS0162: Unreachable code detected
@@ -256,7 +256,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (7,9): warning CS0162: Unreachable code detected
@@ -305,7 +305,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -389,7 +389,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -441,7 +441,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -497,7 +497,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -561,7 +561,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -626,7 +626,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (7,9): warning CS0162: Unreachable code detected
@@ -669,7 +669,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (7,9): warning CS0162: Unreachable code detected
@@ -707,7 +707,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -775,7 +775,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -851,7 +851,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -920,7 +920,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -993,7 +993,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1039,7 +1039,7 @@ label2:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1090,7 +1090,7 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1143,7 +1143,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1171,7 +1171,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1208,7 +1208,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (7,9): warning CS0162: Unreachable code detected
@@ -1253,7 +1253,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1297,7 +1297,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1384,7 +1384,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1442,7 +1442,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1498,7 +1498,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1554,7 +1554,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1595,7 +1595,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (7,9): warning CS0162: Unreachable code detected
