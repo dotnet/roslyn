@@ -10,22 +10,25 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
 
-    <!-- 
-      NuGet 
-    
-      TODO: https://github.com/dotnet/roslyn/issues/29292
-      We package Microsoft.CodeAnalysis.Workspaces and Microsoft.CodeAnalysis.Workspaces.Desktop in the same package,
-      which is an unusal pattern that's not supported by NuGet Pack and needs a custom NuSpec file.
-      
-      Setting the PackageId causes Restore target to use this name as a project name in assets.json.
-      This is then used by Pack target when generating dependencies in NuSpec. 
-    -->
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Workspaces.Common</PackageId>
+    <PackageDescription>
+      A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
+      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+    </PackageDescription>
+
+    <!-- SQLLite package imports content files. Do not include these in the package. -->
+    <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
@@ -340,10 +343,6 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all" />
-    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
 </Project>
