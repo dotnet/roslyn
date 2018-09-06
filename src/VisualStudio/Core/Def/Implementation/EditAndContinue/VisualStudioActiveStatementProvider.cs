@@ -30,16 +30,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 // TODO: return empty outside of debug session.
                 // https://github.com/dotnet/roslyn/issues/24325
 
-                int unexpectedError = 0;
                 var completion = new TaskCompletionSource<ImmutableArray<ActiveStatementDebugInfo>>();
                 var builders = default(ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>);
                 int pendingRuntimes = 0;
                 int runtimeCount = 0;
 
-                var workList = DkmWorkList.Create(CompletionRoutine: _ =>
-                {
-                    completion.TrySetException(new InvalidOperationException($"Unexpected error enumerating active statements: 0x{unexpectedError:X8}"));
-                });
+                // No exception should be thrown in case of errors on the debugger side. 
+                // The debugger is responsible to provide telemetry for error cases.
+                var workList = DkmWorkList.Create(null); 
 
                 void CancelWork()
                 {
@@ -48,11 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         FreeBuilders(builders);
                         builders = null;
 
-                        // TODO: DkmWorkList.Cancel doesn't currently work when invoked on the completion callback.
-                        // We continue execute all the queued callbacks -- they will be no-ops.
-                        // See https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/562781.
-                        // 
-                        // workList.Cancel();
+                        workList.Cancel(blockOnCompletion: false);
 
                         // make sure we cancel with the token we received from the caller:
                         completion.TrySetCanceled(cancellationToken);
@@ -80,7 +74,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                                 if (activeStatementsResult.ErrorCode != 0)
                                 {
-                                    unexpectedError = activeStatementsResult.ErrorCode;
+                                    builders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(0);
+
+                                    // the last active statement of the last runtime has been processed:
+                                    if (Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                    {
+                                        completion.TrySetResult(builders.ToFlattenedImmutableArrayAndFree());
+                                    }
+
                                     return;
                                 }
 
@@ -92,6 +93,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                 int pendingStatements = instructionMap.Count;
                                 builders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(pendingStatements);
                                 builders[runtimeIndex].Count = pendingStatements;
+
+                                if (instructionMap.Count == 0)
+                                {
+                                    if (Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                    {
+                                        completion.TrySetResult(builders.ToFlattenedImmutableArrayAndFree());
+                                    }
+
+                                    return;
+                                }
 
                                 foreach (var (instructionId, (symbol, threads, index, flags)) in instructionMap)
                                 {
@@ -105,16 +116,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                             return;
                                         }
 
-                                        int errorCode = sourcePositionResult.ErrorCode;
-                                        if (errorCode != 0)
-                                        {
-                                            unexpectedError = errorCode;
-                                        }
-
                                         DkmSourcePosition position;
                                         string documentNameOpt;
                                         LinePositionSpan span;
-                                        if (errorCode == 0 && (position = sourcePositionResult.SourcePosition) != null)
+                                        if (sourcePositionResult.ErrorCode == 0 && (position = sourcePositionResult.SourcePosition) != null)
                                         {
                                             documentNameOpt = position.DocumentName;
                                             span = ToLinePositionSpan(position.TextSpan);
