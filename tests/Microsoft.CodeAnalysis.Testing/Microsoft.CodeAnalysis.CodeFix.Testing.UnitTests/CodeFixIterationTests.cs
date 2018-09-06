@@ -243,6 +243,114 @@ class TestClass {
             Assert.Equal(message, exception.Message);
         }
 
+        [Fact]
+        [WorkItem(147, "https://github.com/dotnet/roslyn-sdk/issues/147")]
+        public async Task TestOneIterationRequiredForEachOfTwoDocuments()
+        {
+            var testCode1 = @"
+class TestClass1 {
+  int field = [|4|];
+}
+";
+            var testCode2 = @"
+class TestClass2 {
+  int field = [|4|];
+}
+";
+            var fixedCode1 = @"
+class TestClass1 {
+  int field =  5;
+}
+";
+            var fixedCode2 = @"
+class TestClass2 {
+  int field =  5;
+}
+";
+
+            await new CSharpTest
+            {
+                TestSources = { testCode1, testCode2 },
+                FixedSources = { fixedCode1, fixedCode2 },
+                NumberOfFixAllInDocumentIterations = 2,
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(147, "https://github.com/dotnet/roslyn-sdk/issues/147")]
+        public async Task TestOneIterationRequiredForEachOfTwoDocumentsButNotDeclared()
+        {
+            var testCode1 = @"
+class TestClass1 {
+  int field = [|4|];
+}
+";
+            var testCode2 = @"
+class TestClass2 {
+  int field = [|4|];
+}
+";
+            var fixedCode1 = @"
+class TestClass1 {
+  int field =  5;
+}
+";
+            var fixedCode2 = @"
+class TestClass2 {
+  int field =  5;
+}
+";
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpTest
+                {
+                    TestSources = { testCode1, testCode2 },
+                    FixedSources = { fixedCode1, fixedCode2 },
+                }.RunAsync();
+            });
+
+            Assert.Equal("Expected '1' iterations but found '2' iterations.", exception.Message);
+        }
+
+        [Fact]
+        [WorkItem(147, "https://github.com/dotnet/roslyn-sdk/issues/147")]
+        public async Task TestOneIterationRequiredForEachOfTwoDocumentsButDeclaredForAll()
+        {
+            var testCode1 = @"
+class TestClass1 {
+  int field = [|4|];
+}
+";
+            var testCode2 = @"
+class TestClass2 {
+  int field = [|4|];
+}
+";
+            var fixedCode1 = @"
+class TestClass1 {
+  int field =  5;
+}
+";
+            var fixedCode2 = @"
+class TestClass2 {
+  int field =  5;
+}
+";
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpTest
+                {
+                    TestSources = { testCode1, testCode2 },
+                    FixedSources = { fixedCode1, fixedCode2 },
+                    NumberOfFixAllIterations = 2,
+                }.RunAsync();
+            });
+
+            Assert.Equal("Expected '2' iterations but found '1' iterations.", exception.Message);
+        }
+
         /// <summary>
         /// Reports a diagnostic on any integer literal token with a value less than five.
         /// </summary>
