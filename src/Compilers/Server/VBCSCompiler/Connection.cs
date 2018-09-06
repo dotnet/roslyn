@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     return await HandleMismatchedVersionRequest(cancellationToken).ConfigureAwait(false);
                 }
-                else if(request.CompilerHash != BuildProtocolConstants.GetCommitHash())
+                else if(!string.Equals(request.CompilerHash, BuildProtocolConstants.GetCommitHash(), StringComparison.CurrentCultureIgnoreCase))
                 {
                     return await HandleIncorrectHashRequest(cancellationToken).ConfigureAwait(false);
                 }
