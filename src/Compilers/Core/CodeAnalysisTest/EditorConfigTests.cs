@@ -1,19 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonCompiler;
-using static Microsoft.CodeAnalysis.Diagnostics.CompilerAnalyzerConfigOptionsProvider;
 using static Roslyn.Test.Utilities.TestHelpers;
 using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
@@ -748,7 +740,7 @@ dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
             }, options.TreeOptions);
         }
 
-        private void VerifyAnalyzerOptions(
+        private static void VerifyAnalyzerOptions(
             (string key, string val)[][] expected,
             AnalyzerConfigOptionsResult options)
         {

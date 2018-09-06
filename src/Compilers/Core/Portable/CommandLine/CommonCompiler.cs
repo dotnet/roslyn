@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,
             ErrorLogger errorLoggerOpt,
-            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> syntaxDiagOptionsOpt);
+            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> syntaxDiagnoticOptionsOpt);
 
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Holds results from <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{EditorConfig}, CommonMessageProvider, DiagnosticBag)"/>.
         /// </summary>
-        internal struct AnalyzerConfigOptionsResult
+        internal readonly struct AnalyzerConfigOptionsResult
         {
             /// <summary>
             /// Options that customize diagnostic severity as reported by the compiler. If there
