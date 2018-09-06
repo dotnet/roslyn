@@ -3378,7 +3378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var sourceNamespace = symbol as SourceNamespaceSymbol;
-                    if (sourceNamespace != null && !sourceNamespace.IsInjected)
+                    if (sourceNamespace != null)
                     {
                         _cache[sourceNamespace.MergedDeclaration] = sourceNamespace;
                         continue;

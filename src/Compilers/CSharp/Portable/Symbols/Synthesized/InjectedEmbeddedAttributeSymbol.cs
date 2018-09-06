@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static InjectedEmbeddedAttributeSymbol Create(NamespaceSymbol containingNamespace)
         {
-            return new InjectedEmbeddedAttributeSymbol(AttributeDescription.CodeAnalysisEmbeddedAttribute, containingNamespace, containingNamespace.DeclaringCompilation, makeNonNullTypesAttributeConstructor);
+            return new InjectedEmbeddedAttributeSymbol(AttributeDescription.CodeAnalysisEmbeddedAttribute, containingNamespace, containingNamespace.DeclaringCompilation, makeConstructor);
 
-            ImmutableArray<MethodSymbol> makeNonNullTypesAttributeConstructor(CSharpCompilation compilation, NamedTypeSymbol containingType, DiagnosticBag diagnostics)
+            ImmutableArray<MethodSymbol> makeConstructor(CSharpCompilation compilation, NamedTypeSymbol containingType, DiagnosticBag diagnostics)
             {
                 return ImmutableArray.Create<MethodSymbol>(new EmbeddedAttributeConstructorSymbol(containingType));
             }
@@ -33,12 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override AttributeUsageInfo GetAttributeUsageInfo()
             => new AttributeUsageInfo(validTargets: AttributeTargets.All, allowMultiple: false, inherited: false);
 
+        internal override DiagnosticBag GetDiagnostics()
+            => _diagnostics;
+
         private sealed class EmbeddedAttributeConstructorSymbol : SynthesizedInstanceConstructor
         {
             internal EmbeddedAttributeConstructorSymbol(NamedTypeSymbol containingType)
                 : base(containingType)
             {
-                Debug.Assert(containingType is InjectedAttributeSymbol);
+                Debug.Assert(containingType is InjectedEmbeddedAttributeSymbol);
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters
@@ -53,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
-                var containingType = (InjectedAttributeSymbol)ContainingType;
-                GenerateMethodBodyCore(compilationState, containingType.Diagnostics);
+                var containingType = (InjectedEmbeddedAttributeSymbol)ContainingType;
+                GenerateMethodBodyCore(compilationState, containingType._diagnostics);
             }
         }
     }

@@ -989,10 +989,12 @@ WriteLine(new Complex(2, 6).Real);
         [Fact]
         public void Script_NoHostNamespaces()
         {
-            Execute("nameof(Microsoft.CodeAnalysis)");
+            Execute("nameof(Microsoft.Missing)");
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
+    ReadErrorOutputToEnd());
 
-            AssertEx.Empty(ReadErrorOutputToEnd());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("\"CodeAnalysis\"", ReadOutputToEnd());
+            Assert.Equal("", ReadOutputToEnd());
         }
 
         [Fact]

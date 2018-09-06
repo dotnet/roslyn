@@ -208,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConstantValue defaultValue,
             string name = "")
         {
+            Debug.Assert(defaultValue != null);
             return new SynthesizedParameterSymbolWithDefaultValue(container, type, ordinal, defaultValue, name);
         }
 

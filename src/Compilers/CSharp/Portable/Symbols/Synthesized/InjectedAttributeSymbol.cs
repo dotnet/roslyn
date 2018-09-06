@@ -10,12 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// But we track their usage and only emit them if they are used.
     /// Their method bodies are always compiled, in case we do need to emit them.
     /// </summary>
-    internal abstract class InjectedAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
+    internal abstract class InjectedAttributeSymbol : SynthesizedEmbeddedAttributeSymbol
     {
+        internal abstract DiagnosticBag GetDiagnostics();
+
         // All the diagnostics involved in constructing this symbol will only be produced
         // if the symbol is referenced and so ends up emitted.
         // We collect all those diagnostics here.
-        internal readonly DiagnosticBag Diagnostics;
+        protected readonly DiagnosticBag _diagnostics;
 
         public InjectedAttributeSymbol(
             AttributeDescription description,
@@ -34,11 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(description, containingNamespace, compilation, getConstructors, diagnostics)
         {
-            Diagnostics = diagnostics;
+            _diagnostics = diagnostics;
         }
 
         public override ImmutableArray<Location> Locations
-            => ImmutableArray.Create(Location.None);
+            => ImmutableArray<Location>.Empty;
 
         internal override LexicalSortKey GetLexicalSortKey()
             => LexicalSortKey.NotInSource;

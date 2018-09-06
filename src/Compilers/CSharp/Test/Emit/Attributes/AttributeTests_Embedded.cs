@@ -331,9 +331,9 @@ class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyEmitDiagnostics(
-                // (2,99): warning CS0436: The type 'EmbeddedAttribute' in 'injected type' conflicts with the imported type 'EmbeddedAttribute' in 'reference, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'injected type'.
+                // (2,99): warning CS0436: The type 'EmbeddedAttribute' in 'injected declaration' conflicts with the imported type 'EmbeddedAttribute' in 'reference, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'injected declaration'.
                 // [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(Microsoft.CodeAnalysis.EmbeddedAttribute))]
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "EmbeddedAttribute").WithArguments("injected type", "Microsoft.CodeAnalysis.EmbeddedAttribute", "reference, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(2, 99),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "EmbeddedAttribute").WithArguments("injected declaration", "Microsoft.CodeAnalysis.EmbeddedAttribute", "reference, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(2, 99),
                 // (2,12): error CS0729: Type 'EmbeddedAttribute' is defined in this assembly, but a type forwarder is specified for it
                 // [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(Microsoft.CodeAnalysis.EmbeddedAttribute))]
                 Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(Microsoft.CodeAnalysis.EmbeddedAttribute))").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(2, 12));

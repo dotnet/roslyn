@@ -529,17 +529,20 @@ $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
         [Fact]
         public void Script_NoHostNamespaces()
         {
-            var runner = CreateRunner(input: "nameof(Microsoft.CodeAnalysis)");
+            var runner = CreateRunner(input: "nameof(Microsoft.Missing)");
 
             runner.RunInteractive();
-
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{s_logoAndHelpPrompt}
-> nameof(Microsoft.CodeAnalysis)
-""CodeAnalysis""
+> nameof(Microsoft.Missing)
+«Red»
+(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }
+«Gray»
 > ", runner.Console.Out.ToString());
 
-            Assert.Empty(runner.Console.Error.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                $"(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
+                runner.Console.Error.ToString());
         }
 
         [Fact]

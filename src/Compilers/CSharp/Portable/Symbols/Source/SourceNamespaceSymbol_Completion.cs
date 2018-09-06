@@ -29,16 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.MembersCompleted:
                         {
                             // ensure relevant imports are complete.
-                            if (!IsInjected)
+                            foreach (var declaration in _mergedDeclaration.Declarations)
                             {
-                                foreach (var declaration in _mergedDeclaration.Declarations)
+                                if (locationOpt == null || locationOpt.SourceTree == declaration.SyntaxReference.SyntaxTree)
                                 {
-                                    if (locationOpt == null || locationOpt.SourceTree == declaration.SyntaxReference.SyntaxTree)
+                                    if (declaration.HasUsings || declaration.HasExternAliases)
                                     {
-                                        if (declaration.HasUsings || declaration.HasExternAliases)
-                                        {
-                                            this.DeclaringCompilation.GetImports(declaration).Complete(cancellationToken);
-                                        }
+                                        this.DeclaringCompilation.GetImports(declaration).Complete(cancellationToken);
                                     }
                                 }
                             }

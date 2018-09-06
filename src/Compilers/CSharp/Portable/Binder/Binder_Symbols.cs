@@ -1500,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (best.IsFromSourceModule)
                             {
                                 SyntaxTree tree = srcSymbol.Locations.First().SourceTree;
-                                arg0 = tree != null ? (object)tree.FilePath : MessageID.IDS_InjectedType.Localize();
+                                arg0 = tree != null ? (object)tree.FilePath : MessageID.IDS_InjectedDeclaration.Localize();
                             }
                             else
                             {

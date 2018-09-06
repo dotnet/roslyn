@@ -550,7 +550,7 @@ interface I { }
             Assert.True(type.IsType);
             Assert.Equal(SymbolKind.NamedType, type.Kind);
             Assert.Equal("C#", type.Language);
-            Assert.Equal(new[] { Location.None }, type.Locations);
+            Assert.Empty(type.Locations);
             Assert.Equal(new[] { ".ctor" }, type.MemberNames);
             Assert.False(type.MightContainExtensionMethods);
             Assert.Equal("EmbeddedAttribute", type.Name);
@@ -575,7 +575,7 @@ interface I { }
             {
                 Assert.Equal(expectedName, symbol.Name);
                 Assert.Empty(symbol.DeclaringSyntaxReferences);
-                Assert.Equal(new[] { Location.None }, symbol.Locations);
+                Assert.Empty(symbol.Locations);
                 Assert.True(symbol.IsImplicitlyDeclared);
                 Assert.Equal(NamespaceKind.Module, symbol.NamespaceKind);
             }
@@ -628,7 +628,7 @@ interface I { }
             Assert.True(type.IsType);
             Assert.Equal(SymbolKind.NamedType, type.Kind);
             Assert.Equal("C#", type.Language);
-            Assert.Equal(new[] { Location.None }, type.Locations);
+            Assert.Empty(type.Locations);
             Assert.Equal(new[] { ".ctor" }, type.MemberNames);
             Assert.False(type.MightContainExtensionMethods);
             Assert.Equal("NonNullTypesAttribute", type.Name);
@@ -665,7 +665,7 @@ interface I { }
             {
                 Assert.Equal(expectedName, symbol.Name);
                 Assert.Empty(symbol.DeclaringSyntaxReferences);
-                Assert.Equal(new[] { Location.None }, symbol.Locations);
+                Assert.Empty(symbol.Locations);
                 Assert.True(symbol.IsImplicitlyDeclared);
                 Assert.Equal(NamespaceKind.Module, symbol.NamespaceKind);
             }

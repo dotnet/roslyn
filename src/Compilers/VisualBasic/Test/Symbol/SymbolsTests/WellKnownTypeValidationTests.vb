@@ -563,7 +563,7 @@ End Namespace
                         ' Not always available.
                         Continue For
                     Case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
-                        WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
+                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
                         ' Injected type
                         Continue For
                 End Select

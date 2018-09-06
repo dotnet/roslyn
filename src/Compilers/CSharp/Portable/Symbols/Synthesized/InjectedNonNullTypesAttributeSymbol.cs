@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static InjectedNonNullTypesAttributeSymbol Create(NamespaceSymbol containingNamespace)
         {
-            return new InjectedNonNullTypesAttributeSymbol(AttributeDescription.NonNullTypesAttribute, containingNamespace, containingNamespace.DeclaringCompilation, makeNonNullTypesAttributeConstructor);
+            return new InjectedNonNullTypesAttributeSymbol(AttributeDescription.NonNullTypesAttribute, containingNamespace, containingNamespace.DeclaringCompilation, makeConstructor);
 
-            ImmutableArray<MethodSymbol> makeNonNullTypesAttributeConstructor(CSharpCompilation compilation, NamedTypeSymbol containingType, DiagnosticBag diagnostics)
+            ImmutableArray<MethodSymbol> makeConstructor(CSharpCompilation compilation, NamedTypeSymbol containingType, DiagnosticBag diagnostics)
             {
                 var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
 
@@ -45,37 +45,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool RequiresCompletion
-            => true;
-
-        internal override bool HasComplete(CompletionPart part)
-            => _state.HasComplete(part);
-
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override DiagnosticBag GetDiagnostics()
         {
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var incompletePart = _state.NextIncompletePart;
-                switch (incompletePart)
-                {
-                    case CompletionPart.Attributes:
-                        GetAttributes();
-                        break;
+            // pull on the attributes to collect their diagnostics too
+            _ = GetAttributes();
 
-                    case CompletionPart.None:
-                        return;
-
-                    default:
-                        // any other values are completion parts intended for other kinds of symbols
-                        _state.NotePartComplete(CompletionPart.All & ~CompletionPart.InjectedSymbolAll);
-                        break;
-                }
-
-                _state.SpinWaitComplete(incompletePart, cancellationToken);
-            }
-
-            throw ExceptionUtilities.Unreachable;
+            return _diagnostics;
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
@@ -100,21 +75,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private ImmutableArray<CSharpAttributeData> MakeAttributes()
         {
-            var ctor = (MethodSymbol)DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_AttributeUsageAttribute__ctor);
+            var ctor = (MethodSymbol)Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_AttributeUsageAttribute__ctor, _diagnostics, Location.None);
             if (ctor is null)
             {
                 // member is missing
-                var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_AttributeUsageAttribute__ctor);
-                var diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name);
-                Diagnostics.Add(diagnosticInfo, Location.None);
-
                 return ImmutableArray<CSharpAttributeData>.Empty;
             }
 
-            Binder.ReportUseSiteDiagnostics(ctor, Diagnostics, Location.None);
+            Binder.ReportUseSiteDiagnostics(ctor, _diagnostics, Location.None);
 
             NamedTypeSymbol attributeTargets = DeclaringCompilation.GetWellKnownType(WellKnownType.System_AttributeTargets);
-            Binder.ReportUseSiteDiagnostics(attributeTargets, Diagnostics, Location.None);
+            Binder.ReportUseSiteDiagnostics(attributeTargets, _diagnostics, Location.None);
 
             var usage = new SynthesizedAttributeData(ctor,
                 arguments: ImmutableArray.Create(new TypedConstant(attributeTargets, TypedConstantKind.Enum, attributeUsage)),
@@ -148,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Func<MethodSymbol, ImmutableArray<ParameterSymbol>> getParameters) :
                 base(containingType)
             {
-                Debug.Assert(containingType is InjectedAttributeSymbol);
+                Debug.Assert(containingType is InjectedNonNullTypesAttributeSymbol);
                 _parameters = getParameters(this);
             }
 
@@ -164,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
-                var containingType = (InjectedAttributeSymbol)ContainingType;
-                GenerateMethodBodyCore(compilationState, containingType.Diagnostics);
+                var containingType = (InjectedNonNullTypesAttributeSymbol)ContainingType;
+                GenerateMethodBodyCore(compilationState, containingType._diagnostics);
             }
         }
     }

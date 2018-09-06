@@ -13,18 +13,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedEmbeddedAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
-    {
-        public SynthesizedEmbeddedAttributeSymbol(
-            AttributeDescription description,
-            CSharpCompilation compilation,
-            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getAdditionalConstructors,
-            DiagnosticBag diagnostics)
-            : base(description, compilation, getAdditionalConstructors, diagnostics)
-        {
-        }
-    }
-
     /// <summary>
     /// Represents a compiler generated and embedded attribute type.
     /// This type has the following properties:
@@ -34,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// 4) It has System.Runtime.CompilerServices.CompilerGeneratedAttribute
     /// 5) It has a parameter-less constructor
     /// </summary>
-    internal abstract class SynthesizedEmbeddedAttributeSymbolBase : NamedTypeSymbol
+    internal class SynthesizedEmbeddedAttributeSymbol : NamedTypeSymbol
     {
         private readonly string _name;
         private readonly NamedTypeSymbol _baseType;
@@ -42,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<MethodSymbol> _constructors;
         private readonly ModuleSymbol _module;
 
-        public SynthesizedEmbeddedAttributeSymbolBase(
+        public SynthesizedEmbeddedAttributeSymbol(
             AttributeDescription description,
             CSharpCompilation compilation,
             Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getAdditionalConstructors,
@@ -69,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public SynthesizedEmbeddedAttributeSymbolBase(
+        public SynthesizedEmbeddedAttributeSymbol(
             AttributeDescription description,
             NamespaceSymbol containingNamespace,
             CSharpCompilation compilation,

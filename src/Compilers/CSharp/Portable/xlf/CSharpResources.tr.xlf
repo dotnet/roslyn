@@ -22,9 +22,9 @@
         <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_InjectedType">
-        <source>injected type</source>
-        <target state="new">injected type</target>
+      <trans-unit id="IDS_InjectedDeclaration">
+        <source>injected declaration</source>
+        <target state="new">injected declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">

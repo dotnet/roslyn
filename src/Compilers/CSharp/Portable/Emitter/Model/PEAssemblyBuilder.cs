@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 if (attribute is InjectedAttributeSymbol injected)
                 {
-                    diagnostics.AddRange(injected.Diagnostics);
+                    diagnostics.AddRange(injected.GetDiagnostics());
                     builder = builder ?? ArrayBuilder<NamedTypeSymbol>.GetInstance();
                     builder.Add(attribute);
                 }
