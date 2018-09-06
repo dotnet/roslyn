@@ -48,13 +48,18 @@
       <NuspecProperties Condition="'$(SourceRevisionId)' != ''">$(NuspecProperties);repositoryCommit=$(SourceRevisionId)</NuspecProperties>
 
       <!-- The set of NuGet packages whose versions we need in the NuSpec file -->
+      <NuspecProperties>$(NuspecProperties);HumanizerCoreVersion=$(HumanizerCoreVersion)</NuspecProperties>
+      <NuspecProperties>$(NuspecProperties);ICSharpCodeDecompilerVersion=$(ICSharpCodeDecompilerVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftBuildFixedVersion=$(MicrosoftBuildFixedVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftBuildTasksCoreFixedVersion=$(MicrosoftBuildTasksCoreFixedVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftCSharpVersion=$(MicrosoftCSharpVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftCodeAnalysisAnalyzersVersion=$(MicrosoftCodeAnalysisAnalyzersVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftCodeAnalysisElfieVersion=$(MicrosoftCodeAnalysisElfieVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftVisualBasicVersion=$(MicrosoftVisualBasicVersion)</NuspecProperties>
+      <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioLanguageIntellisenseVersion=$(MicrosoftVisualStudioLanguageIntellisenseVersion)</NuspecProperties>
+      <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioLanguageStandardClassificationVersion=$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioSetupConfigurationInteropVersion=$(MicrosoftVisualStudioSetupConfigurationInteropVersion)</NuspecProperties>
+      <NuspecProperties>$(NuspecProperties);SQLitePCLRawbundle_greenVersion=$(SQLitePCLRawbundle_greenVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);SystemAppContextVersion=$(SystemAppContextVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);SystemCollectionsVersion=$(SystemCollectionsVersion)</NuspecProperties>
       <NuspecProperties>$(NuspecProperties);SystemCollectionsConcurrentVersion=$(SystemCollectionsConcurrentVersion)</NuspecProperties>

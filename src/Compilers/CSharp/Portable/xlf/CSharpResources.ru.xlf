@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../CSharpResources.resx">
     <body>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
-        <target state="new">An out variable cannot be declared as a ref local</target>
+        <target state="translated">Выходная переменная не может быть объявлена как локальная переменная ref</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -379,22 +379,22 @@
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
         <source>SyntaxTree is not part of the compilation</source>
-        <target state="new">SyntaxTree is not part of the compilation</target>
+        <target state="translated">SyntaxTree не входит в компиляцию</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFoundToRemove">
         <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
-        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
+        <target state="translated">SyntaxTree не входит в компиляцию, поэтому его невозможно удалить</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
         <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
-        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <target state="translated">Параметр типа "{0}" имеет то же имя, что и параметр типа во внешнем методе "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
-        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
+        <target state="translated">Параметр типа имеет то же имя, что и параметр типа во внешнем методе.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -1324,7 +1324,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="needs-review-translation">В качестве оператора могут использоваться только выражения присваивания, вызова, инкремента, декремента и создания нового объекта</target>
+        <target state="translated">В качестве оператора могут использоваться только выражения присваивания, вызова, инкремента, декремента, ожидания и создания объекта.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1694,7 +1694,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
-        <target state="needs-review-translation">Дружественный доступ предоставлен "{0}", однако открытый ключ выходной сборки не соответствует ключу, определенному атрибутом предоставляющей сборки.</target>
+        <target state="translated">Дружественный доступ предоставлен "{0}", однако открытый ключ выходной сборки ("{1}") не соответствует ключу, определенному атрибутом InternalsVisibleTo предоставляющей сборки.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -3777,7 +3777,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="needs-review-translation">'{0}" не содержит определения для "{1}" и не удалось найти метод расширения "{1}", принимающий тип "{0}" в качестве первого аргумента (возможно, пропущена директива using или ссылка на сборку).</target>
+        <target state="translated">"{0}" не содержит определения "{1}", и не удалось найти доступный метод расширения "{1}", принимающий тип "{0}" в качестве первого аргумента (возможно, пропущена директива using или ссылка на сборку).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -4387,7 +4387,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
         <source>Iterators cannot have ref, in or out parameters</source>
-        <target state="needs-review-translation">Итераторы не могут иметь параметры с ключевым словом ref или out.</target>
+        <target state="translated">Итераторы не могут иметь параметры ref, in или out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -4612,7 +4612,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
         <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="needs-review-translation">Невозможно преобразовать {0} в тип делегата "{1}", так как типы параметров не совпадают с типами параметров делегата.</target>
+        <target state="translated">Невозможно преобразовать {0} в тип "{1}", так как типы параметров не совпадают с типами параметров делегата</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -5257,7 +5257,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
         <source>An expression tree lambda may not contain a ref, in or out parameter</source>
-        <target state="needs-review-translation">Дерево лямбда-выражения не может содержать параметры с ключевыми словами out и ref.</target>
+        <target state="translated">Дерево лямбда-выражения не может содержать параметр ref, in или out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarArgsInExpressionTree">
@@ -5815,7 +5815,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
         <source>Async methods cannot have ref, in or out parameters</source>
-        <target state="needs-review-translation">У асинхронных методов не может быть параметров ref и out.</target>
+        <target state="translated">Асинхронные методы не могут иметь параметры ref, in или out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsync">
@@ -7361,147 +7361,147 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                               Параметры компилятора Visual C#
 
                         - ВЫХОДНЫЕ ФАЙЛЫ -
- /out:&lt;файл&gt;                   Указывает имя выходного файла (по умолчанию: базовое имя
+-out:&lt;файл&gt;                   Указывает имя выходного файла (по умолчанию: базовое имя
                                файла с классом main или имя первого файла)
- /target:exe                   По умолчанию выполняет сборку консольного исполняемого файла (краткая
+-target:exe                   По умолчанию выполняет сборку консольного исполняемого файла (краткая
                                форма: /t:exe)
- /target:winexe                Выполняет сборку исполняемого файла Windows (краткая форма:
+-target:winexe                Выполняет сборку исполняемого файла Windows (краткая форма:
                                /t:winexe)
- /target:library               Выполняет сборку библиотеки (краткая форма: /t:library)
- /target:module                Выполняет сборку модуля, который может быть добавлен в другую
+-target:library               Выполняет сборку библиотеки (краткая форма: /t:library)
+-target:module                Выполняет сборку модуля, который может быть добавлен в другую
                                сборку (краткая форма: /t:module)
- /target:appcontainerexe       Выполняет сборку исполняемого файла контейнера приложений (краткая форма:
+-target:appcontainerexe       Выполняет сборку исполняемого файла контейнера приложений (краткая форма:
                                /t:appcontainerexe)
- /target:winmdobj              Выполняет сборку промежуточного файла среды выполнения Windows,
+-target:winmdobj              Выполняет сборку промежуточного файла среды выполнения Windows,
                                используемого в WinMDExp (краткая форма: /t:winmdobj)
- /doc:&lt;файл&gt;                   Создаваемый XML-файл документации
- /refout:&lt;файл&gt;                Создаваемые выходные данные базовой сборки.
- /platform:&lt;строка&gt;            Ограничить платформы, на которых может выполняться этот код: x86,
+-doc:&lt;файл&gt;                   Создаваемый XML-файл документации
+-refout:&lt;файл&gt;                Создаваемые выходные данные базовой сборки.
+-platform:&lt;строка&gt;            Ограничить платформы, на которых может выполняться этот код: x86,
                                Itanium, x64, arm, arm64, anycpu32bitpreferred или
                                anycpu. Значение по умолчанию — anycpu.
 
                         - ВХОДНЫЕ ФАЙЛЫ -
- /recurse:&lt;подстановочный знак&gt;           Включить все файлы в текущем каталоге и
+-recurse:&lt;подстановочный знак&gt;           Включить все файлы в текущем каталоге и
                                подкаталогах в соответствии с заданным
                                подстановочным знаком
- /reference:&lt;псевдоним&gt;=&lt;файл&gt;     Ссылаться на метаданные из заданного файла
+-reference:&lt;псевдоним&gt;=&lt;файл&gt;     Ссылаться на метаданные из заданного файла
                                сборки с помощью определенного псевдонима (краткая форма: /r)
- /reference:&lt;список файлов&gt;        Ссылаться на метаданные из заданных файлов
+-reference:&lt;список файлов&gt;        Ссылаться на метаданные из заданных файлов
                                сборки (краткая форма: /r)
- /addmodule:&lt;список файлов&gt;        Скомпоновать указанные модули вместе с этой сборкой
- /link:&lt;список файлов&gt;             Внедрить метаданные из указанных файлов
+-addmodule:&lt;список файлов&gt;        Скомпоновать указанные модули вместе с этой сборкой
+-link:&lt;список файлов&gt;             Внедрить метаданные из указанных файлов
                                сборок взаимодействия (краткая форма: /l)
- /analyzer:&lt;список файлов&gt;         Запускать анализаторы из этой сборки
+-analyzer:&lt;список файлов&gt;         Запускать анализаторы из этой сборки
                                (краткая форма: /a)
- /additionalfile:&lt;список файлов&gt;   Дополнительные файлы, которые не оказывают прямого влияния на создание
+-additionalfile:&lt;список файлов&gt;   Дополнительные файлы, которые не оказывают прямого влияния на создание
                                кода, но могут использоваться анализаторами для вывода
                                ошибок или предупреждений.
- /embed                        Внедрить все исходные файлы в PDB.
- /embed:&lt;список файлов&gt;            Внедрить указанные файлы в PDB.
+-embed                        Внедрить все исходные файлы в PDB.
+-embed:&lt;список файлов&gt;            Внедрить указанные файлы в PDB.
 
                         - РЕСУРСЫ -
- /win32res:&lt;файл&gt;              Задает файл ресурсов Win32 (RES-файл)
- /win32icon:&lt;файл&gt;             Использовать этот значок для вывода.
- /win32manifest:&lt;файл&gt;         Задает файл манифеста Win32 (XML-файл).
- /nowin32manifest              Не включать манифест Win32 по умолчанию.
- /resource:&lt;ресурс&gt;           Внедрить указанный ресурс (краткая форма: /res)
- /linkresource:&lt;ресурс&gt;       Скомпоновать указанный ресурс вместе с этой сборкой
+-win32res:&lt;файл&gt;              Задает файл ресурсов Win32 (RES-файл)
+-win32icon:&lt;файл&gt;             Использовать этот значок для вывода.
+-win32manifest:&lt;файл&gt;         Задает файл манифеста Win32 (XML-файл).
+-nowin32manifest              Не включать манифест Win32 по умолчанию.
+-resource:&lt;ресурс&gt;           Внедрить указанный ресурс (краткая форма: /res)
+-linkresource:&lt;ресурс&gt;       Скомпоновать указанный ресурс вместе с этой сборкой
                                (краткая форма: /linkres), где данные о ресурсах имеют формат
                                &lt;файл&gt;[,&lt;имя строки&gt;[,public|private]]
 
                         - СОЗДАНИЕ КОДА -
- /debug[+|-]                   Выдать отладочную информацию.
- /debug:{full|pdbonly|portable|embedded}
+-debug[+|-]                   Выдать отладочную информацию.
+-debug:{full|pdbonly|portable|embedded}
                                Задать тип отладки (по умолчанию — "full",
                                "portable" — кроссплатформенный формат,
                                "embedded" — кроссплатформенный формат, внедряемый в
                                целевой DLL- или EXE-файл)
- /optimize[+|-]                Включить оптимизацию (краткая форма: /o)
- /deterministic                Создать детерминированную сборку
+-optimize[+|-]                Включить оптимизацию (краткая форма: /o)
+-deterministic                Создать детерминированную сборку
                                (включая GUID версии модуля и метку времени)
- /refonly                      Создать базовую сборку вместо основных выходных данных.
- /instrument:TestCoverage      Создать сборку, инструментированную для сбора
+-refonly                      Создать базовую сборку вместо основных выходных данных.
+-instrument:TestCoverage      Создать сборку, инструментированную для сбора
                                сведений об объеме протестированного кода. 
- /sourcelink:&lt;файл&gt;            Данные о ссылке на исходные файлы для внедрения в PDB.
+-sourcelink:&lt;файл&gt;            Данные о ссылке на исходные файлы для внедрения в PDB.
 
                         - ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ -
- /warnaserror[+|-]             Записывать все предупреждения как ошибки.
- /warnaserror[+|-]:&lt;предупреждения&gt; Записывать указанные предупреждения как ошибки.
- /warn:&lt;n&gt;                     Задать уровень генерации предупреждений (0–4) (краткая форма: /w)
- /nowarn:&lt;предупреждения&gt;           Отключить указанные предупреждения.
- /ruleset:&lt;файл&gt;               Указать файл набора правил, отключающий определенные
+-warnaserror[+|-]             Записывать все предупреждения как ошибки.
+-warnaserror[+|-]:&lt;предупреждения&gt; Записывать указанные предупреждения как ошибки.
+-warn:&lt;n&gt;                     Задать уровень генерации предупреждений (0–4) (краткая форма: /w)
+-nowarn:&lt;предупреждения&gt;           Отключить указанные предупреждения.
+-ruleset:&lt;файл&gt;               Указать файл набора правил, отключающий определенные
                                диагностические операции.
- /errorlog:&lt;файл&gt;              Указать файл для записи всех диагностических данных
+-errorlog:&lt;файл&gt;              Указать файл для записи всех диагностических данных
                                компилятора и анализатора.
- /reportanalyzer               Сообщить дополнительные сведения об анализаторе, например
+-reportanalyzer               Сообщить дополнительные сведения об анализаторе, например
                                время выполнения.
 
                         - ЯЗЫК -
- /checked[+|-]                 Создать проверки переполнений.
- /unsafe[+|-]                  Допускать "небезопасный" код.
- /define:&lt;список символов&gt;         Определить символы условной компиляции (краткая
+-checked[+|-]                 Создать проверки переполнений.
+-unsafe[+|-]                  Допускать "небезопасный" код.
+-define:&lt;список символов&gt;         Определить символы условной компиляции (краткая
                                форма: /d)
- /langversion:?         Указать допустимые значения для версии языка
- /langversion:&lt;строка&gt;         Указать языковую версию, например
+-langversion:?         Указать допустимые значения для версии языка
+-langversion:&lt;строка&gt;         Указать языковую версию, например
                                "default" (последняя основная версия) или
                                "latest" (последняя версия, включая дополнительные),
                                или конкретные версии, например 6 или 7.1.
 
                         - БЕЗОПАСНОСТЬ -
- /delaysign[+|-]               Использовать отложенную подпись для сборки, применяя только открытую
+-delaysign[+|-]               Использовать отложенную подпись для сборки, применяя только открытую
                                часть ключа строгого имени
- /publicsign[+|-]              Подписать сборку, используя только открытую
+-publicsign[+|-]              Подписать сборку, используя только открытую
                                часть ключа строгого имени
- /keyfile:&lt;файл&gt;               Указать файл ключей строгого имени.
- /keycontainer:&lt;строка&gt;        Указать контейнер ключей строгого имени.
- /highentropyva[+|-]           Включить ASLR с высокой энтропией.
+-keyfile:&lt;файл&gt;               Указать файл ключей строгого имени.
+-keycontainer:&lt;строка&gt;        Указать контейнер ключей строгого имени.
+-highentropyva[+|-]           Включить ASLR с высокой энтропией.
 
                         - ПРОЧЕЕ -
  @&lt;файл&gt;                       Считать файл ответов с дополнительными параметрами.
- /help                         Отображать это сообщение об использовании (краткая форма: /?)
- /nologo                       Запрещать отображение сообщения компилятора об авторских правах.
- /noconfig                     Не включать файл CSC.RSP автоматически.
- /parallel[+|-]                Параллельная сборка.
- /version                      Отобразить номер версии компилятора и выйти.
+-help                         Отображать это сообщение об использовании (краткая форма: /?)
+-nologo                       Запрещать отображение сообщения компилятора об авторских правах.
+-noconfig                     Не включать файл CSC.RSP автоматически.
+-parallel[+|-]                Параллельная сборка.
+-version                      Отобразить номер версии компилятора и выйти.
 
                         - ДОПОЛНИТЕЛЬНО -
- /baseaddress:&lt;адрес&gt;        Базовый адрес библиотеки, для которой выполняется сборка.
- /checksumalgorithm:&lt;алгоритм&gt;      Задать алгоритм для расчета контрольной суммы
+-baseaddress:&lt;адрес&gt;        Базовый адрес библиотеки, для которой выполняется сборка.
+-checksumalgorithm:&lt;алгоритм&gt;      Задать алгоритм для расчета контрольной суммы
                                исходного файла, хранимой в формате PDB. Поддерживаемые значения:
                                SHA1 (по умолчанию) или SHA256.
- /codepage:&lt;n&gt;                 Задать кодовую страницу, используемую при открытии исходных
+-codepage:&lt;n&gt;                 Задать кодовую страницу, используемую при открытии исходных
                                файлов.
- /utf8output                   Выводить сообщения компилятора в кодировке UTF-8.
- /main:&lt;тип&gt;                  Указать тип, содержащий точку входа
+-utf8output                   Выводить сообщения компилятора в кодировке UTF-8.
+-main:&lt;тип&gt;                  Указать тип, содержащий точку входа
                                (все другие возможные точки входа игнорируются) (краткая
                                форма: /m)
- /fullpaths                    Компилятор создает полные пути.
- /filealign:&lt;n&gt;                Задать выравнивание для разделов выходных
+-fullpaths                    Компилятор создает полные пути.
+-filealign:&lt;n&gt;                Задать выравнивание для разделов выходных
                                файлов.
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                Задать сопоставление для выходных данных имен исходного пути по
                                компилятору.
- /pdb:&lt;файл&gt;                   Задать имя файла для отладочной информации (по умолчанию
+-pdb:&lt;файл&gt;                   Задать имя файла для отладочной информации (по умолчанию
                                используется имя выходного файла с расширением PDB)
- /errorendlocation             Выводить строку и столбец конечного расположения
+-errorendlocation             Выводить строку и столбец конечного расположения
                                каждой ошибки.
- /preferreduilang              Указать имя предпочтительного языка вывода.
- /nostdlib[+|-]                Не обращаться к стандартной библиотеке (mscorlib.dll).
- /subsystemversion:&lt;строка&gt;    Задать версию подсистемы этой сборки.
- /lib:&lt;список файлов&gt;              Задать дополнительные каталоги для поиска
+-preferreduilang              Указать имя предпочтительного языка вывода.
+-nostdlib[+|-]                Не обращаться к стандартной библиотеке (mscorlib.dll).
+-subsystemversion:&lt;строка&gt;    Задать версию подсистемы этой сборки.
+-lib:&lt;список файлов&gt;              Задать дополнительные каталоги для поиска
                                ссылок.
- /errorreport:&lt;строка&gt;         Указать способ обработки внутренних ошибок компилятора:
+-errorreport:&lt;строка&gt;         Указать способ обработки внутренних ошибок компилятора:
                                prompt, send, queue или none. По умолчанию используется
                                queue.
- /appconfig:&lt;файл&gt;             Указать файл конфигурации приложения,
+-appconfig:&lt;файл&gt;             Указать файл конфигурации приложения,
                                содержащий параметры привязки сборки.
- /moduleassemblyname:&lt;строка&gt;  Имя сборки, частью которой будет являться
+-moduleassemblyname:&lt;строка&gt;  Имя сборки, частью которой будет являться
                                этот модуль.
- /modulename:&lt;строка&gt;          Задать имя исходного модуля.
+-modulename:&lt;строка&gt;          Задать имя исходного модуля.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -7827,7 +7827,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
         <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="needs-review-translation">SyntaxTree "{0}" получено из директивы #load и не может быть удалено или перемещено непосредственным образом.</target>
+        <target state="translated">SyntaxTree получено из директивы #load и не может быть удалено или перемещено напрямую.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">
@@ -8042,12 +8042,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
         <source>Iterators cannot have by-reference locals</source>
-        <target state="needs-review-translation">Итераторы не могут иметь локальных переменных по ссылке</target>
+        <target state="translated">Итераторы не могут иметь локальных переменных по ссылке</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
         <source>Async methods cannot have by-reference locals</source>
-        <target state="needs-review-translation">Асинхронные методы не могут иметь локальных переменных по ссылке</target>
+        <target state="translated">Асинхронные методы не могут иметь локальных переменных по ссылке</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
@@ -8747,12 +8747,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">Имя файла "{0}" пустое, содержит недопустимые символы, имеет имя диска без абсолютного пути или слишком длинное.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
-        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <target state="translated">В __arglist невозможно передать аргумент с помощью in или out</target>
         <note />
       </trans-unit>
     </body>
