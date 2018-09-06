@@ -4,70 +4,69 @@
 
   <Import Project="$(NuGetPackageRoot)microsoft.dotnet.signtool\$(MicrosoftDotNetSignToolVersion)\build\Microsoft.DotNet.SignTool.props" />
 
+  <ItemGroup>
+    <!-- List of container files that will be opened and checked for files that need to be signed. -->
+    <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.nupkg" />
+    <ItemsToSign Include="$(VisualStudioSetupOutputPath)**\*.vsix" />
+  
+    <!-- Default certificate/strong-name to be used for all files with PKT=="31bf3856ad364e35". -->
+    <StrongNameSignInfo Include="MsSharedLib72" PublicKeyToken="31bf3856ad364e35" CertificateName="MicrosoftSHA2" />
+  
+    <!-- 
+      Map of file extensions to default certificate name. Files with these extensions are
+      signed with the specified certificate. Particularly useful for files that don't have
+      a public key token. 
+      The certificate can be overriden using the StrongNameSignInfo or the FileSignInfo item group.
+    -->
+    <FileExtensionSignInfo Include=".jar" CertificateName="MicrosoftJAR" />
+    <FileExtensionSignInfo Include=".dylib" CertificateName="Apple" />
+    <FileExtensionSignInfo Include=".js;.ps1;.psd1;.psm1;.psc1" CertificateName="Microsoft" />
+    <FileExtensionSignInfo Include=".dll;.exe" CertificateName="MicrosoftSHA2" />
+    <FileExtensionSignInfo Include=".nupkg" CertificateName="NuGet" />
+    <FileExtensionSignInfo Include=".vsix" CertificateName="VsixSHA2" />
+    <FileExtensionSignInfo Include=".zip" CertificateName="None" />
+  </ItemGroup>
+
+  <!-- Allow repository to customize signing configuration -->
+  <Import Project="$(RepositoryEngineeringDir)Signing.props" Condition="Exists('$(RepositoryEngineeringDir)Signing.props')">
+
   <Target Name="Sign">
     <Error Text="The value of DotNetSignType is invalid: '$(DotNetSignType)'"
            Condition="'$(DotNetSignType)' != 'real' and '$(DotNetSignType)' != 'test' and '$(DotNetSignType)' != ''" />
 
     <PropertyGroup>
-      <DryRun>true</DryRun>
-      <DryRun Condition="'$(OfficialBuild)' == 'true'">false</DryRun>
+      <_DryRun>true</_DryRun>
+      <_DryRun Condition="'$(OfficialBuild)' == 'true'">false</_DryRun>
 
-      <TestSign>false</TestSign>
-      <TestSign Condition="'$(DotNetSignType)' == 'test'">true</TestSign>
+      <_TestSign>false</_TestSign>
+      <_TestSign Condition="'$(DotNetSignType)' == 'test'">true</_TestSign>
 
-      <DesktopMSBuildRequired>false</DesktopMSBuildRequired>
-      <DesktopMSBuildRequired Condition="'$(DryRun)' != 'true' and '$(MSBuildRuntimeType)' == 'Core'">true</DesktopMSBuildRequired>
+      <_DesktopMSBuildRequired>false</_DesktopMSBuildRequired>
+      <_DesktopMSBuildRequired Condition="'$(_DryRun)' != 'true' and '$(MSBuildRuntimeType)' == 'Core'">true</_DesktopMSBuildRequired>
     </PropertyGroup>
 
     <!-- We only need this if we are going to use the executable version. -->
     <Exec Command='"$(NuGetPackageRoot)vswhere\$(VSWhereVersion)\tools\vswhere.exe" -latest -prerelease -property installationPath -requires Microsoft.Component.MSBuild'
           ConsoleToMsBuild="true"
           StandardErrorImportance="high"
-          Condition="$(DesktopMSBuildRequired)">
-      <Output TaskParameter="ConsoleOutput" PropertyName="VSInstallDir" />
+          Condition="$(_DesktopMSBuildRequired)">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_VSInstallDir" />
     </Exec>
 
     <PropertyGroup>
-      <DesktopMSBuildPath Condition="$(DesktopMSBuildRequired)">$(VSInstallDir)\MSBuild\15.0\Bin\msbuild.exe</DesktopMSBuildPath>
+      <_DesktopMSBuildPath Condition="$(_DesktopMSBuildRequired)">$(_VSInstallDir)\MSBuild\15.0\Bin\msbuild.exe</_DesktopMSBuildPath>
     </PropertyGroup>
 
-    <ItemGroup>
-      <!-- List of container files that will be opened and checked for files that need to be signed. -->
-      <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.nupkg" />
-      <ItemsToSign Include="$(VisualStudioSetupOutputPath)**\*.vsix" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <!-- Default certificate/strong-name to be used for all files with PKT=="31bf3856ad364e35". -->
-      <StrongNameSignInfo Include="MsSharedLib72" PublicKeyToken="31bf3856ad364e35" CertificateName="MicrosoftSHA2" />
-    </ItemGroup>   
-
-    <ItemGroup>
-      <!-- 
-        Map of file extensions to default certificate name. Files with these extensions are
-        signed with the specified certificate. Particularly useful for files that don't have
-        a public key token. 
-        The certificate can be overriden using the StrongNameSignInfo or the FileSignInfo item group.
-      -->
-      <FileExtensionSignInfo Include=".jar" CertificateName="MicrosoftJAR" />
-      <FileExtensionSignInfo Include=".dylib" CertificateName="Apple" />
-      <FileExtensionSignInfo Include=".js;.ps1;.psd1;.psm1;.psc1" CertificateName="Microsoft" />
-      <FileExtensionSignInfo Include=".dll;.exe" CertificateName="MicrosoftSHA2" />
-      <FileExtensionSignInfo Include=".nupkg" CertificateName="NuGet" />
-      <FileExtensionSignInfo Include=".vsix" CertificateName="VsixSHA2" />
-      <FileExtensionSignInfo Include=".zip" CertificateName="None" />
-    </ItemGroup>
-
     <Microsoft.DotNet.SignTool.SignToolTask
-        DryRun="$(DryRun)"
-        TestSign="$(TestSign)"
+        DryRun="$(_DryRun)"
+        TestSign="$(_TestSign)"
         ItemsToSign="@(ItemsToSign)"
         StrongNameSignInfo="@(StrongNameSignInfo)"
         FileExtensionSignInfo="@(FileExtensionSignInfo)"
         FileSignInfo="@(FileSignInfo)"
         TempDir="$(ArtifactsTmpDir)"
         LogDir="$(ArtifactsLogDir)"
-        MSBuildPath="$(DesktopMSBuildPath)"
+        MSBuildPath="$(_DesktopMSBuildPath)"
         MicroBuildCorePath="$(NuGetPackageRoot)microbuild.core\$(MicroBuildCoreVersion)"/>
        
   </Target>

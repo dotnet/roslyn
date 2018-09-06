@@ -24,10 +24,10 @@
       TODO: values differ from RepoToolset 
     -->
 
-    <_EngDir>$(RepoRoot)build\Targets\</_EngDir>
+    <RepositoryEngineeringDir>$(RepoRoot)build\Targets\</RepositoryEngineeringDir>
 
-    <VersionsPropsPath>$(_EngDir)Packages.props</VersionsPropsPath>
-    <FixedVersionsPropsPath>$(_EngDir)FixedPackages.props</FixedVersionsPropsPath>
+    <VersionsPropsPath>$(RepositoryEngineeringDir)Packages.props</VersionsPropsPath>
+    <FixedVersionsPropsPath>$(RepositoryEngineeringDir)FixedPackages.props</FixedVersionsPropsPath>
 
     <ArtifactsDir Condition="'$(ArtifactsDir)' == ''">$(RepoRoot)Binaries\</ArtifactsDir>
     <ArtifactsToolsetDir>$(ArtifactsDir)toolset\</ArtifactsToolsetDir>
