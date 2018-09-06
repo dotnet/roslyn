@@ -109,6 +109,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     return await HandleMismatchedVersionRequest(cancellationToken).ConfigureAwait(false);
                 }
+                else if(request.CompilerHash != BuildProtocolConstants.GetCommitHash())
+                {
+                    return await HandleIncorrectHashRequest(cancellationToken).ConfigureAwait(false);
+                }
                 else if (IsShutdownRequest(request))
                 {
                     return await HandleShutdownRequest(cancellationToken).ConfigureAwait(false);
@@ -171,6 +175,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private async Task<ConnectionData> HandleMismatchedVersionRequest(CancellationToken cancellationToken)
         {
             var response = new MismatchedVersionBuildResponse();
+            await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+            return new ConnectionData(CompletionReason.CompilationNotStarted);
+        }
+
+        private async Task<ConnectionData> HandleIncorrectHashRequest(CancellationToken cancellationToken)
+        {
+            var response = new IncorrectHashBuildResponse();
             await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
             return new ConnectionData(CompletionReason.CompilationNotStarted);
         }

@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
             BuildProtocolConstants.ProtocolVersion,
             RequestLanguage.CSharpCompile,
+            BuildProtocolConstants.GetCommitHash(),
             ImmutableArray<BuildRequest.Argument>.Empty);
 
         private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
