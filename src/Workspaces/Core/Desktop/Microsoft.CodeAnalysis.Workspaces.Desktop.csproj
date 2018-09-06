@@ -2,63 +2,18 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net472</TargetFramework>
-    <DefineConstants>$(DefineConstants);WORKSPACE_DESKTOP</DefineConstants>
-
-    <!-- NuGet -->
-    <IsPackable>true</IsPackable>
-    <PackageDescription>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
-      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
-    </PackageDescription>
-
-    <!-- 
-      TODO: https://github.com/dotnet/roslyn/issues/29292
-      We package Microsoft.CodeAnalysis.Workspaces and Microsoft.CodeAnalysis.Workspaces.Desktop in the same package,
-      which is an unusal pattern that's not supported by NuGet Pack. We need to employ a trick to build the package this way.
-      
-      Workspaces project sets its PackageId used for Restore to Microsoft.CodeAnalysis.Workspaces.Common.
-      Here we use NuspecPackageId instead, which the Arcade toolset uses to set the PackageId just for Pack build phase, but not the Restore phase
-      (setting it for Restore phase would produce duplicate PackageId because we already used the same value in Workspaces project).
-      This way all projects that depend on Workspaces will produce packages depending on Microsoft.CodeAnalysis.Workspaces.Common package
-      (using the Restore PackageId), but they do not need to depend on Workspaces.Desktop project to do so.
-      
-      We also need to use hand-written NuSpec file in order to add netstandard1.3 dependency group without multi-targeting this project.
-    -->
-    <NuspecPackageId>Microsoft.CodeAnalysis.Workspaces.Common</NuspecPackageId>
-    <NuspecFile>$(NuspecPackageId).nuspec</NuspecFile>
-    <NuspecBasePath>$(ArtifactsConfigurationDir)</NuspecBasePath>
-    
-    <!-- SQLLite package imports content files. Do not include these in the package. -->
-    <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
-  <ItemGroup>
-    <NuspecProperty Include="ThirdPartyNoticesFilePath=$(ThirdPartyNoticesFilePath)" />
-    <NuspecProperty Include="SQLitePCLRawbundle_greenVersion=$(SQLitePCLRawbundle_greenVersion)" />
-    <NuspecProperty Include="SystemCompositionVersion=$(SystemCompositionVersion)" />
-    <NuspecProperty Include="SystemDiagnosticsContractsVersion=$(SystemDiagnosticsContractsVersion)" />
-    <NuspecProperty Include="SystemLinqParallelVersion=$(SystemLinqParallelVersion)" />
-    <NuspecProperty Include="SystemObjectModelVersion=$(SystemObjectModelVersion)" />
-    <NuspecProperty Include="SystemTextRegularExpressionsVersion=$(SystemTextRegularExpressionsVersion)" />
-    <NuspecProperty Include="SystemThreadingTasksParallelVersion=$(SystemThreadingTasksParallelVersion)" />
-  </ItemGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="WorkspaceDesktopResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>WorkspaceDesktopResources.resx</DependentUpon>
-    </Compile>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
@@ -105,19 +60,7 @@
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-
-    <!-- Use PrivateAssets=all to avoid creating circular dependency. -->
-    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" PrivateAssets="all" />
-  </ItemGroup>
-  <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="WorkspaceDesktopResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>WorkspaceDesktopResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 </Project>

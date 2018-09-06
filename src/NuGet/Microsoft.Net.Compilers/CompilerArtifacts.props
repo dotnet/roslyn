@@ -44,6 +44,5 @@
     <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.CSharp.Core.targets"/>
     <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.VisualBasic.Core.targets"/>
     <CompilerArtifact Include="$(_Exes)csi\net472\System.*.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
-    <CompilerArtifact Include="$(_Exes)csi\net472\Microsoft.Win32.Primitives.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
   </ItemGroup>
 </Project>
