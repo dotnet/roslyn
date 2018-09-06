@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <!-- Allow repository to customize signing configuration -->
-  <Import Project="$(RepositoryEngineeringDir)Signing.props" Condition="Exists('$(RepositoryEngineeringDir)Signing.props')">
+  <Import Project="$(RepositoryEngineeringDir)Signing.props" Condition="Exists('$(RepositoryEngineeringDir)Signing.props')" />
 
   <Target Name="Sign">
     <Error Text="The value of DotNetSignType is invalid: '$(DotNetSignType)'"
