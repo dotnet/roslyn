@@ -73,7 +73,7 @@ commitPullList.each { isPr ->
 
         def triggerPhraseOnly = false
         def triggerPhraseExtra = ""
-        Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+        Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
         Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
         addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
@@ -110,7 +110,7 @@ commitPullList.each { isPr ->
 
     def triggerPhraseOnly = false
     def triggerPhraseExtra = ""
-    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
     Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
     addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
@@ -179,7 +179,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "determinism"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -195,7 +195,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = ""
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -211,7 +211,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "microbuild"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -253,7 +253,7 @@ commitPullList.each { isPr ->
     // Run it automatically on CI builds but only when requested on PR builds.
     def triggerPhraseOnly = isPr
     def triggerPhraseExtra = "loc"
-    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
     addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
 }
@@ -275,7 +275,7 @@ commitPullList.each { isPr ->
 
     def triggerPhraseOnly = false
     def triggerPhraseExtra = "loc changes"
-    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
     addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
 }
