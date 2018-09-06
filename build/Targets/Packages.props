@@ -183,7 +183,8 @@
 
     <SystemTextEncodingCodePagesVersion>4.3.0</SystemTextEncodingCodePagesVersion>
     <SystemThreadingTasksDataflowVersion>4.5.24</SystemThreadingTasksDataflowVersion>
-    <SystemValueTupleVersion>4.3.0</SystemValueTupleVersion>
+    <!-- We need SVT assembly version at least 4.0.3.0 on net47 to make F5 work - see https://github.com/dotnet/roslyn/issues/29705 -->
+    <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
     <SystemThreadingTasksExtensionsVersion>4.3.0</SystemThreadingTasksExtensionsVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
