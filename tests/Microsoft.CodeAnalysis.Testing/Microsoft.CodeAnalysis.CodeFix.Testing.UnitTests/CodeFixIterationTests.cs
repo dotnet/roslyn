@@ -270,8 +270,8 @@ class TestClass2 {
 
             await new CSharpTest
             {
-                TestSources = { testCode1, testCode2 },
-                FixedSources = { fixedCode1, fixedCode2 },
+                TestState = { Sources = { testCode1, testCode2 } },
+                FixedState = { Sources = { fixedCode1, fixedCode2 } },
                 NumberOfFixAllInDocumentIterations = 2,
             }.RunAsync();
         }
@@ -305,8 +305,8 @@ class TestClass2 {
             {
                 await new CSharpTest
                 {
-                    TestSources = { testCode1, testCode2 },
-                    FixedSources = { fixedCode1, fixedCode2 },
+                    TestState = { Sources = { testCode1, testCode2 } },
+                    FixedState = { Sources = { fixedCode1, fixedCode2 } },
                 }.RunAsync();
             });
 
@@ -342,8 +342,8 @@ class TestClass2 {
             {
                 await new CSharpTest
                 {
-                    TestSources = { testCode1, testCode2 },
-                    FixedSources = { fixedCode1, fixedCode2 },
+                    TestState = { Sources = { testCode1, testCode2 } },
+                    FixedState = { Sources = { fixedCode1, fixedCode2 } },
                     NumberOfFixAllIterations = 2,
                 }.RunAsync();
             });
