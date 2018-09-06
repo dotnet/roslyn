@@ -3945,12 +3945,52 @@ select t";
         }
 
         [Fact]
+        public void NullCoalescingAssignmentExpressionNested()
+        {
+            UsingExpression("a ??= b ??= c");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.CoalesceAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.QuestionQuestionEqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void NullCoalescingAssignmentCSharp7_3()
         {
             UsingExpression("a ??= b", TestOptions.Regular7_3,
                 // (1,3): error CS8370: Feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // a ??= b
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 3));
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
         }
     }
 }

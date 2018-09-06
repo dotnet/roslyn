@@ -422,6 +422,11 @@
         <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
+        <source>'default' is converted to 'null', not 'default({0})'</source>
+        <target state="new">'default' is converted to 'null', not 'default({0})'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
         <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
         <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>

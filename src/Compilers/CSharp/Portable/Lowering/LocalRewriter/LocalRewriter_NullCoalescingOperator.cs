@@ -47,20 +47,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             var isUnconstrainedTypeParameter = rewrittenLeft.Type != null && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
 
             // first we can make a small optimization:
-            // If left is a constant then we already know whether it is null or not. If it is null then we 
+            // If left is a constant then we already know whether it is null or not. If it is null then we
             // can simply generate "right". If it is not null then we can simply generate
             // MakeConversion(left). This does not hold when the left is an unconstrained type parameter: at runtime,
             // it can be either left or right depending on the runtime type of T
-            if (rewrittenLeft.IsDefaultValue() && !isUnconstrainedTypeParameter)
+            if (!isUnconstrainedTypeParameter)
             {
-                return rewrittenRight;
-            }
+                if (rewrittenLeft.IsDefaultValue())
+                {
+                    return rewrittenRight;
+                }
 
-            if (rewrittenLeft.ConstantValue != null && !isUnconstrainedTypeParameter)
-            {
-                Debug.Assert(!rewrittenLeft.ConstantValue.IsNull);
+                if (rewrittenLeft.ConstantValue != null)
+                {
+                    Debug.Assert(!rewrittenLeft.ConstantValue.IsNull);
 
-                return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftConversion, rewrittenResultType);
+                    return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftConversion, rewrittenResultType);
+                }
             }
 
             // string concatenation is never null.
@@ -125,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, getValueOrDefault);
             }
 
-            // We lower left ?? right to 
+            // We lower left ?? right to
             //
             // var temp = left;
             // (temp != null) ? MakeConversion(temp) : right

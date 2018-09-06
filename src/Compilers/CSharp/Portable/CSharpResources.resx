@@ -5360,4 +5360,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="CannotCreateConstructedFromNongeneric" xml:space="preserve">
     <value>Cannot create constructed generic type from non-generic type.</value>
   </data>
+  <data name="WRN_DefaultLiteralConvertedToNullIsNotIntended" xml:space="preserve">
+    <value>'default' is converted to 'null', not 'default({0})'</value>
+  </data>
 </root>

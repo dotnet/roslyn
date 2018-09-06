@@ -82,7 +82,7 @@ As Statement
 }
 ");
 
-            // When the optimizer is on, the local is entirely elided as the result of the assignment isn't used again
+            // When the optimizer is on, it turns the local into a stack local, so we don't see assignments.
             verifier.VerifyIL("C.TestObject()", expectedIL: @"
 {
   // Code size       16 (0x10)
@@ -268,6 +268,60 @@ In GetInt
   IL_006b:  box        ""int?""
   IL_0070:  call       ""void System.Console.WriteLine(object)""
   IL_0075:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefIndexerLvalue()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var d = new D();
+        Console.WriteLine(d[0] ??= ""Test String"");
+    }
+}
+class D
+{
+    object field = null;
+    public ref object this[int i]
+    {
+        get => ref field;
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+Test String
+");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  .locals init (object& V_0,
+                object V_1)
+  IL_0000:  newobj     ""D..ctor()""
+  IL_0005:  ldc.i4.0
+  IL_0006:  callvirt   ""ref object D.this[int].get""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldind.ref
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_001c
+  IL_0011:  pop
+  IL_0012:  ldloc.0
+  IL_0013:  ldstr      ""Test String""
+  IL_0018:  dup
+  IL_0019:  stloc.1
+  IL_001a:  stind.ref
+  IL_001b:  ldloc.1
+  IL_001c:  call       ""void System.Console.WriteLine(object)""
+  IL_0021:  ret
 }
 ");
         }
@@ -695,7 +749,7 @@ public class C
         [Fact]
         public void RefVariable()
         {
-            CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 using System;
 public class C
 {
@@ -704,12 +758,25 @@ public class C
     {
         ref int? i1 = ref f1;
         Console.WriteLine(i1 ??= 1);
+        M(ref f1);
         Console.WriteLine(f1);
     }
-}", expectedOutput: @"1
-1").VerifyIL("C.Main()", expectedIL: @"
+    public static void M(ref int? i)
+    {
+        Console.WriteLine(i ??= 2);
+        i = null;
+        Console.WriteLine(i ??= 3);
+    }
+}", expectedOutput: @"
+1
+1
+3
+3
+");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
 {
-  // Code size       66 (0x42)
+  // Code size       76 (0x4c)
   .maxstack  3
   .locals init (int?& V_0, //i1
                 int? V_1,
@@ -733,12 +800,179 @@ public class C
   IL_0027:  ldloc.1
   IL_0028:  box        ""int?""
   IL_002d:  call       ""void System.Console.WriteLine(object)""
-  IL_0032:  ldsfld     ""int? C.f1""
-  IL_0037:  box        ""int?""
-  IL_003c:  call       ""void System.Console.WriteLine(object)""
-  IL_0041:  ret
+  IL_0032:  ldsflda    ""int? C.f1""
+  IL_0037:  call       ""void C.M(ref int?)""
+  IL_003c:  ldsfld     ""int? C.f1""
+  IL_0041:  box        ""int?""
+  IL_0046:  call       ""void System.Console.WriteLine(object)""
+  IL_004b:  ret
 }
 ");
+
+            verifier.VerifyIL("C.M(ref int?)", expectedIL: @"
+{
+  // Code size       96 (0x60)
+  .maxstack  3
+  .locals init (int? V_0,
+                int? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""int?""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool int?.HasValue.get""
+  IL_000e:  brtrue.s   IL_0021
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.2
+  IL_0012:  newobj     ""int?..ctor(int)""
+  IL_0017:  dup
+  IL_0018:  stloc.1
+  IL_0019:  stobj      ""int?""
+  IL_001e:  ldloc.1
+  IL_001f:  br.s       IL_0022
+  IL_0021:  ldloc.0
+  IL_0022:  box        ""int?""
+  IL_0027:  call       ""void System.Console.WriteLine(object)""
+  IL_002c:  ldarg.0
+  IL_002d:  initobj    ""int?""
+  IL_0033:  ldarg.0
+  IL_0034:  ldobj      ""int?""
+  IL_0039:  stloc.0
+  IL_003a:  ldloca.s   V_0
+  IL_003c:  call       ""bool int?.HasValue.get""
+  IL_0041:  brtrue.s   IL_0054
+  IL_0043:  ldarg.0
+  IL_0044:  ldc.i4.3
+  IL_0045:  newobj     ""int?..ctor(int)""
+  IL_004a:  dup
+  IL_004b:  stloc.1
+  IL_004c:  stobj      ""int?""
+  IL_0051:  ldloc.1
+  IL_0052:  br.s       IL_0055
+  IL_0054:  ldloc.0
+  IL_0055:  box        ""int?""
+  IL_005a:  call       ""void System.Console.WriteLine(object)""
+  IL_005f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefAssignment()
+        {
+            var source = @"
+class C
+{
+    object f1;
+    void M()
+    {
+        ref object o1 = ref f1;
+        ref object o2 = ref f1;
+        o1 ??= ref o2;
+        ref o1 ??= ref o2;
+    }
+}";
+
+            CreateCompilation(source).VerifyDiagnostics(new DiagnosticDescription[] {
+
+                // (9,16): error CS1525: Invalid expression term 'ref'
+                //         o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(9, 16),
+                // (9,16): error CS1002: ; expected
+                //         o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(9, 16),
+                // (9,20): error CS0118: 'o2' is a variable but is used like a type
+                //         o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "o2").WithArguments("o2", "variable", "type").WithLocation(9, 20),
+                // (9,22): error CS1001: Identifier expected
+                //         o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(9, 22),
+                // (9,22): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(9, 22),
+                // (10,13): error CS0118: 'o1' is a variable but is used like a type
+                //         ref o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "o1").WithArguments("o1", "variable", "type").WithLocation(10, 13),
+                // (10,16): error CS1001: Identifier expected
+                //         ref o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "??=").WithLocation(10, 16),
+                // (10,16): error CS1002: ; expected
+                //         ref o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "??=").WithLocation(10, 16),
+                // (10,16): error CS1525: Invalid expression term '??='
+                //         ref o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "??=").WithArguments("??=").WithLocation(10, 16),
+                // (10,16): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         ref o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(10, 16),
+                // (10,20): error CS1525: Invalid expression term 'ref'
+                //         ref o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(10, 20),
+                // (10,20): error CS1002: ; expected
+                //         ref o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(10, 20),
+                // (10,24): error CS0118: 'o2' is a variable but is used like a type
+                //         ref o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "o2").WithArguments("o2", "variable", "type").WithLocation(10, 24),
+                // (10,26): error CS1001: Identifier expected
+                //         ref o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(10, 26),
+                // (10,26): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         ref o1 ??= ref o2;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(10, 26)
+            });
+        }
+
+        [Fact]
+        public void InParameter()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        object o = null;
+        M(o ??= ""Test String"");
+    }
+
+    static void M(in object o) => Console.WriteLine(o);
+}";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "Test String");
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldnull
+  IL_0001:  dup
+  IL_0002:  brtrue.s   IL_000a
+  IL_0004:  pop
+  IL_0005:  ldstr      ""Test String""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""void C.M(in object)""
+  IL_0012:  ret
+}
+");
+
+            var source2 = @"
+class C
+{
+    static void Main()
+    {
+        object o = null;
+        M(in (o ??= ""Test String""));
+    }
+
+    static void M(in object o) {}
+}";
+
+            CreateCompilation(source2).VerifyDiagnostics(new DiagnosticDescription[] {
+                // (7,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         M(in (o ??= "Test String"));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, @"o ??= ""Test String""").WithLocation(7, 15)
+            });
         }
 
         [Fact]
@@ -796,13 +1030,19 @@ public class C
     {
         (int, int)? a = null;
         Console.WriteLine(a ??= (1, 2));
+        (object f1, object f2)? b = null;
+        Console.WriteLine(b ??= (f3: null, f4: null));
     }
-}", expectedOutput: "(1, 2)").VerifyIL("C.Main()", expectedIL:
+}", expectedOutput: @"
+(1, 2)
+(, )
+").VerifyIL("C.Main()", expectedIL:
 @"
 {
-  // Code size       45 (0x2d)
+  // Code size       89 (0x59)
   .maxstack  2
-  .locals init ((int, int)? V_0)
+  .locals init ((int, int)? V_0,
+                (object f1, object f2)? V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""(int, int)?""
   IL_0008:  ldloc.0
@@ -818,7 +1058,22 @@ public class C
   IL_0021:  ldloc.0
   IL_0022:  box        ""(int, int)?""
   IL_0027:  call       ""void System.Console.WriteLine(object)""
-  IL_002c:  ret
+  IL_002c:  ldloca.s   V_1
+  IL_002e:  initobj    ""(object f1, object f2)?""
+  IL_0034:  ldloc.1
+  IL_0035:  stloc.1
+  IL_0036:  ldloca.s   V_1
+  IL_0038:  call       ""bool (object f1, object f2)?.HasValue.get""
+  IL_003d:  brtrue.s   IL_004d
+  IL_003f:  ldnull
+  IL_0040:  ldnull
+  IL_0041:  newobj     ""System.ValueTuple<object, object>..ctor(object, object)""
+  IL_0046:  newobj     ""(object f1, object f2)?..ctor((object f1, object f2))""
+  IL_004b:  br.s       IL_004e
+  IL_004d:  ldloc.1
+  IL_004e:  box        ""(object f1, object f2)?""
+  IL_0053:  call       ""void System.Console.WriteLine(object)""
+  IL_0058:  ret
 }
 ");
         }
@@ -833,47 +1088,112 @@ class C
     {
         // Implicit reference conversion
         C c1 = null;
-        c1 ??= new D();
+        UseParam(c1 ??= new D());
 
         // Implicit user-defined conversion
         C c2 = null;
-        c2 ??= new E();
+        UseParam(c2 ??= new E());
+
+        // Implicit user-defined conversion on the rhs type
+        C c3 = null;
+        UseParam(c3 ??= new F());
 
         // Implicit user-defined conversion to the underlying non-nullable type of lhs
         int? i1 = null;
-        i1 ??= new C();
+        UseParam(i1 ??= new C());
+
+        // Implicit conversion from null to reference type
+        C c4 = null;
+        UseParam(c4 ??= null);
+
+        // Implicit conversion from default literal to reference type
+        C c5 = null;
+        UseParam(c5 ??= default);
+
+        // Implicit converstion from default literal to nullable value type.
+        // This should issue a warning, as we're converting to A, not A0
+        int? i2 = null;
+        UseParam(i2 ??= default); // warn
     }
+
+    static void UseParam(object o) {}
 
     static public implicit operator C(E e) => null;
     static public implicit operator int(C c) => 0;
 }
 class D : C {}
 class E {}
+class F
+{
+    static public implicit operator C(F e) => null;
+}
 ").VerifyIL("C.Main()", @"
 {
-  // Code size       54 (0x36)
-  .maxstack  1
-  .locals init (int? V_0)
+  // Code size      166 (0xa6)
+  .maxstack  2
+  .locals init (int? V_0,
+                int? V_1)
   IL_0000:  ldnull
-  IL_0001:  brtrue.s   IL_0009
-  IL_0003:  newobj     ""D..ctor()""
-  IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  brtrue.s   IL_0017
-  IL_000c:  newobj     ""E..ctor()""
-  IL_0011:  call       ""C C.op_Implicit(E)""
-  IL_0016:  pop
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  initobj    ""int?""
-  IL_001f:  ldloc.0
-  IL_0020:  stloc.0
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  call       ""bool int?.HasValue.get""
-  IL_0028:  brtrue.s   IL_0035
-  IL_002a:  newobj     ""C..ctor()""
-  IL_002f:  call       ""int C.op_Implicit(C)""
-  IL_0034:  pop
-  IL_0035:  ret
+  IL_0001:  dup
+  IL_0002:  brtrue.s   IL_000a
+  IL_0004:  pop
+  IL_0005:  newobj     ""D..ctor()""
+  IL_000a:  call       ""void C.UseParam(object)""
+  IL_000f:  ldnull
+  IL_0010:  dup
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  pop
+  IL_0014:  newobj     ""E..ctor()""
+  IL_0019:  call       ""C C.op_Implicit(E)""
+  IL_001e:  call       ""void C.UseParam(object)""
+  IL_0023:  ldnull
+  IL_0024:  dup
+  IL_0025:  brtrue.s   IL_0032
+  IL_0027:  pop
+  IL_0028:  newobj     ""F..ctor()""
+  IL_002d:  call       ""C F.op_Implicit(F)""
+  IL_0032:  call       ""void C.UseParam(object)""
+  IL_0037:  ldloca.s   V_0
+  IL_0039:  initobj    ""int?""
+  IL_003f:  ldloc.0
+  IL_0040:  stloc.0
+  IL_0041:  ldloca.s   V_0
+  IL_0043:  call       ""bool int?.HasValue.get""
+  IL_0048:  brtrue.s   IL_005b
+  IL_004a:  newobj     ""C..ctor()""
+  IL_004f:  call       ""int C.op_Implicit(C)""
+  IL_0054:  newobj     ""int?..ctor(int)""
+  IL_0059:  br.s       IL_005c
+  IL_005b:  ldloc.0
+  IL_005c:  box        ""int?""
+  IL_0061:  call       ""void C.UseParam(object)""
+  IL_0066:  ldnull
+  IL_0067:  dup
+  IL_0068:  brtrue.s   IL_006c
+  IL_006a:  pop
+  IL_006b:  ldnull
+  IL_006c:  call       ""void C.UseParam(object)""
+  IL_0071:  ldnull
+  IL_0072:  dup
+  IL_0073:  brtrue.s   IL_0077
+  IL_0075:  pop
+  IL_0076:  ldnull
+  IL_0077:  call       ""void C.UseParam(object)""
+  IL_007c:  ldloca.s   V_0
+  IL_007e:  initobj    ""int?""
+  IL_0084:  ldloc.0
+  IL_0085:  stloc.0
+  IL_0086:  ldloca.s   V_0
+  IL_0088:  call       ""bool int?.HasValue.get""
+  IL_008d:  brtrue.s   IL_009a
+  IL_008f:  ldloca.s   V_1
+  IL_0091:  initobj    ""int?""
+  IL_0097:  ldloc.1
+  IL_0098:  br.s       IL_009b
+  IL_009a:  ldloc.0
+  IL_009b:  box        ""int?""
+  IL_00a0:  call       ""void C.UseParam(object)""
+  IL_00a5:  ret
 }
 ");
         }
@@ -1556,7 +1876,7 @@ class C
         }
 
         [Fact]
-        public void CoalescingAssignment_DynamicRuntimeCastFailure()
+        public void DynamicRuntimeCastFailure()
         {
             var source = @"
 using System;
@@ -1580,7 +1900,376 @@ class C
     }
 }";
 
-            var verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "");
+            CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "");
+        }
+
+        [Fact]
+        public void AwaitLHS()
+        {
+            var source = @"
+using System.Threading.Tasks;
+class C
+{
+    static async Task M(Task<Task> t1, Task t2)
+    {
+        await t1 ??= t2;
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(new DiagnosticDescription[] {
+                // (7,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         await t1 ??= t2;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "await t1").WithLocation(7, 9)
+            });
+        }
+
+        [Fact]
+        public void OperatorEqualsIgnored()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static bool operator==(C c1, C c2)
+    {
+        Console.WriteLine(""In operator=="");
+        return false;
+    }
+    public static bool operator!=(C c1, C c2)
+    {
+        Console.WriteLine(""In operator!="");
+        return false;
+    }
+    public override bool Equals(object o)
+    {
+        Console.WriteLine(""In C.Equals"");
+        return false;
+    }
+    public override int GetHashCode() => 1;
+
+    public static void Main()
+    {
+        C c1 = null, c2 = new C();
+        c1 ??= c2;
+        Console.WriteLine(c1.GetHashCode());
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (C V_0, //c1
+                C V_1) //c2
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  newobj     ""C..ctor()""
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.0
+  IL_0009:  brtrue.s   IL_000d
+  IL_000b:  ldloc.1
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  callvirt   ""int object.GetHashCode()""
+  IL_0013:  call       ""void System.Console.WriteLine(int)""
+  IL_0018:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Associativity()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        int? a1 = null, b1 = null, c1 = 1;
+        Console.WriteLine(a1 ??= b1 ??= c1);
+        int? a2 = null, b2 = null, c2 = 1;
+        Console.WriteLine(a2 ??= (b2 ??= c2));
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: @"
+1
+1
+");
+        }
+
+        [Fact]
+        public void ThisDisallowed()
+        {
+            var source = @"
+class C
+{
+    public void M1()
+    {
+        this ??= new C();
+    }
+}
+struct S
+{
+    public void M2()
+    {
+        this ??= new S();
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(new DiagnosticDescription[] {
+                // (6,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         this ??= new C();
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(6, 9),
+                // (13,9): error CS0019: Operator '??=' cannot be applied to operands of type 'S' and 'S'
+                //         this ??= new S();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "this ??= new S()").WithArguments("??=", "S", "S").WithLocation(13, 9)
+            });
+        }
+
+        [Fact]
+        public void DefiniteAssignment()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        object o1, o2;
+        C c1 = new C();
+
+        GetRef(o1 = """") ??= GetObject(o1);
+        o1.ToString();
+
+
+        GetRef() ??= GetObject(o2 = """", o2);
+        o2.ToString();
+
+        GetRef() ??= OutVar(out var o3).GetObject(o3);
+        o3.ToString();
+    }
+
+    object o;
+    ref object GetRef(object param = null) => ref o;
+    object GetObject(object param1, object param2 = null) => null;
+    C OutVar(out object o3)
+    {
+        o3 = null;
+        return this;
+    }
+}";
+
+            CreateCompilation(source).VerifyDiagnostics(new DiagnosticDescription[] {
+                // (14,9): error CS0165: Use of unassigned local variable 'o2'
+                //         o2.ToString();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "o2").WithArguments("o2").WithLocation(14, 9),
+                // (17,9): error CS0165: Use of unassigned local variable 'o3'
+                //         o3.ToString();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "o3").WithArguments("o3").WithLocation(17, 9)
+            });
+        }
+
+        [Fact]
+        public void COMIndexedProperties()
+        {
+            var source1 =
+@"Imports System
+Imports System.Collections.Generic
+Imports System.Runtime.InteropServices
+<Assembly: PrimaryInteropAssembly(0, 0)>
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
+<ComImport()>
+<Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
+Public Class COMProp
+    Private _p As New Dictionary(Of Integer, Object)
+    Property P(index As Integer) As Object
+        Get
+            Return _p(index)
+        End Get
+        Set
+            _p(index) = Value
+        End Set
+    End Property
+End Class";
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+
+            var testSource = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        var com = new COMProp();
+        Console.WriteLine(com.P[1] ??= 2);
+    }
+}";
+
+            var verifier = CompileAndVerify(testSource, references: new[] { reference1 });
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       39 (0x27)
+  .maxstack  4
+  .locals init (COMProp V_0,
+                object V_1)
+  IL_0000:  newobj     ""COMProp..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  callvirt   ""object COMProp.P[int].get""
+  IL_000d:  dup
+  IL_000e:  brtrue.s   IL_0021
+  IL_0010:  pop
+  IL_0011:  ldloc.0
+  IL_0012:  ldc.i4.1
+  IL_0013:  ldc.i4.2
+  IL_0014:  box        ""int""
+  IL_0019:  dup
+  IL_001a:  stloc.1
+  IL_001b:  callvirt   ""void COMProp.P[int].set""
+  IL_0020:  ldloc.1
+  IL_0021:  call       ""void System.Console.WriteLine(object)""
+  IL_0026:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NullableValueDefaultLiteralRHS()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? a = null;
+        a ??= default;
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(new DiagnosticDescription[] {
+                // (7,15): warning CS8402: 'default' is converted to 'null', not 'default(int)'
+                //         a ??= default;
+                Diagnostic(ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended, "default").WithArguments("int").WithLocation(7, 15)
+            });
+        }
+
+        [Fact]
+        public void InOutParamAssignment()
+        {
+            var source = @"
+class C
+{
+    void M(in object o1, out object o2)
+    {
+        o1 ??= null;
+        o2 ??= null;
+    }
+}";
+
+            CreateCompilation(source).VerifyDiagnostics(new DiagnosticDescription[] {
+                // (4,10): error CS0177: The out parameter 'o2' must be assigned to before control leaves the current method
+                //     void M(in object o1, out object o2)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("o2").WithLocation(4, 10),
+                // (6,9): error CS8331: Cannot assign to variable 'in object' because it is a readonly variable
+                //         o1 ??= null;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "o1").WithArguments("variable", "in object").WithLocation(6, 9),
+                // (7,9): error CS0269: Use of unassigned out parameter 'o2'
+                //         o2 ??= null;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "o2").WithArguments("o2").WithLocation(7, 9)
+            });
+        }
+
+        [Fact]
+        public void ObsoleteConversion()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M()
+    {
+        C c = null;
+        c ??= new D();
+        c ??= new E();
+    }
+}
+class D
+{
+    [Obsolete(""D is obsolete"", true)]
+    public static implicit operator C(D d) => null;
+}
+class E
+{
+    [Obsolete(""E is obsolete"", false)]
+    public static implicit operator C(E e) => null;
+}";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(new DiagnosticDescription[] {
+                // (8,15): error CS0619: 'D.implicit operator C(D)' is obsolete: 'D is obsolete'
+                //         c ??= new D();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new D()").WithArguments("D.implicit operator C(D)", "D is obsolete").WithLocation(8, 15),
+                // (9,15): warning CS0618: 'E.implicit operator C(E)' is obsolete: 'E is obsolete'
+                //         c ??= new E();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new E()").WithArguments("E.implicit operator C(E)", "E is obsolete").WithLocation(9, 15)
+            });
+        }
+
+        [Fact]
+        public void DestructuringSyntaxDoesNotWork()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? x = null, y = null;
+        (x, y) ??= (1, 2);
+    }
+}";
+
+            CreateCompilation(source).VerifyDiagnostics(new DiagnosticDescription[] {
+                // (7,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         (x, y) ??= (1, 2);
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "(x, y)").WithLocation(7, 9)
+            });
+        }
+
+        [Fact]
+        public void UseSiteDiagnostics()
+        {
+            var source = @"
+using ClassAlias = Class1;
+class C : ClassAlias
+{
+    void M()
+    {
+        ClassAlias a = null;
+        a ??= this;
+    }
+}
+";
+
+            // The last diagnostic is the actual use-site diagnostic we are testing. The rest are setup.
+            var compilation = CreateCompilation(source, references: new[] { TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1 });
+            compilation.VerifyDiagnostics(new DiagnosticDescription[] {
+                // (2,20): error CS1769: Type 'List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
+                // using ClassAlias = Class1;
+                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "Class1").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 20),
+                // (3,11): error CS1769: Type 'List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
+                // class C : ClassAlias
+                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "ClassAlias").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 11),
+                // (7,9): error CS1769: Type 'List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
+                //         ClassAlias a = null;
+                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "ClassAlias").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9),
+                // (8,9): error CS1769: Type 'List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
+                //         a ??= this;
+                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "a ??= this").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 9)
+            });
         }
     }
 }
