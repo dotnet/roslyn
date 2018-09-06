@@ -28,17 +28,17 @@
     <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
-    <file src="Dlls\BasicCodeStyle\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll" target="analyzers\dotnet\vb" />
-    <file src="Dlls\BasicCodeStyleFixes\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.dll" target="analyzers\dotnet\vb" />
-    <file src="Dlls\CodeStyle\Microsoft.CodeAnalysis.CodeStyle.dll" target="analyzers\dotnet\vb" />
-    <file src="Dlls\CodeStyleFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll" target="analyzers\dotnet\vb" />
+    <file src="Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll" target="analyzers\dotnet\vb" />
+    <file src="Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.dll" target="analyzers\dotnet\vb" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CodeStyle\Microsoft.CodeAnalysis.CodeStyle.dll" target="analyzers\dotnet\vb" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll" target="analyzers\dotnet\vb" />
     <file src="$thirdPartyNoticesPath$" target="" />
 
     <!-- Satellite assemblies -->
-    <file src="Dlls\BasicCodeStyle\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.resources.dll" target="analyzers\dotnet\vb" />
-    <file src="Dlls\BasicCodeStyleFixes\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.resources.dll" target="analyzers\dotnet\vb" />
-    <file src="Dlls\CodeStyle\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll" target="analyzers\dotnet\vb" />
-    <file src="Dlls\CodeStyleFixes\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll" target="analyzers\dotnet\vb" />
+    <file src="Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.resources.dll" target="analyzers\dotnet\vb" />
+    <file src="Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.resources.dll" target="analyzers\dotnet\vb" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CodeStyle\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll" target="analyzers\dotnet\vb" />
+    <file src="Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll" target="analyzers\dotnet\vb" />
 
     <!-- Scripts -->
     <file src="..\..\src\Setup\PowerShell\install.ps1" target="tools\" />

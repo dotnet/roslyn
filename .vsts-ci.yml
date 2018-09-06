@@ -57,6 +57,8 @@ steps:
         /p:PB_PublishBlobFeedKey=$(PB_PublishBlobFeedKey) 
         /p:PublishStableVersions=false 
         /p:VersionStampToPublish=prerelease
+        /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+        /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
     platform: '$(BuildPlatform)'
     configuration: '$(BuildConfiguration)'
     maximumCpuCount: true
@@ -77,36 +79,6 @@ steps:
     mergeTestResults: true
     testRunTitle: 'Unit Tests'
   condition: succeededOrFailed()
-
-- task: PublishSymbols@1
-  displayName: Create Symbol Index
-  inputs:
-    SymbolsPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Symbols'
-    SearchPattern: '**\*.dll;**\*.exe;**\*.pdb'
-    SymbolsFolder: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\SymStore'
-    SkipIndexing: true
-    TreatNotIndexedAsWarning: true
-    SymbolsProduct: Roslyn
-    SymbolsVersion: '$(Build.BuildNumber)'
-    SymbolsArtifactName: Symbols
-  condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
-
-- task: CopyFiles@2
-  displayName: Copy Files to Local Temporary Path
-  inputs:
-    SourceFolder: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Symbols'
-    TargetFolder: '$(Build.StagingDirectory)\SymbolsForPublish'
-  condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
-
-- task: ms-vscs-artifact.build-tasks.artifactSymbolTask-1.artifactSymbolTask@0
-  displayName: Publish Symbols to Artifact Services
-  inputs:
-    symbolServiceURI: 'https://microsoft.artifacts.visualstudio.com/DefaultCollection'
-    requestName: '$(system.teamProject)/Roslyn-Signed/$(Build.BuildNumber)/$(Build.BuildId)'
-    sourcePath: '$(Build.StagingDirectory)\SymbolsForPublish'
-    usePat: false
-  continueOnError: true
-  condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
 
 - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
   displayName: Upload VSTS Drop
@@ -133,6 +105,7 @@ steps:
     TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
     Parallel: true
     ParallelCount: 64
+  condition: succeededOrFailed()
 
 - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1
   displayName: Perform Cleanup Tasks

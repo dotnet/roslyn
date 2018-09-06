@@ -1275,9 +1275,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            if (refKind == RefKind.Out)
+            switch (refKind)
             {
-                refKind = RefKind.Ref;
+                case RefKind.Out:
+                    refKind = RefKind.Ref;
+                    break;
+                case RefKind.In:
+                    if (argument.GetRefKind() == RefKind.None)
+                    {
+                        refKind = RefKind.None;
+                    }
+                    break;
+                case RefKind.None:
+                case RefKind.Ref:
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
             }
 
             MethodSymbol containingMethod = this.CurrentFunction;

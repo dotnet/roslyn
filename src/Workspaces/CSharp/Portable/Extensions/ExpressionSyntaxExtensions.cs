@@ -496,8 +496,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression is IdentifierNameSyntax && expression.Parent is NameColonSyntax;
         }
 
-        public static bool IsInsideNameOf(this ExpressionSyntax expression)
-            => expression.SyntaxTree.IsNameOfContext(expression.SpanStart);
+        public static bool IsInsideNameOfExpression(
+            this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var invocation = expression?.GetAncestor<InvocationExpressionSyntax>();
+            if (invocation?.Expression is IdentifierNameSyntax name &&
+                name.Identifier.Text == SyntaxFacts.GetText(SyntaxKind.NameOfKeyword))
+            {
+                return semanticModel.GetMemberGroup(name, cancellationToken).IsDefaultOrEmpty;
+            }
+
+            return false;
+        }
 
         private static bool CanReplace(ISymbol symbol)
         {
@@ -647,6 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.Interpolation:
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.LockStatement:
+                case SyntaxKind.ElementAccessExpression:
                     // Direct parent kind checks.
                     return true;
             }
@@ -912,9 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            replacementNode = memberAccess.Name
-                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
-                .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
+            replacementNode = memberAccess.GetNameWithTriviaMoved();
             issueSpan = memberAccess.Expression.Span;
 
             if (replacementNode == null)
@@ -924,6 +933,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
         }
+
+        public static SimpleNameSyntax GetNameWithTriviaMoved(this MemberAccessExpressionSyntax memberAccess)
+            => memberAccess.Name
+                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
+                .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
 
         private static bool TryGetReplacementCandidates(
             SemanticModel semanticModel,

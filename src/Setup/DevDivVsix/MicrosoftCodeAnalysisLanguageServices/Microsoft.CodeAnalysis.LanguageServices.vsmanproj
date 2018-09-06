@@ -2,7 +2,6 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\Settings.props" />
-
   <PropertyGroup>
     <FinalizeManifest>true</FinalizeManifest>
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
@@ -13,19 +12,14 @@
     <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
     <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
   </PropertyGroup>
-
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.props" />
-
   <ItemGroup>
     <MergeManifest Include="$(OutputPath)\..\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.json" />
-    <MergeManifest Include="$(OutputPath)\..\VisualStudioInteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json" />
-    <MergeManifest Include="$(OutputPath)\..\VisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
+    <MergeManifest Include="$(OutputPath)\..\Roslyn.VisualStudio.InteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json" />
+    <MergeManifest Include="$(OutputPath)\..\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
   </ItemGroup>
-
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
-
   <Target Name="ValidateManifest" />
-
   <!-- Disable automatic signing. This will be signed in the batch phase -->
   <Target Name="AddTargetPathToFilesToSign" />
 </Project>

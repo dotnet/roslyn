@@ -3,15 +3,16 @@
 Imports System.ComponentModel.Composition
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Editor.Interactive
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
+Imports Microsoft.VisualStudio.InteractiveWindow.Commands
+Imports Microsoft.VisualStudio.InteractiveWindow.Shell
 Imports Microsoft.VisualStudio.LanguageServices.Interactive
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Utilities
-Imports Microsoft.VisualStudio.InteractiveWindow
-Imports Microsoft.VisualStudio.InteractiveWindow.Commands
-Imports Microsoft.VisualStudio.InteractiveWindow.Shell
 Imports LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
@@ -20,8 +21,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
     Friend NotInheritable Class VisualBasicVsInteractiveWindowProvider
         Inherits VsInteractiveWindowProvider
 
+        Private ReadOnly _threadingContext As IThreadingContext
+
         <ImportingConstructor>
-        Public Sub New(serviceProvider As SVsServiceProvider,
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New(threadingContext As IThreadingContext,
+                       serviceProvider As SVsServiceProvider,
                        interactiveWindowFactory As IVsInteractiveWindowFactory,
                        classifierAggregator As IViewClassifierAggregatorService,
                        contentTypeRegistry As IContentTypeRegistryService,
@@ -30,6 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
                        workspace As VisualStudioWorkspace)
 
             MyBase.New(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, workspace)
+            _threadingContext = threadingContext
         End Sub
 
         Protected Overrides ReadOnly Property LanguageServiceGuid As Guid
@@ -40,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
 
         Protected Overrides ReadOnly Property Id As Guid
             Get
-                Return VisualBasicVsInteractiveWindowPackage.Id
+                Return VisualBasicVsInteractiveWindowPackage.IdGuid
             End Get
         End Property
 
@@ -56,6 +62,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
                                                                 contentTypeRegistry As IContentTypeRegistryService,
                                                                 workspace As VisualStudioWorkspace) As InteractiveEvaluator
             Return New VisualBasicInteractiveEvaluator(
+                _threadingContext,
                 workspace.Services.HostServices,
                 classifierAggregator,
                 CommandsFactory,

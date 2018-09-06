@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -35,9 +34,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             ImmutableArray.Create(
                 IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                 IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                IDEDiagnosticIds.RemoveQualificationDiagnosticId,
-                IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
-                IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId);
+                IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
 
         private SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, TextSpan span, OptionSet optionSet, out string diagnosticId, CancellationToken cancellationToken)
         {
@@ -122,7 +119,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         {
             diagnosticId = null;
             if (!_analyzer.IsCandidate(node) ||
-                !_analyzer.CanSimplifyTypeNameExpression(model, node, optionSet, out var issueSpan, out diagnosticId, cancellationToken))
+                !_analyzer.CanSimplifyTypeNameExpression(
+                    model, node, optionSet, out var issueSpan, out diagnosticId, out var inDeclaration, cancellationToken))
             {
                 return false;
             }

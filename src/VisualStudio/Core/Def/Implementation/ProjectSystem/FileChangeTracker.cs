@@ -67,6 +67,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             get { return _filePath; }
         }
 
+        /// <summary>
+        /// Returns true if a previous call to <see cref="StartFileChangeListeningAsync"/> has completed.
+        /// </summary>
+        public bool PreviousCallToStartFileChangeHasAsynchronouslyCompleted
+        {
+            get
+            {
+                var cookie = _fileChangeCookie;
+                return cookie != s_none && cookie.IsValueCreated;
+            }
+        }
+
         public void AssertUnsubscription()
         {
             // We must have been disposed properly.
