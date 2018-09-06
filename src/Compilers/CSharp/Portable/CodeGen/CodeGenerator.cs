@@ -183,8 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        internal static bool IsStackLocal(LocalSymbol local, HashSet<LocalSymbol> _stackLocalsOpt)
-            => _stackLocalsOpt?.Contains(local) ?? false;
+        internal static bool IsStackLocal(LocalSymbol local, HashSet<LocalSymbol> stackLocalsOpt)
+            => stackLocalsOpt?.Contains(local) ?? false;
 
         private bool IsStackLocal(LocalSymbol local) => IsStackLocal(local, _stackLocals);
 

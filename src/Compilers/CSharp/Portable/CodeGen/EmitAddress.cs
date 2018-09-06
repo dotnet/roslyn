@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ThisReference:
-                    Debug.Assert(expression.Type.IsValueType || IsReadOnly(addressKind), "'this' is readonly in classes");
+                    Debug.Assert(expression.Type.IsValueType || IsAnyReadOnly(addressKind), "'this' is readonly in classes");
 
                     if (expression.Type.IsValueType)
                     {
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var methodRefKind = call.Method.RefKind;
 
                     if (methodRefKind == RefKind.Ref || 
-                        (IsReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly))
+                        (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly))
                     {
                         EmitCallExpression(call, UseKind.UsedAsAddress);
                         break;
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
 
-            if (!IsReadOnly(addressKind))
+            if (!IsAnyReadOnly(addressKind))
             {
                 return false;
             }

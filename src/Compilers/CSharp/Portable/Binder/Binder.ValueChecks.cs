@@ -2883,7 +2883,7 @@ moreArguments:
             ReadOnlyStrict,
         }
 
-        internal static bool IsReadOnly(AddressKind addressKind) => addressKind >= AddressKind.ReadOnly;
+        internal static bool IsAnyReadOnly(AddressKind addressKind) => addressKind >= AddressKind.ReadOnly;
 
         /// <summary>
         /// Checks if expression directly or indirectly represents a value with its own home. In
@@ -2892,10 +2892,12 @@ moreArguments:
         internal static bool HasHome(
             BoundExpression expression,
             AddressKind addressKind,
-            MethodSymbol methodOpt,
+            MethodSymbol method,
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
+            Debug.Assert(!(method is null));
+
             switch (expression.Kind)
             {
                 case BoundKind.ArrayAccess:
@@ -2916,13 +2918,13 @@ moreArguments:
                     var type = expression.Type;
                     if (type.IsReferenceType)
                     {
-                        Debug.Assert(IsReadOnly(addressKind), "`this` is readonly in classes");
+                        Debug.Assert(IsAnyReadOnly(addressKind), "`this` is readonly in classes");
                         return true;
                     }
 
-                    if (!IsReadOnly(addressKind) && type.IsReadOnly)
+                    if (!IsAnyReadOnly(addressKind) && type.IsReadOnly)
                     {
-                        return methodOpt?.MethodKind == MethodKind.Constructor;
+                        return method.MethodKind == MethodKind.Constructor;
                     }
 
                     return true;
@@ -2932,7 +2934,7 @@ moreArguments:
                     return true;
 
                 case BoundKind.Parameter:
-                    return IsReadOnly(addressKind) || 
+                    return IsAnyReadOnly(addressKind) ||
                         ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.In;
 
                 case BoundKind.Local:
@@ -2940,24 +2942,24 @@ moreArguments:
                     // locals in a mutating call
                     var local = ((BoundLocal)expression).LocalSymbol;
                     return !((CodeGenerator.IsStackLocal(local, stackLocalsOpt) && local.RefKind == RefKind.None) || 
-                        (!IsReadOnly(addressKind) && local.RefKind == RefKind.RefReadOnly));
+                        (!IsAnyReadOnly(addressKind) && local.RefKind == RefKind.RefReadOnly));
 
                 case BoundKind.Call:
                     var methodRefKind = ((BoundCall)expression).Method.RefKind;
                     return methodRefKind == RefKind.Ref ||
-                           (IsReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly);
+                           (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly);
 
                 case BoundKind.Dup:
                     //NB: Dup represents locals that do not need IL slot
                     var dupRefKind = ((BoundDup)expression).RefKind;
                     return dupRefKind == RefKind.Ref ||
-                        (IsReadOnly(addressKind) && dupRefKind == RefKind.RefReadOnly);
+                        (IsAnyReadOnly(addressKind) && dupRefKind == RefKind.RefReadOnly);
 
                 case BoundKind.FieldAccess:
-                    return HasHome((BoundFieldAccess)expression, addressKind, methodOpt, peVerifyCompatEnabled, stackLocalsOpt);
+                    return HasHome((BoundFieldAccess)expression, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
 
                 case BoundKind.Sequence:
-                    return HasHome(((BoundSequence)expression).Value, addressKind, methodOpt, peVerifyCompatEnabled, stackLocalsOpt);
+                    return HasHome(((BoundSequence)expression).Value, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
 
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expression;
@@ -2967,19 +2969,19 @@ moreArguments:
                     }
                     var lhsRefKind = assignment.Left.GetRefKind();
                     return lhsRefKind == RefKind.Ref ||
-                        (IsReadOnly(addressKind) && lhsRefKind == RefKind.RefReadOnly);
+                        (IsAnyReadOnly(addressKind) && lhsRefKind == RefKind.RefReadOnly);
 
                 case BoundKind.ComplexConditionalReceiver:
                     Debug.Assert(HasHome(
                         ((BoundComplexConditionalReceiver)expression).ValueTypeReceiver,
                         addressKind,
-                        methodOpt,
+                        method,
                         peVerifyCompatEnabled,
                         stackLocalsOpt));
                     Debug.Assert(HasHome(
                         ((BoundComplexConditionalReceiver)expression).ReferenceTypeReceiver,
                         addressKind,
-                        methodOpt,
+                        method,
                         peVerifyCompatEnabled,
                         stackLocalsOpt));
                     goto case BoundKind.ConditionalReceiver;
@@ -3001,8 +3003,8 @@ moreArguments:
                     // branch that has no home will need a temporary
                     // if both have no home, just say whole expression has no home 
                     // so we could just use one temp for the whole thing
-                    return HasHome(ternary.Consequence, addressKind, methodOpt, peVerifyCompatEnabled, stackLocalsOpt)
-                        && HasHome(ternary.Alternative, addressKind, methodOpt, peVerifyCompatEnabled, stackLocalsOpt);
+                    return HasHome(ternary.Consequence, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
+                        && HasHome(ternary.Alternative, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
 
                 default:
                     return false;
@@ -3017,10 +3019,12 @@ moreArguments:
         private static bool HasHome(
             BoundFieldAccess fieldAccess,
             AddressKind addressKind,
-            MethodSymbol methodOpt,
+            MethodSymbol method,
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
+            Debug.Assert(!(method is null));
+
             FieldSymbol field = fieldAccess.FieldSymbol;
 
             // const fields are literal values with no homes. (ex: decimal.Zero)
@@ -3055,7 +3059,7 @@ moreArguments:
                 //       we would not be able to dig for the inner field using references and the outer struct will have to be copied to a temp anyways.
                 if (!peVerifyCompatEnabled)
                 {
-                    Debug.Assert(!IsReadOnly(addressKind));
+                    Debug.Assert(!IsAnyReadOnly(addressKind));
 
                     var receiver = fieldAccess.ReceiverOpt;
                     if (receiver?.Type.IsValueType == true)
@@ -3065,8 +3069,8 @@ moreArguments:
                         // has readable home -> return false - we need to copy the field
                         // otherwise         -> return true  - the copy will be made at higher level so the leaf field can have writeable home
 
-                        return HasHome(receiver, addressKind, methodOpt, peVerifyCompatEnabled, stackLocalsOpt)
-                            || !HasHome(receiver, AddressKind.ReadOnly, methodOpt, peVerifyCompatEnabled, stackLocalsOpt);
+                        return HasHome(receiver, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
+                            || !HasHome(receiver, AddressKind.ReadOnly, method, peVerifyCompatEnabled, stackLocalsOpt);
                     }
                 }
 
@@ -3074,7 +3078,7 @@ moreArguments:
             }
 
             // while readonly fields have home it is not valid to refer to it when not constructing.
-            if (field.ContainingType != methodOpt.ContainingType)
+            if (field.ContainingType != method.ContainingType)
             {
                 return false;
             }
@@ -3082,14 +3086,13 @@ moreArguments:
 
             if (field.IsStatic)
             {
-                return methodOpt.MethodKind == MethodKind.StaticConstructor;
+                return method.MethodKind == MethodKind.StaticConstructor;
             }
             else
             {
-                return methodOpt.MethodKind == MethodKind.Constructor &&
+                return method.MethodKind == MethodKind.Constructor &&
                     fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference;
             }
         }
-
     }
 }
