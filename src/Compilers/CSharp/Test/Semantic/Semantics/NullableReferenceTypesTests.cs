@@ -175,7 +175,7 @@ class C
     }
 }
 ";
-            // PROTOTYPE(NullableReferenceTypes): should we produce an error for misuse of suppression on an L-value?
+            // https://github.com/dotnet/roslyn/issues/29710 should we produce an error for misuse of suppression on an L-value?
             var c = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             c.VerifyDiagnostics();
         }

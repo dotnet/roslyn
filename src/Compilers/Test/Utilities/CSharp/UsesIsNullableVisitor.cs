@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return false;
         }
 
-        private bool AddIfUsesIsNullable(Symbol symbol, ImmutableArray<NamedTypeSymbol> interfaces)
+        private bool AddIfUsesIsNullable(Symbol symbol, ImmutableArray<NamedTypeSymbol> types)
         {
-            foreach (var type in interfaces)
+            foreach (var type in types)
             {
                 if (UsesIsNullable(type))
                 {

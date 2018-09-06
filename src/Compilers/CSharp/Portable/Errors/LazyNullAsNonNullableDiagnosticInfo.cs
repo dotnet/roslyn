@@ -6,16 +6,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class LazyNullAsNonNullableDiagnosticInfo : LazyDiagnosticInfo
     {
-        private readonly TypeSymbolWithAnnotations _possiblyNullableTypeSymbol;
+        private readonly TypeSymbolWithAnnotations _possiblyNullableType;
 
-        internal LazyNullAsNonNullableDiagnosticInfo (TypeSymbolWithAnnotations possiblyNullableTypeSymbol)
+        internal LazyNullAsNonNullableDiagnosticInfo (TypeSymbolWithAnnotations possiblyNullableType)
         {
-            _possiblyNullableTypeSymbol = possiblyNullableTypeSymbol;
+            _possiblyNullableType = possiblyNullableType;
         }
 
         protected override DiagnosticInfo ResolveInfo()
         {
-            if (_possiblyNullableTypeSymbol.IsNullable == false)
+            if (_possiblyNullableType.IsNullable == false)
             {
                 return new CSDiagnosticInfo(ErrorCode.WRN_NullAsNonNullable);
             }
