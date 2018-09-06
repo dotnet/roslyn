@@ -32360,16 +32360,18 @@ class B : A
 }
 class C
 {
-    static void F(B? b)
+    static void F(B? x, B y)
     {
-        C c = b; // (ImplicitUserDefined)(ImplicitReference)
+        C c;
+        c = x; // (ImplicitUserDefined)(ImplicitReference)
+        c = y; // (ImplicitUserDefined)(ImplicitReference)
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
-                // (12,15): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
-                //         C c = b; // (ImplicitUserDefined)(ImplicitReference)b
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.implicit operator C(A a)").WithLocation(12, 15));
+                // (13,13): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
+                //         c = x; // (ImplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("a", "A.implicit operator C(A a)").WithLocation(13, 13));
         }
 
         [Fact]
@@ -32661,16 +32663,19 @@ class B : A
 }
 class C
 {
-    static void F((B?, B) b)
+    static void F((B?, B) x, (B, B?) y)
     {
-        (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
+        (C, C?) c;
+        c = x; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
+        c = y; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            // https://github.com/dotnet/roslyn/issues/29699: Report warnings for user-defined conversions on tuple elements.
             comp.VerifyDiagnostics(
-                // (12,21): warning CS8619: Nullability of reference types in value of type '(B?, B)' doesn't match target type '(C, C?)'.
-                //         (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("(B?, B)", "(C, C?)").WithLocation(12, 21));
+                // (13,13): warning CS8619: Nullability of reference types in value of type '(B?, B)' doesn't match target type '(C, C?)'.
+                //         c = x; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("(B?, B)", "(C, C?)").WithLocation(13, 13));
         }
 
         [Fact]

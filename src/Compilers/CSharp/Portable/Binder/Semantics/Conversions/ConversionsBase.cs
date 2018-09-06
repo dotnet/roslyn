@@ -1457,7 +1457,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (sourceExpressionOpt?.Kind == BoundKind.TupleLiteral)
             {
-                Debug.Assert(!IncludeNullability); // Top-level nullability is ignored.
+                // GetTupleLiteralConversion is not used with IncludeNullability currently.
+                // If that changes, the delegate below will need to consider top-level nullability.
+                Debug.Assert(!IncludeNullability);
                 var tupleConversion = GetTupleLiteralConversion(
                     (BoundTupleLiteral)sourceExpressionOpt,
                     destination,
@@ -1864,7 +1866,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion GetImplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!IncludeNullability); // Top-level nullability is ignored.
+            // GetTupleLiteralConversion is not used with IncludeNullability currently.
+            // If that changes, the delegate below will need to consider top-level nullability.
+            Debug.Assert(!IncludeNullability);
             return GetTupleLiteralConversion(
                 source,
                 destination,
@@ -1876,7 +1880,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
         {
-            Debug.Assert(!IncludeNullability); // Top-level nullability is ignored.
+            // GetTupleLiteralConversion is not used with IncludeNullability currently.
+            // If that changes, the delegate below will need to consider top-level nullability.
+            Debug.Assert(!IncludeNullability);
             return GetTupleLiteralConversion(
                 source,
                 destination,

@@ -3198,6 +3198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitTuple:
                     if (checkConversion)
                     {
+                        // https://github.com/dotnet/roslyn/issues/29699: Report warnings for user-defined conversions on tuple elements.
                         conversion = GenerateConversion(_conversions, operandOpt, operandType.TypeSymbol, targetType, fromExplicitCast, extensionMethodThisArgument);
                         canConvertNestedNullability = conversion.Exists;
                     }
