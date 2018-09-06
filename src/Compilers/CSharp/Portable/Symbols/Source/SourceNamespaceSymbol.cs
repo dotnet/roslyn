@@ -567,52 +567,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public void AddInjectedSymbols(SourceNamespaceSymbol containingNamespace)
             {
-                const string CodeAnalysis = "CodeAnalysis";
-                const string System = "System";
-                const string Microsoft = "Microsoft";
-                const string Runtime = "Runtime";
-                const string CompilerServices = "CompilerServices";
+                const string codeAnalysis = "CodeAnalysis";
+                const string system = "System";
+                const string microsoft = "Microsoft";
+                const string runtime = "Runtime";
+                const string compilerServices = "CompilerServices";
 
                 if (containingNamespace.IsGlobalNamespace)
                 {
-                    if (!_dictionary.ContainsKey(System))
+                    if (!_dictionary.ContainsKey(system))
                     {
-                        Add(makeEmptyNamespace(System));
+                        Add(makeEmptyNamespace(system));
                     }
-                    if (!_dictionary.ContainsKey(Microsoft))
+                    if (!_dictionary.ContainsKey(microsoft))
                     {
-                        Add(makeEmptyNamespace(Microsoft));
+                        Add(makeEmptyNamespace(microsoft));
                     }
                     return;
                 }
 
                 switch (containingNamespace.Name)
                 {
-                    case System:
-                        if (containingNamespace.ContainingNamespace.IsGlobalNamespace && !_dictionary.ContainsKey(Runtime))
+                    case system:
+                        if (containingNamespace.ContainingNamespace.IsGlobalNamespace && !_dictionary.ContainsKey(runtime))
                         {
-                            Add(makeEmptyNamespace(Runtime));
+                            Add(makeEmptyNamespace(runtime));
                         }
                         return;
-                    case Runtime:
-                        if (isSystem(containingNamespace.ContainingNamespace) && !_dictionary.ContainsKey(CompilerServices))
+                    case runtime:
+                        if (isSystem(containingNamespace.ContainingNamespace) && !_dictionary.ContainsKey(compilerServices))
                         {
-                            Add(makeEmptyNamespace(CompilerServices));
+                            Add(makeEmptyNamespace(compilerServices));
                         }
                         return;
-                    case Microsoft:
-                        if (containingNamespace.ContainingNamespace.IsGlobalNamespace && !_dictionary.ContainsKey(CodeAnalysis))
+                    case microsoft:
+                        if (containingNamespace.ContainingNamespace.IsGlobalNamespace && !_dictionary.ContainsKey(codeAnalysis))
                         {
-                            Add(makeEmptyNamespace(CodeAnalysis));
+                            Add(makeEmptyNamespace(codeAnalysis));
                         }
                         return;
-                    case CompilerServices:
+                    case compilerServices:
                         if (isRuntime(containingNamespace.ContainingNamespace) && !_dictionary.ContainsKey("NonNullTypesAttribute"))
                         {
                             Add(InjectedNonNullTypesAttributeSymbol.Create(containingNamespace));
                         }
                         return;
-                    case CodeAnalysis:
+                    case codeAnalysis:
                         if (isMicrosoft(containingNamespace.ContainingNamespace) && !_dictionary.ContainsKey("EmbeddedAttribute"))
                         {
                             Add(InjectedEmbeddedAttributeSymbol.Create(containingNamespace));
@@ -631,17 +631,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 bool isSystem(NamespaceSymbol symbol)
                 {
-                    return symbol.Name == System && symbol.ContainingNamespace.IsGlobalNamespace;
+                    return symbol.Name == system && symbol.ContainingNamespace.IsGlobalNamespace;
                 }
 
                 bool isRuntime(NamespaceSymbol symbol)
                 {
-                    return symbol.Name == Runtime && isSystem(symbol.ContainingNamespace);
+                    return symbol.Name == runtime && isSystem(symbol.ContainingNamespace);
                 }
 
                 bool isMicrosoft(NamespaceSymbol symbol)
                 {
-                    return symbol.Name == Microsoft && symbol.ContainingNamespace.IsGlobalNamespace;
+                    return symbol.Name == microsoft && symbol.ContainingNamespace.IsGlobalNamespace;
                 }
             }
         }

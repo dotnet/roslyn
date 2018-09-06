@@ -15,15 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AttributeDescription description,
             NamespaceSymbol containingNamespace,
             CSharpCompilation compilation,
-            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors,
-            DiagnosticBag diagnostics)
-            : base(description, containingNamespace, compilation, getConstructors, diagnostics)
+            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors)
+            : base(description, containingNamespace, compilation, getConstructors)
         {
         }
 
         public static InjectedEmbeddedAttributeSymbol Create(NamespaceSymbol containingNamespace)
         {
-            return new InjectedEmbeddedAttributeSymbol(AttributeDescription.CodeAnalysisEmbeddedAttribute, containingNamespace, containingNamespace.DeclaringCompilation, makeNonNullTypesAttributeConstructor, new DiagnosticBag());
+            return new InjectedEmbeddedAttributeSymbol(AttributeDescription.CodeAnalysisEmbeddedAttribute, containingNamespace, containingNamespace.DeclaringCompilation, makeNonNullTypesAttributeConstructor);
 
             ImmutableArray<MethodSymbol> makeNonNullTypesAttributeConstructor(CSharpCompilation compilation, NamedTypeSymbol containingType, DiagnosticBag diagnostics)
             {

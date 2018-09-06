@@ -283,16 +283,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return _lazyInjectedTypes;
             }
 
-            ArrayBuilder<NamedTypeSymbol> builder = null;
             if (_needsNonNullTypesAttribute)
             {
-                addInjectedAttribute(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute, canUseFromSource: true);
                 EnsureEmbeddedAttributeExists();
             }
 
+            ArrayBuilder<NamedTypeSymbol> builder = null;
             if (_needsEmbeddedAttribute)
             {
                 addInjectedAttribute(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute, canUseFromSource: false);
+            }
+
+            if (_needsNonNullTypesAttribute)
+            {
+                addInjectedAttribute(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute, canUseFromSource: true);
             }
 
             var result = builder is null ? ImmutableArray<NamedTypeSymbol>.Empty : builder.ToImmutableAndFree();
@@ -308,6 +312,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics.AddRange(injected.Diagnostics);
                     builder = builder ?? ArrayBuilder<NamedTypeSymbol>.GetInstance();
                     builder.Add(attribute);
+                }
+                else if (attribute.IsErrorType())
+                {
+                    diagnostics.Add(attribute.GetUseSiteDiagnostic(), NoLocation.Singleton);
                 }
                 else if (!canUseFromSource)
                 {

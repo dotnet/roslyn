@@ -202,9 +202,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ref attributes,
                 moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
-            AddSynthesizedAttribute(
-                ref attributes,
-                moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor));
+            if (!DeclaringCompilation.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute).IsErrorType())
+            {
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor));
+            }
         }
     }
 

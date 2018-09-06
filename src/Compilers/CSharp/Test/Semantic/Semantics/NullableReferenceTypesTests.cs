@@ -652,6 +652,15 @@ interface I { }
             Assert.True(type.Equals(type2));
             Assert.Equal(Accessibility.Internal, type.DeclaredAccessibility);
 
+            // https://github.com/dotnet/roslyn/issues/29683 CSharpCompilation.AbstractSymbolSearcher needs to inject namespaces and types too
+            //Assert.True(comp.ContainsSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
+            //Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute", comp.GetSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+            //Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute", comp.GetSymbolsWithName(n => n == "NonNullTypesAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+
+            //Assert.True(comp.ContainsSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type));
+            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName(n => n == "EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+
             void verifyEmptyNamespace(INamespaceSymbol symbol, string expectedName)
             {
                 Assert.Equal(expectedName, symbol.Name);
@@ -676,6 +685,45 @@ interface I { }
 
             var type = (NamedTypeSymbol)comp.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
             Assert.False(type.NonNullTypes);
+        }
+
+        [Fact]
+        public void NonNullTypesAttributeInMergedNamespaceSymbol()
+        {
+            var reference_cs = @"
+namespace System.Runtime.CompilerServices
+{
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool enabled = true) { }
+    }
+}";
+            var reference = CreateCompilation(new[] { reference_cs });
+            reference.VerifyDiagnostics();
+
+            var comp_cs = @"
+namespace System.Runtime.CompilerServices.NonNullTypesAttribute
+{
+    class C { }
+}";
+            var comp = CreateCompilation(new[] { comp_cs, NonNullTypesTrue }, references: new[] { reference.ToMetadataReference() });
+            comp.VerifyDiagnostics(
+                // (1,42): error CS0616: 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not an attribute class
+                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypesAttribute").WithLocation(1, 42)
+                );
+
+            var type = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute);
+            Assert.True(type.IsErrorType());
+
+            // https://github.com/dotnet/roslyn/issues/29683 CSharpCompilation.AbstractSymbolSearcher needs to inject namespaces and types too
+            //Assert.False(comp.ContainsSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
+            //Assert.Empty(comp.GetSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
+            //Assert.Empty(comp.GetSymbolsWithName(n => n == "NonNullTypesAttribute", SymbolFilter.Type));
+
+            //Assert.True(comp.ContainsSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type));
+            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName(n => n == "EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
         }
 
         [Fact]

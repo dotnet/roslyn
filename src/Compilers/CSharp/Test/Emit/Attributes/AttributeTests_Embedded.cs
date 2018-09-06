@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
@@ -45,6 +46,41 @@ class Program
                 //     [Microsoft.CodeAnalysis.Embedded]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Embedded").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(8, 29)
                 );
+        }
+
+        [Fact]
+        public void EmbeddedAttributeInMergedNamespaceSymbol()
+        {
+            var reference_cs = @"
+namespace Microsoft.CodeAnalysis
+{
+    internal class EmbeddedAttribute : System.Attribute { }
+}";
+            var reference = CreateCompilation(new[] { reference_cs });
+            reference.VerifyDiagnostics();
+
+            var comp_cs = @"
+namespace Microsoft.CodeAnalysis.EmbeddedAttribute
+{
+    class C { }
+}";
+            var comp = CreateCompilation(new[] { comp_cs, NonNullTypesTrue }, references: new[] { reference.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'Microsoft.CodeAnalysis.EmbeddedAttribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(1, 1)
+                );
+
+            var type = comp.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
+            Assert.True(type.IsErrorType());
+
+            // https://github.com/dotnet/roslyn/issues/29683 CSharpCompilation.AbstractSymbolSearcher needs to inject namespaces and types too
+            //Assert.False(comp.ContainsSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
+            //Assert.Empty(comp.GetSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
+            //Assert.Empty(comp.GetSymbolsWithName(n => n == "NonNullTypesAttribute", SymbolFilter.Type));
+
+            //Assert.True(comp.ContainsSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type));
+            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName(n => n == "EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
         }
 
         [Fact]

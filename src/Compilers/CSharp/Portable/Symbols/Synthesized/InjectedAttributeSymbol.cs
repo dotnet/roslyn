@@ -21,6 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AttributeDescription description,
             NamespaceSymbol containingNamespace,
             CSharpCompilation compilation,
+            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors)
+            : this(description, containingNamespace, compilation, getConstructors, new DiagnosticBag())
+        {
+        }
+
+        private InjectedAttributeSymbol(
+            AttributeDescription description,
+            NamespaceSymbol containingNamespace,
+            CSharpCompilation compilation,
             Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors,
             DiagnosticBag diagnostics)
             : base(description, containingNamespace, compilation, getConstructors, diagnostics)
