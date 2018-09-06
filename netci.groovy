@@ -10,7 +10,7 @@ def branchName = GithubBranchName
 // Folder that the project jobs reside in (project/branch)
 def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
-def windowsUnitTestMachine = 'win2016-base'
+def windowsUnitTestMachine = 'Windows.10.Amd64.ClientRS3.DevEx.Open'
 
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
   def archiveSettings = new ArchivalSettings()
