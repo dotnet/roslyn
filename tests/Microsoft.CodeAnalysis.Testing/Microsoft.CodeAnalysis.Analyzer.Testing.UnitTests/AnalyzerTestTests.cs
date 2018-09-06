@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             var test = new CSharpTest();
             Assert.Equal(StateInheritanceMode.Explicit, test.TestState.InheritanceMode);
-            Assert.Equal(MarkupMode.Allow, test.TestState.AllowMarkup);
+            Assert.Equal(MarkupMode.Allow, test.TestState.MarkupHandling);
             Assert.Empty(test.TestState.Sources);
             Assert.Empty(test.TestState.AdditionalFiles);
             Assert.Empty(test.TestState.AdditionalFilesFactories);

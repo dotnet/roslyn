@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         ("File1.txt", "Content with {|Literal:text|}"),
                     },
-                    AllowMarkup = MarkupMode.None,
+                    MarkupHandling = MarkupMode.None,
                 },
             }.RunAsync();
         }
