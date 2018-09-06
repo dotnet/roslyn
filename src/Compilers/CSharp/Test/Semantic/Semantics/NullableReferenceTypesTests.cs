@@ -34941,7 +34941,7 @@ class C
         public void ExplicitCast_UserDefined_02()
         {
             var source =
-@"class A<T> where T : class
+@"class A<T> where T : class?
 {
 }
 class B
