@@ -7,3 +7,4 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideDependencyBindingRedirection("System.Collections.Immutable.dll")]
 [assembly: ProvideDependencyBindingRedirection("System.Reflection.Metadata.dll")]
 [assembly: ProvideDependencyBindingRedirection("System.Threading.Tasks.Extensions.dll")]
+[assembly: ProvideDependencyBindingRedirection("System.Text.Encoding.CodePages.dll")]
