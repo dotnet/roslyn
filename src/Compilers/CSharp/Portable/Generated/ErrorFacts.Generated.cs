@@ -206,7 +206,8 @@
                 case ErrorCode.WRN_MissingNonNullTypesContext:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
-                case ErrorCode.WRN_NullabilityMismatchInConstraints:
+                case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                     return true;
                 default:
                     return false;

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static readonly EqualityComparer<TypeSymbol> EqualsIncludingNullableComparer = new TypeSymbolComparer(TypeCompareKind.CompareNullableModifiersForReferenceTypes);
 
-        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullablWitUnknownMatchesAnyComparer = 
+        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer = 
                                                                   new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions |
                                                                                          TypeCompareKind.CompareNullableModifiersForReferenceTypes |
                                                                                          TypeCompareKind.UnknownNullableModifierMatchesAny);
@@ -1312,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else if (!MemberSignatureComparer.HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
                     {
-                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraints, GetImplicitImplementationDiagnosticLocation(interfaceMethod, implementingType, implicitImpl),
+                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, GetImplicitImplementationDiagnosticLocation(interfaceMethod, implementingType, implicitImpl),
                                         typeParameter2.Name, implicitImpl, typeParameter1.Name, interfaceMethod);
                     }
                 }

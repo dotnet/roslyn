@@ -745,10 +745,19 @@ public class C<T> where T : A<object>
     }
 }";
             var comp2 = CreateCompilation(new[] { source, source2, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
-            comp2.VerifyEmitDiagnostics();
+            var expected = new[] {
+                // (5,15): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T, U>'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         new C<object?, string?>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "object?").WithArguments("C<T, U>", "T", "object?").WithLocation(5, 15),
+                // (6,15): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T, U>'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         new C<object?, string>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "object?").WithArguments("C<T, U>", "T", "object?").WithLocation(6, 15)
+            };
+
+            comp2.VerifyEmitDiagnostics(expected);
 
             comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue }, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
-            comp2.VerifyEmitDiagnostics();
+            comp2.VerifyEmitDiagnostics(expected);
 
             var type = comp2.GetMember<NamedTypeSymbol>("C");
             Assert.Equal("T?", type.TypeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));

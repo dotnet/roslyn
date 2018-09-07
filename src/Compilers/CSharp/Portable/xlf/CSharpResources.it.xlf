@@ -422,14 +422,24 @@
         <target state="new">The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInConstraints">
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation">
         <source>Nullability in constraints for type parameter '{0}' of method '{1}' doesn't match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.</source>
         <target state="new">Nullability in constraints for type parameter '{0}' of method '{1}' doesn't match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInConstraints_Title">
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title">
         <source>Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</source>
         <target state="new">Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
+        <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'class' constraint.</source>
+        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'class' constraint.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</source>
+        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SuppressionOperatorNotReferenceType">

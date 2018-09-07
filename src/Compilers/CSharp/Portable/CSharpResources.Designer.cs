@@ -14417,18 +14417,18 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Nullability in constraints for type parameter &apos;{0}&apos; of method &apos;{1}&apos; doesn&apos;t match the constraints for type parameter &apos;{2}&apos; of interface method &apos;{3}&apos;. Consider using an explicit interface implementation instead..
         /// </summary>
-        internal static string WRN_NullabilityMismatchInConstraints {
+        internal static string WRN_NullabilityMismatchInConstraintsOnImplicitImplementation {
             get {
-                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraints", resourceCulture);
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraintsOnImplicitImplementation", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Nullability in constraints for type parameter doesn&apos;t match the constraints for type parameter in implicitly implemented interface method&apos;..
         /// </summary>
-        internal static string WRN_NullabilityMismatchInConstraints_Title {
+        internal static string WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title {
             get {
-                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraints_Title", resourceCulture);
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title", resourceCulture);
             }
         }
         
@@ -14663,6 +14663,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullabilityMismatchInTypeParameterConstraint_Title {
             get {
                 return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterConstraint_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{2}&apos; cannot be used as type parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;. Nullability of type argument &apos;{2}&apos; doesn&apos;t match &apos;class&apos; constraint..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn&apos;t match &apos;class&apos; constraint..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title", resourceCulture);
             }
         }
         

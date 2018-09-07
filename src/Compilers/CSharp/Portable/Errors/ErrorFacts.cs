@@ -343,13 +343,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullAsNonNullable:
                 case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.WRN_MissingNonNullTypesContext:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
-                case ErrorCode.WRN_NullabilityMismatchInConstraints:
+                case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                 case ErrorCode.WRN_SuppressionOperatorNotReferenceType:
                     return 1;
                 default:

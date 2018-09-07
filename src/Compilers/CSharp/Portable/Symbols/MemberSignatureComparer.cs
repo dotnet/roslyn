@@ -641,6 +641,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
+            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
+        }
+
+        private static bool HaveSameTypeConstraints(TypeParameterSymbol typeParameter1, TypeMap typeMap1, TypeParameterSymbol typeParameter2, TypeMap typeMap2, EqualityComparer<TypeSymbol> comparer)
+        {
             // Check that constraintTypes1 is a subset of constraintTypes2 and
             // also that constraintTypes2 is a subset of constraintTypes1
             // (see SymbolPreparer::CheckImplicitImplConstraints).
@@ -656,8 +661,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var substitutedTypes1 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
-            var substitutedTypes2 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
+            var substitutedTypes1 = new HashSet<TypeSymbol>(comparer);
+            var substitutedTypes2 = new HashSet<TypeSymbol>(comparer);
 
             SubstituteConstraintTypes(constraintTypes1, typeMap1, substitutedTypes1);
             SubstituteConstraintTypes(constraintTypes2, typeMap2, substitutedTypes2);
@@ -670,7 +675,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!typeParameter1.IsValueType)
             {
-
                 bool? isNotNullableIfReferenceType1 = typeParameter1.IsNotNullableIfReferenceType;
                 bool? isNotNullableIfReferenceType2 = typeParameter2.IsNotNullableIfReferenceType;
                 if (isNotNullableIfReferenceType1.HasValue && isNotNullableIfReferenceType2.HasValue && 
@@ -680,28 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // Check that constraintTypes1 is a subset of constraintTypes2 and
-            // also that constraintTypes2 is a subset of constraintTypes1
-
-            var constraintTypes1 = typeParameter1.ConstraintTypesNoUseSiteDiagnostics;
-            var constraintTypes2 = typeParameter2.ConstraintTypesNoUseSiteDiagnostics;
-
-            // The two sets of constraints may differ in size but still be considered
-            // the same (duplicated constraints, ignored "object" constraints), but
-            // if both are zero size, the sets must be equal.
-            if ((constraintTypes1.Length == 0) && (constraintTypes2.Length == 0))
-            {
-                return true;
-            }
-
-            var substitutedTypes1 = new HashSet<TypeSymbol>(TypeSymbol.EqualsAllIgnoreOptionsPlusNullablWitUnknownMatchesAnyComparer);
-            var substitutedTypes2 = new HashSet<TypeSymbol>(TypeSymbol.EqualsAllIgnoreOptionsPlusNullablWitUnknownMatchesAnyComparer);
-
-            SubstituteConstraintTypes(constraintTypes1, typeMap1, substitutedTypes1);
-            SubstituteConstraintTypes(constraintTypes2, typeMap2, substitutedTypes2);
-
-            return AreConstraintTypesSubset(substitutedTypes1, substitutedTypes2, typeParameter2) &&
-                AreConstraintTypesSubset(substitutedTypes2, substitutedTypes1, typeParameter1);
+            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, TypeSymbol.EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer);
         }
 
         /// <summary>

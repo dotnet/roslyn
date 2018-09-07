@@ -5531,10 +5531,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
     <value>An out variable cannot be declared as a ref local</value>
   </data>
-  <data name="WRN_NullabilityMismatchInConstraints" xml:space="preserve">
+  <data name="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation" xml:space="preserve">
     <value>Nullability in constraints for type parameter '{0}' of method '{1}' doesn't match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.</value>
   </data>
-  <data name="WRN_NullabilityMismatchInConstraints_Title" xml:space="preserve">
+  <data name="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title" xml:space="preserve">
     <value>Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint" xml:space="preserve">
+    <value>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'class' constraint.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title" xml:space="preserve">
+    <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</value>
   </data>
 </root>

@@ -452,35 +452,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool? result = false;
             foreach (TypeSymbolWithAnnotations constraintType in constraintTypes)
             {
-                if (constraintType.IsAnnotated)
-                {
-                    continue;
-                }
-
-                if (constraintType.TypeKind == TypeKind.TypeParameter)
-                {
-                    bool? isNotNullableIfReferenceType = ((TypeParameterSymbol)constraintType.TypeSymbol).GetIsNotNullableIfReferenceType(inProgress);
-
-                    if (isNotNullableIfReferenceType == false)
-                    {
-                        continue;
-                    }
-                    else if (isNotNullableIfReferenceType == null)
-                    {
-                        result = null;
-                        continue;
-                    }
-                }
-
-                if (constraintType.NonNullTypesContext.NonNullTypes == true)
+                bool? fromType = IsNotNullableIfReferenceTypeFromConstraintType(constraintType, inProgress);
+                if (fromType == true)
                 {
                     return true;
                 }
-
-                result = null;
+                else if (fromType == null)
+                {
+                    result = null;
+                }
             }
 
             return result;
+        }
+
+        internal static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeSymbolWithAnnotations constraintType, ConsList<TypeParameterSymbol> inProgress)
+        {
+            if (constraintType.IsAnnotated)
+            {
+                return false;
+            }
+
+            if (constraintType.TypeKind == TypeKind.TypeParameter)
+            {
+                bool? isNotNullableIfReferenceType = ((TypeParameterSymbol)constraintType.TypeSymbol).GetIsNotNullableIfReferenceType(inProgress);
+
+                if (isNotNullableIfReferenceType == false)
+                {
+                    return false;
+                }
+                else if (isNotNullableIfReferenceType == null)
+                {
+                    return null;
+                }
+            }
+
+            if (constraintType.NonNullTypesContext.NonNullTypes == true)
+            {
+                return true;
+            }
+
+            return null;
         }
 
         internal bool IsValueTypeFromConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes, ConsList<TypeParameterSymbol> inProgress)
@@ -613,6 +625,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool HasReferenceTypeConstraint { get; }
 
         // PROTOTYPE(NullableReferenceTypes): Should this API be exposed through ITypeParameterSymbol?
+        /// <summary>
+        /// Returns whether the reference type constraint (the 'class' constraint) should also be treated as nullable ('class?') or non-nullable (class!).
+        /// In some cases this aspect is unknown (null value is returned). For example, when 'class' constraint is specified in a NonNullTypes(false) context.  
+        /// This API returns false when <see cref="HasReferenceTypeConstraint"/> is false.
+        /// </summary>
         internal abstract bool? ReferenceTypeConstraintIsNullable { get; }
 
         public abstract bool HasValueTypeConstraint { get; }
