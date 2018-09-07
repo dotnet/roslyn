@@ -539,5 +539,10 @@ namespace Microsoft.CodeAnalysis
 
             return dictionary;
         }
+
+        internal static Location FirstOrNone(this ImmutableArray<Location> items)
+        {
+            return items.IsEmpty ? Location.None : items[0];
+        }
     }
 }

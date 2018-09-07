@@ -1499,7 +1499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             object arg0;
                             if (best.IsFromSourceModule)
                             {
-                                SyntaxTree tree = srcSymbol.Locations.First().SourceTree;
+                                SyntaxTree tree = srcSymbol.Locations.FirstOrNone().SourceTree;
                                 arg0 = tree != null ? (object)tree.FilePath : MessageID.IDS_InjectedDeclaration.Localize();
                             }
                             else

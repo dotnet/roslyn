@@ -362,11 +362,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if ((nts as SourceNamedTypeSymbol)?.IsPartial == true && (other as SourceNamedTypeSymbol)?.IsPartial == true)
                         {
-                            diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations[0], symbol);
+                            diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations.FirstOrNone(), symbol);
                         }
                         else
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.Locations[0], name, @namespace);
+                            diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
                         }
                     }
 
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Accessibility declaredAccessibility = nts.DeclaredAccessibility;
                         if (declaredAccessibility != Accessibility.Public && declaredAccessibility != Accessibility.Internal)
                         {
-                            diagnostics.Add(ErrorCode.ERR_NoNamespacePrivate, symbol.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_NoNamespacePrivate, symbol.Locations.FirstOrNone());
                         }
                     }
                 }
