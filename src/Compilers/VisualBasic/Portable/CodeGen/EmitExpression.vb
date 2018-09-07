@@ -1304,7 +1304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitBinaryConditionalExpression(expr As BoundBinaryConditionalExpression, used As Boolean)
             Debug.Assert(expr.ConvertedTestExpression Is Nothing, "coalesce with nontrivial test conversions are lowered into ternary.")
             Debug.Assert(expr.Type = expr.ElseExpression.Type)
-            Debug.Assert(expr.Type.IsReferenceType)
+            Debug.Assert(expr.Type.IsReferenceType OrElse Not expr.Type.IsValueType)
 
             EmitExpression(expr.TestExpression, used:=True)
 

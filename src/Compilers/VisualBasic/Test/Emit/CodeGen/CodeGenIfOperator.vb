@@ -1210,7 +1210,7 @@ End Structure
         End Sub
 
         <Fact, WorkItem(545065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545065")>
-        Public Sub IfOnMethodTypeParameter()
+        Public Sub IfOnConstrainedMethodTypeParameter()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1247,5 +1247,87 @@ Friend Module BIFOpResult0011mod
 }]]>)
         End Sub
 
+        <Fact>
+        Public Sub IfOnUnconstrainedMethodTypeParameter()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Friend Module Mod1
+        Sub M1(Of T)(arg1 As T, arg2 As T)
+            System.Console.WriteLine(If(arg1, arg2))
+        End Sub
+
+        Sub Main()
+            M1(Nothing, 10)
+            M1(1, 10)
+            M1(Nothing, "String Parameter 1")
+            M1("String Parameter 2", "Should not print")
+            M1(Of Integer?)(Nothing, 4)
+            M1(Of Integer?)(5, 10)
+        End Sub
+    End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+0
+1
+String Parameter 1
+String Parameter 2
+4
+5
+]]>).VerifyIL("Mod1.M1", <![CDATA[
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  box        "T"
+  IL_0007:  brtrue.s   IL_000b
+  IL_0009:  pop
+  IL_000a:  ldarg.1
+  IL_000b:  box        "T"
+  IL_0010:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0015:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub IfOnUnconstrainedTypeParameterWithNothingLHS()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Friend Module Mod1
+        Sub M1(Of T)(arg As T)
+            Console.WriteLine(If(Nothing, arg))
+        End Sub
+
+        Sub Main()
+            ' Note that this behavior is different than C#'s behavior. This is consistent with Roslyn's handling
+            ' of If(Nothing, 1), which will evaluate to 1
+            M1(1)
+            Console.WriteLine(If(Nothing, 1))
+            M1("String Parameter 1")
+            M1(Of Integer?)(3)
+        End Sub
+    End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+1
+1
+String Parameter 1
+3
+]]>).VerifyIL("Mod1.M1", <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  box        "T"
+  IL_0006:  call       "Sub System.Console.WriteLine(Object)"
+  IL_000b:  ret
+}
+]]>)
+        End Sub
     End Class
 End Namespace

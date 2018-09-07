@@ -2096,9 +2096,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundSecondArgWithConversions = MakeRValueAndIgnoreDiagnostics(boundSecondArg)
             End If
 
-            '  if there are still no errors check the original type of the first argument to be 
-            '       of a reference or nullable type, generate IllegalCondTypeInIIF otherwise
-            If Not hasErrors AndAlso Not (boundFirstArg.IsNothingLiteral OrElse boundFirstArg.Type.IsNullableType OrElse boundFirstArg.Type.IsReferenceType) Then
+            '  If there are still no errors check the original type of the first argument. If it's
+            '  a non-nullable value type, generate IllegalCondTypeInIIF
+            If Not hasErrors AndAlso Not boundFirstArg.IsNothingLiteral AndAlso boundFirstArg.Type.IsValueType AndAlso Not boundFirstArg.Type.IsNullableType() Then
                 ReportDiagnostic(diagnostics, node.FirstExpression, ERRID.ERR_IllegalCondTypeInIIF)
                 hasErrors = True
             End If

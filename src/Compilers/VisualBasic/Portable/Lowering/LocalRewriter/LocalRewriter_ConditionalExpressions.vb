@@ -181,8 +181,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim testExpr = node.TestExpression
             Dim elseExpr = node.ElseExpression
 
-            ' Test expression may only be of a reference or nullable type
-            Debug.Assert(testExpr.IsNothingLiteral OrElse testExpr.Type.IsReferenceType OrElse testExpr.Type.IsNullableType)
+            ' Test expression may not be a non-nullable value type
+            Debug.Assert(testExpr.IsNothingLiteral OrElse Not (testExpr.Type.IsValueType AndAlso Not testExpr.Type.IsNullableType()))
 
             ' TODO: Checking type equality of test and else is not strictly needed.
             '       Consider removing this requirement.
@@ -200,7 +200,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             End If
 
-            Debug.Assert(testExpr.Type.IsReferenceType)
+            ' At this point, we must either have a reference type, or an unconstrained type parameter (which is neither reference nor value)
+            Debug.Assert(testExpr.Type.IsReferenceType OrElse Not testExpr.Type.IsValueType)
             Return node
         End Function
 
