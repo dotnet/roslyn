@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     var request = BuildRequest.Create(language,
                                                       buildPaths.WorkingDirectory,
                                                       buildPaths.TempDirectory,
+                                                      BuildProtocolConstants.GetCommitHash(),
                                                       arguments,
                                                       keepAlive,
                                                       libEnvVariable);

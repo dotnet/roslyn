@@ -4,6 +4,7 @@ using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -57,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Arguments = new ReadOnlyCollection<Argument>(arguments.ToList());
             CompilerHash = compilerHash;
 
+            Debug.Assert(!string.IsNullOrWhiteSpace(CompilerHash), "A hash value is required to communicate with the server");
+
             if (Arguments.Count > ushort.MaxValue)
             {
                 throw new ArgumentOutOfRangeException(nameof(arguments),
@@ -68,20 +71,22 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public static BuildRequest Create(RequestLanguage language,
                                           string workingDirectory,
                                           string tempDirectory,
+                                          string compilerHash,
                                           IList<string> args,
                                           string keepAlive = null,
                                           string libDirectory = null)
         {
+            Debug.Assert(!string.IsNullOrWhiteSpace(compilerHash), "CompilerHash is required to send request to the build server");
+
             Log("Creating BuildRequest");
             Log($"Working directory: {workingDirectory}");
             Log($"Temp directory: {tempDirectory}");
             Log($"Lib directory: {libDirectory ?? "null"}");
+            Log($"Compiler hash: {compilerHash}");
 
             var requestLength = args.Count + 1 + (libDirectory == null ? 0 : 1);
             var requestArgs = new List<Argument>(requestLength);
 
-            var compilerHash = GetCommitHash();
-            Log($"Comipler hash: {compilerHash}");
 
             requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
             requestArgs.Add(new Argument(ArgumentId.TempDirectory, 0, tempDirectory));
@@ -573,13 +578,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>The hash value of the current assembly or an empty string</returns>
         public static string GetCommitHash()
         {
-            var hashAttribute = typeof(BuildRequest).Assembly.GetCustomAttribute<CommitHashAttribute>();
-            if(hashAttribute is null)
+            var hashAttributes = typeof(BuildRequest).Assembly.GetCustomAttributes<CommitHashAttribute>();
+            var hashAttributeCount = hashAttributes.Count();
+            if (hashAttributeCount != 1)
             {
-                Log("CommitHashAttribute is missing from the assembly.");
+                Log($"Error reading CommitHashAttribute. Exactly 1 attribute is required, found {hashAttributeCount}");
                 return string.Empty;
             }
-            return hashAttribute.Hash;
+            return hashAttributes.Single().Hash;
         }
 
         /// <summary>

@@ -528,7 +528,7 @@ class Hello
         {
             using (var serverData = ServerUtil.CreateServer())
             {
-                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(1, RequestLanguage.CSharpCompile, string.Empty, new List<BuildRequest.Argument> { }));
+                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
                 Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
             }
         }
@@ -538,7 +538,7 @@ class Hello
         {
             using (var serverData = ServerUtil.CreateServer())
             {
-                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, string.Empty, new List<BuildRequest.Argument> { }));
+                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
                 Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
             }
         }
