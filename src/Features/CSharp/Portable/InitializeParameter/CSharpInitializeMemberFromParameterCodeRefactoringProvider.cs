@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
 
         // Fields are always private by default in C#.
-        protected override Accessibility DetermineDefaultFieldAccessibility(Document document, SyntaxNode functionDeclaration, INamedTypeSymbol containingType, CancellationToken cancellationToken)
+        protected override Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType)
             => Accessibility.Private;
 
         // Properties are always private by default in C#.

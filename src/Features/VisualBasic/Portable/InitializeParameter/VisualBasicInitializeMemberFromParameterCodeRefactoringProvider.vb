@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         End Sub
 
         ' Fields are public by default in VB, except in the case of classes and modules.
-        Protected Overrides Function DetermineDefaultFieldAccessibility(document As Document, functionDeclaration As SyntaxNode, containingType As INamedTypeSymbol, cancellationToken As CancellationToken) As Accessibility
+        Protected Overrides Function DetermineDefaultFieldAccessibility(containingType As INamedTypeSymbol) As Accessibility
             Return If(containingType.TypeKind = TypeKind.Class Or containingType.TypeKind = TypeKind.Module, Accessibility.Private, Accessibility.Public)
         End Function
 

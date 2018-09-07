@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
     {
         protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
 
-        protected abstract Accessibility DetermineDefaultFieldAccessibility(Document document, SyntaxNode functionDeclaration, INamedTypeSymbol containingType, CancellationToken cancellationToken);
+        protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
 
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
 
@@ -114,8 +114,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
 
-                var field = CreateField(document, requireAccessibilityModifiers, functionDeclaration, parameter, rules, parameterNameParts, cancellationToken);
-                var property = CreateProperty(document, requireAccessibilityModifiers, parameter, rules, parameterNameParts, cancellationToken);
+                var field = CreateField(requireAccessibilityModifiers, parameter, rules, parameterNameParts);
+                var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, parameterNameParts);
 
                 // Offer to generate either a property or a field.  Currently we place the property
                 // suggestion first (to help users with the immutable object+property pattern). But
@@ -129,13 +129,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IFieldSymbol CreateField(
-            Document document,
             CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
-            SyntaxNode functionDeclaration,
             IParameterSymbol parameter,
             ImmutableArray<NamingRule> rules,
-            ImmutableArray<string> parameterNameParts,
-            CancellationToken cancellationToken)
+            ImmutableArray<string> parameterNameParts)
         {
             foreach (var rule in rules)
             {
@@ -146,7 +143,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var accessibilityLevel = Accessibility.Private;
                     if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
                     {
-                        var defaultAccessibility = DetermineDefaultFieldAccessibility(document, functionDeclaration, parameter.ContainingType, cancellationToken);
+                        var defaultAccessibility = DetermineDefaultFieldAccessibility(parameter.ContainingType);
                         if (defaultAccessibility == Accessibility.Private)
                         {
                             accessibilityLevel = Accessibility.NotApplicable;
@@ -180,11 +177,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IPropertySymbol CreateProperty(
-            Document document,
             CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
-            IParameterSymbol parameter, ImmutableArray<NamingRule> rules,
-            ImmutableArray<string> parameterNameParts,
-            CancellationToken cancellationToken)
+            IParameterSymbol parameter,
+            ImmutableArray<NamingRule> rules,
+            ImmutableArray<string> parameterNameParts)
         {
             foreach (var rule in rules)
             {
