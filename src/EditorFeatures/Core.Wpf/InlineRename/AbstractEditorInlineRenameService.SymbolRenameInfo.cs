@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             /// </summary>
             private readonly bool _shortenedTriggerSpan;
             private readonly bool _isRenamingAttributePrefix;
-            private readonly bool _isCaseSensitiveAttribute;
+            private readonly bool _isLanguageCaseSensitive;
 
             public bool CanRename { get; }
             public string LocalizedErrorMessage { get; }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 TextSpan triggerSpan,
                 SymbolAndProjectId renameSymbolAndProjectId,
                 bool forceRenameOverloads,
-                bool isCaseSensitiveAttribute,
+                bool isLanguageCaseSensitive,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);
 
                 _shortenedTriggerSpan = this.TriggerSpan != triggerSpan;
-                _isCaseSensitiveAttribute = isCaseSensitiveAttribute;
+                _isLanguageCaseSensitive = isLanguageCaseSensitive;
             }
 
             private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Ok, the symbol is good.  Now, make sure that the trigger text starts with the prefix
                 // of the attribute.  If it does, then we can rename just the attribute prefix (otherwise
                 // we need to rename the entire attribute).
-                var nameWithoutAttribute = this.RenameSymbol.Name.GetWithoutAttributeSuffix(isCaseSensitive: _isCaseSensitiveAttribute);
+                var nameWithoutAttribute = this.RenameSymbol.Name.GetWithoutAttributeSuffix(isCaseSensitive: _isLanguageCaseSensitive);
                 var triggerText = GetSpanText(document, triggerSpan, cancellationToken);
 
                 return triggerText.StartsWith(triggerText); // TODO: Always true? What was it supposed to do?
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new TextSpan(location.TextSpan.Start + position, replacementText.Length);
             }
 
-            private string GetWithoutAttributeSuffix(string value) => value.GetWithoutAttributeSuffix(isCaseSensitive: _isCaseSensitiveAttribute);
+            private string GetWithoutAttributeSuffix(string value) => value.GetWithoutAttributeSuffix(isCaseSensitive: _isLanguageCaseSensitive);
 
             private static string GetSpanText(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
             {
