@@ -202,9 +202,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     }
 
                     var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    default,
-                    Accessibility.Public,
-                    default);
+                        default,
+                        Accessibility.Public,
+                        default);
 
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
                         default,
