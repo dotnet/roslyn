@@ -140,29 +140,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var accessibilityLevel = Accessibility.Private;
                     if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
                     {
-                        // C#: always remove modifier for fields if "omit if default" or "never" option is set
-                        if (functionDeclaration.Language == LanguageNames.CSharp)
-                        {
-                            accessibilityLevel = Accessibility.NotApplicable;
-                        }
-                        // VB: only remove modifier for fields if "omit if default" or "never" option is set and code is within a class or module
-                        else if (functionDeclaration.Language == LanguageNames.VisualBasic)
-                        {
-                            var service = document.GetLanguageService<ISyntaxFactsService>();
-                            var containingTypeNode = service.GetContainingTypeDeclaration(functionDeclaration, functionDeclaration.SpanStart);
+                        var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                            if (containingTypeNode != null)
-                            {
-                                var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                                var containingTypeSymbol = (INamedTypeSymbol) model.GetDeclaredSymbol(containingTypeNode, cancellationToken);
-                                switch (containingTypeSymbol.TypeKind) {
-                                    case TypeKind.Class:
-                                    case TypeKind.Module:
-                                        accessibilityLevel = Accessibility.NotApplicable;
-                                        break;
-                                }
-                            }
-                        }
+                        // We always generate a private field.
+                        // C#: Since "private" is the default accessibility for fields in C#, we do not need an accessibility modifier.
+                        // VB: Fields are public by default, except in the case of classes and modules. In those two cases, we can safely remove the accessibility modifier.
+                        accessibilityLevel = CreateFieldHelper(document, functionDeclaration, model, cancellationToken);
                     }
 
                     return CodeGenerationSymbolFactory.CreateFieldSymbol(
@@ -177,6 +160,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // always find a matching rule.
             throw ExceptionUtilities.Unreachable;
         }
+
+        protected abstract Accessibility CreateFieldHelper(Document document, SyntaxNode functionDeclaration, SemanticModel model, CancellationToken cancellationToken);
 
         private static string GenerateUniqueName(IParameterSymbol parameter, ImmutableArray<string> parameterNameParts, NamingRule rule)
         {

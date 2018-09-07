@@ -35,5 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
+
+        protected override Accessibility CreateFieldHelper(Document document, SyntaxNode functionDeclaration, SemanticModel model, CancellationToken cancellationToken) => Accessibility.NotApplicable;
     }
 }

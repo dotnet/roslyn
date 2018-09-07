@@ -5,6 +5,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -40,5 +41,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, method As IMethodSymbol, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
             InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement)
         End Sub
+
+        Protected Overrides Function CreateFieldHelper(document As Document, functionDeclaration As SyntaxNode, model As SemanticModel, cancellationToken As CancellationToken) As Accessibility
+            Dim accessibilityLevel = Accessibility.[Private]
+            Dim service = document.GetLanguageService(Of ISyntaxFactsService)()
+            Dim containingTypeNode = service.GetContainingTypeDeclaration(functionDeclaration, functionDeclaration.SpanStart)
+
+            If containingTypeNode IsNot Nothing Then
+                Dim containingTypeSymbol = CType(model.GetDeclaredSymbol(containingTypeNode, cancellationToken), INamedTypeSymbol)
+
+                Select Case containingTypeSymbol.TypeKind
+                    Case TypeKind.[Class], TypeKind.[Module]
+                        accessibilityLevel = Accessibility.NotApplicable
+                End Select
+            End If
+            Return accessibilityLevel
+        End Function
     End Class
 End Namespace
