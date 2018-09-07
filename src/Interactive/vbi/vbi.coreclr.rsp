@@ -25,11 +25,11 @@
 /r:System.Threading.Tasks.Parallel
 /r:System.Threading.Thread
 # extra references
+/r:System.Dynamic.Runtime
 /r:System.Linq
 /r:System.Linq.Expressions
 /r:System.Runtime.Numerics
-/r:System.Dynamic.Runtime
-/r:System.ValueTuple.dll
+/r:System.ValueTuple
 # imports
 /u:System
 /u:System.IO
