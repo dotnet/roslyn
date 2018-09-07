@@ -627,7 +627,7 @@ class C
 
         [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestInitializeClassField_ParameterNameSelected2()
+        public async Task TestInitializeField_ParameterNameSelected2()
         {
             await TestInRegularAndScript1Async(
 @"
