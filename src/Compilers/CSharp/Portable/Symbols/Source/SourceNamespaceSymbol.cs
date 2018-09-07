@@ -118,13 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = _lazyAllMembers;
             }
 
-#if DEBUG
-            // In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            // more obviously.
-            return result.DeOrder();
-#else
-            return result;
-#endif
+            return result.ConditionallyDeOrder();
         }
 
         public override ImmutableArray<Symbol> GetMembers()
@@ -598,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 InjectedNamespaceSymbol makeEmptyNamespace(string name)
                 {
-                    return new InjectedNamespaceSymbol(containingNamespace.ContainingModule, containingNamespace, name);
+                    return new InjectedNamespaceSymbol(containingNamespace, name);
                 }
 
                 bool isSystem(NamespaceSymbol symbol)
@@ -619,18 +613,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             class InjectedNamespaceSymbol : NamespaceSymbol
             {
-                private ModuleSymbol _module;
-                private NamespaceSymbol _containingNamespace;
-                private string _name;
+                private readonly NamespaceSymbol _containingNamespace;
+                private readonly string _name;
                 private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> _nameToMembersMap;
                 private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
                 private ImmutableArray<Symbol> _lazyAllMembersOrdered;
                 private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersOrdered;
 
-                public InjectedNamespaceSymbol(ModuleSymbol module, NamespaceSymbol containingNamespace, string name)
+                public InjectedNamespaceSymbol(NamespaceSymbol containingNamespace, string name)
                 {
                     Debug.Assert(name != null);
-                    _module = module;
                     _containingNamespace = containingNamespace;
                     _name = name;
                 }
@@ -651,20 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     => ImmutableArray<SyntaxReference>.Empty;
 
                 internal override NamespaceExtent Extent
-                    => new NamespaceExtent(_module);
-
-                internal override ImmutableArray<Symbol> GetMembersUnordered()
-                {
-                    var result = GetMembers();
-
-#if DEBUG
-                    // In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-                    // more obviously.
-                    return result.DeOrder();
-#else
-                    return result;
-#endif
-                }
+                    => _containingNamespace.Extent;
 
                 public override ImmutableArray<Symbol> GetMembers()
                 {
@@ -713,19 +692,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return _nameToTypeMembersMap;
                 }
 
-                internal override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
-                {
-                    var result = GetTypeMembers();
-
-#if DEBUG
-                    // In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-                    // more obviously.
-                    return result.DeOrder();
-#else
-                    return result;
-#endif
-                }
-
                 public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
                 {
                     if (_lazyTypeMembersOrdered.IsDefault)
@@ -744,9 +710,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ? members
                         : ImmutableArray<NamedTypeSymbol>.Empty;
                 }
-
-                internal override LexicalSortKey GetLexicalSortKey()
-                    => LexicalSortKey.NotInSource;
 
                 public override bool IsImplicitlyDeclared => true;
             }

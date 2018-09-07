@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     }
                                 }
                             }
+
                             var members = this.GetMembers();
 
                             bool allCompleted = true;

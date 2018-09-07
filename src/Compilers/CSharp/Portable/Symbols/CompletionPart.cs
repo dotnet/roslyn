@@ -55,9 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         NamedTypeSymbolAll = NamedTypeSymbolWithLocationAll | MembersCompleted,
 
-        // For injected symbols
-        InjectedSymbolAll = Attributes,
-
         // For Usings
         StartValidatingImports = 1 << 4,
         FinishValidatingImports = 1 << 5,

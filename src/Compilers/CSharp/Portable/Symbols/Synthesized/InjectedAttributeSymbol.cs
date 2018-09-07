@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class InjectedAttributeSymbol : SynthesizedEmbeddedAttributeSymbol
     {
-        internal abstract DiagnosticBag GetDiagnostics();
+        internal abstract void AddDiagnostics(DiagnosticBag recipient);
 
         // All the diagnostics involved in constructing this symbol will only be produced
         // if the symbol is referenced and so ends up emitted.
@@ -38,11 +38,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _diagnostics = diagnostics;
         }
-
-        public override ImmutableArray<Location> Locations
-            => ImmutableArray<Location>.Empty;
-
-        internal override LexicalSortKey GetLexicalSortKey()
-            => LexicalSortKey.NotInSource;
     }
 }

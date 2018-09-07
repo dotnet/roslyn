@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override AttributeUsageInfo GetAttributeUsageInfo()
             => new AttributeUsageInfo(validTargets: AttributeTargets.All, allowMultiple: false, inherited: false);
 
-        internal override DiagnosticBag GetDiagnostics()
-            => _diagnostics;
+        internal override void AddDiagnostics(DiagnosticBag recipient)
+            => recipient.AddRange(_diagnostics);
 
         private sealed class EmbeddedAttributeConstructorSymbol : SynthesizedInstanceConstructor
         {

@@ -27,15 +27,6 @@ namespace TestReference
     internal class TestType2 { }
 
     internal class TestType3 { }
-}
-class Program
-{
-    public static void Main()
-    {
-        var obj1 = new TestReference.TestType1();
-        var obj2 = new TestReference.TestType2();
-        var obj3 = new TestReference.TestType3();
-    }
 }";
 
             CreateCompilation(code).VerifyEmitDiagnostics(

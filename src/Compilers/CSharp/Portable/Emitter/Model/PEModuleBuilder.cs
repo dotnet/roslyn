@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private bool _needsGeneratedIsUnmanagedAttribute_Value;
         private bool _needsGeneratedAttributes_IsFrozen;
         private bool _needsGeneratedNullableAttribute_Value;
-        private NamedTypeSymbol _injectedNonNullTypesAttribute;
+        private readonly InjectedNonNullTypesAttributeSymbol _injectedNonNullTypesAttribute;
 
         protected abstract void EnsureNonNullTypesAttributeExists();
         protected abstract void EnsureEmbeddedAttributeExists();

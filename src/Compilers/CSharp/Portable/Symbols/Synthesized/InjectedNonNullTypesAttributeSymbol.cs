@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class InjectedNonNullTypesAttributeSymbol : InjectedAttributeSymbol
     {
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private SymbolCompletionState _state;
 
         private InjectedNonNullTypesAttributeSymbol(
             AttributeDescription description,
@@ -45,28 +44,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticBag GetDiagnostics()
+        internal override void AddDiagnostics(DiagnosticBag recipient)
         {
             // pull on the attributes to collect their diagnostics too
             _ = GetAttributes();
-
-            return _diagnostics;
+            recipient.AddRange(_diagnostics);
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            var attributes = _lazyCustomAttributes;
-            if (!attributes.IsDefault)
+            if (_lazyCustomAttributes.IsDefault)
             {
-                return attributes;
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, MakeAttributes());
             }
-
-            if (ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, MakeAttributes()))
-            {
-                var completed = _state.NotePartComplete(CompletionPart.Attributes);
-                Debug.Assert(completed);
-            }
-
             return _lazyCustomAttributes;
         }
 

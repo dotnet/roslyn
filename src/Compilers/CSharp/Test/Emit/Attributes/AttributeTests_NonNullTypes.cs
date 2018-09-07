@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
 
@@ -160,6 +161,32 @@ public class TestType2 { }
             comp.VerifyDiagnostics();
 
             Assert.True(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void CanReferenceNonNullTypesAttributesFromADifferentAssemblyViaExternDeclaration()
+        {
+            var reference = CreateCompilation(@"
+namespace System.Runtime.CompilerServices
+{
+    public class NonNullTypesAttribute : System.Attribute { public NonNullTypesAttribute(bool flag = true) { } }
+}
+
+[System.Runtime.CompilerServices.NonNullTypes]
+public class TestType1 { }
+");
+            Assert.False(reference.GetMember("TestType1").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+
+            var code = @"
+extern alias Reference;
+[module: Reference::System.Runtime.CompilerServices.NonNullTypes]
+";
+
+            // NonNullTypesAttribute from referenced assembly is used via extern alias
+            var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference(aliases: ImmutableArray.Create("Reference")) });
+            comp.VerifyDiagnostics();
+
+            Assert.False(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
         }
 
         [Fact]
