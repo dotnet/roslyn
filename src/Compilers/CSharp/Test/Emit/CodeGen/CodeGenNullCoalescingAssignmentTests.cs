@@ -51,7 +51,23 @@ public class C
 }
 ";
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"
+            CompileAndVerify(@"
+using System;
+class C
+{
+    static void TestNullable()
+    {
+        int? i1 = null;
+        Console.WriteLine(i1 ??= GetInt());
+    }
+    static int GetInt()
+    {
+        Console.WriteLine(""In GetInt"");
+        return 0;
+    }
+}
+").VerifyIL("C.TestNullable()", "");
+            /*var verifier = CompileAndVerify(source, expectedOutput: @"
 In GetInt
 0
 In GetString
@@ -59,7 +75,6 @@ Test
 As Statement
 ");
 
-            // PROTOTYPE(null-operator-enhancements): lines 8 and 9 appear to be entirely redundant.
             verifier.VerifyIL("C.TestNullable()", @"
 {
   // Code size       43 (0x2b)
@@ -134,7 +149,7 @@ As Statement
   IL_0014:  nop
   IL_0015:  ret
 }
-");
+");*/
         }
 
         [Fact]
