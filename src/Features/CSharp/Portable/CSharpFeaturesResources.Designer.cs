@@ -89,6 +89,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add await and ConfigureAwait(false).
+        /// </summary>
+        internal static string Add_await_and_ConfigureAwaitFalse {
+            get {
+                return ResourceManager.GetString("Add_await_and_ConfigureAwaitFalse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add parentheses.
         /// </summary>
         internal static string Add_parentheses_around_conditional_expression_in_interpolated_string {

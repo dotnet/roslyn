@@ -2,22 +2,19 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
 {
     /// <summary>
-    /// This refactoring complements the AddAwait fixer. It allows adding `await` even there is no compiler error to trigger the fixer.
+    /// This refactoring complements the AddAwait fixer. It allows adding `await` and `await ... .ConfigureAwait(false)` even there is no compiler error to trigger the fixer.
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddAwait), Shared]
     internal partial class CSharpAddAwaitCodeRefactoringProvider : CodeRefactoringProvider
@@ -51,7 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Add_await,
-                    c => AddAwaitAsync(document, awaitable, c)));
+                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: false, c)));
+
+
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    CSharpFeaturesResources.Add_await_and_ConfigureAwaitFalse,
+                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: true, c)));
         }
 
         private ExpressionSyntax GetAwaitableExpression(TextSpan textSpan, SyntaxToken token, SemanticModel model, CancellationToken cancellationToken)
@@ -79,11 +82,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
         private async Task<Document> AddAwaitAsync(
             Document document,
             ExpressionSyntax invocation,
+            bool withConfigureAwait,
             CancellationToken cancellationToken)
         {
-            var awaitExpression = SyntaxFactory.AwaitExpression(invocation.WithoutTrivia())
+            var withoutTrivia = invocation.WithoutTrivia();
+            if (withConfigureAwait)
+            {
+                // add `.ConfigureAwait(false)`
+                withoutTrivia = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, withoutTrivia, SyntaxFactory.IdentifierName(nameof(Task.ConfigureAwait))),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList( new[] { SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)) })));
+            }
+
+            var awaitExpression = SyntaxFactory.AwaitExpression(withoutTrivia)
                 .Parenthesize()
                 .WithTriviaFrom(invocation);
+
             return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken);
         }
 

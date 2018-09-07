@@ -12,6 +12,11 @@
         <target state="new">Add await</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_await_and_ConfigureAwaitFalse">
+        <source>Add await and ConfigureAwait(false)</source>
+        <target state="new">Add await and ConfigureAwait(false)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_remove_braces_for_single_line_control_statements">
         <source>Add/remove braces for single-line control statements</source>
         <target state="translated">Ajouter/supprimer des accolades pour les instructions de contrôle sur une seule ligne</target>
