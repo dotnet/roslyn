@@ -51,23 +51,7 @@ public class C
 }
 ";
 
-            CompileAndVerify(@"
-using System;
-class C
-{
-    static void TestNullable()
-    {
-        int? i1 = null;
-        Console.WriteLine(i1 ??= GetInt());
-    }
-    static int GetInt()
-    {
-        Console.WriteLine(""In GetInt"");
-        return 0;
-    }
-}
-").VerifyIL("C.TestNullable()", "");
-            /*var verifier = CompileAndVerify(source, expectedOutput: @"
+            var verifier = CompileAndVerify(source, expectedOutput: @"
 In GetInt
 0
 In GetString
@@ -149,7 +133,7 @@ As Statement
   IL_0014:  nop
   IL_0015:  ret
 }
-");*/
+");
         }
 
         [Fact]
