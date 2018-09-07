@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return annotations.Value;
                 }
 
-                CommonParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
+                ParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
                 bool hasEnsuresNotNull = attributeData?.HasEnsuresNotNullAttribute == true;
 
                 return FlowAnalysisAnnotationsFacts.Create(
@@ -234,36 +234,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // PROTOTYPE(NullableReferenceTypes): calling IsNullable causes cycle
-            //if (parameterType.IsNullable == false &&
-            //    parameterType.IsReferenceType &&
-            //    convertedExpression.ConstantValue?.IsNull == true &&
-            //    !suppressNullableWarning(convertedExpression))
-            //{
-            //    diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, parameterSyntax.Default.Value.Location);
-            //}
+            if (parameterType.IsReferenceType &&
+                convertedExpression.ConstantValue?.IsNull == true &&
+                !suppressNullableWarning(convertedExpression) &&
+                DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureStaticNullChecking.RequiredVersion())
+            {
+                // Note: Eagerly calling IsNullable causes a cycle, so we delay the check
+                diagnostics.Add(new LazyNullAsNonNullableDiagnosticInfo(parameterType), parameterSyntax.Default.Value.Location);
+            }
 
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
             VerifyParamDefaultValueMatchesAttributeIfAny(value, defaultSyntax.Value, diagnostics);
             return value;
 
-            //bool suppressNullableWarning(BoundExpression expr)
-            //{
-            //    while (true)
-            //    {
-            //        switch (expr.Kind)
-            //        {
-            //            case BoundKind.Conversion:
-            //                expr = ((BoundConversion)expr).Operand;
-            //                break;
-            //            case BoundKind.SuppressNullableWarningExpression:
-            //                return true;
-            //            default:
-            //                return false;
-            //        }
-            //    }
-            //}
+            bool suppressNullableWarning(BoundExpression expr)
+            {
+                while (true)
+                {
+                    switch (expr.Kind)
+                    {
+                        case BoundKind.Conversion:
+                            expr = ((BoundConversion)expr).Operand;
+                            break;
+                        case BoundKind.SuppressNullableWarningExpression:
+                            return true;
+                        default:
+                            return false;
+                    }
+                }
+            }
         }
 
         public override string MetadataName
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonParameterWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        internal ParameterWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonParameterWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (ParameterWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -569,23 +569,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.InAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasInAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasInAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.OutAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasOutAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasOutAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
             {
-                MarshalAsAttributeDecoder<CommonParameterWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.Parameter, MessageProvider.Instance);
+                MarshalAsAttributeDecoder<ParameterWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.Parameter, MessageProvider.Instance);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IDispatchConstantAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasIDispatchConstantAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasIDispatchConstantAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IUnknownConstantAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasIUnknownConstantAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasIUnknownConstantAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CallerLineNumberAttribute))
             {
@@ -630,23 +630,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenTrueAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasNotNullWhenTrueAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasNotNullWhenTrueAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenFalseAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasNotNullWhenFalseAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasNotNullWhenFalseAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresNotNullAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsTrueAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasAssertsTrueAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAssertsTrueAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsFalseAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasAssertsFalseAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAssertsFalseAttribute = true;
             }
         }
 
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
 
-            var data = (CommonParameterWellKnownAttributeData)decodedData;
+            var data = (ParameterWellKnownAttributeData)decodedData;
             if (data != null)
             {
                 switch (RefKind)

@@ -125,12 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public string Name => TypeSymbol.Name;
         public SymbolKind Kind => TypeSymbol.Kind;
 
-        // PROTOTYPE(NullableReferenceTypes): GetDebuggerDisplay pulls on NonNullTypes while debugging
+        // Note: We cannot pull on NonNullTypes while debugging, as that causes cycles, so we only display annotated vs. un-annotated.
         internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
-            /*compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier*/);
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         internal static readonly SymbolDisplayFormat TestDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -373,8 +372,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal string GetDebuggerDisplay() => _defaultType is null ? "null" : ToDisplayString(DebuggerDisplayFormat);
 
-        // PROTOTYPE(NullableReferenceTypes): Remove IFormattable implementation
-        // if instances should not be used as Diagnostic arguments.
         string IFormattable.ToString(string format, IFormatProvider formatProvider)
         {
             return ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);

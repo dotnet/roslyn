@@ -9089,7 +9089,7 @@ End Module
         ' This does not affect `IsNullable`, but it affects `IsAnnotatedWithNonNullTypesContext`, which is used in comparisons.
         ' So when we copy modifiers (re-applying nullability information, including actual NonNullTypes context), we make the comparison fail.
         ' I think the solution is to never use a dummy context, even for value types.
-        <Fact(Skip:="PROTOTYPE(NullableReferenceTypes): Hitting assertion in  CopyTypeCustomModifiers")>
+        <Fact>
         Public Sub TupleNamesFromCS001()
 
             Dim csCompilation = CreateCSharpCompilation("CSDll",

@@ -1756,7 +1756,7 @@ interface ITest4<T, U>
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly), Skip = "PROTOTYPE(NullableReferenceTypes): Symbols with nullability are incorrectly getting created in a C# 7 compilation")]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void DynamicEncodingDecoding_01()

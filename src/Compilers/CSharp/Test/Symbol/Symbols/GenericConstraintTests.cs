@@ -3178,12 +3178,12 @@ abstract class A
 }
 class B: A
 {
-    public override I<T> F<T>() { return null; }
+    public override I<U> F<U>() { return null; }
 }";
-            // PROTOTYPE(NullableReferenceTypes): Return type and parameter types of
-            // overridden generic methods have nullability set.
-            var comp = CreateCompilation(source, skipUsesIsNullable: true);
+            var comp = CreateCompilation(source);
             CompileAndVerify(comp);
+            var method = comp.GetMember<MethodSymbol>("B.F");
+            Assert.Equal("I<U> B.F<U>() where U : class", method.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
         }
 
         [WorkItem(542264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542264")]

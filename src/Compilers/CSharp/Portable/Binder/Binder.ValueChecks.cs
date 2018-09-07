@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
 
                 case BoundKind.SuppressNullableWarningExpression:
-                    // PROTOTYPE(NullableReferenceTypes): Are we hitting this code path?
+                    // https://github.com/dotnet/roslyn/issues/29710 We can reach this assertion
                     Debug.Assert(false);
                     return CheckValueKind(node, ((BoundSuppressNullableWarningExpression)expr).Expression, valueKind, checkingReceiver, diagnostics);
             }

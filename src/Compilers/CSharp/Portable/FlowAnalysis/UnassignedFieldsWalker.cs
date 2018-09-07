@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
                 var fieldType = field.Type;
-                if (fieldType.IsValueType)
+                if (fieldType.IsValueType || fieldType.IsErrorType())
                 {
                     continue;
                 }

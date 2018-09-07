@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             visitor.Visit(symbol);
         }
 
+        private void Add(Symbol symbol)
+            => _builder.Add(symbol);
+
         public override bool VisitNamespace(NamespaceSymbol symbol)
         {
             return VisitList(symbol.GetMembers());
@@ -33,8 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public override bool VisitNamedType(NamedTypeSymbol symbol)
         {
-            // PROTOTYPE(NullableReferenceTypes): Check BaseType and Interfaces type arguments.
-            if (AddIfUsesIsNullable(symbol, symbol.TypeParameters))
+            if (AddIfUsesIsNullable(symbol, symbol.BaseTypeNoUseSiteDiagnostics) ||
+                AddIfUsesIsNullable(symbol, symbol.InterfacesNoUseSiteDiagnostics()) ||
+                AddIfUsesIsNullable(symbol, symbol.TypeParameters))
             {
                 return true;
             }
@@ -77,9 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return result;
         }
 
-        private void Add(Symbol symbol)
-            => _builder.Add(symbol);
-
         /// <summary>
         /// Check the parameters of a method or property, but report that method/property rather than
         /// the parameter itself.
@@ -110,7 +111,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return false;
         }
 
+        private bool AddIfUsesIsNullable(Symbol symbol, ImmutableArray<NamedTypeSymbol> types)
+        {
+            foreach (var type in types)
+            {
+                if (UsesIsNullable(type))
+                {
+                    Add(symbol);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private bool AddIfUsesIsNullable(Symbol symbol, TypeSymbolWithAnnotations type)
+        {
+            if (UsesIsNullable(type))
+            {
+                Add(symbol);
+                return true;
+            }
+            return false;
+        }
+
+        private bool AddIfUsesIsNullable(Symbol symbol, TypeSymbol type)
         {
             if (UsesIsNullable(type))
             {
