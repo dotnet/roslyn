@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
                 yield return "System";
                 yield return "System.Core";
                 yield return "Microsoft.CSharp";
-                yield return "System.ValueTuple.dll";
             }
             else
             {
@@ -76,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
                 yield return "System.Linq.Expressions";
                 yield return "System.Runtime.Numerics";
                 yield return "System.Dynamic.Runtime";
-                yield return "System.ValueTuple";
                 yield return "Microsoft.CSharp";
             }
         }
@@ -170,7 +168,7 @@ $@"{ logoOutput }
 >", runner.Console.Out.ToString());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17043")]
+        [Fact]
         [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture2()
         {
@@ -224,7 +222,7 @@ $@"{s_logoAndHelpPrompt}
 > ", runner.Console.Out.ToString());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18479")]
+        [Fact]
         [WorkItem(18479, "https://github.com/dotnet/roslyn/issues/18479")]
         public void Tuples()
         {
