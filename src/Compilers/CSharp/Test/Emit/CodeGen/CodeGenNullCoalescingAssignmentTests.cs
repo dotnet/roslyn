@@ -859,7 +859,42 @@ public class C
         [Fact]
         public void RefAssignment()
         {
-            var source = @"
+            var source1 = @"
+class C
+{
+    object f1;
+    void M()
+    {
+        ref object o1 = ref f1;
+        ref object o2 = ref f1;
+        o1 ??= o2;
+    }
+}";
+
+            CompileAndVerify(source1).VerifyIL("C.M()", expectedIL: @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (object& V_0, //o1
+                object& V_1) //o2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""object C.f1""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldflda     ""object C.f1""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.0
+  IL_000f:  ldind.ref
+  IL_0010:  brtrue.s   IL_0016
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  ldind.ref
+  IL_0015:  stind.ref
+  IL_0016:  ret
+}
+");
+
+            var source2 = @"
 class C
 {
     object f1;
@@ -872,7 +907,7 @@ class C
     }
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(new DiagnosticDescription[] {
+            CreateCompilation(source2).VerifyDiagnostics(new DiagnosticDescription[] {
 
                 // (9,16): error CS1525: Invalid expression term 'ref'
                 //         o1 ??= ref o2;
@@ -931,28 +966,34 @@ class C
 {
     static void Main()
     {
-        object o = null;
-        M(o ??= ""Test String"");
+        M1(null);
     }
 
-    static void M(in object o) => Console.WriteLine(o);
+    static void M1(object o)
+    {
+        M2(o ??= ""Test String"");
+    }
+
+    static void M2(in object o) => Console.WriteLine(o);
 }";
 
             var verifier = CompileAndVerify(source, expectedOutput: "Test String");
-            verifier.VerifyIL("C.Main()", expectedIL: @"
+            verifier.VerifyIL("C.M1(object)", expectedIL: @"
 {
-  // Code size       19 (0x13)
+  // Code size       22 (0x16)
   .maxstack  2
   .locals init (object V_0)
-  IL_0000:  ldnull
+  IL_0000:  ldarg.0
   IL_0001:  dup
-  IL_0002:  brtrue.s   IL_000a
+  IL_0002:  brtrue.s   IL_000d
   IL_0004:  pop
   IL_0005:  ldstr      ""Test String""
-  IL_000a:  stloc.0
-  IL_000b:  ldloca.s   V_0
-  IL_000d:  call       ""void C.M(in object)""
-  IL_0012:  ret
+  IL_000a:  dup
+  IL_000b:  starg.s    V_0
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  call       ""void C.M2(in object)""
+  IL_0015:  ret
 }
 ");
 
