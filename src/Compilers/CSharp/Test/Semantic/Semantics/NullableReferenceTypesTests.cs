@@ -31552,6 +31552,7 @@ class P
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            // PROTOTYPE(NullableReferenceTypes): Duplicate WRN_NullAsNonNullable diagnoistics at some locations
             comp.VerifyDiagnostics(
                 // (6,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static void F1<T>(T t = null) where T : class { }
@@ -31619,9 +31620,18 @@ class P
                 // (91,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F0<T>(default); // 5
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(91, 15),
+                // (91,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(91, 15),
                 // (93,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F5<T>(default); // 5
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(93, 15),
+                // (93,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F5<T>(default); // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(93, 15),
+                // (95,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, T>(default); // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(95, 18),
                 // (95,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F6<T, T>(default); // 5
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(95, 18),
