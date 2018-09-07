@@ -14,7 +14,6 @@
     Since multiple projects may contribute to a single insertion component
     we need to package them in a separate phase.
 
-    TODO: the sign tool needs to support vsman files:
     Insertion manifests (vsman files) contain hashes of the referenced VSIXes.
     These need to be calculated using signed VSIXes.
     Hence we need to run this task after signing.
