@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyCustomAttributes.IsDefault)
             {
+                // https://github.com/dotnet/roslyn/issues/29732 A race condition can produce duplicate diagnostics here
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, MakeAttributes());
             }
             return _lazyCustomAttributes;
@@ -71,8 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // member is missing
                 return ImmutableArray<CSharpAttributeData>.Empty;
             }
-
-            Binder.ReportUseSiteDiagnostics(ctor, _diagnostics, Location.None);
 
             NamedTypeSymbol attributeTargets = DeclaringCompilation.GetWellKnownType(WellKnownType.System_AttributeTargets);
             Binder.ReportUseSiteDiagnostics(attributeTargets, _diagnostics, Location.None);

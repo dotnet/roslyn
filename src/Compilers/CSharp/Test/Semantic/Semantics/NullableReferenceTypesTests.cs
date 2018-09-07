@@ -1026,6 +1026,84 @@ namespace System
         }
 
         [Fact]
+        public void NonNullTypesAttribute_WithObsoleteAttributeUsageConstructor()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class ValueType { }
+    public struct Boolean { }
+    public class String { }
+    public class Enum { }
+    public struct Int32 { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        [System.Obsolete(""obsolete"")]
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get; set; }
+    }
+    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
+        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
+        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
+        GenericParameter = 16384, All = 32767 }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute(string message) => throw null;
+    }
+}
+";
+            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"));
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_WithBadAttributeConstructor()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Attribute { public Attribute(bool ignored) { } }
+    public class ValueType { }
+    public struct Boolean { }
+    public class String { }
+    public class Enum { }
+    public struct Int32 { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) : base(true) => throw null;
+        public bool AllowMultiple { get; set; }
+    }
+    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
+        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
+        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
+        GenericParameter = 16384, All = 32767 }
+}
+";
+            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
+
+            // https://github.com/dotnet/roslyn/issues/29732 We should not accumulate diagnostics with every attempt to emit
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
+        }
+
+        [Fact]
         public void NonNullTypesAttribute_WithAttributeUsage()
         {
             var source = @"

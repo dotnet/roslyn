@@ -11,6 +11,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AttributeTests_NonNullTypes : CSharpTestBase
     {
         [Fact]
+        public void EmbeddedAttributeInAddedModule()
+        {
+            var module = CreateCompilation(@"
+namespace Microsoft.CodeAnalysis
+{
+    public class EmbeddedAttribute : System.Attribute { }
+}
+", options: TestOptions.ReleaseModule);
+
+            var reference = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
+
+            var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
+
+            var comp = CreateCompilation(code, references: new[] { reference });
+            comp.VerifyEmitDiagnostics(
+                // error CS0101: The namespace 'Microsoft.CodeAnalysis' already contains a definition for 'EmbeddedAttribute'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("EmbeddedAttribute", "Microsoft.CodeAnalysis").WithLocation(1, 1)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29732 Crashing")]
+        public void EmbeddedAttributeInAddedModule_Injected()
+        {
+            var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
+
+            var module = CreateCompilation(code, options: TestOptions.ReleaseModule);
+            var reference = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
+
+            var comp = CreateCompilation(code, references: new[] { reference });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void NonNullTypesAttributeNamespace()
         {
             var code = @"
@@ -180,13 +213,18 @@ public class TestType1 { }
             var code = @"
 extern alias Reference;
 [module: Reference::System.Runtime.CompilerServices.NonNullTypes]
+class C
+{
+    string? M() => throw null;
+}
 ";
 
-            // NonNullTypesAttribute from referenced assembly is used via extern alias
+            // NonNullTypesAttribute from referenced assembly is used via extern alias and it takes effect to turn the nullability feature on
             var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference(aliases: ImmutableArray.Create("Reference")) });
             comp.VerifyDiagnostics();
 
             Assert.False(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.True(comp.SourceModule.NonNullTypes);
         }
 
         [Fact]

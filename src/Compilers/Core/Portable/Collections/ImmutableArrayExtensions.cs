@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // In DEBUG, swap the first and last elements of a read-only array, yielding a new read only array.
-        // Used in DEBUG to make sure that read-only array is not sorted, to help avoid depending on accidentally sorted arrays. 
+        // This helps to avoid depending on accidentally sorted arrays.
         internal static ImmutableArray<T> ConditionallyDeOrder<T>(this ImmutableArray<T> array)
         {
 #if DEBUG

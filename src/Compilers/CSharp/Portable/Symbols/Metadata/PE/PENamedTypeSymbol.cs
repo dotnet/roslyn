@@ -764,11 +764,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ImmutableArray<Symbol> GetMembersUnordered()
-        {
-            return GetMembers().ConditionallyDeOrder();
-        }
-
         public override ImmutableArray<Symbol> GetMembers()
         {
             EnsureAllMembersAreLoaded();
