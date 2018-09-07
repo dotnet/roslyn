@@ -25,6 +25,31 @@ class TestClass {|Brace:{|}
         }
 
         [Fact]
+        [WorkItem(181, "https://github.com/dotnet/roslyn-sdk/issues/181")]
+        public async Task TestCSharpMarkupSingleBracePosition()
+        {
+            var testCode = @"
+class TestClass $${
+}
+";
+
+            await new CSharpTest(nestedDiagnostics: false) { TestCode = testCode }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(181, "https://github.com/dotnet/roslyn-sdk/issues/181")]
+        public async Task TestCSharpMarkupMultipleBracePositions()
+        {
+            var testCode = @"
+class TestClass $${
+  void TestMethod() $${ }
+}
+";
+
+            await new CSharpTest(nestedDiagnostics: false) { TestCode = testCode }.RunAsync();
+        }
+
+        [Fact]
         [WorkItem(189, "https://github.com/dotnet/roslyn-sdk/issues/189")]
         public async Task TestCSharpNestedMarkupBrace()
         {
@@ -53,7 +78,8 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
                 _nestedDiagnostics = nestedDiagnostics;
             }
 
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor, DescriptorOuter);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                => _nestedDiagnostics ? ImmutableArray.Create(Descriptor, DescriptorOuter) : ImmutableArray.Create(Descriptor);
 
             public override void Initialize(AnalysisContext context)
             {
