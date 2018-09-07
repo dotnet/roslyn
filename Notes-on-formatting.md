@@ -21,19 +21,43 @@ The default rule is to add spaces between every pair of tokens. Then there are r
 Ex: spacing in method declaration is affected by options.
 ![image](https://user-images.githubusercontent.com/12466233/39938013-60956d48-5506-11e8-9619-c9eef2f8de39.png)
 
-`CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)`
-`CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces)`
-`CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)`
-`CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)`
-`CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.PreserveSpaces)`
+- `CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)`
+- `CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces)` (forces a minimum of 1 space)
+- `CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)`
+- `CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)`
+- `CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.PreserveSpaces)` (keep whatever spaces are there)
 
 ### Newlines
 
-Example of typing `if () {}`.
-Preserving lines (ie. requiring a minimum, but allowing user-input spaces), with minimum 0 or minimum 1
+- `AddSuppressWrappingIfOnSingleLineOperation`
 
-Suppressions
-Effect of newlines on indentations
+Example of typing `if () {}`:
+The rules for breaking lines inside the block of an `if` are conditional, so do not apply if the two braces are on the same line.
+
+![image](https://user-images.githubusercontent.com/12466233/45203182-298bc400-b230-11e8-9f53-4818e44f1fcf.png)
+
+But as soon as the braces are no longer on the same line and and you re-format, then those kick in and more newlines are inserted.
+
+![newline-suppression](https://user-images.githubusercontent.com/12466233/45204277-8dfc5280-b233-11e8-9f1e-f1106013424b.gif)
+
+- `CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)`: indicates a place for a newline, but doesn't require one. Without this, the next line would not indented/aligned if a newline is present. Such an optional newline is present after the semi-colon terminating a statement. So two statements can remain on the same line, but if they are separated by a newline, then the second statement is indented relative to the containing block.
+- `CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines)`: indicates a place for a newline (minimum of one). Such mandatory newline is present after the colon terminating a `case` label.
+
+### Indentation
+The simple case is to declare a span to be indented from the containing scope.
+This is done with `AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, brace)`.
+As described above, you need newlines (ie. known to the formatting engine, not just a newline character in source) for indentation to kick in.
+
+### Anchoring
+
+Anchoring a block to a token means that if formatting moves the token, then the block will be moved along with the token.
+This is done with `AddAnchorIndentationOperation(list, anchor)`.
+
+This is illustrated by the argument list for a method invocation. In both screen captures below, the formatting will cause the method name to be indented properly. As you can see, the arguments will just shift along with it.
+
+![anchoring1](https://user-images.githubusercontent.com/12466233/45203634-a0758c80-b231-11e8-9835-e8a289672b52.gif)
+
+![anchoring2](https://user-images.githubusercontent.com/12466233/45203640-a3707d00-b231-11e8-82a9-b56db538ea66.gif)
 
 ## Troubleshooting
 
@@ -47,9 +71,6 @@ From what I've seen so far, issues that I found while manually testing in the ID
 
 ### TODO
 - some operations apply to spans
-- newlines and suppressions
-- indentation (and the relation to newlines)
-- gif for anchoring
 - Triggers for formatting (user can trigger, brace completion, end-of-line or other special characters?)
 - brace completion
 - note that in some scenarios, there isn't a need for formatting the whole document, so some operations that are deemed irrelevant will be discarded.
