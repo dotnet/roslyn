@@ -1,14 +1,12 @@
-**This document is work-in-progress (jcouv)**
-
 While working on formatting for recursive-patterns (PR [#26555](https://github.com/dotnet/roslyn/pull/26555)), I've hit a number of issues. I'm capturing some notes of what I learnt from Heejae and others. That should provide some working knowledge of how to edit and troubleshoot rules, without having very deep knowledge of the formatting engine itself.
 
-We'll start with an overview, then some scenarios, then some troubleshooting tips:
+We'll start with an overview, then some scenarios, then some troubleshooting tips.
 
 ## Overview
 
 The formatting is driven by multiple rules. The rules are chained in a certain order, and unless a decision was already made, the next rule gets to inspect each token pair (current token and previous token) and produce an operation. The engine collects all those operations of different kinds and applies them.
 
-There are operations for spacing, for newlines (and newline suppressions), for indenting, for anchoring, and probably other ones.
+There are operations for spacing, for newlines (and newline suppressions), for indenting, and for anchoring.
 
 ## Scenarios
 
@@ -39,7 +37,7 @@ Without this, the next line would not indented/aligned if a newline is present. 
 
 Example of typing `if () {}`:
 
-The rules for breaking lines inside the block of an `if` are conditional, so are suppressed if the two braces are on the same line.
+The rules for breaking lines inside the block of an `if` are conditionally suppressed if the two braces are on the same line.
 
 ![image](https://user-images.githubusercontent.com/12466233/45203182-298bc400-b230-11e8-9f53-4818e44f1fcf.png)
 
@@ -52,14 +50,14 @@ The simple case is to declare a span to be indented from the containing scope.
 
 This is done with `AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, brace)`.
 
-As described above, you need newlines (ie. known to the formatting engine, not just a newline character in source) for indentation to kick in.
+As noted above, you need newlines (ie. known to the formatting engine, not just a newline character in source) for indentation to kick in.
 
 ### Anchoring
 
 Anchoring a block to a token means that if formatting moves the token, then the block will be moved along with the token.
 This is done with `AddAnchorIndentationOperation(list, anchor)`.
 
-This is illustrated by the argument list for a method invocation. In both screen captures below, the formatting will cause the method name to be indented properly. As you can see, the arguments will just shift along with it, retaining their relative position.
+This is illustrated by the argument list for a method invocation. In both screen captures below, the formatting will cause the method name to be indented properly. As you can see, the arguments will just shift along with it, retaining their relative position (the arguments are anchored to the open parenthesis).
 
 ![anchoring1](https://user-images.githubusercontent.com/12466233/45203634-a0758c80-b231-11e8-9835-e8a289672b52.gif)
 
