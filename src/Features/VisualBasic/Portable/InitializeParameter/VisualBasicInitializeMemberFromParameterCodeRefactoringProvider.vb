@@ -42,26 +42,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement)
         End Sub
 
-        Protected Overrides Function DetermineDefaultFieldAccessibility(document As Document, functionDeclaration As SyntaxNode, model As SemanticModel, cancellationToken As CancellationToken) As Accessibility
-            Dim accessibilityLevel = Accessibility.[Public]
-            Dim service = document.GetLanguageService(Of ISyntaxFactsService)()
-            Dim containingTypeNode = service.GetContainingTypeDeclaration(functionDeclaration, functionDeclaration.SpanStart)
-
-            If containingTypeNode IsNot Nothing Then
-                Dim containingTypeSymbol = CType(model.GetDeclaredSymbol(containingTypeNode, cancellationToken), INamedTypeSymbol)
-
-                ' Fields are public by default in VB, except in the case of classes and modules.
-                Select Case containingTypeSymbol.TypeKind
-                    Case TypeKind.[Class], TypeKind.[Module]
-                        accessibilityLevel = Accessibility.[Private]
-                End Select
-            End If
-            Return accessibilityLevel
+        ' Fields are public by default in VB, except in the case of classes and modules.
+        Protected Overrides Function DetermineDefaultFieldAccessibility(document As Document, functionDeclaration As SyntaxNode, containingType As INamedTypeSymbol, cancellationToken As CancellationToken) As Accessibility
+            Return If(containingType.TypeKind = TypeKind.Class Or containingType.TypeKind = TypeKind.Module, Accessibility.Private, Accessibility.Public)
         End Function
 
         ' Properties are always public by default in VB.
         Protected Overrides Function DetermineDefaultPropertyAccessibility() As Accessibility
-            Return Accessibility.[Public]
+            Return Accessibility.Public
         End Function
     End Class
 End Namespace

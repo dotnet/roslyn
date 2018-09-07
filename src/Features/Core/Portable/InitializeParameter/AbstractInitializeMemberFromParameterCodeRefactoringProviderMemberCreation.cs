@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
+        protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
+
+        protected abstract Accessibility DetermineDefaultFieldAccessibility(Document document, SyntaxNode functionDeclaration, INamedTypeSymbol containingType, CancellationToken cancellationToken);
+
+        protected abstract Accessibility DetermineDefaultPropertyAccessibility();
+
         // Standard field/property names we look for when we have a parameter with a given name.
         // We also use the rules to help generate fresh fields/properties.  Note that we always
         // look at these rules *after* the user's own rules.  That way we respect user naming, but
@@ -51,8 +57,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
                     new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
                     enforcementLevel: ReportDiagnostic.Hidden));
-
-        protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
@@ -142,8 +146,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var accessibilityLevel = Accessibility.Private;
                     if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
                     {
-                        var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        var defaultAccessibility = DetermineDefaultFieldAccessibility(document, functionDeclaration, model, cancellationToken);
+                        var defaultAccessibility = DetermineDefaultFieldAccessibility(document, functionDeclaration, parameter.ContainingType, cancellationToken);
                         if (defaultAccessibility == Accessibility.Private)
                         {
                             accessibilityLevel = Accessibility.NotApplicable;
@@ -162,8 +165,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // always find a matching rule.
             throw ExceptionUtilities.Unreachable;
         }
-
-        protected abstract Accessibility DetermineDefaultFieldAccessibility(Document document, SyntaxNode functionDeclaration, SemanticModel model, CancellationToken cancellationToken);
 
         private static string GenerateUniqueName(IParameterSymbol parameter, ImmutableArray<string> parameterNameParts, NamingRule rule)
         {
@@ -224,8 +225,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // always find a matching rule.
             throw ExceptionUtilities.Unreachable;
         }
-
-        protected abstract Accessibility DetermineDefaultPropertyAccessibility();
 
         private async Task<Document> AddSymbolInitializationAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
