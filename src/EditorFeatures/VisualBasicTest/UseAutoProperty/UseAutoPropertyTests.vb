@@ -194,6 +194,32 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
+        Public Async Function TestInitializer_Multiline() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class C
+    Dim [|_b|] = {
+        ""one"",
+        ""two"",
+        ""three""}
+    Public Property P()
+        Get
+            Return _b
+        End Get
+        Set
+            _b = Value
+        End Set
+    End Property
+End Class",
+"Public Class C
+    Public Property P() = {
+        ""one"",
+        ""two"",
+        ""three""}
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestReadOnlyField() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1
