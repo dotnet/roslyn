@@ -46,11 +46,11 @@ From what I've seen so far, issues that I found while manually testing in the ID
 
 
 ### TODO
-some operations apply to spans
-newlines and suppressions
-indentation (and the relation to newlines)
-gif for anchoring
-Triggers for formatting (user can trigger, brace completion, end-of-line or other special characters?)
-brace completion
-note that in some scenarios, there isn't a need for formatting the whole document, so some operations that are deemed irrelevant will be discarded.
-smart token formatter (place the cursor in the right default position after enter is pressed)
+- some operations apply to spans
+- newlines and suppressions
+- indentation (and the relation to newlines)
+- gif for anchoring
+- Triggers for formatting (user can trigger, brace completion, end-of-line or other special characters?)
+- brace completion
+- note that in some scenarios, there isn't a need for formatting the whole document, so some operations that are deemed irrelevant will be discarded.
+- smart token formatter (place the cursor in the right default position after enter is pressed)
