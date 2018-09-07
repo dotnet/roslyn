@@ -37,6 +37,42 @@ class Program
         }
 
         [Fact]
+        public async Task InArgument()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System.Threading.Tasks;
+class Program
+{
+    async Task<int> GetNumberAsync(int argument)
+    {
+        var x = GetNumberAsync(arg[||]ument);
+    }
+}", @"
+using System.Threading.Tasks;
+class Program
+{
+    async Task<int> GetNumberAsync(int argument)
+    {
+        var x = await GetNumberAsync(argument);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task AlreadyAwaited()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System.Threading.Tasks;
+class Program
+{
+    async Task<int> GetNumberAsync()
+    {
+        var x = await GetNumberAsync()[||];
+    }
+}");
+        }
+
+        [Fact]
         public async Task SimpleWithTrivia()
         {
             await TestInRegularAndScriptAsync(@"
@@ -56,6 +92,28 @@ class Program
     {
         var x = // comment
             await GetNumberAsync()[||] /* comment */
+    }
+}");
+        }
+
+        [Fact]
+        public async Task SimpleWithTrivia2()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System.Threading.Tasks;
+class Program
+{
+    async Task<int> GetNumberAsync()
+    {
+        var x = /* comment */ GetNumberAsync()[||] // comment
+    }
+}", @"
+using System.Threading.Tasks;
+class Program
+{
+    async Task<int> GetNumberAsync()
+    {
+        var x = /* comment */ await GetNumberAsync()[||] // comment
     }
 }");
         }

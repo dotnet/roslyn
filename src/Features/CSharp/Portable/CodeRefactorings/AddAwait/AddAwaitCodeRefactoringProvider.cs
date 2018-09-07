@@ -62,11 +62,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
                 return null;
             }
 
+            if (invocation.IsParentKind(SyntaxKind.AwaitExpression))
+            {
+                return null;
+            }
+
             var type = model.GetTypeInfo(invocation).Type;
             if (type?.IsAwaitableNonDynamic(model, token.SpanStart) == true)
             {
                 return invocation;
             }
+
             return null;
         }
 
@@ -75,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
             ExpressionSyntax invocation,
             CancellationToken cancellationToken)
         {
-            var awaitExpression = SyntaxFactory.AwaitExpression(invocation)
+            var awaitExpression = SyntaxFactory.AwaitExpression(invocation.WithoutTrivia())
                 .Parenthesize()
                 .WithTriviaFrom(invocation);
             return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken);
