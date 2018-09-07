@@ -283,6 +283,7 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                         case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                         case ErrorCode.WRN_NullabilityMismatchInConstraints:
+                        case ErrorCode.WRN_SuppressionOperatorNotReferenceType:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -291,7 +292,7 @@ class X
                         default:
                             // If a new warning is added, this test will fail
                             // and whoever is adding the new warning will have to update it with the expected error level.
-                            Assert.True(false, "Please update this test case with a proper warning level for '" + errorCodeName + "'");
+                            Assert.True(false, $"Please update this test case with a proper warning level ({ErrorFacts.GetWarningLevel(errorCode)}) for '{errorCodeName}'");
                             break;
                     }
                 }

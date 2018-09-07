@@ -432,6 +432,16 @@
         <target state="new">Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_SuppressionOperatorNotReferenceType">
+        <source>The suppression operator (!) can only be applied to reference types.</source>
+        <target state="new">The suppression operator (!) can only be applied to reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SuppressionOperatorNotReferenceType_Title">
+        <source>The suppression operator (!) can only be applied to reference types.</source>
+        <target state="new">The suppression operator (!) can only be applied to reference types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
         <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
         <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
@@ -9043,11 +9053,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="new">Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotNullableOperatorNotReferenceType">
-        <source>The suppression operator (!) can only be applied to reference types.</source>
-        <target state="new">The suppression operator (!) can only be applied to reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoBestNullabilityConditionalExpression">

@@ -298,8 +298,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (parseOptions == null)
             {
-                // PROTOTYPE(NullableReferenceTypes): Use default for LanguageVersion rather than LanguageVersion.CSharp7.
-                parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.CSharp7).WithDocumentationMode(DocumentationMode.None);
+                parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Default).WithDocumentationMode(DocumentationMode.None);
             }
 
             if (compilationOptions == null)

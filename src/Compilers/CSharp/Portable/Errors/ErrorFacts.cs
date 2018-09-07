@@ -350,6 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_MissingNonNullTypesContext:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                 case ErrorCode.WRN_NullabilityMismatchInConstraints:
+                case ErrorCode.WRN_SuppressionOperatorNotReferenceType:
                     return 1;
                 default:
                     return 0;

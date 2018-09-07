@@ -69,9 +69,34 @@ public class C<T>
         }
 
         [Fact]
+        public void UnconstrainedAndErrorNullableFields()
+        {
+            var source = @"
+public class C<T>
+{
+    public T? field;
+    public Unknown? field2;
+}
+";
+
+            var c = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            c.VerifyDiagnostics(
+                // (5,12): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //     public Unknown? field2;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(5, 12),
+                // (4,15): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public T? field;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "field").WithLocation(4, 15),
+                // (2,14): warning CS8618: Non-nullable field 'field' is uninitialized.
+                // public class C<T>
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "field").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
         public void NoNullableAnalysisWithoutNonNullTypes()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            var source = @"
 class C
 {
     void M(string z)
@@ -80,8 +105,101 @@ class C
         z.ToString();
     }
 }
-");
+[System.Runtime.CompilerServices.NonNullTypes]
+class C2
+{
+    void M(string z)
+    {
+        z = null; // 1
+        z.ToString(); // 2
+    }
+}
+";
+            var c = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition });
+            c.VerifyDiagnostics(
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         z = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(15, 13),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(16, 9)
+                );
 
+            var c2 = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition}, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            c2.VerifyDiagnostics(
+                // (10,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [System.Runtime.CompilerServices.NonNullTypes]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(10, 2)
+                );
+        }
+
+        [Fact]
+        public void NonNullTypesOnPartialSymbol()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.NonNullTypes]
+partial class C
+{
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    partial void M();
+}
+[System.Runtime.CompilerServices.NonNullTypes]
+partial class C
+{
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    partial void M() { }
+}
+";
+            var c = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition });
+            c.VerifyDiagnostics(
+                // (8,2): error CS0579: Duplicate 'System.Runtime.CompilerServices.NonNullTypes' attribute
+                // [System.Runtime.CompilerServices.NonNullTypes]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypes").WithLocation(8, 2),
+                // (11,6): error CS0579: Duplicate 'System.Runtime.CompilerServices.NonNullTypes' attribute
+                //     [System.Runtime.CompilerServices.NonNullTypes(false)]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypes").WithLocation(11, 6)
+                );
+        }
+
+        [Fact(Skip = "Hits assertion in CheckValueKind")]
+        public void SuppressionAsLValue()
+        {
+            var source = @"
+class C
+{
+    void M(string? x)
+    {
+        ref string y = ref x;
+        ref string y2 = ref x;
+        (y2! = ref y) = ref y;
+    }
+}
+";
+            // https://github.com/dotnet/roslyn/issues/29710 should we produce an error for misuse of suppression on an L-value?
+            var c = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SuppressionOnUnconstrainedTypeParameter()
+        {
+            var source = @"
+class C
+{
+    void M<T>(T t)
+    {
+        t!.ToString();
+    }
+}
+";
+            var c = CreateCompilation(new[] { source });
+            c.VerifyDiagnostics(
+                // (6,10): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                //         t!.ToString();
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 10)
+                );
+
+            c = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             c.VerifyDiagnostics();
         }
 
@@ -106,7 +224,7 @@ class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(2, 26),
                 // (2,22): error CS8624: The suppression operator (!) can only be applied to reference types.
                 // [System.Obsolete("", true!)] // 1, 2
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "true!").WithLocation(2, 22),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "true!").WithLocation(2, 22),
                 // (6,37): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //     static void Main(string z = null!) // 5
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 37),
@@ -22077,6 +22195,32 @@ class C
         }
 
         [Fact]
+        public void Discard_02()
+        {
+            // https://github.com/dotnet/roslyn/issues/29635 Need to re-infer discards
+            var source =
+@"class C<T>
+{
+    [System.Runtime.CompilerServices.NonNullTypes(true)]
+    void F(object o1, object? o2, C<object> o3, C<object?> o4)
+    {
+        _ /*T:object*/ = o1;
+        _ /*T:object*/ = o2;
+        _ /*T:C<object!>*/ = o3;
+        _ /*T:C<object?>*/ = o4;
+    }
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
+    void F(C<object> o)
+    {
+        _ /*T:C<object>*/ = o;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
+
+        [Fact]
         public void BinaryOperator_01()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -30184,7 +30328,7 @@ class C
             comp.VerifyDiagnostics(
                 // (5,16): error CS8624: The ! operator can only be applied to reference types.
                 //         return (b && G(out var o))!? o : null;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "(b && G(out var o))!").WithLocation(5, 16));
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "(b && G(out var o))!").WithLocation(5, 16));
         }
 
         [Fact]
@@ -30218,16 +30362,16 @@ struct S2<T>
             comp.VerifyDiagnostics(
                 // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(1!);
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "1!").WithLocation(5, 11),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "1!").WithLocation(5, 11),
                 // (6,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(((int?)null)!);
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
                 // (7,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(default(S)!);
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
                 // (8,13): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = new S2<object>()!;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
 
             // Feature disabled.
             comp = CreateCompilation(
@@ -30239,25 +30383,25 @@ struct S2<T>
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(5, 12),
                 // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(1!);
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "1!").WithLocation(5, 11),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "1!").WithLocation(5, 11),
                 // (6,23): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         G(((int?)null)!);
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 23),
                 // (6,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(((int?)null)!);
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
                 // (7,21): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         G(default(S)!);
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 21),
                 // (7,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(default(S)!);
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
                 // (8,29): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         _ = new S2<object>()!;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(8, 29),
                 // (8,13): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = new S2<object>()!;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
 
             // Feature disabled (C# 7).
             comp = CreateCompilation(
@@ -30281,25 +30425,25 @@ struct S2<T>
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(5, 12),
                 // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(1!);
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "1!").WithLocation(5, 11),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "1!").WithLocation(5, 11),
                 // (6,23): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         G(((int?)null)!);
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 23),
                 // (6,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(((int?)null)!);
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
                 // (7,21): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         G(default(S)!);
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 21),
                 // (7,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(default(S)!);
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
                 // (8,29): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         _ = new S2<object>()!;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(8, 29),
                 // (8,13): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = new S2<object>()!;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
         }
 
         [Fact]
@@ -30316,7 +30460,7 @@ struct S2<T>
             comp.VerifyDiagnostics(
                 // (3,41): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //     static S<object> F(S<object?> s) => s!/*T:S<object?>*/;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "s!").WithLocation(3, 41),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "s!").WithLocation(3, 41),
                 // (3,41): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
                 //     static S<object> F(S<object?> s) => s!/*T:S<object?>*/;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "s!").WithArguments("S<object?>", "S<object>").WithLocation(3, 41));
@@ -30343,7 +30487,7 @@ struct S2<T>
             comp.VerifyDiagnostics(
                 // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = tStruct!;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "tStruct!").WithLocation(6, 13));
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13));
 
             // Feature disabled.
             comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8);
@@ -30353,7 +30497,7 @@ struct S2<T>
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 20),
                 // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = tStruct!;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "tStruct!").WithLocation(6, 13),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13),
                 // (7,17): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         _ = tRef!;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 17),
@@ -30378,7 +30522,7 @@ struct S2<T>
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 20),
                 // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = tStruct!;
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "tStruct!").WithLocation(6, 13),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13),
                 // (7,17): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
                 //         _ = tRef!;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 17),
@@ -30433,10 +30577,10 @@ struct S2<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(12, 9),
                 // (20,9): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         default(T3)!.ToString(); // 4
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(T3)!").WithLocation(20, 9),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(T3)!").WithLocation(20, 9),
                 // (22,9): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         t3!.ToString(); // 5
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "t3!").WithLocation(22, 9));
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "t3!").WithLocation(22, 9));
         }
 
         [Fact]
@@ -30504,16 +30648,16 @@ class B5 : A<int>
             comp.VerifyDiagnostics(
                 // (19,14): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         t2 = default(T)!; // 1
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(T)!").WithLocation(19, 14),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(T)!").WithLocation(19, 14),
                 // (21,14): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         u2 = default(U)!; // 3
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(U)!").WithLocation(21, 14),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(U)!").WithLocation(21, 14),
                 // (49,14): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         t5 = default(int)!; // 5
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(int)!").WithLocation(49, 14),
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(int)!").WithLocation(49, 14),
                 // (51,14): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         u5 = default(U)!; // 7
-                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(U)!").WithLocation(51, 14));
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(U)!").WithLocation(51, 14));
         }
 
         [Fact]
@@ -31118,7 +31262,7 @@ F(v).ToString();";
         /// should not result in a warning at the call site.
         /// </summary>
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "Null check on default value temporarily skipped")]
+        [Fact]
         public void ParameterDefaultValue_FromMetadata()
         {
             var source0 =
@@ -31156,8 +31300,22 @@ F(v).ToString();";
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
         }
 
+        [Fact]
+        public void ParameterDefaultValue_WithSuppression()
+        {
+            var source0 =
+@"class C
+{
+    void F(object o = null!)
+    {
+    }
+}";
+            var comp = CreateCompilation( new[] { source0, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics();
+        }
+
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "Null check on default value temporarily skipped")]
+        [Fact]
         public void ParameterDefaultValue_01()
         {
             var source =
@@ -31251,7 +31409,7 @@ F(v).ToString();";
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "Null check on default value temporarily skipped")]
+        [Fact]
         public void ParameterDefaultValue_03()
         {
             var source =
@@ -31385,6 +31543,12 @@ class P
                 // (33,28): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F6<object, object>(default);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(33, 28),
+                // (39,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 0
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(39, 15),
+                // (41,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, T>(default); // 0
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(41, 18),
                 // (46,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F0<T>(default); // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(46, 15),
@@ -31394,6 +31558,15 @@ class P
                 // (50,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F6<T, T>(default); // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(50, 18),
+                // (66,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(66, 15),
+                // (69,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F3<T>(default); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(69, 15),
+                // (72,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, T>(default); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(72, 18),
                 // (78,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F0<T>(default); // 4
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(78, 15),
@@ -31408,11 +31581,31 @@ class P
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(84, 15),
                 // (86,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F6<T, T>(default); // 4
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(86, 18));
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(86, 18),
+                // (91,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(91, 15),
+                // (93,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F5<T>(default); // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(93, 15),
+                // (95,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, T>(default); // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(95, 18),
+                // (100,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 6
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(100, 15),
+                // (102,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, U>(default); // 6
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(102, 18)
+                );
 
             // No warnings with C#7.3.
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics();
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                );
         }
 
         [Fact]
@@ -31560,7 +31753,7 @@ class Client
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [Fact(Skip = "Null check on default value temporarily skipped")]
+        [Fact]
         public void ParameterDefaultValue_04()
         {
             var source =

@@ -159,8 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(false); // PROTOTYPE(NullableReferenceTypes): Can we reach this?
-                return false;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
