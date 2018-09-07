@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
 
-                var field = await CreateFieldAsync(document, requireAccessibilityModifiers, functionDeclaration, parameter, rules, parameterNameParts, cancellationToken).ConfigureAwait(false);
+                var field = CreateField(document, requireAccessibilityModifiers, functionDeclaration, parameter, rules, parameterNameParts, cancellationToken);
                 var property = CreateProperty(document, requireAccessibilityModifiers, parameter, rules, parameterNameParts, cancellationToken);
 
                 // Offer to generate either a property or a field.  Currently we place the property
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
         }
 
-        private async Task<IFieldSymbol> CreateFieldAsync(
+        private IFieldSymbol CreateField(
             Document document,
             CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
             SyntaxNode functionDeclaration,
