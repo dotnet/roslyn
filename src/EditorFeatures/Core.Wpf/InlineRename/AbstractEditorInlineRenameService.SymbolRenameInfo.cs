@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Ok, the symbol is good.  Now, make sure that the trigger text starts with the prefix
                 // of the attribute.  If it does, then we can rename just the attribute prefix (otherwise
                 // we need to rename the entire attribute).
-                var nameWithoutAttribute = this.RenameSymbol.Name.GetWithoutAttributeSuffix(isCaseSensitive: _isLanguageCaseSensitive);
+                var nameWithoutAttribute = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
                 var triggerText = GetSpanText(document, triggerSpan, cancellationToken);
 
                 return triggerText.StartsWith(triggerText); // TODO: Always true? What was it supposed to do?
