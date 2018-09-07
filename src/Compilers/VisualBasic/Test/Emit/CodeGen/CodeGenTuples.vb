@@ -4594,7 +4594,7 @@ BC30311: Value of type '(Integer, Object, Integer)' cannot be converted to '(Int
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub LongTupleTypeMismatch()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -18694,7 +18694,7 @@ BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, V
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub ValueTupleBase_AssemblyUnification()
             Dim signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).

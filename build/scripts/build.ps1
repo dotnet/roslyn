@@ -108,7 +108,7 @@ function Process-Arguments() {
         exit 1
     }
 
-    if ((-not $official -and $anyVsi)) {
+    if ($cibuild -and -not $official -and $anyVsi) {
         # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
         $script:skipAnalyzers = $true
     }
@@ -250,7 +250,7 @@ function Build-Artifacts() {
     }
 
     if ($sign) {
-        Run-SignTool
+        Run-MSBuild "build\Targets\RepoToolset\Sign.proj" "/p:DotNetSignType=$signType"
     }
 
     if ($pack -and $cibuild) {
@@ -297,7 +297,7 @@ function Build-InsertionItems() {
         # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
         # matter, just that it's provided some value.
         $extraArgs = ""
-        if (-not $official) {
+        if ($cibuild -and -not $official) {
             $extraArgs = " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
         }
 
@@ -550,29 +550,6 @@ function Deploy-VsixViaTool() {
     }
 }
 
-# Sign all of our binaries that need to be signed
-function Run-SignTool() {
-    Push-Location $repoDir
-    try {
-        $signTool = Join-Path (Get-PackageDir "RoslynTools.SignTool") "tools\SignTool.exe"
-        $signToolArgs = "-msbuildPath `"$msbuild`""
-        if ($binaryLog) {
-            $signToolArgs += " -msbuildBinaryLog $logsDir\Signing.binlog"
-        }
-        switch ($signType) {
-            "real" { break; }
-            "test" { $signToolArgs += " -testSign"; break; }
-            default { $signToolArgs += " -test"; break; }
-        }
-
-        $signToolArgs += " `"$configDir`""
-        Exec-Console $signTool $signToolArgs
-    }
-    finally {
-        Pop-Location
-    }
-}
-
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains
 # the procdump binaries (both 32 and 64 bit)
 function Ensure-ProcDump() {
@@ -714,7 +691,7 @@ catch {
 }
 finally {
     Pop-Location
-    if (-not $official) {
+    if ($cibuild -and -not $official) {
         Stop-VSProcesses
         Stop-BuildProcesses
     }

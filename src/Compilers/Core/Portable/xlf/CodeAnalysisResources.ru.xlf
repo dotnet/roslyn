@@ -848,11 +848,6 @@
         <target state="translated">Предупреждение! Не удалось включить многоядерную процедуру JIT из-за исключения: {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="translated">Компонент Flow-Analysis отключен.</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

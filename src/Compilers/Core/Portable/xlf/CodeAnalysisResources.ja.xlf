@@ -848,11 +848,6 @@
         <target state="translated">警告: 次の例外によりマルチコア JIT を有効にできませんでした: {0}。</target>
         <note />
       </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="translated">'フロー分析' 機能が無効になっています。</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

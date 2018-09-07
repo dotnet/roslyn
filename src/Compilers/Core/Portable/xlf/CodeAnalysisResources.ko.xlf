@@ -848,11 +848,6 @@
         <target state="translated">경고: 다음 예외 때문에 멀티 코어 JIT를 사용할 수 없습니다. {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="translated">'Flow-Analysis' 기능을 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

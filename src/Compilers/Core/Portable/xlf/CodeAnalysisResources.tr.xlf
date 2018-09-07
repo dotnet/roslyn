@@ -848,11 +848,6 @@
         <target state="translated">Uyarı: Çok çekirdekli JIT, özel durum nedeniyle etkinleştirilemedi: {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="translated">'Flow-Analysis' özelliği devre dışı bırakıldı.</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>
