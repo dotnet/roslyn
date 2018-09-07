@@ -101,9 +101,14 @@ Public Class BuildDevDivInsertionFiles
             Dim items = DirectCast(JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson)), JObject)
             Const targetFx = ".NETFramework,Version=v4.6/win"
 
-            Dim targetObj = DirectCast(DirectCast(items.Property("targets")?.Value, JObject).Property(targetFx)?.Value, JObject)
+            Dim targets = DirectCast(items.Property("targets")?.Value, JObject)
+            If targets Is Nothing Then
+                Throw New InvalidDataException($"Invalid format for '{projectLockJson}': missing 'targets' property")
+            End If
+
+            Dim targetObj = DirectCast(targets.Property(targetFx)?.Value, JObject)
             If targetObj Is Nothing Then
-                Dim availablePlatforms = String.Join(",", items.Properties.Select(Function(p) $"'{p.Name}'"))
+                Dim availablePlatforms = String.Join(",", targets.Properties.Select(Function(p) $"'{p.Name}'"))
                 Throw New InvalidDataException($"Expected platform not found in '{projectLockJson}': '{targetFx}'. Available platforms: {availablePlatforms}")
             End If
 
