@@ -59,7 +59,7 @@ As described above, you need newlines (ie. known to the formatting engine, not j
 Anchoring a block to a token means that if formatting moves the token, then the block will be moved along with the token.
 This is done with `AddAnchorIndentationOperation(list, anchor)`.
 
-This is illustrated by the argument list for a method invocation. In both screen captures below, the formatting will cause the method name to be indented properly. As you can see, the arguments will just shift along with it.
+This is illustrated by the argument list for a method invocation. In both screen captures below, the formatting will cause the method name to be indented properly. As you can see, the arguments will just shift along with it, retaining their relative position.
 
 ![anchoring1](https://user-images.githubusercontent.com/12466233/45203634-a0758c80-b231-11e8-9835-e8a289672b52.gif)
 
