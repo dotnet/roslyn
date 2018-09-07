@@ -10,7 +10,16 @@
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <!-- Automatically generate the necessary assembly binding redirects -->
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="internalUtilities\PathKind.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="internalUtilities\PathUtilities.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs" Link="internalUtilities\FileNameUtilities.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\GeneratedCodeUtilities.cs" Link="internalUtilities\GeneratedCodeUtilities.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="internalUtilities\Hash.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" Link="internalUtilities\PlatformInformation.cs" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
   </ItemGroup>
@@ -34,5 +43,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="internalUtilities\" />
   </ItemGroup>
 </Project>

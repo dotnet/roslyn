@@ -17,6 +17,7 @@ namespace AnalyzerRunner
         public readonly bool ReportSuppressedDiagnostics;
         public readonly bool ShowStats;
         public readonly bool UseAll;
+        public readonly bool FormatCode;
         public readonly int Iterations;
         public readonly bool TestDocuments;
         public readonly Func<string, bool> TestDocumentMatch;
@@ -31,6 +32,7 @@ namespace AnalyzerRunner
             bool reportSuppressedDiagnostics,
             bool showStats,
             bool useAll,
+            bool formatCode,
             int iterations,
             bool testDocuments,
             Func<string, bool> testDocumentMatch,
@@ -44,6 +46,7 @@ namespace AnalyzerRunner
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             ShowStats = showStats;
             UseAll = useAll;
+            FormatCode = formatCode;
             Iterations = iterations;
             TestDocuments = testDocuments;
             TestDocumentMatch = testDocumentMatch;
@@ -60,6 +63,7 @@ namespace AnalyzerRunner
             bool reportSuppressedDiagnostics = false;
             bool showStats = false;
             bool useAll = false;
+            bool formatCode = false;
             int iterations = 1;
             bool testDocuments = false;
             Func<string, bool> testDocumentMatch = _ => true;
@@ -76,6 +80,9 @@ namespace AnalyzerRunner
                 {
                     case "/all":
                         useAll = true;
+                        break;
+                    case "/format":
+                        formatCode = true;
                         break;
                     case "/stats":
                         showStats = true;
@@ -143,6 +150,7 @@ namespace AnalyzerRunner
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
                 showStats: showStats,
                 useAll: useAll,
+                formatCode: formatCode,
                 iterations: iterations,
                 testDocuments: testDocuments,
                 testDocumentMatch: testDocumentMatch,
