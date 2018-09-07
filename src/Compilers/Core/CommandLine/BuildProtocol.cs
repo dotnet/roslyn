@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var requestLength = args.Count + 1 + (libDirectory == null ? 0 : 1);
             var requestArgs = new List<Argument>(requestLength);
 
+            var compilerHash = GetCommitHash();
+            Log($"Comipler hash: {compilerHash}");
+
             requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
             requestArgs.Add(new Argument(ArgumentId.TempDirectory, 0, tempDirectory));
 
@@ -100,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 requestArgs.Add(new Argument(ArgumentId.CommandLineArgument, i, arg));
             }
 
-            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, language, GetCommitHash(), requestArgs);
+            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, language, compilerHash, requestArgs);
         }
 
         public static BuildRequest CreateShutdown()
@@ -570,7 +573,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>The hash value of the current assembly or an empty string</returns>
         public static string GetCommitHash()
         {
-            return typeof(BuildRequest).Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
+            var hashAttribute = typeof(BuildRequest).Assembly.GetCustomAttribute<CommitHashAttribute>();
+            if(hashAttribute is null)
+            {
+                Log("CommitHashAttribute is missing from the assembly.");
+                return string.Empty;
+            }
+            return hashAttribute.Hash;
         }
 
         /// <summary>
