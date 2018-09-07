@@ -10,6 +10,12 @@
   <Import Project="Sdk.props" Sdk="RoslynTools.RepoToolset" />
 
   <PropertyGroup>
+    <TestTargetFrameworks>net46;netcoreapp1.1;netcoreapp2.0</TestTargetFrameworks>
+    <!-- Uncomment the following line to test on .NET Core 1.1 -->
+    <!--<TestTargetFrameworks>netcoreapp1.1;$(TestTargetFrameworks)</TestTargetFrameworks>-->
+    <!-- Uncomment the following line to test on .NET Core 2.0 -->
+    <!--<TestTargetFrameworks>netcoreapp2.0;$(TestTargetFrameworks)</TestTargetFrameworks>-->
+
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
