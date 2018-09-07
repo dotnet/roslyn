@@ -67,7 +67,7 @@ This is illustrated by the argument list for a method invocation. In both screen
 
 ## Troubleshooting
 
-My experience has been that it's not worth it to try and debug through the engine itself (it's very easy to get lost in the chain of rules), except for a few strategic locations. Also, conditional breakpoints are your friend, as you can choose to break only when the rule is considering a token of interest (for example, you can use `currentToken.ToString == "{"`).
+In my experience, it was not fruitful (or even necessary) to debug through the engine itself. It's very easy to get lost in the chain of rules. A better approach is to set breakpoints at a few strategic locations (TODO need to list a few). Conditional breakpoints are particularly useful, as you can choose to break only when the rule is considering a token of interest (for example, you can use `currentToken.ToString == "{"`).
 
 From what I've seen so far, issues that I found while manually testing in the IDE fell into two categories:
 - formatting (those are issues where you tweak some code, invoke formatting, and don't like the result). Those can be repro'ed in `FormattingTests.cs`.
