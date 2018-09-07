@@ -187,8 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default(ImmutableArray<int>),
                             rewrittenRight,
                             type,
-                            used,
-                            argumentsBinderOpt: null);
+                            used);
                     }
 
                 case BoundKind.IndexerAccess:
@@ -209,8 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.ArgsToParamsOpt,
                             rewrittenRight,
                             type,
-                            used,
-                            indexerAccess.BinderOpt);
+                            used);
                     }
 
                 case BoundKind.Local:
@@ -262,8 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             BoundExpression rewrittenRight,
             TypeSymbol type,
-            bool used,
-            Binder argumentsBinderOpt)
+            bool used)
         {
             // Rewrite property assignment into call to setter.
             var setMethod = property.GetOwnOrInheritedSetMethod();
