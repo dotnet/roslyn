@@ -441,8 +441,7 @@ namespace BuildBoss
                 switch (targetFramework)
                 {
                     case "net20":
-                    case "net46":
-                    case "netstandard1.3":
+                    case "net472":
                     case "netcoreapp1.1":
                     case "netcoreapp2.0":
                     case "$(RoslynPortableTargetFrameworks)":

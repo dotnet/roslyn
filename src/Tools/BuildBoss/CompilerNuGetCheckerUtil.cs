@@ -60,11 +60,11 @@ namespace BuildBoss
         {
             var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
-                @"Exes\Csc\net46",
-                @"Exes\Vbc\net46",
-                @"Exes\Csi\net46",
-                @"Exes\VBCSCompiler\net46",
-                @"Dlls\Microsoft.Build.Tasks.CodeAnalysis\net46");
+                @"Exes\Csc\net472",
+                @"Exes\Vbc\net472",
+                @"Exes\Csi\net472",
+                @"Exes\VBCSCompiler\net472",
+                @"Dlls\Microsoft.Build.Tasks.CodeAnalysis\net472");
             if (!allGood)
             {
                 return false;
