@@ -512,10 +512,16 @@ Public Class ScannerTests
         Assert.Equal(" _'", tk.ToFullString())
         Assert.Equal(37306, tk.Errors.First().Code)
 
-        tk = ScanOnce(" _' Comment", startStatement:=True)
+        tk = ScanOnce(" _' Comment", LanguageVersion.VisualBasic15_3)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _' Comment", tk.ToFullString())
         Assert.Equal(37306, tk.Errors.First().Code)
+
+        ' PROTOTYPE LanguageVersion.VisualBasic15_5 should be LanguageVersion.VisualBasic16
+        tk = ScanOnce(" _' Comment", LanguageVersion.VisualBasic15_5)
+        Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
+        Assert.Equal(" _' Comment", tk.ToFullString())
+        Assert.True(tk.Errors.Count = 0)
 
         tk = ScanOnce(" _ rem", startStatement:=True)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
