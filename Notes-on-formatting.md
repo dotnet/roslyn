@@ -29,23 +29,27 @@ Ex: spacing in method declaration is affected by options.
 
 ### Newlines
 
+- `CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)`: indicates a place for a newline, but doesn't require one. Without this, the next line would not indented/aligned if a newline is present. Such an optional newline is present after the semi-colon terminating a statement. So two statements can remain on the same line, but if they are separated by a newline, then the second statement is indented relative to the containing block.
+
+- `CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines)`: indicates a place for a newline (minimum of one). Such mandatory newline is present after the colon terminating a `case` label.
+
 - `AddSuppressWrappingIfOnSingleLineOperation`
 
 Example of typing `if () {}`:
-The rules for breaking lines inside the block of an `if` are conditional, so do not apply if the two braces are on the same line.
+
+The rules for breaking lines inside the block of an `if` are conditional, so are suppressed if the two braces are on the same line.
 
 ![image](https://user-images.githubusercontent.com/12466233/45203182-298bc400-b230-11e8-9f53-4818e44f1fcf.png)
 
-But as soon as the braces are no longer on the same line and and you re-format, then those kick in and more newlines are inserted.
+But as soon as the braces are separated onto different lines and you re-format, then the suppression is lifted and more newlines take effect.
 
 ![newline-suppression](https://user-images.githubusercontent.com/12466233/45204277-8dfc5280-b233-11e8-9f1e-f1106013424b.gif)
 
-- `CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)`: indicates a place for a newline, but doesn't require one. Without this, the next line would not indented/aligned if a newline is present. Such an optional newline is present after the semi-colon terminating a statement. So two statements can remain on the same line, but if they are separated by a newline, then the second statement is indented relative to the containing block.
-- `CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines)`: indicates a place for a newline (minimum of one). Such mandatory newline is present after the colon terminating a `case` label.
-
 ### Indentation
 The simple case is to declare a span to be indented from the containing scope.
+
 This is done with `AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, brace)`.
+
 As described above, you need newlines (ie. known to the formatting engine, not just a newline character in source) for indentation to kick in.
 
 ### Anchoring
