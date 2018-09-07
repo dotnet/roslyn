@@ -174,6 +174,26 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
+        Public Async Function TestInitializer_BooleanWithComments() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class C
+    Private _b As Boolean = True 'Comments1
+    Public Property [|P|]() As Boolean 'Comments2
+        Get
+            Return _b
+        End Get
+        Set(value As Boolean)
+            _b = value
+        End Set
+    End Property
+End Class",
+"Public Class C
+    Public Property P() As Boolean = True 'Comments2 'Comments1
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestReadOnlyField() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1

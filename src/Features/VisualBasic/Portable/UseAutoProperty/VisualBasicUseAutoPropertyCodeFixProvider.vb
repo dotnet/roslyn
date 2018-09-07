@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.UseAutoProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicUseAutoPropertyCodeFixProvider)), [Shared]>
@@ -36,8 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
             Dim initializer = Await GetFieldInitializer(fieldSymbol, cancellationToken).ConfigureAwait(False)
             If initializer.equalsValue IsNot Nothing Then
-                'Before adding initializer, need to remove any end of line trivia from the statement
-                statement = If(statement.GetTrailingTrivia.Any(SyntaxKind.EndOfLineTrivia), statement.WithTrailingTrivia(SyntaxFactory.Space).WithInitializer(initializer.equalsValue), statement.WithInitializer(initializer.equalsValue))
+                statement = statement.WithTrailingTrivia(SyntaxFactory.Space) _
+                    .WithInitializer(initializer.equalsValue) _
+                    .WithTrailingTrivia(statement.GetTrailingTrivia.Where(Function(x) x.Kind <> SyntaxKind.EndOfLineTrivia)) _
+                    .WithAppendedTrailingTrivia(initializer.equalsValue.GetTrailingTrivia())
             End If
 
             If initializer.asNewClause IsNot Nothing Then
