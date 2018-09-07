@@ -137,10 +137,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
                     {
                         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                        // We always generate a private field.
-                        // C#: Since "private" is the default accessibility for fields in C#, we do not need an accessibility modifier.
-                        // VB: Fields are public by default, except in the case of classes and modules. In those two cases, we can safely remove the accessibility modifier.
                         accessibilityLevel = CreateFieldHelper(document, functionDeclaration, model, cancellationToken);
                     }
 

@@ -50,6 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             If containingTypeNode IsNot Nothing Then
                 Dim containingTypeSymbol = CType(model.GetDeclaredSymbol(containingTypeNode, cancellationToken), INamedTypeSymbol)
 
+                ' We always generate private fields. Fields are public by default, except in the case of classes and modules. In those two cases, we can safely remove the accessibility modifier.
                 Select Case containingTypeSymbol.TypeKind
                     Case TypeKind.[Class], TypeKind.[Module]
                         accessibilityLevel = Accessibility.NotApplicable
