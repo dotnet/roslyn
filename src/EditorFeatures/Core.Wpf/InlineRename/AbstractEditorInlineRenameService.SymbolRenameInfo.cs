@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             private string GetWithoutAttributeSuffix(string value) => value.GetWithoutAttributeSuffix(isCaseSensitive: _isLanguageCaseSensitive);
+            private bool TryGetWithoutAttributeSuffix(string value, out string result) => value.TryGetWithoutAttributeSuffix(isCaseSensitive: _isLanguageCaseSensitive, result: out result);
 
             private static string GetSpanText(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
             {
@@ -162,8 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (this.RenameSymbol.IsAttribute() || (this.RenameSymbol.Kind == SymbolKind.Alias && ((IAliasSymbol)this.RenameSymbol).Target.IsAttribute()))
                 {
-                    var name = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
-                    if (name != null)
+                    if (TryGetWithoutAttributeSuffix(this.RenameSymbol.Name, out var _))
                     {
                         return true;
                     }
@@ -198,13 +198,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public string GetFinalSymbolName(string replacementText)
             {
-                if (_isRenamingAttributePrefix)
+                if (_isRenamingAttributePrefix && !TryGetWithoutAttributeSuffix(replacementText, out var _))
                 {
-                    var isTextWithAttribute = GetWithoutAttributeSuffix(replacementText) != null;
-                    if (!isTextWithAttribute)
-                    {
-                        return replacementText + AttributeSuffix;
-                    }
+                    return replacementText + AttributeSuffix;
                 }
 
                 return replacementText;
