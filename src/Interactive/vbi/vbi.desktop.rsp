@@ -1,6 +1,5 @@
 /r:System
 /r:System.Core
-/r:System.ValueTuple.dll
 /Imports:System
 /Imports:System.IO
 /Imports:System.Collections.Generic
