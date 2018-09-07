@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -18,11 +19,35 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
+        public void TestToStringWithLocation()
+        {
+            const string Expected = "?(1,2): error CS1002";
+
+            // line/column are provided with 1-based indexes
+            Assert.Equal(
+                Expected,
+                DiagnosticResult.CompilerError("CS1002").WithLocation(1, 2).ToString());
+
+            // LinePosition is 0-based
+            Assert.Equal(
+                Expected,
+                DiagnosticResult.CompilerError("CS1002").WithLocation(new LinePosition(0, 1)).ToString());
+        }
+
+        [Fact]
         public void TestToStringWithSpan()
         {
+            const string Expected = "?(1,3,2,4): error CS1002";
+
+            // line/column are provided with 1-based indexes
             Assert.Equal(
-                "?(1,3,2,4): error CS1002",
+                Expected,
                 DiagnosticResult.CompilerError("CS1002").WithSpan(1, 3, 2, 4).ToString());
+
+            // LinePosition is 0-based
+            Assert.Equal(
+                Expected,
+                DiagnosticResult.CompilerError("CS1002").WithSpan(new FileLinePositionSpan(string.Empty, new LinePosition(0, 2), new LinePosition(1, 3))).ToString());
         }
 
         [Fact]
