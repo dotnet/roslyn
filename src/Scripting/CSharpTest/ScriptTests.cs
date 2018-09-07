@@ -831,7 +831,7 @@ i", options);
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
@@ -853,7 +853,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_CodeFromFile_WithEmitDebugInformation_ResultInPdbEmitted()
         {
@@ -868,7 +868,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
         {
@@ -876,7 +876,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
@@ -898,7 +898,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_InlineCode_WithEmitDebugInformation_ResultInPdbEmitted()
         {
