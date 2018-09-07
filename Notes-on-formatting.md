@@ -69,8 +69,7 @@ This is illustrated by the argument list for a method invocation. In both screen
 
 My experience has been that it's not worth it to try and debug through the engine itself (it's very easy to get lost in the chain of rules), except for a few strategic locations. Also, conditional breakpoints are your friend, as you can choose to break only when the rule is considering a token of interest (for example, you can use `currentToken.ToString == "{"`).
 
-Unittest vs. IDE (relates to the different things that can trigger formatting)
-From what I've seen so far, issues that I found while manually testing in the IDE fell into typing categories:
+From what I've seen so far, issues that I found while manually testing in the IDE fell into two categories:
 - formatting (those are issues where you tweak some code, invoke formatting, and don't like the result). Those can be repro'ed in `FormattingTests.cs`.
 - typing (braces and cursor placement). Those can be repro'ed in `AutomaticBraceCompletionTests.cs` (simulates typing `{` and getting a completion, then typing `enter` and getting a new formatted output as well as a cursor placement).
 
