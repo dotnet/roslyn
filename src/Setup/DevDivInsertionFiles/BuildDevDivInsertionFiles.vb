@@ -98,12 +98,13 @@ Public Class BuildDevDivInsertionFiles
         files.Add(Path.Combine(objDir, "Roslyn.VisualStudio.Setup.Dependencies\project.assets.json"))
 
         For Each projectLockJson In files
-            Dim items = JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson))
+            Dim items = DirectCast(JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson)), JObject)
             Const targetFx = ".NETFramework,Version=v4.6/win"
 
-            Dim targetObj = DirectCast(DirectCast(DirectCast(items, JObject).Property("targets")?.Value, JObject).Property(targetFx)?.Value, JObject)
+            Dim targetObj = DirectCast(DirectCast(items.Property("targets")?.Value, JObject).Property(targetFx)?.Value, JObject)
             If targetObj Is Nothing Then
-                Throw New InvalidDataException($"Expected platform Not found in '{projectLockJson}': '{targetFx}'")
+                Dim availablePlatforms = String.Join(",", items.Properties.Select(Function(p) $"'{p.Name}'"))
+                Throw New InvalidDataException($"Expected platform not found in '{projectLockJson}': '{targetFx}'. Available platforms: {availablePlatforms}")
             End If
 
             For Each targetProperty In targetObj.Properties
