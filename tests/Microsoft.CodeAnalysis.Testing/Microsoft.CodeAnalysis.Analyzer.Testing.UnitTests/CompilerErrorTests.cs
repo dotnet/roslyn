@@ -213,6 +213,18 @@ End Class
             await new VisualBasicTest { TestCode = testCode }.RunAsync();
         }
 
+        [Fact]
+        public async Task TestCSharpValueTupleUsage()
+        {
+            var testCode = @"
+class TestClass {
+  (int x, int y) TestMethod() { return (0, 1); }
+}
+";
+
+            await new CSharpTest { TestCode = testCode }.RunAsync();
+        }
+
         private class CSharpTest : AnalyzerTest<DefaultVerifier>
         {
             public override string Language => LanguageNames.CSharp;
