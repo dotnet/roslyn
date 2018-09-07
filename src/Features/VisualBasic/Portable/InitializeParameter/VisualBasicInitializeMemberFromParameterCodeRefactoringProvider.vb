@@ -42,21 +42,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement)
         End Sub
 
-        Protected Overrides Function CreateFieldHelper(document As Document, functionDeclaration As SyntaxNode, model As SemanticModel, cancellationToken As CancellationToken) As Accessibility
-            Dim accessibilityLevel = Accessibility.[Private]
+        Protected Overrides Function DetermineDefaultFieldAccessibility(document As Document, functionDeclaration As SyntaxNode, model As SemanticModel, cancellationToken As CancellationToken) As Accessibility
+            Dim accessibilityLevel = Accessibility.[Public]
             Dim service = document.GetLanguageService(Of ISyntaxFactsService)()
             Dim containingTypeNode = service.GetContainingTypeDeclaration(functionDeclaration, functionDeclaration.SpanStart)
 
             If containingTypeNode IsNot Nothing Then
                 Dim containingTypeSymbol = CType(model.GetDeclaredSymbol(containingTypeNode, cancellationToken), INamedTypeSymbol)
 
-                ' We always generate private fields. Fields are public by default, except in the case of classes and modules. In those two cases, we can safely remove the accessibility modifier.
+                ' Fields are public by default in VB, except in the case of classes and modules.
                 Select Case containingTypeSymbol.TypeKind
                     Case TypeKind.[Class], TypeKind.[Module]
-                        accessibilityLevel = Accessibility.NotApplicable
+                        accessibilityLevel = Accessibility.[Private]
                 End Select
             End If
             Return accessibilityLevel
+        End Function
+
+        ' Properties are always public by default in VB.
+        Protected Overrides Function DetermineDefaultPropertyAccessibility() As Accessibility
+            Return Accessibility.[Public]
         End Function
     End Class
 End Namespace

@@ -36,7 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
 
-        // We always generate private fields. Since "private" is the default accessibility for fields in C#, we do not need an accessibility modifier.
-        protected override Accessibility CreateFieldHelper(Document document, SyntaxNode functionDeclaration, SemanticModel model, CancellationToken cancellationToken) => Accessibility.NotApplicable;
+        // Fields are always private by default in C#.
+        protected override Accessibility DetermineDefaultFieldAccessibility(Document document, SyntaxNode functionDeclaration, SemanticModel model, CancellationToken cancellationToken)
+            => Accessibility.Private;
+
+        // Properties are always private by default in C#.
+        protected override Accessibility DetermineDefaultPropertyAccessibility()
+            => Accessibility.Private;
     }
 }

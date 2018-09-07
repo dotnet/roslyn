@@ -474,7 +474,7 @@ Class C
         Me.Test2 = test2
     End Sub
 
-    Public ReadOnly Property Test2 As Integer
+    ReadOnly Property Test2 As Integer
 End Class
 ", index:=0, parameters:=OmitIfDefault_Warning)
         End Function
@@ -496,7 +496,7 @@ Class C
         Me.Test2 = test2
     End Sub
 
-    Public ReadOnly Property Test2 As Integer
+    ReadOnly Property Test2 As Integer
 End Class
 ", index:=0, parameters:=Never_Warning)
         End Function
@@ -599,7 +599,7 @@ Structure S
         Me.Test = test
     End Sub
 
-    Public ReadOnly Property Test As Integer
+    ReadOnly Property Test As Integer
 End Structure
 ", index:=0, parameters:=OmitIfDefault_Warning)
         End Function
@@ -617,7 +617,7 @@ Structure S
         Me.Test = test
     End Sub
 
-    Public ReadOnly Property Test As Integer
+    ReadOnly Property Test As Integer
 End Structure
 ", index:=0, parameters:=Never_Warning)
         End Function
