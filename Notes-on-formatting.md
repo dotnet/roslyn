@@ -21,15 +21,17 @@ The default rule is to add spaces between every pair of tokens. Then there are r
 Ex: spacing in method declaration is affected by options.
 ![image](https://user-images.githubusercontent.com/12466233/39938013-60956d48-5506-11e8-9619-c9eef2f8de39.png)
 
-- `CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)`
-- `CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces)` (forces a minimum of 1 space)
+- `CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)` (forces no space)
+- `CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces)` (forces exactly 1 space)
 - `CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)`
 - `CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)`
-- `CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.PreserveSpaces)` (keep whatever spaces are there)
+- `CreateAdjustSpacesOperation(space: x, option: AdjustSpacesOption.PreserveSpaces)` (set a minimum of `x` spaces, but leave any extra spaces that the user typed)
 
 ### Newlines
 
-- `CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)`: indicates a place for a newline, but doesn't require one. Without this, the next line would not indented/aligned if a newline is present. Such an optional newline is present after the semi-colon terminating a statement. So two statements can remain on the same line, but if they are separated by a newline, then the second statement is indented relative to the containing block.
+- `CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)`: indicates a place for a newline, but doesn't require one. 
+
+Without this, the next line would not indented/aligned if a newline is present. Such an optional newline is present after the semi-colon terminating a statement. So two statements can remain on the same line, but if they are separated by a newline, then the second statement is indented relative to the containing block.
 
 - `CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines)`: indicates a place for a newline (minimum of one). Such mandatory newline is present after the colon terminating a `case` label.
 
