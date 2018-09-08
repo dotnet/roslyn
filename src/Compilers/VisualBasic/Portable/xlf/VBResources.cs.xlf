@@ -8390,7 +8390,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Parametry kompilátoru Visual Basic
+        <target state="translated">                  Parametry kompilátoru Visual Basic
 
                                   - VÝSTUPNÍ SOUBOR -
 /out:&lt;soubor&gt;                     Určuje název výstupního souboru.
@@ -9083,7 +9083,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
         <note />
       </trans-unit>
     </body>

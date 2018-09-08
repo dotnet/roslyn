@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="307">
         <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
-        <target state="needs-review-translation">Dar formato automáticamente a la instrucción al introducir punto y coma;Dar formato automáticamente al bloque al introducir llave;Dar formato automáticamente al pegar</target>
+        <target state="translated">Formato automático en instrucciones al escribir punto y coma;Formato automático en bloques al escribir llave;Formato automático al pegar;Limpieza de código;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">

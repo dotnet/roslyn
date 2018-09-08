@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="307">
         <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
-        <target state="needs-review-translation">於分號處將陳述式自動格式化; 於大括弧處將區塊自動格式化; 貼上時自動格式化</target>
+        <target state="translated">於分號處自動格式化陳述式; 於大括弧處自動格式化區塊; 貼上時自動格式化; 清除程式碼;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">

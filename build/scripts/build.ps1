@@ -521,6 +521,7 @@ function Deploy-VsixViaTool() {
     $all = @(
         "Vsix\Roslyn.Compilers.Extension\Roslyn.Compilers.Extension.vsix",
         "Vsix\Roslyn.VisualStudio.Setup\Roslyn.VisualStudio.Setup.vsix",
+        "Vsix\Roslyn.VisualStudio.Setup.Dependencies\Roslyn.VisualStudio.Setup.Dependencies.vsix",
         "Vsix\Roslyn.VisualStudio.InteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
         "Vsix\Roslyn.VisualStudio.DiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",

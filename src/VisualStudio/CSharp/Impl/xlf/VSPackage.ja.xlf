@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="307">
         <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
-        <target state="needs-review-translation">セミコロンでステートメントをオート フォーマットする;中かっこでブロックをオート フォーマットする;貼り付け時にオート フォーマットする</target>
+        <target state="translated">セミコロンでステートメントをオート フォーマットする;中かっこでブロックをオート フォーマットする;貼り付け時にオート フォーマットする;コードをクリーンアップする</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
