@@ -74,6 +74,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 new MetadataReference[]
                 {
                     TestReferences.NetStandard20.NetStandard,
+                    TestReferences.NetStandard20.SystemRuntimeRef,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },
