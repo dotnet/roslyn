@@ -1,0 +1,40 @@
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Composition
+Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.AddAwait
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.AddAwait), [Shared]>
+    Friend Class VisualBasicAddAwaitCodeRefactoringProvider
+        Inherits AddAwaitCodeRefactoringProvider(Of ExpressionSyntax, InvocationExpressionSyntax)
+
+        Protected Overrides Function GetTitle() As String
+            Return VBFeaturesResources.Add_Await
+        End Function
+
+        Protected Overrides Function GetTitleWithConfigureAwait() As String
+            Return VBFeaturesResources.Add_await_and_ConfigureAwaitFalse
+        End Function
+
+        Protected Overrides Function IsAlreadyAwaited(invocation As InvocationExpressionSyntax) As Boolean
+            Return invocation.IsParentKind(SyntaxKind.AwaitExpression)
+        End Function
+
+        Protected Overrides Function WithAwait(expression As ExpressionSyntax, originalExpression As ExpressionSyntax) As ExpressionSyntax
+            Return SyntaxFactory.AwaitExpression(expression).Parenthesize().WithTriviaFrom(originalExpression)
+        End Function
+
+        Protected Overrides Function WithConfigureAwait(expression As ExpressionSyntax) As ExpressionSyntax
+            Dim falseLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression, SyntaxFactory.Token(SyntaxKind.FalseKeyword))
+
+            Return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                                     expression,
+                                                     SyntaxFactory.Token(SyntaxKind.DotToken),
+                                                     SyntaxFactory.IdentifierName(NameOf(Task.ConfigureAwait))),
+                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList({DirectCast(SyntaxFactory.SimpleArgument(falseLiteral), ArgumentSyntax)})))
+        End Function
+    End Class
+End Namespace

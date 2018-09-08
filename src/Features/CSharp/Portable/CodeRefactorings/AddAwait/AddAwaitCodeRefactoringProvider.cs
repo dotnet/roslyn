@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings.AddAwait;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
 {
@@ -17,96 +13,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
     /// This refactoring complements the AddAwait fixer. It allows adding `await` and `await ... .ConfigureAwait(false)` even there is no compiler error to trigger the fixer.
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddAwait), Shared]
-    internal partial class CSharpAddAwaitCodeRefactoringProvider : CodeRefactoringProvider
+    internal partial class CSharpAddAwaitCodeRefactoringProvider : AddAwaitCodeRefactoringProvider<ExpressionSyntax, InvocationExpressionSyntax>
     {
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        protected override string GetTitle()
+            => CSharpFeaturesResources.Add_await;
+
+        protected override string GetTitleWithConfigureAwait()
+            => CSharpFeaturesResources.Add_await_and_ConfigureAwaitFalse;
+
+        protected override bool IsAlreadyAwaited(InvocationExpressionSyntax invocation)
+            => invocation.IsParentKind(SyntaxKind.AwaitExpression);
+
+        protected override ExpressionSyntax WithAwait(ExpressionSyntax expression, ExpressionSyntax originalExpression)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindTokenOnLeftOfPosition(textSpan.Start);
-
-            var model = await document.GetSemanticModelAsync(cancellationToken);
-            var awaitable = GetAwaitableExpression(textSpan, token, model, cancellationToken);
-            if (awaitable == null)
-            {
-                return;
-            }
-
-            if (awaitable.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
-            context.RegisterRefactoring(
-                new MyCodeAction(
-                    CSharpFeaturesResources.Add_await,
-                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: false, c)));
-
-
-            context.RegisterRefactoring(
-                new MyCodeAction(
-                    CSharpFeaturesResources.Add_await_and_ConfigureAwaitFalse,
-                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: true, c)));
-        }
-
-        private ExpressionSyntax GetAwaitableExpression(TextSpan textSpan, SyntaxToken token, SemanticModel model, CancellationToken cancellationToken)
-        {
-            var invocation = token.GetAncestor<InvocationExpressionSyntax>();
-            if (invocation is null)
-            {
-                return null;
-            }
-
-            if (invocation.IsParentKind(SyntaxKind.AwaitExpression))
-            {
-                return null;
-            }
-
-            var type = model.GetTypeInfo(invocation).Type;
-            if (type?.IsAwaitableNonDynamic(model, token.SpanStart) == true)
-            {
-                return invocation;
-            }
-
-            return null;
-        }
-
-        private async Task<Document> AddAwaitAsync(
-            Document document,
-            ExpressionSyntax invocation,
-            bool withConfigureAwait,
-            CancellationToken cancellationToken)
-        {
-            var withoutTrivia = invocation.WithoutTrivia();
-            if (withConfigureAwait)
-            {
-                // add `.ConfigureAwait(false)`
-                withoutTrivia = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, withoutTrivia, SyntaxFactory.IdentifierName(nameof(Task.ConfigureAwait))),
-                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList( new[] { SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)) })));
-            }
-
-            var awaitExpression = SyntaxFactory.AwaitExpression(withoutTrivia)
+            return SyntaxFactory.AwaitExpression(expression)
                 .Parenthesize()
-                .WithTriviaFrom(invocation);
-
-            return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken);
+                .WithTriviaFrom(originalExpression);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        protected override ExpressionSyntax WithConfigureAwait(ExpressionSyntax expression)
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
-            {
-            }
+            return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, SyntaxFactory.IdentifierName(nameof(Task.ConfigureAwait))),
+                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[] { SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)) })));
         }
     }
 }
