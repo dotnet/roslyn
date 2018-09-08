@@ -113,6 +113,9 @@
     <NoStdLib>true</NoStdLib>
     <ExecuteAsTool>false</ExecuteAsTool>
     <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
+    
+    <!-- Bypass a check in msbuild that .NET Framework 3.5 is installed on the machine when targeting .NET < 4.0 -->
+    <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
   </PropertyGroup>
 
 </Project>
