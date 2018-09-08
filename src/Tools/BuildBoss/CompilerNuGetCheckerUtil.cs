@@ -89,7 +89,7 @@ namespace BuildBoss
 
             allGood &= VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(@"NuGet\VS", "VS.Tools.Roslyn"),
+                        FindNuGetPackage(@"DevDivPackages\Roslyn", "VS.Tools.Roslyn"),
                         string.Empty,
                         dllRelativeNames);
             return allGood;
