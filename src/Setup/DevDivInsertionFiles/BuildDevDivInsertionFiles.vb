@@ -99,7 +99,7 @@ Public Class BuildDevDivInsertionFiles
 
         For Each projectLockJson In files
             Dim items = DirectCast(JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson)), JObject)
-            Const targetFx = ".NETFramework,Version=v4.6/win"
+            Const targetFx = ".NETFramework,Version=v4.6"
 
             Dim targets = DirectCast(items.Property("targets")?.Value, JObject)
             If targets Is Nothing Then
