@@ -1162,7 +1162,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             MetadataReference[] references = null)
             where TSyntaxNode : SyntaxNode
         {
-            parseOptions = parseOptions?.WithFlowAnalysisFeature() ?? TestOptions.RegularWithFlowAnalysisFeature;
             var compilation = CreateCompilation(
                 new[] { Parse(testSrc, filename: "file.cs", options: parseOptions) },
                 references,
