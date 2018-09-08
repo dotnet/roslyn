@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return TransformType(metadataType, nullableTransformFlags);
         }
 
-        internal static TypeSymbolWithAnnotations TransformType(TypeSymbolWithAnnotations metadataType, ImmutableArray<bool> nullableTransformFlags)
+        private static TypeSymbolWithAnnotations TransformType(TypeSymbolWithAnnotations metadataType, ImmutableArray<bool> nullableTransformFlags)
         {
             int position = 0;
             TypeSymbolWithAnnotations result;
