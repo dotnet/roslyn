@@ -624,7 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract bool HasReferenceTypeConstraint { get; }
 
-        // PROTOTYPE(NullableReferenceTypes): Should this API be exposed through ITypeParameterSymbol?
         /// <summary>
         /// Returns whether the reference type constraint (the 'class' constraint) should also be treated as nullable ('class?') or non-nullable (class!).
         /// In some cases this aspect is unknown (null value is returned). For example, when 'class' constraint is specified in a NonNullTypes(false) context.  

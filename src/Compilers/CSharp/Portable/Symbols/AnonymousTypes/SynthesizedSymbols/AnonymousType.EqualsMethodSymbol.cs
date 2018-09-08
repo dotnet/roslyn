@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(container, WellKnownMemberNames.ObjectEquals)
             {
                 _parameters = ImmutableArray.Create<ParameterSymbol>(
-                    SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(this.Manager.System_Object, isNullableIfReferenceType: true), 0, RefKind.None, "value"));
+                    SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(this.Manager.System_Object), 0, RefKind.None, "value"));
             }
 
             public override MethodKind MethodKind

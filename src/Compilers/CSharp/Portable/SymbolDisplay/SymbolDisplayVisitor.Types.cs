@@ -786,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AddKeyword(SyntaxKind.ClassKeyword);
                                 if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                                    typeParameterSymbol?.ReferenceTypeConstraintIsNullable == true) // PROTOTYPE(NullableReferenceTypes): Switch to public API when we will have one.
+                                    typeParameterSymbol?.ReferenceTypeConstraintIsNullable == true) // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
                                 {
                                     AddPunctuation(SyntaxKind.QuestionToken);
                                 }
@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 needComma = true;
                             }
 
-                            ImmutableArray<TypeSymbolWithAnnotations>? annotatedConstraints = typeParameterSymbol?.ConstraintTypesNoUseSiteDiagnostics; // PROTOTYPE(NullableReferenceTypes): Switch to public API when we will have one.
+                            ImmutableArray<TypeSymbolWithAnnotations>? annotatedConstraints = typeParameterSymbol?.ConstraintTypesNoUseSiteDiagnostics; // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
 
                             for (int i = 0; i < typeParam.ConstraintTypes.Length; i++)
                             {

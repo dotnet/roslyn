@@ -190,9 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 case TypeKind.Pointer:
                     return UsesIsNullable(((PointerTypeSymbol)type).PointedAtType);
                 case TypeKind.TypeParameter:
-                    // PROTOTYPE(NullableReferenceTypes): Nullability for constraint types is not being erased.
-                    //return UsesIsNullable(((TypeParameterSymbol)type).ConstraintTypesNoUseSiteDiagnostics);
-                    return false;
+                    var typeParameter = (TypeParameterSymbol)type;
+                    return UsesIsNullable(typeParameter.ConstraintTypesNoUseSiteDiagnostics) ||
+                        typeParameter.ReferenceTypeConstraintIsNullable == true;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
             }
