@@ -226,14 +226,14 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
             var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
-            dir.CopyFile(Path.Combine(Path.GetDirectoryName(typeof(CSharp.CSharpCompilation).Assembly.Location), "System.IO.FileSystem.dll"));
 
             var analyzerCompilation = CSharp.CSharpCompilation.Create(
                 "MyAnalyzer",
                 new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    TestReferences.NetStandard13.SystemRuntime,
+                    TestReferences.NetStandard20.NetStandard,
+                    TestReferences.NetStandard20.SystemRuntimeRef,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },
