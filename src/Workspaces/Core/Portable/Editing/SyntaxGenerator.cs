@@ -2216,6 +2216,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode AwaitExpression(SyntaxNode expression);
 
         /// <summary>
+        /// Wraps with parens.
+        /// </summary>
+        internal abstract SyntaxNode AddParentheses(SyntaxNode expression);
+
+        /// <summary>
         /// Creates an nameof expression.
         /// </summary>
         public abstract SyntaxNode NameOfExpression(SyntaxNode expression);

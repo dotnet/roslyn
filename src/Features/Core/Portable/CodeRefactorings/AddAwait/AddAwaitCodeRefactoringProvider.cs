@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -12,10 +13,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
     /// <summary>
     /// Refactor:
     ///     var x = GetAsync();
-    /// 
+    ///
     /// Into:
     ///     var x = await GetAsync();
-    /// 
+    ///
     /// Or:
     ///     var x = await GetAsync().ConfigureAwait(false);
     /// </summary>
@@ -26,16 +27,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
         protected abstract string GetTitle();
         protected abstract string GetTitleWithConfigureAwait();
         protected abstract bool IsAlreadyAwaited(TInvocationExpressionSyntax invocation);
-
-        /// <summary>
-        /// Add `.ConfigureAwait(false)`
-        /// </summary>
-        protected abstract TExpressionSyntax WithConfigureAwait(TExpressionSyntax expression);
-
-        /// <summary>
-        /// Add `await` and trivia
-        /// </summary>
-        protected abstract TExpressionSyntax WithAwait(TExpressionSyntax expression, TExpressionSyntax originalExpression);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -103,13 +94,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             bool withConfigureAwait,
             CancellationToken cancellationToken)
         {
-            var withoutTrivia = invocation.WithoutTrivia();
+            var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+            SyntaxNode withoutTrivia = invocation.WithoutTrivia();
             if (withConfigureAwait)
             {
-                withoutTrivia = WithConfigureAwait(withoutTrivia);
+                withoutTrivia = syntaxGenerator.InvocationExpression(
+                    syntaxGenerator.MemberAccessExpression(withoutTrivia, "ConfigureAwait"),
+                    syntaxGenerator.FalseLiteralExpression());
             }
 
-            var awaitExpression = WithAwait(withoutTrivia, invocation);
+            var awaitExpression = syntaxGenerator
+                .AddParentheses(syntaxGenerator.AwaitExpression(withoutTrivia))
+                .WithTriviaFrom(invocation);
 
             return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken);
         }

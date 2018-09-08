@@ -23,19 +23,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
 
         protected override bool IsAlreadyAwaited(InvocationExpressionSyntax invocation)
             => invocation.IsParentKind(SyntaxKind.AwaitExpression);
-
-        protected override ExpressionSyntax WithAwait(ExpressionSyntax expression, ExpressionSyntax originalExpression)
-        {
-            return SyntaxFactory.AwaitExpression(expression)
-                .Parenthesize()
-                .WithTriviaFrom(originalExpression);
-        }
-
-        protected override ExpressionSyntax WithConfigureAwait(ExpressionSyntax expression)
-        {
-            return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, SyntaxFactory.IdentifierName(nameof(Task.ConfigureAwait))),
-                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[] { SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)) })));
-        }
     }
 }

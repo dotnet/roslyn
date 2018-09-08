@@ -22,19 +22,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.AddAwait
             Return invocation.IsParentKind(SyntaxKind.AwaitExpression)
         End Function
 
-        Protected Overrides Function WithAwait(expression As ExpressionSyntax, originalExpression As ExpressionSyntax) As ExpressionSyntax
-            Return SyntaxFactory.AwaitExpression(expression).Parenthesize().WithTriviaFrom(originalExpression)
-        End Function
-
-        Protected Overrides Function WithConfigureAwait(expression As ExpressionSyntax) As ExpressionSyntax
-            Dim falseLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression, SyntaxFactory.Token(SyntaxKind.FalseKeyword))
-
-            Return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                                     expression,
-                                                     SyntaxFactory.Token(SyntaxKind.DotToken),
-                                                     SyntaxFactory.IdentifierName(NameOf(Task.ConfigureAwait))),
-                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList({DirectCast(SyntaxFactory.SimpleArgument(falseLiteral), ArgumentSyntax)})))
-        End Function
     End Class
 End Namespace
