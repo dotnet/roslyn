@@ -998,6 +998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim prevPrevToken = PrevToken
             GetNextToken()
             If CurrentToken.Kind = SyntaxKind.IdentifierToken Then
+                ' Term FlagsEnumOper Identifier
                 Dim Name = ParseIdentifierNameAllowingKeyword(True)
                 If Name IsNot Nothing Then
                     Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, Name)
@@ -1005,9 +1006,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, Name.AddError(ERRID.ERR_ExpectedIdentifier))
 
             ElseIf CurrentToken.Kind = SyntaxKind.OpenParenToken Then
+                ' Term FlagsEnumOper ( ParenthesizedExpression | TupleLiteral )
                 Dim pexpr As ExpressionSyntax = ParseParenthesizedExpressionOrTupleLiteral()
                 If pexpr IsNot Nothing Then
+                    ' ( ParenthesizedExpression | TupleLiteral )
                     If pexpr.Kind <> SyntaxKind.ParenthesizedExpression Then pexpr = AddError(pexpr, ERRID.ERR_ExpectedExpression)
+                    ' ParenthesisedExpresssion
                     Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, pexpr)
                 End If
                 Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, pexpr.AddError(ERRID.ERR_ExpectedExpression))
@@ -1025,14 +1029,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             output = Nothing
 
             If op.Kind = SyntaxKind.ExclamationToken Then
-                Dim pt = PeekToken(1)
-                Dim fop = SyntaxFactory.FlagsEnumIsSetToken(op.Text, op.GetLeadingTrivia, op.GetTrailingTrivia)
+                Dim pt = PeekToken(0)
                 If pt.Kind = SyntaxKind.IdentifierToken Then
-                    GetNextToken()
+                    ' GetNextToken()
                     Dim name = ParseIdentifierNameAllowingKeyword()
                     output = SyntaxFactory.DictionaryAccessExpression(Term, op, name)
                 Else
-                    GetNextToken()
+                    ' GetNextToken()
+                    Dim fop = SyntaxFactory.FlagsEnumIsSetToken(op.Text, op.GetLeadingTrivia, op.GetTrailingTrivia)
 
                     Dim expr = ParseExpression()
                     output = SyntaxFactory.FlagsEnumOperationExpression(Term, fop, expr)
