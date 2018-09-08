@@ -848,11 +848,6 @@
         <target state="translated">Warnung: Multi-Core-JIT konnte aufgrund einer Ausnahme nicht aktiviert werden: {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>
