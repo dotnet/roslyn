@@ -235,6 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // catch (Exception ex) where { this.state = finishedState; value = promiseIsActive } // pseudo-code for a BoundSequence
         // {
         //     this.promiseOfValueOrEnd.SetException(ex);
+        //     return;
         // }
         private BoundBlock GenerateExceptionHandling(LocalSymbol exceptionLocal)
         {
@@ -261,6 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if (promiseIsActive)
                 // {
                 //     this.promiseOfValueOrEnd.SetException(ex);
+                //     return;
                 // }
                 // else
                 // {
@@ -279,8 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.If(
                         // if (promiseIsActive)
                         F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField),
-                        // this.promiseOfValueOrEnd.SetException(ex);
-                        thenClause: callSetException,
+                        // this.promiseOfValueOrEnd.SetException(ex); return;
+                        thenClause: F.Block(callSetException, GenerateReturn(true)),
                         // throw;
                         elseClauseOpt: F.Throw()),
                     GenerateReturn(false));
