@@ -211,6 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
 
+
     Friend MustInherit Partial Class BoundExpression
         Inherits BoundNode
 

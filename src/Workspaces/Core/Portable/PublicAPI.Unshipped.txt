@@ -29,12 +29,3 @@ static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWit
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Silent -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Text.SourceText
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ConstantName = "constant name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EnumMemberName = "enum member name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EventName = "event name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ExtensionMethodName = "extension method name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.FieldName = "field name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.LocalName = "local name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.MethodName = "method name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ParameterName = "parameter name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.PropertyName = "property name" -> string

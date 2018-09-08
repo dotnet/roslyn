@@ -1017,10 +1017,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, expr)
         End Function
 
-        Private Function TryParseFlagEnumExpr_Or_QualifiedExpr(
-                                                              DotOrBangToken As PunctuationSyntax,
-                                                              Term As ExpressionSyntax,
-                                                  <Out> ByRef output As ExpressionSyntax
+
+        Private Function TryParseFlagEnumExpr_Or_QualifiedExpr(Term As ExpressionSyntax,
+                                                               op As PunctuationSyntax,
+                                                               <Out> ByRef output As ExpressionSyntax
                                                               ) As Boolean
             output = Nothing
 
@@ -1034,20 +1034,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Else
                     GetNextToken()
 
-                        If expr.Kind = SyntaxKind.ParenthesizedExpression Then
-                            Dim op = SyntaxFactory.FlagsEnumIsSetToken(DotOrBangToken.Text, DotOrBangToken.GetLeadingTrivia, DotOrBangToken.GetTrailingTrivia)
-                            output = SyntaxFactory.FlagsEnumOperationExpression(Term, op, expr)
-                            Return True
-                        End If
+                    Dim expr = ParseExpression()
+                    output = SyntaxFactory.FlagsEnumOperationExpression(Term, fop, expr)
 
-                    End If
-                Else
-                    Dim Name = ParseIdentifierNameAllowingKeyword()
-                    output = SyntaxFactory.DictionaryAccessExpression(Term, DotOrBangToken, Name)
-                    Return True
                 End If
             End If
-            Return False
+            Return output IsNot Nothing
         End Function
 
         ' /*********************************************************************
@@ -1078,7 +1070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             GetNextToken()
 
             Dim output As ExpressionSyntax = Nothing
-            If TryParseFlagEnumExpr_Or_QualifiedExpr(DotOrBangToken, Term, output) Then
+            If TryParseFlagEnumExpr_Or_QualifiedExpr(Term, DotOrBangToken, output) Then
                 Return output
 
             Else

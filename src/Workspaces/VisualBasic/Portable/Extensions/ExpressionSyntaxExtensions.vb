@@ -1051,10 +1051,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         End If
                     End If
 
-               '    replacementNode = memberAccess.Name
-                replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
+                    '    replacementNode = memberAccess.Name
+                    replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
                     simpleName = TryCast(memberAccess.Name, SimpleNameSyntax)
-                issueSpan = memberAccess.Expression.Span
+                    issueSpan = memberAccess.Expression.Span
                     If simpleName IsNot Nothing Then
                         replacementNode = simpleName.WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
                         simpleName.Identifier,
@@ -1081,15 +1081,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension>
         Public Function GetNameWithTriviaMoved(memberAccess As MemberAccessExpressionSyntax,
                                                semanticModel As SemanticModel) As SimpleNameSyntax
-            Dim replacementNode = memberAccess.Name
-            replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
-                .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
-                    memberAccess.Name.Identifier,
-                    semanticModel)) _
-                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
-                .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+            Dim nameNode = TryCast(memberAccess.Name, SimpleNameSyntax)
+            If nameNode Is Nothing Then Return Nothing
+            nameNode = nameNode.
+                         WithIdentifier(
+                            VisualBasicSimplificationService.TryEscapeIdentifierToken(
+                                nameNode.Identifier,
+                                semanticModel
+                            )
+                         ).
+                         WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()).
+                         WithTrailingTrivia(memberAccess.GetTrailingTrivia())
 
-            Return replacementNode
+            Return nameNode
         End Function
 
         <Extension>
