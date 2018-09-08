@@ -213,7 +213,6 @@ End Class
             await new VisualBasicTest { TestCode = testCode }.RunAsync();
         }
 
-
 #if NETCOREAPP2_0 || NET46
 // Disable this test for  netcorapp1.0 as tuples cannot be resolved
         [Fact]
