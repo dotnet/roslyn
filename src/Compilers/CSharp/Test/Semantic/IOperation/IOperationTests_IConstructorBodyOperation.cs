@@ -49,7 +49,7 @@ class C
     public C() : base()
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,24): error CS1002: ; expected
@@ -113,7 +113,7 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -173,7 +173,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -235,7 +235,7 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -283,7 +283,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -334,7 +334,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -428,7 +428,7 @@ class C
     => j1 = j2;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -502,7 +502,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -558,7 +558,7 @@ class Base
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -628,7 +628,7 @@ class Base
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -697,7 +697,7 @@ class Base
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,26): error CS1002: ; expected
@@ -767,7 +767,7 @@ class Base
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -862,7 +862,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
