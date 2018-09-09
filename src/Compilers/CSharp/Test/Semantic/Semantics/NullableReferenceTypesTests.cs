@@ -31781,7 +31781,6 @@ class C
         }
 
         // PROTOTYPE(NullableReferenceTypes): [NonNullTypes(true)] is disabled.
-        // See CSharpCompilation.HaveNullableOptOutForDefinition.
         [Fact(Skip = "[NonNullTypes(true)] is disabled")]
         public void AllowMemberOptOut()
         {
