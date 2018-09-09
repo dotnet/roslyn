@@ -430,6 +430,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>1__state";
         }
 
+        internal static string MakeAsyncIteratorPromiseOfValueOrEndFieldName()
+        {
+            Debug.Assert((char)GeneratedNameKind.AsyncIteratorPromiseOfValueOrEndBackingField == 'v');
+            return "<>v__promiseOfValueOrEnd";
+        }
+
+        internal static string MakeAsyncIteratorPromiseIsActiveFieldName()
+        {
+            Debug.Assert((char)GeneratedNameKind.AsyncIteratorPromiseIsActiveBackingField == 'w');
+            return "<>w__promiseIsActive";
+        }
+
         internal static string MakeIteratorCurrentFieldName()
         {
             Debug.Assert((char)GeneratedNameKind.IteratorCurrentBackingField == '2');

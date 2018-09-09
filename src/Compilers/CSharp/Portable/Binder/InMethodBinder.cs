@@ -187,6 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SpecialType.System_Collections_Generic_IEnumerator_T:
                         return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
                 }
+
+                if (returnType.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T))
+                {
+                    return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
+                }
             }
 
             return null;

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          syntax.IsKind(SyntaxKind.ArrowExpressionClause) ||
                          syntax.IsKind(SyntaxKind.ConstructorDeclaration));
 
-            BoundStatement ret = method.IsIterator
+            BoundStatement ret = (method.IsIterator && !method.IsAsync)
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
 

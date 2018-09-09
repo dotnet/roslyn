@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,11 +8,13 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// Produces a MoveNext() method for an async method or an async-iterator method.
+    /// </summary>
     internal sealed class AsyncMethodToStateMachineRewriter : MethodToStateMachineRewriter
     {
         /// <summary>
@@ -32,6 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A collection of well-known members for the current async method builder.
         /// </summary>
         private readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
+
+        /// <summary>
+        /// Additional information for rewriting an async-iterator.
+        /// Only set for async-iterator methods.
+        /// </summary>
+        private readonly AsyncIteratorInfo _asyncIteratorInfo;
 
         /// <summary>
         /// The exprReturnLabel is used to label the return handling code at the end of the async state-machine
@@ -60,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             int methodOrdinal,
             AsyncMethodBuilderMemberCollection asyncMethodBuilderMemberCollection,
+            AsyncIteratorInfo asyncIteratorInfo,
             SyntheticBoundNodeFactory F,
             FieldSymbol state,
             FieldSymbol builder,
@@ -73,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _method = method;
             _asyncMethodBuilderMemberCollection = asyncMethodBuilderMemberCollection;
+            _asyncIteratorInfo = asyncIteratorInfo;
             _asyncMethodBuilderField = builder;
             _exprReturnLabel = F.GenerateLabel("exprReturn");
             _exitLabel = F.GenerateLabel("exitLabel");
@@ -145,16 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Local(exceptionLocal),
                             exceptionLocal.Type,
                             exceptionFilterOpt: null,
-                            body: F.Block(
-                                // this.state = finishedState
-                                F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
-                                // builder.SetException(ex)
-                                F.ExpressionStatement(
-                                    F.Call(
-                                        F.Field(F.This(), _asyncMethodBuilderField),
-                                        _asyncMethodBuilderMemberCollection.SetException,
-                                        F.Local(exceptionLocal))),
-                                GenerateReturn(false)),
+                            body: GenerateExceptionHandling(exceptionLocal),
                             isSynthesizedAsyncCatchAll: true)
                         )
                     )
@@ -178,15 +178,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }
 
-            // builder.SetResult([RetVal])
-            bodyBuilder.Add(
-                F.ExpressionStatement(
-                    F.Call(
-                        F.Field(F.This(), _asyncMethodBuilderField),
-                        _asyncMethodBuilderMemberCollection.SetResult,
-                        _method.IsGenericTaskReturningAsync(F.Compilation)
-                            ? ImmutableArray.Create<BoundExpression>(F.Local(_exprRetValue))
-                            : ImmutableArray<BoundExpression>.Empty)));
+            if (_asyncIteratorInfo == null)
+            {
+                // builder.SetResult([RetVal])
+                bodyBuilder.Add(
+                    F.ExpressionStatement(
+                        F.Call(
+                            F.Field(F.This(), _asyncMethodBuilderField),
+                            _asyncMethodBuilderMemberCollection.SetResult,
+                            _method.IsGenericTaskReturningAsync(F.Compilation)
+                                ? ImmutableArray.Create<BoundExpression>(F.Local(_exprRetValue))
+                                : ImmutableArray<BoundExpression>.Empty)));
+            }
+            else
+            {
+                bodyBuilder.Add(
+                    // if (!this.promiseIsActive)
+                    // {
+                    //    this.promiseIsActive = true;
+                    //    this.promiseOfValueOrEnd.Reset();
+                    // }
+                    GenerateResetPromiseIfInactive());
+
+                bodyBuilder.Add(
+                    // this.promiseOfValueOrEnd.SetResult(false);
+                    GenerateSetResultOnPromise(false));
+            }
 
             // this code is hidden behind a hidden sequence point.
             bodyBuilder.Add(F.Label(_exitLabel));
@@ -196,11 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             locals.Add(cachedState);
-            if ((object)cachedThis != null)
-            {
-                locals.Add(cachedThis);
-            }
-
+            if ((object)cachedThis != null) locals.Add(cachedThis);
             if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
 
             var newBody =
@@ -216,6 +229,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             F.CloseMethod(newBody);
+        }
+
+        // PROTOTYPE(async-streams): use an exception filter instead, to avoid re-throwing:
+        // catch (Exception ex) where { this.state = finishedState; value = promiseIsActive } // pseudo-code for a BoundSequence
+        // {
+        //     this.promiseOfValueOrEnd.SetException(ex);
+        //     return;
+        // }
+        private BoundBlock GenerateExceptionHandling(LocalSymbol exceptionLocal)
+        {
+            // this.state = finishedState
+            BoundExpressionStatement assignFinishedState =
+                F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine));
+
+            if (_asyncIteratorInfo == null)
+            {
+                return F.Block(
+                    // this.state = finishedState
+                    assignFinishedState,
+                    // builder.SetException(ex)
+                    F.ExpressionStatement(
+                        F.Call(
+                            F.Field(F.This(), _asyncMethodBuilderField),
+                            _asyncMethodBuilderMemberCollection.SetException,
+                            F.Local(exceptionLocal))),
+                    GenerateReturn(false));
+            }
+            else
+            {
+                // this.state = finishedState
+                // if (promiseIsActive)
+                // {
+                //     this.promiseOfValueOrEnd.SetException(ex);
+                //     return;
+                // }
+                // else
+                // {
+                //     throw;
+                // }
+
+                // this.promiseOfValueOrEnd.SetException(ex);
+                var callSetException = F.ExpressionStatement(F.Call(
+                    F.Field(F.This(), _asyncIteratorInfo.PromiseOfValueOrEndField),
+                    _asyncIteratorInfo.SetExceptionMethod,
+                    F.Local(exceptionLocal)));
+
+                return F.Block(
+                    // this.state = finishedState
+                    assignFinishedState,
+                    F.If(
+                        // if (promiseIsActive)
+                        F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField),
+                        // this.promiseOfValueOrEnd.SetException(ex); return;
+                        thenClause: F.Block(callSetException, GenerateReturn(true)),
+                        // throw;
+                        elseClauseOpt: F.Throw()),
+                    GenerateReturn(false));
+            }
         }
 
         protected override BoundStatement GenerateReturn(bool finished)
@@ -301,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // [$resultPlace = ] $awaiterTemp.GetResult();
             BoundStatement getResultStatement = resultPlace != null && type.SpecialType != SpecialType.System_Void ?
-                F.Assignment(resultPlace, getResultCall):
+                F.Assignment(resultPlace, getResultCall) :
                 F.ExpressionStatement(getResultCall);
 
             return F.Block(
@@ -386,6 +457,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (awaiterField.Type == awaiterTemp.Type)
                         ? F.Local(awaiterTemp)
                         : F.Convert(awaiterFieldType, F.Local(awaiterTemp))));
+
+            if (_asyncIteratorInfo != null)
+            {
+                blockBuilder.Add(
+                    GenerateResetPromiseIfInactive());
+            }
 
             blockBuilder.Add(awaiterTemp.Type.IsDynamic()
                 ? GenerateAwaitOnCompletedDynamic(awaiterTemp)
@@ -539,6 +616,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             return F.ExpressionStatement(result);
         }
 
+        private BoundStatement GenerateResetPromiseIfInactive()
+        {
+            Debug.Assert(_asyncIteratorInfo != null);
+
+            // this.promiseIsActive = true;
+            BoundFieldAccess promiseIsActiveField = F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField);
+            var assignTrue = F.Assignment(promiseIsActiveField, F.Literal(true));
+
+            // this.promiseOfValueOrEnd.Reset();
+            BoundFieldAccess promiseField = F.Field(F.This(), _asyncIteratorInfo.PromiseOfValueOrEndField);
+            var callReset = F.ExpressionStatement(F.Call(promiseField, _asyncIteratorInfo.ResetMethod));
+
+            // Produce:
+            // if (!this.promiseIsActive)
+            // {
+            //    this.promiseIsActive = true;
+            //    this.promiseOfValueOrEnd.Reset();
+            // }
+            return F.If(
+                F.Not(promiseIsActiveField),
+                thenClause: F.Block(assignTrue, callReset));
+        }
+
+        private BoundStatement GenerateSetResultOnPromiseIfActive(bool result)
+        {
+            Debug.Assert(_asyncIteratorInfo != null);
+
+            // this.promiseOfValueOrEnd.SetResult(result);
+            BoundExpressionStatement callSetResult = GenerateSetResultOnPromise(result);
+
+            // Produce:
+            // if (this.promiseIsActive)
+            // {
+            //    this.promiseOfValueOrEnd.SetResult(result);
+            // }
+            return F.If(
+                F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField),
+                thenClause: callSetResult);
+        }
+
+        private BoundExpressionStatement GenerateSetResultOnPromise(bool result)
+        {
+            // Produce:
+            // this.promiseOfValueOrEnd.SetResult(result);
+            BoundFieldAccess promiseField = F.Field(F.This(), _asyncIteratorInfo.PromiseOfValueOrEndField);
+            return F.ExpressionStatement(F.Call(promiseField, _asyncIteratorInfo.SetResultMethod, F.Literal(result)));
+        }
+
         private static ImmutableArray<LocalSymbol> SingletonOrPair(LocalSymbol first, LocalSymbol secondOpt)
         {
             return (secondOpt == null) ? ImmutableArray.Create(first) : ImmutableArray.Create(first, secondOpt);
@@ -555,6 +680,97 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return F.Goto(_exprReturnLabel);
+        }
+
+        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
+        {
+            Debug.Assert(_asyncIteratorInfo != null);
+
+            //     yield return expression;
+            // is translated to:
+            //     this.current = expression;
+            //     this.state = <next_state>;
+            //     if (this._promiseIsActive)
+            //     {
+            //         this._valueOrEndPromise.SetResult(true);
+            //     }
+            //     goto <exit_label>;
+            //     <next_state_label>: ;
+            //     this.state = finalizeState;
+
+            int stateNumber;
+            GeneratedLabelSymbol resumeLabel;
+            AddState(out stateNumber, out resumeLabel);
+            //_currentFinallyFrame.AddState(stateNumber); // PROTOTYPE(async-streams): Need to review this logic from IteratorMethodToStateMachineRewriter
+
+            var rewrittenExpression = (BoundExpression)Visit(node.Expression);
+            var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            blockBuilder.Add(
+                // this.current = expression;
+                F.Assignment(F.Field(F.This(), _asyncIteratorInfo.CurrentField), rewrittenExpression));
+
+            blockBuilder.Add(
+                // this.state = <next_state>;
+                F.Assignment(F.Field(F.This(), stateField), F.Literal(stateNumber)));
+
+            blockBuilder.Add(
+                // if (promiseIsActive)
+                // {
+                //     _valueOrEndPromise.SetResult(true);
+                // }
+                GenerateSetResultOnPromiseIfActive(true));
+
+            blockBuilder.Add(
+                // goto <exit_label>;
+                GenerateReturn(finished: false));
+
+            blockBuilder.Add(
+                // <next_state_label>: ;
+                F.Label(resumeLabel));
+
+            blockBuilder.Add(
+                F.HiddenSequencePoint());
+
+            // PROTOTYPE(async-streams): Need to review this logic from IteratorMethodToStateMachineRewriter
+            //blockBuilder.Add(
+            //    // this.state = finalizeState;
+            //    F.Assignment(F.Field(F.This(), stateField), F.Literal(_currentFinallyFrame.finalizeState)));
+
+            return F.Block(blockBuilder.ToImmutableAndFree());
+        }
+
+        public override BoundNode VisitYieldBreakStatement(BoundYieldBreakStatement node)
+        {
+            Debug.Assert(_asyncIteratorInfo != null);
+
+            // Produce:
+            // if (!this.promiseIsActive)
+            // {
+            //    this.promiseIsActive = true;
+            //    this.promiseOfValueOrEnd.Reset();
+            // }
+            // this.promiseOfValueOrEnd.SetResult(false);
+            // return;
+
+            var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            blockBuilder.Add(
+               // if (!this.promiseIsActive)
+               // {
+               //    this.promiseIsActive = true;
+               //    this.promiseOfValueOrEnd.Reset();
+               // }
+               GenerateResetPromiseIfInactive());
+
+            blockBuilder.Add(
+                // this.promiseOfValueOrEnd.SetResult(false);
+                GenerateSetResultOnPromise(false));
+
+            // return;
+            blockBuilder.Add(F.Return());
+
+            return F.Block(blockBuilder.ToImmutableAndFree());
         }
 
         #endregion Visitors

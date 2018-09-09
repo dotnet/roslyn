@@ -2153,6 +2153,28 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(0) Next(0) NextAsync(1) Next(1) Got(1) Next(1) NextAsync(2) Next(2) Got(2) Next(2) NextAsync(3) Dispose(3) Done", verify: Verification.Skipped);
         }
 
+        [Fact, WorkItem(27651, "https://github.com/dotnet/roslyn/issues/27651")]
+        public void TestControlFlowAnalysis()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> collection)
+    {
+        foreach await (var item in collection) { }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+
+            var ctrlFlowAnalysis = model.AnalyzeControlFlow(loop);
+            Assert.Equal(0, ctrlFlowAnalysis.ExitPoints.Count());
+        }
+
         [Fact]
         public void TestWithNullLiteralCollection()
         {
