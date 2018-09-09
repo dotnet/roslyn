@@ -3424,9 +3424,11 @@ class C<T>
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics();
+
             comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Verify no warnings are generated
-            // when [NonNullTypes] is necessary to enable warnings.
             comp.VerifyDiagnostics(
                 // (3,7): warning CS8618: Non-nullable field '_f' is uninitialized.
                 // class C<T>
