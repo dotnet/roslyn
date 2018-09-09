@@ -33,13 +33,13 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
-        <target state="translated">Evidenzia riferimenti a simbolo sotto il cursore;Evidenzia parole chiave correlate sotto il cursore;Attiva modalità struttura all'apertura del file;Mostra separatori di riga routine;Genera commenti in formato documentazione XML;Mostra diagnostica per file chiusi;Visualizza anteprima per verifica ridenominazione;Inserisci prima le direttive 'System' durante l'ordinamento delle using;Non inserire out o ref in struct personalizzato</target>
+        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
+        <target state="needs-review-translation">Evidenzia riferimenti a simbolo sotto il cursore;Evidenzia parole chiave correlate sotto il cursore;Attiva modalità struttura all'apertura del file;Mostra separatori di riga routine;Genera commenti in formato documentazione XML;Mostra diagnostica per file chiusi;Visualizza anteprima per verifica ridenominazione;Inserisci prima le direttive 'System' durante l'ordinamento delle using;Non inserire out o ref in struct personalizzato</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
         <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
-        <target state="needs-review-translation">Formatta automaticamente istruzione dopo l'immissione del punto e virgola;Formatta automaticamente blocco dopo l'immissione della parentesi graffa;Formatta automaticamente dopo operazione Incolla</target>
+        <target state="translated">Formatta automaticamente istruzione dopo l'immissione del punto e virgola;Formatta automaticamente blocco dopo l'immissione della parentesi graffa;Formatta automaticamente dopo operazione Incolla;Pulizia codice</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">

@@ -747,8 +747,7 @@ struct C
 }
 ";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFlowAnalysisFeature());
-
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
             var graphM = ControlFlowGraph.Create((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single()));

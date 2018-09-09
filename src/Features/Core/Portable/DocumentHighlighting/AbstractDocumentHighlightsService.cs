@@ -7,8 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -61,6 +61,12 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
+            var result = await TryGetEmbeddedLanguageHighlightsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (!result.IsDefaultOrEmpty)
+            {
+                return result;
+            }
+
             // use speculative semantic model to see whether we are on a symbol we can do HR
             var span = new TextSpan(position, 0);
             var solution = document.Project.Solution;
@@ -83,6 +89,38 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return await GetTagsForReferencedSymbolAsync(
                 new SymbolAndProjectId(symbol, document.Project.Id),
                 document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
+            Document document, int position, CancellationToken cancellationToken)
+        {
+            var embeddedLanguagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
+            if (embeddedLanguagesProvider != null)
+            {
+                foreach (var language in embeddedLanguagesProvider.GetEmbeddedLanguages())
+                {
+                    var highlighter = language.Highlighter;
+                    if (highlighter != null)
+                    {
+                        var highlights = await highlighter.GetHighlightsAsync(
+                            document, position, cancellationToken).ConfigureAwait(false);
+
+                        if (!highlights.IsDefaultOrEmpty)
+                        {
+                            var result = ArrayBuilder<HighlightSpan>.GetInstance();
+                            foreach (var span in highlights)
+                            {
+                                result.Add(new HighlightSpan(span, HighlightSpanKind.None));
+                            }
+
+                            return ImmutableArray.Create(new DocumentHighlights(
+                                document, result.ToImmutableAndFree()));
+                        }
+                    }
+                }
+            }
+
+            return default;
         }
 
         private static async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
