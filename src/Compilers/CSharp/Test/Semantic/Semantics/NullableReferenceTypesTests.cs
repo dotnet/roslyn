@@ -2228,6 +2228,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
+            // We don't check whether well-known types are obsolete
             var comp = CreateCompilation(new[] { source });
             comp.VerifyEmitDiagnostics();
             Assert.False(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute").IsImplicitlyDeclared);
@@ -3119,12 +3120,11 @@ class E
         {
             Assert.Equal(expectNonNullTypes, method.NonNullTypes);
 
-            // PROTOTYPE(NullableReferenceTypes): verify NonNullTypes on return value
+            Assert.Equal(expectNonNullTypes, method.ReturnType.NonNullTypesContext.NonNullTypes);
 
             foreach (var parameter in method.Parameters)
             {
-                // PROTOTYPE(NullableReferenceTypes): verify NonNullTypes on parameters
-                //Assert.Equal(nonNullTypes, parameter.NonNullTypes);
+                Assert.Equal(expectNonNullTypes, parameter.NonNullTypes);
             }
         }
 
