@@ -664,16 +664,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static ImmutableHashSet<string> GetFilePaths(ImmutableArray<DocumentInfo> documents)
-        {
-            var map = ImmutableHashSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase);
-            foreach (var document in documents)
-            {
-                map = map.Add(document.FilePath);
-            }
-            return map;
-        }
-
         /// <summary>
         /// Call this method when a document is added to a project in the host environment.
         /// </summary>
@@ -681,21 +671,29 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                OnDocumentAdded_NoLock(documentInfo);
+                var documentId = documentInfo.Id;
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
             }
         }
 
-        private void OnDocumentAdded_NoLock(DocumentInfo documentInfo)
+        /// <summary>
+        /// Call this method when multiple document are added to one or more projects in the host environment.
+        /// </summary>
+        protected internal void OnDocumentsAdded(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var documentId = documentInfo.Id;
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.AddDocuments(documentInfos));
 
-            CheckProjectIsInCurrentSolution(documentId.ProjectId);
-            CheckDocumentIsNotInCurrentSolution(documentId);
-
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
-
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
+                // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
+                // DocumentId associated with it, and we don't want to be raising multiple events.
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution);
+            }
         }
 
         /// <summary>
@@ -706,9 +704,6 @@ namespace Microsoft.CodeAnalysis
             using (_serializationLock.DisposableWait())
             {
                 var documentId = newDocumentInfo.Id;
-
-                CheckProjectIsInCurrentSolution(documentId.ProjectId);
-                CheckDocumentIsInCurrentSolution(documentId);
 
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId).AddDocument(newDocumentInfo));
@@ -724,23 +719,18 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                OnDocumentRemoved_NoLock(documentId);
+                CheckDocumentIsInCurrentSolution(documentId);
+
+                this.CheckDocumentCanBeRemoved(documentId);
+
+                var oldSolution = this.CurrentSolution;
+
+                this.ClearDocumentData(documentId);
+
+                var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentRemoved, oldSolution, newSolution, documentId: documentId);
             }
-        }
-
-        private void OnDocumentRemoved_NoLock(DocumentId documentId)
-        {
-            CheckDocumentIsInCurrentSolution(documentId);
-
-            this.CheckDocumentCanBeRemoved(documentId);
-
-            var oldSolution = this.CurrentSolution;
-
-            this.ClearDocumentData(documentId);
-
-            var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId));
-
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentRemoved, oldSolution, newSolution, documentId: documentId);
         }
 
         protected virtual void CheckDocumentCanBeRemoved(DocumentId documentId)
@@ -818,24 +808,24 @@ namespace Microsoft.CodeAnalysis
                 var oldSolution = this.CurrentSolution;
 
                 var newSolution = oldSolution;
-                var oldInfo = oldSolution.GetDocument(documentId).GetDocumentInfoWithoutContent();
+                var oldAttributes = oldSolution.GetDocument(documentId).State.Attributes;
 
-                if (oldInfo.Name != newInfo.Name)
+                if (oldAttributes.Name != newInfo.Name)
                 {
                     newSolution = newSolution.WithDocumentName(documentId, newInfo.Name);
                 }
 
-                if (oldInfo.Folders != newInfo.Folders)
+                if (oldAttributes.Folders != newInfo.Folders)
                 {
                     newSolution = newSolution.WithDocumentFolders(documentId, newInfo.Folders);
                 }
 
-                if (oldInfo.FilePath != newInfo.FilePath)
+                if (oldAttributes.FilePath != newInfo.FilePath)
                 {
                     newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath);
                 }
 
-                if (oldInfo.SourceCodeKind != newInfo.SourceCodeKind)
+                if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)
                 {
                     newSolution = newSolution.WithDocumentSourceCodeKind(documentId, newInfo.SourceCodeKind);
                 }
@@ -1394,7 +1384,8 @@ namespace Microsoft.CodeAnalysis
             // update info if changed
             if (newDoc.HasInfoChanged(oldDoc))
             {
-                ApplyDocumentInfoChanged(documentId, newDoc.GetDocumentInfoWithoutContent());
+                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
+                ApplyDocumentInfoChanged(documentId, new DocumentInfo(newDoc.State.Attributes, loader: null));
             }
 
             // update text if changed

@@ -848,11 +848,6 @@
         <target state="translated">Upozornění: Nešlo povolit vícejádrový režim JIT kvůli výjimce: {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="translated">Funkce Flow-Analysis je zakázaná.</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

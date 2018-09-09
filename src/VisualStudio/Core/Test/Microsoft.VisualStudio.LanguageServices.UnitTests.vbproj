@@ -67,9 +67,11 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
-    <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
+
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="Microsoft.MSXML" Version="$(MicrosoftMSXMLVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
@@ -82,7 +84,6 @@
     <PackageReference Include="Microsoft.VisualStudio.GraphModel" Version="$(MicrosoftVisualStudioGraphModelVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Xml.Linq" />

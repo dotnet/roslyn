@@ -61,6 +61,7 @@
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" />

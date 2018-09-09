@@ -848,11 +848,6 @@
         <target state="translated">警告: 因為例外狀況: {0}，所以無法啟用 multicore JIT。</target>
         <note />
       </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="translated">'Flow-Analysis' 功能已停用。</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

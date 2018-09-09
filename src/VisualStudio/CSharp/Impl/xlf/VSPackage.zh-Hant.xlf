@@ -33,8 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
-        <target state="translated">反白資料指標下符號的參考項目; 反白資料指標下相關的關鍵字; 檔案開啟時輸入大綱模式; 顯示程序行分隔符號; 產生 XML 文件註解; 顯示關閉的檔案之診斷; 顯示重新命名追踨的預覽; 排序 usings 時先放置 'System' 指示詞; 自訂結構上不要放置 ref 或 out</target>
+        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
+        <target state="needs-review-translation">反白資料指標下符號的參考項目; 反白資料指標下相關的關鍵字; 檔案開啟時輸入大綱模式; 顯示程序行分隔符號; 產生 XML 文件註解; 顯示關閉的檔案之診斷; 顯示重新命名追踨的預覽; 排序 usings 時先放置 'System' 指示詞; 自訂結構上不要放置 ref 或 out</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

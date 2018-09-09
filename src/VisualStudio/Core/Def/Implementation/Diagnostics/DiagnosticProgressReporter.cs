@@ -31,13 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         [ImportingConstructor]
         public DiagnosticProgressReporter(
-            SVsServiceProvider serviceProvider,
+            SVsTaskStatusCenterService taskStatusCenterService,
             IDiagnosticService diagnosticService,
             VisualStudioWorkspace workspace)
         {
             _lastTimeReported = DateTimeOffset.UtcNow;
 
-            _taskCenterService = (IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService));
+            _taskCenterService = (IVsTaskStatusCenterService)taskStatusCenterService;
             _diagnosticService = diagnosticService;
 
             _options = new TaskHandlerOptions()

@@ -8,8 +8,19 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <ServiceablePackage>true</ServiceablePackage>
     <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
+
+    <!-- 
+      NuGet 
+    
+      TODO: https://github.com/dotnet/roslyn/issues/29292
+      We package Microsoft.CodeAnalysis.Workspaces and Microsoft.CodeAnalysis.Workspaces.Desktop in the same package,
+      which is an unusal pattern that's not supported by NuGet Pack and needs a custom NuSpec file.
+      
+      Setting the PackageId causes Restore target to use this name as a project name in assets.json.
+      This is then used by Pack target when generating dependencies in NuSpec. 
+    -->
+    <PackageId>Microsoft.CodeAnalysis.Workspaces.Common</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
