@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should this API be exposed through ITypeParameterSymbol?
+        // https://github.com/dotnet/roslyn/issues/26198 Should this API be exposed through ITypeParameterSymbol?
         internal bool? IsNotNullableIfReferenceType => GetIsNotNullableIfReferenceType(ConsList<TypeParameterSymbol>.Empty);
 
         internal bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress)
