@@ -50,6 +50,30 @@ class C
         }
 
         [Fact]
+        public void UpdateArrayRankSpecifier()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        object[]? x = null;
+    }
+}
+";
+            var tree = Parse(source);
+            var specifier = tree.GetRoot().DescendantNodes().OfType<ArrayRankSpecifierSyntax>().Single();
+            Assert.Equal("[]?", specifier.ToString());
+
+            var newSpecifier = specifier.Update(
+                specifier.OpenBracketToken,
+                SyntaxFactory.SeparatedList<ExpressionSyntax>(
+                    new[] { SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(3)) }),
+                specifier.CloseBracketToken);
+            Assert.Equal("[3]?", newSpecifier.ToString());
+        }
+
+        [Fact]
         public void TestUnaryNegation()
         {
             // This test verifies that we no longer crash hitting an assertion
