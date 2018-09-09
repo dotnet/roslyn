@@ -676,5 +676,12 @@ End Operator"
                 Escape("{{"),
                 Escape("}}"))
         End Function
+
+        <WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestDirectiveStringLiteral() As Task
+            Await TestAsync("#region ""goo""""bar""",
+                Escape(""""""))
+        End Function
     End Class
 End Namespace

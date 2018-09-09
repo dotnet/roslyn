@@ -381,7 +381,7 @@ function Build-Installer () {
     Create-Directory $intermidateDirectory
 
     ## Copying VsixExpInstaller.exe
-    $vsixExpInstallerDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
+    $vsixExpInstallerDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
     $vsixExpInstallerExe = Join-Path $vsixExpInstallerDir "tools\*"
     $vsixExpInstallerExeDestination = Join-Path $intermidateDirectory "tools\vsixexpinstaller"
     Create-Directory $vsixExpInstallerExeDestination
@@ -630,8 +630,8 @@ function Test-XUnit() {
 
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
-function Deploy-VsixViaTool() {
-    $vsixDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
+function Deploy-VsixViaTool() { 
+    $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
     $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
     $both = Get-VisualStudioDirAndId
     $vsDir = $both[0].Trim("\")
