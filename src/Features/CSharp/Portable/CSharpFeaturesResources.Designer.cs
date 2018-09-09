@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Add await and ConfigureAwait(false).
         /// </summary>
-        internal static string Add_await_and_ConfigureAwaitFalse {
+        internal static string Add_Await_and_ConfigureAwaitFalse {
             get {
-                return ResourceManager.GetString("Add_await_and_ConfigureAwaitFalse", resourceCulture);
+                return ResourceManager.GetString("Add_Await_and_ConfigureAwaitFalse", resourceCulture);
             }
         }
         

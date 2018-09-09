@@ -129,7 +129,7 @@
   <data name="Add_await" xml:space="preserve">
     <value>Add await</value>
   </data>
-  <data name="Add_await_and_ConfigureAwaitFalse" xml:space="preserve">
+  <data name="Add_Await_and_ConfigureAwaitFalse" xml:space="preserve">
     <value>Add await and ConfigureAwait(false)</value>
   </data>
   <data name="Simplify_lambda_expression" xml:space="preserve">

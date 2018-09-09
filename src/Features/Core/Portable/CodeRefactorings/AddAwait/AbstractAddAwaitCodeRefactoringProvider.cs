@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -20,13 +21,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
     /// Or:
     ///     var x = await GetAsync().ConfigureAwait(false);
     /// </summary>
-    internal abstract class AddAwaitCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractAddAwaitCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TInvocationExpressionSyntax : TExpressionSyntax
     {
         protected abstract string GetTitle();
         protected abstract string GetTitleWithConfigureAwait();
-        protected abstract bool IsAlreadyAwaited(TInvocationExpressionSyntax invocation);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             var token = root.FindTokenOnLeftOfPosition(textSpan.Start);
 
             var model = await document.GetSemanticModelAsync(cancellationToken);
-            var awaitable = GetAwaitableExpression(textSpan, token, model, cancellationToken);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var awaitable = GetAwaitableExpression(textSpan, token, model, syntaxFacts, cancellationToken);
             if (awaitable == null)
             {
                 return;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                     c => AddAwaitAsync(document, awaitable, withConfigureAwait: true, c)));
         }
 
-        private TExpressionSyntax GetAwaitableExpression(TextSpan textSpan, SyntaxToken token, SemanticModel model, CancellationToken cancellationToken)
+        private TExpressionSyntax GetAwaitableExpression(TextSpan textSpan, SyntaxToken token, SemanticModel model, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             var invocation = token.GetAncestor<TInvocationExpressionSyntax>();
             if (invocation is null)
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 return null;
             }
 
-            if (IsAlreadyAwaited(invocation))
+            if (syntaxFacts.IsExpressionOfAwaitExpression(invocation))
             {
                 return null;
             }

@@ -8,19 +8,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.AddAwait
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.AddAwait), [Shared]>
     Friend Class VisualBasicAddAwaitCodeRefactoringProvider
-        Inherits AddAwaitCodeRefactoringProvider(Of ExpressionSyntax, InvocationExpressionSyntax)
+        Inherits AbstractAddAwaitCodeRefactoringProvider(Of ExpressionSyntax, InvocationExpressionSyntax)
 
         Protected Overrides Function GetTitle() As String
             Return VBFeaturesResources.Add_Await
         End Function
 
         Protected Overrides Function GetTitleWithConfigureAwait() As String
-            Return VBFeaturesResources.Add_await_and_ConfigureAwaitFalse
+            Return VBFeaturesResources.Add_Await_and_ConfigureAwaitFalse
         End Function
-
-        Protected Overrides Function IsAlreadyAwaited(invocation As InvocationExpressionSyntax) As Boolean
-            Return invocation.IsParentKind(SyntaxKind.AwaitExpression)
-        End Function
-
     End Class
 End Namespace
