@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -47,8 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // definition as what to show.  That way we show enough information for things
                     // methods.  i.e. we'll show "void TypeName.MethodName(args...)" allowing
                     // the user to see the type the method was created in.
-                    var entry = await CreateEntryAsync(definitionBucket, definition).ConfigureAwait(false);
-                    entries.Add(entry);
+                    var entry = await TryCreateEntryAsync(definitionBucket, definition).ConfigureAwait(false);
+                    entries.AddIfNotNull(entry);
                 }
                 else
                 {
@@ -58,9 +57,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // to navigate to.
                     foreach (var sourceSpan in definition.SourceSpans)
                     {
-                        var entry = await CreateDocumentSpanEntryAsync(
+                        var entry = await TryCreateDocumentSpanEntryAsync(
                             definitionBucket, sourceSpan, HighlightSpanKind.Definition).ConfigureAwait(false);
-                        entries.Add(entry);
+                        entries.AddIfNotNull(entry);
                     }
                 }
 
@@ -78,13 +77,20 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 entries.Free();
             }
 
-            private async Task<Entry> CreateEntryAsync(
+            private async Task<Entry> TryCreateEntryAsync(
                 RoslynDefinitionBucket definitionBucket, DefinitionItem definition)
             {
                 var documentSpan = definition.SourceSpans[0];
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document).ConfigureAwait(false);
 
-                return new DefinitionItemEntry(this, definitionBucket, documentSpan, projectName, guid, sourceText);
+                var lineText = AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start);
+                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
+                if (mappedDocumentSpan == null)
+                {
+                    return null;
+                }
+
+                return new DefinitionItemEntry(this, definitionBucket, projectName, guid, lineText, mappedDocumentSpan.Value);
             }
         }
     }

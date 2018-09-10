@@ -10,12 +10,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -263,20 +262,45 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (guid, projectName, sourceText);
             }
 
-            protected async Task<Entry> CreateDocumentSpanEntryAsync(
+            protected async Task<Entry> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind)
             {
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
+                var excerptResult = await ExcerptAsync(sourceText, documentSpan).ConfigureAwait(false);
 
-                var classifiedSpansAndHighlightSpan =
-                    await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, CancellationToken).ConfigureAwait(false);
+                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
+                if (mappedDocumentSpan == null)
+                {
+                    return null;
+                }
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, documentSpan, spanKind,
-                    projectName, guid, sourceText, classifiedSpansAndHighlightSpan);
+                    this, definitionBucket, spanKind, projectName,
+                    guid, mappedDocumentSpan.Value, excerptResult);
+            }
+
+            private async Task<ExcerptResult> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
+            {
+                var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
+                if (excerptService != null)
+                {
+                    var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, CancellationToken).ConfigureAwait(false);
+                    if (result != null)
+                    {
+                        return result.Value;
+                    }
+                }
+
+                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, CancellationToken).ConfigureAwait(false);
+                return new ExcerptResult(
+                    sourceText,
+                    classificationResult.HighlightSpan,
+                    classificationResult.ClassifiedSpans,
+                    documentSpan.Document,
+                    documentSpan.SourceSpan);
             }
 
             private TextSpan GetRegionSpanForReference(SourceText sourceText, TextSpan referenceSpan)
@@ -349,7 +373,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         // If we've been cleared, then just return an empty list of entries.
                         // Otherwise return the appropriate list based on how we're currently
                         // grouping.
-                        var entries = _cleared 
+                        var entries = _cleared
                             ? ImmutableList<Entry>.Empty
                             : _currentlyGroupingByDefinition
                                 ? EntriesWhenGroupingByDefinition

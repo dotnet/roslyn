@@ -121,15 +121,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public int GetLine()
             => ExecuteOnActiveView(view =>
             {
-                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
+                view.Caret.Position.BufferPosition.GetLineAndCharector(out int lineNumber, out int characterIndex);
                 return lineNumber;
             });
 
         public int GetColumn()
             => ExecuteOnActiveView(view =>
             {
-                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
-                return columnIndex;
+                view.Caret.Position.BufferPosition.GetLineAndCharector(out int lineNumber, out int characterIndex);
+                return characterIndex;
             });
 
         public string GetLineTextBeforeCaret()

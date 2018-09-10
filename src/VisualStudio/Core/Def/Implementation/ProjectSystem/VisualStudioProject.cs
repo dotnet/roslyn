@@ -5,6 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -13,9 +16,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed class VisualStudioProject
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly string _projectUniqueName;
+
+        /// <summary>
+        /// provide source file info for the non source file given.
+        /// 
+        /// we could change name to something like InterimSourceInfoProvider or GeneratedSourceInfoProvider or etc.
+        /// name is just something I made up
+        /// </summary>
+        private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
 
         /// <summary>
         /// A gate taken for all mutation of any mutable field in this type.
@@ -69,15 +81,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly FileChangeWatcher.IContext _fileReferenceChangeContext;
 
+        /// <summary>
+        /// the map of <see cref="DocumentId"/> to <see cref="IDynamicFileInfoProvider"/> whose <see cref="DynamicFileInfo"/> got added into <see cref="Workspace"/>
+        /// </summary>
+        private readonly Dictionary<DocumentId, IDynamicFileInfoProvider> _documentIdToDynamicFileInfoProvider = new Dictionary<DocumentId, IDynamicFileInfoProvider>();
+
+        /// <summary>
+        /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
+        /// </summary>
+        private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = new HashSet<IDynamicFileInfoProvider>();
+
         private readonly BatchingDocumentCollection _sourceFiles;
         private readonly BatchingDocumentCollection _additionalFiles;
 
         public ProjectId Id { get; }
         public string Language { get; }
 
-        internal VisualStudioProject(VisualStudioWorkspaceImpl workspace, HostDiagnosticUpdateSource hostDiagnosticUpdateSource, ProjectId id, string projectUniqueName, string language, string directoryNameOpt)
+        internal VisualStudioProject(
+            IThreadingContext threadingContext,
+            VisualStudioWorkspaceImpl workspace,
+            ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            ProjectId id,
+            string projectUniqueName,
+            string language,
+            string directoryNameOpt)
         {
+            _threadingContext = threadingContext;
             _workspace = workspace;
+            _dynamicFileInfoProviders = fileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
             Id = id;
@@ -431,9 +463,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
         }
 
-        public DocumentId AddSourceTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
+        public DocumentId AddSourceTextContainer(
+            SourceTextContainer textContainer,
+            string fullPath,
+            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
+            ImmutableArray<string> folders = default,
+            IDocumentServiceProvider documentServiceProvider = null)
         {
-            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders);
+            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, documentServiceProvider);
         }
 
         public bool ContainsSourceFile(string fullPath)
@@ -469,6 +506,69 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void RemoveAdditionalFile(string fullPath)
         {
             _additionalFiles.RemoveFile(fullPath);
+        }
+
+        #endregion
+
+        #region Non Source File Addition/Removal
+        public void AddDynamicFile(string filePath, ImmutableArray<string> folders)
+        {
+            var extension = GetExtensionWithoutDot(filePath);
+            if (extension?.Length == 0)
+            {
+                return;
+            }
+
+            foreach (var provider in _dynamicFileInfoProviders)
+            {
+                // skip unrelated providers
+                if (!provider.Metadata.Extensions.Any(e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
+                // _filePath of this type (VSProject) points to csproj/vbproj of the project
+                // where filePath points to dynamic file such as cshtml and etc
+                // for now, we use GetAwaiter().GetResult() until this method itself becomes Async
+                var fileInfo = _threadingContext.JoinableTaskFactory.Run(() => provider.Value.GetDynamicFileInfoAsync(projectId: Id, projectFilePath: _filePath, filePath: filePath, CancellationToken.None));
+                if (fileInfo == null)
+                {
+                    continue;
+                }
+
+                _sourceFiles.AddDynamicFile(provider.Value, MarkDynamicFilePath(filePath), fileInfo, folders);
+                return;
+            }
+        }
+
+        public void RemoveDynamicFile(string filePath)
+        {
+            var provider = _sourceFiles.RemoveDynamicFile(MarkDynamicFilePath(filePath));
+
+            _threadingContext.JoinableTaskFactory.Run(() => provider.RemoveDynamicFileInfoAsync(projectId: Id, projectFilePath: _filePath, filePath: filePath, CancellationToken.None));
+        }
+
+        private void OnDynamicFileInfoUpdated(object sender, string filePath)
+        {
+            _sourceFiles.ProcessFileChange(filePath, MarkDynamicFilePath(filePath));
+        }
+
+        private static string GetExtensionWithoutDot(string filePath)
+        {
+            var extension = FileNameUtilities.GetExtension(filePath);
+            if (extension?.Length == 0)
+            {
+                return null;
+            }
+
+            return extension[0] == '.' ? extension.Substring(1) : extension;
+        }
+
+        internal static string MarkDynamicFilePath(string filePath)
+        {
+            // this file path never leaks to Workspace. it only used as a key to distinguish non source files in this type.
+            // for now, we do this until we figure out how to deal with Open/Closed contained document issue.
+            return filePath + "#Generated#";
         }
 
         #endregion
@@ -764,6 +864,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _documentFileChangeContext.Dispose();
 
+            lock (_gate)
+            {
+                // clear tracking to external components
+                foreach (var provider in _eventSubscriptionTracker)
+                {
+                    provider.Updated -= OnDynamicFileInfoUpdated;
+                }
+
+                _eventSubscriptionTracker.Clear();
+            }
+
             _workspace.ApplyChangeToWorkspace(w => w.OnProjectRemoved(Id));
         }
 
@@ -876,7 +987,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     folders: folders.IsDefault ? null : (IEnumerable<string>)folders,
                     sourceCodeKind: sourceCodeKind,
                     loader: textLoader,
-                    filePath: fullPath);
+                    filePath: fullPath,
+                    isGenerated: false);
 
                 lock (_project._gate)
                 {
@@ -902,7 +1014,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return documentId;
             }
 
-            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders)
+            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, IDocumentServiceProvider documentServiceProvider)
             {
                 if (textContainer == null)
                 {
@@ -917,7 +1029,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     folders: folders.IsDefault ? null : (IEnumerable<string>)folders,
                     sourceCodeKind: sourceCodeKind,
                     loader: textLoader,
-                    filePath: fullPath);
+                    filePath: fullPath,
+                    isGenerated: false,
+                    documentServiceProvider: documentServiceProvider);
 
                 lock (_project._gate)
                 {
@@ -956,6 +1070,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return documentId;
             }
 
+            public void AddDynamicFile(IDynamicFileInfoProvider fileInfoProvider, string filePath, DynamicFileInfo fileInfo, ImmutableArray<string> folders)
+            {
+                var documentInfo = CreateDocumentInfoFromFileInfo(fileInfo, folders.IsDefault ? null : (IEnumerable<string>)folders);
+                var documentId = documentInfo.Id;
+
+                lock (_project._gate)
+                {
+                    if (_documentPathsToDocumentIds.ContainsKey(filePath))
+                    {
+                        throw new ArgumentException($"'{filePath}' has already been added to this project.", nameof(filePath));
+                    }
+
+                    _documentPathsToDocumentIds.Add(filePath, documentId);
+
+                    _project._documentIdToDynamicFileInfoProvider.Add(documentId, fileInfoProvider);
+
+                    if (_project._eventSubscriptionTracker.Add(fileInfoProvider))
+                    {
+                        // subscribe to the event when we use this provider the first time
+                        fileInfoProvider.Updated += _project.OnDynamicFileInfoUpdated;
+                    }
+
+                    if (_project._activeBatchScopes > 0)
+                    {
+                        _documentsAddedInBatch.Add(documentInfo);
+                    }
+                    else
+                    {
+                        _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
+
+                        // for now, all document added this way is considered closed and never can be opened.
+                        // we will figure on clsoe/open transition in next round when we figure out how to support
+                        // modifications on generated files.
+                        //
+                        // _project._workspace.CheckForOpenDocuments(ImmutableArray.Create(filePath));
+                    }
+                }
+            }
+
+            public IDynamicFileInfoProvider RemoveDynamicFile(string fullPath)
+            {
+                if (string.IsNullOrEmpty(fullPath))
+                {
+                    throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
+                }
+
+                lock (_project._gate)
+                {
+                    if (!_documentPathsToDocumentIds.TryGetValue(fullPath, out var documentId) ||
+                        !_project._documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider))
+                    {
+                        throw new ArgumentException($"'{fullPath}' is not a source file of this project.");
+                    }
+
+                    _project._documentIdToDynamicFileInfoProvider.Remove(documentId);
+
+                    RemoveFileInternal(documentId, fullPath);
+
+                    return fileInfoProvider;
+                }
+            }
+
             public void RemoveFile(string fullPath)
             {
                 if (string.IsNullOrEmpty(fullPath))
@@ -970,36 +1146,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException($"'{fullPath}' is not a source file of this project.");
                     }
 
-                    _documentPathsToDocumentIds.Remove(fullPath);
+                    RemoveFileInternal(documentId, fullPath);
+                }
+            }
 
-                    _project._documentFileChangeContext.StopWatchingFile(_project._fileWatchingTokens[documentId]);
-                    _project._fileWatchingTokens.Remove(documentId);
+            private void RemoveFileInternal(DocumentId documentId, string fullPath)
+            {
+                _documentPathsToDocumentIds.Remove(fullPath);
 
-                    // There are two cases:
-                    // 
-                    // 1. This file is actually been pushed to the workspace, and we need to remove it (either
-                    //    as a part of the active batch or immediately)
-                    // 2. It hasn't been pushed yet, but is contained in _documentsAddedInBatch
-                    if (_documentAlreadyInWorkspace(_project._workspace.CurrentSolution, documentId))
+                _project._documentFileChangeContext.StopWatchingFile(_project._fileWatchingTokens[documentId]);
+                _project._fileWatchingTokens.Remove(documentId);
+
+                // There are two cases:
+                // 
+                // 1. This file is actually been pushed to the workspace, and we need to remove it (either
+                //    as a part of the active batch or immediately)
+                // 2. It hasn't been pushed yet, but is contained in _documentsAddedInBatch
+                if (_documentAlreadyInWorkspace(_project._workspace.CurrentSolution, documentId))
+                {
+                    if (_project._activeBatchScopes > 0)
                     {
-                        if (_project._activeBatchScopes > 0)
-                        {
-                            _documentsRemovedInBatch.Add(documentId);
-                        }
-                        else
-                        {
-                            _project._workspace.ApplyChangeToWorkspace(w => _documentRemoveAction(w, documentId));
-                        }
+                        _documentsRemovedInBatch.Add(documentId);
                     }
                     else
                     {
-                        for (int i = 0; i < _documentsAddedInBatch.Count; i++)
+                        _project._workspace.ApplyChangeToWorkspace(w => _documentRemoveAction(w, documentId));
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < _documentsAddedInBatch.Count; i++)
+                    {
+                        if (_documentsAddedInBatch[i].Id == documentId)
                         {
-                            if (_documentsAddedInBatch[i].Id == documentId)
-                            {
-                                _documentsAddedInBatch.RemoveAt(i);
-                                break;
-                            }
+                            _documentsAddedInBatch.RemoveAt(i);
+                            break;
                         }
                     }
                 }
@@ -1076,22 +1257,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            public void ProcessFileChange(string fullFilePath)
+            public void ProcessFileChange(string filePath)
+            {
+                ProcessFileChange(filePath, filePath);
+            }
+
+            public void ProcessFileChange(string originalFilePath, string documentPathMapKey)
             {
                 lock (_project._gate)
                 {
-                    if (_documentPathsToDocumentIds.TryGetValue(fullFilePath, out var documentId))
+                    if (_documentPathsToDocumentIds.TryGetValue(documentPathMapKey, out var documentId))
                     {
                         // We create file watching prior to pushing the file to the workspace in batching, so it's
                         // possible we might see a file change notification early. In this case, toss it out. Since
                         // all adds/removals of documents for this project happen under our lock, it's safe to do this
                         // check without taking the main workspace lock
                         var document = _project._workspace.CurrentSolution.GetDocument(documentId);
-
                         if (document == null)
                         {
                             return;
                         }
+
+                        _project._documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider);
 
                         _project._workspace.ApplyChangeToWorkspace(w =>
                         {
@@ -1100,14 +1287,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 return;
                             }
 
-                            var documentInfo =
-                                DocumentInfo.Create(
-                                    document.Id,
-                                    document.Name,
-                                    document.Folders,
-                                    document.SourceCodeKind,
-                                    new FileTextLoader(fullFilePath, defaultEncoding: null),
-                                    document.FilePath);
+                            TextLoader textLoader;
+                            IDocumentServiceProvider documentServiceProvider;
+                            if (fileInfoProvider == null)
+                            {
+                                textLoader = new FileTextLoader(originalFilePath, defaultEncoding: null);
+                                documentServiceProvider = null;
+                            }
+                            else
+                            {
+                                var fileInfo = _project._threadingContext.JoinableTaskFactory.Run(() => fileInfoProvider.GetDynamicFileInfoAsync(_project.Id, _project._filePath, originalFilePath, CancellationToken.None));
+
+                                textLoader = fileInfo.TextLoader;
+                                documentServiceProvider = fileInfo.DocumentServiceProvider;
+                            }
+
+                            var documentInfo = DocumentInfo.Create(
+                                document.Id,
+                                document.Name,
+                                document.Folders,
+                                document.SourceCodeKind,
+                                loader: textLoader,
+                                document.FilePath,
+                                document.State.Attributes.IsGenerated,
+                                documentServiceProvider: documentServiceProvider);
 
                             w.OnDocumentReloaded(documentInfo);
                         });
@@ -1146,6 +1349,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ClearAndZeroCapacity(_documentsRemovedInBatch);
 
                 return solution;
+            }
+
+            private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, IEnumerable<string> folders)
+            {
+                // if we want "editorconfig" to work for this file, we might at least want something here? even if
+                // the file doesn't actually exist in file system?
+                var filePath = fileInfo.FilePath;
+
+                // we don't allow document to have null name
+                var name = FileNameUtilities.GetFileName(filePath) ?? "NoName";
+
+                // now, we put these in same project as others, not sure how we can prevent users from
+                // changing this file through rename or code fix. I checked things like resource files, and currently
+                // we don't block them. so this goes into same bucket until we support modification. untli then,
+                // it will get same behavior as other generated files such as resource or xaml files
+                var documentId = DocumentId.CreateNewId(_project.Id, filePath);
+
+                var textLoader = fileInfo.TextLoader;
+                var documentServiceProvider = fileInfo.DocumentServiceProvider;
+
+                // for now, all users of non source file API, we assume they use it for generated files. in other words, we
+                // do not expect the content is changed by users directly. it should be generated by something 
+                // possibily due to users changing some other file
+                //
+                // but we don't mark it as generated file for now. since this file is little bit differnt
+                // than our existing generated file concept where generated code is assumbed to not able to be changed 
+                // until a tool itself is changed. for this one, user can change generated code directly through projected buffer
+                return DocumentInfo.Create(
+                    documentId,
+                    name,
+                    folders: folders,
+                    sourceCodeKind: fileInfo.SourceCodeKind,
+                    loader: textLoader,
+                    filePath: filePath,
+                    isGenerated: false,
+                    documentServiceProvider: documentServiceProvider);
             }
 
             private sealed class SourceTextLoader : TextLoader

@@ -362,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             project = null;
 
             return
-                this.TryGetHierarchy(projectId, out hierarchy) && 
+                this.TryGetHierarchy(projectId, out hierarchy) &&
                 hierarchy.TryGetProject(out project);
         }
 
@@ -1040,7 +1040,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal override void SetDocumentContext(DocumentId documentId)
         {
             _foregroundObject.AssertIsForeground();
-            
+
             // Note: this method does not actually call into any workspace code here to change the workspace's context. The assumption is updating the running document table or
             // IVsHierarchies will raise the appropriate events which we are subscribed to.
 
@@ -1145,11 +1145,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             base.Dispose(finalize);
         }
 
-        public void EnsureEditableDocuments(IEnumerable<DocumentId> documents)
+        public void EnsureEditableDocuments(IEnumerable<DocumentId> documentIds)
         {
             var queryEdit = (IVsQueryEditQuerySave2)ServiceProvider.GlobalProvider.GetService(typeof(SVsQueryEditQuerySave));
 
-            var fileNames = documents.Select(GetFilePath).ToArray();
+            // make sure given document id actually exist in current solution and the file is marked as supporting modifications
+            // and actually has non null file path
+            var fileNames = documentIds.Select(id => CurrentSolution.GetDocument(id))
+                                       .Where(d => d.CanApplyChange())
+                                       .Select(d => d.FilePath).WhereNotNull().ToArray();
 
             // TODO: meditate about the flags we can pass to this and decide what is most appropriate for Roslyn
             int result = queryEdit.QueryEditFiles(
@@ -1404,7 +1408,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
                         convertedReference.projectReference.ProjectId == projectId)
                     {
-                        var metadataReference = 
+                        var metadataReference =
                             CreateMetadataReference(
                                 convertedReference.path,
                                 new MetadataReferenceProperties(

@@ -347,6 +347,11 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        public TextDocumentState GetAnyDocumentState(DocumentId documentId)
+        {
+            return GetDocumentState(documentId) ?? GetAdditionalDocumentState(documentId);
+        }
+
         public Task<VersionStamp> GetDependentVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             return this.GetCompilationTracker(projectId).GetDependentVersionAsync(this, cancellationToken);
@@ -428,7 +433,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var newState in newStateMap)
             {
                 foreach (var projectReference in newState.Value.ProjectReferences)
-                { 
+                {
                     if (projectReference.ProjectId == projectId)
                     {
                         newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(newState.Key, ImmutableArray.Create(projectId));
@@ -436,7 +441,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
-            
+
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newLinkedFilesMap = CreateLinkedFilesMapWithAddedProject(newStateMap[projectId]);
 
@@ -1110,7 +1115,7 @@ namespace Microsoft.CodeAnalysis
 
                 var newProjectState = oldProject.AddDocuments(newDocumentStatesForProject);
 
-                newSolutionState = newSolutionState.ForkProject(newProjectState, 
+                newSolutionState = newSolutionState.ForkProject(newProjectState,
                     CompilationTranslationAction.AddDocuments(newDocumentStatesForProject),
                     newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProjectState, documentInfosInProject.Select(d => d.Id)));
             }

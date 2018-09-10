@@ -186,10 +186,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null)
         {
+            _visualStudioProject.AddDynamicFile(filePath, folderNames.ToImmutableArrayOrEmpty());
         }
 
-        public void RemoveDynamicFile(string fullPath)
+        public void RemoveDynamicFile(string filePath)
         {
+            _visualStudioProject.RemoveDynamicFile(filePath);
         }
 
         public void SetRuleSetFile(string filePath)

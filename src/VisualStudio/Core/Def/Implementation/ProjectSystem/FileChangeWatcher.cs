@@ -96,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// you'll need a file watched (eventually) but it's not worth blocking yet.
             /// </summary>
             IFileWatchingToken EnqueueWatchingFile(string filePath);
+
             void StopWatchingFile(IFileWatchingToken token);
         }
 
@@ -162,9 +163,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             ErrorHandler.ThrowOnFailure(service.UnadviseDirChange(_directoryWatchCookie));
                         }
 
+                        // shouldn't _activeFileWatchingTokens need a lock or need local copy before the queue?
                         foreach (var token in _activeFileWatchingTokens)
                         {
-                            ErrorHandler.ThrowOnFailure(service.UnadviseFileChange(token.Cookie.Value));
+                            UnsubscribeFileChangeEvents(service, token);
                         }
                     });
             }
@@ -212,8 +214,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     Contract.ThrowIfFalse(_activeFileWatchingTokens.Remove(typedToken), "This token was no longer being watched.");
                 }
 
-                _fileChangeWatcher.EnqueueWork(service =>
-                    ErrorHandler.ThrowOnFailure(service.UnadviseFileChange(typedToken.Cookie.Value)));
+                _fileChangeWatcher.EnqueueWork(service => UnsubscribeFileChangeEvents(service, typedToken));
+            }
+
+            private void UnsubscribeFileChangeEvents(IVsFileChangeEx service, FileWatchingToken typedToken)
+            {
+                ErrorHandler.ThrowOnFailure(service.UnadviseFileChange(typedToken.Cookie.Value));
             }
 
             public event EventHandler<string> FileChanged;

@@ -4,13 +4,13 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal static class ContentTypeNames
     {
-        public const string CSharpContentType = "CSharp";
-        public const string CSharpSignatureHelpContentType = "CSharp Signature Help";
-        public const string RoslynContentType = "Roslyn Languages";
-        public const string VisualBasicContentType = "Basic";
-        public const string VisualBasicSignatureHelpContentType = "Basic Signature Help";
-        public const string XamlContentType = "XAML";
-        public const string JavaScriptContentTypeName = "JavaScript";
-        public const string TypeScriptContentTypeName = "TypeScript";
+        public const string CSharpContentType = Text.ContentTypeNames.CSharpContentType;
+        public const string CSharpSignatureHelpContentType = Text.ContentTypeNames.CSharpSignatureHelpContentType;
+        public const string RoslynContentType = Text.ContentTypeNames.RoslynContentType;
+        public const string VisualBasicContentType = Text.ContentTypeNames.VisualBasicContentType;
+        public const string VisualBasicSignatureHelpContentType = Text.ContentTypeNames.VisualBasicSignatureHelpContentType;
+        public const string XamlContentType = Text.ContentTypeNames.XamlContentType;
+        public const string JavaScriptContentTypeName = Text.ContentTypeNames.JavaScriptContentTypeName;
+        public const string TypeScriptContentTypeName = Text.ContentTypeNames.TypeScriptContentTypeName;
     }
 }
