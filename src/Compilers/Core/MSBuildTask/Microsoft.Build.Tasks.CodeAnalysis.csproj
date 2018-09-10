@@ -20,6 +20,7 @@
       The build task and targets used by MSBuild to run the C# and VB compilers.
       Supports using VBCSCompiler on Windows.
     </PackageDescription>
+    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -39,6 +40,7 @@
     <Compile Include="..\..\Shared\CoreClrShim.cs">
       <Link>CoreClrShim.cs</Link>
     </Compile>
+    <Compile Include="..\Portable\CommitHashAttribute.cs" Link="CommitHashAttribute.cs" />
     <Compile Include="..\Portable\CorLightup.cs">
       <Link>CorLightup.cs</Link>
     </Compile>
