@@ -315,6 +315,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
+        public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
+        {
+            // UnboundObjectCreationExpression nodes are only used within initial binding, but don't survive past that stage
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitBadExpression(BoundBadExpression node)
         {
             // Cannot recurse into BadExpression children since the BadExpression

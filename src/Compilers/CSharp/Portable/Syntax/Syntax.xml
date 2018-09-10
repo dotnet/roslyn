@@ -1353,7 +1353,7 @@
         <summary>SyntaxToken representing the new keyword.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Type" Type="TypeSyntax">
+    <Field Name="Type" Type="TypeSyntax" Optional="true">
       <PropertyComment>
         <summary>TypeSyntax representing the type of the object being created.</summary>
       </PropertyComment>

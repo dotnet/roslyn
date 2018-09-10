@@ -19,5 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Func<TypeParameterSymbol, IEnumerable<TypeParameterSymbol>> dependencies = x => x.ConstraintTypesNoUseSiteDiagnostics.OfType<TypeParameterSymbol>();
             return dependencies.TransitiveClosure(typeParameter1).Contains(typeParameter2);
         }
+
+        public static bool IsInstantiable(this TypeParameterSymbol typeParameter)
+        {
+            return typeParameter.IsValueType || typeParameter.HasConstructorConstraint;
+        }
     }
 }

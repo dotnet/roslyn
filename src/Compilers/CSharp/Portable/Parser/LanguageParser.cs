@@ -10311,53 +10311,63 @@ tryAgain:
         private ExpressionSyntax ParseArrayOrObjectCreationExpression()
         {
             SyntaxToken @new = this.EatToken(SyntaxKind.NewKeyword);
-            bool isPossibleArrayCreation = this.IsPossibleArrayCreationExpression();
-            var type = this.ParseType(isPossibleArrayCreation ? ParseTypeMode.ArrayCreation : ParseTypeMode.Normal, expectSizes: isPossibleArrayCreation);
 
-            if (type.Kind == SyntaxKind.ArrayType)
+            TypeSyntax type = null;
+            InitializerExpressionSyntax initializer = null;
+
+            if (this.IsTargetTypedNew(out bool isPossibleArrayCreation))
             {
-                // Check for an initializer.
-                InitializerExpressionSyntax initializer = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    initializer = this.ParseArrayInitializer();
-                }
-                else
-                {
-                    var rankSpec = ((ArrayTypeSyntax)type).RankSpecifiers[0];
-                    if (GetNumberOfNonOmittedArraySizes(rankSpec) == 0)
-                    {
-                        type = this.AddError(type, rankSpec, ErrorCode.ERR_MissingArraySize);
-                    }
-                }
-
-                return _syntaxFactory.ArrayCreationExpression(@new, (ArrayTypeSyntax)type, initializer);
+                @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureTargetTypedNew);
             }
             else
             {
-                ArgumentListSyntax argumentList = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
-                {
-                    argumentList = this.ParseParenthesizedArgumentList();
-                }
+                type = this.ParseType(
+                    isPossibleArrayCreation
+                        ? ParseTypeMode.ArrayCreation
+                        : ParseTypeMode.Normal,
+                    expectSizes: isPossibleArrayCreation);
 
-                InitializerExpressionSyntax initializer = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                if (type.Kind == SyntaxKind.ArrayType)
                 {
-                    initializer = this.ParseObjectOrCollectionInitializer();
-                }
+                    // Check for an initializer.
+                    if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                    {
+                        initializer = this.ParseArrayInitializer();
+                    }
+                    else
+                    {
+                        var rankSpec = ((ArrayTypeSyntax)type).RankSpecifiers[0];
+                        if (GetNumberOfNonOmittedArraySizes(rankSpec) == 0)
+                        {
+                            type = this.AddError(type, rankSpec, ErrorCode.ERR_MissingArraySize);
+                        }
+                    }
 
-                // we need one or the other
-                if (argumentList == null && initializer == null)
-                {
-                    argumentList = _syntaxFactory.ArgumentList(
-                        this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr),
-                        default(SeparatedSyntaxList<ArgumentSyntax>),
-                        SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
+                    return _syntaxFactory.ArrayCreationExpression(@new, (ArrayTypeSyntax)type, initializer);
                 }
-
-                return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
             }
+
+            ArgumentListSyntax argumentList = null;
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                argumentList = this.ParseParenthesizedArgumentList();
+            }
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+            {
+                initializer = this.ParseObjectOrCollectionInitializer();
+            }
+
+            // we need one or the other
+            if (argumentList == null && initializer == null)
+            {
+                argumentList = _syntaxFactory.ArgumentList(
+                    this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr),
+                    default(SeparatedSyntaxList<ArgumentSyntax>),
+                    SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
+            }
+
+            return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
         }
 
         private static int GetNumberOfNonOmittedArraySizes(ArrayRankSpecifierSyntax rankSpec)
@@ -10374,21 +10384,34 @@ tryAgain:
             return result;
         }
 
-        private bool IsPossibleArrayCreationExpression()
+        private bool IsTargetTypedNew(out bool isPossibleArrayCreation)
         {
             // previous token should be NewKeyword
+
+            ScanTypeFlags scanTypeFlags;
+            SyntaxKind tokenAfterType;
 
             var resetPoint = this.GetResetPoint();
             try
             {
-                ScanTypeFlags isType = this.ScanNonArrayType();
-                return isType != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
+                scanTypeFlags = this.ScanNonArrayType();
+                tokenAfterType = this.CurrentToken.Kind;
             }
             finally
             {
                 this.Reset(ref resetPoint);
                 this.Release(ref resetPoint);
             }
+
+            isPossibleArrayCreation =
+                scanTypeFlags != ScanTypeFlags.NotType &&
+                tokenAfterType == SyntaxKind.OpenBracketToken;
+
+            return !isPossibleArrayCreation && this.CurrentToken.Kind == SyntaxKind.OpenParenToken &&
+                // Allow parsing of nullable tuple creation e.g. new(a, b)?()
+                scanTypeFlags != ScanTypeFlags.NullableType &&
+                // Allow parsing of erroneous tuple creation e.g. new(a, b)() for better error recovery
+                (scanTypeFlags != ScanTypeFlags.TupleType || tokenAfterType != SyntaxKind.OpenParenToken);
         }
 
         private InitializerExpressionSyntax ParseObjectOrCollectionInitializer()

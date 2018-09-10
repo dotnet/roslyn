@@ -297,7 +297,7 @@ index: 1);
     (int, string) i;
     (string, int) s;
 
-    public Program((int, string) i, (string, int) s = default((string, int)))
+    public Program((int, string) i, (string, int) s = default)
     {
         this.i = i;
         this.s = s;
@@ -325,7 +325,7 @@ index: 1);
     (int a, string b) i;
     (string c, int d) s;
 
-    public Program((int a, string b) i, (string c, int d) s = default((string c, int d)))
+    public Program((int a, string b) i, (string c, int d) s = default)
     {
         this.i = i;
         this.s = s;

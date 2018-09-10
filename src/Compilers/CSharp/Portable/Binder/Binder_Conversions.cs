@@ -95,6 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
+            if (conversion.IsNew)
+            {
+                return CreateImplicitNewConversion(syntax, source, conversion, isCast, destination, diagnostics);
+            }
+
             if (conversion.IsStackAlloc)
             {
                 return CreateStackAllocConversion(syntax, source, conversion, isCast, destination, diagnostics);
@@ -126,6 +131,123 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constantValueOpt: constantValue,
                 type: destination)
             { WasCompilerGenerated = wasCompilerGenerated };
+        }
+
+        private BoundExpression CreateImplicitNewConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        {
+            var node = (UnboundObjectCreationExpression)source;
+
+            TypeSymbol type = destination.StrippedType();
+            BoundObjectInitializerExpressionBase boundInitializerOpt = node.InitializerOpt != null
+                ? BindInitializerExpression(syntax: node.InitializerOpt, type: type, typeSyntax: node.Syntax, diagnostics)
+                : null;
+
+            var arguments = AnalyzedArguments.GetInstance();
+            try
+            {
+                arguments.Arguments.AddRange(node.Arguments);
+                if (!node.ArgumentRefKindsOpt.IsDefault)
+                {
+                    arguments.RefKinds.AddRange(node.ArgumentRefKindsOpt);
+                }
+
+                if (!node.ArgumentNamesOpt.IsDefault)
+                {
+                    arguments.Names.AddRange(node.ArgumentNamesOpt);
+                }
+
+                if (ReportBadTargetType(syntax, type, diagnostics))
+                {
+                    return MakeBadExpressionForObjectCreation(node.Syntax, destination, boundInitializerOpt, arguments);
+                }
+
+                BoundExpression result;
+                switch (type.TypeKind)
+                {
+                    case TypeKind.Struct:
+                    case TypeKind.Class:
+                        result = BindClassCreationExpression(
+                            node.Syntax,
+                            typeName: type.Name,
+                            typeNode: node.Syntax,
+                            type: (NamedTypeSymbol)type,
+                            arguments,
+                            diagnostics,
+                            boundInitializerOpt,
+                            forTargetTypedNew: true);
+                        break;
+
+                    case TypeKind.TypeParameter:
+                        result = BindTypeParameterCreationExpression(
+                            node.Syntax,
+                            typeParameter: (TypeParameterSymbol)type,
+                            arguments,
+                            boundInitializerOpt,
+                            diagnostics);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(type.Kind);
+                }
+
+                if (destination.IsNullableType())
+                {
+                    // We manually create an ImplicitNullable conversion
+                    // if the destination is nullable, in which case we
+                    // target the underlying type e.g. `S? x = new();`
+                    // is actually identical to `S? x = new S();`.
+                    result = new BoundConversion(
+                        syntax,
+                        result,
+                        conversion: new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying),
+                        @checked: false,
+                        explicitCastInCode: isCast,
+                        constantValueOpt: null, // A "target-typed new" would never produce a constant.
+                        type: destination);
+                }
+
+                return result;
+            }
+            finally
+            {
+                arguments.Free();
+            }
+        }
+
+        private bool ReportBadTargetType(SyntaxNode syntax, TypeSymbol type, DiagnosticBag diagnostics)
+        {
+            switch (type.TypeKind)
+            {
+                case TypeKind.Array:
+                case TypeKind.Enum:
+                case TypeKind.Delegate:
+                case TypeKind.Interface:
+                    Error(diagnostics, ErrorCode.ERR_BadTargetTypeForNew, syntax, type);
+                    return true;
+
+                case TypeKind.Pointer:
+                    Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
+                    return true;
+
+                case TypeKind.Dynamic:
+                    Error(diagnostics, ErrorCode.ERR_NoConstructors, syntax, type);
+                    return true;
+
+                case TypeKind.Struct when type.IsTupleType:
+                    Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, syntax, type);
+                    return true;
+
+                case TypeKind.Struct:
+                case TypeKind.Class:
+                case TypeKind.TypeParameter:
+                    return false;
+
+                case TypeKind.Error:
+                    return true;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
+            }
         }
 
         protected BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)

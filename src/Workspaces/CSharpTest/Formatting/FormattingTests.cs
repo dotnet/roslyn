@@ -4856,7 +4856,51 @@ var(x,y)=(1,2);
 {
     void bar()
     {
-        (string a, string b)[] ab = new (
+        (string a, string b)[] ab = new(
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInTupleArrayCreation3()
+        {
+            var code = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new(string a, string b)[0];
+    }
+}";
+            var expectedCode = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new (string a, string b)[0];
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInTargetTypedNew()
+        {
+            var code = @"class C
+{
+    void bar()
+    {
+        C ab = new ();
+    }
+}";
+            var expectedCode = @"class C
+{
+    void bar()
+    {
+        C ab = new();
     }
 }";
 
