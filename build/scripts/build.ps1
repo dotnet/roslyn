@@ -498,11 +498,12 @@ function Deploy-VsixViaTool() {
 
     # VSIX files need to be installed in this specific order:
     $orderedVsixFileNames = @(	
-        "Roslyn.Compilers.Extension.vsix",	
-        "Roslyn.VisualStudio.Setup.vsix",	
-        "Roslyn.VisualStudio.InteractiveComponents.vsix",	
-        "ExpressionEvaluatorPackage.vsix",	
-        "Roslyn.VisualStudio.DiagnosticsWindow.vsix",	
+        "Roslyn.Compilers.Extension.vsix",
+        "Roslyn.VisualStudio.Setup.vsix",
+        "Roslyn.VisualStudio.Setup.Dependencies.vsix",
+        "Roslyn.VisualStudio.InteractiveComponents.vsix",
+        "ExpressionEvaluatorPackage.vsix",
+        "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
     foreach ($vsixFileName in $orderedVsixFileNames) {
