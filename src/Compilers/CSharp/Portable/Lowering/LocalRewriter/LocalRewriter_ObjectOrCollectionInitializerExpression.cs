@@ -383,13 +383,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<BoundExpression> EvaluateSideEffectingArgumentsToTemps(
                                                  ImmutableArray<BoundExpression> args,
                                                  ImmutableArray<RefKind> paramRefKindsOpt,
-                                                 Binder argumentsBinderOpt,
                                                  ArrayBuilder<BoundExpression> sideeffects,
                                                  ref ArrayBuilder<LocalSymbol> temps)
         {
             ArrayBuilder<BoundExpression> newArgs = null;
-
-            var discarded = DiagnosticBag.GetInstance();
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -422,11 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            discarded.Free();
-
-            return newArgs?
-                .ToImmutableAndFree() ??
-                args;
+            return newArgs?.ToImmutableAndFree() ?? args;
         }
 
         private BoundExpression MakeObjectInitializerMemberAccess(
