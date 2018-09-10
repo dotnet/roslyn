@@ -405,7 +405,7 @@ function Test-XUnit() {
 
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
-    $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
+    $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net472"
     $args = "$xunitDir"
     $args += " -logpath:$logsDir"
     $args += " -nocache"
