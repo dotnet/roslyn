@@ -84,11 +84,13 @@ class C
     public C()
     {
         M(y: _f, x: _f + 1);
+        M(y: in _f, x: _f + 1);
     }
 
     public static void Main()
     {
         M(y: _f, x: _f + 1);
+        M(y: in _f, x: _f + 1);
         _ = new C();
     }
 
@@ -100,10 +102,14 @@ class C
 }", expectedOutput: @"1
 0
 1
+0
+1
+0
+1
 0", verify: Verification.Fails);
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       29 (0x1d)
+  // Code size       51 (0x33)
   .maxstack  2
   .locals init (int& V_0,
                 int V_1)
@@ -116,9 +122,18 @@ class C
   IL_000e:  ldloca.s   V_1
   IL_0010:  ldloc.0
   IL_0011:  call       ""void C.M(in int, in int)""
-  IL_0016:  newobj     ""C..ctor()""
-  IL_001b:  pop
-  IL_001c:  ret
+  IL_0016:  ldsflda    ""int C._f""
+  IL_001b:  stloc.0
+  IL_001c:  ldsfld     ""int C._f""
+  IL_0021:  ldc.i4.1
+  IL_0022:  add
+  IL_0023:  stloc.1
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldloc.0
+  IL_0027:  call       ""void C.M(in int, in int)""
+  IL_002c:  newobj     ""C..ctor()""
+  IL_0031:  pop
+  IL_0032:  ret
 }");
         }
 
@@ -188,6 +203,45 @@ class C
   IL_000a:  pop
   IL_000b:  ret
 }");
+        }
+
+        [Fact]
+        public void InParamInitializerOptionalArg()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public static int _x = 1;
+    public int _f = M(in _x);
+
+    public static void Main()
+    {
+        new C();
+    }
+
+    public static int M(in int x, int y = 0)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+        return x;
+    }
+}", expectedOutput: @"1
+0");
+            comp.VerifyIL("C..ctor", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldsflda    ""int C._x""
+  IL_0006:  ldc.i4.0
+  IL_0007:  call       ""int C.M(in int, int)""
+  IL_000c:  stfld      ""int C._f""
+  IL_0011:  ldarg.0
+  IL_0012:  call       ""object..ctor()""
+  IL_0017:  ret
+}");
+
         }
 
         [Fact]
