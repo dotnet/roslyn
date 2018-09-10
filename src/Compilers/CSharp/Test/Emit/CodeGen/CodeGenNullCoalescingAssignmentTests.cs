@@ -860,37 +860,44 @@ public class C
         public void RefAssignment()
         {
             var source1 = @"
+using System;
 class C
 {
-    object f1;
-    void M()
+    static object f1 = null;
+    static object f2 = ""F2"";
+    static void Main()
     {
         ref object o1 = ref f1;
-        ref object o2 = ref f1;
-        o1 ??= o2;
+        ref object o2 = ref f2;
+        Console.WriteLine(o1 ??= o2);
     }
 }";
 
-            CompileAndVerify(source1).VerifyIL("C.M()", expectedIL: @"
+            CompileAndVerify(source1, expectedOutput: "F2").VerifyIL("C.Main()", expectedIL: @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
+  // Code size       31 (0x1f)
+  .maxstack  3
   .locals init (object& V_0, //o1
-                object& V_1) //o2
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""object C.f1""
-  IL_0006:  stloc.0
-  IL_0007:  ldarg.0
-  IL_0008:  ldflda     ""object C.f1""
-  IL_000d:  stloc.1
-  IL_000e:  ldloc.0
-  IL_000f:  ldind.ref
-  IL_0010:  brtrue.s   IL_0016
+                object& V_1, //o2
+                object V_2)
+  IL_0000:  ldsflda    ""object C.f1""
+  IL_0005:  stloc.0
+  IL_0006:  ldsflda    ""object C.f2""
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.0
+  IL_000d:  ldind.ref
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0019
+  IL_0011:  pop
   IL_0012:  ldloc.0
   IL_0013:  ldloc.1
   IL_0014:  ldind.ref
-  IL_0015:  stind.ref
-  IL_0016:  ret
+  IL_0015:  dup
+  IL_0016:  stloc.2
+  IL_0017:  stind.ref
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""void System.Console.WriteLine(object)""
+  IL_001e:  ret
 }
 ");
 
@@ -1122,7 +1129,7 @@ public class C
         [Fact]
         public void ValidRHSConversions()
         {
-            CompileAndVerify(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -1168,7 +1175,14 @@ class F
 {
     static public implicit operator C(F e) => null;
 }
-").VerifyIL("C.Main()", @"
+");
+
+            compilation.VerifyDiagnostics(
+                // (33,25): warning CS8402: 'default' is converted to 'null', not 'default(int)'
+                //         UseParam(i2 ??= default); // warn
+                Diagnostic(ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended, "default").WithArguments("int").WithLocation(33, 25));
+
+            CompileAndVerify(compilation).VerifyIL("C.Main()", @"
 {
   // Code size      166 (0xa6)
   .maxstack  2
@@ -2186,14 +2200,16 @@ class C
     void M()
     {
         int? a = null;
-        a ??= default;
+        a ??= default; // warn
+        a ??= default(int);
+        a ??= default(int?);
     }
 }";
 
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new DiagnosticDescription[] {
                 // (7,15): warning CS8402: 'default' is converted to 'null', not 'default(int)'
-                //         a ??= default;
+                //         a ??= default; // warn
                 Diagnostic(ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended, "default").WithArguments("int").WithLocation(7, 15)
             });
         }
@@ -2283,34 +2299,29 @@ class C
         [Fact]
         public void UseSiteDiagnostics()
         {
-            var source = @"
-using ClassAlias = Class1;
-class C : ClassAlias
+            var aSource = "public class A {}";
+            var aRef = CreateCompilation(aSource).EmitToImageReference();
+            var bSource = "public class B : A {}";
+            var bRef = CreateCompilation(bSource, new[] { aRef }).EmitToImageReference();
+
+            var testSource = @"
+class C
 {
     void M()
     {
-        ClassAlias a = null;
-        a ??= this;
+        var c = new C();
+        c ??= new B();
     }
-}
-";
+}";
 
-            // The last diagnostic is the actual use-site diagnostic we are testing. The rest are setup.
-            var compilation = CreateCompilation(source, references: new[] { TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1 });
-            compilation.VerifyDiagnostics(new DiagnosticDescription[] {
-                // (2,20): error CS1769: Type 'List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
-                // using ClassAlias = Class1;
-                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "Class1").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 20),
-                // (3,11): error CS1769: Type 'List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
-                // class C : ClassAlias
-                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "ClassAlias").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 11),
-                // (7,9): error CS1769: Type 'List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
-                //         ClassAlias a = null;
-                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "ClassAlias").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9),
-                // (8,9): error CS1769: Type 'List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
-                //         a ??= this;
-                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "a ??= this").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 9)
-            });
+            var compilation = CreateCompilation(testSource, new[] { bRef });
+            compilation.VerifyDiagnostics(
+                // (7,9): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'c3ba0fb2-4f4f-4916-afc5-50566473adcc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         c ??= new B();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "c ??= new B()").WithArguments("A", "c3ba0fb2-4f4f-4916-afc5-50566473adcc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9),
+                // (7,9): error CS0019: Operator '??=' cannot be applied to operands of type 'C' and 'B'
+                //         c ??= new B();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c ??= new B()").WithArguments("??=", "C", "B").WithLocation(7, 9));
         }
     }
 }
