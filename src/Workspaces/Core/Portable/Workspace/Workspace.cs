@@ -1723,24 +1723,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectDoesNotHaveTransitiveProjectReference(ProjectId fromProjectId, ProjectId toProjectId)
         {
-            var transitiveReferences = GetTransitiveProjectReferences(toProjectId);
+            var transitiveReferences = this.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(toProjectId);
             if (transitiveReferences.Contains(fromProjectId))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources.Adding_project_reference_from_0_to_1_will_cause_a_circular_reference,
                     this.GetProjectName(fromProjectId), this.GetProjectName(toProjectId)));
             }
-        }
-
-        private ISet<ProjectId> GetTransitiveProjectReferences(ProjectId project, ISet<ProjectId> projects = null)
-        {
-            projects = projects ?? new HashSet<ProjectId>();
-            if (projects.Add(project))
-            {
-                this.CurrentSolution.GetProject(project).ProjectReferences.Do(p => GetTransitiveProjectReferences(p.ProjectId, projects));
-            }
-
-            return projects;
         }
 
         /// <summary>
