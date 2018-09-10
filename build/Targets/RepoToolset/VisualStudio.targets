@@ -36,9 +36,25 @@
 
     <TargetVsixContainerName Condition="'$(TargetVsixContainerName)' == ''">$(TargetName).vsix</TargetVsixContainerName>
     <TargetVsixContainer Condition="'$(TargetVsixContainer)' == ''">$(_TargetVsixContainerDir)$(TargetVsixContainerName)</TargetVsixContainer>
-
-    <_ComponentIntermediateDir Condition="'$(VisualStudioInsertionComponent)' != ''">$(VisualStudioSetupIntermediateOutputPath)$(VisualStudioInsertionComponent)\</_ComponentIntermediateDir>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(VisualStudioInsertionComponent)' != ''">
+    <_ComponentIntermediateDir>$(VisualStudioSetupIntermediateOutputPath)$(VisualStudioInsertionComponent)\</_ComponentIntermediateDir>
+
+    <IsProductComponent>true</IsProductComponent>
+    
+    <Ngen Condition="'$(Ngen)' == ''">true</Ngen>
+    <NgenArchitecture Condition="'$(NgenArchitecture)' == ''">All</NgenArchitecture>
+    <NgenPriority Condition="'$(NgenPriority)' == ''">3</NgenPriority>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(VisualStudioInsertionComponent)' != ''">
+    <ProjectReference Update="@(ProjectReference)">
+      <Ngen Condition="'%(Ngen)' == ''">true</Ngen>
+      <NgenArchitecture Condition="'%(NgenArchitecture)' == '' and '%(Ngen)' != 'false'">All</NgenArchitecture>
+      <NgenPriority Condition="'%(NgenPriority)' == '' and '%(Ngen)' != 'false'">3</NgenPriority>
+    </ProjectReference>
+  </ItemGroup>
 
   <!--
     Calculate name of a stub file that will be saved to ComponentIntermediateDir (Setup.obj subdirectory for the target insertion component).
