@@ -52,31 +52,8 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected const string NonNullTypesAttributesDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    /// <summary>
-    /// Control whether unannotated reference types are treated as non-null or null-oblivious.
-    /// </summary>
-    [System.AttributeUsage(AttributeTargets.Class |
-                    AttributeTargets.Constructor |
-                    AttributeTargets.Delegate |
-                    AttributeTargets.Enum |
-                    AttributeTargets.Event |
-                    AttributeTargets.Field |
-                    AttributeTargets.Interface |
-                    AttributeTargets.Method |
-                    AttributeTargets.Module |
-                    AttributeTargets.Property |
-                    AttributeTargets.Struct,
-                    AllowMultiple = false)]
-    [System.Obsolete(""The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above)."")]
-    public sealed class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
+        // PROTOTYPE(NullableReferenceTypes): remove
+        protected const string NonNullTypesAttributesDefinition = @"";
 
         protected const string NotNullWhenTrueAttributeDefinition = @"
 namespace System.Runtime.CompilerServices

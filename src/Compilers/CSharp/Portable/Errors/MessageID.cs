@@ -161,6 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExpressionVariablesInQueriesAndInitializers = MessageBase + 12742,
         IDS_FeatureExtensibleFixedStatement = MessageBase + 12743,
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
+
+        IDS_InjectedDeclaration = MessageBase + 12745,
     }
 
     // Message IDs may refer to strings that need to be localized.

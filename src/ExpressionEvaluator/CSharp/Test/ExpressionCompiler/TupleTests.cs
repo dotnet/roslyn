@@ -219,7 +219,7 @@ class C
                 ReadOnlyCollection<string> tupleElementNames;
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(new[] { "A\u1234", "\u1234B" }, tupleElementNames);
-                var method = testData.Methods.Single().Value.Method;
+                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 Assert.True(method.ReturnType.IsTupleType);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "o", expectedILOpt:
@@ -267,7 +267,7 @@ class C
                 ReadOnlyCollection<string> tupleElementNames;
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(new[] { null, "A", "B", null }, tupleElementNames);
-                var method = (MethodSymbol)testData.Methods.Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 var returnType = method.ReturnType.TypeSymbol;
                 Assert.False(returnType.IsTupleType);
@@ -465,7 +465,7 @@ class C
                 ReadOnlyCollection<string> tupleElementNames;
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(aliasElementNames, tupleElementNames);
-                var method = testData.Methods.Single().Value.Method;
+                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 var returnType = (TypeSymbol)method.ReturnType;
                 Assert.False(returnType.IsTupleType);

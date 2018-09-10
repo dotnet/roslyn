@@ -513,9 +513,12 @@ End Namespace
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
                         ' Not always available.
+                        Continue For
+                    Case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
+                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
+                        ' Injected type
                         Continue For
                 End Select
 
@@ -556,9 +559,12 @@ End Namespace
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
                         ' Not always available.
+                        Continue For
+                    Case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
+                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
+                        ' Injected type
                         Continue For
                 End Select
 
@@ -609,6 +615,9 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
                         ' Not always available.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
+                        ' Injected type available in VB.
                         Continue For
                 End Select
 
@@ -705,6 +714,9 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
                         ' Not always available.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
+                        ' Injected type available in VB.
                         Continue For
                 End Select
 

@@ -444,6 +444,8 @@ namespace Microsoft.CodeAnalysis
         System_Math__FloorDouble,
         System_Math__TruncateDouble,
 
+        Microsoft_CodeAnalysis_EmbeddedAttribute__ctor,
+
         Count
     }
 }

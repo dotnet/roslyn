@@ -560,7 +560,7 @@ public class A
 }";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var type = module.GlobalNamespace.GetNamespaceMembers().Single().GetTypeMembers("C").Single();
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("N.C");
                 var ctor = (MethodSymbol)type.GetMembers(".ctor").SingleOrDefault();
                 var cctor = (MethodSymbol)type.GetMembers(".cctor").SingleOrDefault();
 
@@ -695,7 +695,7 @@ class Properties
 }";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var nmspace = module.GlobalNamespace.GetNamespaceMembers().Single();
+                var nmspace = module.GlobalNamespace.GetMember<NamespaceSymbol>("Namespace");
                 Assert.NotNull(nmspace.GetTypeMembers("Public").SingleOrDefault());
                 Assert.NotNull(nmspace.GetTypeMembers("Internal").SingleOrDefault());
 

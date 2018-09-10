@@ -179,7 +179,6 @@ namespace N1 {
     internal interface I1 {}
     enum E1 { Red }
     delegate void D1(int i);
-
 }
 ";
             var comp = CreateCompilation(text);

@@ -1928,7 +1928,7 @@ class C
                 out error,
                 testData);
             Assert.Null(error);
-            Assert.Equal(testData.Methods.Count, 1);
+            Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       61 (0x3d)

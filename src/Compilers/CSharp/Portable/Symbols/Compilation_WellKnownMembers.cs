@@ -166,10 +166,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // Well-known types that are injected cannot be referenced from another assembly
+                    bool includeReferences = type != WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute &&
+                        type != WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute;
+
                     // well-known types introduced before CSharp7 allow lookup ambiguity and report a warning
                     DiagnosticBag legacyWarnings = (type <= WellKnownType.CSharp7Sentinel) ? warnings : null;
                     result = this.Assembly.GetTypeByMetadataName(
-                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, conflicts: out conflicts,
+                        mdName, includeReferences: includeReferences, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, conflicts: out conflicts,
                         warnings: legacyWarnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
                 }
 

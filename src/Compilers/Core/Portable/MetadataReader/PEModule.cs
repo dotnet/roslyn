@@ -1043,8 +1043,6 @@ namespace Microsoft.CodeAnalysis
 
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
 
-        internal const string NonNullTypesMarker = "The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above).";
-
         internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
             EntityHandle token, 
             bool ignoreByRefLikeMarker)
@@ -1064,7 +1062,6 @@ namespace Microsoft.CodeAnalysis
                 switch (obsoleteData?.Message)
                 {
                     case ByRefLikeMarker when ignoreByRefLikeMarker:
-                    case NonNullTypesMarker:
                         return null;
                 }
                 return obsoleteData;

@@ -52,6 +52,7 @@ class C
         [Fact]
         public void TestUnaryNegation()
         {
+            // This test verifies that we no longer crash hitting an assertion
             var source = @"
 public class C<T>
 {
@@ -670,6 +671,691 @@ class C4 { }";
         }
 
         [Fact]
+        public void EmbeddedAttribute_Injected()
+        {
+            var source = @"
+[module: System.Runtime.CompilerServices.NonNullTypes]
+[module: Microsoft.CodeAnalysis.Embedded]
+
+[Microsoft.CodeAnalysis.Embedded]
+public class C
+{
+    [Microsoft.CodeAnalysis.Embedded]
+    public int field = 0;
+    [Microsoft.CodeAnalysis.Embedded]
+    void M() { }
+}
+[Microsoft.CodeAnalysis.Embedded]
+interface I { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var type = (NamedTypeSymbol)comp.GlobalNamespace.GetMember("Microsoft.CodeAnalysis.EmbeddedAttribute");
+            Assert.NotNull(type);
+            Assert.Equal(0, type.Arity);
+            Assert.Equal("System.Attribute", type.BaseTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.True(type.CanBeReferencedByName);
+            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor()", type.Constructors.Single().ToTestDisplayString());
+            Assert.Null(type.ContainingType);
+            Assert.Empty(type.DeclaringSyntaxReferences);
+            Assert.True(type.HasCodeAnalysisEmbeddedAttribute);
+            Assert.False(type.HasDeclarativeSecurity);
+            Assert.False(type.HasSpecialName);
+            Assert.False(type.HasUnsupportedMetadata);
+            Assert.Empty(type.Indexers);
+            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor()", type.InstanceConstructors.Single().ToTestDisplayString());
+            Assert.False(type.IsAbstract);
+            Assert.False(type.IsAnonymousType);
+            Assert.False(type.IsByRefLikeType);
+            Assert.False(type.IsComImport);
+            Assert.False(type.IsConditional);
+            Assert.True(type.IsDefinition);
+            Assert.False(type.IsExtern);
+            Assert.False(type.IsGenericType);
+            Assert.True(type.IsImplicitlyDeclared);
+            Assert.False(type.IsInterface);
+            Assert.False(type.IsManagedType);
+            Assert.False(type.IsNamespace);
+            Assert.True(type.IsReferenceType);
+            Assert.True(type.IsSealed);
+            Assert.False(type.IsSerializable);
+            Assert.False(type.IsStatic);
+            Assert.False(type.IsTupleType);
+            Assert.True(type.IsType);
+            Assert.Equal(SymbolKind.NamedType, type.Kind);
+            Assert.Equal("C#", type.Language);
+            Assert.Empty(type.Locations);
+            Assert.Equal(new[] { ".ctor" }, type.MemberNames);
+            Assert.False(type.MightContainExtensionMethods);
+            Assert.Equal("EmbeddedAttribute", type.Name);
+            Assert.True(type.NonNullTypes);
+            Assert.Equal(SpecialType.None, type.SpecialType);
+            Assert.Empty(type.StaticConstructors);
+            Assert.Equal(TypeKind.Class, type.TypeKind);
+
+            var codeAnalysis = type.ContainingNamespace;
+            verifyEmptyNamespace(codeAnalysis, "CodeAnalysis");
+
+            var microsoft = codeAnalysis.ContainingNamespace;
+            verifyEmptyNamespace(microsoft, "Microsoft");
+
+            Assert.True(microsoft.ContainingNamespace.IsGlobalNamespace);
+
+            var type2 = comp.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
+            Assert.True(type.Equals(type2));
+            Assert.Equal(Accessibility.Internal, type.DeclaredAccessibility);
+
+            void verifyEmptyNamespace(INamespaceSymbol symbol, string expectedName)
+            {
+                Assert.Equal(expectedName, symbol.Name);
+                Assert.Empty(symbol.DeclaringSyntaxReferences);
+                Assert.Empty(symbol.Locations);
+                Assert.True(symbol.IsImplicitlyDeclared);
+                Assert.Equal(NamespaceKind.Module, symbol.NamespaceKind);
+            }
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_Injected_InCSharp7()
+        {
+            var comp = CreateCompilation(NonNullTypesTrue, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                );
+
+            Assert.True(comp.SourceModule.NonNullTypes);
+            Assert.Equal(new[] { "System.Runtime.CompilerServices.NonNullTypesAttribute(true)" }, comp.SourceModule.GetAttributes().Select(a => a.ToString()));
+
+            var type = (NamedTypeSymbol)comp.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
+            Assert.NotNull(type);
+            Assert.Equal(0, type.Arity);
+            Assert.Equal("System.Attribute", type.BaseTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.True(type.CanBeReferencedByName);
+            Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute..ctor([System.Boolean flag = true])", type.Constructors.Single().ToTestDisplayString());
+            Assert.Null(type.ContainingType);
+            Assert.Empty(type.DeclaringSyntaxReferences);
+            Assert.True(type.HasCodeAnalysisEmbeddedAttribute);
+            Assert.False(type.HasDeclarativeSecurity);
+            Assert.False(type.HasSpecialName);
+            Assert.False(type.HasUnsupportedMetadata);
+            Assert.Empty(type.Indexers);
+            Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute..ctor([System.Boolean flag = true])", type.InstanceConstructors.Single().ToTestDisplayString());
+            Assert.False(type.IsAbstract);
+            Assert.False(type.IsAnonymousType);
+            Assert.False(type.IsByRefLikeType);
+            Assert.False(type.IsComImport);
+            Assert.False(type.IsConditional);
+            Assert.True(type.IsDefinition);
+            Assert.False(type.IsExtern);
+            Assert.False(type.IsGenericType);
+            Assert.True(type.IsImplicitlyDeclared);
+            Assert.False(type.IsInterface);
+            Assert.False(type.IsManagedType);
+            Assert.False(type.IsNamespace);
+            Assert.True(type.IsReferenceType);
+            Assert.True(type.IsSealed);
+            Assert.False(type.IsSerializable);
+            Assert.False(type.IsStatic);
+            Assert.False(type.IsTupleType);
+            Assert.True(type.IsType);
+            Assert.Equal(SymbolKind.NamedType, type.Kind);
+            Assert.Equal("C#", type.Language);
+            Assert.Empty(type.Locations);
+            Assert.Equal(new[] { ".ctor" }, type.MemberNames);
+            Assert.False(type.MightContainExtensionMethods);
+            Assert.Equal("NonNullTypesAttribute", type.Name);
+            Assert.True(type.NonNullTypes);
+            Assert.Equal(SpecialType.None, type.SpecialType);
+            Assert.Empty(type.StaticConstructors);
+            Assert.Equal(TypeKind.Class, type.TypeKind);
+
+            var compilerServices = type.ContainingNamespace;
+            verifyEmptyNamespace(compilerServices, "CompilerServices");
+
+            var runtime = compilerServices.ContainingNamespace;
+            verifyEmptyNamespace(runtime, "Runtime");
+
+            var system = runtime.ContainingNamespace;
+            verifyEmptyNamespace(system, "System");
+
+            Assert.True(system.ContainingNamespace.IsGlobalNamespace);
+
+            var type2 = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute);
+            Assert.True(type.Equals(type2));
+            Assert.Equal(Accessibility.Internal, type.DeclaredAccessibility);
+
+            // https://github.com/dotnet/roslyn/issues/29683 CSharpCompilation.AbstractSymbolSearcher needs to inject namespaces and types too
+            //Assert.True(comp.ContainsSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
+            //Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute", comp.GetSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+            //Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute", comp.GetSymbolsWithName(n => n == "NonNullTypesAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+
+            //Assert.True(comp.ContainsSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type));
+            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName(n => n == "EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+
+            void verifyEmptyNamespace(INamespaceSymbol symbol, string expectedName)
+            {
+                Assert.Equal(expectedName, symbol.Name);
+                Assert.Empty(symbol.DeclaringSyntaxReferences);
+                Assert.Empty(symbol.Locations);
+                Assert.True(symbol.IsImplicitlyDeclared);
+                Assert.Equal(NamespaceKind.Module, symbol.NamespaceKind);
+            }
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_False_Injected_InCSharp7()
+        {
+            var comp = CreateCompilation(NonNullTypesFalse, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                // [module: System.Runtime.CompilerServices.NonNullTypes(false)]
+                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(false)").WithArguments("8.0").WithLocation(1, 10)
+                );
+
+            Assert.False(comp.SourceModule.NonNullTypes);
+
+            var type = (NamedTypeSymbol)comp.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
+            Assert.False(type.NonNullTypes);
+        }
+
+        [Fact]
+        public void NonNullTypesAttributeInMergedNamespaceSymbol()
+        {
+            var reference_cs = @"
+namespace System.Runtime.CompilerServices
+{
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool enabled = true) { }
+    }
+}";
+            var reference = CreateCompilation(new[] { reference_cs });
+            reference.VerifyDiagnostics();
+
+            var comp_cs = @"
+namespace System.Runtime.CompilerServices.NonNullTypesAttribute
+{
+    class C { }
+}";
+            var comp = CreateCompilation(new[] { comp_cs, NonNullTypesTrue }, references: new[] { reference.ToMetadataReference() });
+            comp.VerifyDiagnostics(
+                // (1,42): error CS0616: 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not an attribute class
+                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypesAttribute").WithLocation(1, 42)
+                );
+
+            var type = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute);
+            Assert.True(type.IsErrorType());
+
+            // https://github.com/dotnet/roslyn/issues/29683 CSharpCompilation.AbstractSymbolSearcher needs to inject namespaces and types too
+            //Assert.False(comp.ContainsSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
+            //Assert.Empty(comp.GetSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
+            //Assert.Empty(comp.GetSymbolsWithName(n => n == "NonNullTypesAttribute", SymbolFilter.Type));
+
+            //Assert.True(comp.ContainsSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type));
+            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName(n => n == "EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_NotInjectedIntoWrongNamespace()
+        {
+            var source = @"
+namespace NotRoot.System { }
+namespace NotSystem.Runtime { }
+namespace NotRuntime.CompilerServices { }
+";
+            var comp = CreateCompilation(source);
+            Assert.Empty(((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("NotRoot.System")).GetMembers());
+            Assert.Empty(((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("NotSystem.Runtime")).GetMembers());
+            Assert.Empty(((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("NotRuntime.CompilerServices")).GetMembers());
+            Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute",
+                ((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers().Single().ToTestDisplayString());
+        }
+
+        [Fact]
+        public void EmbeddedAttribute_NotInjectedIntoWrongNamespace()
+        {
+            var source = @"
+namespace NotRoot.Microsoft { }
+namespace NotMicrosoft.CodeAnalysis { }
+";
+            var comp = CreateCompilation(source);
+            Assert.Empty(((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("NotRoot.Microsoft")).GetMembers());
+            Assert.Empty(((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("NotMicrosoft.CodeAnalysis")).GetMembers());
+            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute",
+                ((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("Microsoft.CodeAnalysis")).GetMembers().Single().ToTestDisplayString());
+        }
+
+        // PROTOTYPE Test emitting netmodule (we'll won't inject NNT)
+        // PROTOTYPE test script
+
+        [Theory]
+        [InlineData(NonNullTypesTrue)]
+        [InlineData(NonNullTypesFalse)]
+        [InlineData("[System.Runtime.CompilerServices.NonNullTypes] class C { }")]
+        [InlineData("class C { [System.Runtime.CompilerServices.NonNullTypes] public string s = null!; }")]
+        [InlineData("class C { [System.Runtime.CompilerServices.NonNullTypes] public event System.Action e; void M() { e(); } }")]
+        [InlineData("class C { [System.Runtime.CompilerServices.NonNullTypes] void M() { } }")]
+        [InlineData("class C { [System.Runtime.CompilerServices.NonNullTypes] string P { get; set; } }")]
+        [InlineData("using NNT = System.Runtime.CompilerServices.NonNullTypesAttribute; [NNT] class C { }")]
+        [InlineData("using System.Runtime.CompilerServices; class C { NonNullTypesAttribute M() => throw null; }")]
+        [InlineData("using System.Runtime.CompilerServices; class C { void M(NonNullTypesAttribute x) => throw null; }")]
+        [InlineData("using System.Runtime.CompilerServices; namespace System { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
+        [InlineData("using System.Runtime.CompilerServices; namespace System.Runtime { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
+        [InlineData("using System.Runtime.CompilerServices; namespace System.Runtime.CompilerServices { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
+        [InlineData("using System.Runtime.CompilerServices; class C { NonNullTypesAttribute field = null; void M() { if (field != null) field = null; } }")]
+        [InlineData("using System.Runtime.CompilerServices; class C { void M() { _ = new NonNullTypesAttribute(); } }")]
+        [InlineData("using System.Runtime.CompilerServices; class C { void M() { local(); void local() { _ = new NonNullTypesAttribute(); } } }")]
+        public void NonNullTypesAttribute_Injected(string source)
+        {
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var nonNullTypesAttribute = (NamedTypeSymbol)module.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
+                Assert.NotNull(nonNullTypesAttribute);
+                Assert.Equal(Accessibility.Internal, nonNullTypesAttribute.DeclaredAccessibility);
+                Assert.True(nonNullTypesAttribute.IsSealed);
+                Assert.Equal(SymbolKind.NamedType, nonNullTypesAttribute.Kind);
+
+                var embeddedAttribute = module.GlobalNamespace.GetMember("Microsoft.CodeAnalysis.EmbeddedAttribute");
+                Assert.NotNull(embeddedAttribute);
+
+                var actualNonNullTypes = nonNullTypesAttribute.GetAttributes().Select(a => a.ToString()).ToArray();
+                var actualEmbedded = embeddedAttribute.GetAttributes().Select(a => a.ToString()).ToArray();
+
+                // https://github.com/dotnet/roslyn/issues/29672 AttributeData.ToString() prints out a different order on CoreCLR
+                if (ExecutionConditionUtil.IsDesktop)
+                {
+                    if (module is PEModuleSymbol)
+                    {
+                        Assert.Equal(new[] {
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                        "System.AttributeUsageAttribute(System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Delegate)" },
+                            actualNonNullTypes);
+                        Assert.Equal(new[] {
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "Microsoft.CodeAnalysis.EmbeddedAttribute" },
+                            actualEmbedded);
+                    }
+                    else
+                    {
+                        Assert.Equal(new[] {
+                        "System.AttributeUsageAttribute(System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Delegate)" },
+                            actualNonNullTypes);
+                        Assert.Empty(actualEmbedded);
+                    }
+                }
+            };
+
+            CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_Injected_WithAmbiguousUserDefinedType()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using N1;
+
+[module: NonNullTypesAttribute(true)]
+namespace N1
+{
+    public class NonNullTypesAttribute : System.Attribute
+    {
+        public NonNullTypesAttribute(bool flag) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,10): error CS0104: 'NonNullTypesAttribute' is an ambiguous reference between 'N1.NonNullTypesAttribute' and 'System.Runtime.CompilerServices.NonNullTypesAttribute'
+                // [module: NonNullTypesAttribute(true)]
+                Diagnostic(ErrorCode.ERR_AmbigContext, "NonNullTypesAttribute").WithArguments("NonNullTypesAttribute", "N1.NonNullTypesAttribute", "System.Runtime.CompilerServices.NonNullTypesAttribute").WithLocation(5, 10)
+                );
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_Injected_WithNonAmbiguousUserDefinedType()
+        {
+            var source = @"
+using N1;
+[module: NonNullTypesAttribute(true)]
+namespace N1
+{
+    public class NonNullTypesAttribute : System.Attribute
+    {
+        public NonNullTypesAttribute(bool flag) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_WithoutUsage()
+        {
+            var comp = CreateCompilation("class C { }", parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            Action<ModuleSymbol> sourceValidator = module =>
+            {
+                var nonNullTypes = (NamedTypeSymbol)module.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
+                Assert.NotNull(nonNullTypes);
+                var embedded = (NamedTypeSymbol)module.GlobalNamespace.GetMember("Microsoft.CodeAnalysis.EmbeddedAttribute");
+                Assert.NotNull(embedded);
+
+                var system = (INamespaceSymbol)module.GlobalNamespace.GetMember("System");
+                Assert.Equal(NamespaceKind.Module, system.NamespaceKind);
+            };
+
+            Action<ModuleSymbol> peValidator = module =>
+            {
+                var nonNullTypes = (NamedTypeSymbol)module.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
+                Assert.Null(nonNullTypes);
+                var embedded = (NamedTypeSymbol)module.GlobalNamespace.GetMember("Microsoft.CodeAnalysis.EmbeddedAttribute");
+                Assert.Null(embedded);
+
+                var system = (INamespaceSymbol)module.GlobalNamespace.GetMember("System");
+                Assert.Null(system);
+            };
+            CompileAndVerify(comp, sourceSymbolValidator: sourceValidator, symbolValidator: peValidator, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_WithoutAttribute()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    // missing Attribute
+    public class ValueType { }
+    public struct Boolean { }
+    public class String { }
+}
+";
+            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_WithoutAttributeUsage()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class ValueType { }
+    public struct Boolean { }
+    public class String { }
+    // missing AttributeUsageAttribute
+}
+";
+            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void EmbeddedAttribute_WithoutAttribute()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    // missing Attribute
+    public class ValueType { }
+    public struct Boolean { }
+    public class String { }
+    public struct Int32 { }
+    public class Enum { }
+}
+namespace System.Runtime.InteropServices
+{
+    public enum UnmanagedType { }
+}
+class C<T> where T : unmanaged
+{
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void EmbeddedAttribute_WithoutAttributeUsage()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class ValueType { }
+    public struct Boolean { }
+    public class String { }
+    public struct Int32 { }
+    public class Enum { }
+    // missing AttributeUsage
+}
+namespace System.Runtime.InteropServices
+{
+    public enum UnmanagedType { }
+}
+class C<T> where T : unmanaged
+{
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"));
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_WithoutAttributeUsageConstructor()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class ValueType { }
+    public struct Boolean { }
+    public class String { }
+    public class AttributeUsageAttribute : Attribute { /* missing ctor */ }
+}
+";
+            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_WithObsoleteAttributeUsageConstructor()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class ValueType { }
+    public struct Boolean { }
+    public class String { }
+    public class Enum { }
+    public struct Int32 { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        [System.Obsolete(""obsolete"")]
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get; set; }
+    }
+    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
+        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
+        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
+        GenericParameter = 16384, All = 32767 }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute(string message) => throw null;
+    }
+}
+";
+            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"));
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_WithBadAttributeConstructor()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Attribute { public Attribute(bool ignored) { } }
+    public class ValueType { }
+    public struct Boolean { }
+    public class String { }
+    public class Enum { }
+    public struct Int32 { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) : base(true) => throw null;
+        public bool AllowMultiple { get; set; }
+    }
+    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
+        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
+        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
+        GenericParameter = 16384, All = 32767 }
+}
+";
+            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
+
+            // https://github.com/dotnet/roslyn/issues/29732 We should not accumulate diagnostics with every attempt to emit
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_WithAttributeUsage()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class ValueType { }
+    public struct Boolean { }
+    public class String { }
+    public class Enum { }
+    public struct Int32 { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get; set; }
+    }
+    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
+        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
+        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
+        GenericParameter = 16384, All = 32767 }
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_WithoutBool()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class ValueType { }
+    public class String { }
+}
+";
+            var comp = CreateEmptyCompilation(new[] { source, "[module: System.Runtime.CompilerServices.NonNullTypes()]" });
+            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void NonNullTypesAttribute_AlreadyDefined()
+        {
+            var corlib_cs = @"
+namespace System
+{
+    public struct Boolean { }
+    public struct Void { }
+    public abstract class ValueType { }
+    public class Object { }
+    public class Attribute { }
+}
+namespace System.Runtime.CompilerServices
+{
+    public sealed class NonNullTypesAttribute : Attribute
+    {
+        public NonNullTypesAttribute(bool flag = true) { }
+    }
+}
+";
+            var corlib = CreateEmptyCompilation(corlib_cs, parseOptions: TestOptions.Regular8);
+            corlib.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NullableAttribute_NotRequiredCSharp7_01()
         {
             var source =
@@ -869,6 +1555,17 @@ namespace System
     {
         public String? Concat(String a, String b) => throw null;
     }
+    public class Enum { }
+    public struct Int32 { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get; set; }
+    }
+    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
+        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
+        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
+        GenericParameter = 16384, All = 32767 }
 }
 ";
             var comp = CreateEmptyCompilation(lib);
@@ -1480,14 +2177,14 @@ namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     [NonNullTypes(true)]
-    class NonNullTypesAttribute : Attribute
+    class NonNullTypesAttribute : System.Attribute
     {
         public NonNullTypesAttribute(bool flag = true) { }
     }
 }
 ";
             var comp = CreateCompilation(new[] { source });
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
 
             VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), true);
         }
@@ -1501,17 +2198,34 @@ namespace System.Runtime.CompilerServices
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     [NonNullTypes(true)]
     [System.Obsolete(""obsolete"")]
-    class NonNullTypesAttribute : Attribute
+    class NonNullTypesAttribute : System.Attribute
     {
         public NonNullTypesAttribute(bool flag = true) { }
     }
 }
 ";
-            // PROTOTYPE(NullableReferenceTypes): Why isn't the usage of NonNullTypes reported as obsolete?
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyEmitDiagnostics();
+            Assert.False(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute").IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void Embedded_WithObsolete()
+        {
+            string source = @"
+namespace Microsoft.CodeAnalysis
+{
+    [Embedded]
+    [System.Obsolete(""obsolete"")]
+    class EmbeddedAttribute : System.Attribute
+    {
+        public EmbeddedAttribute() { }
+    }
+}
+";
             var comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics();
-
-            VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), true);
+            Assert.False(comp.GetMember("Microsoft.CodeAnalysis.EmbeddedAttribute").IsImplicitlyDeclared);
         }
 
         [Fact]
@@ -1655,32 +2369,6 @@ class C
 ";
             var comp = CreateCompilation(source + NonNullTypesAttributesDefinition);
             comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NonNullTypes_AttributeDefinedMultipleTimes()
-        {
-            string attribute = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.All,
-                    AllowMultiple = false)]
-    public class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}";
-            var lib1 = CreateCompilation(attribute, assemblyName: "lib1");
-            var lib2 = CreateCompilation(attribute, assemblyName: "lib2");
-
-            var comp = CreateCompilation("[module:System.Runtime.CompilerServices.NonNullTypes(true)]",
-                references: new[] { lib1.EmitToImageReference(), lib2.EmitToImageReference() });
-            comp.VerifyDiagnostics(
-                // (1,41): error CS0433: The type 'NonNullTypesAttribute' exists in both 'lib1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'lib2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
-                // [module:System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "NonNullTypes")
-                    .WithArguments("lib1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Runtime.CompilerServices.NonNullTypesAttribute", "lib2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 41)
-                );
         }
 
         [Fact]
@@ -19400,11 +20088,11 @@ class C
 
     static void Test1()
     {
-        CL0.M1( p1 =>
+        CL0.M1(p1 =>
                 {
                     p1.F1 = null;
                     p1 = null;
-                    return null; // 1
+                    return null;
                 });
     }
 
@@ -19412,9 +20100,9 @@ class C
     {
         System.Func<CL1<CL0>, CL0> l2 = p2 =>
                 {
-                    p2.F1 = null;
-                    p2 = null;
-                    return null; // 2
+                    p2.F1 = null; // 1
+                    p2 = null; // 2
+                    return null; // 3
                 };
     }
 }
@@ -19422,13 +20110,13 @@ class C
 
             c.VerifyDiagnostics(
                 // (20,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //                     p2.F1 = null;
+                //                     p2.F1 = null; // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 29),
                 // (21,26): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //                     p2 = null;
+                //                     p2 = null; // 2
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(21, 26),
                 // (22,28): warning CS8603: Possible null reference return.
-                //                     return null; // 2
+                //                     return null; // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(22, 28)
                 );
         }
@@ -31653,35 +32341,40 @@ class P
         }
 
         [Fact]
-        public void PoisonNonNullTypes()
+        public void PoisonNonNullTypes_InMetadata()
         {
-            string poisonedDefinition = @"
-namespace System.Runtime.CompilerServices
+            var il = @"
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NonNullTypesAttribute
+    extends [mscorlib]System.Attribute
 {
-    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
-    [System.Obsolete(""The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above)."")]
-    public sealed class NonNullTypesAttribute : Attribute
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) =
+        {string('The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above).')}
+
+    .method public hidebysig specialname rtspecialname instance void .ctor ( [opt] bool flag ) cil managed
     {
-        public NonNullTypesAttribute(bool flag = true) { }
+        .param [1] = bool(true)
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ret
     }
 }
 ";
-            var libComp = CreateCompilation(poisonedDefinition, parseOptions: TestOptions.Regular7);
-            libComp.VerifyDiagnostics();
+            var comp = CreateCompilationWithIL(NonNullTypesTrue, il);
+            comp.VerifyDiagnostics();
 
-            var comp1 = CreateCompilation(new[] { NonNullTypesTrue, poisonedDefinition }, parseOptions: TestOptions.Regular7);
-            comp1.VerifyDiagnostics(
-                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
-                );
-
-            var comp2 = CreateCompilation(new[] { NonNullTypesTrue, poisonedDefinition });
-            comp2.VerifyDiagnostics();
-
-            // When referenced from metadata and in a C# 8.0 compilation, it's okay to use this attribute
-            var comp3 = CreateCompilation(NonNullTypesTrue, references: new[] { libComp.EmitToImageReference() });
-            comp3.VerifyDiagnostics();
+            // Injected NNT type silently wins
+            var tree = comp.SyntaxTrees.Single();
+            var attribute = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+            var type = model.GetTypeInfo(attribute.Name).Type;
+            Assert.IsType<InjectedNonNullTypesAttributeSymbol>(type);
         }
 
         [Fact]

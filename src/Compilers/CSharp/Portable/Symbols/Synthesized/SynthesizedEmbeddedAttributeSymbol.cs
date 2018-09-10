@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// 4) It has System.Runtime.CompilerServices.CompilerGeneratedAttribute
     /// 5) It has a parameter-less constructor
     /// </summary>
-    internal sealed class SynthesizedEmbeddedAttributeSymbol : NamedTypeSymbol
+    internal class SynthesizedEmbeddedAttributeSymbol : NamedTypeSymbol
     {
         private readonly string _name;
         private readonly NamedTypeSymbol _baseType;
@@ -37,10 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             _name = description.Name;
-            _baseType = compilation.GetWellKnownType(WellKnownType.System_Attribute);
-
-            // Report errors in case base type was missing or bad
-            Binder.ReportUseSiteDiagnostics(_baseType, diagnostics, Location.None);
+            _baseType = MakeBaseType(compilation, diagnostics);
 
             var builder = ArrayBuilder<MethodSymbol>.GetInstance();
             builder.Add(new SynthesizedEmbeddedAttributeConstructorSymbol(this, m => ImmutableArray<ParameterSymbol>.Empty));
@@ -60,11 +57,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public SynthesizedEmbeddedAttributeSymbol(
+            AttributeDescription description,
+            NamespaceSymbol containingNamespace,
+            CSharpCompilation compilation,
+            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors,
+            DiagnosticBag diagnostics)
+        {
+            _name = description.Name;
+            _baseType = MakeBaseType(compilation, diagnostics);
+            _constructors = getConstructors(compilation, this, diagnostics);
+            _namespace = containingNamespace;
+            _module = containingNamespace.ContainingModule;
+        }
+
+        private static NamedTypeSymbol MakeBaseType(CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol result = compilation.GetWellKnownType(WellKnownType.System_Attribute);
+
+            // Report errors in case base type was missing or bad
+            Binder.ReportUseSiteDiagnostics(result, diagnostics, Location.None);
+            return result;
+        }
+
         public new ImmutableArray<MethodSymbol> Constructors => _constructors;
 
         public override int Arity => 0;
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
+
+        public override bool IsImplicitlyDeclared => true;
+
+        internal override bool IsManagedType => false;
 
         public override NamedTypeSymbol ConstructedFrom => this;
 
@@ -100,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSealed => true;
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics => throw new NotImplementedException();
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics => ImmutableArray<TypeSymbolWithAnnotations>.Empty;
 
         internal override bool MangleName => false;
 
@@ -166,9 +190,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ref attributes,
                 moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
-            AddSynthesizedAttribute(
-                ref attributes,
-                moduleBuilder.SynthesizeEmbeddedAttribute());
+            if (!DeclaringCompilation.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute).IsErrorType())
+            {
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor));
+            }
         }
     }
 
@@ -188,27 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
-            {
-                // System_Attribute is missing. Don't generate anything
-                return;
-            }
-
-            var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            factory.CurrentFunction = this;
-
-            var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
-            if (baseConstructorCall == null)
-            {
-                // This may happen if Attribute..ctor is not found or is inaccessible
-                return;
-            }
-
-            var block = factory.Block(
-                factory.ExpressionStatement(baseConstructorCall),
-                factory.Return());
-
-            factory.CloseMethod(block);
+            GenerateMethodBodyCore(compilationState, diagnostics);
         }
     }
 }

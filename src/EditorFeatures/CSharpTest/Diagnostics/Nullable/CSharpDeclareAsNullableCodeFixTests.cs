@@ -21,15 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
 
         private const string NonNullTypes = @"
 [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-
-namespace System.Runtime.CompilerServices
-{
-    [System.AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
-    public sealed class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
 ";
 
         [Fact]

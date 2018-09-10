@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -43,5 +44,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return Nothing
             End Get
         End Property
+
+        Protected Overrides ReadOnly Property InjectedSymbolsAreFrozen As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
+        Protected Overrides Function GetInjectedTypes(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+            Return ImmutableArray(Of NamedTypeSymbol).Empty
+        End Function
     End Class
 End Namespace

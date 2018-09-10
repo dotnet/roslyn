@@ -3046,6 +3046,12 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double,
 
+                // Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
+                (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute - WellKnownType.ExtSentinel),                   // DeclaringTypeId
+                0,                                                                                                                                             // Arity
+                    0,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3426,6 +3432,7 @@ namespace Microsoft.CodeAnalysis
                 "Ceiling",                                  // System_Math__CeilingDouble
                 "Floor",                                    // System_Math__FloorDouble
                 "Truncate",                                 // System_Math__TruncateDouble
+                ".ctor",                                    // Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
