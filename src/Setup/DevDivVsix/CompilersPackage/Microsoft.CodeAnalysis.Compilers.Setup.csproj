@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
+    <RoslynProjectType>Custom</RoslynProjectType>
 
     <!-- VS Insertion -->
     <TargetVsixContainerName>Microsoft.CodeAnalysis.Compilers.vsix</TargetVsixContainerName>
