@@ -308,12 +308,11 @@ function Build-Installer () {
     Copy-Item $installerScriptsFolder -Destination $intermidatePowershellScriptsDirectory -Recurse
 
     ## Copying VSIXes
-    $vsixDir = Join-Path $binariesDir $vsSetupDir
     $vsixDirDestination = Join-Path $intermidateDirectory "vsix"
     if (-not (Test-Path $vsixDirDestination)) {
         New-Item -ItemType Directory -Force -Path $vsixDirDestination
     }
-    $RoslynDeploymentVsix = Join-Path $vsixDir "RoslynDeployment.vsix"
+    $RoslynDeploymentVsix = Join-Path $vsSetupDir "RoslynDeployment.vsix"
     Copy-Item $RoslynDeploymentVsix -Destination $vsixDirDestination
 
     #  Zip Folder
@@ -599,7 +598,7 @@ try {
     $dotnet = Ensure-DotnetSdk
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDir $buildConfiguration
-    $vsSetupDir = Join-Path "VSSetup" $buildConfiguration
+    $vsSetupDir = Join-Path $binariesDir (Join-Path "VSSetup" $buildConfiguration)
     $logsDir = Join-Path $configDir "Logs"
     $bootstrapDir = ""
 
