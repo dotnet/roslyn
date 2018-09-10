@@ -6,11 +6,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Net.Sdk" Version="$(MicrosoftNetSdkVersion)" ExcludeAssets="all" />
-    <PackageReference Include="Microsoft.Build.Logging.StructuredLogger" Version="$(MicrosoftBuildLoggingStructuredLoggerVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="$(MicrosoftNETCorePlatformsVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.DotNet.Build.Tasks.Feed" Version="$(MicrosoftDotNetBuildTasksFeedVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.DotNet.SignTool" Version="$(MicrosoftDotNetSignToolVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.SymbolUploader.Build.Task" Version="$(MicrosoftSymbolUploaderBuildTaskVersion)" ExcludeAssets="all" />
+    <PackageReference Include="MSBuild.StructuredLogger" Version="$(MSBuildStructuredLoggerVersion)" ExcludeAssets="all" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" ExcludeAssets="all" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" ExcludeAssets="all" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" ExcludeAssets="all" />
