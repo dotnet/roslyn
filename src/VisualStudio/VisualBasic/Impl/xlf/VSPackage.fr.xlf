@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="10160">
         <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off</source>
-        <target state="translated">Insertion automatique des constructions de fin ; Modifier les paramètres de liste automatique ; Modifier le mode Plan ; Insertion automatique des membres Interface et MustOverride ; Afficher ou masquer les séparateurs de ligne de procédure ; Activer ou désactiver les suggestions de correction d'erreurs ; Activer ou désactiver la mise en surbrillance des références et des mots clés</target>
+        <target state="translated">Insertion automatique des constructions de fin ; Modifier les paramètres de listing en mode Pretty ; Modifier le mode Plan ; Insertion automatique des membres Interface et MustOverride ; Afficher ou masquer les séparateurs de ligne de procédure ; Activer ou désactiver les suggestions de correction d'erreurs ; Activer ou désactiver la mise en surbrillance des références et des mots clés</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
