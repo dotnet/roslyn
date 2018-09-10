@@ -16,7 +16,7 @@ binaries_path="${root_path}"/Binaries
 unittest_dir="${binaries_path}"/"${build_configuration}"/UnitTests
 log_dir="${binaries_path}"/"${build_configuration}"/xUnitResults
 nuget_dir="${HOME}"/.nuget/packages
-xunit_console_version="$(get_package_version dotnet-xunit)"
+xunit_console_version="$(get_package_version xunitrunnerconsole)"
 
 if [[ "${runtime}" == "dotnet" ]]; then
     target_framework=netcoreapp2.0

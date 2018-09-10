@@ -36,7 +36,6 @@
     <PackageReference Include="vswhere" Version="$(vswhereVersion)" ExcludeAssets="all" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <PackageReference Include="dotnet-xunit" Version="$(dotnetxunitVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.NETCore.Compilers" Version="$(MicrosoftNETCoreCompilersVersion)" ExcludeAssets="all" />
   </ItemGroup>
 </Project>
