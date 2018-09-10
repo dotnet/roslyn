@@ -1376,8 +1376,8 @@ This version used in: {2}</value>
   <data name="Convert_to_conditional_expression" xml:space="preserve">
     <value>Convert to conditional expression</value>
   </data>
-  <data name="Convert_to_query" xml:space="preserve">
-    <value>Convert to query</value>
+  <data name="Convert_to_linq" xml:space="preserve">
+    <value>Convert to LINQ</value>
   </data>
   <data name="Convert_to_tuple" xml:space="preserve">
     <value>Convert to tuple</value>
@@ -1402,5 +1402,8 @@ This version used in: {2}</value>
   </data>
   <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document</value>
+  </data>
+  <data name="Convert_to_linq_call_form" xml:space="preserve">
+    <value>Convert to LINQ (call form)</value>
   </data>
 </root>

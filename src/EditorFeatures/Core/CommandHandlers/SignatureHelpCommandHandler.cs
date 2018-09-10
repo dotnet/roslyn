@@ -40,9 +40,11 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SignatureHelpCommandHandler(
+            IThreadingContext threadingContext,
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
             _signatureHelpProviders = ExtensionOrderer.Order(signatureHelpProviders);
             _listener = listenerProvider.GetListener(FeatureAttribute.SignatureHelp);
@@ -70,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             }
 
             controller = Controller.GetInstance(
+                ThreadingContext,
                 args, _signatureHelpPresenter,
                 _listener, _signatureHelpProviders);
 

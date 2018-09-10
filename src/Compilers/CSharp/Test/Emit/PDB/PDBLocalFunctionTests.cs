@@ -1,12 +1,13 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBLocalFunctionTests : CSharpPDBTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ClosuresInCtor()
         {
             var source = @"
@@ -125,7 +126,7 @@ class C : B
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ForEachStatement_Array()
         {
             string source = @"
@@ -205,7 +206,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ForStatement1()
         {
             string source = @"
@@ -281,7 +282,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SwitchStatement1()
         {
             var source = @"
@@ -369,7 +370,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void UsingStatement1()
         {
             string source = @"
