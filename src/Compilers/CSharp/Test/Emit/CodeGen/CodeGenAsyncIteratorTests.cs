@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         // Can we avoid making IAsyncEnumerable<T> special from the start? Making mark it with an attribute like we did for task-like?
         // Do some manual validation on debugging scenarios, including with exceptions (thrown after yield and after await).
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
+        public void MissingType_IAsyncIEnumerable()
         {
             string source = @"
 class C
@@ -562,7 +563,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void CallingWaitForNextAsyncTwice()
         {
             string source = @"
@@ -575,29 +576,29 @@ class C
         await System.Threading.Tasks.Task.CompletedTask;
         Write(""2 "");
         yield return 4;
-        Write("" 5 "");
+        Write(""5 "");
     }
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
         var enumerator = M().GetAsyncEnumerator();
-        await enumerator.WaitForNextAsync();
+        var found = await enumerator.WaitForNextAsync();
+        if (!found) throw null;
         Write(""3 "");
-        await enumerator.WaitForNextAsync();
+        found = await enumerator.WaitForNextAsync();
+        if (!found) throw null;
         var value = enumerator.TryGetNext(out var success);
         Write($""{value} "");
         await enumerator.WaitForNextAsync();
-        Write(""5"");
+        Write(""6"");
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "");
-            // PROTOTYPE WaitForNextAsync is resilient to be called out of turn. Test that.
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 6");
         }
 
-        [Fact]
->>>>>>> 0eb20fb... Add tests for missing types/members. Improve diagnostics
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithAwaitCompletedAndYield()
         {
             string source = @"
@@ -913,7 +914,7 @@ class C
     IL_0103:  ldloc.3
     IL_0104:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
     IL_0109:  nop
-    IL_010a:  leave.s    IL_010c
+    IL_010a:  leave.s    IL_013c
   }
   // sequence point: }
   IL_010c:  ldarg.0
@@ -1037,6 +1038,50 @@ class C
   filter
   {
     // sequence point: <hidden>
+    IL_00cc:  isinst     ""System.Exception""
+    IL_00d1:  dup
+    IL_00d2:  brtrue.s   IL_00d8
+    IL_00d4:  pop
+    IL_00d5:  ldc.i4.0
+    IL_00d6:  br.s       IL_00ea
+    IL_00d8:  stloc.3
+    IL_00d9:  ldarg.0
+    IL_00da:  ldc.i4.s   -2
+    IL_00dc:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00e1:  ldarg.0
+    IL_00e2:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00e7:  ldc.i4.0
+    IL_00e8:  cgt.un
+    IL_00ea:  endfilter
+  }  // end filter
+  {  // handler
+    // sequence point: <hidden>
+    IL_00ec:  pop
+    IL_00ed:  ldarg.0
+    IL_00ee:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00f3:  ldloc.3
+    IL_00f4:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
+    IL_00f9:  leave.s    IL_0129
+  }
+  // sequence point: }
+  IL_00fb:  ldarg.0
+  IL_00fc:  ldc.i4.s   -2
+  IL_00fe:  stfld      ""int C.<M>d__0.<>1__state""
+  // sequence point: <hidden>
+  IL_0103:  ldarg.0
+  IL_0104:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+  IL_0109:  brtrue.s   IL_011d
+  IL_010b:  ldarg.0
+  IL_010c:  ldc.i4.1
+  IL_010d:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+  IL_0112:  ldarg.0
+  IL_0113:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0118:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
+  IL_011d:  ldarg.0
+  IL_011e:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0123:  ldc.i4.0
+  IL_0124:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
+  IL_0129:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
                 }
             }

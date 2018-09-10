@@ -218,5 +218,6 @@ For async-iterators, when the promise of value-or-end is active, we also catch a
 catch (Exception ex) when { this.state = finishedState; promiseIsActive }
 {
     this.promiseOfValueOrEnd.SetException(ex);
+    return;
 }
 ```

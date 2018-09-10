@@ -307,8 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CSharpCompilation declaringCompilation = method.DeclaringCompilation;
 
-            return method.IsAsync &&
-                returnType.SpecialType != SpecialType.System_Void &&
+            return returnType.SpecialType != SpecialType.System_Void &&
                 !returnType.IsNonGenericTaskType(declaringCompilation) &&
                 !returnType.IsGenericTaskType(declaringCompilation) &&
                 !returnType.IsIAsyncEnumerableType(declaringCompilation);
