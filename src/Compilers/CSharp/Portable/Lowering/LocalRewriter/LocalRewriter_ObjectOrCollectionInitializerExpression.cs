@@ -232,7 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var args = EvaluateSideEffectingArgumentsToTemps(
                                 memberInit.Arguments,
                                 memberInit.MemberSymbol?.GetParameterRefKinds() ?? default(ImmutableArray<RefKind>),
-                                memberInit.BinderOpt,
                                 result,
                                 ref temps);
 
@@ -324,7 +323,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indices = EvaluateSideEffectingArgumentsToTemps(
                             arrayAccess.Indices,
                             paramRefKindsOpt: default,
-                            argumentsBinderOpt: null,
                             result,
                             ref temps);
                         rewrittenAccess = arrayAccess.Update(rewrittenReceiver, indices, arrayAccess.Type);
