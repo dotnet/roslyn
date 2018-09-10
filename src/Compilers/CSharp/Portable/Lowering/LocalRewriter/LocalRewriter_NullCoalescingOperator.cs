@@ -114,6 +114,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Optimize left ?? right to left.GetValueOrDefault() when left is T? and right is the default value of T
+            if (rewrittenLeft.Type.IsNullableType()
+                && RemoveIdentityConversions(rewrittenRight).IsDefaultValue()
+                && rewrittenRight.Type.Equals(rewrittenLeft.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions)
+                && TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol getValueOrDefault))
+            {
+                return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, getValueOrDefault);
+            }
+
             // We lower left ?? right to 
             //
             // var temp = left;
@@ -178,6 +187,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        private static BoundExpression RemoveIdentityConversions(BoundExpression expression)
+        {
+            while (expression.Kind == BoundKind.Conversion)
+            {
+                var boundConversion = (BoundConversion)expression;
+                if (boundConversion.ConversionKind != ConversionKind.Identity)
+                {
+                    return expression;
+                }
+
+                expression = boundConversion.Operand;
+            }
+
+            return expression;
         }
 
         private BoundExpression GetConvertedLeftForNullCoalescingOperator(BoundExpression rewrittenLeft, Conversion leftConversion, TypeSymbol rewrittenResultType)

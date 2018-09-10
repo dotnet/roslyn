@@ -97,6 +97,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 TargetFramework.Mscorlib46,
                 verify);
 
+        internal CompilationVerifier CompileAndVerifyExperimental(
+            CSharpTestSource source,
+            MessageID feature,
+            IEnumerable<MetadataReference> references = null,
+            IEnumerable<ResourceDescription> manifestResources = null,
+            IEnumerable<ModuleData> dependencies = null,
+            Action<ModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly> assemblyValidator = null,
+            Action<ModuleSymbol> symbolValidator = null,
+            SignatureDescription[] expectedSignatures = null,
+            string expectedOutput = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
+            Verification verify = Verification.Passes)
+        {
+            options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
+            var compilation = CreateExperimentalCompilationWithMscorlib45(source, feature, references, options, parseOptions, assemblyName: GetUniqueName());
+
+            return CompileAndVerify(
+                source,
+                references,
+                manifestResources,
+                dependencies,
+                sourceSymbolValidator,
+                assemblyValidator,
+                symbolValidator,
+                expectedSignatures,
+                expectedOutput,
+                expectedReturnCode,
+                args,
+                options,
+                parseOptions,
+                emitOptions,
+                TargetFramework.Mscorlib46,
+                verify);
+        }
+
         internal CompilationVerifier CompileAndVerifyWithWinRt(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
@@ -358,6 +398,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string assemblyName = "",
             string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib46, assemblyName, sourceFileName);
 
+        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
+            CSharpTestSource source,
+            MessageID feature,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "",
+            string sourceFileName = "") => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib45, references), options, parseOptions, assemblyName, sourceFileName, experimentalFeature: feature);
+
         public static CSharpCompilation CreateCompilationWithWinRT(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
@@ -432,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null,
             TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
-            string sourceFileName = "") => CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName);
+            string sourceFileName = "") => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, experimentalFeature: null);
 
         public static CSharpCompilation CreateEmptyCompilation(
             CSharpTestSource source,
@@ -440,7 +489,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
-            string sourceFileName = "")
+            string sourceFileName = "") => CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, experimentalFeature: null);
+
+        private static CSharpCompilation CreateCompilationCore(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references,
+            CSharpCompilationOptions options,
+            CSharpParseOptions parseOptions,
+            string assemblyName,
+            string sourceFileName,
+            MessageID? experimentalFeature)
         {
             if (options == null)
             {
@@ -451,6 +509,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             if (Debugger.IsAttached)
             {
                 options = options.WithConcurrentBuild(false);
+            }
+
+            if (experimentalFeature.HasValue)
+            {
+                parseOptions = (parseOptions ?? TestOptions.Regular).WithExperimental(experimentalFeature.Value);
             }
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(

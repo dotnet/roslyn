@@ -265,6 +265,50 @@ class Program
         }
         #endregion C# 7.3
 
+        #region C# 8.0
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_3ToLatest()
+        {
+            await TestLanguageVersionUpgradedAsync(
+$@"
+class Program
+{{
+#error version:[|{LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}|]
+}}",
+                LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(),
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_3To8_0()
+        {
+            await TestLanguageVersionUpgradedAsync(
+$@"
+class Program
+{{
+#error version:[|{LanguageVersion.CSharp8.ToDisplayString()}|]
+}}",
+                LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(),
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForVerbatimInterpolatedString()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void A()
+    {
+        var x = [|@$""hello""|];
+    }
+}",
+                expected: LanguageVersion.CSharp8,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+        #endregion
+
         [Fact]
         public async Task UpgradeAllProjectsToCSharp7()
         {
@@ -282,8 +326,6 @@ class C
         </Document>
     </Project>
     <Project Language=""C#"" LanguageVersion=""6"">
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""Default"">
     </Project>
     <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
@@ -318,8 +360,35 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
+                });
+        }
+
+        [Fact]
+        public async Task ListAllSuggestions_CSharp8()
+        {
+            await TestExactActionSetOfferedAsync(
+
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""6"">
+        <Document>
+class C
+{
+    void A()
+    {
+#error version:[|8|]
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""7"">
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""Default"">
+    </Project>
+</Workspace>",
+                new[] {
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "8.0")
     });
         }
 
@@ -378,18 +447,19 @@ class C
         [Fact]
         public async Task OnlyOfferFixAllProjectsToDefaultWhenApplicable()
         {
+            string defaultEffectiveVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
-@"<Workspace>
+$@"<Workspace>
     <Project Language=""C#"" LanguageVersion=""6"">
         <Document>
 class C
-{
+{{
     void A()
-    {
-        var x = [|(1, 2)|];
-    }
-}
+    {{
+#error version:[|{defaultEffectiveVersion}|]
+    }}
+}}
         </Document>
     </Project>
     <Project Language=""C#"" LanguageVersion=""Default"">
@@ -398,8 +468,8 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, defaultEffectiveVersion),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultEffectiveVersion)
                     });
         }
 

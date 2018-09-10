@@ -1,4 +1,5 @@
 Microsoft.CodeAnalysis.Compilation.HasImplicitConversion(Microsoft.CodeAnalysis.ITypeSymbol fromType, Microsoft.CodeAnalysis.ITypeSymbol toType) -> bool
+Microsoft.CodeAnalysis.Compilation.IsSymbolAccessibleWithin(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.ISymbol within, Microsoft.CodeAnalysis.ITypeSymbol throughType = null) -> bool
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.GetControlFlowGraph() -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.GetControlFlowGraph(Microsoft.CodeAnalysis.IOperation operationBlock) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.GetControlFlowGraph(Microsoft.CodeAnalysis.IOperation operationBlock) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph

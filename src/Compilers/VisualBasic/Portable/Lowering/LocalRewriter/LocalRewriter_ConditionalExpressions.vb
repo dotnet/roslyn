@@ -233,6 +233,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right is the default value of T
+            If rewrittenLeft.Type.IsNullableType() AndAlso 
+               rewrittenRight.IsDefaultValue() AndAlso
+               rewrittenRight.Type.IsSameTypeIgnoringAll(rewrittenLeft.Type.GetNullableUnderlyingType()) _
+            Then
+                Return NullableValueOrDefault(rewrittenLeft)
+            End If
+
             '=== Rewrite binary conditional expression using ternary conditional expression
             Dim temp As SynthesizedLocal = Nothing
             Dim tempInit As BoundExpression = Nothing

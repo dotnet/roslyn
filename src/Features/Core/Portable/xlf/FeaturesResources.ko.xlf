@@ -97,6 +97,11 @@
         <target state="new">Type '{0}' has an unused private member '{1}' which can be removed.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="new">Use interpolated verbatim string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">제네릭 오버로드</target>

@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular7_1 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_1);
         public static readonly CSharpParseOptions Regular7_2 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_2);
         public static readonly CSharpParseOptions Regular7_3 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_3);
+        public static readonly CSharpParseOptions Regular8 = Regular.WithLanguageVersion(LanguageVersion.CSharp8);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
         public static readonly CSharpParseOptions WithoutImprovedOverloadCandidates = Regular.WithLanguageVersion(MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion() - 1);
 
@@ -84,6 +85,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
         {
             return options;
+        }
+
+        internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
+        {
+            if (features.Length == 0)
+            {
+                throw new InvalidOperationException("Need at least one feature to enable");
+            }
+
+            var list = new List<KeyValuePair<string, string>>();
+            foreach (var feature in features)
+            {
+                var name = feature.RequiredFeature();
+                if (name == null)
+                {
+                    throw new InvalidOperationException($"{feature} is not a valid experimental feature");
+                }
+                list.Add(new KeyValuePair<string, string>(name, "true"));
+            }
+
+            return options.WithFeatures(options.Features.Concat(list));
+        }
+
+        public static CSharpParseOptions WithFlowAnalysisFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
         }
     }
 }
