@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="new">Add parameter to '{0}' (and overrides/implementations)</target>
+        <target state="translated">将参数添加到“{0}”(和重写/实现)</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -22,19 +22,29 @@
         <target state="translated">操作不能为空。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_query">
-        <source>Convert to query</source>
-        <target state="new">Convert to query</target>
+      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
+        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
+        <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq">
+        <source>Convert to LINQ</source>
+        <target state="new">Convert to LINQ</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_0">
         <source>Add to '{0}'</source>
-        <target state="new">Add to '{0}'</target>
+        <target state="translated">添加到“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
         <source>Convert to class</source>
         <target state="new">Convert to class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq_call_form">
+        <source>Convert to LINQ (call form)</source>
+        <target state="new">Convert to LINQ (call form)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
@@ -49,17 +59,42 @@
       </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
-        <target state="new">Fix typo '{0}'</target>
+        <target state="translated">修正笔误“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
-        <target state="new">Formatting document</target>
+        <target state="translated">设置文档格式</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="new">Related method signatures found in metadata will not be updated.</target>
+        <target state="translated">不更新在元数据中发现的相关方法签名。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unread_private_members">
+        <source>Remove unread private members</source>
+        <target state="new">Remove unread private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_member">
+        <source>Remove unused member</source>
+        <target state="new">Remove unused member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_private_members">
+        <source>Remove unused private members</source>
+        <target state="new">Remove unused private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Type '{0}' has a private member '{1}' that can be removed as the value assigned to it is never read.</source>
+        <target state="new">Type '{0}' has a private member '{1}' that can be removed as the value assigned to it is never read.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_has_an_unused_private_member_1_which_can_be_removed">
+        <source>Type '{0}' has an unused private member '{1}' which can be removed.</source>
+        <target state="new">Type '{0}' has an unused private member '{1}' which can be removed.</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -2027,22 +2062,22 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Parentheses_can_be_removed">
         <source>Parentheses can be removed</source>
-        <target state="new">Parentheses can be removed</target>
+        <target state="translated">可以删除括号</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
         <source>Remove unnecessary parentheses</source>
-        <target state="new">Remove unnecessary parentheses</target>
+        <target state="translated">删除不必要的括号</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
         <source>Add parentheses for clarity</source>
-        <target state="new">Add parentheses for clarity</target>
+        <target state="translated">为清楚起见，请添加括号</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_should_be_added_for_clarity">
         <source>Parentheses should be added for clarity</source>
-        <target state="new">Parentheses should be added for clarity</target>
+        <target state="translated">为清楚起见，应添加括号</target>
         <note />
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
@@ -2077,7 +2112,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+        <target state="translated">转换为条件表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

@@ -33,13 +33,13 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
-        <target state="translated">커서 아래의 기호에 대한 참조 강조;커서 아래의 관련 키워드 강조;개요 모드로 파일 열기;프로시저 줄 구분선 표시;XML 문서 주석 생성;닫힌 파일에 대한 진단 표시;이름 바꾸기 추적 미리 보기 표시;using 정렬 시 'System' 지시문 먼저 배치;사용자 지정 구조체에 ref 또는 out 추가 안 함</target>
+        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
+        <target state="needs-review-translation">커서 아래의 기호에 대한 참조 강조;커서 아래의 관련 키워드 강조;개요 모드로 파일 열기;프로시저 줄 구분선 표시;XML 문서 주석 생성;닫힌 파일에 대한 진단 표시;이름 바꾸기 추적 미리 보기 표시;using 정렬 시 'System' 지시문 먼저 배치;사용자 지정 구조체에 ref 또는 out 추가 안 함</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
         <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
-        <target state="needs-review-translation">세미콜론 입력 시 문 서식 자동 지정;중괄호 입력 시 블록 서식 자동 지정;붙여넣을 때 서식 자동 지정</target>
+        <target state="translated">세미콜론 입력 시 문 서식 자동 지정;중괄호 입력 시 블록 서식 자동 지정;붙여넣을 때 서식 자동 지정;코드 정리;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">

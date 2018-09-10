@@ -33,13 +33,13 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
-        <target state="translated">カーソルの下にあるシンボルへの参照をハイライトする;カーソルの下にあるキーワードの関連キーワードをハイライトする;ファイルを開くときにアウトライン モードに入る;プロシージャ行の区切り記号を表示する;XML ドキュメント コメントを生成する;閉じているファイルの診断結果を表示する;名前変更の追跡用プレビューの表示;using を並べ替える際に、'System' ディレクティブを先頭に配置する;カスタム構造体に ref または out を設定しない</target>
+        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
+        <target state="needs-review-translation">カーソルの下にあるシンボルへの参照をハイライトする;カーソルの下にあるキーワードの関連キーワードをハイライトする;ファイルを開くときにアウトライン モードに入る;プロシージャ行の区切り記号を表示する;XML ドキュメント コメントを生成する;閉じているファイルの診断結果を表示する;名前変更の追跡用プレビューの表示;using を並べ替える際に、'System' ディレクティブを先頭に配置する;カスタム構造体に ref または out を設定しない</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
         <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
-        <target state="needs-review-translation">セミコロンでステートメントをオート フォーマットする;中かっこでブロックをオート フォーマットする;貼り付け時にオート フォーマットする</target>
+        <target state="translated">セミコロンでステートメントをオート フォーマットする;中かっこでブロックをオート フォーマットする;貼り付け時にオート フォーマットする;コードをクリーンアップする</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">

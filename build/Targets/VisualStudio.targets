@@ -26,7 +26,7 @@
   </ItemDefinitionGroup>
 
   <ImportGroup Condition="'$(ImportVSSDKTargets)' == 'true'">
-    <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" />
+    <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(MicrosoftVSSDKBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" />
     <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" />
   </ImportGroup>
 
@@ -90,23 +90,27 @@
     </ItemGroup>
   </Target>
 
-  <!-- This is a copy of the Microsoft.VisualStudio.SDK.EmbedInteropTypes NuGet package, but only the list of
-       assemblies that we need. The package includes things like EnvDTE which are reasonable for consumers, but
-       strange since we actually _implement_ DTE and use it as an exchange type with generics in a few places. -->
-  <Target Name="LinkVSSDKEmbeddableAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences" >
+  <!-- Microsoft.VisualStudio.SDK.EmbedInteropTypes sets a bunch of EmbedInteropTypes attributes, but Roslyn is somewhat special
+       and has to do things differently. After the NuGet package does its thing, do further changes. -->
+  <Target Name="FixVSSDKEmbeddableAssemblies" AfterTargets="LinkVSSDKEmbeddableAssemblies" >
     <ItemGroup>
-      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable' OR
-                                '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0' OR
-                                '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime' OR
-                                '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime' OR
-                                '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime' OR
-                                '%(Filename)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime' OR
-                                '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime' OR
-                                '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime' OR
-                                '%(FileName)' == 'Microsoft.VisualStudio.ProjectSystem.Interop' OR
-                                '%(FileName)' == 'stdole' OR
-                                '%(FileName)' == 'Microsoft.VisualStudio.CommandBars'">
-        <EmbedInteropTypes>true</EmbedInteropTypes>
+      <!-- The official NuGet package tries to embed EnvDTE, which is problematic because we implement the interfaces and use
+           them in generic type parameters. Because of this, we can't embed them. -->
+      <ReferencePath Condition="'%(FileName)' == 'EnvDTE80'
+                             or '%(FileName)' == 'EnvDTE90'
+                             or '%(FileName)' == 'EnvDTE100'">
+        <EmbedInteropTypes>false</EmbedInteropTypes>
+      </ReferencePath>
+
+      <!-- The official NuGet package for Microsoft.VisualStudio.Shell.Design references this DLL in non-NoPIA way, so we can't embed it either -->
+      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Designer.Interfaces'">
+        <EmbedInteropTypes>false</EmbedInteropTypes>
+      </ReferencePath>
+
+      <!-- We reference Microsoft.VisualStudio.CodeAnalysis.Sdk.UI, which requires us to reference these DLLs non-NoPIA way -->
+      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.10.0'
+                             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.11.0'">
+        <EmbedInteropTypes>false</EmbedInteropTypes>
       </ReferencePath>
     </ItemGroup>
   </Target>

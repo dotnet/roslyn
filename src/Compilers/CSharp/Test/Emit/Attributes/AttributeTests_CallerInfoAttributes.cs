@@ -1486,7 +1486,7 @@ partial class A
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestCallerFilePath2()
         {
             string source1 = @"
