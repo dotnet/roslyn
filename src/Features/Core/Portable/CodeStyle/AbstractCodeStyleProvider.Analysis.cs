@@ -34,8 +34,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
                 => _codeStyleProvider.GetDiagnosticAnalyzerCategory();
 
+            // This behavior is non-overridable.  For any feature to use AbstractCodeStyleProvider
+            // it is required that it work for open and closed files.
             public sealed override bool OpenFileOnly(Workspace workspace)
-                => _codeStyleProvider.DiagnosticsForOpenFileOnly(workspace);
+                => false;
         }
 
         /// <summary>

@@ -63,7 +63,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         #region analysis
 
         protected abstract DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory();
-        protected abstract bool DiagnosticsForOpenFileOnly(Workspace workspace);
 
         protected abstract void DiagnosticAnalyzerInitialize(AnalysisContext context);
 
