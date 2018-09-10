@@ -1258,7 +1258,7 @@ public class C
                 "Next(25) Got(25) Next(26) NextAsync(26)", verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestWithPattern_WithUnsealed_WithIAsyncDisposable()
         {
             string source = @"
@@ -1557,7 +1557,7 @@ public class C
   IL_01e2:  nop
   IL_01e3:  ret
 }
-", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
+", sequencePoints: "C+<Main>d__0.MoveNext", source: source + s_interfaces);
         }
 
         [Fact]
@@ -2960,7 +2960,7 @@ class C
             Assert.True(internalInfo.NeedsDisposeMethod);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestWithInterfaceImplementingPattern()
         {
             string source = @"
