@@ -2043,12 +2043,16 @@ class C
     {
         int? a1 = null, b1 = null, c1 = 1;
         Console.WriteLine(a1 ??= b1 ??= c1);
+        Console.WriteLine(b1);
         int? a2 = null, b2 = null, c2 = 1;
         Console.WriteLine(a2 ??= (b2 ??= c2));
+        Console.WriteLine(b2);
     }
 }";
 
             CompileAndVerify(source, expectedOutput: @"
+1
+1
 1
 1
 ");
