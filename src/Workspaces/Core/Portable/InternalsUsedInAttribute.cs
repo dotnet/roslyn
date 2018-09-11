@@ -5,9 +5,9 @@ using System;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Used for annotating internal types, methods, etc. that are used in other assemblies that have InternalsVisibleTo.
+    /// Used for annotating internal types that are used in other assemblies that have InternalsVisibleTo.
     /// </summary>
-    [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum | AttributeTargets.Interface | AttributeTargets.Struct | AttributeTargets.Delegate, Inherited = false, AllowMultiple = true)]
     internal class InternalsUsedInAttribute : Attribute
     {
         public InternalsUsedInAttribute(string name)
