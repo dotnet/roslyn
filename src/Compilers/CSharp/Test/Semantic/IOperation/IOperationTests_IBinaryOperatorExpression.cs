@@ -7898,7 +7898,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IRangeOperation (OperationKind.Range, Type: System.Range, Constant: null) (Syntax: '1..2')
+IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '1..2')
   LeftOperand: 
     IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
@@ -7928,7 +7928,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IRangeOperation (OperationKind.Range, Type: System.Range, Constant: null) (Syntax: '0..^1')
+IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '0..^1')
   LeftOperand: 
     IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '0')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
@@ -7957,7 +7957,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IRangeOperation (OperationKind.Range, Type: System.Range, Constant: null) (Syntax: '..2')
+IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '..2')
   LeftOperand: 
     null
   RightOperand: 
@@ -7984,7 +7984,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IRangeOperation (OperationKind.Range, Type: System.Range, Constant: null) (Syntax: '1..')
+IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '1..')
   LeftOperand: 
     IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
@@ -8011,7 +8011,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IRangeOperation (OperationKind.Range, Type: System.Range, Constant: null) (Syntax: '..')
+IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '..')
   LeftOperand: 
     null
   RightOperand: 
@@ -8035,7 +8035,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?, Constant: null) (Syntax: 'start..end')
+IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: 'start..end')
   LeftOperand: 
     IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index?, IsImplicit) (Syntax: 'start')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
@@ -8065,7 +8065,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?, Constant: null) (Syntax: 'start..^end')
+IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: 'start..^end')
   LeftOperand: 
     IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index?, IsImplicit) (Syntax: 'start')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
@@ -8094,7 +8094,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?, Constant: null) (Syntax: '..end')
+IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: '..end')
   LeftOperand: 
     null
   RightOperand: 
@@ -8121,7 +8121,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?, Constant: null) (Syntax: 'start..')
+IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: 'start..')
   LeftOperand: 
     IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index?, IsImplicit) (Syntax: 'start')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))

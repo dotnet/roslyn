@@ -6999,7 +6999,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed class RangeOperation : Operation, IRangeOperation
     {
         public RangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand) :
-                    base(OperationKind.Range, semanticModel, syntax, type, constantValue: null, isImplicit: isImplicit)
+                    base(OperationKind.Range, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
         {
             IsLifted = isLifted;
             LeftOperand = Operation.SetParentOperation(leftOperand, this);
