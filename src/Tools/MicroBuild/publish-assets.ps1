@@ -97,7 +97,7 @@ function Test-Entry($publishData, [switch]$isBranch) {
     if ($isBranch) { 
         if ($publishData.nuget -ne $null) { 
             foreach ($nugetKind in $publishData.nugetKind) {
-                if ($kind -ne "PerBuildPreRelease" -and $kind -ne "Shipping" -and $kind -ne "NonShipping") {
+                if ($nugetKind -ne "PerBuildPreRelease" -and $nugetKind -ne "Shipping" -and $nugetKind -ne "NonShipping") {
                      throw "Branches are only allowed to publish Shipping, NonShipping, or PerBuildPreRelease"
                 }
             }
