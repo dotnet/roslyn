@@ -971,7 +971,7 @@ namespace NotMicrosoft.CodeAnalysis { }
         [InlineData("using System.Runtime.CompilerServices; class C { void M(NonNullTypesAttribute x) => throw null; }")]
         [InlineData("using System.Runtime.CompilerServices; namespace System { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
         [InlineData("using System.Runtime.CompilerServices; namespace System.Runtime { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
-        [InlineData("using System.Runtime.CompilerServices; namespace System.Runtime.CompilerServices { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
+        [InlineData("namespace System.Runtime.CompilerServices { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
         [InlineData("using System.Runtime.CompilerServices; class C { NonNullTypesAttribute field = null; void M() { if (field != null) field = null; } }")]
         [InlineData("using System.Runtime.CompilerServices; class C { void M() { _ = new NonNullTypesAttribute(); } }")]
         [InlineData("using System.Runtime.CompilerServices; class C { void M() { local(); void local() { _ = new NonNullTypesAttribute(); } } }")]
