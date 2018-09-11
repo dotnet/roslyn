@@ -2318,7 +2318,7 @@ class C
             compilation.VerifyDiagnostics(
                 // (7,9): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'c3ba0fb2-4f4f-4916-afc5-50566473adcc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         c ??= new B();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "c ??= new B()").WithArguments("A", "c3ba0fb2-4f4f-4916-afc5-50566473adcc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "c ??= new B()").WithArguments("A", $"{aRef.Display}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9),
                 // (7,9): error CS0019: Operator '??=' cannot be applied to operands of type 'C' and 'B'
                 //         c ??= new B();
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "c ??= new B()").WithArguments("??=", "C", "B").WithLocation(7, 9));
