@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
                 : new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
 
-            if (!rewriter.VerifyPresenceOfRequiredAPIs(method))
+            if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
                 return body;
             }
@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>
         /// Returns true if all types and members we need are present and good
         /// </returns>
-        protected bool VerifyPresenceOfRequiredAPIs(MethodSymbol method)
+        protected bool VerifyPresenceOfRequiredAPIs()
         {
             DiagnosticBag bag = DiagnosticBag.GetInstance();
 
-            VerifyPresenceOfRequiredAPIs(method, bag);
+            VerifyPresenceOfRequiredAPIs(bag);
 
             bool hasErrors = bag.HasAnyErrors();
             if (hasErrors)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !hasErrors && _constructedSuccessfully;
         }
 
-        protected virtual void VerifyPresenceOfRequiredAPIs(MethodSymbol method, DiagnosticBag bag)
+        protected virtual void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
         {
             EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
             EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);

@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     exceptionLocal.Type,
                     // when { this.state = finishedState; promiseIsActive }
                     exceptionFilterOpt: F.Sequence(new BoundExpression[] { assignFinishedState }, F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField)),
-                    // this.promiseOfValueOrEnd.SetException(ex);
+                    // this.promiseOfValueOrEnd.SetException(ex); return;
                     body: F.Block(callSetException, GenerateReturn(true)),
                     isSynthesizedAsyncCatchAll: true);
             }

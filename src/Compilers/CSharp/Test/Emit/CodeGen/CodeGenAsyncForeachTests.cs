@@ -1202,7 +1202,7 @@ class C
         }
 
         [Fact]
-        public void TestWithPattern_WithStruct_SimpleImplementation()
+        public void TestWithPattern_WithStruct_WaitForNextAsyncReturnsTask()
         {
             string source = @"
 using static System.Console;
@@ -1255,7 +1255,7 @@ class C
         }
 
         [Fact]
-        public void TestWithPattern_WaitForNextReturnsValueTask()
+        public void TestWithPattern_WaitForNextAsyncReturnsValueTask()
         {
             string source = @"
 using static System.Console;

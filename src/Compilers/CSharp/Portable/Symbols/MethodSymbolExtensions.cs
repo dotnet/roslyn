@@ -305,6 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsBadAsyncReturn(this MethodSymbol method, TypeSymbol returnType)
         {
+            Debug.Assert(method.IsAsync);
             CSharpCompilation declaringCompilation = method.DeclaringCompilation;
 
             return returnType.SpecialType != SpecialType.System_Void &&

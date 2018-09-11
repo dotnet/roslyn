@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(async-streams): Why does AsyncRewriter have logic to ignore accessibility?
             }
 
-            protected override void VerifyPresenceOfRequiredAPIs(MethodSymbol method, DiagnosticBag bag)
+            protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
             {
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync, bag);
