@@ -761,6 +761,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.DictionaryAccessExpression
                         result = ExtractTypeCharacter(DirectCast(node, MemberAccessExpressionSyntax).Name)
+                    Case SyntaxKind.FlagsEnumOperationExpression
+                        Dim feoe = TryCast(node, FlagsEnumOperationExpressionSyntax)
+                        If feoe IsNot Nothing Then
+                            Dim name = TryCast(feoe.EnumFlags, IdentifierNameSyntax)
+                            If name IsNot Nothing Then
+                                result = name.Identifier.GetTypeCharacter
+                            End If
+                        End If
                 End Select
             End If
 

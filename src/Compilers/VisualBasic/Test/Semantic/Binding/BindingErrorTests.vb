@@ -2968,9 +2968,9 @@ L2:
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30103: '!' requires its left operand to have a type parameter, class or interface type, but this operand has the type 'E'.
+BC37306: Enum 'E' requires &lt;Flags&gt; attribute.
             M([enum]!P)
-              ~~~~~~
+              ~~~~~~~~
 BC30103: '!' requires its left operand to have a type parameter, class or interface type, but this operand has the type 'Boolean'.
             M([boolean]!P)
               ~~~~~~~~~
@@ -3022,6 +3022,9 @@ BC30690: Structure 'Integer?' cannot be indexed because it has no default proper
 BC30103: '!' requires its left operand to have a type parameter, class or interface type, but this operand has the type 'Date'.
             M([datetime]!P)
               ~~~~~~~~~~
+BC30103: '!' requires its left operand to have a type parameter, class or interface type, but this operand has the type 'Action'.
+            M([action]!P)
+              ~~~~~~~~
 BC30555: Default member of 'Action' is not a property.
             M([action]!P)
               ~~~~~~~~
@@ -8954,16 +8957,22 @@ End Class
             ' For now, lambdas result in BC30491 which differs from Dev10.
             ' This should change once lambda support is complete.
             Dim expectedErrors1 = <errors>
+BC30103: '!' requires its left operand to have a type parameter, class or interface type, but this operand has the type 'Function &lt;generated method&gt;() As Dictionary(Of String, String)'.
+        o = Function()
+            ~~~~~~~~~~~
 BC30555: Default member of 'Function &lt;generated method&gt;() As Dictionary(Of String, String)' is not a property.
         o = Function()
             ~~~~~~~~~~~
 BC30555: Default member of 'Array' is not a property.
         o = a!b
             ~
+BC30103: '!' requires its left operand to have a type parameter, class or interface type, but this operand has the type 'Func(Of Dictionary(Of Object, Object))'.
+        o = f!c
+            ~
 BC30555: Default member of 'Func(Of Dictionary(Of Object, Object))' is not a property.
         o = f!c
             ~
-                 </errors>
+</errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 

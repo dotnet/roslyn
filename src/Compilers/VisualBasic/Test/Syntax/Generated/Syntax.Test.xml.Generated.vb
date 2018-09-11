@@ -941,11 +941,11 @@ Partial Public Class GeneratedTests
         End Function
 
         Private Shared Function GenerateGreenSimpleMemberAccessExpression() As InternalSyntax.MemberAccessExpressionSyntax
-            return InternalSyntax.SyntaxFactory.SimpleMemberAccessExpression(CType(Nothing, InternalSyntax.ExpressionSyntax), new InternalSyntax.PunctuationSyntax(SyntaxKind.DotToken, String.Empty, Nothing, Nothing), GenerateGreenIdentifierName())
+            return InternalSyntax.SyntaxFactory.SimpleMemberAccessExpression(CType(Nothing, InternalSyntax.ExpressionSyntax), new InternalSyntax.PunctuationSyntax(SyntaxKind.DotToken, String.Empty, Nothing, Nothing), GenerateGreenKeywordEventContainer())
         End Function
 
         Private Shared Function GenerateGreenDictionaryAccessExpression() As InternalSyntax.MemberAccessExpressionSyntax
-            return InternalSyntax.SyntaxFactory.DictionaryAccessExpression(CType(Nothing, InternalSyntax.ExpressionSyntax), new InternalSyntax.PunctuationSyntax(SyntaxKind.ExclamationToken, String.Empty, Nothing, Nothing), GenerateGreenIdentifierName())
+            return InternalSyntax.SyntaxFactory.DictionaryAccessExpression(CType(Nothing, InternalSyntax.ExpressionSyntax), new InternalSyntax.PunctuationSyntax(SyntaxKind.ExclamationToken, String.Empty, Nothing, Nothing), GenerateGreenKeywordEventContainer())
         End Function
 
         Private Shared Function GenerateGreenXmlElementAccessExpression() As InternalSyntax.XmlMemberAccessExpressionSyntax
@@ -1546,6 +1546,26 @@ Partial Public Class GeneratedTests
 
         Private Shared Function GenerateGreenBadDirectiveTrivia() As InternalSyntax.BadDirectiveTriviaSyntax
             return InternalSyntax.SyntaxFactory.BadDirectiveTrivia(new InternalSyntax.PunctuationSyntax(SyntaxKind.HashToken, String.Empty, Nothing, Nothing))
+        End Function
+
+        Private Shared Function GenerateGreenFlagsEnumOperationExpression() As InternalSyntax.FlagsEnumOperationExpressionSyntax
+            return InternalSyntax.SyntaxFactory.FlagsEnumOperationExpression(Nothing, GenerateGreenFlagsEnumIsAnyToken(), Nothing)
+        End Function
+
+        Private Shared Function GenerateGreenFlagsEnumIsAnyToken() As InternalSyntax.FlagsEnumOperatorSyntax
+            return InternalSyntax.SyntaxFactory.FlagsEnumIsAnyToken(String.Empty, InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " "), InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " "))
+        End Function
+
+        Private Shared Function GenerateGreenFlagsEnumSetToken() As InternalSyntax.FlagsEnumOperatorSyntax
+            return InternalSyntax.SyntaxFactory.FlagsEnumSetToken(String.Empty, InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " "), InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " "))
+        End Function
+
+        Private Shared Function GenerateGreenFlagsEnumClearToken() As InternalSyntax.FlagsEnumOperatorSyntax
+            return InternalSyntax.SyntaxFactory.FlagsEnumClearToken(String.Empty, InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " "), InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " "))
+        End Function
+
+        Private Shared Function GenerateGreenFlagsEnumIsSetToken() As InternalSyntax.FlagsEnumOperatorSyntax
+            return InternalSyntax.SyntaxFactory.FlagsEnumIsSetToken(String.Empty, InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " "), InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " "))
         End Function
 
 #end region
@@ -3846,6 +3866,36 @@ Partial Public Class GeneratedTests
         <Fact>
         Public Sub TestGreenBadDirectiveTrivia()
             dim objectUnderTest = GenerateGreenBadDirectiveTrivia()
+            AttachAndCheckDiagnostics(objectUnderTest)
+        End Sub
+
+        <Fact>
+        Public Sub TestGreenFlagsEnumOperationExpression()
+            dim objectUnderTest = GenerateGreenFlagsEnumOperationExpression()
+            AttachAndCheckDiagnostics(objectUnderTest)
+        End Sub
+
+        <Fact>
+        Public Sub TestGreenFlagsEnumIsAnyToken()
+            dim objectUnderTest = GenerateGreenFlagsEnumIsAnyToken()
+            AttachAndCheckDiagnostics(objectUnderTest)
+        End Sub
+
+        <Fact>
+        Public Sub TestGreenFlagsEnumSetToken()
+            dim objectUnderTest = GenerateGreenFlagsEnumSetToken()
+            AttachAndCheckDiagnostics(objectUnderTest)
+        End Sub
+
+        <Fact>
+        Public Sub TestGreenFlagsEnumClearToken()
+            dim objectUnderTest = GenerateGreenFlagsEnumClearToken()
+            AttachAndCheckDiagnostics(objectUnderTest)
+        End Sub
+
+        <Fact>
+        Public Sub TestGreenFlagsEnumIsSetToken()
+            dim objectUnderTest = GenerateGreenFlagsEnumIsSetToken()
             AttachAndCheckDiagnostics(objectUnderTest)
         End Sub
 
@@ -6780,6 +6830,14 @@ Partial Public Class GeneratedTests
             Assert.Equal(oldNode, newNode)
         End Sub
 
+        <Fact>
+        Public Sub TestGreenFlagsEnumOperationExpressionRewriter()
+            dim oldNode = GenerateGreenFlagsEnumOperationExpression()
+            Dim rewriter = New GreenIdentityRewriter()
+            Dim newNode = rewriter.Visit(oldNode)
+            Assert.Equal(oldNode, newNode)
+        End Sub
+
 #end region
 
 #region "Green Visitor Tests"
@@ -9341,6 +9399,13 @@ Partial Public Class GeneratedTests
         <Fact>
         Public Sub TestGreenBadDirectiveTriviaVisitor()
             Dim oldNode = GenerateGreenBadDirectiveTrivia()
+            Dim visitor = New GreenNodeVisitor()
+            visitor.Visit(oldNode)
+        End Sub
+
+        <Fact>
+        Public Sub TestGreenFlagsEnumOperationExpressionVisitor()
+            Dim oldNode = GenerateGreenFlagsEnumOperationExpression()
             Dim visitor = New GreenNodeVisitor()
             visitor.Visit(oldNode)
         End Sub
@@ -14591,7 +14656,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.SimpleMemberAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), GenerateRedIdentifierName())
+            SyntaxFactory.SimpleMemberAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), GenerateRedKeywordEventContainer())
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -14599,14 +14664,14 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.SimpleMemberAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), GenerateRedIdentifierName())
+            SyntaxFactory.SimpleMemberAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), GenerateRedKeywordEventContainer())
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.SimpleMemberAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.DotToken), GenerateRedIdentifierName())
+            return SyntaxFactory.SimpleMemberAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.DotToken), GenerateRedKeywordEventContainer())
         End Function
 
         Private Shared Function GenerateRedDictionaryAccessExpression() As MemberAccessExpressionSyntax
@@ -14620,7 +14685,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.DictionaryAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), GenerateRedIdentifierName())
+            SyntaxFactory.DictionaryAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), GenerateRedKeywordEventContainer())
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -14628,14 +14693,14 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.DictionaryAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), GenerateRedIdentifierName())
+            SyntaxFactory.DictionaryAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), GenerateRedKeywordEventContainer())
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.DictionaryAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.ExclamationToken), GenerateRedIdentifierName())
+            return SyntaxFactory.DictionaryAccessExpression(CType(Nothing, ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.ExclamationToken), GenerateRedKeywordEventContainer())
         End Function
 
         Private Shared Function GenerateRedXmlElementAccessExpression() As XmlMemberAccessExpressionSyntax
@@ -18452,6 +18517,39 @@ Partial Public Class GeneratedTests
             return SyntaxFactory.BadDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken))
         End Function
 
+        Private Shared Function GenerateRedFlagsEnumOperationExpression() As FlagsEnumOperationExpressionSyntax
+            Dim exceptionTest as boolean = false
+            Try
+            SyntaxFactory.FlagsEnumOperationExpression(Nothing, SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
+            catch e as ArgumentException
+            exceptionTest = true
+            End Try
+            Debug.Assert(exceptionTest)
+            exceptionTest = false
+
+            return SyntaxFactory.FlagsEnumOperationExpression(Nothing, GenerateRedFlagsEnumIsAnyToken(), Nothing)
+        End Function
+
+        Private Shared Function GenerateRedFlagsEnumIsAnyToken() As SyntaxToken
+            Dim exceptionTest as boolean = false
+            return SyntaxFactory.FlagsEnumIsAnyToken(SyntaxFactory.TriviaList(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ")), SyntaxFactory.TriviaList(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ")))
+        End Function
+
+        Private Shared Function GenerateRedFlagsEnumSetToken() As SyntaxToken
+            Dim exceptionTest as boolean = false
+            return SyntaxFactory.FlagsEnumSetToken(SyntaxFactory.TriviaList(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ")), SyntaxFactory.TriviaList(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ")))
+        End Function
+
+        Private Shared Function GenerateRedFlagsEnumClearToken() As SyntaxToken
+            Dim exceptionTest as boolean = false
+            return SyntaxFactory.FlagsEnumClearToken(SyntaxFactory.TriviaList(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ")), SyntaxFactory.TriviaList(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ")))
+        End Function
+
+        Private Shared Function GenerateRedFlagsEnumIsSetToken() As SyntaxToken
+            Dim exceptionTest as boolean = false
+            return SyntaxFactory.FlagsEnumIsSetToken(SyntaxFactory.TriviaList(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ")), SyntaxFactory.TriviaList(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ")))
+        End Function
+
 #end region
 
 #region "Red Factory Tests"
@@ -21909,6 +22007,34 @@ Partial Public Class GeneratedTests
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
+        <Fact>
+        Public Sub TestRedFlagsEnumOperationExpression()
+            dim objectUnderTest = GenerateRedFlagsEnumOperationExpression()
+            Assert.NotNull(objectUnderTest.operatorToken)
+            Dim withObj = objectUnderTest.WithEnumFlags(objectUnderTest.EnumFlags).WithOperatorToken(objectUnderTest.OperatorToken).WithEnumFlag(objectUnderTest.EnumFlag)
+            Assert.Equal(withobj, objectUnderTest)
+        End Sub
+
+        <Fact>
+        Public Sub TestRedFlagsEnumIsAnyToken()
+            dim objectUnderTest = GenerateRedFlagsEnumIsAnyToken()
+        End Sub
+
+        <Fact>
+        Public Sub TestRedFlagsEnumSetToken()
+            dim objectUnderTest = GenerateRedFlagsEnumSetToken()
+        End Sub
+
+        <Fact>
+        Public Sub TestRedFlagsEnumClearToken()
+            dim objectUnderTest = GenerateRedFlagsEnumClearToken()
+        End Sub
+
+        <Fact>
+        Public Sub TestRedFlagsEnumIsSetToken()
+            dim objectUnderTest = GenerateRedFlagsEnumIsSetToken()
+        End Sub
+
 #end region
 
 #region "Red Rewriter Tests"
@@ -24835,6 +24961,14 @@ Partial Public Class GeneratedTests
         <Fact>
         Public Sub TestRedBadDirectiveTriviaRewriter()
             dim oldNode = GenerateRedBadDirectiveTrivia()
+            Dim rewriter = New RedIdentityRewriter()
+            Dim newNode = rewriter.Visit(oldNode)
+            Assert.Equal(oldNode, newNode)
+        End Sub
+
+        <Fact>
+        Public Sub TestRedFlagsEnumOperationExpressionRewriter()
+            dim oldNode = GenerateRedFlagsEnumOperationExpression()
             Dim rewriter = New RedIdentityRewriter()
             Dim newNode = rewriter.Visit(oldNode)
             Assert.Equal(oldNode, newNode)

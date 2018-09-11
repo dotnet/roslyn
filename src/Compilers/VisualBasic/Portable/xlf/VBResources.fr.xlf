@@ -9086,6 +9086,26 @@
         <target state="translated">Le nom de fichier '{0}' est vide, contient des caractères non valides, spécifie un lecteur sans chemin d'accès absolu ou est trop long</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MissingFlagsAttributeOnEnum">
+        <source>Enum '{0}' requires &lt;Flags&gt; attribute.</source>
+        <target state="new">Enum '{0}' requires &lt;Flags&gt; attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_EnumFlagOperators">
+        <source>Enum Flag Operators</source>
+        <target state="new">Enum Flag Operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingEnumFlag">
+        <source>Missing Enum Flag.</source>
+        <target state="new">Missing Enum Flag.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpectedParenthesizedExpression">
+        <source>Expected Parenthesized Expression.</source>
+        <target state="new">Expected Parenthesized Expression.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

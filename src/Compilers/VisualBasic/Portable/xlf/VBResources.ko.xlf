@@ -9086,6 +9086,26 @@
         <target state="translated">{0}' 파일 이름이 비어 있거나, 잘못된 문자가 있거나, 절대 경로가 없는 드라이브 사양이 있거나, 너무 깁니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MissingFlagsAttributeOnEnum">
+        <source>Enum '{0}' requires &lt;Flags&gt; attribute.</source>
+        <target state="new">Enum '{0}' requires &lt;Flags&gt; attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_EnumFlagOperators">
+        <source>Enum Flag Operators</source>
+        <target state="new">Enum Flag Operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingEnumFlag">
+        <source>Missing Enum Flag.</source>
+        <target state="new">Missing Enum Flag.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpectedParenthesizedExpression">
+        <source>Expected Parenthesized Expression.</source>
+        <target state="new">Expected Parenthesized Expression.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

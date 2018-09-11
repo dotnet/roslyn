@@ -5533,4 +5533,16 @@
   <data name="FEATURE_InterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
   </data>
+  <data name="ERR_MissingFlagsAttributeOnEnum" xml:space="preserve">
+    <value>Enum '{0}' requires &lt;Flags&gt; attribute.</value>
+  </data>
+  <data name="FEATURE_EnumFlagOperators" xml:space="preserve">
+    <value>Enum Flag Operators</value>
+  </data>
+  <data name="ERR_MissingEnumFlag" xml:space="preserve">
+    <value>Missing Enum Flag.</value>
+  </data>
+  <data name="ERR_ExpectedParenthesizedExpression" xml:space="preserve">
+    <value>Expected Parenthesized Expression.</value>
+  </data>
 </root>

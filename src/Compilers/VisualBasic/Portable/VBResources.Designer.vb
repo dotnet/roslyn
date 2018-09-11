@@ -4314,6 +4314,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Expected Parenthesized Expression..
+        '''</summary>
+        Friend ReadOnly Property ERR_ExpectedParenthesizedExpression() As String
+            Get
+                Return ResourceManager.GetString("ERR_ExpectedParenthesizedExpression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Expression is not a method..
         '''</summary>
         Friend ReadOnly Property ERR_ExpectedProcedure() As String
@@ -7158,6 +7167,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_MissingEndSet() As String
             Get
                 Return ResourceManager.GetString("ERR_MissingEndSet", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Missing Enum Flag..
+        '''</summary>
+        Friend ReadOnly Property ERR_MissingEnumFlag() As String
+            Get
+                Return ResourceManager.GetString("ERR_MissingEnumFlag", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Enum &apos;{0}&apos; requires &lt;Flags&gt; attribute..
+        '''</summary>
+        Friend ReadOnly Property ERR_MissingFlagsAttributeOnEnum() As String
+            Get
+                Return ResourceManager.GetString("ERR_MissingFlagsAttributeOnEnum", resourceCulture)
             End Get
         End Property
         
@@ -12051,6 +12078,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_DigitSeparators() As String
             Get
                 Return ResourceManager.GetString("FEATURE_DigitSeparators", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Enum Flag Operators.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_EnumFlagOperators() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_EnumFlagOperators", resourceCulture)
             End Get
         End Property
         

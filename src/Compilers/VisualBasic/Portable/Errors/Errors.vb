@@ -1741,6 +1741,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation = 37304
 
         ERR_ValueTupleResolutionAmbiguous3 = 37305
+        ERR_MissingFlagsAttributeOnEnum = 37306
+        ERR_ExpectedParenthesizedExpression = 373307
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -2018,5 +2020,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_LeadingDigitSeparator
         FEATURE_PrivateProtected
         FEATURE_InterpolatedStrings
+        FEATURE_EnumFlagOperators
+        ERR_MissingEnumFlag
     End Enum
 End Namespace

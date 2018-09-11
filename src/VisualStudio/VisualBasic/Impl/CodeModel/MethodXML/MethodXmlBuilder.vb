@@ -351,8 +351,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
 
             ' Note: There's no null check for 'symbolOpt' here. If 'symbolOpt' is Nothing, we'll generate an "unknown" name ref.
             Dim varKind As VariableKind = GetVariableKind(symbolOpt)
-
-            Dim name = If(symbolOpt IsNot Nothing, symbolOpt.Name, memberAccess.Name.Identifier.ValueText)
+            Dim simpleName = TryCast(memberAccess.Name, SimpleNameSyntax)
+            Dim name = If(symbolOpt IsNot Nothing, symbolOpt.Name,
+                        If(simpleName IsNot Nothing, simpleName.Identifier.ValueText, String.Empty))
             Dim nameAttribute = If(generateAttributes, name, Nothing)
             Dim fullNameAttribute = If(generateAttributes, GetFullNameText(symbolOpt), Nothing)
 

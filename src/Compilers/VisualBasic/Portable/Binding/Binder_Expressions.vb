@@ -62,6 +62,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DictionaryAccessExpression
                     Return BindDictionaryAccess(DirectCast(node, MemberAccessExpressionSyntax), diagnostics)
 
+                Case SyntaxKind.FlagsEnumOperationExpression
+                    Return Bind_FlagsEnumOperation(DirectCast(node, FlagsEnumOperationExpressionSyntax), diagnostics)
+
                 Case SyntaxKind.InvocationExpression
                     Return BindInvocationExpression(DirectCast(node, InvocationExpressionSyntax), diagnostics)
 
@@ -683,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case node.Argument.Kind
                 Case SyntaxKind.SimpleMemberAccessExpression
-                    value = DirectCast(node.Argument, MemberAccessExpressionSyntax).Name.Identifier.ValueText
+                    value = TryCast(DirectCast(node.Argument, MemberAccessExpressionSyntax).Name, SimpleNameSyntax)?.Identifier.ValueText
 
                 Case SyntaxKind.IdentifierName,
                      SyntaxKind.GenericName
@@ -794,10 +797,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' become invocations.
         ''' </summary>
         Friend Function BindValue(
-             node As ExpressionSyntax,
-             diagnostics As DiagnosticBag,
-             Optional isOperandOfConditionalBranch As Boolean = False
-         ) As BoundExpression
+                                   node As ExpressionSyntax,
+                                   diagnostics As DiagnosticBag,
+                          Optional isOperandOfConditionalBranch As Boolean = False
+                                 ) As BoundExpression
             Dim expr = BindExpression(node, diagnostics:=diagnostics, isOperandOfConditionalBranch:=isOperandOfConditionalBranch, isInvocationOrAddressOf:=False, eventContext:=False)
 
             Return MakeValue(expr, diagnostics)
@@ -913,7 +916,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return receiver
         End Function
 
-
         ''' <summary>
         ''' Adjusts receiver of a call or a member access if it is a value
         '''  * will turn Unknown property access into Get property access
@@ -940,9 +942,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function ReclassifyAsValue(
-           expr As BoundExpression,
-           diagnostics As DiagnosticBag
-        ) As BoundExpression
+                                           expr As BoundExpression,
+                                           diagnostics As DiagnosticBag
+                                         ) As BoundExpression
             If expr.Kind = BoundKind.ConditionalAccess AndAlso expr.Type Is Nothing Then
                 Dim conditionalAccess = DirectCast(expr, BoundConditionalAccess)
                 Dim access As BoundExpression = Me.MakeRValue(conditionalAccess.AccessExpression, diagnostics)
@@ -973,6 +975,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not expr.IsNothingLiteral() Then
                         Return MakeRValue(expr, diagnostics)
                     End If
+                'Case BoundKind.EnumFlagExpression
+                '    expr = BindEnumFlagExpression(expr.ExpressionSymbol., expr.Syntax, expr, s_noArguments, diagnostics)
 
                 Case BoundKind.MethodGroup,
                      BoundKind.PropertyGroup
@@ -2593,7 +2597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindMemberAccess(node As MemberAccessExpressionSyntax, eventContext As Boolean, diagnostics As DiagnosticBag) As BoundExpression
             Dim leftOpt = node.Expression
             Dim boundLeft As BoundExpression = Nothing
-            Dim rightName As SimpleNameSyntax = node.Name
+            Dim rightName As ExpressionSyntax = node.Name
 
             If leftOpt Is Nothing Then
                 ' 11.6 Member Access Expressions: "1.  If E is omitted, then the expression from the
@@ -2758,7 +2762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The method is protected, so that it can be called from other 
         ''' binders overriding TryBindMemberAccessWithLeftOmitted
         ''' </remarks>
-        Protected Function BindMemberAccess(node As VisualBasicSyntaxNode, left As BoundExpression, right As SimpleNameSyntax, eventContext As Boolean, diagnostics As DiagnosticBag) As BoundExpression
+        Protected Function BindMemberAccess(node As VisualBasicSyntaxNode, left As BoundExpression, right As ExpressionSyntax, eventContext As Boolean, diagnostics As DiagnosticBag) As BoundExpression
             Debug.Assert(node IsNot Nothing)
             Debug.Assert(left IsNot Nothing)
             Debug.Assert(right IsNot Nothing)
@@ -2768,59 +2772,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Check if 'left' is of type which is a class or struct and 'name' is "New"
             Dim leftTypeSymbol As TypeSymbol = left.Type
             If leftTypeSymbol IsNot Nothing AndAlso (right.Kind = SyntaxKind.IdentifierName OrElse right.Kind = SyntaxKind.GenericName) Then
-
-                ' Get the name syntax token
-                Dim identifier = If(right.Kind = SyntaxKind.IdentifierName,
+                Dim rightName = TryCast(right, SimpleNameSyntax)
+                If rightName IsNot Nothing Then
+                    ' Get the name syntax token
+                    Dim identifier = If(right.Kind = SyntaxKind.IdentifierName,
                                     DirectCast(right, IdentifierNameSyntax).Identifier,
                                     DirectCast(right, GenericNameSyntax).Identifier)
 
-                If Not identifier.IsBracketed AndAlso
+                    If Not identifier.IsBracketed AndAlso
                         CaseInsensitiveComparison.Equals(identifier.ValueText, SyntaxFacts.GetText(SyntaxKind.NewKeyword)) Then
 
-                    If leftTypeSymbol.IsArrayType() Then
-                        ' No instance constructors found. Can't call constructor on an array type.
-                        If (left.HasErrors) Then
-                            Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
-                        End If
-
-                        Return ReportDiagnosticAndProduceBadExpression(
-                                        diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ConstructorNotFound1, leftTypeSymbol), left)
-                    End If
-
-                    Dim leftTypeKind As TypeKind = leftTypeSymbol.TypeKind
-
-                    If leftTypeKind = TypeKind.Class OrElse leftTypeKind = TypeKind.Structure OrElse leftTypeKind = TypeKind.Module Then
-
-                        ' Bind to method group representing available instance constructors
-                        Dim namedLeftTypeSymbol = DirectCast(leftTypeSymbol, NamedTypeSymbol)
-
-                        Dim accessibleConstructors = GetAccessibleConstructors(namedLeftTypeSymbol, useSiteDiagnostics)
-
-                        diagnostics.Add(node, useSiteDiagnostics)
-                        useSiteDiagnostics = Nothing
-
-                        If accessibleConstructors.IsEmpty Then
-
-                            ' No instance constructors found
+                        If leftTypeSymbol.IsArrayType() Then
+                            ' No instance constructors found. Can't call constructor on an array type.
                             If (left.HasErrors) Then
                                 Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
                             End If
 
                             Return ReportDiagnosticAndProduceBadExpression(
+                                        diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ConstructorNotFound1, leftTypeSymbol), left)
+                        End If
+
+                        Dim leftTypeKind As TypeKind = leftTypeSymbol.TypeKind
+
+                        If leftTypeKind = TypeKind.Class OrElse leftTypeKind = TypeKind.Structure OrElse leftTypeKind = TypeKind.Module Then
+
+                            ' Bind to method group representing available instance constructors
+                            Dim namedLeftTypeSymbol = DirectCast(leftTypeSymbol, NamedTypeSymbol)
+
+                            Dim accessibleConstructors = GetAccessibleConstructors(namedLeftTypeSymbol, useSiteDiagnostics)
+
+                            diagnostics.Add(node, useSiteDiagnostics)
+                            useSiteDiagnostics = Nothing
+
+                            If accessibleConstructors.IsEmpty Then
+
+                                ' No instance constructors found
+                                If (left.HasErrors) Then
+                                    Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
+                                End If
+
+                                Return ReportDiagnosticAndProduceBadExpression(
                                             diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ConstructorNotFound1, namedLeftTypeSymbol), left)
-                        Else
+                            Else
 
-                            Dim hasErrors As Boolean = left.HasErrors
-                            If Not hasErrors AndAlso right.Kind = SyntaxKind.GenericName Then
-                                ' Report error BC30282
-                                ReportDiagnostic(diagnostics, node, ERRID.ERR_InvalidConstructorCall)
-                                hasErrors = True
-                            End If
+                                Dim hasErrors As Boolean = left.HasErrors
+                                If Not hasErrors AndAlso right.Kind = SyntaxKind.GenericName Then
+                                    ' Report error BC30282
+                                    ReportDiagnostic(diagnostics, node, ERRID.ERR_InvalidConstructorCall)
+                                    hasErrors = True
+                                End If
 
-                            ' Create a method group consisting of all instance constructors
-                            Return New BoundMethodGroup(node, Nothing, accessibleConstructors, LookupResultKind.Good, left,
+                                ' Create a method group consisting of all instance constructors
+                                Return New BoundMethodGroup(node, Nothing, accessibleConstructors, LookupResultKind.Good, left,
                                                         If(left.Kind = BoundKind.TypeExpression, QualificationKind.QualifiedViaTypeName, QualificationKind.QualifiedViaValue),
                                                         hasErrors)
+                            End If
                         End If
                     End If
                 End If
@@ -2828,17 +2834,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim type As TypeSymbol
 
-            Dim rightName As String
+            Dim rightNameText As String
             Dim typeArguments As TypeArgumentListSyntax
 
             If right.Kind = SyntaxKind.GenericName Then
                 Dim genericName = DirectCast(right, GenericNameSyntax)
                 typeArguments = genericName.TypeArgumentList
-                rightName = genericName.Identifier.ValueText
+                rightNameText = genericName.Identifier.ValueText
             Else
                 Debug.Assert(right.Kind = SyntaxKind.IdentifierName)
                 typeArguments = Nothing
-                rightName = DirectCast(right, IdentifierNameSyntax).Identifier.ValueText
+                rightNameText = DirectCast(right, IdentifierNameSyntax).Identifier.ValueText
             End If
 
             Dim rightArity As Integer = If(typeArguments IsNot Nothing, typeArguments.Arguments.Count, 0)
@@ -2848,7 +2854,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Try
                 If left.Kind = BoundKind.NamespaceExpression Then
 
-                    If String.IsNullOrEmpty(rightName) Then
+                    If String.IsNullOrEmpty(rightNameText) Then
                         ' Must have been a syntax error.
                         Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
                     End If
@@ -2861,12 +2867,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         options = options Or LookupOptions.AllowIntrinsicAliases
                     End If
 
-                    MemberLookup.Lookup(lookupResult, ns, rightName, rightArity, options, Me, useSiteDiagnostics) ' overload resolution filters methods by arity.
+                    MemberLookup.Lookup(lookupResult, ns, rightNameText, rightArity, options, Me, useSiteDiagnostics) ' overload resolution filters methods by arity.
 
                     If lookupResult.HasSymbol Then
                         Return BindSymbolAccess(node, lookupResult, options, left, typeArguments, QualificationKind.QualifiedViaNamespace, diagnostics)
                     Else
-                        Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, rightName, ns), left)
+                        Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, rightNameText, ns), left)
                     End If
 
                 ElseIf left.Kind = BoundKind.TypeExpression Then
@@ -2875,17 +2881,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If type.TypeKind = TypeKind.TypeParameter Then
                         Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_TypeParamQualifierDisallowed), left)
                     Else
-                        If String.IsNullOrEmpty(rightName) Then
+                        If String.IsNullOrEmpty(rightNameText) Then
                             ' Must have been a syntax error.
                             Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
                         End If
 
-                        LookupMember(lookupResult, type, rightName, rightArity, options, useSiteDiagnostics) ' overload resolution filters methods by arity.
+                        LookupMember(lookupResult, type, rightNameText, rightArity, options, useSiteDiagnostics) ' overload resolution filters methods by arity.
 
                         If lookupResult.HasSymbol Then
                             Return BindSymbolAccess(node, lookupResult, options, left, typeArguments, QualificationKind.QualifiedViaTypeName, diagnostics)
                         Else
-                            Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, rightName, type), left)
+                            Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, rightNameText, type), left)
                         End If
                     End If
 
@@ -2898,7 +2904,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
                     End If
 
-                    If String.IsNullOrEmpty(rightName) Then
+                    If String.IsNullOrEmpty(rightNameText) Then
                         ' Must have been a syntax error.
                         Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
                     End If
@@ -2909,13 +2915,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         effectiveOptions = effectiveOptions Or LookupOptions.EventsOnly
                     End If
 
-                    LookupMember(lookupResult, type, rightName, rightArity, effectiveOptions, useSiteDiagnostics) ' overload resolution filters methods by arity.
+                    LookupMember(lookupResult, type, rightNameText, rightArity, effectiveOptions, useSiteDiagnostics) ' overload resolution filters methods by arity.
 
                     If lookupResult.HasSymbol Then
                         Return BindSymbolAccess(node, lookupResult, effectiveOptions, left, typeArguments, QualificationKind.QualifiedViaValue, diagnostics)
 
                     ElseIf (type.IsObjectType AndAlso Not left.IsMyBaseReference) OrElse type.IsExtensibleInterfaceNoUseSiteDiagnostics Then
-                        Return BindLateBoundMemberAccess(node, rightName, typeArguments, left, type, diagnostics)
+                        Return BindLateBoundMemberAccess(node, rightNameText, typeArguments, left, type, diagnostics)
 
                     ElseIf left.HasErrors Then
                         Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
@@ -2926,7 +2932,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             type.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
                         End If
 
-                        Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, rightName, type), left)
+                        Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, rightNameText, type), left)
                     End If
                 End If
             Finally
@@ -3193,10 +3199,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim asMemberAccess = TryCast(node, MemberAccessExpressionSyntax)
                     If asMemberAccess IsNot Nothing AndAlso Not fieldAccessType.IsErrorType() Then
-                        VerifyTypeCharacterConsistency(asMemberAccess.Name, fieldAccessType.GetEnumUnderlyingTypeOrSelf, diagnostics)
+                        Dim simpleName = TryCast(asMemberAccess.Name, SimpleNameSyntax)
+                        If simpleName IsNot Nothing Then
+                            VerifyTypeCharacterConsistency(simpleName, fieldAccessType.GetEnumUnderlyingTypeOrSelf, diagnostics)
+                        End If
                     End If
 
-                    If receiver IsNot Nothing AndAlso receiver.IsPropertyOrXmlPropertyAccess() Then
+                        If receiver IsNot Nothing AndAlso receiver.IsPropertyOrXmlPropertyAccess() Then
                         receiver = MakeRValue(receiver, diagnostics)
                     End If
 
@@ -3685,6 +3694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindDictionaryAccess(node As MemberAccessExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+            Debug.Assert(node.OperatorToken.Kind = SyntaxKind.ExclamationToken)
             Dim leftOpt = node.Expression
             Dim left As BoundExpression
             If leftOpt Is Nothing Then
@@ -3703,15 +3713,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If left Is Nothing Then
                     ' Didn't find binder that can handle member access with omitted left part
 
-                    Return BadExpression(
-                        node,
-                        ImmutableArray.Create(
-                            ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_BadWithRef),
-                            New BoundLiteral(
-                                node.Name,
-                                ConstantValue.Create(node.Name.Identifier.ValueText),
-                                GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
-                        ErrorTypeSymbol.UnknownResultType)
+                    Return BadExpression(node, ImmutableArray.Create(
+                                          ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_BadWithRef),
+                                          New BoundLiteral(
+                                                node.Name,
+                                                ConstantValue.Create(node.Name.ToString),
+                                                GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
+                                          ErrorTypeSymbol.UnknownResultType)
                 End If
             Else
                 left = Me.BindExpression(leftOpt, diagnostics)
@@ -3726,73 +3734,232 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(type IsNot Nothing)
 
             If Not type.IsErrorType() Then
+                Dim nameSyntax = TryCast(node.Name, SimpleNameSyntax)
+                If nameSyntax IsNot Nothing Then
+                    ' (left : Objext)!( ___ )
+                    If type.SpecialType = SpecialType.System_Object OrElse type.IsExtensibleInterfaceNoUseSiteDiagnostics() Then
+                        Dim name = nameSyntax.Identifier
+                        Dim arg = New BoundLiteral(nameSyntax, ConstantValue.Create(name.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
+                        Dim boundArguments = ImmutableArray.Create(Of BoundExpression)(arg)
+                        Return BindLateBoundInvocation(node, Nothing, left, boundArguments, Nothing, diagnostics)
+                    End If
 
-                If type.SpecialType = SpecialType.System_Object OrElse type.IsExtensibleInterfaceNoUseSiteDiagnostics() Then
-                    Dim name = node.Name
-                    Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
-                    Dim boundArguments = ImmutableArray.Create(Of BoundExpression)(arg)
-                    Return BindLateBoundInvocation(node, Nothing, left, boundArguments, Nothing, diagnostics)
-                End If
+                    ' (left : Interface)!( ___ )
+                    If type.IsInterfaceType Then
+                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                        ' In case IsExtensibleInterfaceNoUseSiteDiagnostics above failed because there were bad inherited interfaces.
+                        type.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                        diagnostics.Add(node, useSiteDiagnostics)
+                    End If
 
-                If type.IsInterfaceType Then
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    ' In case IsExtensibleInterfaceNoUseSiteDiagnostics above failed because there were bad inherited interfaces.
-                    type.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                    diagnostics.Add(node, useSiteDiagnostics)
-                End If
-
-                Dim defaultPropertyGroup As BoundExpression = BindDefaultPropertyGroup(node, left, diagnostics)
-                Debug.Assert(defaultPropertyGroup Is Nothing OrElse defaultPropertyGroup.Kind = BoundKind.PropertyGroup OrElse
+                    Dim defaultPropertyGroup As BoundExpression = BindDefaultPropertyGroup(node, left, diagnostics)
+                    Debug.Assert(defaultPropertyGroup Is Nothing OrElse defaultPropertyGroup.Kind = BoundKind.PropertyGroup OrElse
                              defaultPropertyGroup.Kind = BoundKind.MethodGroup OrElse defaultPropertyGroup.HasErrors)
 
-                ' Dev10 limits Dictionary access to properties.
-                If defaultPropertyGroup IsNot Nothing AndAlso defaultPropertyGroup.Kind = BoundKind.PropertyGroup Then
-                    Dim name = node.Name
-                    Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
-                    Return BindInvocationExpression(
-                        node,
-                        left.Syntax,
-                        TypeCharacter.None,
-                        DirectCast(defaultPropertyGroup, BoundPropertyGroup),
-                        boundArguments:=ImmutableArray.Create(Of BoundExpression)(arg),
-                        argumentNames:=Nothing,
-                        diagnostics:=diagnostics,
-                        isDefaultMemberAccess:=True,
-                        callerInfoOpt:=node)
+                    ' Dev10 limits Dictionary access to properties.
+                    If defaultPropertyGroup IsNot Nothing AndAlso defaultPropertyGroup.Kind = BoundKind.PropertyGroup Then
+                        Dim name = node.Name
+                        Dim arg = New BoundLiteral(name, ConstantValue.Create(nameSyntax.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
+                        Return BindInvocationExpression(node,
+                                                     left.Syntax,
+                                                     TypeCharacter.None,
+                                                     DirectCast(defaultPropertyGroup, BoundPropertyGroup),
+                                                     boundArguments:=ImmutableArray.Create(Of BoundExpression)(arg),
+                                                      argumentNames:=Nothing,
+                                                        diagnostics:=diagnostics,
+                                              isDefaultMemberAccess:=True,
+                                                      callerInfoOpt:=node)
 
-                ElseIf defaultPropertyGroup Is Nothing OrElse Not defaultPropertyGroup.HasErrors Then
-                    Select Case type.TypeKind
-                        Case TypeKind.Array, TypeKind.Enum
-                            ReportQualNotObjectRecord(left, diagnostics)
-                        Case TypeKind.Class
-                            If type.SpecialType = SpecialType.System_Array Then
-                                ReportDefaultMemberNotProperty(left, diagnostics)
-                            Else
-                                ReportNoDefaultProperty(left, diagnostics)
-                            End If
-                        Case TypeKind.TypeParameter, TypeKind.Interface
-                            ReportNoDefaultProperty(left, diagnostics)
-                        Case TypeKind.Structure
-                            If type.IsIntrinsicValueType() Then
+                    ElseIf defaultPropertyGroup Is Nothing OrElse Not defaultPropertyGroup.HasErrors Then
+
+                        Select Case type.TypeKind
+                            Case TypeKind.Enum ' Needs to be Feature conditional
+                                'If Feature.FlagsEnumOperators.IsAvaiable() Then
+                                ' Make sure the enum has the <Flags> attribute.
+                                Dim original = type.OriginalDefinition
+                                If IsFlagsEnum(DirectCast(original, INamedTypeSymbol)) Then
+                                    Return BindEnumFlagExpression(original, node, left, node, diagnostics)
+                                Else
+                                    Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_MissingFlagsAttributeOnEnum, original.Name)
+                                End If
+                                ' Else
+                                '   ReportFeatureUnvailable()
+                                ' End If
                                 ReportQualNotObjectRecord(left, diagnostics)
-                            Else
+
+                            Case TypeKind.Array '#, TypeKind.Enum
+                                ReportQualNotObjectRecord(left, diagnostics)
+                            Case TypeKind.Class
+                                If type.SpecialType = SpecialType.System_Array Then
+                                    ReportDefaultMemberNotProperty(left, diagnostics)
+                                Else
+                                    ReportNoDefaultProperty(left, diagnostics)
+                                End If
+                            Case TypeKind.TypeParameter, TypeKind.Interface
                                 ReportNoDefaultProperty(left, diagnostics)
-                            End If
-                        Case Else
-                            ReportDefaultMemberNotProperty(left, diagnostics)
-                    End Select
+                            Case TypeKind.Structure
+                                If type.IsIntrinsicValueType() Then
+                                    ReportQualNotObjectRecord(left, diagnostics)
+                                Else
+                                    ReportNoDefaultProperty(left, diagnostics)
+                                End If
+                            Case Else
+                                ReportQualNotObjectRecord(left, diagnostics)
+                                ReportDefaultMemberNotProperty(left, diagnostics)
+                        End Select
+                    End If
                 End If
             End If
 
-            Return BadExpression(
-                node,
-                ImmutableArray.Create(
-                    left,
-                    New BoundLiteral(
-                        node.Name,
-                        ConstantValue.Create(node.Name.Identifier.ValueText),
-                        GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
-                ErrorTypeSymbol.UnknownResultType)
+            Return BadExpression(node,
+                                  ImmutableArray.Create(left,
+                                                         New BoundLiteral(node.Name,
+                                                                           ConstantValue.Create(node.Name.ToString),
+                                                                           GetSpecialType(SpecialType.System_String, node.Name, diagnostics))),
+                                 ErrorTypeSymbol.UnknownResultType)
+        End Function
+
+        Private Shared ReadOnly IsFlagsAttribute As Func(Of AttributeData, Boolean) =
+            Function(attribute)
+                Dim ctor = attribute.AttributeConstructor
+                If (ctor Is Nothing) Then Return False
+                Dim [Type] = ctor.ContainingType
+                If (ctor.Parameters.Any() OrElse [Type].Name <> "FlagsAttribute") Then Return False
+                Dim containingSymbol = Type.ContainingSymbol
+                Return (containingSymbol.Kind = SymbolKind.Namespace) AndAlso
+                       (containingSymbol.Name = "System") AndAlso DirectCast(containingSymbol.ContainingSymbol, INamespaceSymbol).IsGlobalNamespace
+            End Function
+
+        Private Function IsFlagsEnum(typeSymbol As INamedTypeSymbol) As Boolean
+            Return (typeSymbol.TypeKind = TypeKind.Enum) AndAlso typeSymbol.GetAttributes().Any(IsFlagsAttribute)
+        End Function
+
+        Private Function IsMemberOfThisEnum(thisEnumSymbol As TypeSymbol, member As String, ByRef result As FieldSymbol) As Boolean
+            Dim members = thisEnumSymbol.GetMembers(member)
+            result = DirectCast(members.FirstOrDefault(), FieldSymbol)
+            Return result IsNot Nothing
+        End Function
+
+        Friend Function BindEnumFlagExpression(
+                                                original As TypeSymbol,
+                                                node As SyntaxNode,
+                                                expr As BoundExpression,
+                                                member As MemberAccessExpressionSyntax,
+                                                diagBag As DiagnosticBag
+                                              ) As BoundExpression
+            Dim EnumMember = TryCast(member.Expression, SimpleNameSyntax)
+            If EnumMember IsNot Nothing Then
+                Dim FlagName = EnumMember.Identifier.ValueText
+                Return Bind_FlagsEnumOperation_WithEnumMember(FlagName, member, EnumMember, member.OperatorToken, EnumMember, diagBag)
+            ElseIf member.Name IsNot Nothing Then
+                Return Bind_FlagsEnumOperation_WithExpression(member, member.Expression, member.OperatorToken, member.Name, diagBag)
+            Else
+                Throw ExceptionUtilities.Unreachable()
+                Return Nothing
+            End If
+        End Function
+
+        Private Function GetFlagsEnumOperationKind(node As SyntaxToken) As FlagsEnumOperatorKind
+            Select Case node.Kind
+                Case SyntaxKind.FlagsEnumClearToken : Return FlagsEnumOperatorKind.Clear
+                Case SyntaxKind.FlagsEnumIsSetToken,
+                     SyntaxKind.ExclamationToken
+                    Return FlagsEnumOperatorKind.IsSet
+                Case SyntaxKind.FlagsEnumSetToken : Return FlagsEnumOperatorKind.Set
+                Case SyntaxKind.FlagsEnumIsAnyToken : Return FlagsEnumOperatorKind.IsAny
+            End Select
+            Return FlagsEnumOperatorKind.None
+        End Function
+
+        Private Function Bind_FlagsEnumOperation_WithEnumMember(
+                                                  FlagName As String,
+                                                  node As ExpressionSyntax,
+                                                  EnumFlags As ExpressionSyntax,
+                                                  opToken As SyntaxToken,
+                                                  EnumFlag As SimpleNameSyntax,
+                                                  diagBag As DiagnosticBag
+                                                ) As BoundExpression
+            Debug.Assert(EnumFlags isnot nothing)
+            Dim eFlag As FieldSymbol = Nothing
+            Dim bFlags = BindExpression(EnumFlags, diagBag)
+            Dim original = bFlags.Type.OriginalDefinition
+
+            If Not IsFlagsEnum(DirectCast(original, INamedTypeSymbol)) Then
+                ' ERRID #373306
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlags, ERRID.ERR_EnumNotExpression1, original.Name)
+            End If
+
+            If Not IsMemberOfThisEnum(original, FlagName, eFlag) Then
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlag, ERRID.ERR_NameNotMember2, FlagName, original.Name)
+            End If
+
+            Dim op As FlagsEnumOperatorKind = GetFlagsEnumOperationKind(opToken)
+            If op = FlagsEnumOperatorKind.None Then
+                ' ERRID #373307
+
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, DirectCast(node.GetNodeSlot(1), VisualBasicSyntaxNode), ERRID.ERR_UnknownOperator, op.ToString, original.Name)
+            End If
+
+            Return New BoundFlagsEnumOperationExpressionSyntax(
+                syntax:=node,
+               enumFlags:=bFlags, op:=op,
+                enumFlag:=New BoundFieldAccess(EnumFlag, bFlags, eFlag, False, original),
+                    type:=If(op = FlagsEnumOperatorKind.IsSet Or op = FlagsEnumOperatorKind.IsAny,
+                                  GetSpecialType(SpecialType.System_Boolean, EnumFlag, diagBag), original)
+                    )
+        End Function
+
+        Private Function Bind_FlagsEnumOperation(
+                                                  node As FlagsEnumOperationExpressionSyntax,
+                                                  diagBag As DiagnosticBag
+                                                ) As BoundExpression
+            If node.EnumFlags IsNot nothing Then
+                Dim Sn = TryCast(node.EnumFlag, SimpleNameSyntax)
+                If Sn IsNot Nothing Then
+                    Dim FlagName = If(Sn.Identifier.ValueText, String.Empty)
+                    Return Bind_FlagsEnumOperation_WithEnumMember(FlagName, node, node.EnumFlags, node.OperatorToken, Sn, diagBag)
+                Else
+                    Return Bind_FlagsEnumOperation_WithExpression(node, node.EnumFlags, node.OperatorToken, node.EnumFlag, diagBag)
+                End If
+            Else
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, node, ERRID.ERR_ExpectedExpression)
+
+             end if
+        End Function
+
+        Private Function Bind_FlagsEnumOperation_WithExpression(
+                                                  node As ExpressionSyntax,
+                                                  EnumFlags As ExpressionSyntax,
+                                                  opToken As SyntaxToken,
+                                                  EnumFlag As ExpressionSyntax,
+                                                  diagBag As DiagnosticBag
+                                                ) As BoundExpression
+            Dim eFlag As FieldSymbol = Nothing
+            Dim bFlags = BindExpression(EnumFlags, diagBag)
+            Dim original = bFlags.Type.OriginalDefinition
+
+            If Not IsFlagsEnum(DirectCast(original, INamedTypeSymbol)) Then
+                ' ERRID #373306
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlags, ERRID.ERR_EnumNotExpression1, "")
+            End If
+
+            Dim op As FlagsEnumOperatorKind = GetFlagsEnumOperationKind(opToken)
+            If op = FlagsEnumOperatorKind.None Then
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, DirectCast(node.GetNodeSlot(1), VisualBasicSyntaxNode), ERRID.ERR_UnknownOperator, op.ToString, original.Name)
+            End If
+            If TypeOf EnumFlag IsNot ParenthesizedExpressionSyntax Then
+                ' ERRID #373307
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlag, ERRID.ERR_ExpectedParenthesizedExpression, op.ToString, original.Name)
+
+            End If
+
+            Return New BoundFlagsEnumOperationExpressionSyntax(
+                syntax:=node,
+               enumFlags:=bFlags, op,
+                enumFlag:=BindExpression(EnumFlag, diagBag),
+                    type:=If(op = FlagsEnumOperatorKind.IsSet Or op = FlagsEnumOperatorKind.IsAny,
+                             GetSpecialType(SpecialType.System_Boolean, EnumFlag, diagBag), original)
+                    )
         End Function
 
         Private Shared Sub ReportNoDefaultProperty(expr As BoundExpression, diagnostics As DiagnosticBag)

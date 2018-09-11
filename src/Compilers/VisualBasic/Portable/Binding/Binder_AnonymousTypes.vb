@@ -388,82 +388,83 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
                 End If
 
-                Dim nameSyntax As SimpleNameSyntax = node.Name
-                Dim name As String = nameSyntax.Identifier.ValueText
+                Dim nameSyntax = TryCast(node.name, SimpleNameSyntax)
+                If nameSyntax IsNot Nothing Then
+                    Dim name As String = nameSyntax.Identifier.ValueText
 
-                ' 'nameSyntax' points to '.<nameSyntax>' which is supposed to be either 
-                ' a property name or a name inherited from System.Object
-                Dim fieldIndex As Integer = 0
-                Dim field As AnonymousTypeField = Nothing
-                If creationBinder.TryGetField(name, field, fieldIndex) Then
-                    ' Field is found
+                    ' 'nameSyntax' points to '.<nameSyntax>' which is supposed to be either 
+                    ' a property name or a name inherited from System.Object
+                    Dim fieldIndex As Integer = 0
+                    Dim field As AnonymousTypeField = Nothing
+                    If creationBinder.TryGetField(name, field, fieldIndex) Then
+                        ' Field is found
 
-                    Dim hasErrors As Boolean = False
-                    ' check for type arguments
-                    If nameSyntax.Kind = SyntaxKind.GenericName Then
-                        ' referencing a field, but with type arguments specified
-                        ' NOTE: since we don't have the symbol of the anonymous type's 
-                        '       property, we mock property name to be used in this message
-                        ' TODO: revise
-                        ReportDiagnostic(diagnostics, DirectCast(nameSyntax, GenericNameSyntax).TypeArgumentList,
+                        Dim hasErrors As Boolean = False
+                        ' check for type arguments
+                        If nameSyntax.Kind = SyntaxKind.GenericName Then
+                            ' referencing a field, but with type arguments specified
+                            ' NOTE: since we don't have the symbol of the anonymous type's 
+                            '       property, we mock property name to be used in this message
+                            ' TODO: revise
+                            ReportDiagnostic(diagnostics, DirectCast(nameSyntax, GenericNameSyntax).TypeArgumentList,
                                          ERRID.ERR_TypeOrMemberNotGeneric1,
-                                         String.Format(
-                                             "Public {0}Property {1} As T{2}",
-                                             If(field.IsKey, "Readonly ", ""),
-                                             name, fieldIndex))
-                        hasErrors = True
-                    End If
-
-                    ' check if the field referenced is already processed, and is 'good', e.g. has type assigned
-                    If fieldIndex >= _initializerOrdinal Then
-
-                        ' referencing a field which is not processed yet or has an error
-                        ' report an error and return a bad expression
-                        If Not hasErrors Then
-                            ' don't report this error if other diagnostics are already reported
-                            ReportDiagnostic(diagnostics, node, ERRID.ERR_AnonymousTypePropertyOutOfOrder1, name)
+                                         $"Public {If(field.IsKey, "Readonly ", "")}Property {name} As T{fieldIndex}")
+                            hasErrors = True
                         End If
-                        Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
 
+                        ' check if the field referenced is already processed, and is 'good', e.g. has type assigned
+                        If fieldIndex >= _initializerOrdinal Then
+
+                            ' referencing a field which is not processed yet or has an error
+                            ' report an error and return a bad expression
+                            If Not hasErrors Then
+                                ' don't report this error if other diagnostics are already reported
+                                ReportDiagnostic(diagnostics, node, ERRID.ERR_AnonymousTypePropertyOutOfOrder1, name)
+                            End If
+                            Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
+
+                        Else
+                            creationBinder.RegisterFieldReference(fieldIndex)
+
+                            If Me.ContainingMember IsNot accessingBinder.ContainingMember Then
+                                ReportDiagnostic(diagnostics, node, ERRID.ERR_CannotLiftAnonymousType1, name)
+                            End If
+
+                            ' return bound anonymous type access
+                            Debug.Assert(field.Type IsNot Nothing)
+                            Return New BoundAnonymousTypePropertyAccess(node, creationBinder, fieldIndex, field.Type, hasErrors)
+                        End If
                     Else
-                        creationBinder.RegisterFieldReference(fieldIndex)
+                        ' NOTE: Dev10 allows references to methods defined of anonymous type, which boils 
+                        '       down to those defined on System.Object AND extension methods defined 
+                        '       for System.Object:
+                        '
+                        '       - In case an instance method of System.Object is being called, the result of 
+                        '         Dev10 compilation with throw an exception in runtime
+                        '       - In case a shared method of System.Object is being called, like 
+                        '         New With {.a = .ReferenceEquals(Nothing, Nothing)}, the call finishes fine
+                        '       - The result of calling extension methods depends on method's implementation 
+                        '         (Nothing is being passed as the first argument)
+                        '
+                        '       In Roslyn we disable this functionality which is a breaking change in a sense,
+                        '       but really should only affect a very few customers.
 
-                        If Me.ContainingMember IsNot accessingBinder.ContainingMember Then
-                            ReportDiagnostic(diagnostics, node, ERRID.ERR_CannotLiftAnonymousType1, node.Name.Identifier.ValueText)
-                        End If
-
-                        ' return bound anonymous type access
-                        Debug.Assert(field.Type IsNot Nothing)
-                        Return New BoundAnonymousTypePropertyAccess(node, creationBinder, fieldIndex, field.Type, hasErrors)
+                        ' TODO: revise and maybe report a special error message
                     End If
-                Else
-                    ' NOTE: Dev10 allows references to methods defined of anonymous type, which boils 
-                    '       down to those defined on System.Object AND extension methods defined 
-                    '       for System.Object:
-                    '
-                    '       - In case an instance method of System.Object is being called, the result of 
-                    '         Dev10 compilation with throw an exception in runtime
-                    '       - In case a shared method of System.Object is being called, like 
-                    '         New With {.a = .ReferenceEquals(Nothing, Nothing)}, the call finishes fine
-                    '       - The result of calling extension methods depends on method's implementation 
-                    '         (Nothing is being passed as the first argument)
-                    '
-                    '       In Roslyn we disable this functionality which is a breaking change in a sense,
-                    '       but really should only affect a very few customers.
-
-                    ' TODO: revise and maybe report a special error message
+                    ' NOTE: since we don't have the symbol of the anonymous type, we use 
+                    '       "<anonymous type>" literal to be consistent with Dev10
+                    ReportDiagnostic(diagnostics, node, ERRID.ERR_NameNotMemberOfAnonymousType2, name, StringConstants.AnonymousTypeName)
+             Else
                 End If
+                    Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
 
-                ' NOTE: since we don't have the symbol of the anonymous type, we use 
-                '       "<anonymous type>" literal to be consistent with Dev10
-                ReportDiagnostic(diagnostics, node, ERRID.ERR_NameNotMemberOfAnonymousType2, name, StringConstants.AnonymousTypeName)
-                Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
             End Function
 
             Protected Overrides Function TryBindOmittedLeftForDictionaryAccess(node As MemberAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression
-                ' NOTE: since we don't have the symbol of the anonymous type, we use 
-                '       "<anonymous type>" literal to be consistent with Dev10
-                ReportDiagnostic(diagnostics, node, ERRID.ERR_NoDefaultNotExtend1, StringConstants.AnonymousTypeName)
+
+                    ' NOTE: since we don't have the symbol of the anonymous type, we use 
+                    '       "<anonymous type>" literal to be consistent with Dev10
+                    ReportDiagnostic(diagnostics, node, ERRID.ERR_NoDefaultNotExtend1, StringConstants.AnonymousTypeName)
                 Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
             End Function
 

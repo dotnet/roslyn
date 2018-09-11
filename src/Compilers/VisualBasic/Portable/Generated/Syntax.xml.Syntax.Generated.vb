@@ -109,6 +109,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Binary
     End Enum
 
+    ''' <summary>
+    ''' Represents one of the type characters or literal suffixes of VB. Used to
+    ''' describe a) the type character suffixes that can be placed on identifiers, and
+    ''' b) the suffixes that can be placed on integer literals.
+    ''' </summary>
+    Public Enum FlagsEnumOperatorKind
+
+        None
+
+        ''' <summary>
+        ''' The "!" flagsEnum operator."
+        ''' </summary>
+        IsSet
+
+        ''' <summary>
+        ''' The "!+" flagsEnum operator."
+        ''' </summary>
+        [Set]
+
+        ''' <summary>
+        ''' The "!=" flagsEnum operator."
+        ''' </summary>
+        Clear
+
+        ''' <summary>
+        ''' The "!/" flagsEnum operator."
+        ''' </summary>
+        IsAny
+    End Enum
+
 
 
     ''' <summary>
@@ -21823,7 +21853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Inherits ExpressionSyntax
 
         Friend _expression as ExpressionSyntax
-        Friend _name as SimpleNameSyntax
+        Friend _name as ExpressionSyntax
 
         Friend Sub New(ByVal green As GreenNode, ByVal parent as SyntaxNode, ByVal startLocation As Integer)
             MyBase.New(green, parent, startLocation)
@@ -21831,8 +21861,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Debug.Assert(startLocation >= 0)
         End Sub
 
-        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), expression As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, name As SimpleNameSyntax)
-            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.MemberAccessExpressionSyntax(kind, errors, annotations, if(expression IsNot Nothing , DirectCast(expression.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ExpressionSyntax), Nothing) , operatorToken, DirectCast(name.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SimpleNameSyntax)), Nothing, 0)
+        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), expression As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, name As ExpressionSyntax)
+            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.MemberAccessExpressionSyntax(kind, errors, annotations, if(expression IsNot Nothing , DirectCast(expression.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ExpressionSyntax), Nothing) , operatorToken, DirectCast(name.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ExpressionSyntax)), Nothing, 0)
         End Sub
 
         ''' <summary>
@@ -21877,7 +21907,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' <summary>
         ''' The identifier after the "." or "!" token.
         ''' </summary>
-        Public  ReadOnly Property Name As SimpleNameSyntax
+        Public  ReadOnly Property Name As ExpressionSyntax
             Get
                 Return GetRed(_name, 2)
             End Get
@@ -21887,7 +21917,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' Returns a copy of this with the Name property changed to the specified value.
         ''' Returns this instance if the specified value is the same as the current value.
         ''' </summary>
-        Public Shadows Function WithName(name as SimpleNameSyntax) As MemberAccessExpressionSyntax
+        Public Shadows Function WithName(name as ExpressionSyntax) As MemberAccessExpressionSyntax
             return Update(Me.Kind, Me.Expression, Me.OperatorToken, name)
         End Function
 
@@ -21938,7 +21968,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' <param name="name">
         ''' The value for the Name property.
         ''' </param>
-        Public Function Update(kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As SyntaxToken, name As SimpleNameSyntax) As MemberAccessExpressionSyntax
+        Public Function Update(kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As SyntaxToken, name As ExpressionSyntax) As MemberAccessExpressionSyntax
             If kind <> Me.Kind OrElse expression IsNot Me.Expression OrElse operatorToken <> Me.OperatorToken OrElse name IsNot Me.Name Then
                 Dim newNode = SyntaxFactory.MemberAccessExpression(kind, expression, operatorToken, name)
                 Dim annotations = Me.GetAnnotations()
@@ -36451,6 +36481,137 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Function Update(hashToken As SyntaxToken) As BadDirectiveTriviaSyntax
             If hashToken <> Me.HashToken Then
                 Dim newNode = SyntaxFactory.BadDirectiveTrivia(hashToken)
+                Dim annotations = Me.GetAnnotations()
+                If annotations IsNot Nothing AndAlso annotations.Length > 0
+                    return newNode.WithAnnotations(annotations)
+                End If
+                Return newNode
+            End If
+            Return Me
+        End Function
+
+    End Class
+
+    Partial Public NotInheritable Class FlagsEnumOperationExpressionSyntax
+        Inherits ExpressionSyntax
+
+        Friend _enumFlags as ExpressionSyntax
+        Friend _enumFlag as ExpressionSyntax
+
+        Friend Sub New(ByVal green As GreenNode, ByVal parent as SyntaxNode, ByVal startLocation As Integer)
+            MyBase.New(green, parent, startLocation)
+            Debug.Assert(green IsNot Nothing)
+            Debug.Assert(startLocation >= 0)
+        End Sub
+
+        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), enumFlags As ExpressionSyntax, operatorToken As InternalSyntax.FlagsEnumOperatorSyntax, enumFlag As ExpressionSyntax)
+            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FlagsEnumOperationExpressionSyntax(kind, errors, annotations, if(enumFlags IsNot Nothing , DirectCast(enumFlags.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ExpressionSyntax), Nothing) , operatorToken, if(enumFlag IsNot Nothing , DirectCast(enumFlag.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ExpressionSyntax), Nothing) ), Nothing, 0)
+        End Sub
+
+        ''' <summary>
+        ''' The expression on the left-hand-side of the "." or "!" token.
+        ''' </summary>
+        ''' <remarks>
+        ''' This child is optional. If it is not present, then Nothing is returned.
+        ''' </remarks>
+        Public  ReadOnly Property EnumFlags As ExpressionSyntax
+            Get
+                Return GetRedAtZero(_enumFlags)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns a copy of this with the EnumFlags property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Shadows Function WithEnumFlags(enumFlags as ExpressionSyntax) As FlagsEnumOperationExpressionSyntax
+            return Update(enumFlags, Me.OperatorToken, Me.EnumFlag)
+        End Function
+
+        Public  ReadOnly Property OperatorToken As SyntaxToken
+            Get
+                return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FlagsEnumOperationExpressionSyntax)._operatorToken, Me.GetChildPosition(1), Me.GetChildIndex(1))
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns a copy of this with the OperatorToken property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Shadows Function WithOperatorToken(operatorToken as SyntaxToken) As FlagsEnumOperationExpressionSyntax
+            return Update(Me.EnumFlags, operatorToken, Me.EnumFlag)
+        End Function
+
+        ''' <summary>
+        ''' The identifier after the "!", "!+", "!-" or "!/" token.
+        ''' </summary>
+        ''' <remarks>
+        ''' This child is optional. If it is not present, then Nothing is returned.
+        ''' </remarks>
+        Public  ReadOnly Property EnumFlag As ExpressionSyntax
+            Get
+                Return GetRed(_enumFlag, 2)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns a copy of this with the EnumFlag property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Shadows Function WithEnumFlag(enumFlag as ExpressionSyntax) As FlagsEnumOperationExpressionSyntax
+            return Update(Me.EnumFlags, Me.OperatorToken, enumFlag)
+        End Function
+
+        Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
+            Select case i
+                Case 0
+                    Return Me._enumFlags
+                Case 2
+                    Return Me._enumFlag
+                Case Else
+                     Return Nothing
+            End Select
+        End Function
+
+        Friend Overrides Function GetNodeSlot(i as Integer) as SyntaxNode
+            Select case i
+                Case 0
+                    Return Me.EnumFlags
+                Case 2
+                    Return Me.EnumFlag
+                Case Else
+                     Return Nothing
+            End Select
+        End Function
+
+        Public Overrides Function Accept(Of TResult)(ByVal visitor As VisualBasicSyntaxVisitor(Of TResult)) As TResult
+            Return visitor.VisitFlagsEnumOperationExpression(Me)
+        End Function
+
+        Public Overrides Sub Accept(ByVal visitor As VisualBasicSyntaxVisitor)
+            visitor.VisitFlagsEnumOperationExpression(Me)
+        End Sub
+
+
+        ''' <summary>
+        ''' Returns a copy of this with the specified changes. Returns this instance if
+        ''' there are no actual changes.
+        ''' </summary>
+        ''' <param name="enumFlags">
+        ''' The value for the EnumFlags property.
+        ''' </param>
+        ''' <param name="operatorToken">
+        ''' The value for the OperatorToken property.
+        ''' </param>
+        ''' <param name="enumFlag">
+        ''' The value for the EnumFlag property.
+        ''' </param>
+        Public Function Update(enumFlags As ExpressionSyntax, operatorToken As SyntaxToken, enumFlag As ExpressionSyntax) As FlagsEnumOperationExpressionSyntax
+            If enumFlags IsNot Me.EnumFlags OrElse operatorToken <> Me.OperatorToken OrElse enumFlag IsNot Me.EnumFlag Then
+                Dim newNode = SyntaxFactory.FlagsEnumOperationExpression(enumFlags, operatorToken, enumFlag)
                 Dim annotations = Me.GetAnnotations()
                 If annotations IsNot Nothing AndAlso annotations.Length > 0
                     return newNode.WithAnnotations(annotations)

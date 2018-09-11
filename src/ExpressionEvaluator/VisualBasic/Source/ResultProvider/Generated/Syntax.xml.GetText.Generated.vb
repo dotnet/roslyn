@@ -517,6 +517,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 "
         Case SyntaxKind.DocumentationCommentExteriorTrivia
             Return "'''"
+        Case SyntaxKind.FlagsEnumIsAnyToken
+            Return "!/"
+        Case SyntaxKind.FlagsEnumSetToken
+            Return "!+"
+        Case SyntaxKind.FlagsEnumClearToken
+            Return "!-"
+        Case SyntaxKind.FlagsEnumIsSetToken
+            Return "!"
             Case Else
                  Return String.Empty
             End Select

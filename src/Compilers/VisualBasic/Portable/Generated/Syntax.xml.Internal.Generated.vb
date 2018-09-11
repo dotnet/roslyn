@@ -21218,9 +21218,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend ReadOnly _expression as ExpressionSyntax
         Friend ReadOnly _operatorToken as PunctuationSyntax
-        Friend ReadOnly _name as SimpleNameSyntax
+        Friend ReadOnly _name as ExpressionSyntax
 
-        Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, name As SimpleNameSyntax)
+        Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, name As ExpressionSyntax)
             MyBase.New(kind)
             MyBase._slotCount = 3
 
@@ -21235,7 +21235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, name As SimpleNameSyntax, context As ISyntaxFactoryContext)
+        Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, name As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
             MyBase._slotCount = 3
             Me.SetFactoryContext(context)
@@ -21251,7 +21251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), expression As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, name As SimpleNameSyntax)
+        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), expression As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, name As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
             MyBase._slotCount = 3
 
@@ -21279,7 +21279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
              AdjustFlagsAndWidth(_operatorToken)
              Me._operatorToken = _operatorToken
           End If
-          Dim _name = DirectCast(reader.ReadValue(), SimpleNameSyntax)
+          Dim _name = DirectCast(reader.ReadValue(), ExpressionSyntax)
           If _name isnot Nothing 
              AdjustFlagsAndWidth(_name)
              Me._name = _name
@@ -21327,7 +21327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The identifier after the "." or "!" token.
         ''' </summary>
-        Friend  ReadOnly Property Name As InternalSyntax.SimpleNameSyntax
+        Friend  ReadOnly Property Name As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._name
             End Get
@@ -36601,6 +36601,206 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     End Class
 
+    Partial Friend NotInheritable Class FlagsEnumOperationExpressionSyntax
+        Inherits ExpressionSyntax
+
+        Friend ReadOnly _enumFlags as ExpressionSyntax
+        Friend ReadOnly _operatorToken as FlagsEnumOperatorSyntax
+        Friend ReadOnly _enumFlag as ExpressionSyntax
+
+        Friend Sub New(ByVal kind As SyntaxKind, enumFlags As ExpressionSyntax, operatorToken As InternalSyntax.FlagsEnumOperatorSyntax, enumFlag As ExpressionSyntax)
+            MyBase.New(kind)
+            MyBase._slotCount = 3
+
+            If enumFlags IsNot Nothing Then
+                AdjustFlagsAndWidth(enumFlags)
+                Me._enumFlags = enumFlags
+            End If
+            AdjustFlagsAndWidth(operatorToken)
+            Me._operatorToken = operatorToken
+            If enumFlag IsNot Nothing Then
+                AdjustFlagsAndWidth(enumFlag)
+                Me._enumFlag = enumFlag
+            End If
+
+        End Sub
+
+        Friend Sub New(ByVal kind As SyntaxKind, enumFlags As ExpressionSyntax, operatorToken As InternalSyntax.FlagsEnumOperatorSyntax, enumFlag As ExpressionSyntax, context As ISyntaxFactoryContext)
+            MyBase.New(kind)
+            MyBase._slotCount = 3
+            Me.SetFactoryContext(context)
+
+            If enumFlags IsNot Nothing Then
+                AdjustFlagsAndWidth(enumFlags)
+                Me._enumFlags = enumFlags
+            End If
+            AdjustFlagsAndWidth(operatorToken)
+            Me._operatorToken = operatorToken
+            If enumFlag IsNot Nothing Then
+                AdjustFlagsAndWidth(enumFlag)
+                Me._enumFlag = enumFlag
+            End If
+
+        End Sub
+
+        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), enumFlags As ExpressionSyntax, operatorToken As InternalSyntax.FlagsEnumOperatorSyntax, enumFlag As ExpressionSyntax)
+            MyBase.New(kind, errors, annotations)
+            MyBase._slotCount = 3
+
+            If enumFlags IsNot Nothing Then
+                AdjustFlagsAndWidth(enumFlags)
+                Me._enumFlags = enumFlags
+            End If
+            AdjustFlagsAndWidth(operatorToken)
+            Me._operatorToken = operatorToken
+            If enumFlag IsNot Nothing Then
+                AdjustFlagsAndWidth(enumFlag)
+                Me._enumFlag = enumFlag
+            End If
+
+        End Sub
+
+        Friend Sub New(reader as ObjectReader)
+          MyBase.New(reader)
+            MyBase._slotCount = 3
+          Dim _enumFlags = DirectCast(reader.ReadValue(), ExpressionSyntax)
+          If _enumFlags isnot Nothing 
+             AdjustFlagsAndWidth(_enumFlags)
+             Me._enumFlags = _enumFlags
+          End If
+          Dim _operatorToken = DirectCast(reader.ReadValue(), FlagsEnumOperatorSyntax)
+          If _operatorToken isnot Nothing 
+             AdjustFlagsAndWidth(_operatorToken)
+             Me._operatorToken = _operatorToken
+          End If
+          Dim _enumFlag = DirectCast(reader.ReadValue(), ExpressionSyntax)
+          If _enumFlag isnot Nothing 
+             AdjustFlagsAndWidth(_enumFlag)
+             Me._enumFlag = _enumFlag
+          End If
+        End Sub
+        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New FlagsEnumOperationExpressionSyntax(o)
+
+
+        Friend Overrides Sub WriteTo(writer as ObjectWriter)
+          MyBase.WriteTo(writer)
+          writer.WriteValue(Me._enumFlags)
+          writer.WriteValue(Me._operatorToken)
+          writer.WriteValue(Me._enumFlag)
+        End Sub
+
+        Shared Sub New()
+          ObjectBinder.RegisterTypeReader(GetType(FlagsEnumOperationExpressionSyntax), Function(r) New FlagsEnumOperationExpressionSyntax(r))
+        End Sub
+
+        Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
+            Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.FlagsEnumOperationExpressionSyntax(Me, parent, startLocation)
+        End Function
+
+        ''' <summary>
+        ''' The expression on the left-hand-side of the "." or "!" token.
+        ''' </summary>
+        ''' <remarks>
+        ''' This child is optional. If it is not present, then Nothing is returned.
+        ''' </remarks>
+        Friend  ReadOnly Property EnumFlags As InternalSyntax.ExpressionSyntax
+            Get
+                Return Me._enumFlags
+            End Get
+        End Property
+
+        Friend  ReadOnly Property OperatorToken As InternalSyntax.FlagsEnumOperatorSyntax
+            Get
+                Return Me._operatorToken
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' The identifier after the "!", "!+", "!-" or "!/" token.
+        ''' </summary>
+        ''' <remarks>
+        ''' This child is optional. If it is not present, then Nothing is returned.
+        ''' </remarks>
+        Friend  ReadOnly Property EnumFlag As InternalSyntax.ExpressionSyntax
+            Get
+                Return Me._enumFlag
+            End Get
+        End Property
+
+        Friend Overrides Function GetSlot(i as Integer) as GreenNode
+            Select case i
+                Case 0
+                    Return Me._enumFlags
+                Case 1
+                    Return Me._operatorToken
+                Case 2
+                    Return Me._enumFlag
+                Case Else
+                     Debug.Assert(false, "child index out of range")
+                     Return Nothing
+            End Select
+        End Function
+
+
+        Friend Overrides Function SetDiagnostics(ByVal newErrors As DiagnosticInfo()) As GreenNode
+            Return new FlagsEnumOperationExpressionSyntax(Me.Kind, newErrors, GetAnnotations, _enumFlags, _operatorToken, _enumFlag)
+        End Function
+
+        Friend Overrides Function SetAnnotations(ByVal annotations As SyntaxAnnotation()) As GreenNode
+            Return new FlagsEnumOperationExpressionSyntax(Me.Kind, GetDiagnostics, annotations, _enumFlags, _operatorToken, _enumFlag)
+        End Function
+
+        Public Overrides Function Accept(ByVal visitor As VisualBasicSyntaxVisitor) As VisualBasicSyntaxNode
+            Return visitor.VisitFlagsEnumOperationExpression(Me)
+        End Function
+
+    End Class
+
+    Friend NotInheritable Class FlagsEnumOperatorSyntax
+        Inherits SyntaxToken
+
+
+        Friend Sub New(ByVal kind As SyntaxKind, text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode)
+            MyBase.New(kind, text, leadingTrivia, trailingTrivia)
+        End Sub
+
+        Friend Sub New(ByVal kind As SyntaxKind, text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode, context As ISyntaxFactoryContext)
+            MyBase.New(kind, text, leadingTrivia, trailingTrivia)
+            Me.SetFactoryContext(context)
+        End Sub
+
+        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode)
+            MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia)
+        End Sub
+
+        Friend Sub New(reader as ObjectReader)
+          MyBase.New(reader)
+        End Sub
+        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New FlagsEnumOperatorSyntax(o)
+
+
+        Shared Sub New()
+          ObjectBinder.RegisterTypeReader(GetType(FlagsEnumOperatorSyntax), Function(r) New FlagsEnumOperatorSyntax(r))
+        End Sub
+
+        Public Overrides Function WithLeadingTrivia(ByVal trivia As GreenNode) As GreenNode
+            Return new FlagsEnumOperatorSyntax(Me.Kind, GetDiagnostics, GetAnnotations, text, trivia, GetTrailingTrivia)
+        End Function
+
+        Public Overrides Function WithTrailingTrivia(ByVal trivia As GreenNode) As GreenNode
+            Return new FlagsEnumOperatorSyntax(Me.Kind, GetDiagnostics, GetAnnotations, text, GetLeadingTrivia, trivia)
+        End Function
+
+        Friend Overrides Function SetDiagnostics(ByVal newErrors As DiagnosticInfo()) As GreenNode
+            Return new FlagsEnumOperatorSyntax(Me.Kind, newErrors, GetAnnotations, text, GetLeadingTrivia, GetTrailingTrivia)
+        End Function
+
+        Friend Overrides Function SetAnnotations(ByVal annotations As SyntaxAnnotation()) As GreenNode
+            Return new FlagsEnumOperatorSyntax(Me.Kind, GetDiagnostics, annotations, text, GetLeadingTrivia, GetTrailingTrivia)
+        End Function
+
+    End Class
+
     Friend MustInherit Class VisualBasicSyntaxVisitor
         Public Overridable Function Visit(ByVal node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
             If node IsNot Nothing
@@ -37732,6 +37932,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Public Overridable Function VisitBadDirectiveTrivia(ByVal node As BadDirectiveTriviaSyntax) As VisualBasicSyntaxNode
             Debug.Assert(node IsNot Nothing)
             Return VisitDirectiveTrivia(node)
+        End Function
+        Public Overridable Function VisitFlagsEnumOperationExpression(ByVal node As FlagsEnumOperationExpressionSyntax) As VisualBasicSyntaxNode
+            Debug.Assert(node IsNot Nothing)
+            Return VisitExpression(node)
         End Function
     End Class
 
@@ -40176,7 +40380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If node._expression IsNot newExpression Then anyChanges = True
             Dim newOperatorToken = DirectCast(Visit(node.OperatorToken), PunctuationSyntax)
             If node._operatorToken IsNot newOperatorToken Then anyChanges = True
-            Dim newName = DirectCast(Visit(node._name), SimpleNameSyntax)
+            Dim newName = DirectCast(Visit(node._name), ExpressionSyntax)
             If node._name IsNot newName Then anyChanges = True
 
             If anyChanges Then
@@ -41928,6 +42132,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Function
 
+        Public Overrides Function VisitFlagsEnumOperationExpression(ByVal node As FlagsEnumOperationExpressionSyntax) As VisualBasicSyntaxNode
+            Dim anyChanges As Boolean = False
+
+            Dim newEnumFlags = DirectCast(Visit(node._enumFlags), ExpressionSyntax)
+            If node._enumFlags IsNot newEnumFlags Then anyChanges = True
+            Dim newOperatorToken = DirectCast(Visit(node.OperatorToken), FlagsEnumOperatorSyntax)
+            If node._operatorToken IsNot newOperatorToken Then anyChanges = True
+            Dim newEnumFlag = DirectCast(Visit(node._enumFlag), ExpressionSyntax)
+            If node._enumFlag IsNot newEnumFlag Then anyChanges = True
+
+            If anyChanges Then
+                Return New FlagsEnumOperationExpressionSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, newEnumFlags, newOperatorToken, newEnumFlag)
+            Else
+                Return node
+            End If
+        End Function
+
     End Class
 
 End Namespace
@@ -42233,7 +42454,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
               GetType(EnableWarningDirectiveTriviaSyntax),
               GetType(DisableWarningDirectiveTriviaSyntax),
               GetType(ReferenceDirectiveTriviaSyntax),
-              GetType(BadDirectiveTriviaSyntax)
+              GetType(BadDirectiveTriviaSyntax),
+              GetType(FlagsEnumOperationExpressionSyntax),
+              GetType(FlagsEnumOperatorSyntax)
             }
         End Function
 
@@ -50112,7 +50335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="name">
         ''' The identifier after the "." or "!" token.
         ''' </param>
-        Friend Shared Function SimpleMemberAccessExpression(expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As SimpleNameSyntax) As MemberAccessExpressionSyntax
+        Friend Shared Function SimpleMemberAccessExpression(expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As ExpressionSyntax) As MemberAccessExpressionSyntax
             Debug.Assert(operatorToken IsNot Nothing AndAlso operatorToken.Kind = SyntaxKind.DotToken)
             Debug.Assert(name IsNot Nothing)
 
@@ -50144,7 +50367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="name">
         ''' The identifier after the "." or "!" token.
         ''' </param>
-        Friend Shared Function DictionaryAccessExpression(expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As SimpleNameSyntax) As MemberAccessExpressionSyntax
+        Friend Shared Function DictionaryAccessExpression(expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As ExpressionSyntax) As MemberAccessExpressionSyntax
             Debug.Assert(operatorToken IsNot Nothing AndAlso operatorToken.Kind = SyntaxKind.ExclamationToken)
             Debug.Assert(name IsNot Nothing)
 
@@ -50181,7 +50404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="name">
         ''' The identifier after the "." or "!" token.
         ''' </param>
-        Friend Shared Function MemberAccessExpression(kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As SimpleNameSyntax) As MemberAccessExpressionSyntax
+        Friend Shared Function MemberAccessExpression(kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As ExpressionSyntax) As MemberAccessExpressionSyntax
             Debug.Assert(SyntaxFacts.IsMemberAccessExpression(kind))
             Debug.Assert(operatorToken IsNot Nothing AndAlso SyntaxFacts.IsMemberAccessExpressionOperatorToken(operatorToken.Kind))
             Debug.Assert(name IsNot Nothing)
@@ -54298,6 +54521,81 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Shared Function BadDirectiveTrivia(hashToken As PunctuationSyntax) As BadDirectiveTriviaSyntax
             Debug.Assert(hashToken IsNot Nothing AndAlso hashToken.Kind = SyntaxKind.HashToken)
             Return New BadDirectiveTriviaSyntax(SyntaxKind.BadDirectiveTrivia, hashToken)
+        End Function
+
+
+        ''' <param name="enumFlags">
+        ''' The expression on the left-hand-side of the "." or "!" token.
+        ''' </param>
+        ''' <param name="enumFlag">
+        ''' The identifier after the "!", "!+", "!-" or "!/" token.
+        ''' </param>
+        Friend Shared Function FlagsEnumOperationExpression(enumFlags As ExpressionSyntax, operatorToken As FlagsEnumOperatorSyntax, enumFlag As ExpressionSyntax) As FlagsEnumOperationExpressionSyntax
+            Debug.Assert(operatorToken IsNot Nothing AndAlso SyntaxFacts.IsFlagsEnumOperationExpressionOperatorToken(operatorToken.Kind))
+
+            Dim hash As Integer
+            Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.FlagsEnumOperationExpression, enumFlags, operatorToken, enumFlag, hash)
+            If cached IsNot Nothing Then
+                Return DirectCast(cached, FlagsEnumOperationExpressionSyntax)
+            End If
+
+            Dim result = New FlagsEnumOperationExpressionSyntax(SyntaxKind.FlagsEnumOperationExpression, enumFlags, operatorToken, enumFlag)
+            If hash >= 0 Then
+                SyntaxNodeCache.AddNode(result, hash)
+            End If
+
+            Return result
+        End Function
+
+
+        ''' <param name="text">
+        ''' The actual text of this token.
+        ''' </param>
+        Friend Shared Function FlagsEnumIsAnyToken(text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As FlagsEnumOperatorSyntax
+            Debug.Assert(text IsNot Nothing)
+            Return New FlagsEnumOperatorSyntax(SyntaxKind.FlagsEnumIsAnyToken, text, leadingTrivia, trailingTrivia)
+        End Function
+
+
+        ''' <param name="text">
+        ''' The actual text of this token.
+        ''' </param>
+        Friend Shared Function FlagsEnumSetToken(text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As FlagsEnumOperatorSyntax
+            Debug.Assert(text IsNot Nothing)
+            Return New FlagsEnumOperatorSyntax(SyntaxKind.FlagsEnumSetToken, text, leadingTrivia, trailingTrivia)
+        End Function
+
+
+        ''' <param name="text">
+        ''' The actual text of this token.
+        ''' </param>
+        Friend Shared Function FlagsEnumClearToken(text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As FlagsEnumOperatorSyntax
+            Debug.Assert(text IsNot Nothing)
+            Return New FlagsEnumOperatorSyntax(SyntaxKind.FlagsEnumClearToken, text, leadingTrivia, trailingTrivia)
+        End Function
+
+
+        ''' <param name="text">
+        ''' The actual text of this token.
+        ''' </param>
+        Friend Shared Function FlagsEnumIsSetToken(text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As FlagsEnumOperatorSyntax
+            Debug.Assert(text IsNot Nothing)
+            Return New FlagsEnumOperatorSyntax(SyntaxKind.FlagsEnumIsSetToken, text, leadingTrivia, trailingTrivia)
+        End Function
+
+
+        ''' <param name="kind">
+        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' FlagsEnumOperatorSyntax. One of FlagsEnumIsAnyToken, FlagsEnumSetToken,
+        ''' FlagsEnumClearToken, FlagsEnumIsSetToken.
+        ''' </param>
+        ''' <param name="text">
+        ''' The actual text of this token.
+        ''' </param>
+        Friend Shared Function FlagsEnumOperator(kind As SyntaxKind, text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As FlagsEnumOperatorSyntax
+            Debug.Assert(text IsNot Nothing)
+            Debug.Assert(SyntaxFacts.IsFlagsEnumOperator(kind))
+            Return New FlagsEnumOperatorSyntax(kind, text, leadingTrivia, trailingTrivia)
         End Function
 
     End Class
@@ -62188,7 +62486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="name">
         ''' The identifier after the "." or "!" token.
         ''' </param>
-        Friend Function SimpleMemberAccessExpression(expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As SimpleNameSyntax) As MemberAccessExpressionSyntax
+        Friend Function SimpleMemberAccessExpression(expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As ExpressionSyntax) As MemberAccessExpressionSyntax
             Debug.Assert(operatorToken IsNot Nothing AndAlso operatorToken.Kind = SyntaxKind.DotToken)
             Debug.Assert(name IsNot Nothing)
 
@@ -62220,7 +62518,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="name">
         ''' The identifier after the "." or "!" token.
         ''' </param>
-        Friend Function DictionaryAccessExpression(expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As SimpleNameSyntax) As MemberAccessExpressionSyntax
+        Friend Function DictionaryAccessExpression(expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As ExpressionSyntax) As MemberAccessExpressionSyntax
             Debug.Assert(operatorToken IsNot Nothing AndAlso operatorToken.Kind = SyntaxKind.ExclamationToken)
             Debug.Assert(name IsNot Nothing)
 
@@ -62257,7 +62555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="name">
         ''' The identifier after the "." or "!" token.
         ''' </param>
-        Friend Function MemberAccessExpression(kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As SimpleNameSyntax) As MemberAccessExpressionSyntax
+        Friend Function MemberAccessExpression(kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As PunctuationSyntax, name As ExpressionSyntax) As MemberAccessExpressionSyntax
             Debug.Assert(SyntaxFacts.IsMemberAccessExpression(kind))
             Debug.Assert(operatorToken IsNot Nothing AndAlso SyntaxFacts.IsMemberAccessExpressionOperatorToken(operatorToken.Kind))
             Debug.Assert(name IsNot Nothing)
@@ -66374,6 +66672,81 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Function BadDirectiveTrivia(hashToken As PunctuationSyntax) As BadDirectiveTriviaSyntax
             Debug.Assert(hashToken IsNot Nothing AndAlso hashToken.Kind = SyntaxKind.HashToken)
             Return New BadDirectiveTriviaSyntax(SyntaxKind.BadDirectiveTrivia, hashToken, _factoryContext)
+        End Function
+
+
+        ''' <param name="enumFlags">
+        ''' The expression on the left-hand-side of the "." or "!" token.
+        ''' </param>
+        ''' <param name="enumFlag">
+        ''' The identifier after the "!", "!+", "!-" or "!/" token.
+        ''' </param>
+        Friend Function FlagsEnumOperationExpression(enumFlags As ExpressionSyntax, operatorToken As FlagsEnumOperatorSyntax, enumFlag As ExpressionSyntax) As FlagsEnumOperationExpressionSyntax
+            Debug.Assert(operatorToken IsNot Nothing AndAlso SyntaxFacts.IsFlagsEnumOperationExpressionOperatorToken(operatorToken.Kind))
+
+            Dim hash As Integer
+            Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(SyntaxKind.FlagsEnumOperationExpression, enumFlags, operatorToken, enumFlag, _factoryContext, hash)
+            If cached IsNot Nothing Then
+                Return DirectCast(cached, FlagsEnumOperationExpressionSyntax)
+            End If
+
+            Dim result = New FlagsEnumOperationExpressionSyntax(SyntaxKind.FlagsEnumOperationExpression, enumFlags, operatorToken, enumFlag, _factoryContext)
+            If hash >= 0 Then
+                SyntaxNodeCache.AddNode(result, hash)
+            End If
+
+            Return result
+        End Function
+
+
+        ''' <param name="text">
+        ''' The actual text of this token.
+        ''' </param>
+        Friend Function FlagsEnumIsAnyToken(text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As FlagsEnumOperatorSyntax
+            Debug.Assert(text IsNot Nothing)
+            Return New FlagsEnumOperatorSyntax(SyntaxKind.FlagsEnumIsAnyToken, text, leadingTrivia, trailingTrivia, _factoryContext)
+        End Function
+
+
+        ''' <param name="text">
+        ''' The actual text of this token.
+        ''' </param>
+        Friend Function FlagsEnumSetToken(text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As FlagsEnumOperatorSyntax
+            Debug.Assert(text IsNot Nothing)
+            Return New FlagsEnumOperatorSyntax(SyntaxKind.FlagsEnumSetToken, text, leadingTrivia, trailingTrivia, _factoryContext)
+        End Function
+
+
+        ''' <param name="text">
+        ''' The actual text of this token.
+        ''' </param>
+        Friend Function FlagsEnumClearToken(text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As FlagsEnumOperatorSyntax
+            Debug.Assert(text IsNot Nothing)
+            Return New FlagsEnumOperatorSyntax(SyntaxKind.FlagsEnumClearToken, text, leadingTrivia, trailingTrivia, _factoryContext)
+        End Function
+
+
+        ''' <param name="text">
+        ''' The actual text of this token.
+        ''' </param>
+        Friend Function FlagsEnumIsSetToken(text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As FlagsEnumOperatorSyntax
+            Debug.Assert(text IsNot Nothing)
+            Return New FlagsEnumOperatorSyntax(SyntaxKind.FlagsEnumIsSetToken, text, leadingTrivia, trailingTrivia, _factoryContext)
+        End Function
+
+
+        ''' <param name="kind">
+        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' FlagsEnumOperatorSyntax. One of FlagsEnumIsAnyToken, FlagsEnumSetToken,
+        ''' FlagsEnumClearToken, FlagsEnumIsSetToken.
+        ''' </param>
+        ''' <param name="text">
+        ''' The actual text of this token.
+        ''' </param>
+        Friend Function FlagsEnumOperator(kind As SyntaxKind, text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As FlagsEnumOperatorSyntax
+            Debug.Assert(text IsNot Nothing)
+            Debug.Assert(SyntaxFacts.IsFlagsEnumOperator(kind))
+            Return New FlagsEnumOperatorSyntax(kind, text, leadingTrivia, trailingTrivia, _factoryContext)
         End Function
 
     End Class

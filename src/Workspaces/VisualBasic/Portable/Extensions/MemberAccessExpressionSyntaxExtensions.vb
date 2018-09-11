@@ -24,8 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If IsFirstStatementInConstructor(memberAccess) Then
                     If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) OrElse
                        memberAccess.Expression.IsKind(SyntaxKind.MyClassExpression) Then
-                        If memberAccess.Name.IsKind(SyntaxKind.IdentifierName) Then
-                            Return memberAccess.Name.Identifier.HasMatchingText(SyntaxKind.NewKeyword)
+                        Dim simpleName = TryCast(memberAccess.Name, SimpleNameSyntax)
+                        If simpleName IsNot Nothing Then
+
+                            If simpleName.IsKind(SyntaxKind.IdentifierName) Then
+                                Return simpleName.Identifier.HasMatchingText(SyntaxKind.NewKeyword)
+                            End If
                         End If
                     End If
                 End If
@@ -39,8 +43,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If memberAccess IsNot Nothing Then
                 If IsFirstStatementInConstructor(memberAccess) Then
                     If memberAccess.Expression.IsKind(SyntaxKind.MyBaseExpression) Then
-                        If memberAccess.Name.IsKind(SyntaxKind.IdentifierName) Then
-                            Return memberAccess.Name.Identifier.HasMatchingText(SyntaxKind.NewKeyword)
+                        Dim simpleName = TryCast(memberAccess.Name, SimpleNameSyntax)
+                        If simpleName IsNot Nothing Then
+
+                            If simpleName.IsKind(SyntaxKind.IdentifierName) Then
+
+                                Return simpleName.Identifier.HasMatchingText(SyntaxKind.NewKeyword)
+                            End If
                         End If
                     End If
                 End If

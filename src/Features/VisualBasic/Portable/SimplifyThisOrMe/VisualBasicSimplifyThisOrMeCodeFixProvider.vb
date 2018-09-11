@@ -33,9 +33,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             End Sub
 
             Public Overrides Function VisitMemberAccessExpression(node As MemberAccessExpressionSyntax) As SyntaxNode
-                Return If(memberAccessNodes.Contains(node),
-                    node.GetNameWithTriviaMoved(semanticModel),
-                    MyBase.VisitMemberAccessExpression(node))
+                If node.OperatorToken.IsKind(SyntaxKind.ExclamationToken) Then
+                    Dim n = TryCast(node.Name, SimpleNameSyntax)
+                    If n Is Nothing Then Return node
+                End If
+                If memberAccessNodes.Contains(node) Then
+                    Dim newNode = node.GetNameWithTriviaMoved(semanticModel)
+                    If newNode Is Nothing Then
+                        Return node
+                    End If
+                    Return newNode
+                End If
+                Return MyBase.VisitMemberAccessExpression(node)
             End Function
         End Class
     End Class
