@@ -63,7 +63,7 @@ End Class
             await new CSharpReplaceThisWithBaseTest(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics)
             {
                 TestCode = ReplaceThisWithBaseTestCode,
-                VerifyExclusions = false,
+                Exclusions = AnalysisExclusions.None,
             }.RunAsync();
         }
 
@@ -108,7 +108,7 @@ End Class
             await new VisualBasicReplaceThisWithBaseTest(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics)
             {
                 TestCode = ReplaceMyClassWithMyBaseTestCode,
-                VerifyExclusions = false,
+                Exclusions = AnalysisExclusions.None,
             }.RunAsync();
         }
 
