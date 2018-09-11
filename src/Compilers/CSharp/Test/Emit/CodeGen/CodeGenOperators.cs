@@ -419,8 +419,8 @@ class C
     static C GetC() { Console.Write(""GetC""); return c; }
     byte f;
 
-    public static void Main() 
-    { 
+    public static void Main()
+    {
         C.c = new C();
         D d123 = M123;
         D d456 = M456;
@@ -844,7 +844,7 @@ namespace TestAsOperator
         {
             string myStr = ""goo"";
             object o = myStr;
-            object b = o as string;            
+            object b = o as string;
 
             TestType tt = null;
             o = tt;
@@ -853,7 +853,7 @@ namespace TestAsOperator
             tt = new TestType();
             o = tt;
             b = o as AnotherType;
-        
+
             b = o as MyInter;
 
             MyInter mi = new TestType();
@@ -862,13 +862,13 @@ namespace TestAsOperator
 
             MyBase mb = new MyBase();
             o = mb;
-            b = o as MyDerived;      
+            b = o as MyDerived;
 
             MyDerived md = new MyDerived();
             o = md;
             b = o as MyBase;
 
-            b = null as MyBase;            
+            b = null as MyBase;
         }
     }
 }
@@ -1383,6 +1383,13 @@ static class Program
     static void Goo<T>(T x1, T x2)
     {
         Console.WriteLine(x1 ?? x2);
+    }
+
+    static void Goo2<T1, T2>(T1 t1, T2 t2, dynamic d) where T1 : T2
+    {
+        // Verifying no type errors
+        T2 t = t1 ?? t2;
+        dynamic d2 = t1 ?? d;
     }
 }
 ";
@@ -3504,7 +3511,7 @@ public class A
 
             // Can't actually see an unchecked cast here since only constant values are emitted.
             comp.VerifyIL("A.Main", @"
-{ 
+{
   // Code size       13 (0xd)
   .maxstack  2
   .locals init (A.E V_0) //e
@@ -5361,7 +5368,7 @@ struct S1
     public static implicit operator bool (S1 x)
     {
         return true;
-    } 
+    }
 }
 ";
 
@@ -5551,7 +5558,7 @@ class Program
         System.Console.WriteLine(CoalesceDifferentTupleNames(null));
     }
 }";
-            var expectedOutput = 
+            var expectedOutput =
  @"(True, 533d4d3b-5013-461e-ae9e-b98eb593d761, value)
 (False, 00000000-0000-0000-0000-000000000000, )";
             var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
@@ -5729,7 +5736,7 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
-            
+
             comp.VerifyEmitDiagnostics(
                 // (6,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //         return x ?? 0;

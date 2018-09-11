@@ -8714,6 +8714,7 @@ tryAgain:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
                 case SyntaxKind.CoalesceExpression:
                     return true;
                 default:

@@ -2858,7 +2858,7 @@ oneMoreTime:
             SpillEvalStack();
             int valueCaptureId = GetNextCaptureId(valueFrame.RegionBuilderOpt);
             AddStatement(new FlowCapture(valueCaptureId, locationCapture.Syntax, locationCapture));
-            IOperation valueCapture = GetCaptureReference(valueCaptureId, OperationCloner.CloneOperation(locationCapture));
+            IOperation valueCapture = GetCaptureReference(valueCaptureId, locationCapture);
 
             var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
             var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -2891,7 +2891,7 @@ oneMoreTime:
 
             IOperation whenNullValue = Visit(operation.Value);
             IOperation whenNullAssignment = new SimpleAssignmentExpression(OperationCloner.CloneOperation(locationCapture), isRef: false, whenNullValue, semanticModel: null,
-                                                                       operation.Syntax, operation.Type, constantValue: operation.ConstantValue, isImplicit: true);
+                                                                           operation.Syntax, operation.Type, constantValue: operation.ConstantValue, isImplicit: true);
 
             if (isStatement)
             {

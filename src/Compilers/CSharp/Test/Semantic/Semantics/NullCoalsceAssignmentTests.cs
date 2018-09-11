@@ -131,5 +131,35 @@ class D : C {}";
 
             }
         }
+
+        [Fact]
+        public void CoalesceAssignment_NotConvertedToNonNullable()
+        {
+            var source = @"
+class C
+{
+    void M(int? a, int b)
+    {
+        a ??= b;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var syntaxRoot = syntaxTree.GetRoot();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var coalesceAssignment = syntaxRoot.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var nullable = comp.GetSpecialType(SpecialType.System_Nullable_T);
+            var int32 = comp.GetSpecialType(SpecialType.System_Int32);
+
+            var coalesceType = semanticModel.GetTypeInfo(coalesceAssignment).Type;
+            var genericParameter = ((INamedTypeSymbol)coalesceType).TypeArguments.Single();
+
+            Assert.Equal(nullable, coalesceType.OriginalDefinition);
+            Assert.Equal(int32, genericParameter);
+        }
     }
 }
