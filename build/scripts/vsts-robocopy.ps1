@@ -103,3 +103,5 @@ else {
 if ($LASTEXITCODE -ge 8) {
     exit $LASTEXITCODE
 }
+
+exit 0
