@@ -303,7 +303,11 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return null;
             }
 
-            var containingType = (INamedTypeSymbol)symbolInfo.Symbol.ContainingSymbol;
+            var containingType = symbolInfo.Symbol.ContainingType;
+            if (containingType == null)
+            {
+                return null;
+            }
 
             if (containingType.SpecialType != SpecialType.System_String)
             {
