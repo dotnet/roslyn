@@ -510,17 +510,36 @@ Public Class ScannerTests
         tk = ScanOnce(" _'", startStatement:=True)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _'", tk.ToFullString())
+        Assert.True(tk.LeadingTrivia(0).Kind = SyntaxKind.WhitespaceTrivia)
+        Assert.True(tk.LeadingTrivia(1).Kind = SyntaxKind.LineContinuationTrivia)
+        Assert.True(tk.LeadingTrivia(2).Kind = SyntaxKind.CommentTrivia)
         Assert.Equal(37306, tk.Errors.First().Code)
+
+        ' PROTOTYPE LanguageVersion.VisualBasic15_5 should be LanguageVersion.VisualBasic16
+        tk = ScanOnce(" _'", LanguageVersion.VisualBasic15_5)
+        Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
+        Assert.Equal(" _'", tk.ToFullString())
+        Assert.True(tk.LeadingTrivia(0).Kind = SyntaxKind.WhitespaceTrivia)
+        Assert.True(tk.LeadingTrivia(1).Kind = SyntaxKind.LineContinuationTrivia)
+        Assert.True(tk.Errors.Count = 0)
 
         tk = ScanOnce(" _' Comment", LanguageVersion.VisualBasic15_3)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _' Comment", tk.ToFullString())
+        Assert.True(tk.LeadingTrivia.Count = 3)
+        Assert.True(tk.LeadingTrivia(0).Kind = SyntaxKind.WhitespaceTrivia)
+        Assert.True(tk.LeadingTrivia(1).Kind = SyntaxKind.LineContinuationTrivia)
+        Assert.True(tk.LeadingTrivia(2).Kind = SyntaxKind.CommentTrivia)
         Assert.Equal(37306, tk.Errors.First().Code)
 
         ' PROTOTYPE LanguageVersion.VisualBasic15_5 should be LanguageVersion.VisualBasic16
         tk = ScanOnce(" _' Comment", LanguageVersion.VisualBasic15_5)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _' Comment", tk.ToFullString())
+        Assert.True(tk.LeadingTrivia.Count = 3)
+        Assert.True(tk.LeadingTrivia(0).Kind = SyntaxKind.WhitespaceTrivia)
+        Assert.True(tk.LeadingTrivia(1).Kind = SyntaxKind.LineContinuationTrivia)
+        Assert.True(tk.LeadingTrivia(2).Kind = SyntaxKind.CommentTrivia)
         Assert.True(tk.Errors.Count = 0)
 
         tk = ScanOnce(" _ rem", startStatement:=True)
