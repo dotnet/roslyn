@@ -141,19 +141,16 @@
       <Name>RemoteWorkspaces</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>false</Ngen>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\Razor\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.csproj">
       <Name>RazorServiceHub</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>false</Ngen>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj">
       <Name>ServiceHub</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>false</Ngen>
     </ProjectReference>
     <ProjectReference Include="..\Razor\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.csproj">
       <Name>RazorVisualStudio</Name>
