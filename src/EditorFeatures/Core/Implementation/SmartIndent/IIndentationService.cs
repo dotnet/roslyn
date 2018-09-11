@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// current line.  With this tuple, both forms can be expressed, and the implementor does not
     /// have to convert from one to the other.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal struct IndentationResult
     {
         /// <summary>
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor
         Task<IndentationResult?> GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
     }
 
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface ISynchronousIndentationService : ILanguageService
     {
         IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);

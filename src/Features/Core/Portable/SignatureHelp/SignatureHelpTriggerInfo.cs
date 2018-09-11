@@ -4,6 +4,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal struct SignatureHelpTriggerInfo
     {
         public SignatureHelpTriggerReason TriggerReason { get; }

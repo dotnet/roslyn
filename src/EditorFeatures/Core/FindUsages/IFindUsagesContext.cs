@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IFindUsagesContext
     {
         CancellationToken CancellationToken { get; }

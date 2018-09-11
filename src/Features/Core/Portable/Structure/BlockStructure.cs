@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal class BlockStructure
     {
         public ImmutableArray<BlockSpan> Spans { get; }

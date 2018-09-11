@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a <see cref="TextSpan"/> location in a <see cref="Document"/>.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal struct DocumentSpan : IEquatable<DocumentSpan>
     {
         public Document Document { get; }

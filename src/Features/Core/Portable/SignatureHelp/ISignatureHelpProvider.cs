@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface ISignatureHelpProvider
     {
         /// <summary>

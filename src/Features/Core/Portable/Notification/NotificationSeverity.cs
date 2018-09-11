@@ -2,6 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Notification
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal enum NotificationSeverity
     {
         Information,

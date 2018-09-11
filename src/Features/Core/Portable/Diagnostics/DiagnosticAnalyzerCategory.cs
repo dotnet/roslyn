@@ -4,6 +4,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     [Flags]
     internal enum DiagnosticAnalyzerCategory
     {

@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal static class NavigationOptions
     {
         /// <summary>

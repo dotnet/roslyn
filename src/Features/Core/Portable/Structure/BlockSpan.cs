@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal struct BlockSpan
     {
         private const string Ellipses = "...";

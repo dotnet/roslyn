@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     /// <summary>
     /// Note(cyrusn): this enum is ordered from strongest match type to weakest match type.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal enum PatternMatchKind
     {
         /// <summary>

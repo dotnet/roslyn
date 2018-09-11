@@ -3,6 +3,7 @@
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal enum NavigateToMatchKind
     {
         Exact = 0,

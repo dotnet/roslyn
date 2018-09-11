@@ -5,6 +5,7 @@ using System.Composition;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportSignatureHelpProviderAttribute : ExportAttribute

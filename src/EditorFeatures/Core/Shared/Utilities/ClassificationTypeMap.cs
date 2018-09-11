@@ -11,6 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     [Export]
     internal class ClassificationTypeMap
     {

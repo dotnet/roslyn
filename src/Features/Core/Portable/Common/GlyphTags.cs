@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal static class GlyphTags
     {
         public static ImmutableArray<string> GetTags(Glyph glyph)

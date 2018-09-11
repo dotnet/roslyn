@@ -2,6 +2,7 @@
 
 namespace Microsoft.CodeAnalysis
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal enum Glyph
     {
         None,

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IDocumentNavigationService : IWorkspaceService
     {
         /// <summary>

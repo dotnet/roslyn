@@ -8,15 +8,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
-     internal enum HighlightSpanKind
+    [InternalsUsedIn(LanguageNames.FSharp)]
+    internal enum HighlightSpanKind
      {
          None,
          Definition,
          Reference,
          WrittenReference,
      }
- 
-     internal struct HighlightSpan
+
+    [InternalsUsedIn(LanguageNames.FSharp)]
+    internal struct HighlightSpan
      {
          public TextSpan TextSpan { get; }
          public HighlightSpanKind Kind { get; }
@@ -27,8 +29,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
              this.Kind = kind;
          }
      }
- 
-     internal struct DocumentHighlights
+
+    [InternalsUsedIn(LanguageNames.FSharp)]
+    internal struct DocumentHighlights
      {
          public Document Document { get; }
          public ImmutableArray<HighlightSpan> HighlightSpans { get; }
@@ -39,12 +42,13 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
              this.HighlightSpans = highlightSpans;
          }
      }
- 
-     /// <summary>
-     /// Note: This is the new version of the language service and superceded the same named type
-     /// in the EditorFeatures layer.
-     /// </summary>
-     internal interface IDocumentHighlightsService : ILanguageService
+
+    /// <summary>
+    /// Note: This is the new version of the language service and superceded the same named type
+    /// in the EditorFeatures layer.
+    /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
+    internal interface IDocumentHighlightsService : ILanguageService
      {
          Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
              Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken);

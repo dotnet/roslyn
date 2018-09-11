@@ -2,6 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal static class DiagnosticCategory
     {
         public static readonly string Style = FeaturesResources.Style;

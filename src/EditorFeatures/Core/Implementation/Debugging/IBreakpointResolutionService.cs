@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Debugging
 {
     // Used by TypeScript.
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IBreakpointResolutionService : ILanguageService
     {
         Task<BreakpointResolutionResult> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default);

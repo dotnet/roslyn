@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// <summary>
     /// Specifies the exact type of the service exported by the ILanguageService.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportContentTypeLanguageServiceAttribute : ExportLanguageServiceAttribute

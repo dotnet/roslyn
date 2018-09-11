@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IDiagnosticAnalyzerService
     {
         /// <summary>

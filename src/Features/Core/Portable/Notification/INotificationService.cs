@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Notification
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface INotificationService : IWorkspaceService
     {
         /// <summary>

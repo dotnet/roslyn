@@ -9,6 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal class SignatureHelpItems
     {
         /// <summary>

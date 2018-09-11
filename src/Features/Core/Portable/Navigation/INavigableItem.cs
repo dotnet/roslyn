@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface INavigableItem
     {
         Glyph Glyph { get; }

@@ -8,6 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal abstract class BlockStructureService : ILanguageService
     {
         /// <summary>

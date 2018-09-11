@@ -13,6 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal struct InlineRenameLocation
     {
         public Document Document { get; }
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor
         Complexified,
     }
 
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal struct InlineRenameReplacement
     {
         public InlineRenameReplacementKind Kind { get; }
@@ -72,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
     }
 
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IInlineRenameReplacementInfo
     {
         /// <summary>
@@ -104,6 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
     }
 
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IInlineRenameLocationSet
     {
         /// <summary>
@@ -122,6 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor
         Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, OptionSet optionSet, CancellationToken cancellationToken);
     }
 
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IInlineRenameInfo
     {
         /// <summary>
@@ -208,6 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// <summary>
     /// Language service that allows a language to participate in the editor's inline rename feature.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IEditorInlineRenameService : ILanguageService
     {
         Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal static class CompletionOptions
     {
         // This is serialized by the Visual Studio-specific LanguageSettingsPersister

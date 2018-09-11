@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// Subclassing is also supported for scenarios that fall outside the bounds of
     /// these common cases.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal abstract partial class DefinitionItem
     {
         // Existing behavior is to do up to two lookups for 3rd party navigation for FAR.  One

@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// <summary>
     /// Service to provide the default content type for a language.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IContentTypeLanguageService : ILanguageService
     {
         IContentType GetDefaultContentType();

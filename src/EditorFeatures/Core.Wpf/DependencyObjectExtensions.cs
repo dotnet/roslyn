@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Text.Formatting;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal static class DependencyObjectExtensions
     {
         public static void SetTextProperties(this DependencyObject dependencyObject, TextFormattingRunProperties textProperties)

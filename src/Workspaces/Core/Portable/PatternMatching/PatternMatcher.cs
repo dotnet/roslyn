@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     /// Also, while the pattern matcher is culture aware, it uses the culture specified in the
     /// constructor.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal abstract partial class PatternMatcher : IDisposable
     {
         private static readonly char[] s_dotCharacterArray = { '.' };

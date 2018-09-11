@@ -11,6 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal class SignatureHelpClassifier : IClassifier
     {
         private readonly ITextBuffer _subjectBuffer;

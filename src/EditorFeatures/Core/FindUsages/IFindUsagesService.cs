@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IFindUsagesService : ILanguageService
     {
         /// <summary>

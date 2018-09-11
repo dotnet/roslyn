@@ -3,6 +3,7 @@
 
 namespace Microsoft.CodeAnalysis.CommentSelection
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal struct CommentSelectionInfo
     {
         public CommentSelectionInfo(bool supportsSingleLineComment, bool supportsBlockComment, string singleLineCommentString, string blockCommentStartString, string blockCommentEndString) : this()

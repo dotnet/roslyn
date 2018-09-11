@@ -16,6 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal class FileSystemCompletionHelper
     {
         private static readonly char[] s_windowsDirectorySeparator = { '\\' };

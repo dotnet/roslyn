@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Shared.Options
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal static class ServiceFeatureOnOffOptions
     {
         private const bool CSharpClosedFileDiagnosticsEnabledByDefault = false;

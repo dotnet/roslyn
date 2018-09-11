@@ -4,6 +4,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal static class ClassificationTags
     {
         public static string GetClassificationTypeName(string textTag)

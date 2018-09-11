@@ -5,6 +5,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal static class DiagnosticCustomTags
     {
         /// <summary>

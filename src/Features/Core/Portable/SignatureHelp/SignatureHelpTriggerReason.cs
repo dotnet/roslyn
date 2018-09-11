@@ -2,6 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal enum SignatureHelpTriggerReason
     {
         /// <summary>

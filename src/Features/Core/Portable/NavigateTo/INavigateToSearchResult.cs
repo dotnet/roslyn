@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface INavigateToSearchResult
     {
         string AdditionalInformation { get; }

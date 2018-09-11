@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
     }
 
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal class SignatureHelpParameter
     {
         /// <summary>

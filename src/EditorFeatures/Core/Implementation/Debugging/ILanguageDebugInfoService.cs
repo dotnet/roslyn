@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Debugging
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface ILanguageDebugInfoService : ILanguageService
     {
         Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken);

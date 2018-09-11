@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 
     /// this interface is used by the engine to allow this special behavior over command line analyzers.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IBuiltInAnalyzer
     {
         /// <summary>

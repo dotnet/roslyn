@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Debugging
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal struct DebugDataTipInfo
     {
         public readonly TextSpan Span;

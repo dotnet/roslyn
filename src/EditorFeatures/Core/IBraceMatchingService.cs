@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor
         Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, CancellationToken cancellationToken = default);
     }
 
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal struct BraceMatchingResult
     {
         public TextSpan LeftSpan { get; }

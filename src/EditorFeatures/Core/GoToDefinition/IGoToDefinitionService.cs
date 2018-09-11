@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IGoToDefinitionService : ILanguageService
     {
         /// <summary>

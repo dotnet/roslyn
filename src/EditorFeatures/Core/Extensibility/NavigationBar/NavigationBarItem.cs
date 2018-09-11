@@ -9,6 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal abstract class NavigationBarItem
     {
         public string Text { get; }

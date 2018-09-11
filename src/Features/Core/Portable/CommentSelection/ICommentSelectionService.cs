@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CommentSelection
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface ICommentSelectionService : ILanguageService
     {
         Task<CommentSelectionInfo> GetInfoAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);

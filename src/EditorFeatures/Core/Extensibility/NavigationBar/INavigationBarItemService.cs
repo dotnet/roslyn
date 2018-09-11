@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface INavigationBarItemService : ILanguageService
     {
         Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);

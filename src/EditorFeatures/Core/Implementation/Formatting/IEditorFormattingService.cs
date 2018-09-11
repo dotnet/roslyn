@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IEditorFormattingService : ILanguageService
     {
         bool SupportsFormatDocument { get; }

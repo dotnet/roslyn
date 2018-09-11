@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportBraceMatcherAttribute : ExportAttribute

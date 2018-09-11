@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Debugging
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal struct DebugLocationInfo
     {
         public readonly string Name;

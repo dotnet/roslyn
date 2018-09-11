@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal struct PatternMatch : IComparable<PatternMatch>
     {
         /// <summary>

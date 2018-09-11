@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// IDE-only document based diagnostic analyzer.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal abstract class DocumentDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const int DefaultPriority = 50;

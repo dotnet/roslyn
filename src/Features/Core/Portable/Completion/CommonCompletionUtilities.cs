@@ -16,6 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal static class CommonCompletionUtilities
     {
         private const string NonBreakingSpaceString = "\x00A0";

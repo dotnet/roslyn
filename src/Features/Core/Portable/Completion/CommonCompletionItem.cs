@@ -7,6 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal static class CommonCompletionItem 
     {
         public static CompletionItem Create(

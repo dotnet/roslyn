@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal abstract class CommonCompletionProvider : CompletionProvider
     {
         public override bool ShouldTriggerCompletion(SourceText text, int position, CompletionTrigger trigger, OptionSet options)

@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// Information about a symbol's reference that can be used for display and 
     /// navigation in an editor.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal sealed class SourceReferenceItem
     {
         /// <summary>
