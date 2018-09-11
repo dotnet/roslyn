@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
-        <target state="new">Applying changes</target>
+        <target state="translated">Aplicación de cambios</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
@@ -14,17 +14,17 @@
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
         <source>Code cleanup is not configured</source>
-        <target state="new">Code cleanup is not configured</target>
+        <target state="translated">La limpieza de código no está configurada</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
-        <target state="new">Configure it now</target>
+        <target state="translated">Configúrela ahora</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
-        <target state="new">Do not show this message again</target>
+        <target state="translated">No volver a mostrar este mensaje</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
@@ -890,8 +890,8 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="needs-review-translation">Podemos arreglar el error si no hacemos parámetro(s) de estructura "out/ref". 
-¿Quiere continuar?</target>
+        <target state="translated">Podemos corregir el error si no creamos parámetros de estructura "out/ref".
+¿Desea continuar?</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_Signature_colon">
@@ -1149,6 +1149,11 @@ Do you want to proceed?</source>
         <target state="translated">Interactivo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Pegar en interactivo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_To_Highlight_Reference">
         <source>Navigate To Highlighted Reference</source>
         <target state="translated">Navegar a referencia resaltada</target>
@@ -1172,11 +1177,6 @@ Do you want to proceed?</source>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">Formateador de token inteligente</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste_in_Interactive">
-        <source>Paste in Interactive</source>
-        <target state="translated">Pegar en interactivo</target>
         <note />
       </trans-unit>
     </body>
