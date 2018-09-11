@@ -1425,5 +1425,40 @@ namespace System
         }
     }";
         #endregion
+
+        #region Index and Range
+        protected static CSharpCompilation CreateCompilationWithIndex(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(TestSources.Index).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+
+        protected static CSharpCompilation CreateCompilationWithIndexAndRange(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range }).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+
+        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+        #endregion
     }
 }

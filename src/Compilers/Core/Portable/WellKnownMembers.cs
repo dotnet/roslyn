@@ -3030,8 +3030,6 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double,
-
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
                      
                  // System_Index__ctor
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
