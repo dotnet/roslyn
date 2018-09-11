@@ -343,6 +343,220 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestNotInLambdaInsideStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        Action a = () => $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInLambdaInInstanceMethod()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        Action a = () => $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestNotInAnonymousFunctionInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        Action a = delegate { $$ }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousFunctionInInstanceMethod()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        Action a = delegate { $$ }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestNotInNestedAnonymousFunctionInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        Action a = delegate
+        {
+            Action b = delegate
+            {
+                $$
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInNestedAnonymousFunctionInInstanceMethod()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        Action a = delegate
+        {
+            Action b = delegate
+            {
+                $$
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestNotInLambdaInsideLocalFunctionInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        void Nested()
+        {
+            Action a = () => $$
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInLambdaInsideLocalFunctionInInstanceMethod()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        void Nested()
+        {
+            Action a = () => $$
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestNotInLocalFunctionInsideLambdaInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        Action a = () => 
+        {
+            void Nested()
+            {
+                $$
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInLocalFunctionInsideLambdaInInstanceMethod()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        Action a = () => 
+        {
+            void Nested()
+            {
+                $$
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestNotInStaticFieldInitializerForLambdaExpression()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static Func<int> x = () => $$
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInInstanceFieldInitializerForLambdaExpression()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    Func<int> x = () => $$
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestNotInStaticFieldInitializerForAnonymousMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static Func<int> x = delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInInstanceFieldInitializerForAnonymousMethod()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    Func<int> x = delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAttribute()
         {
             await VerifyKeywordAsync(
