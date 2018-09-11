@@ -898,7 +898,7 @@
     <value>Property or indexer '{0}' cannot be assigned to -- it is read only</value>
   </data>
   <data name="ERR_IllegalStatement" xml:space="preserve">
-    <value>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</value>
+    <value>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</value>
   </data>
   <data name="ERR_BadGetEnumerator" xml:space="preserve">
     <value>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</value>
@@ -1123,7 +1123,7 @@
     <value>Type does not implement the collection pattern; member has the wrong signature</value>
   </data>
   <data name="ERR_FriendRefNotEqualToThis" xml:space="preserve">
-    <value>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</value>
+    <value>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</value>
   </data>
   <data name="ERR_FriendRefSigningMismatch" xml:space="preserve">
     <value>Friend access was granted by '{0}', but the strong name signing state of the output assembly does not match that of the granting assembly.</value>
@@ -1943,6 +1943,12 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="WRN_TypeParameterSameAsOuterTypeParameter_Title" xml:space="preserve">
     <value>Type parameter has the same name as the type parameter from outer type</value>
   </data>
+  <data name="WRN_TypeParameterSameAsOuterMethodTypeParameter" xml:space="preserve">
+    <value>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</value>
+  </data>
+  <data name="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title" xml:space="preserve">
+    <value>Type parameter has the same type as the type parameter from outer method.</value>
+  </data>
   <data name="ERR_TypeVariableSameAsParent" xml:space="preserve">
     <value>Type parameter '{0}' has the same name as the containing type, or method</value>
   </data>
@@ -2384,7 +2390,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The operand of an increment or decrement operator must be a variable, property or indexer</value>
   </data>
   <data name="ERR_NoSuchMemberOrExtension" xml:space="preserve">
-    <value>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</value>
+    <value>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</value>
   </data>
   <data name="ERR_NoSuchMemberOrExtensionNeedUsing" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive for '{2}'?)</value>
@@ -2885,7 +2891,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot convert {0} to type '{1}' because it is not a delegate type</value>
   </data>
   <data name="ERR_CantConvAnonMethParams" xml:space="preserve">
-    <value>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</value>
+    <value>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</value>
   </data>
   <data name="ERR_CantConvAnonMethReturns" xml:space="preserve">
     <value>Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type</value>
@@ -4317,8 +4323,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="SubmissionCanHaveAtMostOne" xml:space="preserve">
     <value>Submission can have at most one syntax tree.</value>
   </data>
-  <data name="SyntaxTreeNotFoundTo" xml:space="preserve">
-    <value>SyntaxTree '{0}' not found to remove</value>
+  <data name="SyntaxTreeNotFoundToRemove" xml:space="preserve">
+    <value>SyntaxTree is not part of the compilation, so it cannot be removed</value>
   </data>
   <data name="TreeMustHaveARootNodeWith" xml:space="preserve">
     <value>tree must have a root node with SyntaxKind.CompilationUnit</value>
@@ -4809,7 +4815,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>File path referenced in source (#load) could not be resolved.</comment>
   </data>
   <data name="SyntaxTreeFromLoadNoRemoveReplace" xml:space="preserve">
-    <value>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</value>
+    <value>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</value>
   </data>
   <data name="ERR_SourceFileReferencesNotSupported" xml:space="preserve">
     <value>Source file references are not supported.</value>
@@ -4938,10 +4944,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use ref local '{0}' inside an anonymous method, lambda expression, or query expression</value>
   </data>
   <data name="ERR_BadIteratorLocalType" xml:space="preserve">
-    <value>Iterators cannot have by reference locals</value>
+    <value>Iterators cannot have by-reference locals</value>
   </data>
   <data name="ERR_BadAsyncLocalType" xml:space="preserve">
-    <value>Async methods cannot have by reference locals</value>
+    <value>Async methods cannot have by-reference locals</value>
   </data>
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
@@ -5323,6 +5329,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
     <value>indexing movable fixed buffers</value>
+  </data>
+  <data name="ERR_CantUseInOrOutInArglist" xml:space="preserve">
+    <value>__arglist cannot have an argument passed by 'in' or 'out'</value>
+  </data>
+  <data name="SyntaxTreeNotFound" xml:space="preserve">
+    <value>SyntaxTree is not part of the compilation</value>
+  </data>
+  <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
+    <value>An out variable cannot be declared as a ref local</value>
   </data>
   <data name="ERR_TripleDotNotAllowed" xml:space="preserve">
     <value>Unexpected character sequence '...'</value>

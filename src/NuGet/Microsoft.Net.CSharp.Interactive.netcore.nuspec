@@ -19,9 +19,11 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlNonRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
     <dependencies>
       <group targetFramework="netcoreapp1.1">
         <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />

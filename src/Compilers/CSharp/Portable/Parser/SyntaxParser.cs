@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Whenever parsing in a `while (true)` loop and a bug could prevent the loop from making progress,
+        /// Whenever parsing in a <c>while (true)</c> loop and a bug could prevent the loop from making progress,
         /// this method can prevent the parsing from hanging.
         /// Use as:
         ///     int tokenProgress = -1;

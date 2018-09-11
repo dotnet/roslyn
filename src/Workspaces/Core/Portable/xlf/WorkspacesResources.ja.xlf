@@ -7,6 +7,11 @@
         <target state="translated">指定した構成ファイルの読み取り中にエラーが発生しました: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">リファクタリングのみ</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">シンボル "{0}" は、ソースからではありません。</target>
@@ -59,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Node_is_of_the_wrong_type">
         <source>Node is of the wrong type.</source>
-        <target state="translated">ノードの種類が正しくありません。</target>
+        <target state="translated">Node の種類が正しくありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Location_must_be_null_or_from_source">
@@ -509,12 +514,12 @@
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_new_tree">
         <source>Node '{0}' must be contained in the new tree.</source>
-        <target state="translated">ノード '{0}' が、新しいツリーに含まれている必要があります。</target>
+        <target state="translated">Node '{0}' が、新しいツリーに含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_old_tree">
         <source>Node '{0}' must be contained in the old tree.</source>
-        <target state="translated">ノード '{0}' が、古いツリーに含まれている必要があります。</target>
+        <target state="translated">Node '{0}' が、古いツリーに含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_member_0_is_not_declared_within_the_declaration_of_the_symbol">
@@ -799,7 +804,7 @@
       </trans-unit>
       <trans-unit id="Variables_captured_colon">
         <source>Variables captured:</source>
-        <target state="new">Variables captured:</target>
+        <target state="translated">キャプチャされた変数:</target>
         <note />
       </trans-unit>
     </body>

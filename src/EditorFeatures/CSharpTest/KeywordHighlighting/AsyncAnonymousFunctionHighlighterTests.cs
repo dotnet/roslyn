@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     {
         internal override IHighlighter CreateHighlighter()
         {
-            return new AsyncAnonymousFunctionHighlighter();
+            return new AsyncAwaitHighlighter();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]

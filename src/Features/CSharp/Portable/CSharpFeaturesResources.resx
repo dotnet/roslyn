@@ -123,8 +123,8 @@
   <data name="Conflict_s_detected" xml:space="preserve">
     <value>Conflict(s) detected.</value>
   </data>
-  <data name="Invert_if_statement" xml:space="preserve">
-    <value>Invert if statement</value>
+  <data name="Invert_if" xml:space="preserve">
+    <value>Invert if</value>
   </data>
   <data name="Simplify_lambda_expression" xml:space="preserve">
     <value>Simplify lambda expression</value>
@@ -158,12 +158,6 @@
   </data>
   <data name="Autoselect_disabled_due_to_potential_range_variable_declaration" xml:space="preserve">
     <value>Autoselect disabled due to potential range variable declaration.</value>
-  </data>
-  <data name="Remove_Unnecessary_Cast" xml:space="preserve">
-    <value>Remove Unnecessary Cast</value>
-  </data>
-  <data name="Cast_is_redundant" xml:space="preserve">
-    <value>Cast is redundant</value>
   </data>
   <data name="Simplify_name_0" xml:space="preserve">
     <value>Simplify name '{0}'</value>
@@ -526,5 +520,44 @@
   </data>
   <data name="Convert_to_for" xml:space="preserve">
     <value>Convert to 'for'</value>
+  </data>
+  <data name="if_statement_can_be_simplified" xml:space="preserve">
+    <value>'if' statement can be simplified</value>
+  </data>
+  <data name="Add_accessibility_modifiers" xml:space="preserve">
+    <value>Add accessibility modifiers</value>
+  </data>
+  <data name="Add_remove_braces_for_single_line_control_statements" xml:space="preserve">
+    <value>Add/remove braces for single-line control statements</value>
+  </data>
+  <data name="Apply_language_framework_type_preferences" xml:space="preserve">
+    <value>Apply language/framework type preferences</value>
+  </data>
+  <data name="Apply_implicit_explicit_type_preferences" xml:space="preserve">
+    <value>Apply implicit/explicit type preferences</value>
+  </data>
+  <data name="Apply_this_qualification_preferences" xml:space="preserve">
+    <value>Apply 'this.' qualification preferences</value>
+  </data>
+  <data name="Sort_accessibility_modifiers" xml:space="preserve">
+    <value>Sort accessibility modifiers</value>
+  </data>
+  <data name="Apply_expression_block_body_preferences" xml:space="preserve">
+    <value>Apply expression/block body preferences</value>
+  </data>
+  <data name="Apply_inline_out_variable_preferences" xml:space="preserve">
+    <value>Apply inline 'out' variables preferences</value>
+  </data>
+  <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
+    <value>Apply object/collection initialization preferences</value>
+  </data>
+  <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
+    <value>Make private fields readonly when possible</value>
+  </data>
+  <data name="Remove_unnecessary_casts" xml:space="preserve">
+    <value>Remove unnecessary casts</value>
+  </data>
+  <data name="Remove_unused_variables" xml:space="preserve">
+    <value>Remove unused variables</value>
   </data>
 </root>

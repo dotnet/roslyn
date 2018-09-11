@@ -113,6 +113,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => true;
+
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);

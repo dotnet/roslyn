@@ -2,6 +2,46 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../CSharpFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_accessibility_modifiers">
+        <source>Add accessibility modifiers</source>
+        <target state="translated">Aggiungi modificatori di accessibilità</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_remove_braces_for_single_line_control_statements">
+        <source>Add/remove braces for single-line control statements</source>
+        <target state="translated">Aggiungi/rimuovi le parentesi graffe per le istruzioni di controllo a riga singola</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_expression_block_body_preferences">
+        <source>Apply expression/block body preferences</source>
+        <target state="translated">Applica le preferenze relative al corpo di espressioni/blocchi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_implicit_explicit_type_preferences">
+        <source>Apply implicit/explicit type preferences</source>
+        <target state="translated">Applica le preferenze relative al tipo implicito/esplicito</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_inline_out_variable_preferences">
+        <source>Apply inline 'out' variables preferences</source>
+        <target state="translated">Applica le preferenze relative alle variabili 'out' inline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_language_framework_type_preferences">
+        <source>Apply language/framework type preferences</source>
+        <target state="translated">Applica le preferenze relative al tipo di linguaggio/framework</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_collection_initialization_preferences">
+        <source>Apply object/collection initialization preferences</source>
+        <target state="translated">Applica le preferenze di inizializzazione di oggetti/raccolte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_this_qualification_preferences">
+        <source>Apply 'this.' qualification preferences</source>
+        <target state="translated">Applica le preferenze relative alla qualificazione 'this.'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">Variabile temporanea inline</target>
@@ -12,9 +52,19 @@
         <target state="translated">Sono stati rilevati conflitti</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_if_statement">
-        <source>Invert if statement</source>
-        <target state="translated">Istruzione Invert If</target>
+      <trans-unit id="Make_private_field_readonly_when_possible">
+        <source>Make private fields readonly when possible</source>
+        <target state="translated">Imposta i campi privati come di sola lettura quando possibile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_casts">
+        <source>Remove unnecessary casts</source>
+        <target state="translated">Rimuovi cast non necessari</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variables">
+        <source>Remove unused variables</source>
+        <target state="translated">Rimuovi variabili non usate</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
@@ -30,6 +80,16 @@
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
         <target state="translated">Rimuovi istruzioni using non necessarie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_accessibility_modifiers">
+        <source>Sort accessibility modifiers</source>
+        <target state="translated">Ordina i modificatori di accessibilità</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="translated">L'istruzione 'if' può essere semplificata</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -70,16 +130,6 @@
       <trans-unit id="Autoselect_disabled_due_to_potential_range_variable_declaration">
         <source>Autoselect disabled due to potential range variable declaration.</source>
         <target state="translated">La selezione automatica è disabilitata a causa di una potenziale dichiarazione della variabile di intervallo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Rimuovi cast non necessario</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">Il cast è ridondante</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
@@ -629,17 +679,22 @@
       </trans-unit>
       <trans-unit id="Convert_to_switch">
         <source>Convert to 'switch'</source>
-        <target state="new">Convert to 'switch'</target>
+        <target state="translated">Converti in 'switch'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
-        <target state="new">Convert to 'foreach'</target>
+        <target state="translated">Converti in 'foreach'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_for">
         <source>Convert to 'for'</source>
-        <target state="new">Convert to 'for'</target>
+        <target state="translated">Converti in 'for'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_if">
+        <source>Invert if</source>
+        <target state="translated">Inverti if</target>
         <note />
       </trans-unit>
     </body>

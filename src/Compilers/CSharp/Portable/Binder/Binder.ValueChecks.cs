@@ -370,32 +370,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                // array elements and pointer dereferencing are readwrite variables
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerIndirectionOperator:
-                    // array elements and pointer dereferencing are readwrite variables
-                    return true;
+                // The undocumented __refvalue(tr, T) expression results in a variable of type T.
+                case BoundKind.RefValueOperator:
+                // dynamic expressions are readwrite, and can even be passed by ref (which is implemented via a temp)
+                case BoundKind.DynamicMemberAccess:
+                case BoundKind.DynamicIndexerAccess:
+                    {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
+                        // These are readwrite variables
+                        return true;
+                    }
 
                 case BoundKind.PointerElementAccess:
                     {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
                         var receiver = ((BoundPointerElementAccess)expr).Expression;
                         if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
                         {
                             return CheckValueKind(node, fieldAccess.ReceiverOpt, valueKind, checkingReceiver: true, diagnostics);
                         }
+
+                        return true;
                     }
-
-                    return true;
-
-                case BoundKind.RefValueOperator:
-                    // The undocumented __refvalue(tr, T) expression results in a variable of type T.
-                    // it is a readwrite variable.
-                    return true;
-
-                case BoundKind.DynamicMemberAccess:
-                case BoundKind.DynamicIndexerAccess:
-                    // dynamic expressions can be read and written to
-                    // can even be passed by reference (which is implemented via a temp)
-                    return true;
 
                 case BoundKind.Parameter:
                     var parameter = (BoundParameter)expr;
@@ -579,6 +588,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportReadOnlyError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
                 return false;
             }
+            else if (parameterSymbol.RefKind == RefKind.None && RequiresRefAssignableVariable(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                return false;
+            }
 
             if (this.LockedOrDisposedVariables.Contains(parameterSymbol))
             {
@@ -596,8 +610,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
 
-            // byval parameters can escape to method's top level.
-            // others can be escape further, unless they are ref-like.
+            // byval parameters can escape to method's top level. Others can escape further.
+            // NOTE: "method" here means nearest containing method, lambda or local function.
             if (escapeTo == Binder.ExternalScope && parameterSymbol.RefKind == RefKind.None)
             {
                 if (checkingReceiver)
@@ -1018,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
         ///       where escape is known otherwise. Therefore we do not vave two ref/val variants of this.
         ///       
-        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional `in` parameters or `ref dynamic` behave as 
+        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
         internal static uint GetInvocationEscapeScope(
@@ -1116,18 +1130,18 @@ moreArguments:
             // check receiver if ref-like
             if (receiverOpt?.Type?.IsByRefLikeType == true)
             {
-                return GetValEscape(receiverOpt, scopeOfTheContainingExpression);
+                escapeScope = Math.Max(escapeScope, GetValEscape(receiverOpt, scopeOfTheContainingExpression));
             }
 
             return escapeScope;
         }
 
         /// <summary>
-        /// Validates whether given invocation can allow its results to escape from `escapeFrom` level to `escapeTo` level.
+        /// Validates whether given invocation can allow its results to escape from <paramref name="escapeFrom"/> level to <paramref name="escapeTo"/> level.
         /// The result indicates whether the escape is possible. 
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// 
-        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional `in` parameters or `ref dynamic` behave as 
+        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
         private static bool CheckInvocationEscape(
@@ -1240,7 +1254,7 @@ moreArguments:
 
         /// <summary>
         /// Validates whether the invocation is valid per no-mixing rules.
-        /// Returns `false` when it is not valid and produces diagnostics (possibly more than one recursively) that helps to figure the reason.
+        /// Returns <see langword="false"/> when it is not valid and produces diagnostics (possibly more than one recursively) that helps to figure the reason.
         /// </summary>
         private static bool CheckInvocationArgMixing(
             SyntaxNode syntax,
@@ -1248,7 +1262,6 @@ moreArguments:
             BoundExpression receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
-            ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             uint scopeOfTheContainingExpression,
             DiagnosticBag diagnostics)
@@ -1282,8 +1295,8 @@ moreArguments:
                         break;
                     }
 
-                    var refKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
-                    if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
+                    var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                    if (parameters[paramIndex].RefKind.IsWritableReference() && argument.Type?.IsByRefLikeType == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
@@ -1298,7 +1311,7 @@ moreArguments:
                     {
                         var argument = argListArgs[argIndex];
                         var refKind = argListRefKindsOpt.IsDefault ? RefKind.None : argListRefKindsOpt[argIndex];
-                        if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
+                        if (refKind.IsWritableReference() && argument.Type?.IsByRefLikeType == true)
                         {
                             escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                         }
@@ -1663,7 +1676,7 @@ moreArguments:
         }
 
         /// <summary>
-        /// Checks whether given expression can escape from the current scope to the `escapeTo`
+        /// Checks whether given expression can escape from the current scope to the <paramref name="escapeTo"/>
         /// In a case if it cannot a bad expression is returned and diagnostics is produced.
         /// </summary>
         internal BoundExpression ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, DiagnosticBag diagnostics)
@@ -1743,12 +1756,9 @@ moreArguments:
                 case BoundKind.Parameter:
                     var parameter = ((BoundParameter)expr).ParameterSymbol;
 
-                    // byval parameters can escape to method's top level.
-                    // others can be escape further, unless they are ref-like.
-                    // NOTE: "method" here means nearest containing method, lambda or nested method
-                    return parameter.RefKind == RefKind.None || parameter.Type?.IsByRefLikeType == true ?
-                        Binder.TopLevelScope :
-                        Binder.ExternalScope;
+                    // byval parameters can escape to method's top level. Others can escape further.
+                    // NOTE: "method" here means nearest containing method, lambda or local function.
+                    return parameter.RefKind == RefKind.None ? Binder.TopLevelScope : Binder.ExternalScope;
 
                 case BoundKind.Local:
                     return ((BoundLocal)expr).LocalSymbol.RefEscapeScope;

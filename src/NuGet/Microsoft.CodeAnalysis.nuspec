@@ -28,10 +28,12 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
     <file src="$additionalFilesPath$/ThirdPartyNotices.rtf" target="" />

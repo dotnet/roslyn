@@ -1088,8 +1088,8 @@ This version used in: {2}</value>
   <data name="Use_expression_body_for_properties" xml:space="preserve">
     <value>Use expression body for properties</value>
   </data>
-  <data name="Spell_check_0" xml:space="preserve">
-    <value>Spell check '{0}'</value>
+  <data name="Fix_typo_0" xml:space="preserve">
+    <value>Fix typo '{0}'</value>
   </data>
   <data name="Fully_qualify_0" xml:space="preserve">
     <value>Fully qualify '{0}'</value>
@@ -1189,6 +1189,15 @@ This version used in: {2}</value>
   </data>
   <data name="Add_parameter_to_0" xml:space="preserve">
     <value>Add parameter to '{0}'</value>
+  </data>
+  <data name="Add_parameter_to_0_and_overrides_implementations" xml:space="preserve">
+    <value>Add parameter to '{0}' (and overrides/implementations)</value>
+  </data>
+  <data name="Add_to_0" xml:space="preserve">
+    <value>Add to '{0}'</value>
+  </data>
+  <data name="Related_method_signatures_found_in_metadata_will_not_be_updated" xml:space="preserve">
+    <value>Related method signatures found in metadata will not be updated.</value>
   </data>
   <data name="Generate_constructor" xml:space="preserve">
     <value>Generate constructor...</value>
@@ -1298,11 +1307,23 @@ This version used in: {2}</value>
   <data name="Generate_constructor_in_0_without_fields" xml:space="preserve">
     <value>Generate constructor in '{0}' (without fields)</value>
   </data>
+  <data name="Parentheses_can_be_removed" xml:space="preserve">
+    <value>Parentheses can be removed</value>
+  </data>
+  <data name="Remove_unnecessary_parentheses" xml:space="preserve">
+    <value>Remove unnecessary parentheses</value>
+  </data>
   <data name="Add_file_banner" xml:space="preserve">
     <value>Add file banner</value>
   </data>
   <data name="Warning_Method_overrides_symbol_from_metadata" xml:space="preserve">
     <value>Warning: Method overrides symbol from metadata</value>
+  </data>
+  <data name="Add_parentheses_for_clarity" xml:space="preserve">
+    <value>Add parentheses for clarity</value>
+  </data>
+  <data name="Parentheses_should_be_added_for_clarity" xml:space="preserve">
+    <value>Parentheses should be added for clarity</value>
   </data>
   <data name="Use_0" xml:space="preserve">
     <value>Use {0}</value>
@@ -1351,5 +1372,11 @@ This version used in: {2}</value>
   </data>
   <data name="Make_field_readonly" xml:space="preserve">
     <value>Make field readonly</value>
+  </data>
+  <data name="Convert_to_conditional_expression" xml:space="preserve">
+    <value>Convert to conditional expression</value>
+  </data>
+  <data name="Formatting_document" xml:space="preserve">
+    <value>Formatting document</value>
   </data>
 </root>

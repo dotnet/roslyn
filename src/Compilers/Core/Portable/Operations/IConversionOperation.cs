@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Operations
         CommonConversion Conversion { get; }
         /// <summary>
         /// False if the conversion will fail with a <see cref="InvalidCastException"/> at runtime if the cast fails. This is true for C#'s
-        /// <code>as</code> operator and for VB's <code>TryCast</code> operator.
+        /// <c>as</c> operator and for VB's <c>TryCast</c> operator.
         /// </summary>
         bool IsTryCast { get; }
         /// <summary>

@@ -15,10 +15,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string AddQualificationDiagnosticId = "IDE0009";
         public const string PopulateSwitchDiagnosticId = "IDE0010";
         public const string AddBracesDiagnosticId = "IDE0011";
-        public const string PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId = "IDE0012";
-        public const string PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId = "IDE0013";
-        public const string PreferFrameworkTypeInDeclarationsDiagnosticId = "IDE0014";
-        public const string PreferFrameworkTypeInMemberAccessDiagnosticId = "IDE0015";
+
+        // IDE0012-IDE0015 deprecated and replaced with PreferBuiltInOrFrameworkTypeDiagnosticId (IDE0049)
+        // public const string PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId = "IDE0012";
+        // public const string PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId = "IDE0013";
+        // public const string PreferFrameworkTypeInDeclarationsDiagnosticId = "IDE0014";
+        // public const string PreferFrameworkTypeInMemberAccessDiagnosticId = "IDE0015";
+
         public const string UseThrowExpressionDiagnosticId = "IDE0016";
         public const string UseObjectInitializerDiagnosticId = "IDE0017";
         public const string InlineDeclarationDiagnosticId = "IDE0018";
@@ -65,6 +68,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string ValidateFormatStringDiagnosticID = "IDE0043";
 
         public const string MakeFieldReadonlyDiagnosticId = "IDE0044";
+
+        public const string UseConditionalExpressionForAssignmentDiagnosticId = "IDE0045";
+        public const string UseConditionalExpressionForReturnDiagnosticId = "IDE0046";
+
+        public const string RemoveUnnecessaryParenthesesDiagnosticId = "IDE0047";
+        public const string AddRequiredParenthesesDiagnosticId = "IDE0048";
+
+        public const string PreferBuiltInOrFrameworkTypeDiagnosticId = "IDE0049";
+
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

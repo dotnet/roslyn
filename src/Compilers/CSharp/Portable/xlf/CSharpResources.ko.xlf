@@ -2,9 +2,19 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="ERR_CantUseInOrOutInArglist">
+        <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
+        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8. Please use language version {1} or greater.</source>
         <target state="new">Feature '{0}' is not available in C# 8. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OutVariableCannotBeByRef">
+        <source>An out variable cannot be declared as a ref local</source>
+        <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TripleDotNotAllowed">
@@ -390,6 +400,26 @@
       <trans-unit id="IDS_FeatureTypeVariance">
         <source>type variance</source>
         <target state="translated">형식 가변성(variance)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="new">SyntaxTree is not part of the compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTreeNotFoundToRemove">
+        <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
+        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
+        <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
+        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
+        <source>Type parameter has the same type as the type parameter from outer method.</source>
+        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -1318,8 +1348,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">할당, 호출, 증가, 감소 및 새 개체 식만 문으로 사용할 수 있습니다.</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">할당, 호출, 증가, 감소 및 새 개체 식만 문으로 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1688,8 +1718,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">{0}'에서 friend 액세스 권한을 부여했지만, 출력 어셈블리의 공용 키가 부여한 어셈블리의 특성에서 지정된 키와 일치하지 않습니다.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">{0}'에서 friend 액세스 권한을 부여했지만, 출력 어셈블리의 공용 키가 부여한 어셈블리의 특성에서 지정된 키와 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -3771,8 +3801,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
-        <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="translated">'{0}'에는 '{1}'에 대한 정의가 포함되어 있지 않고, '{0}' 형식의 첫 번째 인수를 허용하는 확장 메서드 '{1}'이(가) 없습니다. using 지시문 또는 어셈블리 참조가 있는지 확인하세요.</target>
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="needs-review-translation">'{0}'에는 '{1}'에 대한 정의가 포함되어 있지 않고, '{0}' 형식의 첫 번째 인수를 허용하는 확장 메서드 '{1}'이(가) 없습니다. using 지시문 또는 어셈블리 참조가 있는지 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -4606,8 +4636,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">매개 변수 형식이 대리자 매개 변수 형식과 일치하지 않으므로 {0}을(를) 대리자 형식 '{1}'(으)로 변환할 수 없습니다.</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="needs-review-translation">매개 변수 형식이 대리자 매개 변수 형식과 일치하지 않으므로 {0}을(를) 대리자 형식 '{1}'(으)로 변환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -6963,11 +6993,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">구문 트리를 최대 하나만 제출할 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFoundTo">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">제거할 '{0}' SyntaxTree를 찾을 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWith">
         <source>tree must have a root node with SyntaxKind.CompilationUnit</source>
         <target state="translated">트리는 SyntaxKind.CompilationUnit을 사용하는 루트 노드여야 합니다.</target>
@@ -7826,8 +7851,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note>File path referenced in source (#load) could not be resolved.</note>
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
-        <source>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="translated">SyntaxTree '{0}'은(는) #load 지시문에서 생성되었으며 직접 제거하거나 바꿀 수 없습니다.</target>
+        <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
+        <target state="needs-review-translation">SyntaxTree '{0}'은(는) #load 지시문에서 생성되었으며 직접 제거하거나 바꿀 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">
@@ -8041,13 +8066,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">반복기에 by-reference 지역을 사용할 수 없습니다.</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">반복기에 by-reference 지역을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">비동기 메서드에 by-reference 지역을 사용할 수 없습니다.</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">비동기 메서드에 by-reference 지역을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

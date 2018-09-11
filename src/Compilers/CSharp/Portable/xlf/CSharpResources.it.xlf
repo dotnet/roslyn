@@ -2,9 +2,19 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="ERR_CantUseInOrOutInArglist">
+        <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
+        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8. Please use language version {1} or greater.</source>
         <target state="new">Feature '{0}' is not available in C# 8. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OutVariableCannotBeByRef">
+        <source>An out variable cannot be declared as a ref local</source>
+        <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TripleDotNotAllowed">
@@ -390,6 +400,26 @@
       <trans-unit id="IDS_FeatureTypeVariance">
         <source>type variance</source>
         <target state="translated">varianza dei tipi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="new">SyntaxTree is not part of the compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTreeNotFoundToRemove">
+        <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
+        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
+        <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
+        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
+        <source>Type parameter has the same type as the type parameter from outer method.</source>
+        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -1318,8 +1348,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Si possono usare come istruzioni solo le assegnazioni, le chiamate, gli incrementi, i decrementi e le nuove espressioni dell'oggetto</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">Si possono usare come istruzioni solo le assegnazioni, le chiamate, gli incrementi, i decrementi e le nuove espressioni dell'oggetto</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1688,8 +1718,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">L'accesso a Friend è stato concesso da '{0}', ma la chiave pubblica dell'assembly di output non corrisponde a quella specificata dall'attributo nell'assembly che ha concesso l'accesso.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">L'accesso a Friend è stato concesso da '{0}', ma la chiave pubblica dell'assembly di output non corrisponde a quella specificata dall'attributo nell'assembly che ha concesso l'accesso.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -3771,8 +3801,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
-        <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="translated">'{0}' non contiene una definizione di '{1}' e non è stato trovato alcun metodo di estensione '{1}' che accetta un primo argomento di tipo '{0}'. Probabilmente manca una direttiva using o un riferimento all'assembly.</target>
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="needs-review-translation">'{0}' non contiene una definizione di '{1}' e non è stato trovato alcun metodo di estensione '{1}' che accetta un primo argomento di tipo '{0}'. Probabilmente manca una direttiva using o un riferimento all'assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -4606,8 +4636,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">Non è possibile convertire {0} nel tipo delegato '{1}' perché i tipi di parametro non corrispondono ai tipi di parametro del delegato</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="needs-review-translation">Non è possibile convertire {0} nel tipo delegato '{1}' perché i tipi di parametro non corrispondono ai tipi di parametro del delegato</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -6963,11 +6993,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="translated">L'invio può avere al massimo un albero della sintassi.</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFoundTo">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">Non è stato trovato nessun elemento SyntaxTree '{0}' da rimuovere</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWith">
         <source>tree must have a root node with SyntaxKind.CompilationUnit</source>
         <target state="translated">l'albero deve avere un nodo radice con SyntaxKind.CompilationUnit</target>
@@ -7826,8 +7851,8 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note>File path referenced in source (#load) could not be resolved.</note>
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
-        <source>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="translated">L'elemento SyntaxTree '{0}' deriva da una direttiva #load e non può essere rimosso o sostituito direttamente.</target>
+        <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
+        <target state="needs-review-translation">L'elemento SyntaxTree '{0}' deriva da una direttiva #load e non può essere rimosso o sostituito direttamente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">
@@ -8041,13 +8066,13 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="translated">Gli iteratori non possono avere variabili locali per riferimento</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="needs-review-translation">Gli iteratori non possono avere variabili locali per riferimento</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="translated">I metodi Async non possono avere variabili locali per riferimento</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="needs-review-translation">I metodi Async non possono avere variabili locali per riferimento</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

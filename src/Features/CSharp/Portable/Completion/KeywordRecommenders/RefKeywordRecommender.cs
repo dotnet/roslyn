@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 syntaxTree.IsParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                IsValidContextForType(context, cancellationToken) ||
                 syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext() ||
@@ -140,6 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             return false;
+        }
+
+        private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers,
+                validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations, canBePartial: true, cancellationToken);
         }
     }
 }

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// faster
         /// </summary>
         Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken);
+        Task SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken);
         Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken);
     }
 }

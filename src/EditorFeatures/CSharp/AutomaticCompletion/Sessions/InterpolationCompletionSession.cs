@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         {
             // First, check to see if the character to the left of the position is an open curly. If it is,
             // we shouldn't complete because the user may be trying to escape a curly.
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = document.GetTextSynchronously(cancellationToken);
             var index = position - 1;
             var openCurlyCount = 0;
             while (index >= 0)

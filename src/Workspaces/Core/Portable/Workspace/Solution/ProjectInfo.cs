@@ -486,6 +486,8 @@ namespace Microsoft.CodeAnalysis
                     newHasAllInformation);
             }
 
+            bool IObjectWritable.ShouldReuseInSerialization => true;
+
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);

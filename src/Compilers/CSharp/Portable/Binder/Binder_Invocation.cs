@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.IdentifierName:
                 case SyntaxKind.GenericName:
-                    return BindIdentifier((SimpleNameSyntax)node, invoked, diagnostics);
+                    return BindIdentifier((SimpleNameSyntax)node, invoked, indexed, diagnostics);
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
                     return BindMemberAccess((MemberAccessExpressionSyntax)node, invoked, indexed, diagnostics);
@@ -198,6 +198,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argument.Type.SpecialType == SpecialType.System_Void)
                 {
                     Error(diagnostics, ErrorCode.ERR_CantUseVoidInArglist, argument.Syntax);
+                }
+
+                switch (analyzedArguments.RefKind(i))
+                {
+                    case RefKind.None:
+                    case RefKind.Ref:
+                        break;
+                    default:
+                        // Disallow "in" or "out" arguments
+                        Error(diagnostics, ErrorCode.ERR_CantUseInOrOutInArglist, argument.Syntax);
+                        break;
                 }
             }
 
@@ -840,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalCandidates.ToImmutableAndFree();
         }
 
-        private static void CheckRestrictedTypeReceiver(BoundExpression expression, Compilation compilation, DiagnosticBag diagnostics)
+        private void CheckRestrictedTypeReceiver(BoundExpression expression, Compilation compilation, DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
 
@@ -852,15 +863,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     {
                         var call = (BoundCall)expression;
-                        if (!call.HasAnyErrors &&
-                            call.ReceiverOpt != null &&
-                            (object)call.ReceiverOpt.Type != null &&
-                            call.ReceiverOpt.Type.IsRestrictedType() &&
-                            call.Method.ContainingType != call.ReceiverOpt.Type)
+                        if (!call.HasAnyErrors && call.ReceiverOpt != null && (object)call.ReceiverOpt.Type != null)
                         {
-                            // error CS0029: Cannot implicitly convert type 'TypedReference' to 'object'
-                            SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
-                            Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
+                            // error CS0029: Cannot implicitly convert type 'A' to 'B'
+
+                            // Case 1: receiver is a restricted type, and method called is defined on a parent type
+                            if (call.ReceiverOpt.Type.IsRestrictedType() && call.Method.ContainingType != call.ReceiverOpt.Type)
+                            {
+                                SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
+                                Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
+                            }
+                            // Case 2: receiver is a base reference, and the the child type is restricted
+                            else if (call.ReceiverOpt.Kind == BoundKind.BaseReference && this.ContainingType.IsRestrictedType())
+                            {
+                                SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, this.ContainingType, call.Method.ContainingType);
+                                Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
+                            }
                         }
                     }
                     break;
@@ -1081,7 +1099,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiver,
                     method.Parameters,
                     args,
-                    argRefKinds,
                     argsToParams,
                     this.LocalScopeDepth,
                     diagnostics);

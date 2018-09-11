@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
-        public string DisplayName => EditorFeaturesResources.Smart_Token_Formatter_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Smart_Token_Formatter;
 
         public AbstractSmartTokenFormatterCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,

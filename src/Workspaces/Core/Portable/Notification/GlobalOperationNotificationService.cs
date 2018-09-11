@@ -52,38 +52,34 @@ namespace Microsoft.CodeAnalysis.Notification
 
         protected virtual Task RaiseGlobalOperationStarted()
         {
-            using (_listener.BeginAsyncOperation("GlobalOperationStarted"))
+            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
+            if (ev.HasHandlers)
             {
-                var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
-                if (ev.HasHandlers)
+                var asyncToken = _listener.BeginAsyncOperation("GlobalOperationStarted");
+                return _eventQueue.ScheduleTask(() =>
                 {
-                    return _eventQueue.ScheduleTask(() =>
-                    {
-                        ev.RaiseEvent(handler => handler(this, EventArgs.Empty));
-                    });
-                }
-
-                return SpecializedTasks.EmptyTask;
+                    ev.RaiseEvent(handler => handler(this, EventArgs.Empty));
+                }).CompletesAsyncOperation(asyncToken);
             }
+
+            return Task.CompletedTask;
         }
 
         protected virtual Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
         {
-            using (_listener.BeginAsyncOperation("GlobalOperationStopped"))
+            var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
+            if (ev.HasHandlers)
             {
-                var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
-                if (ev.HasHandlers)
+                var asyncToken = _listener.BeginAsyncOperation("GlobalOperationStopped");
+                var args = new GlobalOperationEventArgs(operations, cancelled);
+
+                return _eventQueue.ScheduleTask(() =>
                 {
-                    var args = new GlobalOperationEventArgs(operations, cancelled);
-
-                    return _eventQueue.ScheduleTask(() =>
-                    {
-                        ev.RaiseEvent(handler => handler(this, args));
-                    });
-                }
-
-                return SpecializedTasks.EmptyTask;
+                    ev.RaiseEvent(handler => handler(this, args));
+                }).CompletesAsyncOperation(asyncToken);
             }
+
+            return Task.CompletedTask;
         }
 
         public override event EventHandler Started

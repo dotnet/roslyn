@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         CancellationToken shutdownToken) :
                         base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
-                        _running = SpecializedTasks.EmptyTask;
+                        _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
 

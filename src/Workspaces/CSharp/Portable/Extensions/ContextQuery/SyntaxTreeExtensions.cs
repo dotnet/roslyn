@@ -577,6 +577,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the parent is the member
                 // the grandparent is the container of the member
                 var container = token.Parent.GetParent();
+
+                // ref $$
+                // readonly ref $$
+                if (container.IsKind(SyntaxKind.IncompleteMember))
+                {
+                    return ((IncompleteMemberSyntax)container).Type.IsKind(SyntaxKind.RefType);
+                }
+
                 if (container.IsKind(SyntaxKind.CompilationUnit) ||
                     container.IsKind(SyntaxKind.NamespaceDeclaration) ||
                     container.IsKind(SyntaxKind.ClassDeclaration) ||
@@ -1763,6 +1771,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 #endif
 
             var enclosingSymbol = semanticModel.GetEnclosingSymbol(targetToken.SpanStart, cancellationToken);
+
+            while (enclosingSymbol is IMethodSymbol method && method.MethodKind == MethodKind.LocalFunction)
+            {
+                // It is allowed to reference the instance (`this`) within a local function, as long as the containing method allows it
+                enclosingSymbol = method.ContainingSymbol;
+            }
+
             return !enclosingSymbol.IsStatic;
         }
 

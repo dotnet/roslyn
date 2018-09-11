@@ -5,15 +5,15 @@
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
-
+  
   <PropertyGroup>
-    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
     <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
     <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
   </PropertyGroup>
 
-  <Import Project="Packages.props" />
-  <Import Project="FixedPackages.props" />
+  <Import Project="RepoToolset\ProjectLayout.props" />
+  <Import Project="RepoToolset\DefaultVersions.props"/>
+  
   <Import Project="Tools.props" />
   <Import Project="Versions.props" />
 
@@ -26,6 +26,7 @@
     <JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</JenkinsBuild>
     <DeveloperBuild>false</DeveloperBuild>
     <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(JenkinsBuild)' != 'true'">true</DeveloperBuild>
+    <ContinuousIntegrationBuild Condition="!$(DeveloperBuild)">true</ContinuousIntegrationBuild>
 
     <NuGetToolPath>$(RepoRoot)nuget.exe</NuGetToolPath>
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
@@ -37,8 +38,7 @@
     <!-- Disable analyzers if NuGet deviated from the expected restore location (e.g. by changing case on a case-sensitive file system) -->
     <UseRoslynAnalyzers Condition="!Exists('$(NuGetPackageRoot)\Microsoft.CodeQuality.Analyzers\$(RoslynDiagnosticsNugetPackageVersion)\analyzers\dotnet\cs\Microsoft.CodeQuality.Analyzers.dll')">False</UseRoslynAnalyzers>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/build/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
-    <RoslynPortableTargetFrameworks>net461;netcoreapp2.0</RoslynPortableTargetFrameworks>
-    <RoslynPortableTargetFrameworks46>net46;netcoreapp2.0</RoslynPortableTargetFrameworks46>
+    <RoslynPortableTargetFrameworks>net46;netcoreapp2.0</RoslynPortableTargetFrameworks>
     <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
     <RoslynDesktopRuntimeIdentifier>win</RoslynDesktopRuntimeIdentifier>
     <RoslynDesktopRuntimeIdentifierX86>win-x86</RoslynDesktopRuntimeIdentifierX86>
@@ -47,20 +47,14 @@
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <Features>strict, IOperation</Features>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <SignAssembly>true</SignAssembly>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateFullPaths>true</GenerateFullPaths>
     <!-- The new SDK introduced a GenerateAssemblyInfo target, which is disabled by GenerateAssemblyInfo=false.
          Otherwise, it writes to the same file (GeneratedAssemblyInfoFile) as our GenerateAssemblyInfoFile target.
          Follow-up issue to reconcile the two: https://github.com/dotnet/roslyn/issues/19645 -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
-    <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">$(RepoRoot)Binaries\</BaseOutputPath>
-    <OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
-    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(RepoRoot)Binaries\Obj\</BaseIntermediateOutputPath>
-    <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)$(MSBuildProjectName)\</BaseIntermediateOutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)</IntermediateOutputPath>
-    <ArtifactsSymStoreDirectory Condition="'$(DeveloperBuild)' != 'true' and '$(OS)' == 'Windows_NT'">$(BaseOutputPath)$(Configuration)\SymStore\</ArtifactsSymStoreDirectory>
 
     <TargetFrameworkRootPath>$(NuGetPackageRoot)\roslyntools.referenceassemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\framework</TargetFrameworkRootPath>
 
@@ -76,10 +70,6 @@
     <WindowsAppContainer>false</WindowsAppContainer>
 
     <MSBuildAssemblyNameFragment>Core</MSBuildAssemblyNameFragment>
-
-    <!-- To copy .dll.config and .exe.config files of the referenced projects to the output dir
-         (see https://github.com/Microsoft/msbuild/issues/1307) -->
-    <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.dll.config;.exe.config</AllowedReferenceRelatedFileExtensions>
 
     <!-- This controls the places MSBuild will consult to resolve assembly references.  This is 
          kept as minimal as possible to make our build reliable from machine to machine.  Global
@@ -119,22 +109,6 @@
     <RoslynDebugType Condition="'$(RoslynDebugType)' == ''">full</RoslynDebugType>
     <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
     <RoslynDebugType Condition="'$(JenkinsBuild)' == 'true'">embedded</RoslynDebugType>
-
-    <!-- 
-      The source root path used for deterministic normalization of source paths.
-      
-      If set the value is used in PathMap to instruct the compiler to normalize source paths 
-      emitted to the binary and PDB and as a root for Source Link mapping.
-      If set must end with a directory separator.
-      
-      If unset the PathMap need to be set explicitly to facilitate full determinism.
-      
-      The path can't be just a single '/' due to bug in Roslyn compilers:
-      https://github.com/dotnet/roslyn/issues/22815
-    -->
-    <DeterministicSourceRoot Condition="'$(DeveloperBuild)' != 'true'">/_/</DeterministicSourceRoot>
-
-    <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
 
     <ChecksumAlgorithm>SHA256</ChecksumAlgorithm>
 
@@ -178,22 +152,13 @@
 
   <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
     <SkipApplyOptimizations>true</SkipApplyOptimizations>
-    <RoslynPortableTargetFrameworks46>netcoreapp2.0</RoslynPortableTargetFrameworks46>
     <RoslynPortableTargetFrameworks>netcoreapp2.0</RoslynPortableTargetFrameworks>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-
-    <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy
-         in the Dev15 environment.  -->
-    <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
-    <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
-    <DeployExtension Condition="'$(IsDev15RC)' != 'true' OR '$(VisualStudioVersion)' != '15.0'">false</DeployExtension>
+    <DeployExtension Condition="'$(VisualStudioVersion)' != '15.0'">false</DeployExtension>
     <VisualStudioBuildToolsVersion>$(MicrosoftVSSDKBuildToolsVersion)</VisualStudioBuildToolsVersion>
-
-    <!-- For the moment our Dev14 VSI suites must continue to use the Dev14 SDK. -->
-    <VisualStudioBuildToolsVersion Condition="'$(IsDev14VsiBuild)' == 'true'">14.3.25420</VisualStudioBuildToolsVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DevEnvDir)' == ''">
@@ -299,7 +264,7 @@
     <When Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#' OR '$(ProjectLanguage)' == 'CSharp'">
       <PropertyGroup>
         <ProjectLanguage>CSharp</ProjectLanguage>
-        <LangVersion>7.2</LangVersion>
+        <LangVersion>7.3</LangVersion>
         <WarningLevel>4</WarningLevel>
         <ErrorReport>prompt</ErrorReport>
 

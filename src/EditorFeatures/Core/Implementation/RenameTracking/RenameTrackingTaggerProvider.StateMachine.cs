@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -341,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                    syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                 }
 
                 return syntaxFactsService != null;
@@ -355,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    languageHeuristicsService = document.Project.LanguageServices.GetService<IRenameTrackingLanguageHeuristicsService>();
+                    languageHeuristicsService = document.GetLanguageService<IRenameTrackingLanguageHeuristicsService>();
                 }
 
                 return languageHeuristicsService != null;

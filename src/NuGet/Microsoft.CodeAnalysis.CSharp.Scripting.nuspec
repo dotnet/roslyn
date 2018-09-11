@@ -16,11 +16,13 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>$tags$</tags>
-    
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
+
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Scripting.Common" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.CSharp" version="[$version$]" />
@@ -32,5 +34,8 @@
     <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.xml" target="lib\netstandard1.3" />
     <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\CSharpScripting\**\Microsoft.CodeAnalysis.CSharp.Scripting.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>

@@ -2714,7 +2714,7 @@ class C
 
     static void M()
     {
-        IComparable<long> c = Goo<long>(1, 1);
+        IComparable<long> c = Goo(1, (long)1);
     }
 }
 ");

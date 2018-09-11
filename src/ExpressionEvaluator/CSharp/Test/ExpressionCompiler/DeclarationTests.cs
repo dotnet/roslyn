@@ -753,7 +753,7 @@ class C
         return null;
     }
 }";
-            var compilation0 = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");

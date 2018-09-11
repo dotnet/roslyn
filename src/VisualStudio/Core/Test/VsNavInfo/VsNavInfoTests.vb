@@ -4,6 +4,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Utilities.VsNavInfo
@@ -828,7 +829,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, workspace).ConfigureAwait(False)
                 Assert.True(symbol IsNot Nothing, $"Could not find symbol as position, {position}")
 
-                Dim libraryService = document.Project.LanguageServices.GetService(Of ILibraryService)
+                Dim libraryService = document.GetLanguageService(Of ILibraryService)
 
                 Dim project = document.Project
                 Dim compilation = Await project.GetCompilationAsync()
@@ -866,7 +867,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, workspace).ConfigureAwait(False)
                 Assert.True(symbol IsNot Nothing, $"Could not find symbol as position, {position}")
 
-                Dim libraryService = document.Project.LanguageServices.GetService(Of ILibraryService)
+                Dim libraryService = document.GetLanguageService(Of ILibraryService)
 
                 Dim project = document.Project
                 Dim compilation = Await project.GetCompilationAsync()

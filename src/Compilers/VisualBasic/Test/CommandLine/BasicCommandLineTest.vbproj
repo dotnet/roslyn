@@ -7,10 +7,11 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.CommandLine.UnitTests</AssemblyName>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
+    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
@@ -70,9 +71,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CommandLineTestResources.Designer.vb</LastGenOutput>
     </EmbeddedResource>
-    <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
-      <_Parameter1>$(CommitHashDisplay)</_Parameter1>
-    </AssemblyVersionAttribute>
   </ItemGroup>
   <ItemGroup>
     <None Include="My Project\Application.myapp">

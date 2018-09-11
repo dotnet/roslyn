@@ -2901,6 +2901,100 @@ class Program { }";
             await VerifyItemIsAbsentAsync(markup, "@namespace", sourceCodeKind: SourceCodeKind.Regular);
         }
 
+        [WorkItem(25589, "https://github.com/dotnet/roslyn/issues/25589")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithNestedAttribute1()
+        {
+            var markup = @"
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class CustomAttribute : System.Attribute { } }
+}
+
+[$$]";
+            await VerifyItemExistsAsync(markup, "Namespace1");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithNestedAttribute2()
+        {
+            var markup = @"
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class CustomAttribute : System.Attribute { } }
+}
+
+[Namespace1.$$]";
+            await VerifyItemIsAbsentAsync(markup, "Namespace2");
+            await VerifyItemExistsAsync(markup, "Namespace3");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithNestedAttribute3()
+        {
+            var markup = @"
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class CustomAttribute : System.Attribute { } }
+}
+
+[Namespace1.Namespace3.$$]";
+            await VerifyItemExistsAsync(markup, "Namespace4");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithNestedAttribute4()
+        {
+            var markup = @"
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class CustomAttribute : System.Attribute { } }
+}
+
+[Namespace1.Namespace3.Namespace4.$$]";
+            await VerifyItemExistsAsync(markup, "Custom");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithNestedAttribute_NamespaceAlias()
+        {
+            var markup = @"
+using Namespace1Alias = Namespace1;
+using Namespace2Alias = Namespace1.Namespace2;
+using Namespace3Alias = Namespace1.Namespace3;
+using Namespace4Alias = Namespace1.Namespace3.Namespace4;
+
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class CustomAttribute : System.Attribute { } }
+}
+
+[$$]";
+            await VerifyItemExistsAsync(markup, "Namespace1Alias");
+            await VerifyItemIsAbsentAsync(markup, "Namespace2Alias");
+            await VerifyItemExistsAsync(markup, "Namespace3Alias");
+            await VerifyItemExistsAsync(markup, "Namespace4Alias");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithoutNestedAttribute()
+        {
+            var markup = @"
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class NonAttribute : System.NonAttribute { } }
+}
+
+[$$]";
+            await VerifyItemIsAbsentAsync(markup, "Namespace1");
+        }
+
         [WorkItem(542230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542230")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task RangeVariableInQuerySelect()

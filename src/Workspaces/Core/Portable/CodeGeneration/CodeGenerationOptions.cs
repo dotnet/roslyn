@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool AutoInsertionLocation { get; }
 
         /// <summary>
-        /// If <see cref="AutoInsertionLocation"/> is <code>false</code>, determines if members will be
+        /// If <see cref="AutoInsertionLocation"/> is <see langword="false"/>, determines if members will be
         /// sorted before being added to the end of the list of members.
         /// </summary>
         public bool SortMembers { get; }

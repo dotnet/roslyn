@@ -109,35 +109,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var csharpTree = syntaxTree as SyntaxTree;
-            if (csharpTree == null)
+            if (syntaxTree == null)
             {
                 return false;
             }
 
-            return csharpTree.IsInInactiveRegion(position, cancellationToken);
+            return syntaxTree.IsInInactiveRegion(position, cancellationToken);
         }
 
         public bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var csharpTree = syntaxTree as SyntaxTree;
-            if (csharpTree == null)
+            if (syntaxTree == null)
             {
                 return false;
             }
 
-            return csharpTree.IsInNonUserCode(position, cancellationToken);
+            return syntaxTree.IsInNonUserCode(position, cancellationToken);
         }
 
         public bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var csharpTree = syntaxTree as SyntaxTree;
-            if (csharpTree == null)
+            if (syntaxTree == null)
             {
                 return false;
             }
 
-            return csharpTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken);
+            return syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken);
         }
 
         public bool IsDirective(SyntaxNode node)
@@ -201,15 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node is AnonymousMethodExpressionSyntax;
         }
 
-        public bool IsLocalFunction(SyntaxNode node)
-        {
-            return node is LocalFunctionStatementSyntax;
-        }
-
         public bool IsGenericName(SyntaxNode node)
-        {
-            return node is GenericNameSyntax;
-        }
+            => node is GenericNameSyntax;
 
         public bool IsNamedParameter(SyntaxNode node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
@@ -273,9 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsLockStatement(SyntaxNode node)
-        {
-            return node is LockStatementSyntax;
-        }
+            => node is LockStatementSyntax;
 
         public bool IsUsingStatement(SyntaxNode node)
             => node.Kind() == SyntaxKind.UsingStatement;
@@ -728,6 +716,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((AttributeSyntax)node).Name;
         }
 
+        public bool IsParenthesizedExpression(SyntaxNode node)
+        {
+            return node.Kind() == SyntaxKind.ParenthesizedExpression;
+        }
+
+        public SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node)
+        {
+            return ((ParenthesizedExpressionSyntax)node).Expression;
+        }
+
+        public bool IsIfStatement(SyntaxNode node)
+        {
+            return (node.Kind() == SyntaxKind.IfStatement);
+        }
+
         public bool IsAttribute(SyntaxNode node)
         {
             return node is AttributeSyntax;
@@ -821,9 +824,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return name.ToIdentifierToken();
         }
 
-        public SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia)
+        public SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia, bool addSimplifierAnnotation)
+            => ((ExpressionSyntax)expression).Parenthesize(includeElasticTrivia, addSimplifierAnnotation);
+
+        public void GetPartsOfParenthesizedExpression(
+            SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen)
         {
-            return ((ExpressionSyntax)expression).Parenthesize(includeElasticTrivia);
+            var parenthesizedExpression = (ParenthesizedExpressionSyntax)node;
+            openParen = parenthesizedExpression.OpenParenToken;
+            expression = parenthesizedExpression.Expression;
+            closeParen = parenthesizedExpression.CloseParenToken;
         }
 
         public bool IsIndexerMemberCRef(SyntaxNode node)
@@ -1030,6 +1040,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             AppendMethodLevelMembers(root, list);
             return list;
         }
+
+        public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
+            => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
         private void AppendMethodLevelMembers(SyntaxNode node, List<SyntaxNode> list)
         {
@@ -1572,6 +1585,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node != null && (node.Parent as InvocationExpressionSyntax)?.Expression == node;
         }
 
+        public bool IsAwaitExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.AwaitExpression);
+
         public bool IsExpressionOfAwaitExpression(SyntaxNode node)
         {
             return node != null && (node.Parent as AwaitExpressionSyntax)?.Expression == node;
@@ -1606,10 +1622,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsBinaryExpression(SyntaxNode node)
             => node is BinaryExpressionSyntax;
 
-        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right)
+        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
             var binaryExpression = (BinaryExpressionSyntax)node;
             left = binaryExpression.Left;
+            operatorToken = binaryExpression.OperatorToken;
             right = binaryExpression.Right;
         }
 
@@ -1627,11 +1644,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsLogicalAndExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalAndExpression;
 
+        public bool IsLogicalOrExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalOrExpression;
+
         public bool IsLogicalNotExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalNotExpression;
 
+        public bool IsConditionalAnd(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalAndExpression;
+
+        public bool IsConditionalOr(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalOrExpression;
+
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;
+
+        public SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node)
+            => ((PrefixUnaryExpressionSyntax)node).OperatorToken;
 
         public SyntaxNode GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();
@@ -1808,6 +1837,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsLiteralExpression(SyntaxNode node)
             => node is LiteralExpressionSyntax;
 
+        public bool IsFalseLiteralExpression(SyntaxNode expression)
+            => expression.IsKind(SyntaxKind.FalseLiteralExpression);
+
+        public bool IsTrueLiteralExpression(SyntaxNode expression)
+            => expression.IsKind(SyntaxKind.TrueLiteralExpression);
+
         public SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node)
             => ((LocalDeclarationStatementSyntax)node).Declaration.Variables;
 
@@ -1848,5 +1883,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+        public bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes)
+            => nodes.SpansPreprocessorDirective();
     }
 }

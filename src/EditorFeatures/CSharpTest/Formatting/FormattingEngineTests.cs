@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Options;
@@ -13,8 +14,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
-using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -47,7 +46,7 @@ int y;
 }
 ";
 
-            AssertFormatWithView(expected, code);
+            AssertFormatWithView(expected, code, (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, true));
         }
 
         [WpfFact]
@@ -1203,7 +1202,7 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void KeepTabsInCommentsWhenFormattingIsOff()
         {
-            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should
             // not remove these as we are explicitly testing tab behavior.
             var code =
 @"class Program
@@ -1235,7 +1234,7 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void DoNotKeepTabsInCommentsWhenFormattingIsOn()
         {
-            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should
             // not remove these as we are explicitly testing tab behavior.
             var code = @"class Program
 {
@@ -1651,7 +1650,7 @@ class C
             await AssertFormatOnArbitraryNodeAsync(node, expected);
         }
 
-        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
+        private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
@@ -1668,12 +1667,7 @@ class C
 
                 var subjectDocument = workspace.Documents.Single();
 
-                var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
-                var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
-                var editorOperations = new Mock<IEditorOperations>();
-                editorOperationsFactory.Setup(x => x.GetEditorOperations(subjectDocument.GetTextView())).Returns(editorOperations.Object);
-
-                var commandHandler = new FormatCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
+                var commandHandler = workspace.GetService<FormatCommandHandler>();
                 var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
                 commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
 

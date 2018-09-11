@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Shared Sub M(f As Windows.Storage.StorageFolder, p As Windows.Foundation.Collections.PropertySet)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, references:=WinRtRefs)
+            Dim comp = CreateEmptyCompilation({source}, options:=TestOptions.DebugDll, references:=WinRtRefs)
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")
             Assert.True(runtimeAssemblies.Length >= 2)
 
@@ -116,7 +116,7 @@ End Class"
     Shared Sub M(a As LibraryA.A, b As LibraryB.B, t As Windows.Data.Text.TextSegment, f As Windows.Storage.StorageFolder)
     End Sub
 End Class"
-            Dim c0 = CreateCompilationWithMscorlib40({source}, compileReferences, TestOptions.DebugDll)
+            Dim c0 = CreateEmptyCompilation({source}, compileReferences, TestOptions.DebugDll)
             WithRuntimeInstance(c0, runtimeReferences,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -194,7 +194,7 @@ End Class"
     End Sub
 End Class"
 
-            Dim comp = CreateCompilationWithMscorlib40({source}, WinRtRefs, TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilation({source}, WinRtRefs, TestOptions.DebugDll)
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")
             WithRuntimeInstance(comp, {MscorlibRef}.Concat(runtimeAssemblies),
                 Sub(runtime)

@@ -951,7 +951,7 @@ End Class
 
         <Fact()>
         Public Sub MarshalAs_AllFieldTargets()
-            Dim source = <![CDATA[
+            Dim source = <compilation><file><![CDATA[
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -971,7 +971,7 @@ Enum En
     <MarshalAs(UnmanagedType.Bool)>
     B
 End Enum
-]]>.Value
+]]></file></compilation>
 
             CompileAndVerifyFieldMarshal(source,
                 Function(name, _omitted1)

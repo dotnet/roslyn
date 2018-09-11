@@ -101,6 +101,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static ImmutableArray<T> ExplicitOrImplicitInterfaceImplementations<T>(this T symbol) where T : ISymbol
+        {
+            var containingType = symbol.ContainingType;
+            var allMembersInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers(symbol.Name));
+            var membersImplementingAnInterfaceMember = allMembersInAllInterfaces.Where(
+                memberInInterface => symbol.Equals(containingType.FindImplementationForInterfaceMember(memberInInterface)));
+            return membersImplementingAnInterfaceMember.Cast<T>().ToImmutableArrayOrEmpty();
+        }
+
         public static bool IsOverridable(this ISymbol symbol)
         {
             // Members can only have overrides if they are virtual, abstract or override and is not
@@ -530,28 +539,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.Kind == SymbolKind.Namespace;
         }
 
-        public static bool IsOrContainsAccessibleAttribute(this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly)
+        public static bool IsOrContainsAccessibleAttribute(
+            this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly, CancellationToken cancellationToken)
         {
-            if (symbol is IAliasSymbol alias)
-            {
-                symbol = alias.Target;
-            }
-
-            var namespaceOrType = symbol as INamespaceOrTypeSymbol;
+            var namespaceOrType = symbol is IAliasSymbol alias ? alias.Target : symbol as INamespaceOrTypeSymbol;
             if (namespaceOrType == null)
             {
                 return false;
             }
 
-            if (namespaceOrType.IsAttribute() && namespaceOrType.IsAccessibleWithin(withinType ?? withinAssembly))
+            // PERF: Avoid allocating a lambda capture
+            foreach (var type in namespaceOrType.GetAllTypes(cancellationToken))
             {
-                return true;
-            }
-
-            // PERF: Avoid allocating a lambda capture as this method is recursive
-            foreach (var namedType in namespaceOrType.GetTypeMembers())
-            {
-                if (namedType.IsOrContainsAccessibleAttribute(withinType, withinAssembly))
+                if (type.IsAttribute() && type.IsAccessibleWithin(withinType ?? withinAssembly))
                 {
                     return true;
                 }

@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Remote;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
@@ -45,14 +48,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
                 var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType);
 
-                Assert.True(analyzerResult.IsEmpty);
+                var diagnostics = analyzerResult.SemanticLocals[analyzerResult.DocumentIds.First()];
+                Assert.Equal(IDEDiagnosticIds.UseExplicitTypeDiagnosticId, diagnostics[0].Id);
+                Assert.Equal(DiagnosticSeverity.Hidden, diagnostics[0].Severity);
 
                 // set option
                 workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
                 analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType);
 
-                var diagnostics = analyzerResult.SemanticLocals[analyzerResult.DocumentIds.First()];
+                diagnostics = analyzerResult.SemanticLocals[analyzerResult.DocumentIds.First()];
                 Assert.Equal(IDEDiagnosticIds.UseExplicitTypeDiagnosticId, diagnostics[0].Id);
+                Assert.Equal(DiagnosticSeverity.Info, diagnostics[0].Severity);
             }
         }
 
@@ -69,7 +75,7 @@ End Class";
             using (var workspace = CreateWorkspace(LanguageNames.VisualBasic, code))
             {
                 // set option
-                workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption<bool>(false, NotificationOption.None));
+                workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption<bool>(false, NotificationOption.Silent));
 
                 var analyzerType = typeof(VisualBasicUseNullPropagationDiagnosticAnalyzer);
                 var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType);
@@ -118,6 +124,29 @@ End Class";
                         Assert.True(ex is OperationCanceledException, $"cancellationToken : {source.Token.IsCancellationRequested}/r/n{ex.ToString()}");
                     }
                 }
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [WorkItem(26178, "https://github.com/dotnet/roslyn/pull/26178")]
+        public async Task TestCancellationOnSessionWithSolution()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
+            {
+                var solution = workspace.CurrentSolution;
+                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+
+                var source = new CancellationTokenSource();
+                var connection = new InvokeThrowsCancellationConnection(source);
+                var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(connection, solution, source.Token));
+                Assert.Equal(exception.CancellationToken, source.Token);
+
+                // make sure things that should have been cleaned up are cleaned up
+                var service = (RemotableDataServiceFactory.Service)solution.Workspace.Services.GetService<IRemotableDataService>();
+                Assert.Null(service.GetRemotableData_TestOnly(solutionChecksum, CancellationToken.None));
+                Assert.True(connection.Disposed);
             }
         }
 
@@ -292,6 +321,46 @@ End Class";
             }
 
             public override Workspace Workspace => _workspace;
+        }
+
+        private class InvokeThrowsCancellationConnection : RemoteHostClient.Connection
+        {
+            private readonly CancellationTokenSource _source;
+
+            public bool Disposed = false;
+
+            public InvokeThrowsCancellationConnection(CancellationTokenSource source)
+            {
+                _source = source;
+            }
+
+            public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+            {
+                // cancel and throw cancellation exception
+                _source.Cancel();
+                _source.Token.ThrowIfCancellationRequested();
+
+                throw Utilities.ExceptionUtilities.Unreachable;
+            }
+
+            public override Task<T> InvokeAsync<T>(
+                string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+
+            public override Task InvokeAsync(
+                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+
+            public override Task<T> InvokeAsync<T>(
+                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+
+                Disposed = true;
+            }
         }
     }
 }

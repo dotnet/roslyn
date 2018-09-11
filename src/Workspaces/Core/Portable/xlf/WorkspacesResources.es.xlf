@@ -7,6 +7,11 @@
         <target state="translated">Error al leer el archivo de configuración especificado: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">Solo refactorización</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">El símbolo "{0}" no procede del código fuente.</target>
@@ -509,12 +514,12 @@
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_new_tree">
         <source>Node '{0}' must be contained in the new tree.</source>
-        <target state="translated">El nodo '{0}' se debe incluir en el nuevo árbol.</target>
+        <target state="translated">El nodo "{0}" se debe incluir en el nuevo árbol.</target>
         <note />
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_old_tree">
         <source>Node '{0}' must be contained in the old tree.</source>
-        <target state="translated">El nodo '{0}' se debe incluir en el árbol antiguo.</target>
+        <target state="translated">El nodo "{0}" se debe incluir en el árbol antiguo.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_member_0_is_not_declared_within_the_declaration_of_the_symbol">
@@ -799,7 +804,7 @@
       </trans-unit>
       <trans-unit id="Variables_captured_colon">
         <source>Variables captured:</source>
-        <target state="new">Variables captured:</target>
+        <target state="translated">Variables capturadas:</target>
         <note />
       </trans-unit>
     </body>

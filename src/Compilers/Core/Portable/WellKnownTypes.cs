@@ -274,6 +274,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_InteropServices_UnmanagedType,
         System_Runtime_CompilerServices_IsUnmanagedAttribute,
 
+        Microsoft_VisualBasic_Conversion,
+
         System_Index,
         System_Range,
 
@@ -544,6 +546,7 @@ namespace Microsoft.CodeAnalysis
             "System.ReadOnlySpan`1",
             "System.Runtime.InteropServices.UnmanagedType",
             "System.Runtime.CompilerServices.IsUnmanagedAttribute",
+            "Microsoft.VisualBasic.Conversion",
 
             "System.Index",
             "System.Range",

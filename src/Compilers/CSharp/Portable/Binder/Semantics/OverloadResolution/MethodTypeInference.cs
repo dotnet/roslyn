@@ -522,11 +522,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: For each of the method arguments Ei:
             for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
-                var argument = _arguments[arg];
-
-                bool isExactInference = GetRefKind(arg) != RefKind.None;
-
+                BoundExpression argument = _arguments[arg];
                 TypeSymbol target = _formalParameterTypes[arg];
+                bool isExactInference = GetRefKind(arg).IsManagedReference() || target.IsPointerType();
+
                 MakeExplicitParameterTypeInferences(binder, argument, target, isExactInference, ref useSiteDiagnostics);
             }
         }
@@ -1486,6 +1485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            // This can be valid via (where T : unmanaged) constraints
+            if (ExactPointerInference(source, target, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
             // SPEC: * Otherwise no inferences are made.
         }
 
@@ -1596,6 +1601,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ExactTypeArgumentInference(namedSource, namedTarget, ref useSiteDiagnostics);
             return true;
+        }
+
+        private bool ExactPointerInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (source.TypeKind == TypeKind.Pointer && target.TypeKind == TypeKind.Pointer)
+            {
+                ExactInference(((PointerTypeSymbol)source).PointedAtType, ((PointerTypeSymbol)target).PointedAtType, ref useSiteDiagnostics);
+                return true;
+            }
+
+            return false;
         }
 
         private void ExactTypeArgumentInference(NamedTypeSymbol source, NamedTypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

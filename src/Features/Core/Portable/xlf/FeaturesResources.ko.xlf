@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
+        <source>Add parameter to '{0}' (and overrides/implementations)</source>
+        <target state="translated">'{0}'(및 재정의/구현)에 매개 변수 추가</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
         <source>Add project reference to '{0}'.</source>
         <target state="translated">프로젝트 참조를 '{0}'에 추가합니다.</target>
@@ -15,6 +20,26 @@
       <trans-unit id="Actions_can_not_be_empty">
         <source>Actions can not be empty.</source>
         <target state="translated">작업은 비워 둘 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_0">
+        <source>Add to '{0}'</source>
+        <target state="translated">'{0}'에 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_typo_0">
+        <source>Fix typo '{0}'</source>
+        <target state="translated">오타 '{0}' 수정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_document">
+        <source>Formatting document</source>
+        <target state="translated">문서 서식 지정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
+        <source>Related method signatures found in metadata will not be updated.</source>
+        <target state="translated">메타데이터에서 찾은 관련 메서드 시그니처가 업데이트되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -1575,11 +1600,6 @@ This version used in: {2}</source>
         <target state="translated">속성에 식 본문 사용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Spell_check_0">
-        <source>Spell check '{0}'</source>
-        <target state="translated">{0}' 맞춤법 검사</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">{0}' 정규화</target>
@@ -1985,34 +2005,59 @@ This version used in: {2}</source>
         <target state="translated">인덱서</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parentheses_can_be_removed">
+        <source>Parentheses can be removed</source>
+        <target state="translated">괄호를 제거할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_parentheses">
+        <source>Remove unnecessary parentheses</source>
+        <target state="translated">불필요한 괄호 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_for_clarity">
+        <source>Add parentheses for clarity</source>
+        <target state="translated">명확하게 하기 위해 괄호 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_should_be_added_for_clarity">
+        <source>Parentheses should be added for clarity</source>
+        <target state="translated">명확하게 하기 위해 괄호를 추가해야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
-        <target state="new">Alias ambiguous type '{0}'</target>
+        <target state="translated">별칭 모호한 형식 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
         <source>Warning: Collection was modified during iteration.</source>
-        <target state="new">Warning: Collection was modified during iteration.</target>
+        <target state="translated">경고: 반복 중 컬렉션이 수정되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
-        <target state="new">Warning: Iteration variable crossed function boundary.</target>
+        <target state="translated">경고: 반복 변수가 함수 경계를 벗어났습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
-        <target state="new">Warning: Collection may be modified during iteration.</target>
+        <target state="translated">경고: 반복 계산 중 컬렉션이 수정될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_readonly_modifier">
         <source>Add readonly modifier</source>
-        <target state="new">Add readonly modifier</target>
+        <target state="translated">읽기 전용 한정자 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">
         <source>Make field readonly</source>
-        <target state="new">Make field readonly</target>
+        <target state="translated">필드를 읽기 전용으로 만들기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="translated">조건식으로 변환</target>
         <note />
       </trans-unit>
     </body>

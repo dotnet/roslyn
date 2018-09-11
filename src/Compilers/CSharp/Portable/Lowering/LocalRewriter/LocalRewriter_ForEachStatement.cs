@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (enumeratorType.IsValueType)
                     {
                         // No way for the struct to be nullable and disposable.
-                        Debug.Assert(((TypeSymbol)enumeratorType.OriginalDefinition).SpecialType != SpecialType.System_Nullable_T);
+                        Debug.Assert(!enumeratorType.IsNullableType());
 
                         // For non-nullable structs, no null check is required.
                         disposeStmt = disposeCall;
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// (1) assigns it into a local, or
         /// (2) deconstructs it into multiple locals (if there is a deconstruct step).
         ///
-        /// Produces `V v = /* expression */` or `(D1 d1, ...) = /* expression */`.
+        /// Produces <c>V v = /* expression */</c> or <c>(D1 d1, ...) = /* expression */</c>.
         /// </summary>
         private BoundStatement LocalOrDeconstructionDeclaration(
                                     BoundForEachStatement forEachBound,

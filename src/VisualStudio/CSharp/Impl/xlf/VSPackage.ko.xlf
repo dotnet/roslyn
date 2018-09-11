@@ -38,8 +38,8 @@
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
-        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</source>
-        <target state="translated">세미콜론 입력 시 문 서식 자동 지정;중괄호 입력 시 블록 서식 자동 지정;붙여넣을 때 서식 자동 지정</target>
+        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
+        <target state="translated">세미콜론 입력 시 문 서식 자동 지정;중괄호 입력 시 블록 서식 자동 지정;붙여넣을 때 서식 자동 지정;코드 정리;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">

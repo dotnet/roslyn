@@ -274,6 +274,39 @@ class C
         }
 
         [Fact]
+        [WorkItem(27520, "https://github.com/dotnet/roslyn/issues/27520")]
+        public void GetDeconstructionInfoOnIncompleteCode()
+        {
+            string source = @"
+class C
+{
+    static void M(string s)
+    {
+        foreach (char in s) { }
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS1525: Invalid expression term 'char'
+                //         foreach (char in s) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "char").WithArguments("char").WithLocation(6, 18),
+                // (6,23): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (char in s) { }
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(6, 23)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var foreachDeconstruction = (ForEachVariableStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachVariableStatement).AsNode();
+            Assert.Equal(@"foreach (char in s) { }", foreachDeconstruction.ToString());
+            var deconstructionInfo = model.GetDeconstructionInfo(foreachDeconstruction);
+            Assert.Equal(Conversion.NoConversion, deconstructionInfo.Conversion);
+            Assert.Null(deconstructionInfo.Method);
+            Assert.Empty(deconstructionInfo.Nested);
+        }
+
+        [Fact]
         [WorkItem(15634, "https://github.com/dotnet/roslyn/issues/15634")]
         public void DeconstructMustReturnVoid()
         {
@@ -1093,22 +1126,16 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       32 (0x20)
-  .maxstack  3
-  .locals init (string V_0, //x
-                string V_1) //y
-  IL_0000:  ldstr      ""goodbye""
-  IL_0005:  stloc.0
-  IL_0006:  ldnull
-  IL_0007:  stloc.0
-  IL_0008:  ldstr      ""hello""
-  IL_000d:  stloc.1
-  IL_000e:  ldstr      ""{0}{1}""
-  IL_0013:  ldloc.0
-  IL_0014:  ldloc.1
-  IL_0015:  call       ""string string.Format(string, object, object)""
-  IL_001a:  call       ""void System.Console.WriteLine(string)""
-  IL_001f:  ret
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (string V_0) //y
+  IL_0000:  ldnull
+  IL_0001:  ldstr      ""hello""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""string string.Concat(string, string)""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
 } ");
         }
 
@@ -5717,6 +5744,156 @@ class C
             Assert.Equal(SymbolKind.Discard, isymbol.Kind);
         }
 
+        [Fact, WorkItem(25829, "https://github.com/dotnet/roslyn/issues/25829")]
+        public void SameTypeDiscardsAreEqual01()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (_, _) = (1, 2);
+        _ = 3;
+        M(out _);
+    }
+    static void M(out int x) => x = 1;
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discards = GetDiscardIdentifiers(tree).ToArray();
+            Assert.Equal(4, discards.Length);
+            var symbol0 = (IDiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
+            Assert.Equal(symbol0, symbol0);
+            var set = new HashSet<ISymbol>();
+            foreach (var discard in discards)
+            {
+                var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+                set.Add(symbol);
+                Assert.Equal(SymbolKind.Discard, symbol.Kind);
+                Assert.Equal("int _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                Assert.Equal(symbol0, symbol);
+                Assert.Equal(symbol, symbol);
+                Assert.Equal(symbol.GetHashCode(), symbol0.GetHashCode());
+
+                // Test to show that reference-unequal discards are equal by type.
+                IDiscardSymbol symbolClone = DiscardSymbol.CreateForTest(symbol.Type);
+                Assert.NotSame(symbol, symbolClone);
+                Assert.Equal(SymbolKind.Discard, symbolClone.Kind);
+                Assert.Equal("int _", symbolClone.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                Assert.Equal(symbol.Type, symbolClone.Type);
+                Assert.Equal(symbol0, symbolClone);
+                Assert.Equal(symbol, symbolClone);
+                Assert.Same(symbol.Type, symbolClone.Type); // original symbol for System.Int32 has identity.
+                Assert.Equal(symbol.GetHashCode(), symbolClone.GetHashCode());
+            }
+
+            Assert.Equal(1, set.Count);
+        }
+
+        [Fact, WorkItem(25829, "https://github.com/dotnet/roslyn/issues/25829")]
+        public void SameTypeDiscardsAreEqual02()
+        {
+            var source =
+@"using System.Collections.Generic;
+class C
+{
+    static void Main()
+    {
+        (_, _) = (new List<int>(), new List<int>());
+        _ = new List<int>();
+        M(out _);
+    }
+    static void M(out List<int> x) => x = new List<int>();
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discards = GetDiscardIdentifiers(tree).ToArray();
+            Assert.Equal(4, discards.Length);
+            var symbol0 = (IDiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
+            Assert.Equal(symbol0, symbol0);
+            var set = new HashSet<ISymbol>();
+            foreach (var discard in discards)
+            {
+                var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+                set.Add(symbol);
+                Assert.Equal(SymbolKind.Discard, symbol.Kind);
+                Assert.Equal("List<int> _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                Assert.Equal(symbol0, symbol);
+                Assert.Equal(symbol0.Type, symbol.Type);
+                Assert.Equal(symbol, symbol);
+                Assert.Equal(symbol.GetHashCode(), symbol0.GetHashCode());
+                if (discard != discards[0])
+                {
+                    // Although it is not part of the compiler's contract, at the moment distinct constructions are distinct
+                    Assert.NotSame(symbol.Type, symbol0.Type);
+                    Assert.NotSame(symbol, symbol0);
+                }
+            }
+
+            Assert.Equal(1, set.Count);
+        }
+
+        [Fact, WorkItem(25829, "https://github.com/dotnet/roslyn/issues/25829")]
+        public void DifferentTypeDiscardsAreNotEqual()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (_, _) = (1.0, 2);
+        _ = 3;
+        M(out _);
+    }
+    static void M(out int x) => x = 1;
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discards = GetDiscardIdentifiers(tree).ToArray();
+            Assert.Equal(4, discards.Length);
+            var symbol0 = (IDiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
+            var set = new HashSet<ISymbol>();
+            foreach (var discard in discards)
+            {
+                var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+                Assert.Equal(SymbolKind.Discard, symbol.Kind);
+                set.Add(symbol);
+                if (discard == discards[0])
+                {
+                    Assert.Equal("double _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                    Assert.Equal(symbol0, symbol);
+                    Assert.Equal(symbol0.GetHashCode(), symbol.GetHashCode());
+                }
+                else
+                {
+                    Assert.Equal("int _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                    Assert.NotEqual(symbol0, symbol);
+                }
+            }
+
+            Assert.Equal(2, set.Count);
+        }
+
         [Fact]
         public void EscapedUnderscoreInDeclaration()
         {
@@ -6599,6 +6776,13 @@ class C
                 //         foreach (_ in M())
                 Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "_").WithLocation(6, 18)
                 );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var discard = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First();
+
+            var symbol = (DiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+            Assert.True(symbol.Type.IsErrorType());
         }
 
         [Fact]
@@ -6911,7 +7095,7 @@ class C
                 // (6,18): error CS8185: A declaration is not allowed in this context.
                 //         (int x1, string x2);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string x2").WithLocation(6, 18),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (int x1, string x2);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x1, string x2)").WithLocation(6, 9),
                 // (6,10): error CS0165: Use of unassigned local variable 'x1'
@@ -7224,9 +7408,9 @@ class C : EventInterface
 }
 ";
 
-            var comp2 = CompileAndVerifyWithMscorlib40(source2, expectedOutput:
+            var comp2 = CompileAndVerify(source2, targetFramework: TargetFramework.Empty, expectedOutput:
 @"True
-Handler", references: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
+Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataReference() }));
             comp2.VerifyDiagnostics();
 
             Assert.True(comp2.Compilation.GetMember<EventSymbol>("C.E").IsWindowsRuntimeEvent);
@@ -7283,13 +7467,13 @@ struct S : EventInterface
 }
 ";
 
-            var comp2 = CompileAndVerifyWithMscorlib40(source2, expectedOutput:
+            var comp2 = CompileAndVerify(source2, targetFramework: TargetFramework.Empty, expectedOutput:
 @"GetC
 1
 True
 GetC
 2
-Handler", references: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
+Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataReference() }));
             comp2.VerifyDiagnostics();
 
             Assert.True(comp2.Compilation.GetMember<EventSymbol>("S.E").IsWindowsRuntimeEvent);
@@ -7696,13 +7880,14 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             Operand: 
               IFieldReferenceOperation: System.Int32 C.y (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'y')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'y')
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'y')
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'b')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IFieldReferenceOperation: System.Byte C.b (OperationKind.FieldReference, Type: System.Byte) (Syntax: 'b')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'b')");
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'b')
+");
         }
 
         [Fact]
