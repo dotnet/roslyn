@@ -1295,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncodinglessSyntaxTree = 8055,
         // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
         ERR_BlockBodyAndExpressionBody = 8057,
-        //ERR_FeatureIsExperimental = 8058, No experimental feature
+        ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8062-8069
         ERR_SwitchFallOut = 8070,
@@ -1580,11 +1580,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
         ERR_OutVariableCannotBeByRef = 8388,
 
+        #region diagnostics introduced for C# 8.0
+        ERR_FeatureNotAvailableInVersion8 = 8400,
+        ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
+
         // PROTOTYPE(async-streams) Compact error IDs
         ERR_NoConvToIAsyncDisp = 9000,
         ERR_AsyncForEachMissingMember = 9001,
         ERR_BadGetAsyncEnumerator = 9002,
         ERR_MultipleIAsyncEnumOfT = 9003,
+        #endregion diagnostics introduced for C# 8.0
+
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
 }

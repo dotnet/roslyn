@@ -737,6 +737,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         this.ScanVerbatimStringLiteral(ref info);
                     }
+                    else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
+                    {
+                        this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
+                        CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
+                        break;
+                    }
                     else if (!this.ScanIdentifierOrKeyword(ref info))
                     {
                         TextWindow.AdvanceChar();
@@ -749,13 +755,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case '$':
                     if (TextWindow.PeekChar(1) == '"')
                     {
-                        this.ScanInterpolatedStringLiteral(false, ref info);
+                        this.ScanInterpolatedStringLiteral(isVerbatim: false, ref info);
                         CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
                         break;
                     }
                     else if (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '"')
                     {
-                        this.ScanInterpolatedStringLiteral(true, ref info);
+                        this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
                         CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
                         break;
                     }
@@ -911,6 +917,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var options = this.Options;
             if (options.IsFeatureEnabled(feature))
             {
+                return;
+            }
+
+            string requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
+            {
+                if (!options.IsFeatureEnabled(feature))
+                {
+                    this.AddError(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
+                }
                 return;
             }
 

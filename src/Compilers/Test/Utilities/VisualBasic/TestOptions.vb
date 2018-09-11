@@ -29,4 +29,25 @@ Friend Module TestOptionExtensions
     Public Function WithStrictFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
         Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("Strict", "true")}))
     End Function
+
+    <Extension()>
+    Public Function WithFlowAnalysisFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
+        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("flow-analysis", "true")}))
+    End Function
+
+    <Extension()>
+    Friend Function WithExperimental(options As VisualBasicParseOptions, ParamArray features As Feature()) As VisualBasicParseOptions
+        If features.Length = 0 Then
+            Throw New InvalidOperationException("Need at least one feature to enable")
+        End If
+        Dim list As New List(Of KeyValuePair(Of String, String))
+        For Each feature In features
+            Dim flagName = feature.GetFeatureFlag()
+            If flagName Is Nothing Then
+                Throw New InvalidOperationException($"{feature} is not an experimental feature")
+            End If
+            list.Add(New KeyValuePair(Of String, String)(flagName, "True"))
+        Next
+        Return options.WithFeatures(options.Features.Concat(list))
+    End Function
 End Module

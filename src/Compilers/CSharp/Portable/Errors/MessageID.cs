@@ -161,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExtensibleFixedStatement = MessageBase + 12743,
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
 
+        IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
         IDS_FeatureAsyncStreams = MessageBase + 12777, // PROTOTYPE(async-streams) Compact IDs
     }
 
@@ -195,12 +196,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalizableErrorArgument(id);
         }
 
+        // Returns the string to be used in the /features flag switch to enable the MessageID feature.
+        // Always call this before RequiredVersion:
+        //   If this method returns null, call RequiredVersion and use that.
+        //   If this method returns non-null, use that.
+        // Features should be mutually exclusive between RequiredFeature and RequiredVersion.
+        //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
+        internal static string RequiredFeature(this MessageID feature)
+        {
+            // Check for current experimental features, if any, in the current branch.
+            switch (feature)
+            {
+                default:
+                    return null;
+            }
+        }
+
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 8.0 features.
+                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
+                    return LanguageVersion.CSharp8;
+
                 // C# 7.3 features.
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
                 case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check
@@ -306,7 +327,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Special C# 2 feature: only a warning in C# 1.
                 case MessageID.IDS_FeatureModuleAttrLoc:
-                    Debug.Assert(false, "Should be handled specially");
                     return LanguageVersion.CSharp1;
 
                 default:
