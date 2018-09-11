@@ -16,21 +16,21 @@ Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation.Local.get -> Microsoft.CodeAnalysis.ILocalSymbol
 Microsoft.CodeAnalysis.IArrayTypeSymbol.ElementNullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.IDiscardSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.IEventSymbol.TypeNullability.get -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.IFieldSymbol.TypeNullability.get -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.ILocalSymbol.TypeNullability.get -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.IMethodSymbol.ReturnTypeNullability.get -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentNullabilities.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.IEventSymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IFieldSymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.ILocalSymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IMethodSymbol.ReturnNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentsNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.INamedTypeSymbol.TypeArgumentNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.INamedTypeSymbol.TypeParameterNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.IOperation.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
-Microsoft.CodeAnalysis.IParameterSymbol.TypeNullability.get -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.IPropertySymbol.TypeNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IParameterSymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IPropertySymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.ISymbol.ToDisplayParts(Microsoft.CodeAnalysis.Nullability nullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
 Microsoft.CodeAnalysis.ISymbol.ToDisplayString(Microsoft.CodeAnalysis.Nullability nullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
 Microsoft.CodeAnalysis.ISymbol.ToMinimalDisplayParts(Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.Nullability nullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
 Microsoft.CodeAnalysis.ISymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.Nullability nullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
-Microsoft.CodeAnalysis.ITypeParameterSymbol.ConstraintTypeNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.ITypeParameterSymbol.ConstraintsNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.Nullability.MaybeNull = 2 -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.Nullability.NonNull = 1 -> Microsoft.CodeAnalysis.Nullability
@@ -40,6 +40,7 @@ Microsoft.CodeAnalysis.Operations.CommonConversion.IsImplicit.get -> bool
 Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation
 Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier = 64 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
+Microsoft.CodeAnalysis.SymbolDisplayPartKind.Nullability = 28 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 Microsoft.CodeAnalysis.Symbols.Nullability
 Microsoft.CodeAnalysis.Symbols.Nullability.CanBeNull = 1 -> Microsoft.CodeAnalysis.Symbols.Nullability
 Microsoft.CodeAnalysis.Symbols.Nullability.NonNull = 0 -> Microsoft.CodeAnalysis.Symbols.Nullability

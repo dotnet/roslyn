@@ -55,7 +55,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol Type { get; }
 
-        Nullability TypeNullability { get; }
+        /// <summary>
+        /// Gets the declared nullability of the property
+        /// </summary>
+        Nullability DeclaredNullability { get; }
 
         /// <summary>
         /// The parameters of this property. If this property has no parameters, returns

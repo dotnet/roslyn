@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         public ITypeSymbol Type { get; }
 
         /// <summary>
-        /// The nullability of the expression represented by the syntax node.
+        /// The inferred nullability of the expression represented by the syntax node.
         /// </summary>
         public Nullability Nullability { get; }
 

@@ -66,7 +66,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>The name of a type parameter.</summary>
         TypeParameterName = 26,
         /// <summary>The name of a query range variable..</summary>
-        RangeVariableName = 27
+        RangeVariableName = 27,
+        /// <summary>The nullability of the symbol.</summary>
+        Nullability = 28
     }
 
     internal static class InternalSymbolDisplayPartKind

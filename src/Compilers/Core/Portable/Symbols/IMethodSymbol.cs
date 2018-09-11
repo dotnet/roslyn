@@ -90,7 +90,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol ReturnType { get; }
 
-        Nullability ReturnTypeNullability { get; }
+        /// <summary>
+        /// Gets the declared nullability of the return type of the method.
+        /// </summary>
+        Nullability ReturnNullability { get; }
 
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the nullability of the type arguments that have been substituted for the
         /// type paramters.
         /// </summary>
-        ImmutableArray<Nullability> TypeArgumentNullabilities { get; }
+        ImmutableArray<Nullability> TypeArgumentsNullability { get; }
 
         /// <summary>
         /// Get the type parameters on this method. If the method has not generic,

@@ -40,7 +40,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol Type { get; }
 
-        Nullability TypeNullability { get; }
+        /// <summary>
+        /// Gets the declared nullability of the parameter
+        /// </summary>
+        Nullability DeclaredNullability { get; }
 
         /// <summary>
         /// Custom modifiers associated with the parameter type, or an empty array if there are none.

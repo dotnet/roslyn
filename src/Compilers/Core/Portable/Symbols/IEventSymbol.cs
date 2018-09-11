@@ -19,7 +19,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol Type { get; }
 
-        Nullability TypeNullability { get; }
+        /// <summary>
+        /// The declareted nullability of the this event.
+        /// </summary>
+        Nullability DeclaredNullability { get; }
 
         /// <summary>
         /// Returns true if the event is a WinRT type event.
