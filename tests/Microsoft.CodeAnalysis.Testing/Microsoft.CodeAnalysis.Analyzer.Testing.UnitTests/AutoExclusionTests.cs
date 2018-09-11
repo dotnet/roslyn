@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -17,11 +18,21 @@ class TestClass {
 }
 ";
 
+        private const string CSharpFirstLineDiagnosticTestCode = @"[||]
+class TestClass {
+}
+";
+
         private const string ReplaceMyClassWithMyBaseTestCode = @"
 Class TestClass
   Sub TestMethod()
     [|MyClass|].Equals(Nothing)
   End Sub
+End Class
+";
+
+        private const string VisualBasicFirstLineDiagnosticTestCode = @"[||]
+Class TestClass
 End Class
 ";
 
@@ -46,6 +57,27 @@ End Class
             Assert.Equal(expected, exception.Message);
         }
 
+        [Fact]
+        public async Task TestCSharpAnalyzerWithoutSuppressionFails()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpAnalyzerTest<FirstLineDiagnosticAnalyzer>
+                {
+                    TestCode = CSharpFirstLineDiagnosticTestCode,
+                }.RunAsync();
+            });
+
+            var expected =
+                "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
+                Environment.NewLine +
+                "Diagnostics:" + Environment.NewLine +
+                "// Test0.cs(1,1): warning FirstLine: message" + Environment.NewLine +
+                "GetCSharpResultAt(1, 1, FirstLineDiagnosticAnalyzer.FirstLine)" + Environment.NewLine +
+                Environment.NewLine;
+            Assert.Equal(expected, exception.Message);
+        }
+
         [Theory]
         [InlineData(GeneratedCodeAnalysisFlags.None)]
         [InlineData(GeneratedCodeAnalysisFlags.Analyze)]
@@ -58,12 +90,22 @@ End Class
         }
 
         [Fact]
-        public async Task TestCSharpAnalyzerWithoutExclusionButAllowedPasses()
+        public async Task TestCSharpAnalyzerWithoutGeneratedCodeExclusionButAllowedPasses()
         {
             await new CSharpReplaceThisWithBaseTest(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics)
             {
                 TestCode = ReplaceThisWithBaseTestCode,
-                Exclusions = AnalysisExclusions.None,
+                Exclusions = AnalysisExclusions.Suppression,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestCSharpAnalyzerWithoutSuppressionExclusionButAllowedPasses()
+        {
+            await new CSharpAnalyzerTest<FirstLineDiagnosticAnalyzer>
+            {
+                TestCode = CSharpFirstLineDiagnosticTestCode,
+                Exclusions = AnalysisExclusions.GeneratedCode,
             }.RunAsync();
         }
 
@@ -89,6 +131,27 @@ End Class
             Assert.Equal(expected, exception.Message);
         }
 
+        [Fact]
+        public async Task TestVisualBasicAnalyzerWithoutSuppressionFails()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new VisualBasicAnalyzerTest<FirstLineDiagnosticAnalyzer>
+                {
+                    TestCode = VisualBasicFirstLineDiagnosticTestCode,
+                }.RunAsync();
+            });
+
+            var expected =
+                "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
+                Environment.NewLine +
+                "Diagnostics:" + Environment.NewLine +
+                "// Test0.vb(1,1): warning FirstLine: message" + Environment.NewLine +
+                "GetBasicResultAt(1, 1, FirstLineDiagnosticAnalyzer.FirstLine)" + Environment.NewLine +
+                Environment.NewLine;
+            Assert.Equal(expected, exception.Message);
+        }
+
         [Theory]
         [InlineData(GeneratedCodeAnalysisFlags.None)]
         [InlineData(GeneratedCodeAnalysisFlags.Analyze)]
@@ -103,12 +166,22 @@ End Class
 
         [Fact]
         [WorkItem(159, "https://github.com/dotnet/roslyn-sdk/pull/159")]
-        public async Task TestVisualBasicAnalyzerWithoutExclusionButAllowedPasses()
+        public async Task TestVisualBasicAnalyzerWithoutGeneratedCodeExclusionButAllowedPasses()
         {
             await new VisualBasicReplaceThisWithBaseTest(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics)
             {
                 TestCode = ReplaceMyClassWithMyBaseTestCode,
-                Exclusions = AnalysisExclusions.None,
+                Exclusions = AnalysisExclusions.Suppression,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestVisualBasicAnalyzerWithoutSuppressionExclusionButAllowedPasses()
+        {
+            await new VisualBasicAnalyzerTest<FirstLineDiagnosticAnalyzer>
+            {
+                TestCode = VisualBasicFirstLineDiagnosticTestCode,
+                Exclusions = AnalysisExclusions.GeneratedCode,
             }.RunAsync();
         }
 
@@ -145,6 +218,28 @@ End Class
             {
                 var node = (VisualBasic.Syntax.MyClassExpressionSyntax)context.Node;
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, node.Keyword.GetLocation()));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        private class FirstLineDiagnosticAnalyzer : DiagnosticAnalyzer
+        {
+            internal static readonly DiagnosticDescriptor Descriptor =
+                new DiagnosticDescriptor("FirstLine", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+                context.RegisterSyntaxTreeAction(HandleSyntaxTree);
+            }
+
+            private void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    Descriptor,
+                    Location.Create(context.Tree, new TextSpan(0, 0))));
             }
         }
 
