@@ -28,7 +28,7 @@ namespace System
 ";
 
         [Fact]
-        public void TestWithCSharp7_1()
+        public void TestWithCSharp7_3()
         {
             string source = @"
 class C : System.IAsyncDisposable
@@ -45,13 +45,12 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (6,15): error CS8302: Feature 'async streams' is not available in C# 7.1. Please use language version 7.2 or greater.
+                // (6,15): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         using await (var x = new C())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "await").WithArguments("async streams", "7.2").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 15)
                 );
-            // PROTOTYPE(async-streams) LangVersion for async-streams will be adjusted before release
         }
 
         [Fact]
