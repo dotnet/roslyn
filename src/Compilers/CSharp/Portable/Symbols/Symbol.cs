@@ -854,11 +854,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportNullableReferenceTypesIfNeeded(DiagnosticBag diagnostics, Location location)
-        {
-            ReportNullableReferenceTypesIfNeeded(this.DeclaringCompilation, nonNullTypesContext: this, diagnostics, location);
-        }
-
         /// <summary>
         /// A `?` annotation on a type that isn't a value type causes:
         /// - an error before C# 8.0

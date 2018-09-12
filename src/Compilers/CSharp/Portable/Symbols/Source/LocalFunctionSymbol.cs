@@ -167,7 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics: diagnostics);
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilation: false);
-            ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(parameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(parameters, diagnostics, modifyCompilation: false);
             // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
 
@@ -232,7 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
             }
 
-            returnType.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
             if (returnType.ContainsNullableReferenceTypes())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);

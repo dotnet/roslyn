@@ -317,16 +317,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
-                ReturnType.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
                 if (ReturnType.ContainsNullableReferenceTypes())
                 {
                     this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
-                    ReportNullableReferenceTypesIfNeeded(diagnostics, location);
                 }
 
-                ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(Parameters, diagnostics);
                 ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
-                ParameterHelpers.ReportNullableReferenceTypesIfNeeded(Parameters, diagnostics);
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers => _refCustomModifiers;

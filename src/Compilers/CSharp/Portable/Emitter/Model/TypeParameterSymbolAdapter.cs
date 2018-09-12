@@ -247,8 +247,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (type.SpecialType)
                 {
                     case SpecialType.System_Object:
-                        // Avoid emitting unnecessary object constraint.
-                        continue;
+                        Debug.Assert(!type.IsAnnotated);
+                        break;
                     case SpecialType.System_ValueType:
                         seenValueType = true;
                         break;

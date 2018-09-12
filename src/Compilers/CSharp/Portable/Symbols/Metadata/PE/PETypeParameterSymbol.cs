@@ -206,15 +206,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             }
                         }
 
-                        // Drop 'System.Object' constraint type.
-                        if (typeSymbol.SpecialType == SpecialType.System_Object)
+                        // PROTOTYPE(NullableReferenceTypes): Test different [NonNullTypes] on method and containing type.
+                        var type = TypeSymbolWithAnnotations.Create(this, typeSymbol);
+                        type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
+
+                        // Drop 'System.Object?' constraint type.
+                        if (type.SpecialType == SpecialType.System_Object && type.IsAnnotated)
                         {
                             continue;
                         }
 
-                        // PROTOTYPE(NullableReferenceTypes): Test different [NonNullTypes] on method and containing type.
-                        var type = TypeSymbolWithAnnotations.Create(this, typeSymbol);
-                        type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
                         type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, constraintHandle, moduleSymbol);
 
                         symbolsBuilder.Add(type);

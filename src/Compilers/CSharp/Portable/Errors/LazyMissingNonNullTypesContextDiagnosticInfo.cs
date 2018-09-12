@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override DiagnosticInfo ResolveInfo()
         {
-            return _type.IsValueType ? null : Symbol.ReportNullableReferenceTypesIfNeeded(_compilation, _context);
+            return !_type.IsNull && (_type.IsValueType || _type.IsErrorType()) ? null : Symbol.ReportNullableReferenceTypesIfNeeded(_compilation, _context);
         }
     }
 }
+

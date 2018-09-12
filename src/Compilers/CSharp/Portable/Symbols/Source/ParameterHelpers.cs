@@ -144,26 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void ReportNullableReferenceTypesIfNeeded(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
-        {
-            foreach (var parameter in parameters)
-            {
-                if (parameter.Type.ContainsNullableReferenceTypes())
-                {
-                    parameter.ReportNullableReferenceTypesIfNeeded(diagnostics, parameter.GetNonNullSyntaxNode().Location);
-                }
-            }
-        }
-
-        internal static void ReportAnnotatedUnconstrainedTypeParameters(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
-        {
-            foreach (var parameter in parameters)
-            {
-                var location = parameter.GetNonNullSyntaxNode().Location;
-                parameter.Type.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
-            }
-        }
-
         private static void CheckParameterModifiers(
             ParameterSyntax parameter, DiagnosticBag diagnostics)
         {

@@ -352,10 +352,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), nullableSyntax.QuestionToken.GetLocation());
                             }
-                            else if (!typeArgument.IsValueType)
+                            else if (!typeArgument.IsValueType && !typeArgument.IsErrorType())
                             {
                                 Symbol.ReportNullableReferenceTypesIfNeeded(Compilation, NonNullTypesContext, diagnostics, nullableSyntax.QuestionToken.GetLocation());
                             }
+                        }
+                        else
+                        {
+                            diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), nullableSyntax.QuestionToken.GetLocation());
                         }
 
                         if (!ShouldCheckConstraints)
@@ -374,6 +378,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 conversions = conversions.WithNullability(includeNullability: false);
                             }
                             type.CheckConstraints(this.Compilation, conversions, location, diagnostics);
+                        }
+                        else if (constructedType.TypeSymbol.IsUnconstrainedTypeParameter())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, syntax.Location);
                         }
 
                         return constructedType;
@@ -451,6 +459,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (a.QuestionToken.IsKind(SyntaxKind.QuestionToken))
                             {
                                 type = TypeSymbolWithAnnotations.Create(array, isNullableIfReferenceType: true);
+
+                                if (InExecutableBinder)
+                                {
+                                    // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
+                                    // Types created outside executable context should be checked by the responsible symbol (the method symbol checks its return type, for instance).
+                                    // We still need to delay that check when binding in an attribute argument
+                                    if (!ShouldCheckConstraintsNullability)
+                                    {
+                                        diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, type: default), a.QuestionToken.GetLocation());
+                                    }
+                                    else
+                                    {
+                                        Symbol.ReportNullableReferenceTypesIfNeeded(Compilation, NonNullTypesContext, diagnostics, a.QuestionToken.GetLocation());
+                                    }
+                                }
+                                else
+                                {
+                                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, type: default), a.QuestionToken.GetLocation());
+                                }
                             }
                             else
                             {

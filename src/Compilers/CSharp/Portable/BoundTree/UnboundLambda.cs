@@ -480,7 +480,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!returnType.IsNull)
             {
-                returnType.ReportAnnotatedUnconstrainedTypeParameterIfAny(lambdaSymbol.DiagnosticLocation, diagnostics);
                 if (returnType.ContainsNullableReferenceTypes())
                 {
                     binder.Compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
@@ -488,7 +487,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(lambdaParameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(lambdaParameters, diagnostics, modifyCompilation: false);
             // Note: we don't need to warn on annotations used without NonNullTypes context for lambdas, as this is handled in binding already
 

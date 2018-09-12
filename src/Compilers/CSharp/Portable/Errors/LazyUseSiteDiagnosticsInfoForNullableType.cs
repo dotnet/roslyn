@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return _possiblyNullableTypeSymbol.TypeSymbol.OriginalDefinition.GetUseSiteDiagnostic();
             }
+            else if (_possiblyNullableTypeSymbol.TypeSymbol.IsUnconstrainedTypeParameter())
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_NullableUnconstrainedTypeParameter);
+            }
 
             return null;
         }

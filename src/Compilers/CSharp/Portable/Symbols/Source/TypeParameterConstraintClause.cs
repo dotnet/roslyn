@@ -29,47 +29,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly TypeParameterConstraintClause Empty = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.None,
             ImmutableArray<TypeSymbolWithAnnotations>.Empty,
-            clauseSyntax: default,
             typeConstraintsSyntax: default,
             otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
 
         internal static TypeParameterConstraintClause Create(
             TypeParameterConstraintKind constraints,
             ImmutableArray<TypeSymbolWithAnnotations> constraintTypes,
-            TypeParameterConstraintClauseSyntax clauseSyntax = default,
             ImmutableArray<TypeConstraintSyntax> typeConstraintsSyntax = default)
         {
             Debug.Assert(!constraintTypes.IsDefault);
             if (constraints == TypeParameterConstraintKind.None && constraintTypes.IsEmpty)
             {
-                Debug.Assert(clauseSyntax is null);
                 Debug.Assert(typeConstraintsSyntax.IsDefault);
                 return Empty;
             }
-            return new TypeParameterConstraintClause(constraints, constraintTypes, clauseSyntax, typeConstraintsSyntax, otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
+            return new TypeParameterConstraintClause(constraints, constraintTypes, typeConstraintsSyntax, otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
 
         private TypeParameterConstraintClause(
             TypeParameterConstraintKind constraints,
             ImmutableArray<TypeSymbolWithAnnotations> constraintTypes,
-            TypeParameterConstraintClauseSyntax clauseSyntax,
             ImmutableArray<TypeConstraintSyntax> typeConstraintsSyntax,
             ImmutableArray<TypeParameterConstraintClause> otherPartialDeclarations)
         {
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
-            this.ClauseSyntax = clauseSyntax;
             this.TypeConstraintsSyntax = typeConstraintsSyntax;
             this.OtherPartialDeclarations = otherPartialDeclarations;
         }
 
         public readonly TypeParameterConstraintKind Constraints;
         public readonly ImmutableArray<TypeSymbolWithAnnotations> ConstraintTypes;
-
-        /// <summary>
-        /// Syntax for the constraint clause. Populated from early constraint checking step only.
-        /// </summary>
-        internal readonly TypeParameterConstraintClauseSyntax ClauseSyntax;
 
         /// <summary>
         /// Syntax for the constraint types. Populated from early constraint checking step only.
@@ -84,11 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty;
 
-        internal bool IsEarly => !(ClauseSyntax is null);
+        internal bool IsEarly => !TypeConstraintsSyntax.IsDefault;
 
         internal TypeParameterConstraintClause AddPartialDeclaration(TypeParameterConstraintClause other)
         {
-            return new TypeParameterConstraintClause(Constraints, ConstraintTypes, ClauseSyntax, TypeConstraintsSyntax, OtherPartialDeclarations.Add(other));
+            return new TypeParameterConstraintClause(Constraints, ConstraintTypes, TypeConstraintsSyntax, OtherPartialDeclarations.Add(other));
         }
     }
 

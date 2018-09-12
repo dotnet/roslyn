@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var constraintTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             var syntaxBuilder = ArrayBuilder<TypeConstraintSyntax>.GetInstance();
             SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax = constraintClauseSyntax.Constraints;
+            Debug.Assert(!InExecutableBinder); // Cannot eagerly report diagnostics handled by LazyMissingNonNullTypesContextDiagnosticInfo 
 
             for (int i = 0, n = constraintsSyntax.Count; i < n; i++)
             {
@@ -115,9 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
                         }
 
-                        if (((ClassOrStructConstraintSyntax)syntax).QuestionToken.IsKind(SyntaxKind.QuestionToken))
+                        SyntaxToken questionToken = ((ClassOrStructConstraintSyntax)syntax).QuestionToken;
+                        if (questionToken.IsKind(SyntaxKind.QuestionToken))
                         {
                             constraints |= TypeParameterConstraintKind.NullableReferenceType;
+                            diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, type: default), questionToken.GetLocation());
                         }
                         else
                         {
@@ -198,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return TypeParameterConstraintClause.Create(constraints, constraintTypes.ToImmutableAndFree(), constraintClauseSyntax, syntaxBuilder.ToImmutableAndFree());
+            return TypeParameterConstraintClause.Create(constraints, constraintTypes.ToImmutableAndFree(), syntaxBuilder.ToImmutableAndFree());
         }
 
         /// <summary>
@@ -213,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeSymbolWithAnnotations> constraintTypes,
             DiagnosticBag diagnostics)
         {
-            if (!IsValidConstraintType(syntax, type.TypeSymbol, diagnostics))
+            if (!IsValidConstraintType(syntax, type, diagnostics))
             {
                 return false;
             }
@@ -278,8 +281,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if the type is a valid constraint type.
         /// Otherwise returns false and generates a diagnostic.
         /// </summary>
-        private static bool IsValidConstraintType(TypeConstraintSyntax syntax, TypeSymbol type, DiagnosticBag diagnostics)
+        private static bool IsValidConstraintType(TypeConstraintSyntax syntax, TypeSymbolWithAnnotations typeWithAnnotations, DiagnosticBag diagnostics)
         {
+            TypeSymbol type = typeWithAnnotations.TypeSymbol;
+
             switch (type.SpecialType)
             {
                 case SpecialType.System_Enum:
@@ -292,6 +297,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SpecialType.System_Object:
+                    if (typeWithAnnotations.IsAnnotated)
+                    {
+                        // "Constraint cannot be special class '{0}'"
+                        Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, typeWithAnnotations);
+                        return false;
+                    }
+
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureObjectGenericTypeConstraint, diagnostics);
+                    break;
+
                 case SpecialType.System_ValueType:
                 case SpecialType.System_Array:
                     // "Constraint cannot be special class '{0}'"
