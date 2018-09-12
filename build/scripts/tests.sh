@@ -58,9 +58,9 @@ do
     deps_json="${file_name%.*}".deps.json
     runtimeconfig_json="${file_name%.*}".runtimeconfig.json
 
-    # If the user specifies a test on the command line, only run that one
+    # If the user specifies a test assembly on the command line, only run that one
     # "${3:-}" => take second arg, empty string if unset
-    if [[ ("${3:-}" != "") && (! "${file_name}" =~ "${2:-}") ]]
+    if [[ ("${3:-}" != "") && (! "${file_name}" =~ "${3:-}") ]]
     then
         echo "Skipping ${file_name}"
         continue
@@ -83,7 +83,10 @@ do
     fi
 
     # https://github.com/dotnet/roslyn/issues/29380
-    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}" -parallel none 
+    # Pass additional arguments on to xunit_console directly.
+    # This allows you to (for example) run a single test method of a single test assembly, like so:
+    # ./build/scripts/tests.sh Debug dotnet Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests -method "*.Query_01"
+    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}" -parallel none "${@:4}"
     then
         echo "Assembly ${file_name[@]} passed"
     else

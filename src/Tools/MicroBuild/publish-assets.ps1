@@ -124,7 +124,9 @@ function Publish-Entry($publishData, [switch]$isBranch) {
 
     # Finally get our channels uploaded to versions
     foreach ($channel in $publishData.channels) {
-        Publish-Channel $packageDir $channel
+        foreach ($nugetKind in $publishData.nugetKind) {
+            Publish-Channel (Join-Path $nugetDir $nugetKind) $channel
+        }
     }
 
     exit 0
