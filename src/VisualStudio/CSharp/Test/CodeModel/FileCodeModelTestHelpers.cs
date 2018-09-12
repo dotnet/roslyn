@@ -35,8 +35,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                 WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance;
 
                 var visualStudioWorkspaceMock = new MockVisualStudioWorkspace(workspace);
+                var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
 
-                var state = new CodeModelState(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), serviceProvider, project.LanguageServices, visualStudioWorkspaceMock, workspace.ExportProvider.GetExportedValue<ProjectCodeModelFactory>());
+                var state = new CodeModelState(
+                    threadingContext,
+                    serviceProvider,
+                    project.LanguageServices,
+                    visualStudioWorkspaceMock,
+                    new ProjectCodeModelFactory(visualStudioWorkspaceMock, serviceProvider, threadingContext));
 
                 var codeModel = FileCodeModel.Create(state, null, document, new MockTextManagerAdapter()).Handle;
 
