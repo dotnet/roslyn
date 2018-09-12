@@ -5171,7 +5171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to First operand in a binary &apos;If&apos; expression must be nullable or a reference type..
+        '''  Looks up a localized string similar to First operand in a binary &apos;If&apos; expression must be a nullable value type, a reference type, or an unconstrained generic type..
         '''</summary>
         Friend ReadOnly Property ERR_IllegalCondTypeInIIF() As String
             Get

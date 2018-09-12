@@ -16059,10 +16059,10 @@ BC33035: Type 'c2' must define operator 'IsTrue' to be used in a 'OrElse' expres
     </compilation>)
 
             Dim expectedErrors1 = <errors>
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
                 Console.WriteLine(If(choice1 &lt; choice2, 1))
                                      ~~~~~~~~~~~~~~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
                 Console.WriteLine(If(booleanVar, "Test returns True."))
                                      ~~~~~~~~~~
                  </errors>

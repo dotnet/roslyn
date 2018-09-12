@@ -4858,8 +4858,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
-        <source>First operand in a binary 'If' expression must be nullable or a reference type.</source>
-        <target state="translated">Der erste Operand in einem binären If-Ausdruck muss ein Typ, der NULL-Werte zulässt, oder ein Referenztyp sein.</target>
+        <source>First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.</source>
+        <target state="needs-review-translation">Der erste Operand in einem binären If-Ausdruck muss ein Typ, der NULL-Werte zulässt, oder ein Referenztyp sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantCallIIF">
