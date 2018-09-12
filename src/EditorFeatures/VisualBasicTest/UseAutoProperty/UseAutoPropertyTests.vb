@@ -618,7 +618,7 @@ Namespace RoslynSandbox
 
         Private [|_bar|] As Object
 
-		Private ReadOnly Property Bar() As Object Implements IFoo.Bar
+        Private ReadOnly Property Bar() As Object Implements IFoo.Bar
             Get
                 Return _bar
             End Get
@@ -639,7 +639,7 @@ Namespace RoslynSandbox
     Friend Class Foo
         Implements IFoo
 
-		Private ReadOnly Property Bar() As Object Implements IFoo.Bar
+        Private ReadOnly Property Bar() As Object Implements IFoo.Bar
 
         Public Sub New(bar As Object)
             Me.Bar = bar
