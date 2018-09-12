@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ReportNullableReferenceTypesIfNeeded(_compilation, _context, _type);
         }
 
+        /// <summary>
+        /// A `?` annotation on a type that isn't a value type causes:
+        /// - an error before C# 8.0
+        /// - a warning outside of a NonNullTypes context
+        /// </summary>
         public static DiagnosticInfo ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, INonNullTypesContext context, TypeSymbolWithAnnotations type)
         {
             return !type.IsNull && (type.IsValueType || type.IsErrorType()) ? null : ReportNullableReferenceTypesIfNeeded(compilation, context);
