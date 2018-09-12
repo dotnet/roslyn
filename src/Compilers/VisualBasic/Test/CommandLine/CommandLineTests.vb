@@ -1734,9 +1734,9 @@ End Module").Path
         <Fact>
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
-            ' - update the command-line error for bad /langver flag (<see cref="ERRID.IDS_VBCHelp"/>)
             ' - update the "UpgradeProject" codefixer (not yet supported in VB)
             ' - update the IDE drop-down for selecting Language Version (not yet supported in VB)
+            ' - update project-system to recognize the new value and pass it through
             ' - update all the tests that call this canary
             ' - update the command-line documentation (CommandLine.md)
             AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "latest"},
@@ -1781,8 +1781,10 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.VisualBasic15_5.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
 
-            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
+
+            ' https//github.com/dotnet/roslyn/issues/29819 Once we are ready to remove the beta tag from VB 16 we should update Default/Latest accordingly
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
