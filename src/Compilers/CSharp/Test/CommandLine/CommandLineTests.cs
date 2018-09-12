@@ -151,6 +151,66 @@ dotnet_diagnostic.cs0169.severity = suppress");
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString());
+
+            Assert.Null(cmd.AnalyzerOptions);
+        }
+
+        [Fact]
+        public void AnalyzerConfigWithOptions()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+    int _f;
+}");
+            var additionalFile = dir.CreateFile("file.txt");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+dotnet_diagnostic.cs0169.severity = suppress
+dotnet_diagnostic.Warning01.severity = suppress
+my_option = my_val
+
+[*.txt]
+dotnet_diagnostic.cs0169.severity = suppress
+my_option2 = my_val2");
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:library",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                "/analyzer:" + Assembly.GetExecutingAssembly().Location,
+                "/nowarn:8032",
+                "/additionalfile:" + additionalFile.Path,
+                src.Path });
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+
+            var comp = cmd.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            AssertEx.SetEqual(new[] {
+                KeyValuePairUtil.Create("cs0169", ReportDiagnostic.Suppress),
+                KeyValuePairUtil.Create("warning01", ReportDiagnostic.Suppress)
+            }, tree.DiagnosticOptions);
+                
+            var provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+            var options = provider.GetOptions(tree);
+            Assert.NotNull(options);
+            Assert.True(options.TryGetValue("my_option", out string val));
+            Assert.Equal("my_val", val);
+            Assert.False(options.TryGetValue("my_option2", out _));
+            Assert.False(options.TryGetValue("dotnet_diagnostic.cs0169.severity", out _));
+
+            options = provider.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single());
+            Assert.NotNull(options);
+            Assert.True(options.TryGetValue("my_option2", out val));
+            Assert.Equal("my_val2", val);
+            Assert.False(options.TryGetValue("my_option", out _));
+            Assert.False(options.TryGetValue("dotnet_diagnostic.cs0169.severity", out _));
         }
 
         [Fact]
@@ -181,6 +241,8 @@ dotnet_diagnostic.cs0169.severity = garbage");
 $@"warning CS8500: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
 test.cs(4,9): warning CS0169: The field 'C._f' is never used
 ", outWriter.ToString());
+
+            Assert.Null(cmd.AnalyzerOptions);
         }
 
         [Fact]

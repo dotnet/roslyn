@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string PathToFile { get; }
 
+        /// <summary>
+        /// Comparer for sorting <see cref="EditorConfig"/> files by <see cref="NormalizedDirectory"/> path length.
+        /// </summary>
+        internal static Comparer<EditorConfig> DirectoryLengthComparer { get; } = Comparer<EditorConfig>.Create(
+            (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length));
+
         public ImmutableArray<Section> NamedSections { get; }
 
         private EditorConfig(
@@ -216,7 +222,7 @@ namespace Microsoft.CodeAnalysis
             /// Used to compare keys in <see cref="Properties"/>. The editorconfig spec defines property
             /// keys as being compared case-insensitively according to Unicode lower-case rules.
             /// </summary>
-            public static IEqualityComparer<string> PropertiesKeyComparer { get; } = CaseInsensitiveComparison.Comparer;
+            public static StringComparer PropertiesKeyComparer { get; } = CaseInsensitiveComparison.Comparer;
 
             public Section(string name, ImmutableDictionary<string, string> properties)
             {

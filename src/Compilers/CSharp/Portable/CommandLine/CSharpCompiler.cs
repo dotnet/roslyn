@@ -33,7 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override DiagnosticFormatter DiagnosticFormatter { get { return _diagnosticFormatter; } }
         protected internal new CSharpCommandLineArguments Arguments { get { return (CSharpCommandLineArguments)base.Arguments; } }
 
-        public override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)
+        public override Compilation CreateCompilation(
+            TextWriter consoleOutput,
+            TouchedFileLogger touchedFilesLogger,
+            ErrorLogger errorLogger,
+            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> syntaxDiagOptionsOpt)
         {
             var parseOptions = Arguments.ParseOptions;
 
@@ -48,16 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var normalizedFilePaths = new string[sourceFiles.Length];
             var diagnosticBag = DiagnosticBag.GetInstance();
 
-            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> allTreeDiagnosticOptions = default;
-            if (Arguments.AnalyzerConfigPaths.Length > 0)
-            {
-                allTreeDiagnosticOptions = ProcessAnalyzerConfigFiles(
-                    Arguments.AnalyzerConfigPaths,
-                    sourceFiles,
-                    ref hadErrors,
-                    diagnosticBag);
-            }
-
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
                 Parallel.For(0, sourceFiles.Length, UICultureUtilities.WithCurrentUICulture<int>(i =>
@@ -66,7 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     trees[i] = ParseFile(
                         parseOptions,
                         scriptParseOptions,
-                        allTreeDiagnosticOptions.IsDefault ? null : allTreeDiagnosticOptions[i],
+                        syntaxDiagOptionsOpt.IsDefault
+                            ? null
+                            : syntaxDiagOptionsOpt[i],
                         ref hadErrors,
                         sourceFiles[i],
                         diagnosticBag,
@@ -81,7 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     trees[i] = ParseFile(
                         parseOptions,
                         scriptParseOptions,
-                        allTreeDiagnosticOptions.IsDefault ? null : allTreeDiagnosticOptions[i],
+                        syntaxDiagOptionsOpt.IsDefault
+                            ? null
+                            : syntaxDiagOptionsOpt[i],
                         ref hadErrors,
                         sourceFiles[i],
                         diagnosticBag,
@@ -89,25 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(hadErrors == diagnosticBag.HasAnyErrors());
-
-            var diagnostics = new List<DiagnosticInfo>();
-
             // If errors had been reported in ParseFile, while trying to read files, then we should simply exit.
-            if (hadErrors)
+            if (ReportDiagnostics(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger))
             {
-                ReportErrors(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger);
+                Debug.Assert(hadErrors);
                 return null;
             }
-            else
-            {
-                foreach (var diag in diagnosticBag.AsEnumerable())
-                {
-                    diagnostics.Add(new DiagnosticInfo(MessageProvider, diag.Code, diag.Arguments.ToArray()));
-                }
-                diagnosticBag.Free();
-            }
 
+            var diagnostics = new List<DiagnosticInfo>();
             var uniqueFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < sourceFiles.Length; i++)
             {
@@ -160,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MetadataReferenceResolver referenceDirectiveResolver;
             var resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, out referenceDirectiveResolver);
-            if (ReportErrors(diagnostics, consoleOutput, errorLogger))
+            if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger))
             {
                 return null;
             }
