@@ -1560,7 +1560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isNullableOnly(source) && isNullableOnly(target))
             {
-                ExactOrBoundsInference(kind, source.WithIsAnnotated(false), target.WithIsAnnotated(false), ref useSiteDiagnostics);
+                ExactOrBoundsInference(kind, source.AsNotNullableReferenceType(), target.AsNotNullableReferenceType(), ref useSiteDiagnostics);
                 return true;
             }
 
@@ -2649,7 +2649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Merge top-level nullability only.
             if (first.IsNullable == false && second.IsNullable == true)
             {
-                return first.WithIsAnnotated(true);
+                return first.AsNullableReferenceType();
             }
             return first;
         }
