@@ -9876,7 +9876,7 @@ class C
 
             var result = ProcessUtilities.Run(s_CSharpCompilerExecutable, arguments: $"/nologo /t:library /analyzer:{analyzerFileName} {srcFileName}", workingDirectory: analyzerDir.Path);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '25'.", result.Output);
+                $"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.", result.Output);
 
             Assert.Equal(0, result.ExitCode);
         }
