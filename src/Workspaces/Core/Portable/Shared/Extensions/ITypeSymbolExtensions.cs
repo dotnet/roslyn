@@ -854,5 +854,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return type.IsValueType && type.TypeKind == TypeKind.Enum;
         }
+
+        public static bool IsMutableValueType(this ITypeSymbol type)
+        {
+            if (type.TypeKind != TypeKind.Struct)
+            {
+                return false;
+            }
+
+            foreach (var member in type.GetMembers())
+            {
+                if (member is IFieldSymbol fieldSymbol &&
+                    !(fieldSymbol.IsConst || fieldSymbol.IsReadOnly || fieldSymbol.IsStatic))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

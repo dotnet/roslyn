@@ -63,6 +63,39 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestSingleGetter4() As Task
+            ' Nullable(Of T) is a mutable value type. The diagnostic is not offered if the field is writable.
+            Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    [|dim i as integer?|]
+    readonly property P as integer?
+        get
+            return i
+        end get
+    end property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestSingleGetter5() As Task
+            ' Nullable(Of T) is a mutable value type. The diagnostic is offered if the field is read-only.
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    [|readonly dim i as integer?|]
+    readonly property P as integer?
+        get
+            return i
+        end get
+    end property
+end class",
+"class Class1
+    readonly property P as integer?
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestSingleSetter() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class Class1

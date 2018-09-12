@@ -40,6 +40,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestMutableValueType1()
+        {
+            // Nullable<T> is a mutable value type. The diagnostic is not offered if the field is writable.
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|int? i|];
+
+    int? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestMutableValueType2()
+        {
+            // Nullable<T> is a mutable value type. The diagnostic is offered if the field is read-only.
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|readonly int? i|];
+
+    int? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    int? P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestCSharp5_1()
         {
             await TestAsync(
@@ -951,7 +995,7 @@ partial class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|(int, string) i|];
+    [|readonly (int, string) i|];
 
     (int, string) P
     {
@@ -973,7 +1017,7 @@ partial class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|(int a, string b) i|];
+    [|readonly (int a, string b) i|];
 
     (int a, string b) P
     {
@@ -995,7 +1039,7 @@ partial class Class
             await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
-    [|(int a, string b) i|];
+    [|readonly (int a, string b) i|];
 
     (int c, string d) P
     {
@@ -1013,7 +1057,7 @@ partial class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|(int a, string) i|];
+    [|readonly (int a, string) i|];
 
     (int a, string) P
     {
@@ -1035,7 +1079,7 @@ partial class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|(int, string) i = (1, ""hello"")|];
+    [|readonly (int, string) i = (1, ""hello"")|];
 
     (int, string) P
     {
@@ -1054,7 +1098,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task Tuple_GetterAndSetter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     [|(int, string) i|];
@@ -1071,10 +1115,6 @@ partial class Class
             i = value;
         }
     }
-}",
-@"class Class
-{
-    (int, string) P { get; set; }
 }");
         }
 
