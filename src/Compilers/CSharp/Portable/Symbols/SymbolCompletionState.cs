@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// result in a deadlock.
         /// </summary>
         /// <param name="symbol">The owning source symbol.</param>
-        internal void ForceCompleteAttributesOnly(Symbol symbol, CancellationToken cancellationToken)
+        internal void DefaultForceComplete(Symbol symbol, CancellationToken cancellationToken)
         {
             Debug.Assert(symbol.RequiresCompletion);
             if (!HasComplete(CompletionPart.Attributes))
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Note: #3 above is an invariant that has existed in the code base for some time. It's not 100% clear
                 // whether this invariant is tied to correctness or not. The most compelling example though is 
                 // SourceEventSymbol which raises SymbolDeclaredEvent before CompletionPart.Attributes is noted as completed. 
-                // Many other implementations have this pattern but no apparent code which could dependd on it.
+                // Many other implementations have this pattern but no apparent code which could depend on it.
                 SpinWaitComplete(CompletionPart.Attributes, cancellationToken);
             }
 
