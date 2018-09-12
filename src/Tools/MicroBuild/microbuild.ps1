@@ -33,41 +33,6 @@ function Print-Usage() {
     Write-Host "  -help                     Print this message"
 }
 
-# Create the Insertion folder. This is where the insertion tool pulls all of its 
-# binaries from. 
-function Copy-InsertionItems() {
-    $insertionDir = Join-Path $configDir "Insertion"
-    Create-Directory $insertionDir
-
-    $items = @(
-        "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.json",
-        "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
-        "Vsix\Roslyn.VisualStudio.InteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json",
-        "Vsix\Roslyn.VisualStudio.InteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Vsix\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.json",
-        "Vsix\Roslyn.VisualStudio.Setup\Roslyn.VisualStudio.Setup.vsix",
-        "Vsix\CodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsman",
-        "Vsix\PortableFacades\PortableFacades.vsix",
-        "Vsix\PortableFacades\PortableFacades.vsman",
-        "Vsix\PortableFacades\PortableFacades.vsmand",
-        "Vsix\PortableFacades\PortableFacades.json",
-        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsix",
-        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsman",
-        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsmand",
-        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.json")
-
-
-    foreach ($item in $items) { 
-        $itemPath = Join-Path $configDir $item
-        Copy-Item $itemPath $insertionDir
-    }       
-
-    $devDivPackagesDir = Join-Path $configDir "DevDivPackages\Roslyn"
-    Create-Directory $devDivPackagesDir
-
-    Copy-Item (Join-Path $configDir "NuGet\VS\*.nupkg") $devDivPackagesDir
-}
-
 Push-Location $PSScriptRoot
 try {
     . (Join-Path $PSScriptRoot "..\..\..\build\scripts\build-utils.ps1")
@@ -95,18 +60,12 @@ try {
     $setupDir = Join-Path $repoDir "src\Setup"
 
     Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$true -build -cibuild:$true -official:$official -release:$release -sign -signType $signType -pack -testDesktop:$testDesktop -binaryLog -procdump }
-    Copy-InsertionItems
-
-    # Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
-    # and ready to be inserted 
-    $sentinelFile = Join-Path $configDir AllTestsPassed.sentinel
-    New-Item -Force $sentinelFile -type file
 
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | Stop-Process
 
     switch ($publishType) {
         "vsts" {
-            Exec-Block { & .\publish-assets.ps1 -configDir $configDir -branchName $branchName -mygetApiKey $mygetApiKey -nugetApiKey $nugetApiKey -gitHubUserName $githubUserName -gitHubToken $gitHubToken -gitHubEmail $gitHubEmail -test:$(-not $official) }
+            Exec-Block { & .\publish-assets.ps1 -config $config -branchName $branchName -mygetApiKey $mygetApiKey -nugetApiKey $nugetApiKey -gitHubUserName $githubUserName -gitHubToken $gitHubToken -gitHubEmail $gitHubEmail -test:$(-not $official) }
             break;
         }
         "blob" {
