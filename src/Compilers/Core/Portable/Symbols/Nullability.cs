@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Enumeration of the possible nullability states for types.
+    /// Enumeration of the possible nullability states for variables and values.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis
     /// o2.ToString(); // Warning reported
     /// if (o2 != null) o2.ToString(); // No warning reported
     /// </code>
-    /// <code>o1</code> is inferred to be <see cref="NonNull"/>, despite being declared
-    /// <see cref="MaybeNull"/>, and no warning is reported when it is dereferenced.
-    /// However, the first dereference of <code>o2</code> has not been inferred to
-    /// be <see cref="NonNull"/>, so a warning is reported. The second dereference
-    /// occurs inside an <code>if</code> statement check for <see langword="null"/>, so
-    /// the compiler can infer that <code>o2</code> must not be <see langword="null"/> 
+    /// The use of <code>o1</code> is inferred to be <see cref="NonNull"/>, despite 
+    /// being declared <see cref="MaybeNull"/>, and no warning is reported when it 
+    /// is dereferenced. However, the first dereference of <code>o2</code> has not 
+    /// been inferred to be <see cref="NonNull"/>, so a warning is reported. The second 
+    /// dereference occurs inside an <code>if</code> statement check for <see langword="null"/>,
+    /// so the compiler can infer that <code>o2</code> must not be <see langword="null"/> 
     /// inside the <code>if</code> statement.
     /// </para>
     /// <para>
@@ -63,24 +63,34 @@ namespace Microsoft.CodeAnalysis
     /// </code>
     /// This is because both <code>string</code> and <code>string?</code> can be substituted
     /// for <code>T</code>, so the user must account for the strictest possible scenario
-    /// in all cases.
+    /// in all cases. For this reason, variables and values of type unconstrained type
+    /// parameter are considered <see cref="MaybeNull"/> until checked.
     /// </para>
     /// </remarks>
     public enum Nullability
     {
         /// <summary>
-        /// There is no information on the current nullable state.
+        /// The given <see cref="SyntaxNode"/> or <see cref="IOperation"/> does not represent 
+        /// a variable or value, and does not have a nullability.
+        /// </summary>
+        /// <remarks>
+        /// This is used for statements, and for expressions that do not have nullabilities,
+        /// such as method groups.
+        /// </remarks>
+        NotApplicable = 0,
+        /// <summary>
+        /// There is no information on the current nullable state of the variable
+        /// or value.
         /// </summary>
         /// <remarks>
         /// This is used for legacy code scenarios, where a legacy API that does
         /// not provide nullability information is being used. Expressions that
         /// have unknown nullability are also referred to as oblivious expressions,
-        /// and they generally do not provide warnings when converting to 
-        /// <see langword="null"/>, or when dereferencing them.
+        /// and they generally do not provide warnings for assignment or dereference.
         /// </remarks>
-        Unknown = 0,
+        Unknown = 1,
         /// <summary>
-        /// The variable is either known or declared to be non-null.
+        /// The variable or value is either known or declared to be non-null.
         /// </summary>
         /// <remarks>
         /// It is possible for a variable to have a declared nullability of NonNull,
@@ -95,13 +105,13 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="MaybeNull"/>, because the compiler tracks null state regardless
         /// of the declared nullability.
         /// </remarks>
-        NonNull = 1,
+        NonNull = 2,
         /// <summary>
-        /// The variable is either known or declared to possibly be null.
+        /// The variable or value is either known or declared to possibly be null.
         /// </summary>
         /// <remarks>
         /// Nullable value types will always be considered to be <see cref="MaybeNull"/>.
         /// </remarks>
-        MaybeNull = 2
+        MaybeNull = 3
     }
 }

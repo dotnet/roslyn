@@ -72,7 +72,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
-        ImmutableArray<Nullability> TypeArgumentNullability { get; }
+        /// <summary>
+        /// Returns the nullability of the type arguments that have been substituted for the
+        /// type paramters.
+        /// </summary>
+        ImmutableArray<Nullability> TypeArgumentsNullability { get; }
 
         /// <summary>
         /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 

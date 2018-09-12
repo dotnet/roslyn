@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol Type { get; }
 
         /// <summary>
-        /// The initial declared nullability of this local. If the local's type was inferred (i.e. via <code>var</code>), then
+        /// The declared nullability of this local. If the local's type was inferred (i.e. via <code>var</code>), then
         /// this declared nullability is inferred from the expression that initialized the local.
         /// </summary>
         Nullability DeclaredNullability { get; }

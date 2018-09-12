@@ -21,8 +21,7 @@ Microsoft.CodeAnalysis.IFieldSymbol.DeclaredNullability.get -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.ILocalSymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnNullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentsNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
-Microsoft.CodeAnalysis.INamedTypeSymbol.TypeArgumentNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
-Microsoft.CodeAnalysis.INamedTypeSymbol.TypeParameterNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.INamedTypeSymbol.TypeArgumentsNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.IOperation.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
 Microsoft.CodeAnalysis.IParameterSymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.IPropertySymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
@@ -32,9 +31,10 @@ Microsoft.CodeAnalysis.ISymbol.ToMinimalDisplayParts(Microsoft.CodeAnalysis.Sema
 Microsoft.CodeAnalysis.ISymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.Nullability nullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
 Microsoft.CodeAnalysis.ITypeParameterSymbol.ConstraintsNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.Nullability.MaybeNull = 2 -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.Nullability.NonNull = 1 -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.Nullability.Unknown = 0 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.MaybeNull = 3 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.NonNull = 2 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.NotApplicable = 0 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.Unknown = 1 -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.OperationKind.SuppressNullableWarning = 97 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsImplicit.get -> bool
 Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation
