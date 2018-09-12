@@ -156,15 +156,18 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
+using System.Net.Http;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Xml.XPath;
@@ -188,8 +191,10 @@ public class TestAnalyzer : DiagnosticAnalyzer
         typeof(ZipFile),                  // System.IO.Compression.ZipFile
         typeof(FileOptions),              // System.IO.FileSystem
         typeof(FileAttributes),           // System.IO.FileSystem.Primitives
+        typeof(HttpClient),               // System.Net.Http
         typeof(AuthenticatedStream),      // System.Net.Security
         typeof(IOControlCode),            // System.Net.Sockets
+        typeof(RuntimeInformation),       // System.Runtime.InteropServices.RuntimeInformation
         typeof(SerializationException),   // System.Runtime.Serialization.Primitives
         typeof(GenericIdentity),          // System.Security.Claims
         typeof(Aes),                      // System.Security.Cryptography.Algorithms
@@ -202,6 +207,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         typeof(XPathDocument),            // System.Xml.XPath
         typeof(XDocumentExtensions),      // System.Xml.XPath.XDocument
         typeof(CodePagesEncodingProvider),// System.Text.Encoding.CodePages
+        typeof(ValueTask<>),              // System.Threading.Tasks.Extensions
 
         // csc doesn't ship with facades for the following assemblies. 
         // Analyzers can't use them unless they carry the facade with them.
@@ -239,10 +245,12 @@ public class TestAnalyzer : DiagnosticAnalyzer
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_IO_FileSystem),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_IO_FileSystem_Primitives),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_IO_Pipes),
+                    MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Net_Http),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Net_Security),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Net_Sockets),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Reflection_TypeExtensions),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Runtime),
+                    MetadataReference.CreateFromImage(TestResources.NetFX.netstandard11.System_Runtime_InteropServices_RuntimeInformation),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Runtime_Serialization_Primitives),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Security_AccessControl),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Security_Claims),
@@ -253,6 +261,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Security_Cryptography_X509Certificates),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Security_Principal_Windows),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Threading_Thread),
+                    MetadataReference.CreateFromImage(TestResources.NetFX.netstandard10.System_Threading_Tasks_Extensions),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Xml_ReaderWriter),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Xml_XmlDocument),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Xml_XPath),
