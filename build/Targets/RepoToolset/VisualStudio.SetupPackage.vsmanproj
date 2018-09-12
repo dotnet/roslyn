@@ -2,6 +2,7 @@
 <Project>
   <!--
     Required variables:
+      OfficialBuild                   True for official builds.
       ComponentName                   Name of the component (VSIX)
       SetupOutputPath                 Directory to drop Willow manifests to.
       ComponentIntermediateOutputPath Intermediate directory where the component is being built.
@@ -17,7 +18,9 @@
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.props" />
 
   <PropertyGroup>
-    <FinalizeManifest>true</FinalizeManifest>
+    <FinalizeManifest>false</FinalizeManifest>
+    <FinalizeManifest Condition="'$(OfficialBuild)' == 'true'">true</FinalizeManifest>
+    
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
     <IsPackage>true</IsPackage>
     <TargetName>$(ComponentName)</TargetName>
@@ -29,10 +32,6 @@
     <_PackageStubFiles Include="$(ComponentIntermediateOutputPath)*.stub"/>
     <MergeManifest Include="@(_PackageStubFiles->'$(SetupOutputPath)%(Filename).json')"/>
   </ItemGroup>
-
-  <PropertyGroup Condition="'$(OfficialBuild)' != 'true'">
-    <FinalizeManifest>false</FinalizeManifest>
-  </PropertyGroup>
 
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
 </Project>

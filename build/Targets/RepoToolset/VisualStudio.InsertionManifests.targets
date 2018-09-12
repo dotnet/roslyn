@@ -23,6 +23,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <_Args Include="OfficialBuild=$(OfficialBuild)" />
       <_Args Include="ComponentName=$(_ComponentName)"/>
       <_Args Include="SetupOutputPath=$(VisualStudioSetupInsertionPath)"/>
       <_Args Include="ComponentIntermediateOutputPath=$(VisualStudioSetupIntermediateOutputPath)$(_ComponentName)\"/>
