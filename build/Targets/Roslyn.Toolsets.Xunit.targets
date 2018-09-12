@@ -11,7 +11,6 @@
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
     <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
     <PackageReference Include="xunit.runner.console" Version="$(XUnitRunnerConsoleVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
   </ItemGroup>
 
   <!-- 
