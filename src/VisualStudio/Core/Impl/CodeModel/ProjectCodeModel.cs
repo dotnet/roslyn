@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public void OnProjectClosed()
         {
             _codeModelCache?.OnProjectClosed();
+            _projectCodeModelFactory.OnProjectClosed(_projectId);
         }
 
         private CodeModelProjectCache GetCodeModelCache()

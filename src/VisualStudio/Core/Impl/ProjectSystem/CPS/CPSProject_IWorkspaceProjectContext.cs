@@ -160,6 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void Dispose()
         {
+            _projectCodeModel?.OnProjectClosed();
             _visualStudioProject.RemoveFromWorkspace();
         }
 

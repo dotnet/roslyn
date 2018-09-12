@@ -48,6 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return projectCodeModel;
         }
 
+        internal void OnProjectClosed(ProjectId projectId)
+        {
+            _projectCodeModels.TryRemove(projectId, out _);
+        }
+
         public ProjectCodeModel TryGetProjectCodeModel(ProjectId id)
         {
             _projectCodeModels.TryGetValue(id, out var projectCodeModel);
