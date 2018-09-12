@@ -343,24 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbolWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
                         TypeSymbolWithAnnotations constructedType = typeArgument.SetIsAnnotated(Compilation);
 
-                        if (InExecutableBinder)
-                        {
-                            // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
-                            // Types created outside executable context should be checked by the responsible symbol (the method symbol checks its return type, for instance).
-                            // We still need to delay that check when binding in an attribute argument
-                            if (!ShouldCheckConstraintsNullability)
-                            {
-                                diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), nullableSyntax.QuestionToken.GetLocation());
-                            }
-                            else if (!typeArgument.IsValueType && !typeArgument.IsErrorType())
-                            {
-                                Symbol.ReportNullableReferenceTypesIfNeeded(Compilation, NonNullTypesContext, diagnostics, nullableSyntax.QuestionToken.GetLocation());
-                            }
-                        }
-                        else
-                        {
-                            diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), nullableSyntax.QuestionToken.GetLocation());
-                        }
+                        reportNullableReferenceTypesIfNeeded(nullableSyntax.QuestionToken, typeArgument);
 
                         if (!ShouldCheckConstraints)
                         {
@@ -459,25 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (a.QuestionToken.IsKind(SyntaxKind.QuestionToken))
                             {
                                 type = TypeSymbolWithAnnotations.Create(array, isNullableIfReferenceType: true);
-
-                                if (InExecutableBinder)
-                                {
-                                    // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
-                                    // Types created outside executable context should be checked by the responsible symbol (the method symbol checks its return type, for instance).
-                                    // We still need to delay that check when binding in an attribute argument
-                                    if (!ShouldCheckConstraintsNullability)
-                                    {
-                                        diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, type: default), a.QuestionToken.GetLocation());
-                                    }
-                                    else
-                                    {
-                                        Symbol.ReportNullableReferenceTypesIfNeeded(Compilation, NonNullTypesContext, diagnostics, a.QuestionToken.GetLocation());
-                                    }
-                                }
-                                else
-                                {
-                                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, type: default), a.QuestionToken.GetLocation());
-                                }
+                                reportNullableReferenceTypesIfNeeded(a.QuestionToken);
                             }
                             else
                             {
@@ -534,6 +499,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+            }
+
+            void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeSymbolWithAnnotations typeArgument = default)
+            {
+                if (InExecutableBinder)
+                {
+                    // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
+                    // We still need to delay that check when binding in an attribute argument
+                    if (!ShouldCheckConstraintsNullability)
+                    {
+                        diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), questionToken.GetLocation());
+                    }
+                    else
+                    {
+                        DiagnosticInfo info = LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(Compilation, NonNullTypesContext, typeArgument);
+
+                        if (!(info is null))
+                        {
+                            diagnostics.Add(info, questionToken.GetLocation());
+                        }
+                    }
+                }
+                else
+                {
+                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), questionToken.GetLocation());
+                }
             }
         }
 
