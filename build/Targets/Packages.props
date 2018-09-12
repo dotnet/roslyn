@@ -264,11 +264,8 @@
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
-<<<<<<< HEAD
     <UsingToolVSSDK>true</UsingToolVSSDK>
-=======
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
->>>>>>> Cleanup package references
   </PropertyGroup>
 
   <PropertyGroup>
