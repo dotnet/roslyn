@@ -31,6 +31,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : AbstractLanguageService
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>

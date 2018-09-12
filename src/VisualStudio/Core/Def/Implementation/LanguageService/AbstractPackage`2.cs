@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal abstract partial class AbstractPackage<TPackage, TLanguageService> : AbstractPackage
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>

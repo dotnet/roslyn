@@ -22,6 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject
     {
         #region Readonly fields

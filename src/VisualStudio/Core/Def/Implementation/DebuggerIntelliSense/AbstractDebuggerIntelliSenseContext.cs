@@ -21,6 +21,7 @@ using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal abstract class AbstractDebuggerIntelliSenseContext : IDisposable
     {
         private readonly IWpfTextView _textView;

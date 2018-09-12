@@ -8,6 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed partial class VisualStudioMetadataReference : IDisposable
     {

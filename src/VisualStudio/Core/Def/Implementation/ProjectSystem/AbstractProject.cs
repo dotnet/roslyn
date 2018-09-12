@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
     // NOTE: Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptProject derives from AbstractProject.
 #pragma warning disable CS0618 // IVisualStudioHostProject is obsolete
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
 #pragma warning restore CS0618 // IVisualStudioHostProject is obsolete
     {

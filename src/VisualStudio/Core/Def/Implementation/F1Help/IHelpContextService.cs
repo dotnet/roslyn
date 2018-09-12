@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.F1Help
 {
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IHelpContextService : ILanguageService
     {
         string Language { get; }

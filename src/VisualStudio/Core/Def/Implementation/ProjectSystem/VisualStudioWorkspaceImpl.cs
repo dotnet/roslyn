@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// <summary>
     /// The Workspace for running inside Visual Studio.
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspace
     {
         private static readonly IntPtr s_docDataExisting_Unknown = new IntPtr(-1);

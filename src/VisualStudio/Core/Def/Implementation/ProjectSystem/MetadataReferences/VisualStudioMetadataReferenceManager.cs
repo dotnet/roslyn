@@ -26,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// that can be passed to the compiler. These snapshot references serve the underlying metadata blobs from a VS-wide storage, if possible, 
     /// from <see cref="ITemporaryStorageService"/>.
     /// </remarks>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService
     {
         private static readonly Guid s_IID_IMetaDataImport = new Guid("7DAC8207-D3AE-4c75-9B67-92801A497D44");

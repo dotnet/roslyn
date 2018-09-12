@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
+    [InternalsUsedIn(LanguageNames.FSharp)]
     [Export(typeof(MiscellaneousFilesWorkspace))]
     internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IVsRunningDocTableEvents2
     {

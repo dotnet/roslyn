@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     /// <summary>
     /// Project context to initialize properties and items of a Workspace project created with <see cref="IWorkspaceProjectContextFactory.CreateProjectContext(string, string, string, Guid, object, string)"/>. 
     /// </summary>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IWorkspaceProjectContext : IDisposable
     {
         // Project properties.

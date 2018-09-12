@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// It guarantees the existence of a Dispose method, which allows the workspace/project system layer to clean up file system watchers for this
     /// document when they are no longer needed.
     /// </remarks>
+    [InternalsUsedIn(LanguageNames.FSharp)]
     internal interface IVisualStudioHostDocument : IDisposable
     {
         /// <summary>
