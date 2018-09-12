@@ -576,6 +576,54 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")>
+        Public Async Function FieldReturnedInMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_s|] As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s
+    End Function
+End Class",
+"Class C
+    Private ReadOnly _s As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")>
+        Public Async Function FieldReadInMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_s|] As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s.ToUpper()
+    End Function
+End Class",
+"Class C
+    Private ReadOnly _s As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s.ToUpper()
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FieldAssignedInProperty() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
