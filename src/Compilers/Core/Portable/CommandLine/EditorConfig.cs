@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string PathToFile { get; }
 
+        /// <summary>
+        /// Comparer for sorting <see cref="EditorConfig"/> files by <see cref="NormalizedDirectory"/> path length.
+        /// </summary>
+        internal static Comparer<EditorConfig> DirectoryLengthComparer { get; } = Comparer<EditorConfig>.Create(
+            (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length));
+
         public ImmutableArray<Section> NamedSections { get; }
 
         private EditorConfig(

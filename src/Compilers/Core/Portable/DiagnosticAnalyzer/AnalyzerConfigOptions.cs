@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public abstract class AnalyzerConfigOptions
     {
         /// <summary>
-        /// Comparer that should be used for all analyzer config keys. This is a case-insensitve comparison based
+        /// Comparer that should be used for all analyzer config keys. This is a case-insensitive comparison based
         /// on Unicode case sensitivity rules for identifiers.
         /// </summary>
         public static StringComparer KeyComparer { get; } = EditorConfig.Section.PropertiesKeyComparer;

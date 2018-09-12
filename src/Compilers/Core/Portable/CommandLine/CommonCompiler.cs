@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,
             ErrorLogger errorLoggerOpt,
-            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> syntaxDiagnoticOptionsOpt);
+            ImmutableArray<TreeOptions> syntaxDiagnosticOptionsOpt);
 
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
@@ -317,8 +317,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Since paths are compared as ordinal string comparisons, the least nested
             // file will always be the first in sort order
-            if (!analyzerConfigs.IsSorted(Comparer<EditorConfig>.Create(
-                    (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length))))
+            if (!analyzerConfigs.IsSorted(EditorConfig.DirectoryLengthComparer))
             {
                 throw new ArgumentException(
                     "Analyzer config files must be sorted from shortest to longest path",
@@ -516,8 +515,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Sort editorconfig paths from shortest to longest.
-            configs.Sort(Comparer<EditorConfig>.Create(
-                (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length)));
+            configs.Sort(EditorConfig.DirectoryLengthComparer);
 
             analyzerConfigs = configs.ToImmutableAndFree();
             return true;
@@ -911,7 +909,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
-            var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
 
             CompileAndEmit(
                 touchedFilesLogger,
