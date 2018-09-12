@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Classification;
+using Microsoft.CodeAnalysis.Classification;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
 {
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             => node is PropertyDeclarationSyntax;
 
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
-            => node is IdentifierNameSyntax identifier && !identifier.Identifier.CouldBeKeyword();
+            => node is IdentifierNameSyntax identifier && ClassificationHelpers.GetClassification(node.GetFirstToken()) == ClassificationTypeNames.Identifier;
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
             => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
