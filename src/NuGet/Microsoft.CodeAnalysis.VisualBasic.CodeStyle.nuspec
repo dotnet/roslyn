@@ -19,12 +19,14 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
     <developmentDependency>true</developmentDependency>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
     <file src="Dlls\BasicCodeStyle\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll" target="analyzers\dotnet\vb" />
@@ -32,6 +34,12 @@
     <file src="Dlls\CodeStyle\Microsoft.CodeAnalysis.CodeStyle.dll" target="analyzers\dotnet\vb" />
     <file src="Dlls\CodeStyleFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll" target="analyzers\dotnet\vb" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\BasicCodeStyle\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.resources.dll" target="analyzers\dotnet\vb" />
+    <file src="Dlls\BasicCodeStyleFixes\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.resources.dll" target="analyzers\dotnet\vb" />
+    <file src="Dlls\CodeStyle\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll" target="analyzers\dotnet\vb" />
+    <file src="Dlls\CodeStyleFixes\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll" target="analyzers\dotnet\vb" />
 
     <!-- Scripts -->
     <file src="..\..\src\Setup\PowerShell\install.ps1" target="tools\" />

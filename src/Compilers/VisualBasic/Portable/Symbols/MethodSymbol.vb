@@ -448,6 +448,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns>True if the method can be used as an entry point.</returns>
         Friend ReadOnly Property IsEntryPointCandidate As Boolean
             Get
+                If Me.ContainingType.IsEmbedded Then
+                    Return False
+                End If
+
+                If Me.IsSubmissionConstructor Then
+                    Return False
+                End If
+
+                If Me.IsImplicitlyDeclared Then
+                    Return False
+                End If
+
                 Return String.Equals(Name, WellKnownMemberNames.EntryPointMethodName, StringComparison.OrdinalIgnoreCase)
             End Get
         End Property

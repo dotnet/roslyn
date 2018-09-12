@@ -237,7 +237,7 @@ CodeStyleOptions.QualifyPropertyAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function QualifyMethodAccess_FunctionCallWithReturnType() As Task
             Await TestAsyncWithOption(
 "Class C : Function M() As Integer : Return [|M|]() : End Function : End Class",
@@ -246,7 +246,7 @@ CodeStyleOptions.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function QualifyMethodAccess_ChainedAccess() As Task
             Await TestAsyncWithOption(
 "Class C : Function M() As String : Return [|M|]().ToString() : End Function : End Class",
@@ -255,7 +255,7 @@ CodeStyleOptions.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function QualifyMethodAccess_ConditionalAccess() As Task
             Await TestAsyncWithOption(
 "Class C : Function M() As String : Return [|M|]()?.ToString() : End Function : End Class",
@@ -264,7 +264,7 @@ CodeStyleOptions.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function QualifyMethodAccess_EventSubscription1() As Task
             Await TestAsyncWithOption("
 Imports System
@@ -272,7 +272,7 @@ Class C
     Event e As EventHandler
     Sub Handler(sender As Object, args As EventArgs)
         AddHandler e, AddressOf [|Handler|]
-    End Function
+    End Sub
 End Class",
 "
 Imports System
@@ -280,13 +280,13 @@ Class C
     Event e As EventHandler
     Sub Handler(sender As Object, args As EventArgs)
         AddHandler e, AddressOf Me.Handler
-    End Function
+    End Sub
 End Class",
 CodeStyleOptions.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function QualifyMethodAccess_EventSubscription2() As Task
             Await TestAsyncWithOption("
 Imports System
@@ -294,7 +294,7 @@ Class C
     Event e As EventHandler
     Sub Handler(sender As Object, args As EventArgs)
         AddHandler e, New EventHandler(AddressOf [|Handler|])
-    End Function
+    End Sub
 End Class",
 "
 Imports System
@@ -302,13 +302,13 @@ Class C
     Event e As EventHandler
     Sub Handler(sender As Object, args As EventArgs)
         AddHandler e, New EventHandler(AddressOf Me.Handler)
-    End Function
+    End Sub
 End Class",
 CodeStyleOptions.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function QualifyMethodAccess_OnBase() As Task
             Await TestAsyncWithOption("
 Class Base
@@ -434,10 +434,11 @@ CodeStyleOptions.QualifyEventAccess)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
-        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone() As Task
-            Await TestMissingAsyncWithOptionAndNotification(
+        Public Async Function QualifyMemberAccessOnNotificationOptionSilent() As Task
+            Await TestAsyncWithOptionAndNotification(
 "Class C : Property I As Integer : Sub M() : [|I|] = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess, NotificationOption.None)
+"Class C : Property I As Integer : Sub M() : Me.I = 1 : End Sub : End Class",
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Silent)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>

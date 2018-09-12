@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private sealed class SemanticChangeProcessor : IdleProcessor
             {
-                private static readonly Func<int, DocumentId, bool, string> s_enqueueLogger = (t, i, b) => string.Format("[{0}] {1} - hint: {2}", t, i.ToString(), b);
+                private static readonly Func<int, DocumentId, bool, string> s_enqueueLogger = (tick, documentId, hint) => $"Tick:{tick}, {documentId}, {documentId.ProjectId}, hint:{hint}";
 
                 private readonly SemaphoreSlim _gate;
 

@@ -9,7 +9,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.Scripting.Test</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>

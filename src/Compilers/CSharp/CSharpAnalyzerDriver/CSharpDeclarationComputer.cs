@@ -341,8 +341,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arrowExpr = ((IndexerDeclarationSyntax)node).ExpressionBody;
                     break;
                 case SyntaxKind.ConstructorDeclaration:
+                    arrowExpr = ((ConstructorDeclarationSyntax)node).ExpressionBody;
+                    break;
                 case SyntaxKind.DestructorDeclaration:
-                    return null;
+                    arrowExpr = ((DestructorDeclarationSyntax)node).ExpressionBody;
+                    break;
                 default:
                     // Don't throw, just use for the assert in case this is used in the semantic model
                     ExceptionUtilities.UnexpectedValue(node.Kind());

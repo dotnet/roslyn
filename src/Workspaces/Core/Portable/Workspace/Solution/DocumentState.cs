@@ -298,6 +298,15 @@ namespace Microsoft.CodeAnalysis
                 || oldState.textAndVersionSource != this.textAndVersionSource;
         }
 
+        /// <summary>
+        /// True if the Text has changed
+        /// </summary>
+        public bool HasTextChanged(DocumentState oldState)
+        {
+            return (oldState.sourceTextOpt != this.sourceTextOpt
+                || oldState.textAndVersionSource != this.textAndVersionSource);
+        }
+
         public DocumentState UpdateParseOptions(ParseOptions options)
         {
             var originalSourceKind = this.SourceCodeKind;
@@ -393,42 +402,10 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(newText));
             }
 
-            // check to see if this docstate has already been branched before with the same text.
-            // this helps reduce duplicate parsing when typing.
-            if (mode == PreservationMode.PreserveIdentity)
-            {
-                var br = _firstBranch;
-                if (br != null && br.Text == newText)
-                {
-                    return br.State;
-                }
-            }
-
             var newVersion = this.GetNewerVersion();
             var newTextAndVersion = TextAndVersion.Create(newText, newVersion, this.FilePath);
 
-            var newState = this.UpdateText(newTextAndVersion, mode);
-
-            if (mode == PreservationMode.PreserveIdentity && _firstBranch == null)
-            {
-                Interlocked.CompareExchange(ref _firstBranch, new DocumentBranch(newText, newState), null);
-            }
-
-            return newState;
-        }
-
-        private DocumentBranch _firstBranch;
-
-        private class DocumentBranch
-        {
-            internal readonly SourceText Text;
-            internal readonly DocumentState State;
-
-            internal DocumentBranch(SourceText text, DocumentState state)
-            {
-                this.Text = text;
-                this.State = state;
-            }
+            return this.UpdateText(newTextAndVersion, mode);
         }
 
         public new DocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
@@ -442,8 +419,8 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(newTextAndVersion)
                 : CreateRecoverableText(newTextAndVersion, this.solutionServices);
 
-            // always chain incremental parsing request, it will internally put 
-            // appropriate request such as full parsing request if there are too many pending 
+            // always chain incremental parsing request, it will internally put
+            // appropriate request such as full parsing request if there are too many pending
             // incremental parsing requests hanging around.
             //
             // However, don't bother with the chaining if this is a document that doesn't support
@@ -587,7 +564,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                // uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long 
+                // uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long
                 // as the text is referenced elsewhere.
                 lazyTextAndVersion = new TreeTextSource(
                     new CachedWeakValueSource<SourceText>(
@@ -645,7 +622,8 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public async Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public async ValueTask<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
         {
             var treeAndVersion = await _treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
 

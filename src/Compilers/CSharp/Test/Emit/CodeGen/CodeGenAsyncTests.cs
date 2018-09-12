@@ -5483,5 +5483,51 @@ namespace Test
             var expected = @"Passed";
             CompileAndVerify(source, expectedOutput: expected);
         }
+
+        [Fact, WorkItem(19905, "https://github.com/dotnet/roslyn/issues/19905")]
+        public void FinallyEnteredFromExceptionalControlFlow()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+class TestCase
+{
+    public async Task Run()
+    {
+        try
+        {
+            var tmp = await (new { task = Task.Run<string>(async () => { await Task.Delay(1); return """"; }) }).task;
+            throw new Exception(tmp);
+        }
+        finally
+        {
+            Console.Write(0);
+        }
+    }
+}
+
+class Driver
+{
+    static void Main()
+    {
+        var t = new TestCase();
+        try
+        {
+            t.Run().Wait();
+        }
+        catch (Exception)
+        {
+            Console.Write(1);
+        }
+    }
+}";
+            var expectedOutput = @"01";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

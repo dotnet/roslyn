@@ -98,6 +98,31 @@ class C
             End Using
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameGetAwaiterCausesConflict()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+public class C
+{
+    public TaskAwaiter<bool> [|Get$$Awaiter|]() => Task.FromResult(true).GetAwaiter();
+
+    static async void M(C c)
+    {
+        {|awaitconflict:await|} c;
+    }
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>, renameTo:="GetAwaiter2")
+
+                result.AssertLabeledSpansAre("awaitconflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextInVBCausesConflictInForEach()

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             : base(
                 IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
                 new LocalizableResourceString(nameof(FeaturesResources.Add_readonly_modifier), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
+                new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -91,9 +91,12 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                 foreach (var symbol in candidateFields)
                 {
-                    var diagnostic = Diagnostic.Create(
-                        GetDescriptorWithSeverity(option.Notification.Value),
-                        symbol.Locations[0]);
+                    var diagnostic = DiagnosticHelper.Create(
+                        Descriptor,
+                        symbol.Locations[0],
+                        option.Notification.Severity,
+                        additionalLocations: null,
+                        properties: null);
                     context.ReportDiagnostic(diagnostic);
                 }
 
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     var isInAnonymousOrLocalFunction = false;
                     for (var current = descendant.Parent; current != ctorNode; current = current.Parent)
                     {
-                        if (syntaxFactsService.IsAnonymousFunction(current) || syntaxFactsService.IsLocalFunction(current))
+                        if (syntaxFactsService.IsAnonymousOrLocalFunctionStatement(current))
                         {
                             isInAnonymousOrLocalFunction = true;
                             break;

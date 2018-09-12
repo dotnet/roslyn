@@ -52,7 +52,7 @@ End Class"
                     Dim methodData = testData.GetMethodData("<>x.<>m0")
                     Dim method = methodData.Method
                     Assert.True(method.ReturnType.IsTupleType)
-                    Assert.NotNull(GetTupleElementNamesAttributeIfAny(method))
+                    CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=True)
                     methodData.VerifyIL(
 "{
   // Code size        8 (0x8)
@@ -187,7 +187,7 @@ End Class"
                     Dim methodData = testData.GetMethodData("<>x.<>m0")
                     Dim method = methodData.Method
                     Assert.True(method.ReturnType.IsTupleType)
-                    Assert.Null(GetTupleElementNamesAttributeIfAny(method))
+                    CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=False)
                     methodData.VerifyIL(
 "{
   // Code size        8 (0x8)
@@ -228,7 +228,7 @@ End Class"
                     CustomTypeInfo.Decode(typeInfoId, typeInfo, dynamicFlags, tupleElementNames)
                     Assert.Equal({"A", "B"}, tupleElementNames)
                     Dim method = testData.Methods.Single().Value.Method
-                    Assert.NotNull(GetTupleElementNamesAttributeIfAny(method))
+                    CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=True)
                     Assert.True(method.ReturnType.IsTupleType)
                     VerifyLocal(testData, typeName, locals(0), "<>m0", "o", expectedILOpt:=
 "{
@@ -276,7 +276,7 @@ class C
                     CustomTypeInfo.Decode(typeInfoId, typeInfo, dynamicFlags, tupleElementNames)
                     Assert.Equal({Nothing, "A", "B", Nothing}, tupleElementNames)
                     Dim method = DirectCast(testData.Methods.Single().Value.Method, MethodSymbol)
-                    Assert.NotNull(GetTupleElementNamesAttributeIfAny(method))
+                    CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=True)
                     Dim returnType = method.ReturnType
                     Assert.False(returnType.IsTupleType)
                     Assert.True(returnType.ContainsTuple())
@@ -398,7 +398,7 @@ End Class"
                                Assert.Null(typeInfo)
                                Dim methodData = testData.GetMethodData("<>x.<>m0")
                                Dim method = methodData.Method
-                               Assert.Null(GetTupleElementNamesAttributeIfAny(method))
+                               CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=False)
                                methodData.VerifyIL(
            "{
   // Code size       48 (0x30)
@@ -465,7 +465,7 @@ End Class"
                     CustomTypeInfo.Decode(typeInfoId, typeInfo, dynamicFlags, tupleElementNames)
                     Assert.Equal(aliasElementNames, tupleElementNames)
                     Dim method = testData.Methods.Single().Value.Method
-                    Assert.NotNull(GetTupleElementNamesAttributeIfAny(method))
+                    CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=True)
                     Dim returnType = DirectCast(method.ReturnType, TypeSymbol)
                     Assert.False(returnType.IsTupleType)
                     Assert.True(DirectCast(returnType, ArrayTypeSymbol).ElementType.IsTupleType)

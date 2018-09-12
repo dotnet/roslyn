@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly Dictionary<string, CompletionProvider> _nameToProvider = new Dictionary<string, CompletionProvider>();
         private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
         private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
+        private readonly Func<string, CompletionProvider> _getProviderByName;
 
         private readonly Workspace _workspace;
 
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ExclusiveProviders = exclusiveProviders;
             _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
             _createRoleProviders = CreateRoleProviders;
+            _getProviderByName = GetProviderByName;
         }
 
         public override CompletionRules GetRules()
@@ -194,11 +196,17 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 lock (_gate)
                 {
-                    _nameToProvider.TryGetValue(name, out provider);
+                    provider = _nameToProvider.GetOrAdd(name, _getProviderByName);
                 }
             }
 
             return provider;
+        }
+
+        private CompletionProvider GetProviderByName(string providerName)
+        {
+            var providers = GetAllProviders(roles: ImmutableHashSet<string>.Empty);
+            return providers.FirstOrDefault(p => p.Name == providerName);
         }
 
         public override async Task<CompletionList> GetCompletionsAsync(

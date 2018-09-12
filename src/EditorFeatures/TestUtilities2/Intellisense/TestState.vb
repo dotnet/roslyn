@@ -1,8 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
@@ -11,8 +13,8 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
-Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.BraceCompletion
@@ -20,6 +22,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Roslyn.Utilities
+Imports CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
 Imports Microsoft.CodeAnalysis.CSharp
 
@@ -27,70 +30,93 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     Partial Friend Class TestState
         Inherits AbstractCommandHandlerTestState
-        Implements IIntelliSenseTestState
-
-        Private _currentCompletionPresenterSession As TestCompletionPresenterSession
 
         Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
         Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
         Friend ReadOnly FormatCommandHandler As FormatCommandHandler
         Friend ReadOnly CompletionCommandHandler As CompletionCommandHandler
         Friend ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
+        Private ReadOnly SessionTestState As IIntelliSenseTestState
 
-        Friend Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession Implements IIntelliSenseTestState.CurrentSignatureHelpPresenterSession
-        Friend Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
+        Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
             Get
-                Return _currentCompletionPresenterSession
+                Return SessionTestState.CurrentSignatureHelpPresenterSession
             End Get
-            Set(value As TestCompletionPresenterSession)
-                _currentCompletionPresenterSession = value
-            End Set
+        End Property
+
+        Friend ReadOnly Property CurrentCompletionPresenterSession As TestCompletionPresenterSession
+            Get
+                Return SessionTestState.CurrentCompletionPresenterSession
+            End Get
         End Property
 
         Private Sub New(workspaceElement As XElement,
                         extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
-                        extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
+                        Optional excludedTypes As List(Of Type) = Nothing,
                         Optional extraExportedTypes As List(Of Type) = Nothing,
                         Optional includeFormatCommandHandler As Boolean = False,
                         Optional workspaceKind As String = Nothing)
-            MyBase.New(workspaceElement, ExportProviderCache.CreateTypeCatalog(If(extraExportedTypes, New List(Of Type))), workspaceKind:=workspaceKind)
+            MyBase.New(workspaceElement, CombineExcludedTypes(excludedTypes, includeFormatCommandHandler), ExportProviderCache.CreateTypeCatalog(CombineExtraTypes(If(extraExportedTypes, New List(Of Type)))), workspaceKind:=workspaceKind)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
 
             If extraCompletionProviders IsNot Nothing Then
                 Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CompletionServiceWithProviders)
-                completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
+                If completionService IsNot Nothing Then
+                    completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
+                End If
             End If
 
-            Me.AsyncCompletionService = New AsyncCompletionService(
-                GetService(Of IEditorOperationsFactoryService)(),
-                UndoHistoryRegistry,
-                GetService(Of IInlineRenameService)(),
-                GetExportedValue(Of IAsynchronousOperationListenerProvider),
-                {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
-                GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
+            Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()
 
-            Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
+            Me.AsyncCompletionService = GetExportedValue(Of IAsyncCompletionService)()
 
-            Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
-                New TestSignatureHelpPresenter(Me),
-                GetExports(Of ISignatureHelpProvider, OrderableLanguageMetadata)().Concat(extraSignatureHelpProviders),
-                GetExportedValue(Of IAsynchronousOperationListenerProvider)())
+            Me.CompletionCommandHandler = GetExportedValue(Of CompletionCommandHandler)()
 
-            Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
+            Me.SignatureHelpCommandHandler = GetExportedValue(Of SignatureHelpCommandHandler)()
+
+            Me.IntelliSenseCommandHandler = GetExportedValue(Of IntelliSenseCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler,
-                New FormatCommandHandler(
-                    GetService(Of ITextUndoHistoryRegistry),
-                    GetService(Of IEditorOperationsFactoryService)),
+                GetExportedValue(Of FormatCommandHandler)(),
                 Nothing)
         End Sub
+
+        Private Shared Function CombineExcludedTypes(excludedTypes As IList(Of Type), includeFormatCommandHandler As Boolean) As IList(Of Type)
+            Dim result = New List(Of Type) From {
+                GetType(IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession)),
+                GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))
+            }
+
+            If Not includeFormatCommandHandler Then
+                result.Add(GetType(FormatCommandHandler))
+            End If
+
+            If excludedTypes IsNot Nothing Then
+                result.AddRange(excludedTypes)
+            End If
+
+            Return result
+        End Function
+
+        Private Shared Function CombineExtraTypes(extraExportedTypes As IList(Of Type)) As IList(Of Type)
+            Dim result = New List(Of Type) From {
+                GetType(TestCompletionPresenter),
+                GetType(TestSignatureHelpPresenter),
+                GetType(IntelliSenseTestState)
+            }
+
+            If extraExportedTypes IsNot Nothing Then
+                result.AddRange(extraExportedTypes)
+            End If
+
+            Return result
+        End Function
 
         Public Shared Function CreateVisualBasicTestState(
                 documentElement As XElement,
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
                 Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
             Return New TestState(
                 <Workspace>
@@ -101,14 +127,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
-                CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.VisualBasic),
+                excludedTypes:=Nothing,
                 extraExportedTypes)
         End Function
 
         Public Shared Function CreateCSharpTestState(
                 documentElement As XElement,
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
+                Optional excludedTypes As List(Of Type) = Nothing,
                 Optional extraExportedTypes As List(Of Type) = Nothing,
                 Optional includeFormatCommandHandler As Boolean = False,
                 Optional languageVersion As LanguageVersion = LanguageVersion.Default) As TestState
@@ -121,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing),
-                CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.CSharp),
+                excludedTypes,
                 extraExportedTypes,
                 includeFormatCommandHandler)
         End Function
@@ -129,13 +155,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Shared Function CreateTestStateFromWorkspace(
                 workspaceElement As XElement,
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
                 Optional extraExportedTypes As List(Of Type) = Nothing,
                 Optional workspaceKind As String = Nothing) As TestState
             Return New TestState(
                 workspaceElement,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
-                CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.VisualBasic),
+                excludedTypes:=Nothing,
                 extraExportedTypes,
                 workspaceKind:=workspaceKind)
         End Function

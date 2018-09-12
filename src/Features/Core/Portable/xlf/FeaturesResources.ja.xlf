@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
+        <source>Add parameter to '{0}' (and overrides/implementations)</source>
+        <target state="translated">パラメーターを '{0}' に追加します (オーバーライド/実装も行います)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
         <source>Add project reference to '{0}'.</source>
         <target state="translated">プロジェクト参照を '{0}' に追加します。</target>
@@ -15,6 +20,26 @@
       <trans-unit id="Actions_can_not_be_empty">
         <source>Actions can not be empty.</source>
         <target state="translated">アクションは空にできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_0">
+        <source>Add to '{0}'</source>
+        <target state="translated">'{0}' に追加します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_typo_0">
+        <source>Fix typo '{0}'</source>
+        <target state="translated">'{0}' の入力ミスを修正します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_document">
+        <source>Formatting document</source>
+        <target state="translated">ドキュメントの書式設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
+        <source>Related method signatures found in metadata will not be updated.</source>
+        <target state="translated">メタデータ内に検出される関連するメソッド シグネチャは更新されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -709,7 +734,7 @@
       </trans-unit>
       <trans-unit id="Renaming_a_captured_variable_from_0_to_1_will_prevent_the_debug_session_from_continuing">
         <source>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">キャプチャーされた変数の名前を '{0}' から '{1}' に変更すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">キャプチャされた変数の名前を '{0}' から '{1}' に変更すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing">
@@ -1085,7 +1110,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
         <source>TODO: dispose managed state (managed objects).</source>
-        <target state="translated">TODO: マネージ状態を破棄します (マネージ オブジェクト)。</target>
+        <target state="translated">TODO: マネージド状態を破棄します (マネージド オブジェクト)。</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
@@ -1575,11 +1600,6 @@ This version used in: {2}</source>
         <target state="translated">プロパティに式本体を使用する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Spell_check_0">
-        <source>Spell check '{0}'</source>
-        <target state="translated">{0}' をスペル チェック</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">完全修飾 '{0}'</target>
@@ -1767,12 +1787,12 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Generate_overrides">
         <source>Generate overrides...</source>
-        <target state="translated">上書きを生成する...</target>
+        <target state="translated">オーバーライドを生成する...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pick_members_to_override">
         <source>Pick members to override</source>
-        <target state="translated">上書きするメンバーを選択する</target>
+        <target state="translated">オーバーライドするメンバーを選択する</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_check">
@@ -1985,34 +2005,59 @@ This version used in: {2}</source>
         <target state="translated">インデクサー</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parentheses_can_be_removed">
+        <source>Parentheses can be removed</source>
+        <target state="translated">かっこは削除できます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_parentheses">
+        <source>Remove unnecessary parentheses</source>
+        <target state="translated">不要なかっこの削除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_for_clarity">
+        <source>Add parentheses for clarity</source>
+        <target state="translated">わかりやすくするためにかっこを追加</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_should_be_added_for_clarity">
+        <source>Parentheses should be added for clarity</source>
+        <target state="translated">わかりやすくするためにかっこを追加してください</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
-        <target state="new">Alias ambiguous type '{0}'</target>
+        <target state="translated">エイリアスのあいまいな型 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
         <source>Warning: Collection was modified during iteration.</source>
-        <target state="new">Warning: Collection was modified during iteration.</target>
+        <target state="translated">警告: 反復処理中にコレクションが変更されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
-        <target state="new">Warning: Iteration variable crossed function boundary.</target>
+        <target state="translated">警告: 繰り返し変数が関数の境界を超えました。</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
-        <target state="new">Warning: Collection may be modified during iteration.</target>
+        <target state="translated">警告: 反復処理中にコレクションが変更される可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_readonly_modifier">
         <source>Add readonly modifier</source>
-        <target state="new">Add readonly modifier</target>
+        <target state="translated">読み取り専用修飾子を追加します</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">
         <source>Make field readonly</source>
-        <target state="new">Make field readonly</target>
+        <target state="translated">フィールドを読み取り専用にします</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="translated">条件式に変換します</target>
         <note />
       </trans-unit>
     </body>

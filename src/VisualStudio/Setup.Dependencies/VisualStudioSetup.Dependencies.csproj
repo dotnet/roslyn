@@ -16,12 +16,10 @@
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>Vsix</RoslynProjectType>
-    <IsProductComponent>true</IsProductComponent>
-    <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
-    <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\Dependencies</ExtensionInstallationFolder>
     <Ngen>true</Ngen>
     <NgenArchitecture>All</NgenArchitecture>
     <NgenPriority>3</NgenPriority>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -60,6 +58,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.Extensions" />
     <NuGetPackageToIncludeInVsix Include="System.Text.RegularExpressions" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
     <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Parallel" />
     <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.ReaderWriter" />
@@ -111,6 +110,7 @@
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
     <PackageReference Include="System.Text.Encoding.Extensions" Version="$(SystemTextEncodingExtensionsVersion)" />
     <PackageReference Include="System.Text.RegularExpressions" Version="$(SystemTextRegularExpressionsVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
     <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />

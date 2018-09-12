@@ -90,25 +90,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
         {
             return options == null
-                ? descriptor.DefaultSeverity.MapSeverityToReport()
+                ? descriptor.DefaultSeverity.ToReportDiagnostic()
                 : descriptor.GetEffectiveSeverity(options);
-        }
-
-        public static ReportDiagnostic MapSeverityToReport(this DiagnosticSeverity severity)
-        {
-            switch (severity)
-            {
-                case DiagnosticSeverity.Hidden:
-                    return ReportDiagnostic.Hidden;
-                case DiagnosticSeverity.Info:
-                    return ReportDiagnostic.Info;
-                case DiagnosticSeverity.Warning:
-                    return ReportDiagnostic.Warn;
-                case DiagnosticSeverity.Error:
-                    return ReportDiagnostic.Error;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(severity);
-            }
         }
 
         public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
@@ -128,12 +111,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public static ValueTuple<string, VersionStamp> GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
+        public static (string analyzerId, VersionStamp version) GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
         {
             // Get the unique ID for given diagnostic analyzer.
             // note that we also put version stamp so that we can detect changed analyzer.
             var typeInfo = analyzer.GetType().GetTypeInfo();
-            return ValueTuple.Create(analyzer.GetAnalyzerId(), GetAnalyzerVersion(CorLightup.Desktop.GetAssemblyLocation(typeInfo.Assembly)));
+            return (analyzer.GetAnalyzerId(), GetAnalyzerVersion(CorLightup.Desktop.GetAssemblyLocation(typeInfo.Assembly)));
         }
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
@@ -142,12 +125,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return typeInfo.Assembly.GetName().Name;
         }
 
-        public static Task<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public static ValueTask<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             var workspaceAnalyzerOptions = analyzerOptions as WorkspaceAnalyzerOptions;
             if (workspaceAnalyzerOptions == null)
             {
-                return SpecializedTasks.Default<OptionSet>();
+                return new ValueTask<OptionSet>(default(OptionSet));
             }
 
             return workspaceAnalyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken);

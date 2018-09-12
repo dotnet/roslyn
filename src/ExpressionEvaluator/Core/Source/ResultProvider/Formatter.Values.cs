@@ -383,10 +383,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             object obj;
             if (value.Type.GetLmrType().IsDateTime())
             {
-                DkmClrValue dateDataValue = value.GetFieldValue(DateTimeUtilities.DateTimeDateDataFieldName, inspectionContext);
+                DkmClrValue dateDataValue = value.GetPropertyValue("Ticks", inspectionContext);
                 Debug.Assert(dateDataValue.HostObjectValue != null);
 
-                obj = DateTimeUtilities.ToDateTime((ulong)dateDataValue.HostObjectValue);
+                obj = new DateTime((long)dateDataValue.HostObjectValue);
             }
             else
             {

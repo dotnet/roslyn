@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
         /// 
-        /// Otherwise, this returns <code>null</code>.
+        /// Otherwise, this returns <see langword="null"/>.
         /// </summary>
         AssemblyMetadata GetMetadata();
     }

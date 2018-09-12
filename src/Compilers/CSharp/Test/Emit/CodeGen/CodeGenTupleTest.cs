@@ -3086,7 +3086,7 @@ class C
                     model.GetDeclaredSymbol(x).ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", references: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -14911,7 +14911,7 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (x, x);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(x, x)").WithLocation(6, 9)
                 );
@@ -15082,7 +15082,7 @@ class C
 " + trivial2uple + tupleattributes_cs;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (1, 1);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(1, 1)").WithLocation(6, 9)
                 );
@@ -15261,7 +15261,7 @@ System.ValueTuple`2[System.Int32,System.ValueTuple`2[System.Int32,System.String]
 class Class { void Method() { tuple = (1, ""hello""); } }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,31): error CS0103: The name 'tuple' does not exist in the current context
                 // class Class { void Method() { tuple = (1, "hello"); } }
@@ -21317,7 +21317,7 @@ namespace System
         }
 
         // https://github.com/dotnet/roslyn/issues/25141
-#if NET461
+#if NET46
         [Fact]
         public void ValueTupleBase_AssemblyUnification()
         {

@@ -6767,7 +6767,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseDll)
 
             CompileAndVerify(comp).VerifyDiagnostics()
         End Sub
@@ -6789,7 +6789,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib40(code1, TestOptions.ReleaseDll)
+            Dim comp1 = CreateCompilationWithMscorlib40(code1, options:=TestOptions.ReleaseDll)
 
             CompileAndVerify(comp1).VerifyDiagnostics()
 
@@ -6954,7 +6954,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseExe)
 
             Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
             Dim doValidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
@@ -7023,7 +7023,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseExe)
 
             compilation.AssertTheseDiagnostics(
                 <expected>
@@ -7083,7 +7083,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
 void ValidatorBase<T>.DoValidate(T objectToValidate)")
@@ -7137,7 +7137,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="void ValidatorBase<T>.DoValidate(object objectToValidate)
 void Validator<T>.DoValidate(T objectToValidate)")
@@ -7193,7 +7193,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseExe)
 
             Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
             Dim doValidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")

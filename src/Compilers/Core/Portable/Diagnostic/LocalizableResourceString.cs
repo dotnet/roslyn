@@ -93,6 +93,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => false;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             writer.WriteType(_resourceSource);

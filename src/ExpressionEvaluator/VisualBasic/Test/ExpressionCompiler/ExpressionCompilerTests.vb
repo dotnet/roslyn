@@ -49,9 +49,10 @@ End Class
                     GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
                     Const methodVersion = 1
 
+                    Dim appDomain = New AppDomain()
                     Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
-                    Dim context = EvaluationContext.CreateMethodContext(
-                        Nothing,
+                    Dim context = CreateMethodContext(
+                        appDomain,
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -59,7 +60,8 @@ End Class
                         methodToken,
                         methodVersion,
                         ilOffset,
-                        localSignatureToken)
+                        localSignatureToken,
+                        MakeAssemblyReferencesKind.AllAssemblies)
 
                     Dim errorMessage As String = Nothing
                     Dim result = context.CompileExpression("1", errorMessage)
@@ -67,8 +69,8 @@ End Class
                     Dim name1 = result.Assembly.GetAssemblyName()
                     Assert.NotEqual(mvid1, Guid.Empty)
 
-                    context = EvaluationContext.CreateMethodContext(
-                        New VisualBasicMetadataContext(blocks, context),
+                    context = CreateMethodContext(
+                        appDomain,
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -76,7 +78,8 @@ End Class
                         methodToken,
                         methodVersion,
                         ilOffset,
-                        localSignatureToken)
+                        localSignatureToken,
+                        MakeAssemblyReferencesKind.AllAssemblies)
 
                     result = context.CompileExpression("2", errorMessage)
                     Dim mvid2 = result.Assembly.GetModuleVersionId()
@@ -167,6 +170,45 @@ End Class
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
             Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+        End Sub
+
+        <Fact>
+        Public Sub GenericWithInterfaceConstraint()
+            Const source = "
+Public Interface I
+    Property Key As String
+End Interface
+
+Class C
+    Public Shared Sub M(Of T As I)(tt As T)
+    End Sub
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(
+                compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    Dim result = context.CompileExpression(expr:="tt.Key", error:=errorMessage, testData:=testData)
+                    Dim methodData = testData.GetMethodData("<>x.<>m0(Of T)(T)")
+                    Dim method = methodData.Method
+                    Assert.Equal(1, method.Parameters.Length)
+                    Dim eeTypeParameterSymbol = DirectCast(method.Parameters(0).Type, EETypeParameterSymbol)
+                    Assert.Equal(1, eeTypeParameterSymbol.ConstraintTypesNoUseSiteDiagnostics.Length)
+                    Assert.Equal("I", eeTypeParameterSymbol.ConstraintTypesNoUseSiteDiagnostics(0).Name)
+
+                    methodData.VerifyIL(
+"{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""Function I.get_Key() As String""
+  IL_000d:  ret
+}")
+                End Sub)
         End Sub
 
         <Fact>
@@ -268,7 +310,7 @@ End Class"
 
             Const methodVersion = 1
 
-            Dim previous As VisualBasicMetadataContext = Nothing
+            Dim appDomain = New AppDomain()
             Dim startOffset = 0
             Dim endOffset = 0
 
@@ -293,43 +335,42 @@ End Class"
             endOffset = outerScope.EndOffset
 
             ' At start of outer scope.
-            Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(startOffset, UInteger), localSignatureToken)
-            Assert.Equal(Nothing, previous)
-            previous = New VisualBasicMetadataContext(methodBlocks, context)
+            Dim context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(startOffset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
 
             ' At end of outer scope - not reused because of the nested scope.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset, UInteger), localSignatureToken)
-            Assert.NotEqual(context, previous.EvaluationContext) ' Not required, just documentary.
+            Dim previous = appDomain.GetMetadataContext()
+            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
+            Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext) ' Not required, just documentary.
 
             ' At type context.
-            context = EvaluationContext.CreateTypeContext(previous, typeBlocks, moduleVersionId, typeToken)
-            Assert.NotEqual(context, previous.EvaluationContext)
+            context = CreateTypeContext(appDomain, typeBlocks, moduleVersionId, typeToken, MakeAssemblyReferencesKind.AllAssemblies)
+            Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext)
             Assert.Null(context.MethodContextReuseConstraints)
-            Assert.Equal(context.Compilation, previous.Compilation)
+            Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation)
 
             ' Step through entire method.
             Dim previousScope As Scope = Nothing
-            previous = New VisualBasicMetadataContext(typeBlocks, context)
+            previous = appDomain.GetMetadataContext()
             For offset = startOffset To endOffset - 1
                 Dim scope = scopes.GetInnermostScope(offset)
-                Dim constraints = previous.EvaluationContext.MethodContextReuseConstraints
+                Dim constraints = GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints
                 If constraints.HasValue Then
                     Assert.Equal(scope Is previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset))
                 End If
 
-                context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(offset, UInteger), localSignatureToken)
+                context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(offset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
                 If scope Is previousScope Then
-                    Assert.Equal(context, previous.EvaluationContext)
+                    Assert.Equal(context, GetMetadataContext(previous).EvaluationContext)
                 Else
                     ' Different scope. Should reuse compilation.
-                    Assert.NotEqual(context, previous.EvaluationContext)
-                    If previous.EvaluationContext IsNot Nothing Then
-                        Assert.NotEqual(context.MethodContextReuseConstraints, previous.EvaluationContext.MethodContextReuseConstraints)
-                        Assert.Equal(context.Compilation, previous.Compilation)
+                    Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext)
+                    If GetMetadataContext(previous).EvaluationContext IsNot Nothing Then
+                        Assert.NotEqual(context.MethodContextReuseConstraints, GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints)
+                        Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation)
                     End If
                 End If
                 previousScope = scope
-                previous = New VisualBasicMetadataContext(methodBlocks, context)
+                previous = appDomain.GetMetadataContext()
             Next
 
             ' With different references.
@@ -343,25 +384,28 @@ End Class"
             GetContextState(runtime, "C.F", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
             ' Different references. No reuse.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset - 1, UInteger), localSignatureToken)
-            Assert.NotEqual(context, previous.EvaluationContext)
-            Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
-            Assert.NotEqual(context.Compilation, previous.Compilation)
-            previous = New VisualBasicMetadataContext(methodBlocks, context)
+            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset - 1, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
+            Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext)
+            Assert.True(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
+            Assert.NotEqual(context.Compilation, GetMetadataContext(previous).Compilation)
+            previous = appDomain.GetMetadataContext()
 
             ' Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
-            Assert.NotEqual(context, previous.EvaluationContext)
-            Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0))
-            Assert.Equal(context.Compilation, previous.Compilation)
+            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
+            Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext)
+            Assert.False(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0))
+            Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation)
 
             ' No EvaluationContext. Should reuse Compilation
-            previous = New VisualBasicMetadataContext(previous.MetadataBlocks, previous.Compilation)
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
-            Assert.Null(previous.EvaluationContext)
+            appDomain.SetMetadataContext(SetMetadataContext(previous, New VisualBasicMetadataContext(GetMetadataContext(previous).Compilation)))
+            previous = appDomain.GetMetadataContext()
+            Assert.Null(GetMetadataContext(previous).EvaluationContext)
+            Assert.NotNull(GetMetadataContext(previous).Compilation)
+            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
+            Assert.Null(GetMetadataContext(previous).EvaluationContext)
             Assert.NotNull(context)
-            Assert.Equal(context.Compilation, previous.Compilation)
+            Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation)
         End Sub
 
         <Fact>
@@ -4134,8 +4178,8 @@ End Class
                 AssertEx.SetEqual(symReader.GetLocalNames(methodToken, methodVersion:=1), "x")
                 AssertEx.SetEqual(symReader.GetLocalNames(methodToken, methodVersion:=2), "x", "y")
 
-                Dim context1 = EvaluationContext.CreateMethodContext(
-                    Nothing,
+                Dim context1 = CreateMethodContext(
+                    New AppDomain(),
                     blocks,
                     MakeDummyLazyAssemblyReaders(),
                     symReader,
@@ -4143,7 +4187,8 @@ End Class
                     methodToken:=methodToken,
                     methodVersion:=1,
                     ilOffset:=0,
-                    localSignatureToken:=localSignatureToken)
+                    localSignatureToken:=localSignatureToken,
+                    kind:=MakeAssemblyReferencesKind.AllAssemblies)
 
                 Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
                 Dim typeName As String = Nothing
@@ -4154,8 +4199,8 @@ End Class
                     testData:=Nothing)
                 AssertEx.SetEqual(locals.Select(Function(l) l.LocalName), "x")
 
-                Dim context2 = EvaluationContext.CreateMethodContext(
-                    Nothing,
+                Dim context2 = CreateMethodContext(
+                    New AppDomain(),
                     blocks,
                     MakeDummyLazyAssemblyReaders(),
                     symReader,
@@ -4163,7 +4208,8 @@ End Class
                     methodToken:=methodToken,
                     methodVersion:=2,
                     ilOffset:=0,
-                    localSignatureToken:=localSignatureToken)
+                    localSignatureToken:=localSignatureToken,
+                    kind:=MakeAssemblyReferencesKind.AllAssemblies)
 
                 locals.Clear()
                 context2.CompileGetLocals(
@@ -4545,9 +4591,9 @@ End Class"
                     Dim localSignatureToken = 0
                     GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
-                    Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
-                    Dim context = EvaluationContext.CreateMethodContext(
-                        Nothing,
+                    Dim appDomain = New AppDomain()
+                    Dim context = CreateMethodContext(
+                        appDomain,
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -4555,7 +4601,8 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,
-                        localSignatureToken:=localSignatureToken)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
 
                     Dim errorMessage As String = Nothing
                     Dim testData = New CompilationTestData()
@@ -4572,9 +4619,9 @@ End Class"
 }")
 
                     ' Verify the context is re-used for ILOffset == 0.
-                    Dim previous = context
-                    context = EvaluationContext.CreateMethodContext(
-                        New VisualBasicMetadataContext(blocks, previous),
+                    Dim previous = appDomain.GetMetadataContext()
+                    context = CreateMethodContext(
+                        appDomain,
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -4582,13 +4629,14 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
-                        localSignatureToken:=localSignatureToken)
-                    Assert.Same(previous, context)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
+                    Assert.Same(GetMetadataContext(previous).EvaluationContext, context)
 
                     ' Verify the context is re-used for NoILOffset.
-                    previous = context
-                    context = EvaluationContext.CreateMethodContext(
-                        New VisualBasicMetadataContext(blocks, previous),
+                    previous = appDomain.GetMetadataContext()
+                    context = CreateMethodContext(
+                        appDomain,
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -4596,8 +4644,9 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,
-                        localSignatureToken:=localSignatureToken)
-                    Assert.Same(previous, context)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
+                    Assert.Same(GetMetadataContext(previous).EvaluationContext, context)
                 End Sub)
         End Sub
 

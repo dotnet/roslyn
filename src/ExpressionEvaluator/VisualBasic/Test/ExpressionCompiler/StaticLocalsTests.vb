@@ -189,8 +189,8 @@ End Class"
                     Dim methodToken = 0
                     Dim localSignatureToken = 0
                     GetContextState(runtime, "C.F(Boolean)", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-                    Dim context = EvaluationContext.CreateMethodContext(
-                        Nothing,
+                    Dim context = CreateMethodContext(
+                        New AppDomain(),
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -198,7 +198,8 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
-                        localSignatureToken:=localSignatureToken)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
                     Dim testData = New CompilationTestData()
                     Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
                     Dim typeName As String = Nothing
@@ -231,8 +232,8 @@ End Class"
                     locals.Free()
 
                     GetContextState(runtime, "C.F(Int32)", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-                    context = EvaluationContext.CreateMethodContext(
-                        Nothing,
+                    context = CreateMethodContext(
+                        New AppDomain(),
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -240,7 +241,8 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
-                        localSignatureToken:=localSignatureToken)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
                     testData = New CompilationTestData()
                     locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
                     assembly = context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)

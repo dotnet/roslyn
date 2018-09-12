@@ -38,8 +38,8 @@
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
-        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</source>
-        <target state="translated">Formatar automaticamente instrução concluída com ponto e vírgula;Formatar automaticamente bloco concluído com chave;Formatar automaticamente ao colar</target>
+        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
+        <target state="translated">Formatar automaticamente a instrução concluída com ponto e vírgula;Formatar automaticamente o bloco concluído com chave;Formatar automaticamente ao colar;limpeza de código;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">

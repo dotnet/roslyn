@@ -369,7 +369,7 @@ Diagnostic(ErrorCode.ERR_ValueCantBeNull, "__reftype(null)").WithArguments("Syst
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest01()
         {
             var text = @"
@@ -399,7 +399,7 @@ public class C
             verifier.VerifyIL("C.M(__arglist)", expectedIL);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest02()
         {
             var text = @"
@@ -470,7 +470,7 @@ public class C
             verifier.VerifyIL("C.Main", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest03()
         {
             // The native parser produces "type expected" when __arglist is preceded by an illegal
@@ -1331,7 +1331,7 @@ class A
         }
 
         [WorkItem(545086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545086")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void BoxReceiverTest()
         {
             var text = @"
@@ -1563,6 +1563,89 @@ public class SpecialCases
     //         ArgListMethod(__arglist(""));
     Diagnostic(ErrorCode.ERR_AmbigCall, "ArgListMethod").WithArguments("SpecialCases.ArgListMethod(__arglist)", "SpecialCases.ArgListMethod(__arglist)").WithLocation(10, 9)
                 );
+        }
+
+        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void ArgListMayNotHaveAnOutArgument()
+        {
+            CreateCompilation(@"
+class Program
+{
+    static void Test(__arglist)
+    {
+        var a = 1;
+    	Test(__arglist(out a));
+    }
+}
+").VerifyDiagnostics(
+                // (7,25): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //     	Test(__arglist(out a));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "a").WithLocation(7, 25));
+        }
+
+        [Fact]
+        public void ArgListMayNotHaveAnInArgument()
+        {
+            CreateCompilation(@"
+class Program
+{
+    static void Test(__arglist)
+    {
+        var a = 1;
+    	Test(__arglist(in a));
+    }
+}
+").VerifyDiagnostics(
+                // (7,24): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //     	Test(__arglist(in a));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "a").WithLocation(7, 24));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void ArgListMayHaveARefArgument()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void Test(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        ref int a = ref __refvalue(args.GetNextArg(), int);
+        a = 5;
+    }
+    static void Main()
+    {
+        int a = 0;
+        Test(__arglist(ref a));
+        Console.WriteLine(a);
+    }
+}",
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                expectedOutput: "5");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void ArgListMayHaveAByValArgument()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void Test(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        int a = __refvalue(args.GetNextArg(), int);
+        Console.WriteLine(a);
+    }
+    static void Main()
+    {
+        int a = 5;
+        Test(__arglist(a));
+    }
+}",
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                expectedOutput: "5");
         }
     }
 }

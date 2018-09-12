@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// try to return up to date diagnostics for the given span for the document.
-        /// 
+        ///
         /// it will return true if it was able to return all up-to-date diagnostics.
         ///  otherwise, false indicating there are some missing diagnostics in the diagnostic list
         /// </summary>
@@ -63,10 +63,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// return up to date diagnostics for the given span for the document
-        /// 
+        ///
         /// this can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
+        /// if diagnosticIdOpt is not null, it gets diagnostics only for this given diagnosticIdOpt value
         /// </summary>
-        Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default);
+        Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets a list of the diagnostics that are provided by this service.

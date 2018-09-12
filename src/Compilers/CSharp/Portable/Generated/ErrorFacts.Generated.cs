@@ -179,6 +179,7 @@
                 case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
+                case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                     return true;
                 default:
                     return false;

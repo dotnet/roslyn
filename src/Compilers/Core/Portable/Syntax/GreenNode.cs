@@ -437,6 +437,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => ShouldReuseInSerialization;
+
+        internal virtual bool ShouldReuseInSerialization => this.IsCacheable;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             this.WriteTo(writer);

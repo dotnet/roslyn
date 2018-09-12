@@ -14,6 +14,7 @@ namespace CSharpSyntaxGenerator
         private readonly IDictionary<string, string> _parentMap;
         private readonly ILookup<string, string> _childMap;
         private readonly IDictionary<string, Node> _nodeMap;
+        private readonly IDictionary<string, TreeType> _typeMap;
 
         private const int INDENT_SIZE = 4;
         private int _indentLevel;
@@ -24,6 +25,7 @@ namespace CSharpSyntaxGenerator
             _writer = writer;
             _tree = tree;
             _nodeMap = tree.Types.OfType<Node>().ToDictionary(n => n.Name);
+            _typeMap = tree.Types.ToDictionary(n => n.Name);
             _parentMap = tree.Types.ToDictionary(n => n.Name, n => n.Base);
             _parentMap.Add(tree.Root, null);
             _childMap = tree.Types.ToLookup(n => n.Base, n => n.Name);
@@ -193,9 +195,10 @@ namespace CSharpSyntaxGenerator
         }
 
         protected Node GetNode(string typeName)
-        {
-            return _nodeMap.TryGetValue(typeName, out var node) ? node : null;
-        }
+            => _nodeMap.TryGetValue(typeName, out var node) ? node : null;
+
+        protected TreeType GetTreeType(string typeName)
+            => _typeMap.TryGetValue(typeName, out var node) ? node : null;
 
         protected static bool IsOptional(Field f)
         {

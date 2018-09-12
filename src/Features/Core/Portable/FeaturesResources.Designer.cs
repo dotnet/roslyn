@@ -234,11 +234,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add parameter to &apos;{0}&apos; (and overrides/implementations).
+        /// </summary>
+        internal static string Add_parameter_to_0_and_overrides_implementations {
+            get {
+                return ResourceManager.GetString("Add_parameter_to_0_and_overrides_implementations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add parameters to &apos;{0}&apos;.
         /// </summary>
         internal static string Add_parameters_to_0 {
             get {
                 return ResourceManager.GetString("Add_parameters_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add parentheses for clarity.
+        /// </summary>
+        internal static string Add_parentheses_for_clarity {
+            get {
+                return ResourceManager.GetString("Add_parentheses_for_clarity", resourceCulture);
             }
         }
         
@@ -293,6 +311,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Add_this_or_Me_qualification {
             get {
                 return ResourceManager.GetString("Add_this_or_Me_qualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add to &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_to_0 {
+            get {
+                return ResourceManager.GetString("Add_to_0", resourceCulture);
             }
         }
         
@@ -436,18 +463,16 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Adding_an_imported_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Alias ambiguous type &apos;{0}&apos;.
         /// </summary>
-        internal static string Alias_ambiguous_type_0
-        {
-            get
-            {
+        internal static string Alias_ambiguous_type_0 {
+            get {
                 return ResourceManager.GetString("Alias_ambiguous_type_0", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to All lowercase.
         /// </summary>
@@ -851,6 +876,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Convert_to_binary {
             get {
                 return ResourceManager.GetString("Convert_to_binary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to conditional expression.
+        /// </summary>
+        internal static string Convert_to_conditional_expression {
+            get {
+                return ResourceManager.GetString("Convert_to_conditional_expression", resourceCulture);
             }
         }
         
@@ -1263,11 +1297,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix typo &apos;{0}&apos;.
+        /// </summary>
+        internal static string Fix_typo_0 {
+            get {
+                return ResourceManager.GetString("Fix_typo_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Format string contains invalid placeholder.
         /// </summary>
         internal static string Format_string_contains_invalid_placeholder {
             get {
                 return ResourceManager.GetString("Format_string_contains_invalid_placeholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Formatting document.
+        /// </summary>
+        internal static string Formatting_document {
+            get {
+                return ResourceManager.GetString("Formatting_document", resourceCulture);
             }
         }
         
@@ -2430,6 +2482,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parentheses can be removed.
+        /// </summary>
+        internal static string Parentheses_can_be_removed {
+            get {
+                return ResourceManager.GetString("Parentheses_can_be_removed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parentheses should be added for clarity.
+        /// </summary>
+        internal static string Parentheses_should_be_added_for_clarity {
+            get {
+                return ResourceManager.GetString("Parentheses_should_be_added_for_clarity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pascal Case.
         /// </summary>
         internal static string Pascal_Case {
@@ -2565,6 +2635,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Related method signatures found in metadata will not be updated..
+        /// </summary>
+        internal static string Related_method_signatures_found_in_metadata_will_not_be_updated {
+            get {
+                return ResourceManager.GetString("Related_method_signatures_found_in_metadata_will_not_be_updated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remarks:.
         /// </summary>
         internal static string Remarks_colon {
@@ -2642,6 +2721,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remove_Unnecessary_Cast {
             get {
                 return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary parentheses.
+        /// </summary>
+        internal static string Remove_unnecessary_parentheses {
+            get {
+                return ResourceManager.GetString("Remove_unnecessary_parentheses", resourceCulture);
             }
         }
         
@@ -2944,15 +3032,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Specified_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Specified_file_not_found_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Spell check &apos;{0}&apos;.
-        /// </summary>
-        internal static string Spell_check_0 {
-            get {
-                return ResourceManager.GetString("Spell_check_0", resourceCulture);
             }
         }
         

@@ -6,19 +6,21 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
-  <Import Project="RepoToolset\GitHash.props" />
- 
   <!-- This controls the version numbers of the build that we are producing -->
 
   <PropertyGroup>
     <!-- This is the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->
-    <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.9.0</RoslynAssemblyVersionBase>
+    <!-- PROTOTYPE(ranges-v2): Revert before merging to master. -->
+    <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.10.0</RoslynAssemblyVersionBase>
     <!-- This is the file version of Roslyn, as placed in the PE header. It should be revved during point releases, and is also what provides the basis for our NuGet package versioning. -->
-    <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.9.0</RoslynFileVersionBase>
+    <!-- PROTOTYPE(ranges-v2): Revert before merging to master. -->
+    <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.10.0</RoslynFileVersionBase>
+
     <!-- The release moniker for our packages.  Developers should use "dev" and official builds pick the branch
          moniker listed below -->
     <RoslynNuGetMoniker Condition="'$(RoslynNuGetMoniker)' == ''">dev</RoslynNuGetMoniker>
-    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta4</RoslynNuGetMoniker> 
+    <!-- PROTOTYPE(ranges-v2): Revert before merging to master. -->
+    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">ranges-v2</RoslynNuGetMoniker> 
 
     <!-- This is the base of the NuGet versioning for prerelease packages -->
     <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-$(RoslynNuGetMoniker)</NuGetPreReleaseVersion>
@@ -57,10 +59,6 @@
     <!-- NuGet version -->
     <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</NuGetPerBuildPreReleaseVersion>
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(NUGET_PACKAGES)</NuGetPackageRoot> <!-- Respect environment variable if set -->
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' == 'Windows_NT'">$(UserProfile)/.nuget/packages/</NuGetPackageRoot>
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' != 'Windows_NT'">$(HOME)/.nuget/packages/</NuGetPackageRoot>
-    <NuGetPackagesDirectory>$(NuGetPackageRoot)</NuGetPackagesDirectory>
   </PropertyGroup>
 
   <Choose>
@@ -91,9 +89,7 @@
          hurts our determinism efforts as binaries which should be the same between
          builds will not (due to developers building against different HEAD
          values). -->
-    <CommitHashDisplay>&lt;developer build&gt;</CommitHashDisplay>
-    <CommitHashDisplay Condition="'$(OfficialBuild)' == 'true'">$(GitHeadSha)</CommitHashDisplay>
-    
-    <InformationalVersion>$(NuGetPerBuildPreReleaseVersion). Commit Hash: $(CommitHashDisplay)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion Condition="'$(OfficialBuild)' != 'true'">false</IncludeSourceRevisionInInformationalVersion>
+    <InformationalVersion>$(NuGetPerBuildPreReleaseVersion)</InformationalVersion>
   </PropertyGroup>
 </Project>

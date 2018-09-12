@@ -20,7 +20,4 @@
   <ItemGroup>
     <Folder Include="My Project\" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" />
-  </ItemGroup>
 </Project>

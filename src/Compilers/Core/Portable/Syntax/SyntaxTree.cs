@@ -188,24 +188,24 @@ namespace Microsoft.CodeAnalysis
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
-        /// The values are not affected by line mapping directives (<code>#line</code>).
+        /// The values are not affected by line mapping directives (<c>#line</c>).
         /// </returns>
         public abstract FileLinePositionSpan GetLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Gets the location in terms of path, line and column after applying source line mapping directives 
-        /// (<code>#line</code> in C# or <code>#ExternalSource</code> in VB). 
+        /// (<c>#line</c> in C# or <c>#ExternalSource</c> in VB). 
         /// </summary>
         /// <param name="span">Span within the tree.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         /// 
-        /// If the location path is mapped the resulting path is the path specified in the corresponding <code>#line</code>,
+        /// If the location path is mapped the resulting path is the path specified in the corresponding <c>#line</c>,
         /// otherwise it's <see cref="SyntaxTree.FilePath"/>.
         /// 
-        /// A location path is considered mapped if the first <code>#line</code> directive that precedes it and that 
-        /// either specifies an explicit file path or is <code>#line default</code> exists and specifies an explicit path.
+        /// A location path is considered mapped if the first <c>#line</c> directive that precedes it and that 
+        /// either specifies an explicit file path or is <c>#line default</c> exists and specifies an explicit path.
         /// </returns>
         public abstract FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken));
 

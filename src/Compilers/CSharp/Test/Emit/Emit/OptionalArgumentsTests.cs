@@ -176,7 +176,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
 3");
             var comp2b = CreateCompilation(
                 source2,
-                references: new[] { SystemRef, MetadataReference.CreateFromStream(comp1.EmitToStream()) },
+                references: new[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 options: TestOptions.DebugExe);
             comp2b.VerifyDiagnostics();
             CompileAndVerify(comp2b, expectedOutput:

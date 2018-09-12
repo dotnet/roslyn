@@ -34,7 +34,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private NotificationOptionViewModel _selectedNotificationPreference;
 
         public EnumCodeStyleOptionViewModel(
+            PerLanguageOption<CodeStyleOption<T>> option,
+            string language,
+            string description,
+            T[] enumValues,
+            string[] previews,
+            AbstractOptionPreviewViewModel info,
+            OptionSet options,
+            string groupName,
+            List<CodeStylePreference> preferences)
+            : this((IOption)option, language, description, enumValues, previews, info,
+                   options, groupName, preferences)
+        {
+        }
+
+        public EnumCodeStyleOptionViewModel(
             Option<CodeStyleOption<T>> option,
+            string description,
+            T[] enumValues,
+            string[] previews,
+            AbstractOptionPreviewViewModel info,
+            OptionSet options,
+            string groupName,
+            List<CodeStylePreference> preferences)
+            : this(option, language: null, description, enumValues, previews, info,
+                   options, groupName, preferences)
+        {
+        }
+
+        private EnumCodeStyleOptionViewModel(
+            IOption option,
+            string language,
             string description,
             T[] enumValues,
             string[] previews,
@@ -47,19 +77,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Debug.Assert(preferences.Count == enumValues.Length);
             Debug.Assert(previews.Length == enumValues.Length);
 
-            var expectedEnumValues = Enum.GetValues(typeof(T));
-            Debug.Assert(expectedEnumValues.Length == enumValues.Length, "Enum was updated, but UI wasn't.");
-
             _enumValues = enumValues.ToImmutableArray();
             _previews = previews.ToImmutableArray();
 
-            var codeStyleOption = options.GetOption(option);
+            var codeStyleOption = (CodeStyleOption<T>)options.GetOption(new OptionKey(option, language));
 
             var enumIndex = _enumValues.IndexOf(codeStyleOption.Value);
+            if (enumIndex < 0 || enumIndex >= Preferences.Count)
+            {
+                enumIndex = 0;
+            }
+
             _selectedPreference = Preferences[enumIndex];
 
-            var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Value == codeStyleOption.Notification.Value);
-            _selectedNotificationPreference = NotificationPreferences.Single(p => p.Notification.Value == notificationViewModel.Notification.Value);
+            var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Severity == codeStyleOption.Notification.Severity);
+            _selectedNotificationPreference = NotificationPreferences.Single(p => p.Notification.Severity == notificationViewModel.Notification.Severity);
 
             NotifyPropertyChanged(nameof(SelectedPreference));
             NotifyPropertyChanged(nameof(SelectedNotificationPreference));

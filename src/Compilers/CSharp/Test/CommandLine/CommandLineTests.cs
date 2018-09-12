@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -100,6 +101,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             var args = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: true);
             return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
+
+        [Fact]
+        public void XmlMemoryMapped()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C {}");
+            const string docName = "doc.xml";
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/t:library", "/preferreduilang:en", $"/doc:{docName}", src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+
+            var xmlPath = Path.Combine(dir.Path, docName);
+            using (var fileStream = new FileStream(xmlPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen: true))
+            {
+                exitCode = cmd.Run(outWriter);
+                Assert.Equal(1, exitCode);
+                Assert.StartsWith($"error CS0016: Could not write to output file '{xmlPath}' -- ", outWriter.ToString());
+            }
+        }
+
 
         // This test should only run when the machine's default encoding is shift-JIS
         [ConditionalFact(typeof(HasShiftJisDefaultEncoding))]
@@ -1432,7 +1458,7 @@ d.cs
             InlineData("bad", false, LanguageVersion.Default)]
         public void LanguageVersion_TryParseDisplayString(string input, bool success, LanguageVersion expected)
         {
-            Assert.Equal(success, input.TryParse(out var version));
+            Assert.Equal(success, LanguageVersionFacts.TryParse(input, out var version));
             Assert.Equal(expected, version);
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
@@ -1444,7 +1470,7 @@ d.cs
         {
             var originalCulture = Thread.CurrentThread.CurrentCulture;
             Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR", useUserOverride: false);
-            Assert.True("ISO-1".TryParse(out var version));
+            Assert.True(LanguageVersionFacts.TryParse("ISO-1", out var version));
             Assert.Equal(LanguageVersion.CSharp1, version);
             Thread.CurrentThread.CurrentCulture = originalCulture;
         }
@@ -6954,6 +6980,7 @@ public class C
             Assert.Contains(source + "(6,16): warning CS0168: The variable 'x' is declared but never used", outWriter.ToString(), StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(source)), Path.GetFileName(source)));
         }
 
         [Fact]
@@ -9274,16 +9301,16 @@ class C {
 
             parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("K1\\", "V1\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K1\\", "V1\\"), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:C:\\goo\\=/", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("C:\\goo\\", "/"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("C:\\goo\\", "/"), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1,K2=V2", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("K1\\", "V1\\"), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePair.Create("K2\\", "V2\\"), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePairUtil.Create("K1\\", "V1\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K2\\", "V2\\"), parsedArgs.PathMap[1]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:,,,", "a.cs" }, _baseDirectory);
             Assert.Equal(4, parsedArgs.Errors.Count());
@@ -9303,17 +9330,17 @@ class C {
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"supporting spaces=is hard\"", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("supporting spaces\\", "is hard\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("supporting spaces\\", "is hard\\"), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"K 1=V 1\",\"K 2=V 2\"", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePair.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePairUtil.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"K 1\"=\"V 1\",\"K 2\"=\"V 2\"", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePair.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePair.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePairUtil.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
         }
 
         [Fact]
@@ -9785,7 +9812,7 @@ class C
                 cscCopy,
                 arguments + " /deterministic",
                 workingDirectory: dir.Path,
-                additionalEnvironmentVars: new[] { KeyValuePair.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
+                additionalEnvironmentVars: new[] { KeyValuePairUtil.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
 
             Assert.Equal("", result.Output.Trim());
         }

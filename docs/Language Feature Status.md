@@ -6,6 +6,23 @@ and will be updated as work progresses, features are added / removed, and as wor
 This is not an exhaustive list of our features but rather the ones which have active development
 efforts behind them.
 
+# C# 8.0
+
+| Feature | Branch | State | Developers | Reviewer | LDM Champ |
+| ------- | ------ | ----- | ---------- | -------- | --------- |
+| [Default Interface Methods](https://github.com/dotnet/csharplang/blob/master/proposals/default-interface-methods.md) | [defaultInterfaceImplementation](https://github.com/dotnet/roslyn/tree/features/DefaultInterfaceImplementation) | Prototype | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) | [gafter](https://github.com/gafter) |
+| [Nullable reference type](https://github.com/dotnet/csharplang/blob/master/proposals/nullable-reference-types.md) | [NullableReferenceTypes](https://github.com/dotnet/roslyn/tree/features/NullableReferenceTypes) | Prototype | [cston](https://github.com/cston), [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred) | [mattwar](https://github.com/mattwar) |
+| [Recursive patterns](https://github.com/dotnet/csharplang/blob/master/proposals/patterns.md) | [recursive-patterns](https://github.com/dotnet/roslyn/tree/features/recursive-patterns) | Prototype | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke), [cston](https://github.com/cston) | [gafter](https://github.com/gafter) |
+| [Async streams](https://github.com/dotnet/csharplang/blob/master/proposals/async-streams.md) | [async-streams](https://github.com/dotnet/roslyn/tree/features/async-streams) | In Progress | [jcouv](https://github.com/jcouv) |  [OmarTawfik](https://github.com/OmarTawfik) | [stephentoub](https://github.com/stephentoub) |
+| [Caller expression attribute](https://github.com/dotnet/csharplang/issues/287) | [caller-expression](https://github.com/dotnet/roslyn/tree/features/caller-expression) | Prototype | [alrz](https://github.com/alrz) | [jcouv](https://github.com/jcouv) | [jcouv](https://github.com/jcouv) |
+| [Target-typed new](https://github.com/dotnet/csharplang/issues/100) | [target-typed-new](https://github.com/dotnet/roslyn/tree/features/target-typed-new) | Prototype | [alrz](https://github.com/alrz) | TBD | [jcouv](https://github.com/jcouv) |
+| [Pattern-based using](https://github.com/dotnet/csharplang/issues/1623) | [enhanced-using](https://github.com/dotnet/roslyn/tree/features/enhanced-using) | Prototype | [fayrose](https://github.com/fayrose) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
+| [Generic attributes](https://github.com/dotnet/csharplang/issues/124) | [generic-attributes](https://github.com/dotnet/roslyn/tree/features/generic-attributes) | In Progress | [AviAvni](https://github.com/AviAvni) | TBD | [mattwar](https://github.com/mattwar) |
+| [Ranges](https://github.com/dotnet/roslyn/blob/features/range/docs/features/range.md) | [range](https://github.com/dotnet/roslyn/tree/features/range) | In Progress | [OmarTawfik](https://github.com/OmarTawfik) | [vsadov](https://github.com/vsadov) | [jaredpar](https://github.com/jaredpar) |
+| [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | Implemented | [jcouv](https://github.com/jcouv) |  | [jcouv](https://github.com/jcouv) |
+| [Relax ordering of `ref` and `partial` modifiers](https://github.com/dotnet/csharplang/issues/946) | [ref-partial](https://github.com/dotnet/roslyn/tree/features/ref-partial) | In Progress | [alrz](https://github.com/alrz) |  | [jcouv](https://github.com/jcouv) |
+| [Null Coalescing Assignment](https://github.com/dotnet/csharplang/issues/34) | [null-operator-enhancements](https://github.com/dotnet/roslyn/tree/features/null-operator-enhancements) | In Progress | [333fred](https://github.com/333fred) | TBD | [gafter](https://github.com/gafter)
+
 # C# 7.3
 
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
@@ -22,30 +39,12 @@ efforts behind them.
 | [Improved overload candidates](https://github.com/dotnet/csharplang/issues/98) | features/compiler | Merged | [gafter](https://github.com/gafter) | [cston](https://github.com/cston) | [mattwar](https://github.com/mattwar) |
 | [Expression variables](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/expression-variables-in-initializers.md) | [features/ExpressionVariables](https://github.com/dotnet/roslyn/tree/features/ExpressionVariables) | Merged | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) | [gafter](https://github.com/gafter) |
 
-# C# 8.0
+# C# 7.2 fixes
 
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
-| [Default Interface Methods](https://github.com/dotnet/csharplang/blob/master/proposals/default-interface-methods.md) | [defaultInterfaceImplementation](https://github.com/dotnet/roslyn/tree/features/DefaultInterfaceImplementation) | Prototype | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) | [gafter](https://github.com/gafter) |
-| [Nullable reference type](https://github.com/dotnet/csharplang/blob/master/proposals/nullable-reference-types.md) | [NullableReferenceTypes](https://github.com/dotnet/roslyn/tree/features/NullableReferenceTypes) | Prototype | [cston](https://github.com/cston), [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred) | [mattwar](https://github.com/mattwar) |
-| [Recursive patterns](https://github.com/dotnet/csharplang/blob/master/proposals/patterns.md) | [recursive-patterns](https://github.com/dotnet/roslyn/tree/features/recursive-patterns) | Prototype | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke), [cston](https://github.com/cston) | [gafter](https://github.com/gafter) |
-| [Async streams](https://github.com/dotnet/csharplang/blob/master/proposals/async-streams.md) | [async-streams](https://github.com/dotnet/roslyn/tree/features/async-streams) | In Progress | [jcouv](https://github.com/jcouv) |  [OmarTawfik](https://github.com/OmarTawfik) | [stephentoub](https://github.com/stephentoub) |
-| [Caller expression attribute](https://github.com/dotnet/csharplang/issues/287) | TBD | Prototype | [alrz](https://github.com/alrz) | [jcouv](https://github.com/jcouv) | [jcouv](https://github.com/jcouv) |
-| [Target-typed new](https://github.com/dotnet/csharplang/issues/100) | TBD | Prototype | [alrz](https://github.com/alrz) | TBD | [jcouv](https://github.com/jcouv) |
-| [Generic attributes](https://github.com/dotnet/csharplang/issues/124) | [generic-attributes](https://github.com/dotnet/roslyn/tree/features/generic-attributes) | In Progress | [AviAvni](https://github.com/AviAvni) | TBD | [mattwar](https://github.com/mattwar) |
-| [Ranges](https://github.com/dotnet/roslyn/blob/features/range/docs/features/range.md) | [range](https://github.com/dotnet/roslyn/tree/features/range) | In Progress | [OmarTawfik](https://github.com/OmarTawfik) | [vsadov](https://github.com/vsadov) | [jaredpar](https://github.com/jaredpar) |
-| [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | Implemented | [jcouv](https://github.com/jcouv) |  | [jcouv](https://github.com/jcouv) |
-| [Relax ordering of `ref` and `partial` modifiers](https://github.com/dotnet/csharplang/issues/946) | [ref-partial](https://github.com/dotnet/roslyn/tree/features/ref-partial) | In Progress | [alrz](https://github.com/alrz) |  | [jcouv](https://github.com/jcouv) |
-
-# C# 7.1
-
-| Feature | Branch | State | Developers | Reviewer | LDM Champ |
-| ------- | ------ | ----- | ---------- | -------- | --------- |
-| [Async Main](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/async-main.md) | master | Merged | [tyoverby](https://github.com/tyoverby) | [vsadov](https://github.com/vsadov) | [stephentoub](https://github.com/stephentoub) |
-| [Default Expressions](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/target-typed-default.md) | master  | Merged | [jcouv](https://github.com/jcouv) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv) |
-| [Ref Assemblies](https://github.com/dotnet/roslyn/blob/master/docs/features/refout.md) | master | Merged (IDE and project-system integrations ongoing) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | N/A |
-| [Infer tuple names](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/infer-tuple-names.md) | master | Merged | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
-| [Pattern-matching with generics](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/generics-pattern-match.md) | master  | Merged | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke) | [gafter](https://github.com/gafter) |
+| [`ref` and `this` ordering in ref extension](https://github.com/dotnet/roslyn/pull/23643) |  | Merged | [alrz](https://github.com/alrz) |  |  |
+| [Tiebreaker for by-val and `in` overloads](https://github.com/dotnet/roslyn/pull/23122) | master | Merged | [OmarTawfik](https://github.com/OmarTawfik) |  | |
 
 # C# 7.2
 
@@ -58,11 +57,15 @@ efforts behind them.
 | [conditional ref operator](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.2/conditional-ref.md) | master | Merged | [vsadov](https://github.com/vsadov) | [cston](https://github.com/cston) | [jaredpar](https://github.com/jaredpar) |
 | [Digit separator after base specifier](https://github.com/dotnet/roslyn/pull/20449) | master | Merged | [alrz](https://github.com/alrz) | | [gafter](https://github.com/gafter) |
 
-# C# 7.2 fixes
+# C# 7.1
+
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
-| [`ref` and `this` ordering in ref extension](https://github.com/dotnet/roslyn/pull/23643) |  | Merged | [alrz](https://github.com/alrz) |  |  |
-| [Tiebreaker for by-val and `in` overloads](https://github.com/dotnet/roslyn/pull/23122) | master | Merged | [OmarTawfik](https://github.com/OmarTawfik) |  | |
+| [Async Main](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/async-main.md) | master | Merged | [tyoverby](https://github.com/tyoverby) | [vsadov](https://github.com/vsadov) | [stephentoub](https://github.com/stephentoub) |
+| [Default Expressions](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/target-typed-default.md) | master  | Merged | [jcouv](https://github.com/jcouv) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv) |
+| [Ref Assemblies](https://github.com/dotnet/roslyn/blob/master/docs/features/refout.md) | master | Merged (IDE and project-system integrations ongoing) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | N/A |
+| [Infer tuple names](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/infer-tuple-names.md) | master | Merged | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
+| [Pattern-matching with generics](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/generics-pattern-match.md) | master  | Merged | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke) | [gafter](https://github.com/gafter) |
 
 # FAQ
 

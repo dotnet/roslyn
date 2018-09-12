@@ -27,11 +27,13 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
     <!-- Include PDB unless embedded into DLL -->
@@ -39,5 +41,8 @@
     <file src="Dlls\Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.xml" target="lib\net46" />
     <file src="Dlls\Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.pdb*" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\Workspaces.MSBuild\**\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll" target="lib\net46" />
   </files>
 </package>

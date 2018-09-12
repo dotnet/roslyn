@@ -852,6 +852,7 @@ End Class";
         }
 
         [Fact]
+        [WorkItem(26244, "https://github.com/dotnet/roslyn/issues/26244")]
         public async Task FileFromSameProjectTogetherTest()
         {
             var projectId1 = ProjectId.CreateNewId();
@@ -900,6 +901,11 @@ End Class";
                 var globalOperation = workspace.Services.GetService<IGlobalOperationNotificationService>();
                 using (var operation = globalOperation.Start("Block SolutionCrawler"))
                 {
+                    // make sure global operaiton is actually started
+                    // otherwise, solution crawler might processed event we are later waiting for
+                    var operationWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.GlobalOperation);
+                    await operationWaiter.CreateWaitTask();
+
                     // mutate solution
                     workspace.OnSolutionAdded(solution);
 
@@ -1165,7 +1171,7 @@ End Class";
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.ProjectIds.Add(project.Id);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -1175,14 +1181,14 @@ End Class";
                     this.DocumentIds.Add(document.Id);
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.SyntaxDocumentIds.Add(document.Id);
                 Process(document.Id, cancellationToken);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void RemoveDocument(DocumentId documentId)
@@ -1222,22 +1228,22 @@ End Class";
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
             #endregion
         }
@@ -1249,17 +1255,17 @@ End Class";
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.DocumentIds.Add(document.Id);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             #region unused 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e) => false;
-            public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
-            public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
-            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
-            public Task DocumentResetAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
-            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
-            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task DocumentResetAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
             public void RemoveDocument(DocumentId documentId) { }
             public void RemoveProject(ProjectId projectId) { }
             #endregion

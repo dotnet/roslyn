@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -376,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, bool isRef = false)
         {
             Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.AllIgnoreOptions) ||
+                    StackOptimizerPass1.IsFixedBufferAssignmentToRefLocal(left, right, isRef) ||
                     right.Type.IsErrorType() || left.Type.IsErrorType());
 
             return new BoundAssignmentOperator(Syntax, left, right, left.Type, isRef: isRef) { WasCompilerGenerated = true };
@@ -850,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var label = GenerateLabel("case+" + value);
             var literal = Literal(value);
             var switchLabel = new BoundSwitchLabel(Syntax, label, literal, literal.ConstantValue) { WasCompilerGenerated = true };
-            return new BoundSwitchSection(Syntax, ImmutableArray.Create<BoundSwitchLabel>(switchLabel), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
+            return new BoundSwitchSection(Syntax, locals: ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundSwitchLabel>(switchLabel), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
         }
 
         public BoundSwitchSection SwitchSection(List<int> values, params BoundStatement[] statements)
@@ -863,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(new BoundSwitchLabel(Syntax, label, expression, expression.ConstantValue) { WasCompilerGenerated = true });
             }
 
-            return new BoundSwitchSection(Syntax, builder.ToImmutableAndFree(), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
+            return new BoundSwitchSection(Syntax, locals: ImmutableArray<LocalSymbol>.Empty, builder.ToImmutableAndFree(), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
         }
 
         public BoundGotoStatement Goto(LabelSymbol label)
@@ -1273,9 +1275,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            if (refKind == RefKind.Out)
+            switch (refKind)
             {
-                refKind = RefKind.Ref;
+                case RefKind.Out:
+                    refKind = RefKind.Ref;
+                    break;
+                case RefKind.In:
+                    if (argument.GetRefKind() == RefKind.None)
+                    {
+                        refKind = RefKind.None;
+                    }
+                    break;
+                case RefKind.None:
+                case RefKind.Ref:
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
             }
 
             MethodSymbol containingMethod = this.CurrentFunction;

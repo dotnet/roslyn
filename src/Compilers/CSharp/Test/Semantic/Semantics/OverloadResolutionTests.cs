@@ -228,7 +228,7 @@ static class P
     }
 }";
 
-            CompileAndVerify(source3, references: new[] { SystemCoreRef }, expectedOutput: @"BB");
+            CompileAndVerify(source3, expectedOutput: @"BB");
         }
 
         [Fact]
@@ -2304,7 +2304,7 @@ class Test
         Console.WriteLine(M().First());
     }
 }";
-            CompileAndVerify(source, references: new[] { LinqAssemblyRef }, expectedOutput: @"12");
+            CompileAndVerify(source, expectedOutput: @"12");
         }
 
         [Fact]
@@ -3172,7 +3172,7 @@ class X
     }
 }
 ";
-            CompileAndVerify(source, references: new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -8061,7 +8061,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"IfNotNull<T, U>(this T? source, Func<T, U> selector)
@@ -8397,7 +8397,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"int Properties(this IFirstInterface source, params int[] x)
@@ -8445,7 +8445,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"void Test2(int x, params int[] y)
@@ -8492,7 +8492,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"void Test2(int x = 0, int y = 0)
@@ -8531,7 +8531,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
     // (9,39): error CS0121: The call is ambiguous between the following methods or properties: 'VS2015CompilerBug.Test2(int, int)' and 'VS2015CompilerBug.Test2(int, int, int)'
@@ -10529,7 +10529,6 @@ class Program
         instance.M(3);
     }
 }",
-                references: new[] { SystemCoreRef },
                 expectedOutput:
 @"val: 1
 in: 2
@@ -10558,7 +10557,6 @@ class Program
         Console.WriteLine(instance[3]);
     }
 }",
-                references: new[] { SystemCoreRef },
                 expectedOutput:
 @"val: 1
 in: 2
@@ -11144,6 +11142,34 @@ class Program
                 //         D a = F;
                 Diagnostic(ErrorCode.ERR_BadRetType, "F").WithArguments("Program.F(in System.DateTime)", "string").WithLocation(16, 15)
             );
+        }
+
+        [Fact, WorkItem(25813, "https://github.com/dotnet/roslyn/issues/25813")]
+        public void InaccessibleExtensionMethod()
+        {
+            var code = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new[] { 0, 1, 3 };
+        var b = new[] { 1, 2, 3, 4, 5 };
+        Console.WriteLine(b.Count(a.Contains));
+    }
+}
+
+public static class Extensions
+{
+    // NOTE: private access modifier simulates internal class public method in referenced assembly.
+    private static bool Contains<T>(this System.Collections.Generic.IEnumerable<T> a, T value) =>
+        throw new NotImplementedException();
+}";
+
+            CompileAndVerify(code, expectedOutput: @"2");
         }
     }
 }

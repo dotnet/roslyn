@@ -475,7 +475,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (binder == null)
                     {
                         Error(diagnostics, ErrorCode.ERR_InvalidGotoCase, node);
-                        return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, true);
+                        ImmutableArray<BoundNode> childNodes;
+                        if (node.Expression != null)
+                        {
+                            var dummyDiagnostics = DiagnosticBag.GetInstance();
+                            childNodes = ImmutableArray.Create<BoundNode>(BindValue(node.Expression, dummyDiagnostics, BindValueKind.RValue));
+                            dummyDiagnostics.Free();
+                         }
+                        else
+                        {
+                            childNodes = ImmutableArray<BoundNode>.Empty;
+                        }
+                        return new BoundBadStatement(node, childNodes, true);
                     }
                     return binder.BindGotoCaseOrDefault(node, this, diagnostics);
 
@@ -1775,7 +1786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (reason == LambdaConversionResult.BadParameterCount)
             {
                 // Delegate '{0}' does not take {1} arguments
-                Error(diagnostics, ErrorCode.ERR_BadDelArgCount, syntax, targetType, anonymousFunction.ParameterCount);
+                Error(diagnostics, ErrorCode.ERR_BadDelArgCount, syntax, delegateType, anonymousFunction.ParameterCount);
                 return;
             }
 
@@ -1833,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.MismatchedParameterType)
             {
-                // Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types
+                // Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types
                 Error(diagnostics, ErrorCode.ERR_CantConvAnonMethParams, syntax, id, targetType);
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)

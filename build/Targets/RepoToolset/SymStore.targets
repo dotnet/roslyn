@@ -21,7 +21,7 @@ Update this file only if the change to RepoToolset gets approved and merged.
   </PropertyGroup>
 
   <!-- Note: The DeployToSymStore target definition differs from the original implementation in RepoToolset. -->
-  <Target Name="DeployToSymStore" DependsOnTargets="$(_DeployToSymStoreTargetName)" Condition="'$(ArtifactsSymStoreDirectory)' != ''" />
+  <Target Name="DeployToSymStore" DependsOnTargets="$(_DeployToSymStoreTargetName)" Condition="'$(DeveloperBuild)' != 'true' and '$(OS)' == 'Windows_NT'" />
 
   <Target Name="_OuterDeployToSymStore">
     <ItemGroup>

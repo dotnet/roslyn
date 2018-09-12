@@ -288,7 +288,7 @@ this[1]
                 Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28001")]
         public void NoReferences()
         {
             var submission = CSharpCompilation.CreateScriptCompilation("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Script), returnType: typeof(int));
@@ -785,7 +785,7 @@ public E e4;
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "B"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CompilationChain_Fields()
         {
             var c0 = CreateSubmission(@"
@@ -897,7 +897,7 @@ class D
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Z").WithArguments("Z"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28001")]
         public void HostObjectBinding_InStaticContext()
         {
             var source = @"
@@ -1070,7 +1070,7 @@ System.TypedReference c;
             s1.VerifyEmitDiagnostics();
 
             s2.VerifyDiagnostics(
-                // (1,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i* i"));
         }
 

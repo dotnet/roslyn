@@ -493,8 +493,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
-        <target state="new">Async methods cannot have by reference locals</target>
+        <source>Async methods cannot have by-reference locals</source>
+        <target state="new">Async methods cannot have by-reference locals</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncMethodBuilderTaskProperty">
@@ -873,8 +873,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
-        <target state="new">Iterators cannot have by reference locals</target>
+        <source>Iterators cannot have by-reference locals</source>
+        <target state="new">Iterators cannot have by-reference locals</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -1358,8 +1358,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="new">Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="new">Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -1475,6 +1475,11 @@
       <trans-unit id="ERR_CantSetWin32Manifest">
         <source>Error reading Win32 manifest file '{0}' -- '{1}'</source>
         <target state="new">Error reading Win32 manifest file '{0}' -- '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CantUseInOrOutInArglist">
+        <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
+        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseRequiredAttribute">
@@ -2703,8 +2708,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="new">Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="new">Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -2853,8 +2858,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="new">Only assignment, call, increment, decrement, and new object expressions can be used as a statement</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="new">Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalUnsafe">
@@ -3983,8 +3988,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
-        <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="new">'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -4145,6 +4150,11 @@
       <trans-unit id="ERR_OutAttrOnRefParam">
         <source>Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.</source>
         <target state="new">Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OutVariableCannotBeByRef">
+        <source>An out variable cannot be declared as a ref local</source>
+        <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutputNeedsName">
@@ -6675,8 +6685,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
-        <source>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="new">SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</target>
+        <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
+        <target state="new">SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeIsNotASubmission">
@@ -6684,9 +6694,14 @@
         <target state="new">Syntax tree should be created from a submission.</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFoundTo">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="new">SyntaxTree '{0}' not found to remove</target>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="new">SyntaxTree is not part of the compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTreeNotFoundToRemove">
+        <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
+        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeSemanticModelMust">
@@ -8327,6 +8342,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="WRN_TupleLiteralNameMismatch_Title">
         <source>The tuple element name is ignored because a different name or no name is specified by the assignment target.</source>
         <target state="new">The tuple element name is ignored because a different name or no name is specified by the assignment target.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
+        <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
+        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
+        <source>Type parameter has the same type as the type parameter from outer method.</source>
+        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterTypeParameter">

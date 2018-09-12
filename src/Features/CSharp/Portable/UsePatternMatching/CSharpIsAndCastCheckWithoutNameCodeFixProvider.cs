@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(

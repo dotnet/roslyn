@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../VBFeaturesResources.resx">
     <body>
+      <trans-unit id="If_statement_can_be_simplified">
+        <source>'If' statement can be simplified</source>
+        <target state="translated">'if' ステートメントは簡素化できます</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">{0} の挿入</target>
@@ -37,11 +42,6 @@
         <target state="translated">競合が検出されました。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_If_statement">
-        <source>Invert If statement</source>
-        <target state="translated">If ステートメントを反転します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">{0}' ステートメントを行 {1} に移動します。</target>
@@ -50,6 +50,11 @@
       <trans-unit id="Delete_the_0_statement2">
         <source>Delete the '{0}' statement.</source>
         <target state="translated">{0}' ステートメントを削除します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="translated">&lt;複数の種類&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
@@ -160,16 +165,6 @@
       <trans-unit id="Fix_Incorrect_Function_Return_Type">
         <source>Fix Incorrect Function Return Type</source>
         <target state="translated">無効な関数の戻り値の型を修正する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">不要なキャストの削除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">キャストが冗長です</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
@@ -1813,17 +1808,22 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>
-        <target state="new">Convert to 'Select Case'</target>
+        <target state="translated">'Select Case' に変換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_For_Each">
         <source>Convert to 'For Each'</source>
-        <target state="new">Convert to 'For Each'</target>
+        <target state="translated">'For Each' に変換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_For">
         <source>Convert  to 'For'</source>
-        <target state="new">Convert  to 'For'</target>
+        <target state="translated">'For' に変換する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="translated">if を反転する</target>
         <note />
       </trans-unit>
     </body>

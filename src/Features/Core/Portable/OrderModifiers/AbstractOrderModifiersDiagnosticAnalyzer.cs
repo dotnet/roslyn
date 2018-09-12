@@ -54,31 +54,30 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                 return;
             }
 
-            var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
-            Recurse(context, preferredOrder, descriptor, root);
+            Recurse(context, preferredOrder, option.Notification.Severity, root);
         }
 
         protected abstract void Recurse(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
-            DiagnosticDescriptor descriptor,
+            ReportDiagnostic severity,
             SyntaxNode root);
 
         protected void CheckModifiers(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
-            DiagnosticDescriptor descriptor,
+            ReportDiagnostic severity,
             SyntaxNode memberDeclaration)
         {
             var modifiers = _syntaxFacts.GetModifiers(memberDeclaration);
             if (!IsOrdered(preferredOrder, modifiers))
             {
-                if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
+                if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden)
                 {
                     // If the severity is hidden, put the marker on all the modifiers so that the
                     // user can bring up the fix anywhere in the modifier list.
                     context.ReportDiagnostic(
-                        Diagnostic.Create(descriptor, context.Tree.GetLocation(
+                        Diagnostic.Create(Descriptor, context.Tree.GetLocation(
                             TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().Span.End))));
                 }
                 else
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                     // If the Severity is not hidden, then just put the user visible portion on the
                     // first token.  That way we don't 
                     context.ReportDiagnostic(
-                        Diagnostic.Create(descriptor, modifiers.First().GetLocation()));
+                        DiagnosticHelper.Create(Descriptor, modifiers.First().GetLocation(), severity, additionalLocations: null, properties: null));
                 }
             }
         }

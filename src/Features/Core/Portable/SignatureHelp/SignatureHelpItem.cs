@@ -89,5 +89,14 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 Parameters.SelectMany(p => p.GetAllParts())).Concat(
                 DescriptionParts)));
         }
+
+        public override string ToString()
+        {
+            var prefix = string.Concat(PrefixDisplayParts);
+            var suffix = string.Concat(SuffixDisplayParts);
+            var parameters = string.Join(string.Concat(SeparatorDisplayParts), Parameters);
+            var description = string.Concat(DescriptionParts);
+            return string.Concat(prefix, parameters, suffix, description);
+        }
     }
 }

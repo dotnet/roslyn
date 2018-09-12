@@ -1,15 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.CSharp.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -260,9 +264,9 @@ if (true)
 {");
         }
 
-        private IQuickInfoProvider CreateProvider(TestWorkspace workspace)
+        private QuickInfoProvider CreateProvider(TestWorkspace workspace)
         {
-            return new SyntacticQuickInfoProvider();
+            return new CSharpSyntacticQuickInfoProvider();
         }
 
         protected override async Task AssertNoContentAsync(
@@ -271,7 +275,7 @@ if (true)
             int position)
         {
             var provider = CreateProvider(workspace);
-            Assert.Null(await provider.GetItemAsync(document, position, CancellationToken.None));
+            Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None)));
         }
 
         protected override async Task AssertContentIsAsync(
@@ -282,14 +286,17 @@ if (true)
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider(workspace);
-            var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
-            Assert.NotNull(state);
+            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
+            Assert.NotNull(info);
 
-            var hostingControlFactory = workspace.GetService<DeferredContentFrameworkElementFactory>();
+            Assert.NotEqual(0, info.RelatedSpans.Length);
+            var tabSize = document.Project.Solution.Workspace.Options.GetOption(Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize, document.Project.Language);
+            var text = await document.GetTextAsync();
 
-            var viewHostingControl = (ViewHostingControl)hostingControlFactory.CreateElement(state.Content);
-            var actualContent = viewHostingControl.GetText_TestOnly();
-            Assert.Equal(expectedContent, actualContent);
+            var classifiedSpans = info.RelatedSpans.Select(s => new ClassifiedSpan(ClassificationTypeNames.Text, s));
+            var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans.ToImmutableArray(), tabSize);
+            var actualText = string.Concat(spans.Select(s => text.GetSubText(s.TextSpan).ToString()));
+            Assert.Equal(expectedContent, actualText);
         }
 
         protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)

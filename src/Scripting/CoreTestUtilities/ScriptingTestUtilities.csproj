@@ -31,16 +31,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="$(MicrosoftNETCorePlatformsVersion)" />
-    <PackageReference Include="System.Collections.Concurrent" Version="$(SystemCollectionsConcurrentVersion)" />
-    <PackageReference Include="System.Console" Version="$(SystemConsoleVersion)" />
-    <PackageReference Include="System.Diagnostics.Debug" Version="$(SystemDiagnosticsDebugVersion)" />
-    <PackageReference Include="System.Diagnostics.Tools" Version="$(SystemDiagnosticsToolsVersion)" />
-    <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="$(SystemReflectionTypeExtensionsVersion)" />
-    <PackageReference Include="System.Text.RegularExpressions" Version="$(SystemTextRegularExpressionsVersion)" />
-    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
-    <PackageReference Include="System.Xml.XDocument" Version="$(SystemXmlXDocumentVersion)" />
-    <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />

@@ -15,16 +15,19 @@
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Features" version="$version$" />
       <dependency id="Microsoft.CodeAnalysis.CSharp.Workspaces" version="$version$" />
+      <dependency id="Humanizer.Core" version="$HumanizerCoreVersion$" />
     </dependencies>
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
     <!-- Include PDB unless embedded into DLL -->
@@ -32,5 +35,8 @@
     <file src="Dlls\CSharpFeatures\Microsoft.CodeAnalysis.CSharp.Features.xml" target="lib\netstandard1.3" />
     <file src="Dlls\CSharpFeatures\Microsoft.CodeAnalysis.CSharp.Features.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\CSharpFeatures\**\Microsoft.CodeAnalysis.CSharp.Features.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>

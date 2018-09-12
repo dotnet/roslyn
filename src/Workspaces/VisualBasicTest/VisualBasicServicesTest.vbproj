@@ -9,7 +9,7 @@
     <AssemblyName>Roslyn.Services.VisualBasic.UnitTests</AssemblyName>
     <OptionStrict>Off</OptionStrict>
     <VBRuntime>Default</VBRuntime>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
