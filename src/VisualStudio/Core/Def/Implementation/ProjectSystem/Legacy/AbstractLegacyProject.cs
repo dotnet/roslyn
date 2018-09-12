@@ -96,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             _batchScopeCreator.StopTrackingProject(VisualStudioProject);
 
             VisualStudioProjectOptionsProcessor?.Dispose();
+            ProjectCodeModel.OnProjectClosed();
             VisualStudioProject.RemoveFromWorkspace();
 
             // Unsubscribe IVsHierarchyEvents
