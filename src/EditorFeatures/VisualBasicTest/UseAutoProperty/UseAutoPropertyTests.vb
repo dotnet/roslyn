@@ -64,9 +64,49 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
-        Public Async Function TestSingleGetter4() As Task
-            ' Nullable(Of T) is a mutable value type. The diagnostic is not offered if the field is writable.
+        Public Async Function TestNullable1() As Task
+            ' ⚠ The expected outcome of this test should not change.
             Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    [|dim i as MutableInt?|]
+    readonly property P as MutableInt?
+        get
+            return i
+        end get
+    end property
+end class
+Structure MutableInt
+    Public Value As Integer
+End Structure")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestNullable2() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    [|readonly dim i as MutableInt?|]
+    readonly property P as MutableInt?
+        get
+            return i
+        end get
+    end property
+end class
+Structure MutableInt
+    Public Value As Integer
+End Structure",
+"class Class1
+    readonly property P as MutableInt?
+end class
+Structure MutableInt
+    Public Value As Integer
+End Structure")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestNullable3() As Task
+            Await TestInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer?|]
     readonly property P as integer?
@@ -74,13 +114,15 @@ end class")
             return i
         end get
     end property
+end class",
+"class Class1
+    readonly property P as integer?
 end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
-        Public Async Function TestSingleGetter5() As Task
-            ' Nullable(Of T) is a mutable value type. The diagnostic is offered if the field is read-only.
+        Public Async Function TestNullable4() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1
     [|readonly dim i as integer?|]
@@ -92,6 +134,142 @@ end class")
 end class",
 "class Class1
     readonly property P as integer?
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestMutableValueType1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    [|dim i as MutableInt|]
+    readonly property P as MutableInt
+        get
+            return i
+        end get
+    end property
+end class
+Structure MutableInt
+    Public Value As Integer
+End Structure")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestMutableValueType2() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    [|readonly dim i as MutableInt|]
+    readonly property P as MutableInt
+        get
+            return i
+        end get
+    end property
+end class
+Structure MutableInt
+    Public Value As Integer
+End Structure",
+"class Class1
+    readonly property P as MutableInt
+end class
+Structure MutableInt
+    Public Value As Integer
+End Structure")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestMutableValueType3() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    [|dim i as MutableInt|]
+    readonly property P as MutableInt
+        get
+            return i
+        end get
+    end property
+end class
+Structure MutableInt
+    Public Property Value As Integer
+End Structure")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestErrorType1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    [|dim i as ErrorType|]
+    readonly property P as ErrorType
+        get
+            return i
+        end get
+    end property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestErrorType2() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    [|readonly dim i as ErrorType|]
+    readonly property P as ErrorType
+        get
+            return i
+        end get
+    end property
+end class",
+"class Class1
+    readonly property P as ErrorType
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestErrorType3() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    [|dim i as ErrorType?|]
+    readonly property P as ErrorType?
+        get
+            return i
+        end get
+    end property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestErrorType4() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    [|readonly dim i as ErrorType?|]
+    readonly property P as ErrorType?
+        get
+            return i
+        end get
+    end property
+end class",
+"class Class1
+    readonly property P as ErrorType?
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestErrorType5() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    [|dim i as ErrorType()|]
+    readonly property P as ErrorType()
+        get
+            return i
+        end get
+    end property
+end class",
+"class Class1
+    readonly property P as ErrorType()
 end class")
         End Function
 
@@ -160,16 +338,18 @@ New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageV
         <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
         Public Async Function TestInitializer_AsNew() As Task
             Await TestInRegularAndScriptAsync(
-"class Class1
-    dim i as new Guid(""{00000000-0000-0000-0000-000000000000}"")
-    [|readonly property P as Guid
+"Imports System
+class Class1
+    dim i as new EventArgs()
+    [|readonly property P as EventArgs
         get
             return i
         end get
     end property|]
 end class",
-"class Class1
-    readonly property P as new Guid(""{00000000-0000-0000-0000-000000000000}"")
+"Imports System
+class Class1
+    readonly property P as new EventArgs()
 end class")
         End Function
 
@@ -177,8 +357,9 @@ end class")
         <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
         Public Async Function TestInitializer_AsNewDifferentType() As Task
             Await TestMissingInRegularAndScriptAsync(
-"class Class1
-    dim i as new Guid(""{00000000-0000-0000-0000-000000000000}"")
+"Imports System
+class Class1
+    dim i as new EventArgs()
     [|readonly property P as Object
         get
             return i

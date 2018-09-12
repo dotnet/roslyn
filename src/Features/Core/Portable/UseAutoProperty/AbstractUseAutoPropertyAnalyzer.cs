@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            // The field can't be a mutable value type unless it's marked readonly
-            if (!getterField.IsReadOnly && getterField.Type.IsMutableValueType())
+            // Mutable value type fields are mutable unless they are marked read-only
+            if (!getterField.IsReadOnly && getterField.Type.IsMutableValueType() != false)
             {
                 return;
             }

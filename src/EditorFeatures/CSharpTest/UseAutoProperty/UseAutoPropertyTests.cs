@@ -41,10 +41,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
-        public async Task TestMutableValueType1()
+        public async Task TestNullable1()
         {
-            // Nullable<T> is a mutable value type. The diagnostic is not offered if the field is writable.
+            // ⚠ The expected outcome of this test should not change.
             await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|MutableInt? i|];
+
+    MutableInt? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestNullable2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|readonly MutableInt? i|];
+
+    MutableInt? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value; }",
+@"class Class
+{
+    MutableInt? P { get; }
+}
+struct MutableInt { public int Value; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestNullable3()
+        {
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int? i|];
@@ -56,14 +101,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty
             return i;
         }
     }
+}",
+@"class Class
+{
+    int? P { get; }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
-        public async Task TestMutableValueType2()
+        public async Task TestNullable4()
         {
-            // Nullable<T> is a mutable value type. The diagnostic is offered if the field is read-only.
             await TestInRegularAndScriptAsync(
 @"class Class
 {
@@ -80,6 +128,178 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty
 @"class Class
 {
     int? P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestMutableValueType1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|MutableInt i|];
+
+    MutableInt P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestMutableValueType2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|readonly MutableInt i|];
+
+    MutableInt P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value; }",
+@"class Class
+{
+    MutableInt P { get; }
+}
+struct MutableInt { public int Value; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestMutableValueType3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|MutableInt i|];
+
+    MutableInt P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value { get; set; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestErrorType1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|ErrorType i|];
+
+    ErrorType P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestErrorType2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|readonly ErrorType i|];
+
+    ErrorType P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    ErrorType P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestErrorType3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|ErrorType? i|];
+
+    ErrorType? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestErrorType4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|readonly ErrorType? i|];
+
+    ErrorType? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    ErrorType? P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestErrorType5()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|ErrorType[] i|];
+
+    ErrorType[] P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    ErrorType[] P { get; }
 }");
         }
 

@@ -855,11 +855,32 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type.IsValueType && type.TypeKind == TypeKind.Enum;
         }
 
-        public static bool IsMutableValueType(this ITypeSymbol type)
+        public static bool? IsMutableValueType(this ITypeSymbol type)
+            => IsMutableValueType(type, visitedOpt: null);
+
+        private static bool? IsMutableValueType(ITypeSymbol type, HashSet<ITypeSymbol> visitedOpt)
         {
+            if (visitedOpt != null && !visitedOpt.Add(type))
+            {
+                // Recursive type, unable to determine
+                return null;
+            }
+
+            if (type.IsErrorType())
+            {
+                return null;
+            }
+
             if (type.TypeKind != TypeKind.Struct)
             {
                 return false;
+            }
+
+            if (type.IsNullable())
+            {
+                // Nullable<T> can only be mutable if T is mutable. This case ensures types like 'int?' are treated as
+                // immutable.
+                return IsMutableValueType(type.GetTypeArguments()[0], visitedOpt ?? new HashSet<ITypeSymbol> { type });
             }
 
             foreach (var member in type.GetMembers())
