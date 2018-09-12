@@ -22,9 +22,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
         }
 
-        internal static DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> GetOrComputeResult(IBlockOperation topmostBlock, Compilation compilation, IMethodSymbol containingMethod)
+        internal static DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> GetOrComputeResult(ControlFlowGraph cfg, Compilation compilation, ISymbol containingMethod)
         {
-            ControlFlowGraph cfg = topmostBlock.GetEnclosingControlFlowGraph();
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             return GetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider);
         }

@@ -19,6 +19,8 @@ namespace Test.Utilities
             public const string ParameterValidationAnalysis = nameof(ParameterValidationAnalysis);
 
             public const string PredicateAnalysis = nameof(PredicateAnalysis);
+
+            public const string TaintedDataAnalysis = nameof(TaintedDataAnalysis);
         }
     }
 }

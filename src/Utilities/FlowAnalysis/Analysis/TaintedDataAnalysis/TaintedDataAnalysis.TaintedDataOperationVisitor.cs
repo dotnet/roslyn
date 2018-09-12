@@ -45,13 +45,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             // propertyReferenceOperation.Instance is a NameValueCollection from an HttpRequest.Form
                             return TaintedDataAbstractValue.Tainted;
                         }
-                        else
-                        {
-                            return TaintedDataAbstractValue.NotTainted;
-                        }
 
-                    default:
-                        return TaintedDataAbstractValue.NotTainted;
+                        break;
+                }
+
+                if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
+                {
+                    return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue value) ? value : defaultValue;
+                }
+                else
+                {
+                    return defaultValue;
                 }
             }
 
