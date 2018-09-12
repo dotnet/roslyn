@@ -7,10 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit" Version="$(XUnitVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
+    <PackageReference Include="xunit" Version="$(xunitVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
-    <PackageReference Include="xunit.runner.console" Version="$(XUnitRunnerConsoleVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
   </ItemGroup>
 
   <!-- 
