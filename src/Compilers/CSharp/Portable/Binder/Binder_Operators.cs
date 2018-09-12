@@ -3381,10 +3381,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
             }
 
-            // SPEC: Otherwise, if A exists and is a non-nullable value type, a compile-time error occurs.
-            if ((object)optLeftType != null && optLeftType.IsValueType && !optLeftType.IsNullableType())
+            // SPEC: Otherwise, if A exists and is a non-nullable value type, a compile-time error occurs. First we check for the pre-C# 8.0
+            // SPEC: condition, to ensure that we don't allow previously illegal code in old language versions.
+            if ((object)optLeftType != null && !optLeftType.IsReferenceType && !isLeftNullable)
             {
-                return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
+                // Prior to C# 8.0, the spec said that the left type must be either a reference type or a nullable value type. This was relaxed
+                // with C# 8.0, so if the feature is not enabled then issue a diagnostic and return
+                if (!optLeftType.IsValueType && !isLeftNullable)
+                {
+                    if (!CheckFeatureAvailability(node, MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator, diagnostics))
+                    {
+                        return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, Conversion.NoConversion, CreateErrorType());
+                    }
+                }
+                else
+                {
+                    return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
+                }
             }
 
             // SPEC:    If b is a dynamic expression, the result is dynamic. At runtime, a is first

@@ -32,6 +32,11 @@
         <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnconstrainedTypeParameterInNullCoalescingNotAvailable">
+        <source>To use a variable of an unconstrained type parameter in a null-coalescing assignment, please use language version {0} or greater.</source>
+        <target state="new">To use a variable of an unconstrained type parameter in a null-coalescing assignment, please use language version {0} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAltInterpolatedVerbatimStrings">
         <source>alternative interpolated verbatim strings</source>
         <target state="new">alternative interpolated verbatim strings</target>
@@ -40,6 +45,11 @@
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="new">coalescing assignment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
+        <source>unconstrained type parameters in null coalescing operator</source>
+        <target state="new">unconstrained type parameters in null coalescing operator</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">

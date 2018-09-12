@@ -81,7 +81,7 @@ False
 
         End Sub
 
-        ' Function call in return expression 
+        ' Function call in return expression
         <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub FunctionCallAsArgument()
@@ -125,7 +125,7 @@ False
 }]]>)
         End Sub
 
-        ' Lambda works  in return argument 
+        ' Lambda works  in return argument
         <Fact()>
         Public Sub LambdaAsArgument_1()
             Dim compilation1 = CompileAndVerify(
@@ -211,7 +211,7 @@ End Module
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Option Infer on  
+Option Infer on
 Imports System
 Imports System.Linq.Expressions
 Module Program
@@ -364,7 +364,7 @@ End Module
 
         End Sub
 
-        ' Not boolean type as conditional-argument 
+        ' Not boolean type as conditional-argument
         <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub NotBooleanAsConditionalArgument()
@@ -405,7 +405,7 @@ End Module
 
         End Sub
 
-        ' Not boolean type as conditional-argument 
+        ' Not boolean type as conditional-argument
         <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub NotBooleanAsConditionalArgument_2()
@@ -522,7 +522,7 @@ End Module
 }]]>).Compilation
         End Sub
 
-        ' IF used in Redim 
+        ' IF used in Redim
         <WorkItem(528563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528563")>
         <Fact>
         Public Sub IfUsedInRedim()
@@ -560,7 +560,7 @@ End Module
 <compilation>
     <file name="a.vb">
 Imports System
-&lt;Assembly: CLSCompliant(If(True, False, True))&gt; 
+&lt;Assembly: CLSCompliant(If(True, False, True))&gt;
 Public Class base
     Public Shared sub Main()
     End Sub
@@ -615,7 +615,7 @@ End Module
 }]]>).Compilation
         End Sub
 
-        ' IF as Optional parameter 
+        ' IF as Optional parameter
         <Fact()>
         Public Sub IFAsOptionalParameter()
             Dim compilation1 = CompileAndVerify(
@@ -634,7 +634,7 @@ End Module
 </compilation>, expectedOutput:="61").Compilation
         End Sub
 
-        ' IF used in For step 
+        ' IF used in For step
         <Fact()>
         Public Sub IFUsedInForStep()
             CompileAndVerify(
@@ -651,7 +651,7 @@ End Module
 </compilation>, options:=TestOptions.ReleaseExe)
         End Sub
 
-        ' Passing IF as byref arg 
+        ' Passing IF as byref arg
         <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub IFAsByrefArg()
@@ -894,7 +894,7 @@ Class Test1
     Public Function m2() As IBase
         Return If(Derived.mask = 0, Me, y)
     End Function
-    'version2 
+    'version2
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Test1.m1", <![CDATA[
@@ -955,7 +955,7 @@ Class Test1
     Public Function m2() As IBase
         Return If(Me, y)
     End Function
-    'version2 
+    'version2
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Test1.m1", <![CDATA[
@@ -1016,7 +1016,7 @@ Class Test1
     Public Function m2() As IBase
         Return If (DirectCast(Me, IBase), y)
     End Function
-    'version2 
+    'version2
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Test1.m1", <![CDATA[
@@ -1327,6 +1327,24 @@ String Parameter 1
   IL_0006:  call       "Sub System.Console.WriteLine(Object)"
   IL_000b:  ret
 }
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub IfOnUnconstrainedTypeParametersOldLanguageVersion()
+            CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Friend Module Mod1
+        Sub M1(Of T)(arg1 As T, arg2 As T)
+            System.Console.WriteLine(If(arg1, arg2))
+        End Sub
+    End Module
+    </file>
+</compilation>, parseOptions:=TestOptions.Regular15_5).AssertTheseDiagnostics(<![CDATA[
+BC36716: Visual Basic 15.5 does not support unconstrained type parameter variables in two operand conditionals.
+            System.Console.WriteLine(If(arg1, arg2))
+                                     ~~~~~~~~~~~~~~
 ]]>)
         End Sub
     End Class

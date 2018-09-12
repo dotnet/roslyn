@@ -2096,11 +2096,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundSecondArgWithConversions = MakeRValueAndIgnoreDiagnostics(boundSecondArg)
             End If
 
-            '  If there are still no errors check the original type of the first argument. If it's
-            '  a non-nullable value type, generate IllegalCondTypeInIIF
-            If Not hasErrors AndAlso Not boundFirstArg.IsNothingLiteral AndAlso boundFirstArg.Type.IsValueType AndAlso Not boundFirstArg.Type.IsNullableType() Then
-                ReportDiagnostic(diagnostics, node.FirstExpression, ERRID.ERR_IllegalCondTypeInIIF)
-                hasErrors = True
+            '  If there are still no errors check the original type of the first argument. First, we check
+            ' the pre-VB 16.0 condition, which is the first operand must be Nothing, a reference type, or
+            ' a nullable value type
+            If Not hasErrors AndAlso Not (boundFirstArg.IsNothingLiteral OrElse boundFirstArg.Type.IsNullableType OrElse boundFirstArg.Type.IsReferenceType) Then
+                ' VB 16 changed the requirements on the first operand to permit unconstrained type parameters. If we're in that scenario,
+                ' ensure that the feature is enabled and report an error if it is not
+                If Not boundFirstArg.Type.IsValueType AndAlso Not boundFirstArg.Type.IsNullableType() Then
+                    If Not CheckFeatureAvailability(InternalSyntax.Feature.UnconstrainedTypeParameterInConditional, node, diagnostics) Then
+                        hasErrors = True
+                    End If
+                Else
+                    ReportDiagnostic(diagnostics, node.FirstExpression, ERRID.ERR_IllegalCondTypeInIIF)
+                    hasErrors = True
+                End If
             End If
 
             Return AnalyzeConversionAndCreateBinaryConditionalExpression(

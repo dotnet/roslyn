@@ -2018,5 +2018,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_LeadingDigitSeparator
         FEATURE_PrivateProtected
         FEATURE_InterpolatedStrings
+        FEATURE_UnconstrainedTypeParameterInCondtional
     End Enum
 End Namespace

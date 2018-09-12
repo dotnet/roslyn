@@ -30,6 +30,7 @@ efforts behind them.
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
 | [Line continuation comments](https://github.com/dotnet/vblang/issues/65) | [continuation-comments](https://github.com/dotnet/roslyn/tree/features/continuation-comments) | Prototype | [paul1956](https://github.com/paul1956) | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) |
+| [Relax null coalesing operator requirements](https://github.com/dotnet/vblang/issues/339) | [null-operator-enhancements](https://github.com/dotnet/roslyn/tree/features/null-operator-enhancements) | In Progress | [333fred](https://github.com/333fred) | [cston](https://github.com/cston) | [gafter](https://github.com/gafter) |
 
 # C# 7.3
 

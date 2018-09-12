@@ -5746,5 +5746,24 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16)
                 );
         }
+
+        [Fact]
+        public void TestNullCoalesce_UnconstrainedTypeParameter_OldLanguageVersion()
+        {
+            var source = @"
+class C
+{
+    void M<T>(T t1, T t2)
+    {
+        t1 = t1 ?? t2;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8370: Feature 'unconstrained type parameters in null coalescing operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         t1 = t1 ?? t2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator", "8.0").WithLocation(6, 14));
+        }
     }
 }

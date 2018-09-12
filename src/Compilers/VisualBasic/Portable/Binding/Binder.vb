@@ -1067,6 +1067,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return m_containingBinder.QuickAttributeChecker
             End Get
         End Property
+
+        Private Shared Function CheckFeatureAvailability(feature As InternalSyntax.Feature, node As SyntaxNode, diagnostics As DiagnosticBag) As Boolean
+            Dim langVersion As LanguageVersion = DirectCast(node.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion
+            Dim requiredVersion As LanguageVersion = InternalSyntax.FeatureExtensions.GetLanguageVersion(feature)
+
+            If langVersion >= requiredVersion Then
+                Return True
+            Else
+                Dim featureName = ErrorFactory.ErrorInfo(InternalSyntax.FeatureExtensions.GetResourceId(feature))
+                diagnostics.Add(ERRID.ERR_LanguageVersion, node.Location, langVersion.GetErrorName(), featureName, requiredVersion)
+                Return False
+            End If
+        End Function
     End Class
 
 End Namespace

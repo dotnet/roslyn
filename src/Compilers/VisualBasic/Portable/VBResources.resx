@@ -5533,4 +5533,7 @@
   <data name="FEATURE_InterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
   </data>
+  <data name="FEATURE_UnconstrainedTypeParameterInCondtional" xml:space="preserve">
+    <value>unconstrained type parameter variables in two operand conditionals</value>
+  </data>
 </root>

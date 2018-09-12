@@ -7,6 +7,7 @@ Public Class TestOptions
     Public Shared ReadOnly Script As New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
     Public Shared ReadOnly Regular As New VisualBasicParseOptions(kind:=SourceCodeKind.Regular)
     Public Shared ReadOnly RegularWithFlowAnalysisFeature As VisualBasicParseOptions = Regular.WithFlowAnalysisFeature()
+    Public Shared ReadOnly Regular15_5 As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5)
 
     Public Shared ReadOnly ReleaseDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release)
     Public Shared ReadOnly ReleaseExe As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Release)
