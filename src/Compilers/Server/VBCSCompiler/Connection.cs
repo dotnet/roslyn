@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return new ConnectionData(CompletionReason.CompilationNotStarted);
                 }
                 
-                if(request.ProtocolVersion != BuildProtocolConstants.ProtocolVersion)
+                if (request.ProtocolVersion != BuildProtocolConstants.ProtocolVersion)
                 {
                     return await HandleMismatchedVersionRequest(cancellationToken).ConfigureAwait(false);
                 }
