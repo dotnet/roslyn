@@ -93,9 +93,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 propertyDocument, compilation, fieldSymbol, propertySymbol, property,
                 isWrittenToOutsideOfConstructor, cancellationToken).ConfigureAwait(false);
 
-            // Ensure the new and old property share the same trailing trivia.
-            updatedProperty = updatedProperty.WithTrailingTrivia(property.GetTrailingTrivia());
-
             // Note: rename will try to update all the references in linked files as well.  However, 
             // this can lead to some very bad behavior as we will change the references in linked files
             // but only remove the field and update the property in a single document.  So, you can
