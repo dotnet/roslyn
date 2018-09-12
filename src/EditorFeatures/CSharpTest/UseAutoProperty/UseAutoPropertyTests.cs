@@ -133,6 +133,28 @@ struct MutableInt { public int Value; }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestNullable5()
+        {
+            // Recursive type check
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class Class
+{
+    [|Nullable<MutableInt?> i|];
+
+    Nullable<MutableInt?> P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestMutableValueType1()
         {
             await TestMissingInRegularAndScriptAsync(

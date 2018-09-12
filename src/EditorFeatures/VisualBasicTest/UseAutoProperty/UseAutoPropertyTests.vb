@@ -139,6 +139,25 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        Public Async Function TestNullable5() As Task
+            ' Recursive type check
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System
+class Class1
+    [|dim i as Nullable(Of Nullable(Of MutableInt))|]
+    readonly property P as Nullable(Of Nullable(Of MutableInt))
+        get
+            return i
+        end get
+    end property
+end class
+Structure MutableInt
+    Public Value As Integer
+End Structure")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestMutableValueType1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class Class1

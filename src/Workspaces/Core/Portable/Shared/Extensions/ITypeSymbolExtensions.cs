@@ -856,16 +856,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool? IsMutableValueType(this ITypeSymbol type)
-            => IsMutableValueType(type, visitedOpt: null);
-
-        private static bool? IsMutableValueType(ITypeSymbol type, HashSet<ITypeSymbol> visitedOpt)
         {
-            if (visitedOpt != null && !visitedOpt.Add(type))
-            {
-                // Recursive type, unable to determine
-                return null;
-            }
-
             if (type.IsErrorType())
             {
                 return null;
@@ -880,7 +871,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // Nullable<T> can only be mutable if T is mutable. This case ensures types like 'int?' are treated as
                 // immutable.
-                return IsMutableValueType(type.GetTypeArguments()[0], visitedOpt ?? new HashSet<ITypeSymbol> { type });
+                var typeArguments = type.GetTypeArguments();
+                if (typeArguments.Length != 1)
+                {
+                    return null;
+                }
+
+                if (typeArguments[0].IsNullable())
+                {
+                    // Recursion prevention. This is not a valid type anyway since the T in Nullable<T> cannot itself be
+                    // nullable.
+                    return null;
+                }
+
+                return typeArguments[0].IsMutableValueType();
             }
 
             foreach (var member in type.GetMembers())
