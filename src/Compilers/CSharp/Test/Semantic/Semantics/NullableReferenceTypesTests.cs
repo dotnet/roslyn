@@ -3473,8 +3473,6 @@ public class Oblivious
             var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
 
             var source = @"
-using System.Runtime.CompilerServices;
-
 class C
 {
     void M()
@@ -13326,7 +13324,10 @@ class CL1
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x3").WithLocation(20, 18),
                 // (26,18): hidden CS8607: Expression is probably never null.
                 //         CL1 z4 = x4 ?? x4.M1();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(26, 18)
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(26, 18),
+                // (38,21): hidden CS8607: Expression is probably never null.
+                //         string z6 = y6 ?? x6.M2();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y6").WithLocation(38, 21)
                 );
         }
 
@@ -15256,7 +15257,13 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,10): hidden CS8607: Expression is probably never null.
+                //         ("" ?? x).ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, @"""""").WithLocation(5, 10),
+                // (6,10): hidden CS8607: Expression is probably never null.
+                //         ("" ?? y).ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, @"""""").WithLocation(6, 10));
         }
 
         [Fact]
@@ -25776,18 +25783,21 @@ class CL1
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
             c.VerifyDiagnostics(
-                 // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
-                 //         CL1? u1 = x1 += y1;
-                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(10, 19),
-                 // (11,18): hidden CS8607: Expression is probably never null.
-                 //         CL1 v1 = u1 ?? new CL1(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
-                 // (18,18): hidden CS8607: Expression is probably never null.
-                 //         CL1 v2 = u2 ?? new CL1(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u2").WithLocation(18, 18),
-                 // (19,18): hidden CS8607: Expression is probably never null.
-                 //         CL1 w2 = x2 ?? new CL1(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(19, 18)
+                // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
+                //         CL1? u1 = x1 += y1;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(10, 19),
+                // (11,18): hidden CS8607: Expression is probably never null.
+                //         CL1 v1 = u1 ?? new CL1(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+                // (12,18): hidden CS8607: Expression is probably never null.
+                //         CL1 w1 = x1 ?? new CL1(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18),
+                // (18,18): hidden CS8607: Expression is probably never null.
+                //         CL1 v2 = u2 ?? new CL1(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u2").WithLocation(18, 18),
+                // (19,18): hidden CS8607: Expression is probably never null.
+                //         CL1 w2 = x2 ?? new CL1(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(19, 18)
                 );
         }
 
@@ -38966,7 +38976,7 @@ class B<T1> where T1 : class?
                 }
             }
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             var expected = new[] {
                 // (4,29): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class B<T1> where T1 : class?

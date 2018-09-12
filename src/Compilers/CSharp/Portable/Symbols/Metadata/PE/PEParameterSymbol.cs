@@ -217,6 +217,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 type = TupleTypeSymbol.TryTransformToTuple(type.TypeSymbol, out TupleTypeSymbol tuple) ?
                     TypeSymbolWithAnnotations.Create(tuple) :
                     type;
+                if (!extraAnnotations.IsDefault)
+                {
+                    // PROTOTYPE(NullableReferenceTypes): any external annotation is taken to imply a `[NonNullTypes(true)]` context
+                    type =  NullableTypeDecoder.TransformType(type, extraAnnotations).WithNonNullTypesContext(NonNullTypesTrueContext.Instance);
+                }
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
                 _lazyHiddenAttributes = ImmutableArray<CSharpAttributeData>.Empty;
