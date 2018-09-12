@@ -529,7 +529,6 @@ class C<T> where T : class
             };
 
             // PROTOTYPE(NullableReferenceTypes): are annotations on events meaningful/allowed?
-            // PROTOTYPE(NullableReferenceTypes): locations aren't great
 
             var c = CreateCompilation(source);
             c.VerifyDiagnostics(expectedDiagnostics);
@@ -45234,7 +45233,6 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report errors within method body.
             comp.VerifyDiagnostics(
                 // (6,9): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         T? t;
