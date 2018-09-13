@@ -87,7 +87,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public ControlFlowGraph GetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation lambda)
         {
-            // TODO: File a CFG bug.
+            // TODO: https://github.com/dotnet/roslyn-analyzers/issues/1812
+            // Remove the below workaround.
             try
             {
                 return ControlFlowGraph.GetAnonymousFunctionControlFlowGraph(lambda);

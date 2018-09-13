@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <summary>
         /// Defines the max length for method call chain (call stack size) for interprocedural analysis.
         /// This is done for performance reasons for analyzing methods with extremely large call trees.
-        /// TODO: File a bug to tweak/design this heuristic.
+        /// https://github.com/dotnet/roslyn-analyzers/issues/1809 tracks improving this heuristic.
         /// </summary>
         private const int MaxInterproceduralCallChain = 5;
 
@@ -1451,7 +1451,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
             else
             {
-                // TODO: File a bug to implement Non-context sensitive interprocedural analysis to
+                // TODO: https://github.com/dotnet/roslyn-analyzers/issues/1810
+                // Implement Non-context sensitive interprocedural analysis to
                 // merge the relevant data from invoked method's analysis result into CurrentAnalysisData.
                 // For now, retain the original logic of resetting the analysis data.
                 ResetAnalysisData();
@@ -1485,7 +1486,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> ComputeInterproceduralAnalysisData()
             {
-                // TODO(Perf): For non-lambda/local function invocations, we should remove the part of data that
+                // TODO(Perf): https://github.com/dotnet/roslyn-analyzers/issues/1811
+                // For non-lambda/local function invocations, we should remove the part of data that
                 // is not accessible in the callee and add it back to result data.
                 // This will avoid duplicate interprocedural analysis for cases where initial analysis data
                 // just differs by non-accessible part of data.
