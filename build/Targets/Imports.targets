@@ -21,7 +21,7 @@
     <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(ArtifactsConfigurationDir)DevDivPackages\Roslyn\</PackageOutputPath>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetNetFX20)' == 'true'">
+  <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>
 
