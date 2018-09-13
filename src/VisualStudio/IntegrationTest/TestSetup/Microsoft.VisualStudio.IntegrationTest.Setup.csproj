@@ -8,16 +8,14 @@
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Setup</RootNamespace>
     <TargetFramework>net46</TargetFramework>
     <RoslynProjectType>Vsix</RoslynProjectType>
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <IsShipping>false</IsShipping>
+
+    <!-- VSIX -->
     <UseCodebase>true</UseCodebase>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
-    <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-    <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <IsShipping>false</IsShipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

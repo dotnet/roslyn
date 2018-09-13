@@ -38,6 +38,8 @@
     <ArtifactsPackagesDir>$(ArtifactsConfigurationDir)NuGet\</ArtifactsPackagesDir>
     <ArtifactsShippingPackagesDir>$(ArtifactsPackagesDir)Shipping\</ArtifactsShippingPackagesDir>
     <ArtifactsNonShippingPackagesDir>$(ArtifactsPackagesDir)NonShipping\</ArtifactsNonShippingPackagesDir>
-    <VisualStudioSetupOutputPath>$(ArtifactsConfigurationDir)Vsix\</VisualStudioSetupOutputPath>
+    <VisualStudioSetupOutputPath>$(ArtifactsDir)VSSetup\$(Configuration)\</VisualStudioSetupOutputPath>
+    <VisualStudioSetupInsertionPath>$(VisualStudioSetupOutputPath)Insertion\</VisualStudioSetupInsertionPath>
+    <VisualStudioSetupIntermediateOutputPath>$(ArtifactsDir)VSSetup.obj\$(Configuration)\</VisualStudioSetupIntermediateOutputPath>
   </PropertyGroup>
 </Project>
