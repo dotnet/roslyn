@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private AwaitExpressionSpiller(MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, DiagnosticBag diagnostics)
         {
             _F = new SyntheticBoundNodeFactory(method, syntaxNode, compilationState, diagnostics);
+            _F.CurrentFunction = method;
             _tempSubstitution = tempSubstitution;
         }
 
@@ -972,6 +973,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return UpdateExpression(builder, node.Update(left, right, node.LeftConversion, node.Type));
+        }
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override BoundNode VisitLambda(BoundLambda node)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
