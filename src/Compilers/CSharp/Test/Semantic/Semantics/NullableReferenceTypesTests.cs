@@ -36697,6 +36697,30 @@ class C
         }
 
         [Fact]
+        public void ForEach_UnconstrainedTypeParameter()
+        {
+            var source =
+@"class C<T>
+{
+    void M(T parameter)
+    {
+        foreach (T local in new[] { parameter })
+        {
+        }
+
+        if (parameter == null) throw null;
+        foreach (T local2 in new[] { parameter })
+        {
+        }
+    }
+}";
+            // https://github.com/dotnet/roslyn/issues/29850 Expecting a W warning for assigning possibly null value to local
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+            );
+        }
+
+        [Fact]
         public void TypeInference_01()
         {
             var source =

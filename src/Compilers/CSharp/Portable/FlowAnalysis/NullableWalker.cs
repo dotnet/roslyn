@@ -160,8 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Investigate remaining IsReferenceType usage for replacement by !IsValueType if necessary.
-
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return true;
