@@ -41741,7 +41741,7 @@ class B
                 Assert.Empty(t2.GetAttributes());
             }
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3);
+            comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
 
             comp.VerifyDiagnostics(expected.Concat(new[] {
                 // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
