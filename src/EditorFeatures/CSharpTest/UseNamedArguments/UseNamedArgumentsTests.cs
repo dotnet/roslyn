@@ -322,7 +322,7 @@ class C
 }", parameters: new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestNotMissingWhenInsideSingleLineArgument2()
         {
             await TestInRegularAndScript1Async(

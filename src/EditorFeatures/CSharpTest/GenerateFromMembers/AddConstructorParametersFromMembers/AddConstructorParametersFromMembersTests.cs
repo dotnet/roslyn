@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -297,7 +298,7 @@ index: 1);
     (int, string) i;
     (string, int) s;
 
-    public Program((int, string) i, (string, int) s = default)
+    public Program((int, string) i, (string, int) s = default((string, int)))
     {
         this.i = i;
         this.s = s;
@@ -325,7 +326,7 @@ index: 1);
     (int a, string b) i;
     (string c, int d) s;
 
-    public Program((int a, string b) i, (string c, int d) s = default)
+    public Program((int a, string b) i, (string c, int d) s = default((string c, int d)))
     {
         this.i = i;
         this.s = s;

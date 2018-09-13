@@ -1765,7 +1765,7 @@ class C1
         public async Task TestParseOptions_CSharp_LanguageVersion_Default()
         {
             CreateCSharpFiles();
-            await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp8, options => options.LanguageVersion);
+            await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp7, options => options.LanguageVersion);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
