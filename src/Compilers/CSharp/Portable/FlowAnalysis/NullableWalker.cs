@@ -2119,8 +2119,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
-            // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
             if (!node.HasErrors && !parameters.IsDefault)
             {
                 VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results);
@@ -2447,7 +2445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private VariableState GetVariableState()
         {
-            // PROTOTYPE(NullableReferenceTypes): To track nullability of captured variables inside and
+            // https://github.com/dotnet/roslyn/issues/29617 To track nullability of captured variables inside and
             // outside a lambda, the lambda should be considered executed at the location the lambda
             // is converted to a delegate.
             return new VariableState(
@@ -2523,7 +2521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             Debug.Assert(method.IsGenericMethod);
-            // PROTOTYPE(NullableReferenceTypes): OverloadResolution.IsMemberApplicableInNormalForm and
+            // https://github.com/dotnet/roslyn/issues/27961 OverloadResolution.IsMemberApplicableInNormalForm and
             // IsMemberApplicableInExpandedForm use the least overridden method. We need to do the same here.
             var definition = method.ConstructedFrom;
             var refKinds = ArrayBuilder<RefKind>.GetInstance();
@@ -2531,7 +2529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 refKinds.AddRange(node.ArgumentRefKindsOpt);
             }
-            // PROTOTYPE(NullableReferenceTypes): Do we really need OverloadResolution.GetEffectiveParameterTypes?
+            // https://github.com/dotnet/roslyn/issues/27961 Do we really need OverloadResolution.GetEffectiveParameterTypes?
             // Aren't we doing roughly the same calculations in GetCorrespondingParameter?
             OverloadResolution.GetEffectiveParameterTypes(
                 definition,
@@ -2539,7 +2537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ArgsToParamsOpt,
                 refKinds,
                 isMethodGroupConversion: false,
-                // PROTOTYPE(NullableReferenceTypes): `allowRefOmittedArguments` should be
+                // https://github.com/dotnet/roslyn/issues/27961 `allowRefOmittedArguments` should be
                 // false for constructors and several other cases (see Binder use). Should we
                 // capture the original value in the BoundCall?
                 allowRefOmittedArguments: true,
@@ -2568,10 +2566,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> GetArgumentsForMethodTypeInference(ImmutableArray<BoundExpression> arguments, ImmutableArray<TypeSymbolWithAnnotations> argumentResults)
         {
-            // PROTOTYPE(NullableReferenceTypes): MethodTypeInferrer.Infer relies
+            // https://github.com/dotnet/roslyn/issues/27961 MethodTypeInferrer.Infer relies
             // on the BoundExpressions for tuple element types and method groups.
             // By using a generic BoundValuePlaceholder, we're losing inference in those cases.
-            // PROTOTYPE(NullableReferenceTypes): Inference should be based on
+            // https://github.com/dotnet/roslyn/issues/27961 Inference should be based on
             // unconverted arguments. Consider cases such as `default`, lambdas, tuples.
             int n = arguments.Length;
             var builder = ArrayBuilder<BoundExpression>.GetInstance(n);
@@ -2628,7 +2626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   SyntaxNode syntax,
                                   bool writes)
         {
-            // PROTOTYPE(NullableReferenceTypes): Support field initializers in local functions.
+            // https://github.com/dotnet/roslyn/issues/27233 Support field initializers in local functions.
         }
 
         /// <summary>
@@ -2771,7 +2769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction)
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Handle type substitution for local functions.
+                    // https://github.com/dotnet/roslyn/issues/27233 Handle type substitution for local functions.
                     return symbol;
                 }
             }
