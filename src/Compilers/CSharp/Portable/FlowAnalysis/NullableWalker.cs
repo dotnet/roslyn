@@ -1908,14 +1908,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCall(BoundCall node)
         {
+            // Note: we analyze even omitted calls
             var method = node.Method;
-
-            if (method.CallsAreOmitted(node.SyntaxTree))
-            {
-                // PROTOTYPE(NullableReferenceTypes): Should skip state set in
-                // arguments of omitted call. See PreciseAbstractFlowPass.VisitCall.
-            }
-
             var receiverOpt = node.ReceiverOpt;
             if (receiverOpt != null && method.MethodKind != MethodKind.Constructor)
             {

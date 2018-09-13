@@ -50,6 +50,28 @@ class C
         }
 
         [Fact]
+        public void OmittedCall()
+        {
+            var source = @"
+partial class C
+{
+    void M(string? x)
+    {
+        OmittedMethod(x);
+    }
+    partial void OmittedMethod(string x);
+}
+";
+
+            var c = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            c.VerifyDiagnostics(
+                // (6,23): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.OmittedMethod(string x)'.
+                //         OmittedMethod(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "void C.OmittedMethod(string x)").WithLocation(6, 23)
+                );
+        }
+
+        [Fact]
         public void UpdateArrayRankSpecifier()
         {
             var source = @"
