@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return metadataType;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+        // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
         internal static TypeSymbolWithAnnotations TransformType(
             TypeSymbolWithAnnotations metadataType,
             EntityHandle targetSymbolToken,

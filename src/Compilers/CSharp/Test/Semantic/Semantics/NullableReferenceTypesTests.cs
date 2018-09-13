@@ -1541,7 +1541,7 @@ class C<T> where T : struct
         [ConditionalFact(typeof(DesktopOnly))]
         public void UnannotatedAssemblies_WithSomeExtraAnnotations()
         {
-            // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+            // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
             var comp = CreateCompilation("");
             comp.VerifyDiagnostics();
             var systemNamespace = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingNamespace;
@@ -1565,8 +1565,7 @@ class C<T> where T : struct
         [Fact]
         public void AnnotatedAssemblies_WithSomeExtraAnnotations()
         {
-            // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
-            // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
+            // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
             var lib = @"
 namespace System
 {
