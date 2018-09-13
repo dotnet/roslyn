@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            _state.ForceCompleteAttributesOnly(this, cancellationToken);
+            _state.DefaultForceComplete(this, cancellationToken);
         }
 
         public override abstract string Name { get; }
