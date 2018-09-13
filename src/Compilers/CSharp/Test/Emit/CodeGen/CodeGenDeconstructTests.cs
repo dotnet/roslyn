@@ -8430,19 +8430,13 @@ namespace System
                 source,
                 assemblyName: "39f5d0e8-2935-4207-a74d-517a8e55af08",
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
-            comp.VerifyEmitDiagnostics(
-                // (5,22): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly '39f5d0e8-2935-4207-a74d-517a8e55af08, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         var (x, y) = c ? ((object)1, a) : (b, 2);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "c ? ((object)1, a) : (b, 2)").WithArguments("Item2", "System.ValueTuple<T1, T2>", "39f5d0e8-2935-4207-a74d-517a8e55af08, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 22));
+            comp.VerifyEmitDiagnostics();
             // C# 7.1
             comp = CreateCompilation(
                 source,
                 assemblyName: "39f5d0e8-2935-4207-a74d-517a8e55af08",
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            comp.VerifyEmitDiagnostics(
-                // (5,22): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly '39f5d0e8-2935-4207-a74d-517a8e55af08, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         var (x, y) = c ? ((object)1, a) : (b, 2);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "c ? ((object)1, a) : (b, 2)").WithArguments("Item2", "System.ValueTuple<T1, T2>", "39f5d0e8-2935-4207-a74d-517a8e55af08, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 22));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -8513,6 +8507,294 @@ public class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "44 42 43");
+        }
+
+        [Fact]
+        public void AssigningConditional_OutParams()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Test(true, false);
+        Test(false, true);
+        Test(false, false);
+    }
+
+    static void Test(bool b1, bool b2)
+    {
+        M(out int x, out int y, b1, b2);
+        Console.Write(x);
+        Console.Write(y);
+    }
+
+    static void M(out int x, out int y, bool b1, bool b2)
+    {
+        (x, y) = b1 ? (10, 20) : b2 ? (30, 40) : (50, 60);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "102030405060");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.M", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldarg.2
+  IL_0001:  brtrue.s   IL_0018
+  IL_0003:  ldarg.3
+  IL_0004:  brtrue.s   IL_000f
+  IL_0006:  ldarg.0
+  IL_0007:  ldc.i4.s   50
+  IL_0009:  stind.i4
+  IL_000a:  ldarg.1
+  IL_000b:  ldc.i4.s   60
+  IL_000d:  stind.i4
+  IL_000e:  ret
+  IL_000f:  ldarg.0
+  IL_0010:  ldc.i4.s   30
+  IL_0012:  stind.i4
+  IL_0013:  ldarg.1
+  IL_0014:  ldc.i4.s   40
+  IL_0016:  stind.i4
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.s   10
+  IL_001b:  stind.i4
+  IL_001c:  ldarg.1
+  IL_001d:  ldc.i4.s   20
+  IL_001f:  stind.i4
+  IL_0020:  ret
+}");
+        }
+
+        [Fact]
+        public void AssigningConditional_VarDeconstruction()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        M(true, false);
+        M(false, true);
+        M(false, false);
+    }
+
+    static void M(bool b1, bool b2)
+    {
+        var (x, y) = b1 ? (10, 20) : b2 ? (30, 40) : (50, 60);
+        Console.Write(x);
+        Console.Write(y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "102030405060");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.M", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //y
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0016
+  IL_0003:  ldarg.1
+  IL_0004:  brtrue.s   IL_000e
+  IL_0006:  ldc.i4.s   50
+  IL_0008:  stloc.0
+  IL_0009:  ldc.i4.s   60
+  IL_000b:  stloc.1
+  IL_000c:  br.s       IL_001c
+  IL_000e:  ldc.i4.s   30
+  IL_0010:  stloc.0
+  IL_0011:  ldc.i4.s   40
+  IL_0013:  stloc.1
+  IL_0014:  br.s       IL_001c
+  IL_0016:  ldc.i4.s   10
+  IL_0018:  stloc.0
+  IL_0019:  ldc.i4.s   20
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.0
+  IL_001d:  call       ""void System.Console.Write(int)""
+  IL_0022:  ldloc.1
+  IL_0023:  call       ""void System.Console.Write(int)""
+  IL_0028:  ret
+}");
+        }
+
+        [Fact]
+        public void AssigningConditional_MixedDeconstruction()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        M(true, false);
+        M(false, true);
+        M(false, false);
+    }
+
+    static void M(bool b1, bool b2)
+    {
+        (var x, long y) = b1 ? (10, 20) : b2 ? (30, 40) : (50, 60);
+        Console.Write(x);
+        Console.Write(y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "102030405060");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.M", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  1
+  .locals init (int V_0, //x
+                long V_1, //y
+                long V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_001c
+  IL_0003:  ldarg.1
+  IL_0004:  brtrue.s   IL_0011
+  IL_0006:  ldc.i4.s   60
+  IL_0008:  conv.i8
+  IL_0009:  stloc.2
+  IL_000a:  ldc.i4.s   50
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.2
+  IL_000e:  stloc.1
+  IL_000f:  br.s       IL_0025
+  IL_0011:  ldc.i4.s   40
+  IL_0013:  conv.i8
+  IL_0014:  stloc.2
+  IL_0015:  ldc.i4.s   30
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.2
+  IL_0019:  stloc.1
+  IL_001a:  br.s       IL_0025
+  IL_001c:  ldc.i4.s   20
+  IL_001e:  conv.i8
+  IL_001f:  stloc.2
+  IL_0020:  ldc.i4.s   10
+  IL_0022:  stloc.0
+  IL_0023:  ldloc.2
+  IL_0024:  stloc.1
+  IL_0025:  ldloc.0
+  IL_0026:  call       ""void System.Console.Write(int)""
+  IL_002b:  ldloc.1
+  IL_002c:  call       ""void System.Console.Write(long)""
+  IL_0031:  ret
+}");
+        }
+
+        [Fact]
+        public void AssigningConditional_SideEffects()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        M(true, false);
+        M(false, true);
+        M(false, false);
+    }
+
+    static int field;
+
+    static ref int SideEffect(int i)
+    {
+        Console.Write(i);
+        return ref field;
+    }
+
+    static void M(bool b1, bool b2)
+    {
+        (SideEffect(1), SideEffect(2)) = b1 ? (10, 20) : b2 ? (30, 40) : (50, 60);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "121212");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.M", @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (int& V_0,
+                int& V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""ref int C.SideEffect(int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.2
+  IL_0008:  call       ""ref int C.SideEffect(int)""
+  IL_000d:  stloc.1
+  IL_000e:  ldarg.0
+  IL_000f:  brtrue.s   IL_0026
+  IL_0011:  ldarg.1
+  IL_0012:  brtrue.s   IL_001d
+  IL_0014:  ldloc.0
+  IL_0015:  ldc.i4.s   50
+  IL_0017:  stind.i4
+  IL_0018:  ldloc.1
+  IL_0019:  ldc.i4.s   60
+  IL_001b:  stind.i4
+  IL_001c:  ret
+  IL_001d:  ldloc.0
+  IL_001e:  ldc.i4.s   30
+  IL_0020:  stind.i4
+  IL_0021:  ldloc.1
+  IL_0022:  ldc.i4.s   40
+  IL_0024:  stind.i4
+  IL_0025:  ret
+  IL_0026:  ldloc.0
+  IL_0027:  ldc.i4.s   10
+  IL_0029:  stind.i4
+  IL_002a:  ldloc.1
+  IL_002b:  ldc.i4.s   20
+  IL_002d:  stind.i4
+  IL_002e:  ret
+}");
+        }
+
+        [Fact]
+        public void AssigningConditional_UnusedDeconstruction()
+        {
+            string source = @"
+class C
+{
+    static void M(bool b1, bool b2)
+    {
+        (_, _) = b1 ? (10, 20) : b2 ? (30, 40) : (50, 60);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.M", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldarg.1
+  IL_0004:  pop
+  IL_0005:  ret
+}");
         }
     }
 }
