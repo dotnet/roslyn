@@ -3,16 +3,17 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.RemoveUnusedMembers
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedMembers
     Public Class RemoveUnusedMembersTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
-
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicRemoveUnusedMembersDiagnosticAnalyzer(forceEnableRules:=True),
-                New VisualBasicRemoveUnusedMembersCodeFixProvider())
+            Return (New VisualBasicRemoveUnusedMembersDiagnosticAnalyzer(), New VisualBasicRemoveUnusedMembersCodeFixProvider())
+        End Function
+
+        Private Shared Function Diagnostic(id As String) As DiagnosticDescription
+            Return TestHelpers.Diagnostic(id)
         End Function
 
         <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>

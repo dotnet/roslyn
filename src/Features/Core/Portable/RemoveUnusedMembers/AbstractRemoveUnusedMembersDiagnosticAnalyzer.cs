@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,41 +18,29 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         where TDocumentationCommentTriviaSyntax: SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
-        protected AbstractRemoveUnusedMembersDiagnosticAnalyzer(bool forceEnableRules)
-            : base(CreateDescriptors(forceEnableRules))
+        // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
+        private static readonly LocalizableResourceString s_removeUnusedMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableResourceString s_removeUnusedMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_an_unused_private_member_1_which_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
+            IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId, s_removeUnusedMembersTitle, s_removeUnusedMembersMessage, configurable: true, enabledByDefault: true);
+        private static readonly DiagnosticDescriptor s_removeUnusedMembersWithFadingRule = CreateUnnecessaryDescriptor(
+            IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId, s_removeUnusedMembersTitle, s_removeUnusedMembersMessage, configurable: true, enabledByDefault: true);
+
+        // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
+        private static readonly LocalizableResourceString s_removeUnreadMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableResourceString s_removeUnreadMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
+            IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId, s_removeUnreadMembersTitle, s_removeUnreadMembersMessage, configurable: true, enabledByDefault: true);
+        private static readonly DiagnosticDescriptor s_removeUnreadMembersWithFadingRule = CreateUnnecessaryDescriptor(
+            IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId, s_removeUnreadMembersTitle, s_removeUnreadMembersMessage, configurable: true, enabledByDefault: true);
+
+        protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
+            : base (ImmutableArray.Create(s_removeUnusedMembersRule,
+                                          s_removeUnusedMembersWithFadingRule,
+                                          s_removeUnreadMembersRule,
+                                          s_removeUnreadMembersWithFadingRule))
         {
         }
-
-        private static ImmutableArray<DiagnosticDescriptor> CreateDescriptors(bool forceEnableRules)
-        {
-            // TODO: Enable these rules by default once we have designed the Tools|Option location and UI for such code quality rules.
-            // https://github.com/dotnet/roslyn/issues/29519
-
-            // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
-            var removeUnusedMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            var removeUnusedMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_an_unused_private_member_1_which_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            var removeUnusedMembersRule = CreateDescriptor(
-                IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId, removeUnusedMembersTitle, removeUnusedMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
-            var removeUnusedMembersRuleWithFadingRule = CreateUnnecessaryDescriptor(
-                IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId, removeUnusedMembersTitle, removeUnusedMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
-
-            // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
-            var removeUnreadMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            var removeUnreadMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            var removeUnreadMembersRule = CreateDescriptor(
-                IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId, removeUnreadMembersTitle, removeUnreadMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
-            var removeUnreadMembersRuleUnnecessaryWithFadingRule = CreateUnnecessaryDescriptor(
-                IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId, removeUnreadMembersTitle, removeUnreadMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
-
-            return ImmutableArray.Create(removeUnusedMembersRule, removeUnusedMembersRuleWithFadingRule,
-                    removeUnreadMembersRule, removeUnreadMembersRuleUnnecessaryWithFadingRule);
-        }
-
-        // See CreateDescriptors method above for the indices.
-        // We should be able to cleanup the implementation to avoid hard coded indices
-        // once https://github.com/dotnet/roslyn/issues/29519 is implemented.
-        private DiagnosticDescriptor RemoveUnusedMemberRule => SupportedDiagnostics[1];
-        private DiagnosticDescriptor RemoveUnreadMemberRule => SupportedDiagnostics[3];
 
         public override bool OpenFileOnly(Workspace workspace) => false;
 
@@ -70,20 +57,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
 
             context.RegisterCompilationStartAction(compilationStartContext
-                => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext, RemoveUnusedMemberRule, RemoveUnreadMemberRule));
+                => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext));
         }
 
         private sealed class CompilationAnalyzer
         {
-            private readonly DiagnosticDescriptor _removeUnusedMembersRule, _removeUnreadMembersRule;
             private readonly object _gate;
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
             private readonly INamedTypeSymbol _taskType, _genericTaskType;
 
-            private CompilationAnalyzer(Compilation compilation, DiagnosticDescriptor removeUnusedMembersRule, DiagnosticDescriptor removeUnreadMembersRule)
+            private CompilationAnalyzer(Compilation compilation)
             {
-                _removeUnusedMembersRule = removeUnusedMembersRule;
-                _removeUnreadMembersRule = removeUnreadMembersRule;
                 _gate = new object();
 
                 // State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
@@ -93,9 +77,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _genericTaskType = compilation.TaskOfTType();
             }
 
-            public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext, DiagnosticDescriptor removeUnusedMembersRule, DiagnosticDescriptor removeUnreadMembersRule)
+            public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext)
             {
-                var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation, removeUnusedMembersRule, removeUnreadMembersRule);
+                var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation);
                 compilationAnalyzer.RegisterActions(compilationStartContext);
             }
 
@@ -283,8 +267,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                             // Report IDE0051 or IDE0052 based on whether the underlying member has any Write/WritableRef/NonReadWriteRef references or not.
                             var rule = !valueUsageInfo.ContainsWriteOrWritableRef() && !valueUsageInfo.ContainsNonReadWriteRef() && !symbolsReferencedInDocComments.Contains(member)
-                                ? _removeUnusedMembersRule
-                                : _removeUnreadMembersRule;
+                                ? s_removeUnusedMembersWithFadingRule
+                                : s_removeUnreadMembersWithFadingRule;
                             var effectiveSeverity = rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options);
 
                             // Most of the members should have a single location, except for partial methods.
