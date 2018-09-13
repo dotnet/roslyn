@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var accessor = accessorList.Accessors[0];
                 if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration))
                 {
-                    return TryGetExpressionBody(
+                    return TryGetArrowExpressionBody(
                         baseProperty.Kind(), accessor, options, preference,
                         out arrowExpression, out semicolonToken);
                 }
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (declaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
-                if (declaration.Body.TryConvertToExpressionBody(
+                if (declaration.Body.TryConvertToArrowExpressionBody(
                         declaration.Kind(), options, expressionBodyPreference,
                         out var expressionBody, out var semicolonToken))
                 {
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private static bool TryGetExpressionBody(
+        private static bool TryGetArrowExpressionBody(
             SyntaxKind declaratoinKind, AccessorDeclarationSyntax accessor, ParseOptions options, ExpressionBodyPreference preference,
             out ArrowExpressionClauseSyntax arrowExpression, out SyntaxToken semicolonToken)
         {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return true;
             }
 
-            return accessor.Body.TryConvertToExpressionBody(
+            return accessor.Body.TryConvertToArrowExpressionBody(
                 declaratoinKind, options, preference, out arrowExpression, out semicolonToken);
         }
 

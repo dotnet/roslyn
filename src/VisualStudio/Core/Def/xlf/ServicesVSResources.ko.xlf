@@ -62,6 +62,11 @@
         <target state="translated">Visual Studio 기본 키 매핑을 다시 설정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambdas">
+        <source>Use expression body for lambdas</source>
+        <target state="new">Use expression body for lambdas</target>
+        <note />
+      </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
         <target state="translated">'{0}'을(를) 일시 중단하신 것으로 보입니다. 계속 탐색하고 리팩터링하려면 키 매핑을 다시 설정하세요.</target>
