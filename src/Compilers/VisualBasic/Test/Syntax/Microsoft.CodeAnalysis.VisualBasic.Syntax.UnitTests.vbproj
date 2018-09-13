@@ -23,11 +23,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Update="Resource.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
