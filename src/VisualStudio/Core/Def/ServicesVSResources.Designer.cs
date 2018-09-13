@@ -2707,6 +2707,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use expression body for lambdas.
+        /// </summary>
+        internal static string Use_expression_body_for_lambdas {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_lambdas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use expression body for methods.
         /// </summary>
         internal static string Use_expression_body_for_methods {

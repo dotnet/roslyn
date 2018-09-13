@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private const string AnalyzerContentTypeName = "Microsoft.VisualStudio.Analyzer";
 
-        private readonly ImmutableArray<HostDiagnosticAnalyzerPackage> _hostDiagnosticAnalyzerInfo;
+        private readonly Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> _hostDiagnosticAnalyzerInfo;
 
         /// <summary>
         /// Loader for VSIX-based analyzers.
@@ -51,12 +51,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 FailFast.OnFatalException(new Exception("extension manager can't be null"));
             }
 
-            _hostDiagnosticAnalyzerInfo = GetHostAnalyzerPackagesWithName(extensionManager, assembly.GetType("Microsoft.VisualStudio.ExtensionManager.IExtensionContent"));
+            _hostDiagnosticAnalyzerInfo = new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(
+                () => GetHostAnalyzerPackagesWithName(extensionManager, assembly.GetType("Microsoft.VisualStudio.ExtensionManager.IExtensionContent")), isThreadSafe: true);
         }
 
         public IEnumerable<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
         {
-            return _hostDiagnosticAnalyzerInfo;
+            return _hostDiagnosticAnalyzerInfo.Value;
         }
 
         public IAnalyzerAssemblyLoader GetAnalyzerAssemblyLoader()

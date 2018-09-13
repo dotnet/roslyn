@@ -5,23 +5,23 @@
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="new">Analyzer '{0}' threw the following exception:
-'{1}'.</target>
+        <target state="translated">{0}' 분석기에서 다음 예외를 throw했습니다.
+'{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
-        <target state="new">Given operation block does not belong to the current analysis context.</target>
+        <target state="translated">지정한 작업 블록이 현재 분석 컨텍스트에 속하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="new">Given operation has a non-null parent.</target>
+        <target state="translated">지정한 작업에 null이 아닌 부모가 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
-        <target state="new">Given operation has a null semantic model.</target>
+        <target state="translated">지정한 작업에 null 의미 체계 모델이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationMustNotBeControlFlowGraphPart">
@@ -518,7 +518,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">변경 내용의 순서를 지정해야 하고 겹쳐서는 안 됩니다.</target>
+        <target state="translated">변경 내용은 겹치지 않아야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">

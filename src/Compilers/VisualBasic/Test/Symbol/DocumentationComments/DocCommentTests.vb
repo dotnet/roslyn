@@ -12447,5 +12447,65 @@ End Class
             Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"))
         End Sub
 
+        <Fact>
+        Public Sub LookupOnCrefOfTupleType()
+
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+''' <summary>
+''' <see cref="ValueTuple(Of U,U)"/>
+''' </summary>
+Public Class Test
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim references = TargetFrameworkUtil.GetReferences(TargetFramework.StandardAndVBRuntime)
+            Dim compilation = CreateEmptyCompilationWithReferences(
+                sources,
+                references)
+
+            Dim cMember = compilation.GetMember(Of NamedTypeSymbol)("Test")
+            Dim xmlDocumentationString = cMember.GetDocumentationCommentXml()
+            Dim xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString)
+            Dim cref = xml.Descendants("see").Single().Attribute("cref").Value
+
+            Assert.Equal("T:System.ValueTuple`2", cref)
+        End Sub
+
+        <Fact>
+        Public Sub LookupOnCrefOfTupleTypeField()
+
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+''' <summary>
+''' <see cref="ValueTuple(Of U,U).Item1"/>
+''' </summary>
+Public Class Test
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim references = TargetFrameworkUtil.GetReferences(TargetFramework.StandardAndVBRuntime)
+            Dim compilation = CreateEmptyCompilationWithReferences(
+                sources,
+                references)
+
+            Dim cMember = compilation.GetMember(Of NamedTypeSymbol)("Test")
+            Dim xmlDocumentationString = cMember.GetDocumentationCommentXml()
+            Dim xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString)
+            Dim cref = xml.Descendants("see").Single().Attribute("cref").Value
+
+            Assert.Equal("F:System.ValueTuple`2.Item1", cref)
+        End Sub
+
     End Class
 End Namespace
