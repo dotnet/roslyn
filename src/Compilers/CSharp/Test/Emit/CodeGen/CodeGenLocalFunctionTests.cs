@@ -34,6 +34,506 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        public void LocalFuncAndLambdaContainingTypeCapture()
+        {
+            var comp = CompileAndVerify(@"
+using System.Linq;
+class C<T>
+{
+    void M(string[] args)
+    {
+        int n = 0;
+        void Foo() => args.Select(a => (n, default(T)));
+        Foo();
+    }
+}");
+            comp.VerifyTypeIL("C`1", @"
+.class private auto ansi beforefieldinit C`1<T>
+    extends [mscorlib]System.Object
+{
+    // Nested Types
+    .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'<T>
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public string[] args
+        .field public int32 n
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x206a
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method '<>c__DisplayClass0_0'::.ctor
+        .method assembly hidebysig 
+            instance void '<M>g__Foo|0' () cil managed 
+        {
+            // Method begins at RVA 0x2072
+            // Code size 25 (0x19)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: ldfld string[] class C`1/'<>c__DisplayClass0_0'<!T>::args
+            IL_0006: ldarg.0
+            IL_0007: ldftn instance valuetype [System.ValueTuple]System.ValueTuple`2<int32, !0> class C`1/'<>c__DisplayClass0_0'<!T>::'<M>b__1'(string)
+            IL_000d: newobj instance void class [mscorlib]System.Func`2<string, valuetype [System.ValueTuple]System.ValueTuple`2<int32, !T>>::.ctor(object, native int)
+            IL_0012: call class [mscorlib]System.Collections.Generic.IEnumerable`1<!!1> [System.Core]System.Linq.Enumerable::Select<string, valuetype [System.ValueTuple]System.ValueTuple`2<int32, !T>>(class [mscorlib]System.Collections.Generic.IEnumerable`1<!!0>, class [mscorlib]System.Func`2<!!0, !!1>)
+            IL_0017: pop
+            IL_0018: ret
+        } // end of method '<>c__DisplayClass0_0'::'<M>g__Foo|0'
+        .method assembly hidebysig 
+            instance valuetype [System.ValueTuple]System.ValueTuple`2<int32, !T> '<M>b__1' (
+                string a
+            ) cil managed 
+        {
+            .param [0]
+            .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = (
+                01 00 02 00 00 00 01 6e ff 00 00
+            )
+            // Method begins at RVA 0x208c
+            // Code size 21 (0x15)
+            .maxstack 2
+            .locals init (
+                [0] !T
+            )
+            IL_0000: ldarg.0
+            IL_0001: ldfld int32 class C`1/'<>c__DisplayClass0_0'<!T>::n
+            IL_0006: ldloca.s 0
+            IL_0008: initobj !T
+            IL_000e: ldloc.0
+            IL_000f: newobj instance void valuetype [System.ValueTuple]System.ValueTuple`2<int32, !T>::.ctor(!0, !1)
+            IL_0014: ret
+        } // end of method '<>c__DisplayClass0_0'::'<M>b__1'
+    } // end of class <>c__DisplayClass0_0
+    // Methods
+    .method private hidebysig 
+        instance void M (
+            string[] args
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 25 (0x19)
+        .maxstack 8
+        IL_0000: newobj instance void class C`1/'<>c__DisplayClass0_0'<!T>::.ctor()
+        IL_0005: dup
+        IL_0006: ldarg.1
+        IL_0007: stfld string[] class C`1/'<>c__DisplayClass0_0'<!T>::args
+        IL_000c: dup
+        IL_000d: ldc.i4.0
+        IL_000e: stfld int32 class C`1/'<>c__DisplayClass0_0'<!T>::n
+        IL_0013: callvirt instance void class C`1/'<>c__DisplayClass0_0'<!T>::'<M>g__Foo|0'()
+        IL_0018: ret
+    } // end of method C`1::M
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x206a
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C`1::.ctor
+} // end of class C`1");
+        }
+
+        [Fact]
+        public void LocalFuncAndLambdaReturnTypeCapture()
+        {
+            var comp = CompileAndVerify(@"
+using System.Linq;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var n = 0;
+        do
+        {
+            void Foo<T>() => args.Select(a => (n, default(T)));
+            Foo<float>();
+        } while (false);
+    }
+}");
+            comp.VerifyTypeIL("Program", @"
+.class private auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Nested Types
+    .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public string[] args
+        .field public int32 n
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x2077
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method '<>c__DisplayClass0_0'::.ctor
+        .method assembly hidebysig 
+            instance void '<Main>g__Foo|0'<T> () cil managed 
+        {
+            // Method begins at RVA 0x2080
+            // Code size 38 (0x26)
+            .maxstack 3
+            .locals init (
+                [0] class Program/'<>c__DisplayClass0_1`1'<!!T>
+            )
+            IL_0000: newobj instance void class Program/'<>c__DisplayClass0_1`1'<!!T>::.ctor()
+            IL_0005: stloc.0
+            IL_0006: ldloc.0
+            IL_0007: ldarg.0
+            IL_0008: stfld class Program/'<>c__DisplayClass0_0' class Program/'<>c__DisplayClass0_1`1'<!!T>::'CS$<>8__locals1'
+            IL_000d: ldarg.0
+            IL_000e: ldfld string[] Program/'<>c__DisplayClass0_0'::args
+            IL_0013: ldloc.0
+            IL_0014: ldftn instance valuetype [System.ValueTuple]System.ValueTuple`2<int32, !0> class Program/'<>c__DisplayClass0_1`1'<!!T>::'<Main>b__1'(string)
+            IL_001a: newobj instance void class [mscorlib]System.Func`2<string, valuetype [System.ValueTuple]System.ValueTuple`2<int32, !!T>>::.ctor(object, native int)
+            IL_001f: call class [mscorlib]System.Collections.Generic.IEnumerable`1<!!1> [System.Core]System.Linq.Enumerable::Select<string, valuetype [System.ValueTuple]System.ValueTuple`2<int32, !!T>>(class [mscorlib]System.Collections.Generic.IEnumerable`1<!!0>, class [mscorlib]System.Func`2<!!0, !!1>)
+            IL_0024: pop
+            IL_0025: ret
+        } // end of method '<>c__DisplayClass0_0'::'<Main>g__Foo|0'
+    } // end of class <>c__DisplayClass0_0
+    .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1`1'<T>
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x2077
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method '<>c__DisplayClass0_1`1'::.ctor
+        .method assembly hidebysig 
+            instance valuetype [System.ValueTuple]System.ValueTuple`2<int32, !T> '<Main>b__1' (
+                string a
+            ) cil managed 
+        {
+            .param [0]
+            .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = (
+                01 00 02 00 00 00 01 6e ff 00 00
+            )
+            // Method begins at RVA 0x20b4
+            // Code size 26 (0x1a)
+            .maxstack 2
+            .locals init (
+                [0] !T
+            )
+            IL_0000: ldarg.0
+            IL_0001: ldfld class Program/'<>c__DisplayClass0_0' class Program/'<>c__DisplayClass0_1`1'<!T>::'CS$<>8__locals1'
+            IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::n
+            IL_000b: ldloca.s 0
+            IL_000d: initobj !T
+            IL_0013: ldloc.0
+            IL_0014: newobj instance void valuetype [System.ValueTuple]System.ValueTuple`2<int32, !T>::.ctor(!0, !1)
+            IL_0019: ret
+        } // end of method '<>c__DisplayClass0_1`1'::'<Main>b__1'
+    } // end of class <>c__DisplayClass0_1`1
+    // Methods
+    .method private hidebysig static 
+        void Main (
+            string[] args
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 27 (0x1b)
+        .maxstack 2
+        .locals init (
+            [0] class Program/'<>c__DisplayClass0_0'
+        )
+        IL_0000: newobj instance void Program/'<>c__DisplayClass0_0'::.ctor()
+        IL_0005: stloc.0
+        IL_0006: ldloc.0
+        IL_0007: ldarg.0
+        IL_0008: stfld string[] Program/'<>c__DisplayClass0_0'::args
+        IL_000d: ldloc.0
+        IL_000e: ldc.i4.0
+        IL_000f: stfld int32 Program/'<>c__DisplayClass0_0'::n
+        IL_0014: ldloc.0
+        IL_0015: callvirt instance void Program/'<>c__DisplayClass0_0'::'<Main>g__Foo|0'<float32>()
+        IL_001a: ret
+    } // end of method Program::Main
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2077
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method Program::.ctor
+} // end of class Program");
+        }
+
+        [Fact]
+        public void LocalFuncAndLambdaParamTypeCapture()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var n = 0;
+        do
+        {
+            void Foo<T>()
+            {
+                Func<T, int> a = (T x) => n;
+            }
+            Foo<float>();
+        } while (false);
+    }
+}");
+            comp.VerifyTypeIL("Program", @"
+.class private auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Nested Types
+    .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public int32 n
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x2070
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method '<>c__DisplayClass0_0'::.ctor
+        .method assembly hidebysig 
+            instance void '<Main>g__Foo|0'<T> () cil managed 
+        {
+            // Method begins at RVA 0x2078
+            // Code size 14 (0xe)
+            .maxstack 8
+            IL_0000: newobj instance void class Program/'<>c__DisplayClass0_1`1'<!!T>::.ctor()
+            IL_0005: dup
+            IL_0006: ldarg.0
+            IL_0007: stfld class Program/'<>c__DisplayClass0_0' class Program/'<>c__DisplayClass0_1`1'<!!T>::'CS$<>8__locals1'
+            IL_000c: pop
+            IL_000d: ret
+        } // end of method '<>c__DisplayClass0_0'::'<Main>g__Foo|0'
+    } // end of class <>c__DisplayClass0_0
+    .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1`1'<T>
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x2070
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method '<>c__DisplayClass0_1`1'::.ctor
+        .method assembly hidebysig 
+            instance int32 '<Main>b__1' (
+                !T x
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2087
+            // Code size 12 (0xc)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: ldfld class Program/'<>c__DisplayClass0_0' class Program/'<>c__DisplayClass0_1`1'<!T>::'CS$<>8__locals1'
+            IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::n
+            IL_000b: ret
+        } // end of method '<>c__DisplayClass0_1`1'::'<Main>b__1'
+    } // end of class <>c__DisplayClass0_1`1
+    // Methods
+    .method private hidebysig static 
+        void Main (
+            string[] args
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 20 (0x14)
+        .maxstack 2
+        .locals init (
+            [0] class Program/'<>c__DisplayClass0_0'
+        )
+        IL_0000: newobj instance void Program/'<>c__DisplayClass0_0'::.ctor()
+        IL_0005: stloc.0
+        IL_0006: ldloc.0
+        IL_0007: ldc.i4.0
+        IL_0008: stfld int32 Program/'<>c__DisplayClass0_0'::n
+        IL_000d: ldloc.0
+        IL_000e: callvirt instance void Program/'<>c__DisplayClass0_0'::'<Main>g__Foo|0'<float32>()
+        IL_0013: ret
+    } // end of method Program::Main
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2070
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method Program::.ctor
+} // end of class Program");
+        }
+
+        [Fact]
+        public void LocalFuncNestedWithDelegateTypeCapture()
+        {
+            var comp = CompileAndVerify(@"
+using System.Linq;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var n = 0;
+        do
+        {
+            void Foo<T>() 
+            {
+                (int, T) Local(string a) => (n, default(T));
+                args.Select(Local);
+            }
+            Foo<float>();
+        } while (false);
+    }
+}");
+            comp.VerifyTypeIL("Program", @"
+.class private auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Nested Types
+    .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public int32 n
+        .field public string[] args
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x2077
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method '<>c__DisplayClass0_0'::.ctor
+        .method assembly hidebysig 
+            instance void '<Main>g__Foo|0'<T> () cil managed 
+        {
+            // Method begins at RVA 0x207f
+            // Code size 25 (0x19)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: ldfld string[] Program/'<>c__DisplayClass0_0'::args
+            IL_0006: ldarg.0
+            IL_0007: ldftn instance valuetype [System.ValueTuple]System.ValueTuple`2<int32, !!0> Program/'<>c__DisplayClass0_0'::'<Main>g__Local|1'<!!T>(string)
+            IL_000d: newobj instance void class [mscorlib]System.Func`2<string, valuetype [System.ValueTuple]System.ValueTuple`2<int32, !!T>>::.ctor(object, native int)
+            IL_0012: call class [mscorlib]System.Collections.Generic.IEnumerable`1<!!1> [System.Core]System.Linq.Enumerable::Select<string, valuetype [System.ValueTuple]System.ValueTuple`2<int32, !!T>>(class [mscorlib]System.Collections.Generic.IEnumerable`1<!!0>, class [mscorlib]System.Func`2<!!0, !!1>)
+            IL_0017: pop
+            IL_0018: ret
+        } // end of method '<>c__DisplayClass0_0'::'<Main>g__Foo|0'
+        .method assembly hidebysig 
+            instance valuetype [System.ValueTuple]System.ValueTuple`2<int32, !!T> '<Main>g__Local|1'<T> (
+                string a
+            ) cil managed 
+        {
+            // Method begins at RVA 0x209c
+            // Code size 21 (0x15)
+            .maxstack 2
+            .locals init (
+                [0] !!T
+            )
+            IL_0000: ldarg.0
+            IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::n
+            IL_0006: ldloca.s 0
+            IL_0008: initobj !!T
+            IL_000e: ldloc.0
+            IL_000f: newobj instance void valuetype [System.ValueTuple]System.ValueTuple`2<int32, !!T>::.ctor(!0, !1)
+            IL_0014: ret
+        } // end of method '<>c__DisplayClass0_0'::'<Main>g__Local|1'
+    } // end of class <>c__DisplayClass0_0
+    // Methods
+    .method private hidebysig static 
+        void Main (
+            string[] args
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 27 (0x1b)
+        .maxstack 2
+        .locals init (
+            [0] class Program/'<>c__DisplayClass0_0'
+        )
+        IL_0000: newobj instance void Program/'<>c__DisplayClass0_0'::.ctor()
+        IL_0005: stloc.0
+        IL_0006: ldloc.0
+        IL_0007: ldarg.0
+        IL_0008: stfld string[] Program/'<>c__DisplayClass0_0'::args
+        IL_000d: ldloc.0
+        IL_000e: ldc.i4.0
+        IL_000f: stfld int32 Program/'<>c__DisplayClass0_0'::n
+        IL_0014: ldloc.0
+        IL_0015: callvirt instance void Program/'<>c__DisplayClass0_0'::'<Main>g__Foo|0'<float32>()
+        IL_001a: ret
+    } // end of method Program::Main
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2077
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method Program::.ctor
+} // end of class Program");
+        }
+
+        [Fact]
         [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
         public void Repro481125()
         {

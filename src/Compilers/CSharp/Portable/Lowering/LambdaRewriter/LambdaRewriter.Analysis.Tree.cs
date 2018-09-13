@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// is used when recording captured variables as we must know what the lifetime
                 /// of a captured variable is to determine the lifetime of its capture environment.
                 /// </summary>
-                private readonly SmallDictionary<Symbol, Scope> _localToScope = new SmallDictionary<Symbol, Scope>();
+                private readonly SmallDictionary<Symbol, Scope> _variableToScope = new SmallDictionary<Symbol, Scope>();
 
 #if DEBUG
                 /// <summary>
@@ -324,11 +324,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private void Build()
                 {
                     // Set up the current method locals
-                    DeclareLocals(_currentScope, _topLevelMethod.Parameters);
+                    DeclareVariables(_currentScope, _topLevelMethod.Parameters);
+                    // Add type parameters
+                    DeclareVariables(_currentScope, _topLevelMethod.TypeParameters);
                     // Treat 'this' as a formal parameter of the top-level method
                     if (_topLevelMethod.TryGetThisParameter(out var thisParam) && (object)thisParam != null)
                     {
-                        DeclareLocals(_currentScope, ImmutableArray.Create<Symbol>(thisParam));
+                        DeclareVariables(_currentScope, ImmutableArray.Create<Symbol>(thisParam));
                     }
 
                     Visit(_currentScope.BoundNode);
@@ -457,18 +459,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var oldScope = _currentScope;
                     _currentScope = CreateNestedScope(body, _currentScope, _currentClosure);
 
-                    // For the purposes of scoping, parameters live in the same scope as the
-                    // closure block. Expression tree variables are free variables for the
-                    // purposes of closure conversion
-                    DeclareLocals(_currentScope, closureSymbol.Parameters, _inExpressionTree);
+                    // For the purposes of scoping, parameters and type parameters live in the same
+                    // scope as the closure block. Expression tree variables are free variables for the
+                    // purposes of closure conversion. Type parameters can not be expression tree variables,
+                    // since lambdas cannot be generic and local functions cannot be converted to expression trees.
+                    DeclareVariables(_currentScope, closureSymbol.TypeParameters, declareAsFree: false);
+                    DeclareVariables(_currentScope, closureSymbol.Parameters, _inExpressionTree);
 
-                    var result = _inExpressionTree
-                        ? base.VisitBlock(body)
-                        : VisitBlock(body);
+                    // If this is a lambda we need to make sure that delegate caching has a
+                    // place to put the type parameter, so we need to track captures of type
+                    // parameters. Local functions do not currently do delegate caching, but
+                    // if they are changed to do so, this is necessary for them as well.
+                    if (_methodsConvertedToDelegates.Contains(closureSymbol))
+                    {
+                        foreach (var type in closureSymbol.ParameterTypes)
+                        {
+                            RecordCapturedTypeParameters(type.TypeSymbol);
+                        }
+                        RecordCapturedTypeParameters(closureSymbol.ReturnType.TypeSymbol);
+                    }
+
+                    var result = _inExpressionTree ? base.VisitBlock(body) : VisitBlock(body);
 
                     _currentScope = oldScope;
                     _currentClosure = oldClosure;
                     return result;
+
+                    void RecordCapturedTypeParameters(TypeSymbol outerType)
+                    {
+                        outerType.VisitType((TypeSymbol type, object _1, bool _2) =>
+                        {
+                            if (type.Kind == SymbolKind.TypeParameter)
+                            {
+                                // Mark the declaring scope as having a captured type parameter
+                                AddIfCaptured(type, body.Syntax);
+                            }
+                            return false;
+                        }, null);
+                    }
                 }
 
                 private void AddIfCaptured(Symbol symbol, SyntaxNode syntax)
@@ -476,7 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(
                         symbol.Kind == SymbolKind.Local ||
                         symbol.Kind == SymbolKind.Parameter ||
-                        symbol.Kind == SymbolKind.Method);
+                        symbol.Kind == SymbolKind.Method ||
+                        symbol.Kind == SymbolKind.TypeParameter);
 
                     if (_currentClosure == null)
                     {
@@ -494,6 +523,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _currentClosure.OriginalMethodSymbol == method)
                     {
                         // Is this recursion? If so there's no capturing
+                        return;
+                    }
+
+                    if (symbol.Kind == SymbolKind.TypeParameter &&
+                        ReferenceEquals(symbol.ContainingSymbol, symbol.ContainingType))
+                    {
+                        // Captured type parameters on the containing type never need to be
+                        // explicitly captured
                         return;
                     }
 
@@ -527,15 +564,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return;
                         }
 
-                        if (_localToScope.TryGetValue(symbol, out var declScope))
+                        if (_variableToScope.TryGetValue(symbol, out var declScope))
                         {
                             declScope.DeclaredVariables.Add(symbol);
                         }
                         else
                         {
 #if DEBUG
-                            // Parameters and locals from expression tree lambdas
-                            // are free variables
+                            // Parameters and locals from expression tree lambdas are free variables.
                             Debug.Assert(_freeVariables.Contains(symbol));
 #endif
                         }
@@ -558,8 +594,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         default:
                             // This should only be called for captured variables, and captured
-                            // variables must be a method, parameter, or local symbol
-                            Debug.Assert(capturedVariable.Kind == SymbolKind.Method);
+                            // variables must be a method, parameter, type parameter, or local symbol
+                            Debug.Assert(
+                                capturedVariable.Kind == SymbolKind.Method ||
+                                capturedVariable.Kind == SymbolKind.TypeParameter);
                             return;
                     }
 
@@ -591,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         scope = CreateNestedScope(node, _currentScope, _currentClosure);
                     }
-                    DeclareLocals(scope, locals);
+                    DeclareVariables(scope, locals);
                     return scope;
                 }
 
@@ -604,12 +642,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return newScope;
                 }
 
-                private void DeclareLocals<TSymbol>(Scope scope, ImmutableArray<TSymbol> locals, bool declareAsFree = false)
+                private void DeclareVariables<TSymbol>(Scope scope, ImmutableArray<TSymbol> locals, bool declareAsFree = false)
                     where TSymbol : Symbol
                 {
                     foreach (var local in locals)
                     {
-                        Debug.Assert(!_localToScope.ContainsKey(local));
+                        Debug.Assert(!_variableToScope.ContainsKey(local));
                         if (declareAsFree)
                         {
 #if DEBUG
@@ -618,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            _localToScope.Add(local, scope);
+                            _variableToScope.Add(local, scope);
                         }
                     }
                 }

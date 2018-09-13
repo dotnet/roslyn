@@ -378,6 +378,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!proxies.ContainsKey(captured));
 
+                    // Type parameters by definition do not require field captures
+                    if (captured.Kind == SymbolKind.TypeParameter)
+                    {
+                        continue;
+                    }
+
                     var hoistedField = LambdaCapturedVariable.Create(synthesizedEnv, captured, ref _synthesizedFieldNameIdDispenser);
                     proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
                     synthesizedEnv.AddHoistedField(hoistedField);
