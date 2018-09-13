@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            state.DefaultForceComplete(this);
+            state.DefaultForceComplete(this, cancellationToken);
         }
 
         /// <summary>
