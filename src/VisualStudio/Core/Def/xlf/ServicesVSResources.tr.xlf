@@ -62,6 +62,11 @@
         <target state="translated">Visual Studio varsayılan tuş eşlemesine sıfırla</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambdas">
+        <source>Use expression body for lambdas</source>
+        <target state="new">Use expression body for lambdas</target>
+        <note />
+      </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
         <target state="translated">'{0}' öğesini askıya aldığınızı fark ettik. Gezintiye ve yeniden düzenlemeye devam etmek için tuş eşlemelerini sıfırlayın.</target>
