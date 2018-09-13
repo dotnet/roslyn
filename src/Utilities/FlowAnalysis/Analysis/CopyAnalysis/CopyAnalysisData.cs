@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         {
         }
 
+        public CopyAnalysisData(CoreCopyAnalysisData fromData)
+            : base(fromData)
+        {
+        }
+
         private CopyAnalysisData(CopyAnalysisData fromData)
             : base(fromData)
         {
@@ -157,6 +162,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
         public override void Reset(CopyAbstractValue resetValue)
         {
+            throw new NotImplementedException("Use the other overload of Reset");
+        }
+
+        public void Reset(Func<AnalysisEntity, CopyAbstractValue> getDefaultCopyValue)
+        {
             if (CoreAnalysisData.Count > 0)
             {
                 var keys = CoreAnalysisData.Keys.ToImmutableArray();
@@ -164,7 +174,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 {
                     if (CoreAnalysisData[key].AnalysisEntities.Count > 1)
                     {
-                        CoreAnalysisData[key] = new CopyAbstractValue(key);
+                        CoreAnalysisData[key] = getDefaultCopyValue(key);
                     }
                 }
             }

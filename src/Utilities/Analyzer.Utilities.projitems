@@ -78,11 +78,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ValueContentAnalysis\ValueContentBlockAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractAnalysisDomain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractBlockAnalysisResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\ArgumentInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\InterproceduralAnalysisKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\InterproceduralAnalysisData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\IDataFlowAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\IDataFlowAnalysisContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractDataFlowAnalysisContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractDomain.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractEquatable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\CacheBasedEquatable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractIndex.ConstantValueIndex.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractIndex.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractIndex.OperationBasedIndex.cs" />

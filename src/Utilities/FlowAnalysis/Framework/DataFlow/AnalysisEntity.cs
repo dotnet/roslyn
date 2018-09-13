@@ -186,21 +186,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override int ComputeHashCode() => HashUtilities.Combine(InstanceLocation.GetHashCode(), _lazyIgnoringLocationHashCode.Value);
         private int ComputeIgnoringLocationHashCode()
-        {
-            var hashCode = HashUtilities.Combine(SymbolOpt?.GetHashCode() ?? 0,
-                HashUtilities.Combine(InstanceReferenceOperationSyntaxOpt?.GetHashCode() ?? 0,
-                HashUtilities.Combine(CaptureIdOpt?.GetHashCode() ?? 0,
-                HashUtilities.Combine(Type.GetHashCode(),
-                HashUtilities.Combine(ParentOpt?.GetHashCode() ?? 0,
-                HashUtilities.Combine(IsThisOrMeInstance.GetHashCode(), Indices.Length.GetHashCode()))))));
-
-            foreach (AbstractIndex index in Indices)
-            {
-                hashCode = HashUtilities.Combine(index.GetHashCode(), hashCode);
-            }
-
-            return hashCode;
-        }
+            => HashUtilities.Combine(SymbolOpt?.GetHashCode() ?? 0,
+               HashUtilities.Combine(Indices,
+               HashUtilities.Combine(InstanceReferenceOperationSyntaxOpt?.GetHashCode() ?? 0,
+               HashUtilities.Combine(CaptureIdOpt?.GetHashCode() ?? 0,
+               HashUtilities.Combine(Type.GetHashCode(),
+               HashUtilities.Combine(ParentOpt?.GetHashCode() ?? 0, IsThisOrMeInstance.GetHashCode()))))));
 
         public bool HasAncestorOrSelf(AnalysisEntity ancestor)
         {

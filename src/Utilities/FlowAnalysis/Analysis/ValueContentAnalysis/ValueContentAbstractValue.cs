@@ -131,15 +131,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         public ImmutableHashSet<object> LiteralValues { get; }
 
         protected override int ComputeHashCode()
-        {
-            var hashCode = HashUtilities.Combine(NonLiteralState.GetHashCode(), LiteralValues.Count.GetHashCode());
-            foreach (var literalHashCode in LiteralValues.Select(l => l.GetHashCode()).Order())
-            {
-                hashCode = HashUtilities.Combine(hashCode, literalHashCode);
-            }
-
-            return hashCode;
-        }
+            => HashUtilities.Combine(LiteralValues, NonLiteralState.GetHashCode());
 
         /// <summary>
         /// Performs the union of this state and the other state 

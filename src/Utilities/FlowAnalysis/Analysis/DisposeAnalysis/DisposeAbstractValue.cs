@@ -72,14 +72,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         public DisposeAbstractValueKind Kind { get; }
 
         protected override int ComputeHashCode()
-        {
-            int hashCode = HashUtilities.Combine(Kind.GetHashCode(), DisposingOrEscapingOperations.Count.GetHashCode());
-            foreach (var operation in DisposingOrEscapingOperations)
-            {
-                hashCode = HashUtilities.Combine(operation.GetHashCode(), hashCode);
-            }
-
-            return hashCode;
-        }
+            => HashUtilities.Combine(DisposingOrEscapingOperations, Kind.GetHashCode());
     }
 }

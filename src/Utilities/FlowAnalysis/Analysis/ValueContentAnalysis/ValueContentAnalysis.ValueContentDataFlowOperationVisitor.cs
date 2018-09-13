@@ -51,9 +51,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             protected override void ResetCurrentAnalysisData() => CurrentAnalysisData.Reset(ValueDomain.UnknownOrMayBeValue);
 
             #region Predicate analysis
-            protected override ValueContentAnalysisData GetEmptyAnalysisDataForPredicateAnalysis() => new ValueContentAnalysisData();
-
-            protected override PredicateValueKind SetValueForIsNullComparisonOperator(IOperation leftOperand, bool equals, ValueContentAnalysisData targetAnalysisData) => PredicateValueKind.Unknown;
+            protected override PredicateValueKind SetValueForIsNullComparisonOperator(IOperation leftOperand, bool equals, ValueContentAnalysisData targetAnalysisData)
+                => PredicateValueKind.Unknown;
 
             protected override PredicateValueKind SetValueForEqualsOrNotEqualsComparisonOperator(
                 IOperation leftOperand,
@@ -126,6 +125,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 => ValueContentAnalysisDomain.Instance.MergeAnalysisDataForBackEdge(value1, value2);
             protected override ValueContentAnalysisData GetClonedAnalysisData(ValueContentAnalysisData analysisData)
                 => (ValueContentAnalysisData)analysisData.Clone();
+            protected override ValueContentAnalysisData GetEmptyAnalysisData()
+                => new ValueContentAnalysisData();
+            protected override ValueContentAnalysisData GetAnalysisDataAtBlockEnd(ValueContentAnalysisResult analysisResult, BasicBlock block)
+                => new ValueContentAnalysisData(analysisResult[block].OutputData);
             protected override bool Equals(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
                 => value1.Equals(value2);
 
