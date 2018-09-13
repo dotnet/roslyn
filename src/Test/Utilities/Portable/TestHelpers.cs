@@ -79,8 +79,6 @@ namespace Roslyn.Test.Utilities
             return result;
         }
 
-        #region Diagnostics
-
         internal static DiagnosticDescription Diagnostic(
             object code,
             string squiggledText = null,
@@ -131,7 +129,5 @@ namespace Roslyn.Test.Utilities
 
             return data.Value;
         }
-
-        #endregion
     }
 }

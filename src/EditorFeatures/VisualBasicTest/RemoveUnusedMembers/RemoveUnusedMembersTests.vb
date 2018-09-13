@@ -33,6 +33,31 @@ End Class")
         <InlineData("Friend")>
         <InlineData("Protected")>
         <InlineData("Protected Friend")>
+        Public Async Function NonPrivateFieldWithConstantInitializer(accessibility As String) As Task
+            Await TestMissingInRegularAndScriptAsync(
+$"Class C
+    {accessibility} [|_goo|] As Integer = 0
+End Class")
+        End Function
+
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <InlineData("Public")>
+        <InlineData("Friend")>
+        <InlineData("Protected")>
+        <InlineData("Protected Friend")>
+        Public Async Function NonPrivateFieldWithNonConstantInitializer(accessibility As String) As Task
+            Await TestMissingInRegularAndScriptAsync(
+$"Class C
+    {accessibility} [|_goo|] As Integer = _goo2
+    Private Shared ReadOnly _goo2 As Integer = 0
+End Class")
+        End Function
+
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <InlineData("Public")>
+        <InlineData("Friend")>
+        <InlineData("Protected")>
+        <InlineData("Protected Friend")>
         Public Async Function NonPrivateMethod(accessibility As String) As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Class C

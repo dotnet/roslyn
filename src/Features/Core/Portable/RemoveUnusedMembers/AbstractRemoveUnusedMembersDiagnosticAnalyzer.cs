@@ -19,20 +19,41 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         where TIdentifierNameSyntax : SyntaxNode
     {
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
-        private static readonly LocalizableResourceString s_removeUnusedMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableResourceString s_removeUnusedMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_an_unused_private_member_1_which_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
-            IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId, s_removeUnusedMembersTitle, s_removeUnusedMembersMessage, configurable: true, enabledByDefault: true);
-        private static readonly DiagnosticDescriptor s_removeUnusedMembersWithFadingRule = CreateUnnecessaryDescriptor(
-            IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId, s_removeUnusedMembersTitle, s_removeUnusedMembersMessage, configurable: true, enabledByDefault: true);
+        private static readonly DiagnosticDescriptor s_removeUnusedMembersRule;
+        private static readonly DiagnosticDescriptor s_removeUnusedMembersWithFadingRule;
 
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
-        private static readonly LocalizableResourceString s_removeUnreadMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableResourceString s_removeUnreadMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
-            IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId, s_removeUnreadMembersTitle, s_removeUnreadMembersMessage, configurable: true, enabledByDefault: true);
-        private static readonly DiagnosticDescriptor s_removeUnreadMembersWithFadingRule = CreateUnnecessaryDescriptor(
-            IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId, s_removeUnreadMembersTitle, s_removeUnreadMembersMessage, configurable: true, enabledByDefault: true);
+        private static readonly DiagnosticDescriptor s_removeUnreadMembersRule;
+        private static readonly DiagnosticDescriptor s_removeUnreadMembersWithFadingRule;
+
+        static AbstractRemoveUnusedMembersDiagnosticAnalyzer()
+        {
+            var removeUnusedMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            var removeUnusedMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_an_unused_private_member_1_which_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            s_removeUnusedMembersRule = CreateDescriptor(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
+                                                         removeUnusedMembersTitle,
+                                                         removeUnusedMembersMessage,
+                                                         configurable: true,
+                                                         enabledByDefault: true);
+            s_removeUnusedMembersWithFadingRule = CreateUnnecessaryDescriptor(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
+                                                                              removeUnusedMembersTitle,
+                                                                              removeUnusedMembersMessage,
+                                                                              configurable: true,
+                                                                              enabledByDefault: true);
+
+            var removeUnreadMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            var removeUnreadMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            s_removeUnreadMembersRule = CreateDescriptor(IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
+                                                         removeUnreadMembersTitle,
+                                                         removeUnreadMembersMessage,
+                                                         configurable: true,
+                                                         enabledByDefault: true);
+            s_removeUnreadMembersWithFadingRule = CreateUnnecessaryDescriptor(IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
+                                                                              removeUnreadMembersTitle,
+                                                                              removeUnreadMembersMessage,
+                                                                              configurable: true,
+                                                                              enabledByDefault: true);
+        }
 
         protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
             : base (ImmutableArray.Create(s_removeUnusedMembersRule,
@@ -139,7 +160,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     foreach (var field in initializer.InitializedFields)
                     {
-                        OnSymbolUsage(field, ValueUsageInfo.Write);
+                        if (IsCandidateSymbol(field))
+                        {
+                            OnSymbolUsage(field, ValueUsageInfo.Write);
+                        }
                     }
                 }
             }

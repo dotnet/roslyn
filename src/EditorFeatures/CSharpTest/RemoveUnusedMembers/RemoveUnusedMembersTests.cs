@@ -37,6 +37,37 @@ $@"class MyClass
         [InlineData("protected")]
         [InlineData("protected internal")]
         [InlineData("private protected")]
+        public async Task NonPrivateFieldWithConstantInitializer(string accessibility)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class MyClass
+{{
+    {accessibility} int [|_goo|] = 0;
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected")]
+        [InlineData("protected internal")]
+        [InlineData("private protected")]
+        public async Task NonPrivateFieldWithNonConstantInitializer(string accessibility)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class MyClass
+{{
+    {accessibility} int [|_goo|] = _goo2;
+    private static readonly int _goo2 = 0;
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected")]
+        [InlineData("protected internal")]
+        [InlineData("private protected")]
         public async Task NonPrivateMethod(string accessibility)
         {
             await TestMissingInRegularAndScriptAsync(
