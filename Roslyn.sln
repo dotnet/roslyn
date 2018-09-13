@@ -276,8 +276,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Compilers.Extension", "src\Compilers\Extension\Roslyn.Compilers.Extension.csproj", "{43026D51-3083-4850-928D-07E1883D5B1A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.Setup", "src\VisualStudio\IntegrationTest\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj", "{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{600AF682-E097-407B-AD85-EE3CED37E680} = {600AF682-E097-407B-AD85-EE3CED37E680}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.IntegrationTests", "src\VisualStudio\IntegrationTest\IntegrationTests\Microsoft.VisualStudio.LanguageServices.IntegrationTests.csproj", "{E5A55C16-A5B9-4874-9043-A5266DC02F58}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2} = {A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.Utilities", "src\VisualStudio\IntegrationTest\TestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.csproj", "{3BED15FD-D608-4573-B432-1569C1026F6D}"
 EndProject
