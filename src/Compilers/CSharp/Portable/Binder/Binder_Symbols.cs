@@ -503,27 +503,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeSymbolWithAnnotations typeArgument = default)
             {
-                if (InExecutableBinder)
+                // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
+                // We still need to delay that check when binding in an attribute argument
+                if (!InExecutableBinder || !ShouldCheckConstraintsNullability)
                 {
-                    // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
-                    // We still need to delay that check when binding in an attribute argument
-                    if (!ShouldCheckConstraintsNullability)
-                    {
-                        diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), questionToken.GetLocation());
-                    }
-                    else
-                    {
-                        DiagnosticInfo info = LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(Compilation, NonNullTypesContext, typeArgument);
-
-                        if (!(info is null))
-                        {
-                            diagnostics.Add(info, questionToken.GetLocation());
-                        }
-                    }
+                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), questionToken.GetLocation());
                 }
                 else
                 {
-                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), questionToken.GetLocation());
+                    DiagnosticInfo info = LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(Compilation, NonNullTypesContext, typeArgument);
+
+                    if (!(info is null))
+                    {
+                        diagnostics.Add(info, questionToken.GetLocation());
+                    }
                 }
             }
         }

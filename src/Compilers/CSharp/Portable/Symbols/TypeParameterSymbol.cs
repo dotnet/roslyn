@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return AnyConstraintTypes(constraintTypes, inProgress, (type, arg) => ConstraintImpliesReferenceType(type.TypeSymbol, arg));
         }
 
-        internal bool? IsNotNullableIfReferenceTypeFromConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes)
+        internal static bool? IsNotNullableIfReferenceTypeFromConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes)
         {
             Debug.Assert(!constraintTypes.IsDefaultOrEmpty);
 
