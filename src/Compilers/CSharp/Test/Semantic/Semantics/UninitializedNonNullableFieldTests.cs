@@ -23,6 +23,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "null").WithLocation(3, 21));
         }
 
+        [Fact, WorkItem(29849, "https://github.com/dotnet/roslyn/issues/29849")]
+        public void UnconstrainedGenericType()
+        {
+            var source =
+@"internal class C<T> where T : new()
+{
+    internal T F1;
+    internal T F2 = new T();
+    internal T F3 = default;
+    internal T F4 = default(T);
+}";
+            // https://github.com/dotnet/roslyn/issues/29849 Missing warnings for possible null-assignment to F3 and F4
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (1,16): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // internal class C<T> where T : new()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(1, 16),
+                // (3,16): warning CS0649: Field 'C<T>.F1' is never assigned to, and will always have its default value 
+                //     internal T F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("C<T>.F1", "").WithLocation(3, 16)
+                );
+        }
+
         [Fact]
         public void ReadWriteFields_DefaultConstructor()
         {
