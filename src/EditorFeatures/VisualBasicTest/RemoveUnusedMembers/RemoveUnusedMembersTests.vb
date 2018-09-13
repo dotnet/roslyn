@@ -130,6 +130,58 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function GenericMethodIsUnused() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Sub [|M|](Of T)()
+    End Sub
+End Class",
+"Class C
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function MethodInGenericTypeIsUnused() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C(Of T)
+    Private Sub [|M|]()
+    End Sub
+End Class",
+"Class C(Of T)
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function InstanceConstructorIsUnused_NoArguments() As Task
+            ' We only flag constructors with arguments.
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private Sub [|New()|]
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function InstanceConstructorIsUnused_WithArguments() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Sub [|New(i As Integer)|]
+    End Sub
+End Class",
+"Class C
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function StaticConstructorIsNotFlagged() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Shared Sub [|New()|]
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsUnused() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -402,6 +454,115 @@ End Class")
     Private Sub M2()
         Dim x As System.Action = AddressOf M
     End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function GenericMethodIsInvoked_ExplicitTypeArguments() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private Sub [|M1|](Of T)()
+    End Sub
+
+    Private Sub M2()
+        M1(Of Integer)()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function GenericMethodIsInvoked_ImplicitTypeArguments() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private Sub [|M1|](Of T)(t1 As T)
+    End Sub
+
+    Private Sub M2()
+        M1(0)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function MethodInGenericTypeIsInvoked_NoTypeArguments() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C(Of T)
+    Private Sub [|M1|]()
+    End Sub
+
+    Private Sub M2()
+        M1()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function MethodInGenericTypeIsInvoked_NonConstructedType() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C(Of T)
+    Private Sub [|M1|]()
+    End Sub
+
+    Private Sub M2(m As C(Of T))
+        m.M1()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function MethodInGenericTypeIsInvoked_ConstructedType() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C(Of T)
+    Private Sub [|M1|]()
+    End Sub
+
+    Private Sub M2(m As C(Of Integer))
+        m.M1()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function InstanceConstructorIsUsed_NoArguments() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private Sub [|New|]()
+    End Sub
+
+    Public Shared ReadOnly Instance As C = New C()
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function InstanceConstructorIsUsed_NoArguments_AsNew() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private Sub [|New|]()
+    End Sub
+
+    Public Shared ReadOnly Instance As New C()
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function InstanceConstructorIsUsed_WithArguments() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private Sub [|New|](i As Integer)
+    End Sub
+
+    Public Shared ReadOnly Instance As C = New C(0)
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function InstanceConstructorIsUsed_WithArguments_AsNew() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private Sub [|New|](i As Integer)
+    End Sub
+
+    Public Shared ReadOnly Instance As New C(0)
 End Class")
         End Function
 

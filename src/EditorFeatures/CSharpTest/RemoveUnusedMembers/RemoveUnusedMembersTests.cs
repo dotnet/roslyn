@@ -151,6 +151,76 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task GenericMethodIsUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|M|]<T>() => 0;
+}",
+@"class MyClass
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodInGenericTypeIsUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass<T>
+{
+    private int [|M|]() => 0;
+}",
+@"class MyClass<T>
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task InstanceConstructorIsUnused_NoArguments()
+        {
+            // We only flag constructors with arguments.
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private [|MyClass()|] { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task InstanceConstructorIsUnused_WithArguments()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private [|MyClass(int i)|] { }
+}",
+@"class MyClass
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task StaticConstructorIsNotFlagged()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    static [|MyClass()|] { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DestructorIsNotFlagged()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    ~[|MyClass()|] { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsUnused()
         {
             await TestInRegularAndScriptAsync(
@@ -598,6 +668,83 @@ class MyClass
     {
         System.Func<int> m1 = M1;
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task GenericMethodIsInvoked_ExplicitTypeArguments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|M1|]<T>() => 0;
+    private int M2() => M1<int>();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task GenericMethodIsInvoked_ImplicitTypeArguments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private T [|M1|]<T>(T t) => t;
+    private int M2() => M1(0);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodInGenericTypeIsInvoked_NoTypeArguments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass<T>
+{
+    private int [|M1|]() => 0;
+    private int M2() => M1();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodInGenericTypeIsInvoked_NonConstructedType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass<T>
+{
+    private int [|M1|]() => 0;
+    private int M2(MyClass<T> m) => m.M1();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodInGenericTypeIsInvoked_ConstructedType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass<T>
+{
+    private int [|M1|]() => 0;
+    private int M2(MyClass<int> m) => m.M1();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task InstanceConstructorIsUsed_NoArguments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private [|MyClass()|] { }
+    public static readonly MyClass Instance = new MyClass();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task InstanceConstructorIsUsed_WithArguments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private [|MyClass(int i)|] { }
+    public static readonly MyClass Instance = new MyClass(0);
 }");
         }
 
