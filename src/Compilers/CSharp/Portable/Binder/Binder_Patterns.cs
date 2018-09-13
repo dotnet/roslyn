@@ -104,6 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindRecursivePattern((RecursivePatternSyntax)node, inputType, inputValEscape, hasErrors, diagnostics);
 
                 case SyntaxKind.VarPattern:
+                    if (inputType.TypeKind == TypeKind.Pointer)
+                    {
+                        // pattern-matching is not permitted for pointer types
+                        diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
+                    }
+
                     return BindVarPattern((VarPatternSyntax)node, inputType, inputValEscape, hasErrors, diagnostics);
 
                 default:
@@ -373,23 +379,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSyntax typeSyntax = node.Type;
             BoundTypeExpression boundDeclType = BindPatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out bool isVar);
-            if (typeSyntax.IsVar && !isVar)
-            {
-                // For compatibility, we parse the var pattern with a simple designator as a declaration pattern.
-                // So we implement the semantics of the var pattern here, forbidding "var" to bind to a user-declared type.
-                if (!hasErrors)
-                {
-                    diagnostics.Add(ErrorCode.ERR_VarMayNotBindToType, typeSyntax.Location, (boundDeclType.AliasOpt ?? (Symbol)boundDeclType.Type).ToDisplayString());
-                }
-
-                boundDeclType = new BoundTypeExpression(
-                    syntax: typeSyntax, aliasOpt: null, inferredType: true, type: inputType, hasErrors: true);
-            }
-
+            Debug.Assert(!typeSyntax.IsVar); // if the syntax had `var`, it would have been parsed as a var pattern.
+            Debug.Assert(!isVar);
             TypeSymbol declType = boundDeclType.Type;
             inputValEscape = GetValEscape(declType, inputValEscape);
             BindPatternDesignation(node, node.Designation, declType, inputValEscape, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
-            return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar, inputType, hasErrors);
+            return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar: false, inputType, hasErrors);
         }
 
         private BoundTypeExpression BindPatternType(
@@ -832,7 +827,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             node: node, designation: designation, declType: inputType, inputValEscape: inputValEscape, typeSyntax: null, diagnostics: diagnostics,
                             hasErrors: ref hasErrors, variableSymbol: out Symbol variableSymbol, variableAccess: out BoundExpression variableAccess);
                         var boundOperandType = new BoundTypeExpression(syntax: node, aliasOpt: null, type: inputType); // fake a type expression for the variable's type
-                        return new BoundDeclarationPattern(designation, variableSymbol, variableAccess, boundOperandType, isVar: true, inputType: inputType, hasErrors: hasErrors);
+                        // We continue to use a BoundDeclarationPattern for the var pattern, as they have more in common.
+                        return new BoundDeclarationPattern(
+                            designation.Parent == node ? node : (SyntaxNode)designation, // for `var x` use whole pattern, otherwise use designation for the syntax
+                            variableSymbol, variableAccess, boundOperandType, isVar: true, inputType: inputType, hasErrors: hasErrors);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {

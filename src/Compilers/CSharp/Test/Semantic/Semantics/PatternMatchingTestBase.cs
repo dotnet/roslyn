@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(model.GetConversion(typeSyntax).IsIdentity);
         }
 
-        protected static void VerifyModelForDeclarationPatternDuplicateInSameScope(SemanticModel model, SingleVariableDesignationSyntax designation)
+        protected static void VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(SemanticModel model, SingleVariableDesignationSyntax designation)
         {
             var symbol = model.GetDeclaredSymbol(designation);
             Assert.Equal(designation.Identifier.ValueText, symbol.Name);
@@ -132,13 +132,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
 
             var type = ((LocalSymbol)symbol).Type;
-            var decl = (DeclarationPatternSyntax)designation.Parent;
-            if (!decl.Type.IsVar || !type.IsErrorType())
+            switch (designation.Parent)
             {
-                Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
+                case DeclarationPatternSyntax decl:
+                    if (!decl.Type.IsVar || !type.IsErrorType())
+                    {
+                        Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
+                    }
+                    AssertTypeInfo(model, decl.Type, type);
+                    break;
+                case var parent:
+                    Assert.True(parent is VarPatternSyntax);
+                    break;
             }
-
-            AssertTypeInfo(model, decl.Type, type);
         }
 
         protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)
@@ -215,23 +221,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Contains(designation.Identifier.ValueText, names);
 
-            DeclarationPatternSyntax decl = (DeclarationPatternSyntax)designation.Parent;
             var local = (FieldSymbol)symbol;
-            var typeSyntax = decl.Type;
-
-            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
-            Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
-
-            if (typeSyntax.IsVar && local.Type.IsErrorType())
+            switch (designation.Parent)
             {
-                Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
-            }
-            else
-            {
-                Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
-            }
+                case DeclarationPatternSyntax decl:
+                    var typeSyntax = decl.Type;
 
-            AssertTypeInfo(model, decl.Type, local.Type);
+                    Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
+
+                    if (typeSyntax.IsVar && local.Type.IsErrorType())
+                    {
+                        Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
+                    }
+                    else
+                    {
+                        Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
+                    }
+
+                    AssertTypeInfo(model, decl.Type, local.Type);
+                    break;
+                case var parent:
+                    Assert.True(parent is VarPatternSyntax);
+                    break;
+            }
 
             var declarator = designation.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&

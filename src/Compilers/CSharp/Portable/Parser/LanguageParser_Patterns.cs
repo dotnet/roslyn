@@ -457,16 +457,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
                     var varToken = ConvertToKeyword(typeIdentifierToken);
-                    bool wasTupleDesignator = this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
                     var varDesignation = ParseDesignation();
-                    if (wasTupleDesignator)
-                    {
-                        return _syntaxFactory.VarPattern(varToken, varDesignation);
-                    }
-                    else
-                    {
-                        return _syntaxFactory.DeclarationPattern(_syntaxFactory.IdentifierName(typeIdentifierToken), varDesignation);
-                    }
+                    return _syntaxFactory.VarPattern(varToken, varDesignation);
                 }
             }
 

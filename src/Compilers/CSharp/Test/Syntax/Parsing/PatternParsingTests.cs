@@ -5218,12 +5218,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 N(SyntaxKind.OpenBraceToken);
                                 N(SyntaxKind.SwitchExpressionArm);
                                 {
-                                    N(SyntaxKind.DeclarationPattern);
+                                    N(SyntaxKind.VarPattern);
                                     {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "var");
-                                        }
+                                        N(SyntaxKind.VarKeyword, "var");
                                         N(SyntaxKind.SingleVariableDesignation);
                                         {
                                             N(SyntaxKind.IdentifierToken, "x");

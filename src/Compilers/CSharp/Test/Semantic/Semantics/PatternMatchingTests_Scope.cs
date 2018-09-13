@@ -204,7 +204,7 @@ public class X
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0], x1Ref[2]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl[2]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl[2]);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
@@ -219,7 +219,7 @@ public class X
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x5Decl = GetPatternDeclarations(tree, "x5").Single();
             var x5Ref = GetReferences(tree, "x5").ToArray();
@@ -234,7 +234,7 @@ public class X
             {
                 VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[0], x8Ref[i]);
             }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x8Decl[1]);
 
             var x9Decl = GetPatternDeclarations(tree, "x9").Single();
             var x9Ref = GetReferences(tree, "x9").Single();
@@ -589,7 +589,7 @@ public class X
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0], x1Ref[2]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl[2]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl[2]);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
@@ -604,7 +604,7 @@ public class X
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x5Decl = GetPatternDeclarations(tree, "x5").Single();
             var x5Ref = GetReferences(tree, "x5").ToArray();
@@ -616,7 +616,7 @@ public class X
             Assert.Equal(2, x8Decl.Length);
             Assert.Equal(2, x8Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[0], x8Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x8Decl[1]);
 
             var x9Decl = GetPatternDeclarations(tree, "x9").Single();
             var x9Ref = GetReferences(tree, "x9").Single();
@@ -859,7 +859,7 @@ public class X
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0], x1Ref[2]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl[2]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl[2]);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
@@ -874,7 +874,7 @@ public class X
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x5Decl = GetPatternDeclarations(tree, "x5").Single();
             var x5Ref = GetReferences(tree, "x5").ToArray();
@@ -886,7 +886,7 @@ public class X
             Assert.Equal(2, x8Decl.Length);
             Assert.Equal(2, x8Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[0], x8Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x8Decl[1]);
 
             var x9Decl = GetPatternDeclarations(tree, "x9").Single();
             var x9Ref = GetReferences(tree, "x9").Single();
@@ -1170,7 +1170,7 @@ public class X
             var x4Decl = GetPatternDeclarations(tree, "x4").Single();
             var x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
 
@@ -1468,7 +1468,7 @@ public class X
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -2154,7 +2154,7 @@ public class X
                 {
                     case 1:
                     case 3:
-                        VerifyModelForDeclarationPatternDuplicateInSameScope(model, yDecl);
+                        VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, yDecl);
                         VerifyNotAPatternLocal(model, yRef[0]);
                         break;
                     default:
@@ -2282,7 +2282,7 @@ public class X
                     case 1:
                     case 3:
                         VerifyModelForDeclarationOrVarSimplePattern(model, yDecl[0], yRef);
-                        VerifyModelForDeclarationPatternDuplicateInSameScope(model, yDecl[1]);
+                        VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, yDecl[1]);
                         break;
                     case 12:
                         VerifyModelForDeclarationOrVarSimplePattern(model, yDecl[0], yRef[1]);
@@ -2342,7 +2342,7 @@ public class X
             // Since the name is declared twice in the same scope,
             // both references are to the same declaration.
             VerifyModelForDeclarationOrVarSimplePattern(model, yDecl[0], yRef);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, yDecl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, yDecl[1]);
         }
 
         [Fact]
@@ -2707,7 +2707,7 @@ public class X
             var y2Decl = GetPatternDeclarations(tree, "y2").ToArray();
             Assert.Equal(2, y2Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, y2Decl[0]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, y2Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, y2Decl[1]);
         }
 
         [Fact]
@@ -2864,7 +2864,7 @@ public class X
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -3033,7 +3033,7 @@ public class X
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -3148,7 +3148,7 @@ public class X
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -3237,7 +3237,7 @@ public class X
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -3325,7 +3325,7 @@ public enum X
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -3412,7 +3412,7 @@ public class X
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -3488,7 +3488,7 @@ public class X
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -3585,7 +3585,7 @@ public class X
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -3676,14 +3676,14 @@ class Test : System.Attribute
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x6Decl[0], x6Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x6Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x6Decl[1]);
 
             var x7Decl = GetPatternDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").ToArray();
@@ -3766,14 +3766,14 @@ class Test : System.Attribute
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x6Decl[0], x6Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x6Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x6Decl[1]);
 
             var x7Decl = GetPatternDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").ToArray();
@@ -3858,14 +3858,14 @@ public class X
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x6Decl[0], x6Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x6Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x6Decl[1]);
 
             var x7Decl = GetPatternDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").ToArray();
@@ -3954,14 +3954,14 @@ public class Y
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[0], x5Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x6Decl[0], x6Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x6Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x6Decl[1]);
 
             var x7Decl = GetPatternDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").ToArray();
@@ -4410,7 +4410,7 @@ public class X
             {
                 VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[0], x8Ref[i]);
             }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x8Decl[1]);
 
             var x9Decl = GetPatternDeclarations(tree, "x9").Single();
             var x9Ref = GetReferences(tree, "x9").ToArray();
@@ -4459,7 +4459,7 @@ public class X
             {
                 VerifyModelForDeclarationOrVarSimplePattern(model, x15Decl[0], x15Ref[i]);
             }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x15Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x15Decl[1]);
         }
 
         [Fact]
@@ -4810,7 +4810,7 @@ public class X
             {
                 VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[0], x8Ref[i]);
             }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x8Decl[1]);
 
             var x9Decl = GetPatternDeclarations(tree, "x9").Single();
             var x9Ref = GetReferences(tree, "x9").ToArray();
@@ -4859,7 +4859,7 @@ public class X
             {
                 VerifyModelForDeclarationOrVarSimplePattern(model, x15Decl[0], x15Ref[i]);
             }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x15Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x15Decl[1]);
 
             var x16Decl = GetPatternDeclarations(tree, "x16").ToArray();
             var x16Ref = GetReferences(tree, "x16").ToArray();
@@ -4869,7 +4869,7 @@ public class X
             {
                 VerifyModelForDeclarationOrVarSimplePattern(model, x16Decl[0], x16Ref[i]);
             }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x16Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x16Decl[1]);
 
             var x17Decl = GetPatternDeclarations(tree, "x17").ToArray();
             var x17Ref = GetReferences(tree, "x17").ToArray();
@@ -4879,7 +4879,7 @@ public class X
             {
                 VerifyModelForDeclarationOrVarSimplePattern(model, x17Decl[0], x17Ref[i]);
             }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x17Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x17Decl[1]);
         }
 
         [Fact]
@@ -5090,7 +5090,7 @@ public class X
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
             VerifyNotAPatternLocal(model, x4Ref[2]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x5Decl = GetPatternDeclarations(tree, "x5").Single();
             var x5Ref = GetReferences(tree, "x5").ToArray();
@@ -5127,7 +5127,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
 
             var y15Ref = GetReferences(tree, "y15").ToArray();
             Assert.Equal(3, y15Ref.Length);
@@ -5424,7 +5424,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -5631,7 +5631,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -5838,7 +5838,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -5896,14 +5896,14 @@ public class X
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl);
             VerifyNotAPatternLocal(model, x1Ref[0]);
             VerifyNotAPatternLocal(model, x1Ref[1]);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl);
             VerifyNotAPatternLocal(model, x2Ref[0]);
             VerifyNotAPatternLocal(model, x2Ref[1]);
         }
@@ -5984,7 +5984,7 @@ public class X
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(3, x2Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl[1]);
 
             var x3Decl = GetPatternDeclarations(tree, "x3").Single();
             var x3Ref = GetReferences(tree, "x3").ToArray();
@@ -6066,7 +6066,7 @@ public class X
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").Single();
             var x6Ref = GetReferences(tree, "x6").Single();
@@ -6081,7 +6081,7 @@ public class X
             var x14Ref = GetReferences(tree, "x14").Single();
             Assert.Equal(2, x14Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -6153,7 +6153,7 @@ public class X
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").Single();
             var x6Ref = GetReferences(tree, "x6").Single();
@@ -6168,7 +6168,7 @@ public class X
             var x14Ref = GetReferences(tree, "x14").Single();
             Assert.Equal(2, x14Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -6226,14 +6226,14 @@ public class X
             Assert.Equal(2, x1Ref.Length);
             VerifyNotAPatternLocal(model, x1Ref[0]);
             VerifyNotAPatternLocal(model, x1Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyNotAPatternLocal(model, x2Ref[0]);
             VerifyNotAPatternLocal(model, x2Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl);
         }
 
         [Fact]
@@ -6301,7 +6301,7 @@ public class X
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl[1]);
 
             var x3Decl = GetPatternDeclarations(tree, "x3").Single();
             var x3Ref = GetReferences(tree, "x3").ToArray();
@@ -6470,7 +6470,7 @@ public class X
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x6Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x6").Single();
             var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").Single();
@@ -6485,7 +6485,7 @@ public class X
             var x14Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x14").Single();
             Assert.Equal(2, x14Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -6559,7 +6559,7 @@ public class X
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x6Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x6").Single();
             var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").Single();
@@ -6574,7 +6574,7 @@ public class X
             var x14Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x14").Single();
             Assert.Equal(2, x14Decl.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -6634,14 +6634,14 @@ public class X
             Assert.Equal(2, x1Ref.Length);
             VerifyNotAPatternLocal(model, x1Ref[0]);
             VerifyNotAPatternLocal(model, x1Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl);
 
             var x2Decl = GetPatternDeclaration(tree, "x2");
             var x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyNotAPatternLocal(model, x2Ref[0]);
             VerifyNotAPatternLocal(model, x2Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl);
         }
 
         [Fact]
@@ -6710,14 +6710,14 @@ public class X
             VerifyNotAPatternLocal(model, x1Ref[0]);
             VerifyNotAPatternLocal(model, x1Ref[1]);
             VerifyNotAPatternLocal(model, x1Ref[2]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl[1]);
 
             var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").Single();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
@@ -7014,7 +7014,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -7336,7 +7336,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -7651,7 +7651,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -7880,7 +7880,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -8137,7 +8137,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref[0]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
             VerifyNotInScope(model, x14Ref[1]);
         }
 
@@ -8370,7 +8370,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -8602,7 +8602,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -8870,7 +8870,7 @@ public class X
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").Single();
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl);
             VerifyNotAPatternLocal(model, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
@@ -8883,7 +8883,7 @@ public class X
 
             var x4Decl = GetPatternDeclarations(tree, "x4").Single();
             var x4Ref = GetReferences(tree, "x4").Single();
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
             VerifyNotAPatternLocal(model, x4Ref);
 
             var x5Decl = GetPatternDeclarations(tree, "x5").Single();
@@ -8896,7 +8896,7 @@ public class X
 
             var x7Decl = GetPatternDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").Single();
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x7Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x7Decl);
             VerifyNotAPatternLocal(model, x7Ref);
 
             var x8Decl = GetPatternDeclarations(tree, "x8").ToArray();
@@ -8904,7 +8904,7 @@ public class X
             Assert.Equal(4, x8Decl.Length);
             Assert.Equal(4, x8Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[0], x8Ref[0], x8Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x8Decl[1]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[2], x8Ref[2]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[3], x8Ref[3]);
 
@@ -8922,7 +8922,7 @@ public class X
             Assert.Equal(4, x10Ref.Length);
             VerifyNotInScope(model, x10Ref[0]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x10Decl[0], x10Ref[1], x10Ref[2]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x10Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x10Decl[1]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x10Decl[2], x10Ref[3]);
 
             var x11Decl = GetPatternDeclarations(tree, "x11").ToArray();
@@ -8931,7 +8931,7 @@ public class X
             Assert.Equal(4, x11Ref.Length);
             VerifyNotInScope(model, x11Ref[0]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x11Decl[0], x11Ref[1], x11Ref[2]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x11Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x11Decl[1]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x11Decl[2], x11Ref[3]);
 
             var x12Decl = GetPatternDeclarations(tree, "x12").ToArray();
@@ -8949,7 +8949,7 @@ public class X
             VerifyNotInScope(model, x13Ref[0]);
             VerifyNotInScope(model, x13Ref[1]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x13Decl[0], x13Ref[2], x13Ref[3]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x13Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x13Decl[1]);
 
             var x14Decl = GetPatternDeclarations(tree, "x14").ToArray();
             var x14Ref = GetReferences(tree, "x14").ToArray();
@@ -8958,7 +8958,7 @@ public class X
             VerifyNotInScope(model, x14Ref[0]);
             VerifyNotInScope(model, x14Ref[1]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref[2], x14Ref[3]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
 
             var x15Decl = GetPatternDeclarations(tree, "x15").Single();
             var x15Ref = GetReferences(tree, "x15").ToArray();
@@ -9021,7 +9021,7 @@ public class X
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl[1]);
         }
 
         [Fact]
@@ -9236,7 +9236,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
 
             var x15Decl = GetPatternDeclarations(tree, "x15").Single();
             var x15Ref = GetReferences(tree, "x15").ToArray();
@@ -9408,7 +9408,7 @@ public class X
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
             VerifyNotAPatternLocal(model, x4Ref[2]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").Single();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -9446,7 +9446,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -9731,7 +9731,7 @@ public unsafe class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -9810,7 +9810,7 @@ public unsafe class X
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl);
             VerifyNotAPatternLocal(model, x1Ref[0]);
             VerifyNotAPatternLocal(model, x1Ref[1]);
 
@@ -9822,7 +9822,7 @@ public unsafe class X
             var x3Decl = GetPatternDeclarations(tree, "x3").Single();
             var x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(2, x3Ref.Length);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x3Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x3Decl);
             VerifyNotAPatternLocal(model, x3Ref[0]);
             VerifyNotAPatternLocal(model, x3Ref[1]);
 
@@ -9831,7 +9831,7 @@ public unsafe class X
             Assert.Equal(2, x4Decl.Length);
             Assert.Equal(3, x4Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x4Decl[0], x4Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl[1]);
         }
 
         [Fact]
@@ -9961,7 +9961,7 @@ public class X
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0], x1Ref[2]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl[2]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl[2]);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
@@ -9976,7 +9976,7 @@ public class X
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x5Decl = GetPatternDeclarations(tree, "x5").Single();
             var x5Ref = GetReferences(tree, "x5").ToArray();
@@ -9991,7 +9991,7 @@ public class X
             {
                 VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[0], x8Ref[i]);
             }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x8Decl[1]);
 
             var x9Decl = GetPatternDeclarations(tree, "x9").Single();
             var x9Ref = GetReferences(tree, "x9").Single();
@@ -10290,12 +10290,12 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
 
             var x15Decl = GetPatternDeclarations(tree, "x15").Single();
             var x15Ref = GetReferences(tree, "x15").ToArray();
             Assert.Equal(2, x15Ref.Length);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x15Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x15Decl);
             VerifyNotAPatternLocal(model, x15Ref[0]);
             VerifyNotAPatternLocal(model, x15Ref[1]);
         }
@@ -10473,7 +10473,7 @@ a:      Dummy(true is var x12, x12);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0], x1Ref[2]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl[2]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl[2]);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").Single();
@@ -10488,7 +10488,7 @@ a:      Dummy(true is var x12, x12);
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x5Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x5").Single();
             var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").ToArray();
@@ -10503,7 +10503,7 @@ a:      Dummy(true is var x12, x12);
             {
                 VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[0], x8Ref[i]);
             }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x8Decl[1]);
 
             var x9Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x9").Single();
             var x9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x9").Single();
@@ -10920,7 +10920,7 @@ public class X
             {
                 VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[0], x8Ref[i]);
             }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x8Decl[1]);
 
             var x9Decl = GetPatternDeclarations(tree, "x9").Single();
             var x9Ref = GetReferences(tree, "x9").ToArray();
@@ -10969,7 +10969,7 @@ public class X
             {
                 VerifyModelForDeclarationOrVarSimplePattern(model, x15Decl[0], x15Ref[i]);
             }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x15Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x15Decl[1]);
         }
 
         [Fact]
@@ -11696,7 +11696,7 @@ public class X
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").Single();
             var x6Ref = GetReferences(tree, "x6").Single();
@@ -11714,7 +11714,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             AssertContainedInDeclaratorArguments(x14Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -11788,7 +11788,7 @@ public class X
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyNotAPatternLocal(model, x1Ref[0]);
             VerifyNotAPatternLocal(model, x1Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").ToArray();
@@ -11796,7 +11796,7 @@ public class X
             AssertContainedInDeclaratorArguments(x2Decl);
             VerifyNotAPatternLocal(model, x2Ref[0]);
             VerifyNotAPatternLocal(model, x2Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl);
 
             var x3Decl = GetPatternDeclarations(tree, "x3").Single();
             var x3Ref = GetReferences(tree, "x3").ToArray();
@@ -11804,7 +11804,7 @@ public class X
             AssertContainedInDeclaratorArguments(x3Decl);
             VerifyNotAPatternLocal(model, x3Ref[0]);
             VerifyNotAPatternLocal(model, x3Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x3Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x3Decl);
         }
 
         [Fact]
@@ -11883,7 +11883,7 @@ public class X
             Assert.Equal(2, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x2Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x2Decl[0], x2Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl[1]);
 
             var x3Decl = GetPatternDeclarations(tree, "x3").Single();
             var x3Ref = GetReferences(tree, "x3").ToArray();
@@ -11981,7 +11981,7 @@ public class X
             Assert.Equal(2, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x2Decl[0]);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x2Decl[0], x2Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl[1]);
 
             var x3Decl = GetPatternDeclarations(tree, "x3").Single();
             var x3Ref = GetReferences(tree, "x3").ToArray();
@@ -12382,7 +12382,7 @@ public class X
             Assert.Equal(2, x14Ref.Length);
             AssertContainedInDeclaratorArguments(x14Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -12477,13 +12477,13 @@ public class X
             var x4Decl = GetPatternDeclarations(tree, "x4").Single();
             var x4Ref = GetReferences(tree, "x4").Single();
             AssertContainedInDeclaratorArguments(x4Decl);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
             VerifyNotAPatternLocal(model, x4Ref);
 
             var x7Decl = GetPatternDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").Single();
             AssertContainedInDeclaratorArguments(x7Decl);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x7Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x7Decl);
             VerifyNotAPatternLocal(model, x7Ref);
 
             var x8Decl = GetPatternDeclarations(tree, "x8").ToArray();
@@ -12493,7 +12493,7 @@ public class X
             AssertContainedInDeclaratorArguments(x8Decl[0]);
             AssertContainedInDeclaratorArguments(x8Decl[1]);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x8Decl[0], x8Ref[0], x8Ref[1]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x8Decl[1]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[2], x8Ref[2]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[3], x8Ref[3]);
 
@@ -12730,7 +12730,7 @@ public class X
             Assert.Equal(2, x14Ref.Length);
             AssertContainedInDeclaratorArguments(x14Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -12789,7 +12789,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl);
             VerifyNotAPatternLocal(model, x1Ref[0]);
             VerifyNotAPatternLocal(model, x1Ref[1]);
 
@@ -12797,7 +12797,7 @@ public class X
             var x2Ref = GetReferences(tree, "x2").ToArray();
             AssertContainedInDeclaratorArguments(x2Decl);
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl);
             VerifyNotAPatternLocal(model, x2Ref[0]);
             VerifyNotAPatternLocal(model, x2Ref[1]);
         }
@@ -12889,7 +12889,7 @@ public class X
             Assert.Equal(3, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x2Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x2Decl[0], x2Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x2Decl[1]);
 
             var x3Decl = GetPatternDeclarations(tree, "x3").Single();
             var x3Ref = GetReferences(tree, "x3").ToArray();
@@ -13120,7 +13120,7 @@ public unsafe class X
             Assert.Equal(2, x14Ref.Length);
             AssertContainedInDeclaratorArguments(x14Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x14Decl[0], x14Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
 
         [Fact]
@@ -13206,7 +13206,7 @@ public unsafe class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x1Decl);
             VerifyNotAPatternLocal(model, x1Ref[0]);
             VerifyNotAPatternLocal(model, x1Ref[1]);
 
@@ -13220,7 +13220,7 @@ public unsafe class X
             var x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(2, x3Ref.Length);
             AssertContainedInDeclaratorArguments(x3Decl);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x3Decl);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x3Decl);
             VerifyNotAPatternLocal(model, x3Ref[0]);
             VerifyNotAPatternLocal(model, x3Ref[1]);
 
@@ -13230,7 +13230,7 @@ public unsafe class X
             Assert.Equal(3, x4Ref.Length);
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x4Decl[0], x4Ref);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
+            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl[1]);
         }
 
         [Fact]

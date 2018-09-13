@@ -386,12 +386,12 @@ class Program
 }";
             var compilation = CreatePatternCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
-                // (7,22): error CS8421: Pattern-matching is not permitted for pointer types.
+                // (7,22): error CS8521: Pattern-matching is not permitted for pointer types.
                 //             if (x is var y1) { }
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var").WithLocation(7, 22),
-                // (10,22): error CS8421: Pattern-matching is not permitted for pointer types.
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var y1").WithLocation(7, 22),
+                // (10,22): error CS8521: Pattern-matching is not permitted for pointer types.
                 //                 case var y2: break;
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var y2").WithLocation(10, 22)
                 );
         }
 
