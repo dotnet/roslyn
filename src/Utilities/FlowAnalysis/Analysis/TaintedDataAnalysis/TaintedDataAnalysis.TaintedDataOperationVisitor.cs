@@ -2,15 +2,11 @@
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    using TaintedDataAnalysisResult = Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
-
     using System.Collections.Immutable;
     using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.FlowAnalysis;
     using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
-    using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
-    using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
     using Microsoft.CodeAnalysis.Operations;
+    using TaintedDataAnalysisResult = Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
 
 
     internal partial class TaintedDataAnalysis
@@ -33,7 +29,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         // blah["somestring"];
                         if (propertyReferenceOperation.Instance != null
                             && propertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.HttpRequest
-                            && propertyReferenceOperation.Member.MetadataName == "Form")
+                            && (propertyReferenceOperation.Member.MetadataName == "Form"
+                                || propertyReferenceOperation.Member.MetadataName == "UserLanguages"))
                         {
                             // HttpRequest.Form
                             return TaintedDataAbstractValue.Tainted;
@@ -43,6 +40,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             && this.GetCachedAbstractValue(propertyReferenceOperation.Instance).Kind == TaintedDataAbstractValueKind.Tainted)
                         {
                             // propertyReferenceOperation.Instance is a NameValueCollection from an HttpRequest.Form
+                            return TaintedDataAbstractValue.Tainted;
+                        }
+
+                        break;
+
+                    case IArrayElementReferenceOperation arrayElementOperation:
+                        if (arrayElementOperation.ArrayReference.Type is IArrayTypeSymbol arrayTypeSymbol
+                            && arrayTypeSymbol.ElementType.SpecialType == SpecialType.System_String
+                            && this.GetCachedAbstractValue(arrayElementOperation.ArrayReference).Kind == TaintedDataAbstractValueKind.Tainted)
+                        {
                             return TaintedDataAbstractValue.Tainted;
                         }
 
@@ -118,6 +125,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             protected override void StopTrackingEntity(AnalysisEntity analysisEntity)
             {
                 this.CurrentAnalysisData.RemoveEntries(analysisEntity);
+            }
+
+            public override TaintedDataAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object argument)
+            {
+                TaintedDataAbstractValue leftAbstractValue = Visit(operation.LeftOperand, argument);
+                TaintedDataAbstractValue rightAbstractValue = Visit(operation.RightOperand, argument);
+
+                return TaintedDataAbstractValueDomain.Default.Merge(leftAbstractValue, rightAbstractValue);
             }
         }
     }
