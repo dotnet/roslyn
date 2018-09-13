@@ -37634,6 +37634,35 @@ class Program
         }
 
         [Fact]
+        public void Members_Fields_UnconstrainedType()
+        {
+            var source =
+@"
+class C<T>
+{
+    internal T field = default;
+
+    static void F(C<T> a)
+    {
+        a.field.ToString();
+        if (a.field != null) a.field.ToString();
+        C<T> b = new C<T>();
+        b.field.ToString();
+        if (b.field != null) b.field.ToString();
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         a.field.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.field").WithLocation(8, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         b.field.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.field").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
         public void Members_AutoProperties()
         {
             var source =

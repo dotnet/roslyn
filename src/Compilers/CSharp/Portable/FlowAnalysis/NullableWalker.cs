@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly SourceAssemblySymbol _sourceAssembly;
 
-        // PROTOTYPE(NullableReferenceTypes): Remove the Binder if possible. 
         private readonly Binder _binder;
         private readonly Conversions _conversions;
 
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static readonly TypeSymbolWithAnnotations _invalidType = TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
 
-        private TypeSymbolWithAnnotations _resultType; // PROTOTYPE(NullableReferenceTypes): Should be return value from the visitor, not mutable state.
+        private TypeSymbolWithAnnotations _resultType;
 
         /// <summary>
         /// Instances being constructed.
@@ -137,8 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _sourceAssembly = (method is null) ? null : (SourceAssemblySymbol)method.ContainingAssembly;
             _callbackOpt = callbackOpt;
-            // PROTOTYPE(NullableReferenceTypes): Do we really need a Binder?
-            // If so, are we interested in an InMethodBinder specifically?
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             Debug.Assert(!_binder.Conversions.IncludeNullability);
             _conversions = (Conversions)_binder.Conversions.WithNullability(true);
@@ -954,16 +951,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method.IsGenericTaskReturningAsync(compilation) ?
                 ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single() :
                 returnType;
-        }
-
-        private static bool IsNullable(TypeSymbolWithAnnotations typeOpt)
-        {
-            return !typeOpt.IsNull && typeOpt.IsNullable == true;
-        }
-
-        private static bool IsNonNullable(TypeSymbolWithAnnotations typeOpt)
-        {
-            return !typeOpt.IsNull && typeOpt.IsNullable == false && typeOpt.IsReferenceType;
         }
 
         private static bool IsUnconstrainedTypeParameter(TypeSymbol typeOpt)
@@ -3697,7 +3684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We are supposed to track information for the node. Use whatever we managed to
                     // accumulate so far.
-                    if (resultType.IsReferenceType)
+                    if (!resultType.IsValueType)
                     {
                         int containingSlot = (receiverOpt is null) ? -1 : MakeSlot(receiverOpt);
                         int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(member, containingSlot);
