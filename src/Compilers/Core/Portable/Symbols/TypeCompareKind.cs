@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis
         IgnoreTupleNames = 4,
         IgnoreDynamicAndTupleNames = IgnoreDynamic | IgnoreTupleNames,
 
-        // PROTOTYPE(NullableReferenceTypes): Consider renaming the Nullable options,
-        // perhaps CompareNullableAnnotations and IgnoreUnknownNullableAnnotations.
         /// <summary>
         /// Note: comparisons with nullability-related options pull on NonNullTypes, which can cause cycles.
         /// </summary>

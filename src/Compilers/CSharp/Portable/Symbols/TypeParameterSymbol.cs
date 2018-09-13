@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should this API be exposed through ITypeParameterSymbol?
+        // https://github.com/dotnet/roslyn/issues/26198 Should this API be exposed through ITypeParameterSymbol?
         internal bool? IsNotNullableIfReferenceType => GetIsNotNullableIfReferenceType(ConsList<TypeParameterSymbol>.Empty);
 
         internal bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress)
@@ -624,7 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract bool HasReferenceTypeConstraint { get; }
 
-        // PROTOTYPE(NullableReferenceTypes): Should this API be exposed through ITypeParameterSymbol?
         /// <summary>
         /// Returns whether the reference type constraint (the 'class' constraint) should also be treated as nullable ('class?') or non-nullable (class!).
         /// In some cases this aspect is unknown (null value is returned). For example, when 'class' constraint is specified in a NonNullTypes(false) context.  

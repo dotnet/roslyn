@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // PROTOTYPE(NullableReferenceTypes): Support external annotations.
+                // https://github.com/dotnet/roslyn/issues/29821 Support external annotations.
                 if (!HasReferenceTypeConstraint)
                 {
                     return false;

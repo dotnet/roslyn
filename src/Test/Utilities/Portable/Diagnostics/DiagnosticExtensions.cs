@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             Verify((IEnumerable<Diagnostic>)actual, expected);
         }
 
-        private static void Verify(IEnumerable<Diagnostic> actual, DiagnosticDescription[] expected, bool errorCodeOnly, bool ignoreUnexpectedHidden = true)
+        private static void Verify(IEnumerable<Diagnostic> actual, DiagnosticDescription[] expected, bool errorCodeOnly)
         {
             if (expected == null)
             {
@@ -83,24 +83,6 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     Assert.True(false, DiagnosticDescription.GetAssertText(expected, actual));
-                }
-            }
-
-            // PROTOTYPE(NullableReferenceTypes): Ignore unexpected HDN diagnostics
-            // to avoid updating tests with HDN_ExpressionIsProbablyNeverNull etc.
-            if (ignoreUnexpectedHidden)
-            {
-                int index = 0;
-                while (index < unmatched.Count)
-                {
-                    if (ErrorFacts.IsHidden((ErrorCode)unmatched[index].Code))
-                    {
-                        unmatched.RemoveAt(index);
-                    }
-                    else
-                    {
-                        index++;
-                    }
                 }
             }
 

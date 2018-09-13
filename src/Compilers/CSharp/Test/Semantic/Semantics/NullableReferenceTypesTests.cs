@@ -50,6 +50,30 @@ class C
         }
 
         [Fact]
+        public void UpdateArrayRankSpecifier()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        object[]? x = null;
+    }
+}
+";
+            var tree = Parse(source);
+            var specifier = tree.GetRoot().DescendantNodes().OfType<ArrayRankSpecifierSyntax>().Single();
+            Assert.Equal("[]?", specifier.ToString());
+
+            var newSpecifier = specifier.Update(
+                specifier.OpenBracketToken,
+                SyntaxFactory.SeparatedList<ExpressionSyntax>(
+                    new[] { SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(3)) }),
+                specifier.CloseBracketToken);
+            Assert.Equal("[3]?", newSpecifier.ToString());
+        }
+
+        [Fact]
         public void TestUnaryNegation()
         {
             // This test verifies that we no longer crash hitting an assertion
@@ -947,7 +971,7 @@ namespace NotMicrosoft.CodeAnalysis { }
         [InlineData("using System.Runtime.CompilerServices; class C { void M(NonNullTypesAttribute x) => throw null; }")]
         [InlineData("using System.Runtime.CompilerServices; namespace System { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
         [InlineData("using System.Runtime.CompilerServices; namespace System.Runtime { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
-        [InlineData("using System.Runtime.CompilerServices; namespace System.Runtime.CompilerServices { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
+        [InlineData("namespace System.Runtime.CompilerServices { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
         [InlineData("using System.Runtime.CompilerServices; class C { NonNullTypesAttribute field = null; void M() { if (field != null) field = null; } }")]
         [InlineData("using System.Runtime.CompilerServices; class C { void M() { _ = new NonNullTypesAttribute(); } }")]
         [InlineData("using System.Runtime.CompilerServices; class C { void M() { local(); void local() { _ = new NonNullTypesAttribute(); } } }")]
@@ -1517,7 +1541,7 @@ class C<T> where T : struct
         [ConditionalFact(typeof(DesktopOnly))]
         public void UnannotatedAssemblies_WithSomeExtraAnnotations()
         {
-            // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+            // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
             var comp = CreateCompilation("");
             comp.VerifyDiagnostics();
             var systemNamespace = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingNamespace;
@@ -1541,8 +1565,7 @@ class C<T> where T : struct
         [Fact]
         public void AnnotatedAssemblies_WithSomeExtraAnnotations()
         {
-            // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
-            // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
+            // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
             var lib = @"
 namespace System
 {
@@ -2204,6 +2227,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
+            // We don't check whether well-known types are obsolete
             var comp = CreateCompilation(new[] { source });
             comp.VerifyEmitDiagnostics();
             Assert.False(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute").IsImplicitlyDeclared);
@@ -3095,12 +3119,11 @@ class E
         {
             Assert.Equal(expectNonNullTypes, method.NonNullTypes);
 
-            // PROTOTYPE(NullableReferenceTypes): verify NonNullTypes on return value
+            Assert.Equal(expectNonNullTypes, method.ReturnType.NonNullTypesContext.NonNullTypes);
 
             foreach (var parameter in method.Parameters)
             {
-                // PROTOTYPE(NullableReferenceTypes): verify NonNullTypes on parameters
-                //Assert.Equal(nonNullTypes, parameter.NonNullTypes);
+                Assert.Equal(expectNonNullTypes, parameter.NonNullTypes);
             }
         }
 
@@ -3400,9 +3423,11 @@ class C<T>
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics();
+
             comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Verify no warnings are generated
-            // when [NonNullTypes] is necessary to enable warnings.
             comp.VerifyDiagnostics(
                 // (3,7): warning CS8618: Non-nullable field '_f' is uninitialized.
                 // class C<T>
@@ -3447,8 +3472,6 @@ public class Oblivious
             var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
 
             var source = @"
-using System.Runtime.CompilerServices;
-
 class C
 {
     void M()
@@ -13300,7 +13323,10 @@ class CL1
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x3").WithLocation(20, 18),
                 // (26,18): hidden CS8607: Expression is probably never null.
                 //         CL1 z4 = x4 ?? x4.M1();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(26, 18)
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(26, 18),
+                // (38,21): hidden CS8607: Expression is probably never null.
+                //         string z6 = y6 ?? x6.M2();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y6").WithLocation(38, 21)
                 );
         }
 
@@ -15230,7 +15256,13 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,10): hidden CS8607: Expression is probably never null.
+                //         ("" ?? x).ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, @"""""").WithLocation(5, 10),
+                // (6,10): hidden CS8607: Expression is probably never null.
+                //         ("" ?? y).ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, @"""""").WithLocation(6, 10));
         }
 
         [Fact]
@@ -25750,18 +25782,21 @@ class CL1
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
             c.VerifyDiagnostics(
-                 // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
-                 //         CL1? u1 = x1 += y1;
-                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(10, 19),
-                 // (11,18): hidden CS8607: Expression is probably never null.
-                 //         CL1 v1 = u1 ?? new CL1(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
-                 // (18,18): hidden CS8607: Expression is probably never null.
-                 //         CL1 v2 = u2 ?? new CL1(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u2").WithLocation(18, 18),
-                 // (19,18): hidden CS8607: Expression is probably never null.
-                 //         CL1 w2 = x2 ?? new CL1(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(19, 18)
+                // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
+                //         CL1? u1 = x1 += y1;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(10, 19),
+                // (11,18): hidden CS8607: Expression is probably never null.
+                //         CL1 v1 = u1 ?? new CL1(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+                // (12,18): hidden CS8607: Expression is probably never null.
+                //         CL1 w1 = x1 ?? new CL1(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18),
+                // (18,18): hidden CS8607: Expression is probably never null.
+                //         CL1 v2 = u2 ?? new CL1(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u2").WithLocation(18, 18),
+                // (19,18): hidden CS8607: Expression is probably never null.
+                //         CL1 w2 = x2 ?? new CL1(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(19, 18)
                 );
         }
 
@@ -31781,7 +31816,6 @@ class C
         }
 
         // PROTOTYPE(NullableReferenceTypes): [NonNullTypes(true)] is disabled.
-        // See CSharpCompilation.HaveNullableOptOutForDefinition.
         [Fact(Skip = "[NonNullTypes(true)] is disabled")]
         public void AllowMemberOptOut()
         {
@@ -38941,7 +38975,7 @@ class B<T1> where T1 : class?
                 }
             }
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             var expected = new[] {
                 // (4,29): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class B<T1> where T1 : class?
