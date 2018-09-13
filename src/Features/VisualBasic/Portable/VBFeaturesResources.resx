@@ -141,6 +141,12 @@
   <data name="Invert_If" xml:space="preserve">
     <value>Invert If</value>
   </data>
+  <data name="Add_Await" xml:space="preserve">
+    <value>Add Await</value>
+  </data>
+  <data name="Add_Await_and_ConfigureAwaitFalse" xml:space="preserve">
+    <value>Add Await and 'ConfigureAwait(false)'</value>
+  </data>
   <data name="Move_the_0_statement_to_line_1" xml:space="preserve">
     <value>Move the '{0}' statement to line {1}.</value>
   </data>
