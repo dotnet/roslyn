@@ -214,12 +214,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
 
-                TupleTypeSymbol tuple;
-                type = TupleTypeSymbol.TryTransformToTuple(type.TypeSymbol, out tuple) ?
+                type = TupleTypeSymbol.TryTransformToTuple(type.TypeSymbol, out TupleTypeSymbol tuple) ?
                     TypeSymbolWithAnnotations.Create(tuple) :
                     type;
-
-                type = SetNullabilityForReferenceTypesOrResetToUnknownIfNecessary(type, moduleSymbol, extraAnnotations);
+                if (!extraAnnotations.IsDefault)
+                {
+                    // https://github.com/dotnet/roslyn/issues/29821 any external annotation is taken to imply a `[NonNullTypes(true)]` context
+                    type =  NullableTypeDecoder.TransformType(type, extraAnnotations).WithNonNullTypesContext(NonNullTypesTrueContext.Instance);
+                }
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
                 _lazyHiddenAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -277,22 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             Debug.Assert(refKind == this.RefKind);
             Debug.Assert(hasNameInMetadata == this.HasNameInMetadata);
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
-        private static TypeSymbolWithAnnotations SetNullabilityForReferenceTypesOrResetToUnknownIfNecessary(TypeSymbolWithAnnotations type, ModuleSymbol module, ImmutableArray<bool> externalNullableAnnotations)
-        {
-            if (externalNullableAnnotations.IsDefault)
-            {
-                return type;
-            }
-            else
-            {
-                // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
-                // We currently don't have a mechanism for external annotations to affect the NonNullType context, so
-                // any external annotation is taken to imply a `[NonNullTypes(true)]` context
-                return NullableTypeDecoder.TransformType(type, externalNullableAnnotations).WithNonNullTypesContext(NonNullTypesTrueContext.Instance);
-            }
         }
 
         private bool HasNameInMetadata

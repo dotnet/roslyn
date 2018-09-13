@@ -10,7 +10,7 @@ using static Microsoft.CodeAnalysis.CSharp.Symbols.FlowAnalysisAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+    // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
     //  If we choose to stick with an ad-hoc key (rather than annotations as source or as PE/ref assembly),
     //  we should consider the assembly qualified name format used in metadata (with backticks and such).
     internal static class ExtraAnnotations

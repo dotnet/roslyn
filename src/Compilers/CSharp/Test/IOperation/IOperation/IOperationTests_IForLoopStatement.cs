@@ -1931,7 +1931,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                                                                       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                                   ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                                     Left: 
-                                                                      IPropertyReferenceOperation: System.String? <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'x.ToString()')
+                                                                      IPropertyReferenceOperation: System.String <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'x.ToString()')
                                                                         Instance Receiver: 
                                                                           IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                                     Right: 
@@ -1950,7 +1950,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                                               IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'z')
                                                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'z')
                                                   ReturnedValue: 
-                                                    IPropertyReferenceOperation: System.String? <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'z')
+                                                    IPropertyReferenceOperation: System.String <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'z')
                                                       Instance Receiver: 
                                                         IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'z')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2099,7 +2099,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                                                             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                         ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                           Left: 
-                                                            IPropertyReferenceOperation: System.String? <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'x.ToString()')
+                                                            IPropertyReferenceOperation: System.String <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'x.ToString()')
                                                               Instance Receiver: 
                                                                 IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                           Right: 
@@ -2118,7 +2118,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                                     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'z')
                                       IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'z')
                                         ReturnedValue: 
-                                          IPropertyReferenceOperation: System.String? <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'z')
+                                          IPropertyReferenceOperation: System.String <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'z')
                                             Instance Receiver: 
                                               IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'z')
                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

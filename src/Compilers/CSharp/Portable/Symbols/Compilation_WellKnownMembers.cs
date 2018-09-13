@@ -571,14 +571,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool CheckIfNullableAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
         {
+            // Note: if the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need
             return CheckIfAttributeShouldBeEmbedded(
                 diagnosticsOpt,
                 locationOpt,
                 WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
-                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor);
+                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags);
         }
 
-        private bool CheckIfAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt, WellKnownType attributeType, WellKnownMember attributeCtor)
+        private bool CheckIfAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt, WellKnownType attributeType, WellKnownMember attributeCtor, WellKnownMember? secondAttributeCtor = null)
         {
             var userDefinedAttribute = GetWellKnownType(attributeType);
 
@@ -600,7 +602,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (diagnosticsOpt != null)
             {
                 // This should produce diagnostics if the member is missing or bad
-                Binder.GetWellKnownTypeMember(this, attributeCtor, diagnosticsOpt, locationOpt);
+                var member = Binder.GetWellKnownTypeMember(this, attributeCtor, diagnosticsOpt, locationOpt);
+                if (member != null && secondAttributeCtor != null)
+                {
+                    Binder.GetWellKnownTypeMember(this, secondAttributeCtor.Value, diagnosticsOpt, locationOpt);
+                }
             }
 
             return false;

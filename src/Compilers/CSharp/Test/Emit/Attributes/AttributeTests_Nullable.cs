@@ -95,8 +95,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?[] y").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Handle missing constructor.
-        [Fact(Skip = "Handle missing constructor")]
+        [Fact]
         public void ExplicitAttribute_MissingConstructor()
         {
             var source =
@@ -111,7 +110,32 @@ class C
 {
     static void F(object? x, object?[] y) { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (10,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     static void F(object? x, object?[] y) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object? x").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 19),
+                // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     static void F(object? x, object?[] y) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?[] y").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30));
+        }
+
+        [Fact]
+        public void ExplicitAttribute_MissingBothNeededConstructors()
+        {
+            var source =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class NullableAttribute : Attribute
+    {
+        public NullableAttribute(string[] b) { }
+    }
+}
+class C
+{
+    static void F(object? x, object?[] y) { }
+}";
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
                 // (10,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     static void F(object? x, object?[] y) { }

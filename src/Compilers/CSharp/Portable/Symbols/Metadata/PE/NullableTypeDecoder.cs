@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return metadataType;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+        // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
         internal static TypeSymbolWithAnnotations TransformType(
             TypeSymbolWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
             else
             {
-                // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
                 return NullableTypeDecoder.TransformType(metadataType, extraAnnotations).WithNonNullTypesContext(NonNullTypesTrueContext.Instance);
             }
         }
