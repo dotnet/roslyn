@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableDictionary<BasicBlock, TBlockAnalysisResult> basicBlockStateMap,
             ImmutableDictionary<IOperation, TAbstractAnalysisValue> operationStateMap,
             ImmutableDictionary<IOperation, PredicateValueKind> predicateValueKindMap,
-            TAbstractAnalysisValue returnValue,
+            (TAbstractAnalysisValue, PredicateValueKind)? returnValueAndPredicateKindOpt,
             ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
             TBlockAnalysisResult mergedStateForUnhandledThrowOperationsOpt,
             ControlFlowGraph cfg,
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _basicBlockStateMap = basicBlockStateMap;
             _operationStateMap = operationStateMap;
             _predicateValueKindMap = predicateValueKindMap;
-            ReturnValue = returnValue;
+            ReturnValueAndPredicateKindOpt = returnValueAndPredicateKindOpt;
             _interproceduralResultsMap = interproceduralResultsMap;
             MergedStateForUnhandledThrowOperationsOpt = mergedStateForUnhandledThrowOperationsOpt;
             ControlFlowGraph = cfg;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         protected DataFlowAnalysisResult(DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> other)
-            : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap, other.ReturnValue,
+            : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap, other.ReturnValueAndPredicateKindOpt,
                    other._interproceduralResultsMap, other.MergedStateForUnhandledThrowOperationsOpt, other.ControlFlowGraph, other._defaultUnknownValue)
         {
         }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>)_interproceduralResultsMap[operation];
 
         public ControlFlowGraph ControlFlowGraph { get; }
-        public TAbstractAnalysisValue ReturnValue { get; }
+        public (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKindOpt { get; }
         public TBlockAnalysisResult MergedStateForUnhandledThrowOperationsOpt { get; }
         public PredicateValueKind GetPredicateKind(IOperation operation) => _predicateValueKindMap.TryGetValue(operation, out var valueKind) ? valueKind : PredicateValueKind.Unknown;
     }

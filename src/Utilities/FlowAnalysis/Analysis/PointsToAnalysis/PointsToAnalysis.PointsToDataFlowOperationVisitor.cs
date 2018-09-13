@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     if (TryGetInterproceduralAnalysisResult(operation, out var interproceduralResult))
                     {
-                        return interproceduralResult.ReturnValue;
+                        return interproceduralResult.ReturnValueAndPredicateKindOpt.Value.Value;
                     }
 
                     AbstractLocation location = AbstractLocation.CreateAllocationLocation(operation, operation.Type, DataFlowAnalysisContext);

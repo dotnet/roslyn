@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly List<IArgumentOperation> _pendingArgumentsToPostProcess;
         private readonly HashSet<AnalysisEntity> _flowCaptureReferencesWithPredicatedData;
         private readonly HashSet<IOperation> _visitedFlowBranchConditions;
+        private readonly HashSet<IOperation> _returnValueOperationsOpt;
         private ImmutableDictionary<IParameterSymbol, AnalysisEntity> _lazyParameterEntities;
         private ImmutableHashSet<IMethodSymbol> _lazyContractCheckMethodsForPredicateAnalysis;
         private TAnalysisData _currentAnalysisData;
@@ -66,7 +67,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract void ResetCurrentAnalysisData();
         protected bool HasPointsToAnalysisResult => DataFlowAnalysisContext.PointsToAnalysisResultOpt != null || IsPointsToAnalysis;
         protected virtual bool IsPointsToAnalysis => false;
-        public TAbstractAnalysisValue MergedReturnValue { get; private set; }
         public Dictionary<ThrowBranchWithExceptionType, TAnalysisData> AnalysisDataForUnhandledThrowOperations { get; private set; }
         public ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> InterproceduralResultsMap => _interproceduralResultsBuilder.ToImmutable();
 
@@ -130,13 +130,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _pendingArgumentsToPostProcess = new List<IArgumentOperation>();
             _flowCaptureReferencesWithPredicatedData = new HashSet<AnalysisEntity>();
             _visitedFlowBranchConditions = new HashSet<IOperation>();
-            MergedReturnValue = analysisContext.ValueDomain.Bottom;
+            _returnValueOperationsOpt = OwningSymbol is IMethodSymbol method && !method.ReturnsVoid ? new HashSet<IOperation>() : null;
             _interproceduralResultsBuilder = ImmutableDictionary.CreateBuilder<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>>();
 
             _interproceduralCallStack = new Stack<IOperation>();
             _addressSharedEntitiesBuilder = ImmutableDictionary.CreateBuilder<AnalysisEntity, CopyAbstractValue>();
             if (analysisContext.InterproceduralAnalysisDataOpt != null)
             {
+                foreach (var argumentInfo in analysisContext.InterproceduralAnalysisDataOpt.Arguments)
+                {
+                    CacheAbstractValue(argumentInfo.Operation, argumentInfo.Value);
+                }
+
                 foreach (var operation in analysisContext.InterproceduralAnalysisDataOpt.CallStack)
                 {
                     _interproceduralCallStack.Push(operation);
@@ -176,6 +181,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             addressSharedEntities :
             null;
 
+        public (TAbstractAnalysisValue, PredicateValueKind)? GetReturnValueAndPredicateKind()
+        {
+            if (_returnValueOperationsOpt == null ||
+                _returnValueOperationsOpt.Count == 0)
+            {
+                return null;
+            }
+
+            TAbstractAnalysisValue mergedValue = ValueDomain.Bottom;
+            PredicateValueKind? mergedPredicateValueKind = null;
+            foreach (var operation in _returnValueOperationsOpt)
+            {
+                mergedValue = ValueDomain.Merge(mergedValue, GetCachedAbstractValue(operation));
+                if (PredicateAnalysis &&
+                    _predicateValueKindCacheBuilder.TryGetValue(operation, out var predicateValueKind))
+                {
+                    if (!mergedPredicateValueKind.HasValue)
+                    {
+                        mergedPredicateValueKind = predicateValueKind;
+                    }
+                    else if (mergedPredicateValueKind.Value != predicateValueKind)
+                    {
+                        mergedPredicateValueKind = PredicateValueKind.Unknown;
+                    }
+                }
+            }
+
+            return (mergedValue, mergedPredicateValueKind ?? PredicateValueKind.Unknown);
+        }
         private static PointsToAbstractValue GetThisOrMeInstancePointsToValue(ISymbol owningSymbol)
         {
             if (!owningSymbol.IsStatic &&
@@ -534,11 +568,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (returnValue != null)
             {
-                MergedReturnValue = ValueDomain.Merge(MergedReturnValue, GetCachedAbstractValue(returnValue));
-            }
-            else if (OwningSymbol is IMethodSymbol methodSymbol && !methodSymbol.ReturnsVoid)
-            {
-                MergedReturnValue = ValueDomain.UnknownOrMayBeValue;
+                _returnValueOperationsOpt?.Add(returnValue);
             }
         }
 
@@ -1458,7 +1488,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 ResetAnalysisData();
             }
 
-            return analysisResult.ReturnValue;
+            Debug.Assert(invokedMethod.ReturnsVoid == !analysisResult.ReturnValueAndPredicateKindOpt.HasValue);
+            if (invokedMethod.ReturnsVoid)
+            {
+                return defaultValue;
+            }
+
+            if (PredicateAnalysis)
+            {
+                SetPredicateValueKind(originalOperation, CurrentAnalysisData, analysisResult.ReturnValueAndPredicateKindOpt.Value.PredicateValueKind);
+            }
+
+            return analysisResult.ReturnValueAndPredicateKindOpt.Value.Value;
 
             // Local functions
             TAbstractAnalysisValue ResetAnalysisDataAndReturnDefaultValue()

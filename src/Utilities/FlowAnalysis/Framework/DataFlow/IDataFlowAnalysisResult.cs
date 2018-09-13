@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     internal interface IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
         ControlFlowGraph ControlFlowGraph { get; }
-        TAbstractAnalysisValue ReturnValue { get; }
+        (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKindOpt { get; }
 
     }
 }

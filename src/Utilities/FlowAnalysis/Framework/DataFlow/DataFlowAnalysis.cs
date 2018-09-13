@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             var dataflowAnalysisResult = resultBuilder.ToResult(ToBlockResult, OperationVisitor.GetStateMap(),
-                OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.MergedReturnValue, OperationVisitor.InterproceduralResultsMap,
+                OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetReturnValueAndPredicateKind(), OperationVisitor.InterproceduralResultsMap,
                 OperationVisitor.GetMergedDataForUnhandledThrowOperations(), cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
             return ToResult(analysisContext, dataflowAnalysisResult);
 
