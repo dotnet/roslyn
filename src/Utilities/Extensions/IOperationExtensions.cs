@@ -469,5 +469,49 @@ namespace Analyzer.Utilities.Extensions
                     throw new NotSupportedException($"Unexpected root operation kind: {operation.Kind.ToString()}");
             }
         }
+
+        /// <summary>
+        /// Gets the symbols captured from the enclosing function(s) by the given lambda or local function.
+        /// </summary>
+        /// <param name="operation">Operation representing the lambda or local function.</param>
+        /// <param name="lambdaOrLocalFunction">Method symbol for the lambda or local function.</param>
+        public static ImmutableHashSet<ISymbol> GetCaptures(this IOperation operation, IMethodSymbol lambdaOrLocalFunction)
+        {
+            Debug.Assert(operation is IAnonymousFunctionOperation anonymousFunction && anonymousFunction.Symbol == lambdaOrLocalFunction ||
+                         operation is ILocalFunctionOperation localFunction && localFunction.Symbol == lambdaOrLocalFunction);
+
+            lambdaOrLocalFunction = lambdaOrLocalFunction.OriginalDefinition;
+
+            var builder = ImmutableHashSet.CreateBuilder<ISymbol>();
+            foreach (var child in operation.Descendants())
+            {
+                switch (child.Kind)
+                {
+                    case OperationKind.LocalReference:
+                        ProcessLocalOrParameter(((ILocalReferenceOperation)child).Local);
+                        break;
+
+                    case OperationKind.ParameterReference:
+                        ProcessLocalOrParameter(((IParameterReferenceOperation)child).Parameter);
+                        break;
+
+                    case OperationKind.InstanceReference:
+                        builder.Add(lambdaOrLocalFunction.ContainingType);
+                        break;
+                }
+            }
+
+            return builder.ToImmutable();
+
+            // Local functions.
+            void ProcessLocalOrParameter(ISymbol symbol)
+            {
+                if (symbol.ContainingSymbol?.Kind == SymbolKind.Method &&
+                    symbol.ContainingSymbol.OriginalDefinition != lambdaOrLocalFunction)
+                {
+                    builder.Add(symbol);
+                }
+            }
+        }
     }
 }

@@ -120,14 +120,8 @@ namespace Analyzer.Utilities
                 {
                     var cfg = topmostBlock.GetEnclosingControlFlowGraph();
 
-                    // Invoking an instance method may likely invalidate all the instance field analysis state, i.e.
-                    // reference type fields might be re-assigned to point to different objects in the called method.
-                    // An optimistic points to analysis assumes that the points to values of instance fields don't change on invoking an instance method.
-                    // A pessimistic points to analysis resets all the instance state and assumes the instance field might point to any object, hence has unknown state.
-                    // For dispose analysis, we want to perform an optimistic points to analysis as we assume a disposable field is not likely to be re-assigned to a separate object in helper method invocations in Dispose.
-                    pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider, pessimisticAnalysis: false);
-                    disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod,
-                        _wellKnownTypeProvider, _disposeOwnershipTransferLikelyTypes, pointsToAnalysisResult, trackInstanceFields);
+                    disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
+                        _disposeOwnershipTransferLikelyTypes, trackInstanceFields, out pointsToAnalysisResult);
                     return true;
                 }
             }

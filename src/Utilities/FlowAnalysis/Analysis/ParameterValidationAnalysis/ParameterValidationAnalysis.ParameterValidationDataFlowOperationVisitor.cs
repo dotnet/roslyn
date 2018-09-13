@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         private sealed class ParameterValidationDataFlowOperationVisitor :
             AbstractLocationDataFlowOperationVisitor<ParameterValidationAnalysisData, ParameterValidationAnalysisContext, ParameterValidationAnalysisResult, ParameterValidationAbstractValue>
         {
+            private const int MaxInterproceduralCallChain = 1;
             private readonly ImmutableDictionary<IParameterSymbol, SyntaxNode>.Builder _hazardousParameterUsageBuilderOpt;
 
             public ParameterValidationDataFlowOperationVisitor(ParameterValidationAnalysisContext analysisContext)
@@ -50,6 +51,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 }
             }
 
+            // We only want to track method calls one level down.
+            protected override int GetAllowedInterproceduralCallChain() => MaxInterproceduralCallChain;
+
             protected override ParameterValidationAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => ValueDomain.Bottom;
 
             protected override bool HasAnyAbstractValue(ParameterValidationAnalysisData data) => data.Count > 0;
@@ -65,6 +69,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             private bool IsNotOrMaybeValidatedLocation(AbstractLocation location) =>
                 CurrentAnalysisData.TryGetValue(location, out var value) &&
                 (value == ParameterValidationAbstractValue.NotValidated || value == ParameterValidationAbstractValue.MayBeValidated);
+
+            protected override void StopTrackingAbstractValue(AbstractLocation location) => CurrentAnalysisData.Remove(location);
 
             protected override void SetAbstractValue(AbstractLocation location, ParameterValidationAbstractValue value)
             {
@@ -104,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             private static bool HasValidatedNotNullAttribute(IParameterSymbol parameter)
                 => parameter.GetAttributes().Any(attr => attr.AttributeClass.Name.Equals("ValidatedNotNullAttribute", StringComparison.OrdinalIgnoreCase));
 
-            protected override void SetValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, PointsToAbstractValue pointsToAbstractValue)
+            protected override void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, PointsToAbstractValue pointsToAbstractValue)
             {
                 // Mark parameters as validated if they are non-null at all non-exception return paths and null at one of the unhandled throw operations.
                 var notValidatedLocations = pointsToAbstractValue.Locations.Where(IsNotOrMaybeValidatedLocation);
@@ -158,12 +164,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     return;
                 }
 
+                HandleHazardousOperation(operation.Syntax, nonValidatedLocations);
+            }
+
+            private void HandleHazardousOperation(SyntaxNode syntaxNode, IEnumerable<AbstractLocation> nonValidatedLocations)
+            {
+                Debug.Assert(_hazardousParameterUsageBuilderOpt != null);
+
                 foreach (var location in nonValidatedLocations)
                 {
                     Debug.Assert(IsNotOrMaybeValidatedLocation(location));
 
                     var parameter = (IParameterSymbol)location.SymbolOpt;
-                    SyntaxNode syntaxNode = operation.Syntax;
                     if (!_hazardousParameterUsageBuilderOpt.TryGetValue(parameter, out SyntaxNode currentSyntaxNode) ||
                         syntaxNode.SpanStart < currentSyntaxNode.SpanStart)
                     {
@@ -176,6 +188,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 => ParameterValidationAnalysisDomainInstance.Merge(value1, value2);
             protected override ParameterValidationAnalysisData GetClonedAnalysisData(ParameterValidationAnalysisData analysisData)
                 => GetClonedAnalysisDataHelper(analysisData);
+            protected override ParameterValidationAnalysisData GetEmptyAnalysisData()
+                => GetEmptyAnalysisDataHelper();
+            protected override ParameterValidationAnalysisData GetAnalysisDataAtBlockEnd(ParameterValidationAnalysisResult analysisResult, BasicBlock block)
+                => GetClonedAnalysisDataHelper(analysisResult[block].OutputData);
             protected override bool Equals(ParameterValidationAnalysisData value1, ParameterValidationAnalysisData value2)
                 => EqualsHelper(value1, value2);
 
@@ -196,127 +212,137 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return value;
             }
 
-            public override ParameterValidationAbstractValue VisitArgumentCore(IArgumentOperation operation, object argument)
+            public override ParameterValidationAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
             {
-                var value = base.VisitArgumentCore(operation, argument);
+                var value = base.VisitObjectCreation(operation, argument);
+                ProcessRegularInvocationOrCreation(operation.Constructor, operation.Arguments, operation);
+                return value;
+            }
 
-                // Arguments to validation methods must be marked as validated.
-                var notValidatedLocations = GetNotValidatedLocations(operation);
-                if (notValidatedLocations.Any())
+            public override ParameterValidationAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
+                IMethodSymbol targetMethod,
+                IOperation visitedInstance,
+                ImmutableArray<IArgumentOperation> visitedArguments,
+                bool invokedAsDelegate,
+                IOperation originalOperation,
+                ParameterValidationAbstractValue defaultValue)
+            {
+                var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(targetMethod, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
+                ProcessRegularInvocationOrCreation(targetMethod, visitedArguments, originalOperation);
+                return value;
+            }
+
+            public override ParameterValidationAbstractValue VisitInvocation_Lambda(
+                IFlowAnonymousFunctionOperation lambda,
+                ImmutableArray<IArgumentOperation> visitedArguments,
+                IOperation originalOperation,
+                ParameterValidationAbstractValue defaultValue)
+            {
+                var value = base.VisitInvocation_Lambda(lambda, visitedArguments, originalOperation, defaultValue);
+                ProcessLambdaOrLocalFunctionInvocation(lambda.Symbol, originalOperation);
+                return value;
+            }
+
+            public override ParameterValidationAbstractValue VisitInvocation_LocalFunction(
+                IMethodSymbol localFunction,
+                ImmutableArray<IArgumentOperation> visitedArguments,
+                IOperation originalOperation,
+                ParameterValidationAbstractValue defaultValue)
+            {
+                var value = base.VisitInvocation_LocalFunction(localFunction, visitedArguments, originalOperation, defaultValue);
+                ProcessLambdaOrLocalFunctionInvocation(localFunction, originalOperation);
+                return value;
+            }
+
+            private void ProcessRegularInvocationOrCreation(IMethodSymbol targetMethod, ImmutableArray<IArgumentOperation> arguments, IOperation operation)
+            {
+                Debug.Assert(!targetMethod.IsLambdaOrLocalFunctionOrDelegate());
+
+                if (targetMethod.ContainingType.SpecialType == SpecialType.System_String)
                 {
-                    if (GetOrComputeAnalysisResultForInvokedMethod != null)
+                    if (targetMethod.IsStatic &&
+                        targetMethod.Name.StartsWith("IsNull", StringComparison.Ordinal) &&
+                        targetMethod.Parameters.Length == 1 &&
+                        arguments.Length == 1)
                     {
-                        IMethodSymbol targetMethod = null;
-                        if (operation.Parent is IInvocationOperation invocation)
+                        // string.IsNullOrXXX check.
+                        SetAbstractValue(GetNotValidatedLocations(arguments[0]), ParameterValidationAbstractValue.Validated);
+                    }
+                }
+                else if (targetMethod.Parameters.Length > 0 &&
+                         arguments.Length > 0 &&
+                         WellKnownTypeProvider.Exception != null &&
+                         targetMethod.ContainingType.DerivesFrom(WellKnownTypeProvider.Exception))
+                {
+                    // FxCop compat: special cases handled by FxCop.
+                    //  1. First argument of type System.Runtime.Serialization.SerializationInfo to System.Exception.GetObjectData or its override is validated.
+                    //  2. First argument of type System.Runtime.Serialization.SerializationInfo to constructor of System.Exception or its subtype is validated.
+                    if (targetMethod.Parameters[0].Type == WellKnownTypeProvider.SerializationInfo)
+                    {
+                        switch (targetMethod.MethodKind)
                         {
-                            targetMethod = invocation.TargetMethod.OriginalDefinition;
-                        }
-                        else if (operation.Parent is IObjectCreationOperation objectCreation)
-                        {
-                            targetMethod = objectCreation.Constructor.OriginalDefinition;
-                        }
-
-                        if (targetMethod != null &&
-                            targetMethod != OwningSymbol)
-                        {
-                            if (targetMethod.ContainingType.SpecialType == SpecialType.System_String)
-                            {
-                                if (targetMethod.IsStatic &&
-                                    targetMethod.Name.StartsWith("IsNull", StringComparison.Ordinal) &&
-                                    targetMethod.Parameters.Length == 1)
+                            case MethodKind.Ordinary:
+                                if (targetMethod.Name.Equals("GetObjectData", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    // string.IsNullOrXXX check.
-                                    SetAbstractValue(notValidatedLocations, ParameterValidationAbstractValue.Validated);
+                                    SetAbstractValue(GetNotValidatedLocations(arguments[0]), ParameterValidationAbstractValue.Validated);
                                 }
-                            }
-                            else if (WellKnownTypeProvider.Exception != null && targetMethod.ContainingType.DerivesFrom(WellKnownTypeProvider.Exception))
+                                break;
+
+                            case MethodKind.Constructor:
+                                SetAbstractValue(GetNotValidatedLocations(arguments[0]), ParameterValidationAbstractValue.Validated);
+                                break;
+                        }
+                    }
+                }
+                else if (_hazardousParameterUsageBuilderOpt != null &&
+                         !targetMethod.IsExternallyVisible() &&
+                         TryGetInterproceduralAnalysisResult(operation, out var invokedMethodAnalysisResult))
+                {
+                    // Check if this private/interal method that has hazardous usages of non-validated argument.
+                    Debug.Assert(!targetMethod.IsVirtual && !targetMethod.IsOverride);
+
+                    var hazardousParameterUsagesInInvokedMethod = invokedMethodAnalysisResult.HazardousParameterUsages;
+                    if (hazardousParameterUsagesInInvokedMethod.Count > 0)
+                    {
+                        foreach (var argument in arguments)
+                        {
+                            var notValidatedLocations = GetNotValidatedLocations(argument);
+                            foreach (var location in notValidatedLocations)
                             {
-                                // FxCop compat: special cases handled by FxCop.
-                                //  1. First argument of type System.Runtime.Serialization.SerializationInfo to System.Exception.GetObjectData or its override is validated.
-                                //  2. First argument of type System.Runtime.Serialization.SerializationInfo to constructor of System.Exception or its subtype is validated.
-                                if (operation.Parameter.Type == WellKnownTypeProvider.SerializationInfo)
+                                var parameter = (IParameterSymbol)location.SymbolOpt;
+                                if (hazardousParameterUsagesInInvokedMethod.ContainsKey(parameter))
                                 {
-                                    switch (targetMethod.MethodKind)
-                                    {
-                                        case MethodKind.Ordinary:
-                                            if (targetMethod.Name.Equals("GetObjectData", StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                SetAbstractValue(notValidatedLocations, ParameterValidationAbstractValue.Validated);
-                                            }
-                                            break;
-
-                                        case MethodKind.Constructor:
-                                            SetAbstractValue(notValidatedLocations, ParameterValidationAbstractValue.Validated);
-                                            break;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                var methodTopmostBlock = targetMethod.GetTopmostOperationBlock(WellKnownTypeProvider.Compilation);
-                                if (methodTopmostBlock != null)
-                                {
-                                    ParameterValidationAnalysisResult invokedMethodAnalysisResult = ComputeAnalysisResultForInvokedMethod(methodTopmostBlock, targetMethod);
-                                    if (invokedMethodAnalysisResult != null)
-                                    {
-                                        var hazardousParameterUsagesInInvokedMethod = invokedMethodAnalysisResult.HazardousParameterUsages;
-                                        Debug.Assert(hazardousParameterUsagesInInvokedMethod != null);
-                                        var operationParameter = operation.Parameter.OriginalDefinition;
-
-                                        // Non-validated argument passed to private/internal methods might be hazardous.
-                                        if (hazardousParameterUsagesInInvokedMethod.ContainsKey(operationParameter))
-                                        {
-                                            if (_hazardousParameterUsageBuilderOpt != null && !targetMethod.IsExternallyVisible())
-                                            {
-                                                HandlePotentiallyHazardousOperation(operation, notValidatedLocations);
-                                            }
-                                        }
-                                        else if (!targetMethod.IsVirtual && !targetMethod.IsOverride)
-                                        {
-                                            // Check if this is a non-virtual non-override method that validates the argument.
-                                            BasicBlock invokedMethodExitBlock = invokedMethodAnalysisResult.ControlFlowGraph.GetExit();
-                                            foreach (var kvp in invokedMethodAnalysisResult[invokedMethodExitBlock].OutputData)
-                                            {
-                                                AbstractLocation parameterLocation = kvp.Key;
-                                                ParameterValidationAbstractValue parameterValue = kvp.Value;
-                                                Debug.Assert(parameterLocation.SymbolOpt is IParameterSymbol invokedMethodParameter && invokedMethodParameter.ContainingSymbol == targetMethod);
-
-                                                // Check if the matching parameter was validated by the invoked method.
-                                                if ((IParameterSymbol)parameterLocation.SymbolOpt == operationParameter &&
-                                                    parameterValue == ParameterValidationAbstractValue.Validated)
-                                                {
-                                                    SetAbstractValue(notValidatedLocations, ParameterValidationAbstractValue.Validated);
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
+                                    HandlePotentiallyHazardousOperation(argument, notValidatedLocations);
+                                    break;
                                 }
                             }
                         }
                     }
                 }
+            }
 
-                return value;
+            private void ProcessLambdaOrLocalFunctionInvocation(IMethodSymbol targetMethod, IOperation invocation)
+            {
+                Debug.Assert(targetMethod.MethodKind == MethodKind.LambdaMethod || targetMethod.MethodKind == MethodKind.LocalFunction);
 
-                // Local functions
-                ParameterValidationAnalysisResult ComputeAnalysisResultForInvokedMethod(IOperation methodTopmostBlock, IMethodSymbol targetMethod)
+                // Lambda and local function invocations can access captured variables.
+                if (_hazardousParameterUsageBuilderOpt != null &&
+                    TryGetInterproceduralAnalysisResult(invocation, out var invokedMethodAnalysisResult))
                 {
-                    if (GetOrComputeAnalysisResultForInvokedMethod == null)
+                    var notValidatedLocations = CurrentAnalysisData.Keys.Where(IsNotOrMaybeValidatedLocation);
+                    if (notValidatedLocations.Any())
                     {
-                        return null;
+                        var hazardousParameterUsagesInInvokedMethod = invokedMethodAnalysisResult.HazardousParameterUsages;
+                        foreach (var kvp in hazardousParameterUsagesInInvokedMethod)
+                        {
+                            var parameter = kvp.Key;
+                            var syntaxNode = kvp.Value;
+                            if (!_hazardousParameterUsageBuilderOpt.ContainsKey(parameter))
+                            {
+                                HandleHazardousOperation(syntaxNode, notValidatedLocations.Where(l => l.SymbolOpt == parameter));
+                            }
+                        }
                     }
-
-                    var cfg = methodTopmostBlock.GetEnclosingControlFlowGraph();
-                    var pointsToAnalysisResult = ComputePointsToAnalysisResultForParameterValidationAnalysis(cfg, targetMethod, WellKnownTypeProvider);
-
-                    // We do not want to analyze more than one level down the call stack.
-                    // Hence, we pass 'getOrComputeAnalysisResultForInvokedMethod = null' for the invoked method analysis.
-                    var analysisContext = new ParameterValidationAnalysisContext(ValueDomain, WellKnownTypeProvider, cfg,
-                        targetMethod, PessimisticAnalysis, pointsToAnalysisResult, getOrComputeAnalysisResultForInvokedMethod: null,
-                        trackHazardousParameterUsages: _hazardousParameterUsageBuilderOpt != null);
-
-                    return GetOrComputeAnalysisResultForInvokedMethod(analysisContext);
                 }
             }
 

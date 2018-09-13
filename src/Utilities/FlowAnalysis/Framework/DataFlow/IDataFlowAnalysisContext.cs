@@ -8,5 +8,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     internal interface IDataFlowAnalysisContext
     {
+        ControlFlowGraph ControlFlowGraph { get; }
+        ISymbol OwningSymbol { get; }
     }
 }

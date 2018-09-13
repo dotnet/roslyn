@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 {
     using DisposeAnalysisData = IDictionary<AbstractLocation, DisposeAbstractValue>;
     using DisposeAnalysisDomain = MapAbstractDomain<AbstractLocation, DisposeAbstractValue>;
+    using InterproceduralDisposeAnalysisData = InterproceduralAnalysisData<IDictionary<AbstractLocation, DisposeAbstractValue>, DisposeAnalysisContext, DisposeAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToAnalysis.PointsToBlockAnalysisResult, PointsToAnalysis.PointsToAbstractValue>;
 
     /// <summary>
@@ -15,7 +16,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     /// </summary>
     internal partial class DisposeAnalysis : ForwardDataFlowAnalysis<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeBlockAnalysisResult, DisposeAbstractValue>
     {
+        // Invoking an instance method may likely invalidate all the instance field analysis state, i.e.
+        // reference type fields might be re-assigned to point to different objects in the called method.
+        // An optimistic points to analysis assumes that the points to values of instance fields don't change on invoking an instance method.
+        // A pessimistic points to analysis resets all the instance state and assumes the instance field might point to any object, hence has unknown state.
+        // For dispose analysis, we want to perform an optimistic points to analysis as we assume a disposable field is not likely to be re-assigned to a separate object in helper method invocations in Dispose.
+        private const bool PessimisticAnalysis = false;
+
         public static readonly DisposeAnalysisDomain DisposeAnalysisDomainInstance = new DisposeAnalysisDomain(DisposeAbstractValueDomain.Default);
+
         private DisposeAnalysis(DisposeAnalysisDomain analysisDomain, DisposeDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
         {
@@ -26,16 +35,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
-            PointsToAnalysisResult pointsToAnalysisResult,
-            bool trackInstanceFields = false)
+            bool trackInstanceFields,
+            out PointsToAnalysisResult pointsToAnalysisResult,
+            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None)
         {
             Debug.Assert(cfg != null);
             Debug.Assert(wellKnownTypeProvider.IDisposable != null);
             Debug.Assert(owningSymbol != null);
-            Debug.Assert(pointsToAnalysisResult != null);
 
-            var analysisContext = new DisposeAnalysisContext(disposeOwnershipTransferLikelyTypes, trackInstanceFields,
-                DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext);
+            pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
+                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisKind, PessimisticAnalysis);
+            var analysisContext = DisposeAnalysisContext.Create(
+                DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisKind, PessimisticAnalysis,
+                pointsToAnalysisResult, GetOrComputeResultForAnalysisContext, disposeOwnershipTransferLikelyTypes, trackInstanceFields);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 

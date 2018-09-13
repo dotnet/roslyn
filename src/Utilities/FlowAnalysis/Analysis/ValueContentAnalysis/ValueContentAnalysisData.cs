@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         {
         }
 
+        public ValueContentAnalysisData(CoreValueContentAnalysisData fromData)
+            : base(fromData)
+        {
+        }
+
         private ValueContentAnalysisData(ValueContentAnalysisData fromData)
             : base(fromData)
         {

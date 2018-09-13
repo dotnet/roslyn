@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         /// <summary>
         /// Operation visitor to flow the dispose values across a given statement in a basic block.
         /// </summary>
-        private sealed class DisposeDataFlowOperationVisitor: AbstractLocationDataFlowOperationVisitor<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeAbstractValue>
+        private sealed class DisposeDataFlowOperationVisitor : AbstractLocationDataFlowOperationVisitor<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeAbstractValue>
         {
             private readonly Dictionary<IFieldSymbol, PointsToAbstractValue> _trackedInstanceFieldLocationsOpt;
             private ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes => DataFlowAnalysisContext.DisposeOwnershipTransferLikelyTypes;
@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     CurrentAnalysisData[location] = value;
                 }
             }
+
+            protected override void StopTrackingAbstractValue(AbstractLocation location) => CurrentAnalysisData.Remove(location);
 
             protected override void ResetCurrentAnalysisData() => ResetAnalysisData(CurrentAnalysisData);
 
@@ -132,10 +134,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // FxCop compat: The object assigned to a field or a property or an array element is considered escaped.
                 // TODO: Perform better analysis for array element assignments as we already track element locations.
                 // https://github.com/dotnet/roslyn-analyzers/issues/1577
-                // Also consider arguments passed ByRef as escaped.
                 if (target is IMemberReferenceOperation ||
-                    target.Kind == OperationKind.ArrayElementReference ||
-                    (value is IArgumentOperation argument && argument.Parameter.RefKind == RefKind.Ref))
+                    target.Kind == OperationKind.ArrayElementReference)
                 {
                     HandlePossibleEscapingOperation(operation, value);
                 }
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
             }
 
-            protected override void SetValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, PointsToAbstractValue pointsToAbstractValue)
+            protected override void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, PointsToAbstractValue pointsToAbstractValue)
             {
                 if (parameter.RefKind != RefKind.None &&
                     !pointsToAbstractValue.Locations.IsEmpty &&
@@ -182,8 +182,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
             }
 
-            protected override DisposeAbstractValue ComputeAnalysisValueForOutArgument(IArgumentOperation operation, DisposeAbstractValue defaultValue)
+            protected override DisposeAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, DisposeAbstractValue defaultValue)
             {
+                Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+
                 // Special case: don't flag "out" arguments for "bool TryGetXXX(..., out value)" invocations.
                 if (operation.Parent is IInvocationOperation invocation &&
                     invocation.TargetMethod.ReturnType.SpecialType == SpecialType.System_Boolean &&
@@ -193,13 +195,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     return DisposeAbstractValue.NotDisposable;
                 }
 
-                return base.ComputeAnalysisValueForOutArgument(operation, defaultValue);
+                return base.ComputeAnalysisValueForEscapedRefOrOutArgument(operation, defaultValue);
             }
 
             protected override DisposeAnalysisData MergeAnalysisData(DisposeAnalysisData value1, DisposeAnalysisData value2)
                 => DisposeAnalysisDomainInstance.Merge(value1, value2);
             protected override DisposeAnalysisData GetClonedAnalysisData(DisposeAnalysisData analysisData)
                 => GetClonedAnalysisDataHelper(CurrentAnalysisData);
+            protected override DisposeAnalysisData GetEmptyAnalysisData()
+                => GetEmptyAnalysisDataHelper();
+            protected override DisposeAnalysisData GetAnalysisDataAtBlockEnd(DisposeAnalysisResult analysisResult, BasicBlock block)
+                => GetClonedAnalysisDataHelper(analysisResult[block].OutputData);
             protected override bool Equals(DisposeAnalysisData value1, DisposeAnalysisData value2)
                 => EqualsHelper(value1, value2);
 
@@ -271,39 +277,50 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 return value;
             }
 
-            public override DisposeAbstractValue VisitArgumentCore(IArgumentOperation operation, object argument)
+            protected override void PostProcessArgument(IArgumentOperation operation, bool isEscaped)
             {
-                var value = base.VisitArgumentCore(operation, argument);
-                var possibleEscape = false;
-
-                if (operation.Parameter.Type.IsDisposable(WellKnownTypeProvider.IDisposable))
+                base.PostProcessArgument(operation, isEscaped);
+                if (isEscaped)
                 {
-                    // Discover if a disposable object is being passed into the creation method for this new disposable object
-                    // and if the new disposable object assumes ownership of that passed in disposable object.
-                    if ((operation.Parent is IObjectCreationOperation objectCreation ||
-                         operation.Parent is IInvocationOperation invocation && IsDisposableCreationSpecialCase(invocation.TargetMethod)) &&
-                        DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type))
-                    {
-                        possibleEscape = true;
-                    }
-                    else if (operation.Parameter.RefKind == RefKind.Ref)
-                    {
-                        // Argument passed by ref is considered escaped.
-                        possibleEscape = true;
-                    }
+                    PostProcessEscapedArgument();
                 }
 
-                if (possibleEscape)
-                {
-                    HandlePossibleEscapingOperation(operation, operation.Value);
-                }
+                return;
 
-                return value;
+                // Local functions.
+                void PostProcessEscapedArgument()
+                {
+                    var possibleEscape = false;
+                    if (operation.Parameter.Type.IsDisposable(WellKnownTypeProvider.IDisposable))
+                    {
+                        // Discover if a disposable object is being passed into the creation method for this new disposable object
+                        // and if the new disposable object assumes ownership of that passed in disposable object.
+                        if ((operation.Parent is IObjectCreationOperation objectCreation ||
+                             operation.Parent is IInvocationOperation invocation && IsDisposableCreationSpecialCase(invocation.TargetMethod)) &&
+                            DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type))
+                        {
+                            possibleEscape = true;
+                        }
+                        else if (operation.Parameter.RefKind == RefKind.Ref)
+                        {
+                            // Argument passed by ref is considered escaped.
+                            possibleEscape = true;
+                        }
+                    }
+
+                    if (possibleEscape)
+                    {
+                        HandlePossibleEscapingOperation(operation, operation.Value);
+                    }
+                }
             }
 
             protected override void ProcessReturnValue(IOperation returnValue)
             {
-                if (returnValue != null)
+                base.ProcessReturnValue(returnValue);
+
+                // Escape the return value, if not currently analyzing an invoked method.
+                if (returnValue != null && DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
                 {
                     HandlePossibleEscapingOperation(escapingOperation: returnValue, escapedInstance: returnValue);
                 }

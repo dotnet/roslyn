@@ -2,7 +2,9 @@
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
+    using InterproceduralPointsToAnalysisData = InterproceduralAnalysisData<PointsToAnalysisData, PointsToAnalysisContext, PointsToAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
+    using CopyAnalysisResult = DataFlowAnalysisResult<CopyAnalysis.CopyBlockAnalysisResult, CopyAnalysis.CopyAbstractValue>;
 
     /// <summary>
     /// Dataflow analysis to track locations pointed to by <see cref="AnalysisEntity"/> and <see cref="IOperation"/> instances.
@@ -16,15 +18,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
         }
 
-        public static DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> GetOrComputeResult(
+        public static PointsToAnalysisResult GetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
-            DataFlowAnalysisResult<CopyAnalysis.CopyBlockAnalysisResult, CopyAnalysis.CopyAbstractValue> copyAnalysisResultOpt = null,
-            bool pessimisticAnalysis = true)
+            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
+            bool pessimisticAnalysis = true,
+            bool performCopyAnalysis = true)
         {
-            var analysisContext = new PointsToAnalysisContext(PointsToAbstractValueDomain.Default,
-                wellKnownTypeProvider, cfg, owningSymbol, pessimisticAnalysis, copyAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
+            return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+                out var _, interproceduralAnalysisKind, pessimisticAnalysis, performCopyAnalysis);
+        }
+
+        public static PointsToAnalysisResult GetOrComputeResult(
+            ControlFlowGraph cfg,
+            ISymbol owningSymbol,
+            WellKnownTypeProvider wellKnownTypeProvider,
+            out CopyAnalysisResult copyAnalysisResultOpt,
+            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
+            bool pessimisticAnalysis = true,
+            bool performCopyAnalysis = true)
+        {
+            copyAnalysisResultOpt = performCopyAnalysis ?
+                CopyAnalysis.CopyAnalysis.GetOrComputeResult(
+                    cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisKind, pessimisticAnalysis) :
+                null;
+            var analysisContext = PointsToAnalysisContext.Create(PointsToAbstractValueDomain.Default, wellKnownTypeProvider, cfg,
+                owningSymbol, interproceduralAnalysisKind, pessimisticAnalysis, copyAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 

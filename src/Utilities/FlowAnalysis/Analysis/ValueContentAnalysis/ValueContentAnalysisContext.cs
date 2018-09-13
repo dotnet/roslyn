@@ -1,43 +1,71 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
+    using InterproceduralValueContentAnalysisData = InterproceduralAnalysisData<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAbstractValue>;
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
-    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     /// <summary>
     /// Analysis context for execution of <see cref="ValueContentAnalysis"/> on a control flow graph.
     /// </summary>
     internal sealed class ValueContentAnalysisContext : AbstractDataFlowAnalysisContext<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
     {
-        public ValueContentAnalysisContext(
+        private ValueContentAnalysisContext(
             AbstractValueDomain<ValueContentAbstractValue> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            InterproceduralAnalysisKind interproceduralAnalysisKind,
             bool pessimisticAnalysis,
             CopyAnalysisResult copyAnalysisResultOpt,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
-            Func<ValueContentAnalysisContext, ValueContentAnalysisResult> getOrComputeAnalysisResultForInvokedMethod,
-            ValueContentAnalysisData currentAnalysisDataAtCalleeOpt = default(ValueContentAnalysisData),
-            ImmutableArray<ValueContentAbstractValue> argumentValuesFromCalleeOpt = default(ImmutableArray<ValueContentAbstractValue>),
-            ImmutableHashSet<IMethodSymbol> methodsBeingAnalyzedOpt = null)
-            : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, pessimisticAnalysis,
-                  predicateAnalysis: true, copyAnalysisResultOpt: copyAnalysisResultOpt,
+            Func<ValueContentAnalysisContext, ValueContentAnalysisResult> getOrComputeAnalysisResult,
+            ControlFlowGraph parentControlFlowGraphOpt,
+            InterproceduralValueContentAnalysisData interproceduralAnalysisDataOpt)
+            : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisKind,
+                  pessimisticAnalysis, predicateAnalysis: true, copyAnalysisResultOpt: copyAnalysisResultOpt,
                   pointsToAnalysisResultOpt: pointsToAnalysisResultOpt,
-                  getOrComputeAnalysisResultForInvokedMethod: getOrComputeAnalysisResultForInvokedMethod,
-                  currentAnalysisDataAtCalleeOpt: currentAnalysisDataAtCalleeOpt,
-                  argumentValuesFromCalleeOpt: argumentValuesFromCalleeOpt,
-                  methodsBeingAnalyzedOpt: methodsBeingAnalyzedOpt)
+                  getOrComputeAnalysisResult: getOrComputeAnalysisResult,
+                  parentControlFlowGraphOpt: parentControlFlowGraphOpt,
+                  interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
         {
         }
 
-        public override int GetHashCode(int hashCode) => hashCode;
+        public static ValueContentAnalysisContext Create(
+            AbstractValueDomain<ValueContentAbstractValue> valueDomain,
+            WellKnownTypeProvider wellKnownTypeProvider,
+            ControlFlowGraph controlFlowGraph,
+            ISymbol owningSymbol,
+            InterproceduralAnalysisKind interproceduralAnalysisKind,
+            bool pessimisticAnalysis,
+            CopyAnalysisResult copyAnalysisResultOpt,
+            PointsToAnalysisResult pointsToAnalysisResultOpt,
+            Func<ValueContentAnalysisContext, ValueContentAnalysisResult> getOrComputeAnalysisResult)
+        {
+            return new ValueContentAnalysisContext(
+                valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol,
+                interproceduralAnalysisKind, pessimisticAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt,
+                getOrComputeAnalysisResult, parentControlFlowGraphOpt: null, interproceduralAnalysisDataOpt: null);
+        }
+
+        public override ValueContentAnalysisContext ForkForInterproceduralAnalysis(
+            IMethodSymbol invokedMethod,
+            ControlFlowGraph invokedControlFlowGraph,
+            IOperation operation,
+            PointsToAnalysisResult pointsToAnalysisResultOpt,
+            CopyAnalysisResult copyAnalysisResultOpt,
+            InterproceduralValueContentAnalysisData interproceduralAnalysisData)
+        {
+            return new ValueContentAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, InterproceduralAnalysisKind,
+                PessimisticAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData);
+        }
+
+        protected override int GetHashCode(int hashCode) => hashCode;
     }
 }

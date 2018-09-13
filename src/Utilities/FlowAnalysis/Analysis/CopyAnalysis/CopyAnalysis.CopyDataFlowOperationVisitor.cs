@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -49,9 +50,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             protected override void StopTrackingEntity(AnalysisEntity analysisEntity)
             {
                 AssertValidCopyAnalysisData(CurrentAnalysisData);
-                
+
                 // First set the value to unknown so we remove the entity from existing copy sets.
-                SetAbstractValue(analysisEntity, CopyAbstractValue.Unknown);
+                // Note that we pass 'tryGetAddressSharedCopyValue = null' to ensure that
+                // we do not reset the entries for address shared entities.
+                SetAbstractValue(CurrentAnalysisData, analysisEntity, CopyAbstractValue.Unknown,
+                    tryGetAddressSharedCopyValue: _ => null, fromPredicate: false);
                 AssertValidCopyAnalysisData(CurrentAnalysisData);
 
                 // Now it should be safe to remove the entry.
@@ -70,16 +74,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 Debug.Assert(analysisEntity != null);
                 Debug.Assert(value != null);
 
-                SetAbstractValue(CurrentAnalysisData, analysisEntity, value, fromPredicate: false);
+                SetAbstractValue(CurrentAnalysisData, analysisEntity, value, TryGetAddressSharedCopyValue, fromPredicate: false);
             }
 
-            private static void SetAbstractValue(CopyAnalysisData copyAnalysisData, AnalysisEntity analysisEntity, CopyAbstractValue value, bool fromPredicate)
+            private static void SetAbstractValue(
+                CopyAnalysisData copyAnalysisData,
+                AnalysisEntity analysisEntity,
+                CopyAbstractValue value,
+                Func<AnalysisEntity, CopyAbstractValue> tryGetAddressSharedCopyValue,
+                bool fromPredicate)
             {
                 SetAbstractValue(sourceCopyAnalysisData: copyAnalysisData, targetCopyAnalysisData: copyAnalysisData,
-                    analysisEntity: analysisEntity, value: value, fromPredicate: fromPredicate);
+                    analysisEntity: analysisEntity, value: value, tryGetAddressSharedCopyValue: tryGetAddressSharedCopyValue, fromPredicate: fromPredicate);
             }
 
-            private static void SetAbstractValue(CopyAnalysisData sourceCopyAnalysisData, CopyAnalysisData targetCopyAnalysisData, AnalysisEntity analysisEntity, CopyAbstractValue value, bool fromPredicate)
+            private static void SetAbstractValue(
+                CopyAnalysisData sourceCopyAnalysisData,
+                CopyAnalysisData targetCopyAnalysisData,
+                AnalysisEntity analysisEntity,
+                CopyAbstractValue value,
+                Func<AnalysisEntity, CopyAbstractValue> tryGetAddressSharedCopyValue,
+                bool fromPredicate)
             {
                 AssertValidCopyAnalysisData(sourceCopyAnalysisData);
                 AssertValidCopyAnalysisData(targetCopyAnalysisData);
@@ -118,11 +133,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
                     if (existingValue.AnalysisEntities.Count > 1)
                     {
-                        var newValueForEntitiesInOldSet = existingValue.WithEntityRemoved(analysisEntity);
-                        foreach (var entityToUpdate in newValueForEntitiesInOldSet.AnalysisEntities)
+                        CopyAbstractValue addressSharedCopyValue = tryGetAddressSharedCopyValue(analysisEntity);
+                        if (addressSharedCopyValue == null || addressSharedCopyValue != existingValue)
                         {
-                            Debug.Assert(newValueForEntitiesInOldSet.AnalysisEntities.Contains(entityToUpdate));
-                            targetCopyAnalysisData.SetAbstactValue(entityToUpdate, newValueForEntitiesInOldSet, isEntityBeingAssigned: false);
+                            CopyAbstractValue newValueForEntitiesInOldSet = addressSharedCopyValue != null ?
+                                existingValue.WithEntitiesRemoved(addressSharedCopyValue.AnalysisEntities) :
+                                existingValue.WithEntityRemoved(analysisEntity);
+                            foreach (var entityToUpdate in newValueForEntitiesInOldSet.AnalysisEntities)
+                            {
+                                Debug.Assert(newValueForEntitiesInOldSet.AnalysisEntities.Contains(entityToUpdate));
+                                targetCopyAnalysisData.SetAbstactValue(entityToUpdate, newValueForEntitiesInOldSet, isEntityBeingAssigned: false);
+                            }
                         }
                     }
                 }
@@ -142,6 +163,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                         newAnalysisEntities = newAnalysisEntities.Union(existingValue.AnalysisEntities);
                     }
                 }
+                else
+                {
+                    // Include address shared entities, if any.
+                    CopyAbstractValue addressSharedCopyValue = tryGetAddressSharedCopyValue(analysisEntity);
+                    if (addressSharedCopyValue != null)
+                    {
+                        newAnalysisEntities = newAnalysisEntities.Union(addressSharedCopyValue.AnalysisEntities);
+                    }
+                }
 
                 var newValue = new CopyAbstractValue(newAnalysisEntities);
                 foreach (var entityToUpdate in newAnalysisEntities)
@@ -154,24 +184,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 AssertValidCopyAnalysisData(targetCopyAnalysisData);
             }
 
-            protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity)
-            {
-                // Create a dummy copy value for each parameter.
-                SetAbstractValue(analysisEntity, new CopyAbstractValue(analysisEntity));
-            }
+            // Create a dummy copy value for each parameter on entry.
+            protected override CopyAbstractValue GetDefaultValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity)
+                => new CopyAbstractValue(analysisEntity);
 
-            protected override void SetValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
+            protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
             {
                 // Do not escape the copy value for parameter at exit.
             }
 
-            protected override void ResetCurrentAnalysisData() => CurrentAnalysisData.Reset(ValueDomain.UnknownOrMayBeValue);
+            private CopyAbstractValue GetDefaultCopyValue(AnalysisEntity analysisEntity)
+                => TryGetAddressSharedCopyValue(analysisEntity) ?? new CopyAbstractValue(analysisEntity);
+            protected override void ResetCurrentAnalysisData() => CurrentAnalysisData.Reset(GetDefaultCopyValue);
 
             protected override CopyAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, CopyAbstractValue defaultValue)
             {
                 if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
                 {
-                    return CurrentAnalysisData.TryGetValue(analysisEntity, out CopyAbstractValue value) ? value : new CopyAbstractValue(analysisEntity);
+                    return CurrentAnalysisData.TryGetValue(analysisEntity, out CopyAbstractValue value) ? value : GetDefaultCopyValue(analysisEntity);
                 }
                 else
                 {
@@ -179,8 +209,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 }
             }
 
-            protected override CopyAbstractValue ComputeAnalysisValueForOutArgument(AnalysisEntity analysisEntity, IArgumentOperation operation, CopyAbstractValue defaultValue)
+            protected override CopyAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(AnalysisEntity analysisEntity, IArgumentOperation operation, CopyAbstractValue defaultValue)
             {
+                Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+
                 SetAbstractValue(analysisEntity, ValueDomain.UnknownOrMayBeValue);
                 return GetAbstractValue(analysisEntity);
             }
@@ -201,7 +233,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     var predicateKind = PredicateValueKind.Unknown;
                     if (!CurrentAnalysisData.TryGetValue(rightEntity, out CopyAbstractValue rightValue))
                     {
-                        rightValue = new CopyAbstractValue(rightEntity);
+                        rightValue = GetDefaultCopyValue(rightEntity);
                     }
                     else if (rightValue.AnalysisEntities.Contains(leftEntity))
                     {
@@ -221,7 +253,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                             // "a == b && a != b" or "a == b || a != b"
                             foreach (var entity in rightValue.AnalysisEntities)
                             {
-                                SetAbstractValue(targetAnalysisData, entity, CopyAbstractValue.Invalid, fromPredicate: true);
+                                SetAbstractValue(targetAnalysisData, entity, CopyAbstractValue.Invalid, TryGetAddressSharedCopyValue, fromPredicate: true);
                             }
                         }
 
@@ -230,7 +262,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
                     if (equals)
                     {
-                        SetAbstractValue(targetAnalysisData, leftEntity, rightValue, fromPredicate: true);
+                        SetAbstractValue(targetAnalysisData, leftEntity, rightValue, TryGetAddressSharedCopyValue, fromPredicate: true);
                     }
                 }
 
@@ -238,14 +270,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             }
 
             protected override PredicateValueKind SetValueForIsNullComparisonOperator(IOperation leftOperand, bool equals, CopyAnalysisData copyAnalysisData) => PredicateValueKind.Unknown;
-            protected override CopyAnalysisData GetEmptyAnalysisDataForPredicateAnalysis() => new CopyAnalysisData();
-            
             #endregion
 
             protected override CopyAnalysisData MergeAnalysisData(CopyAnalysisData value1, CopyAnalysisData value2)
                 => s_AnalysisDomain.Merge(value1, value2);
             protected override CopyAnalysisData GetClonedAnalysisData(CopyAnalysisData analysisData)
                 => (CopyAnalysisData)analysisData.Clone();
+            protected override CopyAnalysisData GetEmptyAnalysisData()
+                => new CopyAnalysisData();
+            protected override CopyAnalysisData GetAnalysisDataAtBlockEnd(CopyAnalysisResult analysisResult, BasicBlock block)
+                => new CopyAnalysisData(analysisResult[block].OutputData);
             protected override bool Equals(CopyAnalysisData value1, CopyAnalysisData value2)
                 => value1.Equals(value2);
 

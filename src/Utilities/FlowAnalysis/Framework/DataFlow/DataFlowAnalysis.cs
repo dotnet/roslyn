@@ -76,9 +76,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var pendingBlocksNeedingAtLeastOnePass = new HashSet<BasicBlock>(cfg.Blocks);
             var entry = cfg.GetEntry();
 
-            // Initialize the input of the initial block
-            // with the default abstract value of the domain.
-            UpdateInput(resultBuilder, entry, AnalysisDomain.Bottom);
+            // Initialize the input of the entry block.
+            // For context sensitive inter-procedural analysis, use the provided initial analysis data.
+            // Otherwise, initialize with the default bottom value of the analysis domain.
+            var initialAnalysisData = analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData ?? AnalysisDomain.Bottom;
+            UpdateInput(resultBuilder, entry, initialAnalysisData);
 
             // Add the block to the worklist.
             worklist.Enqueue(entry);
@@ -256,8 +258,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             var dataflowAnalysisResult = resultBuilder.ToResult(ToBlockResult, OperationVisitor.GetStateMap(),
-                OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetMergedDataForUnhandledThrowOperations(),
-                cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
+                OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetReturnValueAndPredicateKind(), OperationVisitor.InterproceduralResultsMap,
+                OperationVisitor.GetMergedDataForUnhandledThrowOperations(), cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
             return ToResult(analysisContext, dataflowAnalysisResult);
 
             void updateUnreachableBlocks()

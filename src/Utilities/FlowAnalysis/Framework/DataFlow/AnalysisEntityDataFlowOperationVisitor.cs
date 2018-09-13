@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     internal abstract class AnalysisEntityDataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisContext: AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisResult : IDataFlowAnalysisResult
+        where TAnalysisResult: IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
         protected AnalysisEntityDataFlowOperationVisitor(TAnalysisContext analysisContext)
             : base(analysisContext)
@@ -45,12 +45,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected sealed override TAbstractAnalysisValue ComputeAnalysisValueForOutArgument(IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
+        protected sealed override TAbstractAnalysisValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
         {
+            Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+
             if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
             {
-                var value = ComputeAnalysisValueForOutArgument(analysisEntity, operation, defaultValue);
-                SetAbstractValue(analysisEntity, value);
+                var value = ComputeAnalysisValueForEscapedRefOrOutArgument(analysisEntity, operation, defaultValue);
+                SetAbstractValueForAssignment(analysisEntity, operation, value);
                 return GetAbstractValue(analysisEntity);
             }
             else
@@ -59,8 +61,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected virtual TAbstractAnalysisValue ComputeAnalysisValueForOutArgument(AnalysisEntity analysisEntity, IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
+        protected virtual TAbstractAnalysisValue ComputeAnalysisValueForEscapedRefOrOutArgument(AnalysisEntity analysisEntity, IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
         {
+            Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+
             return defaultValue;
         }
 
@@ -86,19 +90,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Additionally, stop tracking all the child entities for local if the local type has value copy semantics.
             foreach (var local in region.Locals)
             {
-                var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(local, out AnalysisEntity analysisEntity);
+                var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(local, out var analysisEntity);
                 Debug.Assert(success);
-                StopTrackingEntity(analysisEntity);
 
-                if (analysisEntity.Type.HasValueCopySemantics())
+                StopTrackingDataForEntity(analysisEntity);
+            }
+        }
+
+        private void StopTrackingDataForEntity(AnalysisEntity analysisEntity)
+        {
+            StopTrackingEntity(analysisEntity);
+
+            if (analysisEntity.Type.HasValueCopySemantics())
+            {
+                foreach (var childEntity in GetChildAnalysisEntities(analysisEntity))
                 {
-                    foreach (var childEntity in GetChildAnalysisEntities(analysisEntity))
-                    {
-                        StopTrackingEntity(childEntity);
-                    }
+                    StopTrackingEntity(childEntity);
                 }
             }
         }
+
+        protected override void StopTrackingDataForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity)
+            => StopTrackingDataForEntity(analysisEntity);
 
         #region Helper methods to handle initialization/assignment operations
         protected override void SetAbstractValueForArrayElementInitializer(IArrayCreationOperation arrayCreation, ImmutableArray<AbstractIndex> indices, ITypeSymbol elementType, IOperation initializer, TAbstractAnalysisValue value)
@@ -138,16 +151,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            SetAbstractValue(targetAnalysisEntity, assignedValue);
+            var addressSharedCopyValue = TryGetAddressSharedCopyValue(targetAnalysisEntity);
+            if (addressSharedCopyValue != null)
+            {
+                Debug.Assert(addressSharedCopyValue.AnalysisEntities.Contains(targetAnalysisEntity));
+                foreach (var entity in addressSharedCopyValue.AnalysisEntities)
+                {
+                    SetAbstractValue(entity, assignedValue);
+                }
+            }
+            else
+            {
+                SetAbstractValue(targetAnalysisEntity, assignedValue);
+            }
         }
 
-        protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity)
+        protected sealed override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue> assignedValueOpt)
         {
             Debug.Assert(analysisEntity.SymbolOpt == parameter);
-            SetAbstractValue(analysisEntity, GetDefaultValueForParameterOnEntry(analysisEntity.Type));
+            if (assignedValueOpt != null)
+            {
+                SetAbstractValueForAssignment(analysisEntity, assignedValueOpt.Operation, assignedValueOpt.Value);
+            }
+            else
+            {
+                SetAbstractValue(analysisEntity, GetDefaultValueForParameterOnEntry(parameter, analysisEntity));
+            }
         }
 
-        protected override void SetValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
+        protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
         {
             Debug.Assert(analysisEntity.SymbolOpt == parameter);
             if (parameter.RefKind != RefKind.None)
@@ -156,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected virtual TAbstractAnalysisValue GetDefaultValueForParameterOnEntry(ITypeSymbol parameterType) => ValueDomain.UnknownOrMayBeValue;
+        protected virtual TAbstractAnalysisValue GetDefaultValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity) => ValueDomain.UnknownOrMayBeValue;
         protected virtual TAbstractAnalysisValue GetDefaultValueForParameterOnExit(ITypeSymbol parameterType) => ValueDomain.UnknownOrMayBeValue;
 
         #endregion
@@ -241,22 +273,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
+        private IEnumerable<AnalysisEntity> GetTrackedEntities()
+        {
+            var trackedEntitiesBuilder = ImmutableArray.CreateBuilder<AnalysisEntity>();
+            AddTrackedEntities(trackedEntitiesBuilder);
+            if (trackedEntitiesBuilder.Count > 0)
+            {
+                Debug.Assert(trackedEntitiesBuilder.ToSet().Count == trackedEntitiesBuilder.Count);
+                foreach (var entity in trackedEntitiesBuilder)
+                {
+                    yield return entity;
+                }
+            }
+        }
+
         protected IEnumerable<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue instanceLocationOpt)
         {
             // We are interested only in dependent child/member infos, not the root info.
             if (instanceLocationOpt != null)
             {
-                var trackedEntitiesBuilder = ImmutableArray.CreateBuilder<AnalysisEntity>();
-                AddTrackedEntities(trackedEntitiesBuilder);
-                if (trackedEntitiesBuilder.Count > 0)
+                foreach (var entity in GetTrackedEntities())
                 {
-                    Debug.Assert(trackedEntitiesBuilder.ToSet().Count == trackedEntitiesBuilder.Count);
-                    foreach (var entity in trackedEntitiesBuilder)
+                    if (entity.InstanceLocation.Equals(instanceLocationOpt) && entity.IsChildOrInstanceMember)
                     {
-                        if (entity.InstanceLocation.Equals(instanceLocationOpt) && entity.IsChildOrInstanceMember)
-                        {
-                            yield return entity;
-                        }
+                        yield return entity;
                     }
                 }
             }
