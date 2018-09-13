@@ -9737,15 +9737,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To use a variable of an unconstrained type parameter in a null-coalescing assignment, please use language version {0} or greater..
-        /// </summary>
-        internal static string ERR_UnconstrainedTypeParameterInNullCoalescingNotAvailable {
-            get {
-                return ResourceManager.GetString("ERR_UnconstrainedTypeParameterInNullCoalescingNotAvailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A &apos;{0}&apos; character must be escaped (by doubling) in an interpolated string..
         /// </summary>
         internal static string ERR_UnescapedCurly {

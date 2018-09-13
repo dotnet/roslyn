@@ -800,7 +800,8 @@ OtherExpressions:
                     EmitExpression(condition, True)
 
                     Dim conditionType = condition.Type
-                    If conditionType.IsReferenceType AndAlso Not IsVerifierReference(conditionType) Then
+                    If (conditionType.IsReferenceType OrElse Not conditionType.IsValueType) AndAlso
+                        Not IsVerifierReference(conditionType) Then
                         EmitBox(conditionType, condition.Syntax)
                     End If
 

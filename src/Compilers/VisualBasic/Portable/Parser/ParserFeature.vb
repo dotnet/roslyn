@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.InterpolatedStrings
                     Return ERRID.FEATURE_InterpolatedStrings
                 Case Feature.UnconstrainedTypeParameterInConditional
-                    Return ERRID.FEATURE_UnconstrainedTypeParameterInCondtional
+                    Return ERRID.FEATURE_UnconstrainedTypeParameterInConditional
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

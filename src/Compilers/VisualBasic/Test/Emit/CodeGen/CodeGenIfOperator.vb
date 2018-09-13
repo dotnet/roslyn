@@ -1253,19 +1253,23 @@ Friend Module BIFOpResult0011mod
 <compilation>
     <file name="a.vb">
 Friend Module Mod1
-        Sub M1(Of T)(arg1 As T, arg2 As T)
-            System.Console.WriteLine(If(arg1, arg2))
-        End Sub
+    Sub M1(Of T)(arg1 As T, arg2 As T)
+        System.Console.WriteLine(If(arg1, arg2))
+    End Sub
 
-        Sub Main()
-            M1(Nothing, 10)
-            M1(1, 10)
-            M1(Nothing, "String Parameter 1")
-            M1("String Parameter 2", "Should not print")
-            M1(Of Integer?)(Nothing, 4)
-            M1(Of Integer?)(5, 10)
-        End Sub
-    End Module
+    Sub M2(Of T1, T2 As T1)(arg1 as T1, arg2 As T2)
+        System.Console.WriteLine(If(arg2, arg1))
+    End Sub
+
+    Sub Main()
+        M1(Nothing, 10)
+        M1(1, 10)
+        M1(Nothing, "String Parameter 1")
+        M1("String Parameter 2", "Should not print")
+        M1(Of Integer?)(Nothing, 4)
+        M1(Of Integer?)(5, 10)
+    End Sub
+End Module
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 0
@@ -1287,6 +1291,22 @@ String Parameter 2
   IL_000b:  box        "T"
   IL_0010:  call       "Sub System.Console.WriteLine(Object)"
   IL_0015:  ret
+}
+]]>).VerifyIL("Mod1.M2", <![CDATA[
+{
+  // Code size       33 (0x21)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  box        "T2"
+  IL_0006:  brtrue.s   IL_000b
+  IL_0008:  ldarg.0
+  IL_0009:  br.s       IL_0016
+  IL_000b:  ldarg.1
+  IL_000c:  box        "T2"
+  IL_0011:  unbox.any  "T1"
+  IL_0016:  box        "T1"
+  IL_001b:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0020:  ret
 }
 ]]>)
         End Sub
@@ -1336,15 +1356,15 @@ String Parameter 1
 <compilation>
     <file name="a.vb">
 Friend Module Mod1
-        Sub M1(Of T)(arg1 As T, arg2 As T)
-            System.Console.WriteLine(If(arg1, arg2))
-        End Sub
-    End Module
+    Sub M1(Of T)(arg1 As T, arg2 As T)
+        System.Console.WriteLine(If(arg1, arg2))
+    End Sub
+End Module
     </file>
 </compilation>, parseOptions:=TestOptions.Regular15_5).AssertTheseDiagnostics(<![CDATA[
-BC36716: Visual Basic 15.5 does not support unconstrained type parameter variables in two operand conditionals.
-            System.Console.WriteLine(If(arg1, arg2))
-                                     ~~~~~~~~~~~~~~
+BC36716: Visual Basic 15.5 does not support unconstrained type parameters in binary conditional expressions.
+        System.Console.WriteLine(If(arg1, arg2))
+                                 ~~~~~~~~~~~~~~
 ]]>)
         End Sub
     End Class

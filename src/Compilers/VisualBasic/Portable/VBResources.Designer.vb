@@ -12226,11 +12226,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to unconstrained type parameter variables in two operand conditionals.
+        '''  Looks up a localized string similar to unconstrained type parameters in binary conditional expressions.
         '''</summary>
-        Friend ReadOnly Property FEATURE_UnconstrainedTypeParameterInCondtional() As String
+        Friend ReadOnly Property FEATURE_UnconstrainedTypeParameterInConditional() As String
             Get
-                Return ResourceManager.GetString("FEATURE_UnconstrainedTypeParameterInCondtional", resourceCulture)
+                Return ResourceManager.GetString("FEATURE_UnconstrainedTypeParameterInConditional", resourceCulture)
             End Get
         End Property
         

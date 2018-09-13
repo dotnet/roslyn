@@ -5533,7 +5533,7 @@
   <data name="FEATURE_InterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
   </data>
-  <data name="FEATURE_UnconstrainedTypeParameterInCondtional" xml:space="preserve">
-    <value>unconstrained type parameter variables in two operand conditionals</value>
+  <data name="FEATURE_UnconstrainedTypeParameterInConditional" xml:space="preserve">
+    <value>unconstrained type parameters in binary conditional expressions</value>
   </data>
 </root>

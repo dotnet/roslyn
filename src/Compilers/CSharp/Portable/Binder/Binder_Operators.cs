@@ -3387,12 +3387,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Prior to C# 8.0, the spec said that the left type must be either a reference type or a nullable value type. This was relaxed
                 // with C# 8.0, so if the feature is not enabled then issue a diagnostic and return
-                if (!optLeftType.IsValueType && !isLeftNullable)
+                if (!optLeftType.IsValueType)
                 {
-                    if (!CheckFeatureAvailability(node, MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator, diagnostics))
-                    {
-                        return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, Conversion.NoConversion, CreateErrorType());
-                    }
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator, diagnostics);
                 }
                 else
                 {
