@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPointerMemberAccessExpression(SyntaxNode node);
 
         bool IsNamedParameter(SyntaxNode node);
+        SyntaxToken? GetNameOfParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode GetParameterList(SyntaxNode node);
 
@@ -165,8 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
 
-        SyntaxNode GetExpressionOfElementAccessExpression(SyntaxNode node);
-        SyntaxNode GetArgumentListOfElementAccessExpression(SyntaxNode node);
+        void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsUsingDirectiveName(SyntaxNode node);
         bool IsIdentifierName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
+        bool IsQualifiedName(SyntaxNode node);
 
         bool IsAttribute(SyntaxNode node);
         bool IsAttributeName(SyntaxNode node);

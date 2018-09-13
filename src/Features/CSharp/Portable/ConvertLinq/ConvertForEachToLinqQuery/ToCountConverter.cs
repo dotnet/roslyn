@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         ///  
         ///  Output:
         ///  counter += queryGenerated.Count();
-        protected override StatementSyntax CreateDefaultStatement(QueryExpressionSyntax queryExpression, ExpressionSyntax expression)
+        protected override StatementSyntax CreateDefaultStatement(ExpressionSyntax queryOrLinqInvocationExpression, ExpressionSyntax expression)
             => SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.AssignmentExpression(
                     SyntaxKind.AddAssignmentExpression,
                     expression,
-                    CreateInvocationExpression(queryExpression)));
+                    CreateInvocationExpression(queryOrLinqInvocationExpression)));
     }
 }

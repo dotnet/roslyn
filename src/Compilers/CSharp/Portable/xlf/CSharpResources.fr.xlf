@@ -1,7 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="CannotCreateConstructedFromConstructed">
+        <source>Cannot create constructed generic type from another constructed generic type.</source>
+        <target state="new">Cannot create constructed generic type from another constructed generic type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateConstructedFromNongeneric">
+        <source>Cannot create constructed generic type from non-generic type.</source>
+        <target state="new">Cannot create constructed generic type from non-generic type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</source>
         <target state="new">To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</target>
@@ -74,7 +84,7 @@
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
-        <target state="new">An out variable cannot be declared as a ref local</target>
+        <target state="translated">Impossible de déclarer une variable out en tant que variable locale ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -514,12 +524,12 @@
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
         <source>SyntaxTree is not part of the compilation</source>
-        <target state="new">SyntaxTree is not part of the compilation</target>
+        <target state="translated">SyntaxTree ne fait pas partie de la compilation</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFoundToRemove">
         <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
-        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
+        <target state="translated">SyntaxTree ne faisant pas partie de la compilation, il ne peut pas être supprimé</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -564,12 +574,12 @@
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
         <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
-        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <target state="translated">Le paramètre de type '{0}' a le même nom que le paramètre de type de la méthode externe '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
-        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
+        <target state="translated">Le paramètre de type a le même type que le paramètre de type de la méthode externe.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -1499,7 +1509,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="needs-review-translation">Seuls une assignation, un appel, un incrément, un décrément et des expressions d'objet new peuvent être utilisés comme instruction</target>
+        <target state="translated">Seuls une assignation, un appel, un incrément, un décrément et des expressions d'objet await et new peuvent être utilisés comme instruction</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1869,7 +1879,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
-        <target state="needs-review-translation">Un accès Friend a été concédé par '{0}', mais la clé publique de l'assembly de sortie ne correspond pas à celle spécifiée par l'attribut concédant.</target>
+        <target state="translated">Un accès Friend a été concédé par '{0}', mais la clé publique de l'assembly de sortie ('{1}') ne correspond pas à celle spécifiée par l'attribut InternalsVisibleTo dans l'assembly concédant.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -3952,7 +3962,7 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="needs-review-translation">'{0}' ne contient pas de définition pour '{1}' et aucune méthode d'extension '{1}' acceptant un premier argument de type '{0}' n'a été trouvée (une directive using ou une référence d'assembly est-elle manquante ?)</target>
+        <target state="translated">'{0}' ne contient pas de définition pour '{1}' et aucune méthode d'extension accessible '{1}' acceptant un premier argument de type '{0}' n'a été trouvée (une directive using ou une référence d'assembly est-elle manquante ?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -4562,7 +4572,7 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
         <source>Iterators cannot have ref, in or out parameters</source>
-        <target state="needs-review-translation">Les itérateurs ne peuvent pas avoir de paramètres ref ou out</target>
+        <target state="translated">Les itérateurs ne peuvent pas avoir de paramètres ref, in ou out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -4787,7 +4797,7 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
         <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="needs-review-translation">Impossible de convertir {0} en type délégué '{1}', car les types de paramètre ne correspondent pas aux types de paramètre délégués</target>
+        <target state="translated">Impossible de convertir {0} en type '{1}', car les types de paramètre ne correspondent pas aux types de paramètre délégués</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -5432,7 +5442,7 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
         <source>An expression tree lambda may not contain a ref, in or out parameter</source>
-        <target state="needs-review-translation">Une arborescence d'expression lambda ne peut pas contenir un paramètre out ou ref</target>
+        <target state="translated">Une arborescence d'expression lambda ne doit pas contenir de paramètre ref, in ou out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarArgsInExpressionTree">
@@ -5990,7 +6000,7 @@ Permettez au compilateur de différencier les méthodes. Par exemple, vous pouve
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
         <source>Async methods cannot have ref, in or out parameters</source>
-        <target state="needs-review-translation">Les méthodes Async ne peuvent pas avoir de paramètres ref ou out</target>
+        <target state="translated">Les méthodes Async ne doivent pas avoir de paramètres ref, in ou out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsync">
@@ -7536,147 +7546,147 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                               Options du compilateur Visual C#
 
                         - FICHIERS DE SORTIE -
- /out:&lt;fichier&gt;                Spécifier un nom de fichier de sortie (par défaut : nom de base du
+-out:&lt;fichier&gt;                Spécifier un nom de fichier de sortie (par défaut : nom de base du
                                fichier avec classe principale ou premier fichier)
- /target:exe                   Générer un fichier exécutable console (par défaut) (forme
+-target:exe                   Générer un fichier exécutable console (par défaut) (forme
                                abrégée : /t:exe)
- /target:winexe                Générer un fichier exécutable Windows (forme abrégée :
+-target:winexe                Générer un fichier exécutable Windows (forme abrégée :
                                /t:winexe)
- /target:library               Générer une bibliothèque (forme abrégée : /t:library)
- /target:module                Générer un module qui peut être ajouté à un autre
+-target:library               Générer une bibliothèque (forme abrégée : /t:library)
+-target:module                Générer un module qui peut être ajouté à un autre
                                assembly (forme abrégée : /t:module)
- /target:appcontainerexe       Générer un exécutable Appcontainer (forme abrégée :
+-target:appcontainerexe       Générer un exécutable Appcontainer (forme abrégée :
                                /t:appcontainerexe)
- /target:winmdobj              Générer un fichier intermédiaire Windows Runtime
+-target:winmdobj              Générer un fichier intermédiaire Windows Runtime
                                consommé par WinMDExp (forme abrégée : /t:winmdobj)
- /doc:&lt;fichier&gt;                Fichier de documentation XML à générer
- /refout:&lt;fichier&gt;             Référencer la sortie d'assembly à générer
- /platform:&lt;chaîne&gt;            Limiter les plateformes sur lesquelles ce code peut s'exécuter : x86,
+-doc:&lt;fichier&gt;                Fichier de documentation XML à générer
+-refout:&lt;fichier&gt;             Référencer la sortie d'assembly à générer
+-platform:&lt;chaîne&gt;            Limiter les plateformes sur lesquelles ce code peut s'exécuter : x86,
                                Itanium, x64, arm, arm64, anycpu32bitpreferred ou
                                anycpu. La valeur par défaut est anycpu.
 
                         - FICHIERS D'ENTRÉE -
- /recurse:&lt;générique&gt;          Inclure tous les fichiers dans le répertoire et
+-recurse:&lt;générique&gt;          Inclure tous les fichiers dans le répertoire et
                                les sous-répertoires actifs en fonction des
                                spécifications de caractères génériques
- /reference:&lt;alias&gt;=&lt;fichier&gt;  Référencer les métadonnées à partir du
+-reference:&lt;alias&gt;=&lt;fichier&gt;  Référencer les métadonnées à partir du
                                fichier d'assembly spécifié via l'alias indiqué (forme abrégée : /r)
- /reference:&lt;liste_fichiers&gt;   Référencer les métadonnées à partir
+-reference:&lt;liste_fichiers&gt;   Référencer les métadonnées à partir
                                des fichiers d'assembly spécifiés (forme abrégée : /r)
- /addmodule:&lt;liste_fichiers&gt;   Lier les modules spécifiés dans cet assembly
- /link:&lt;liste_fichiers&gt;        Incorporer les métadonnées à partir des
+-addmodule:&lt;liste_fichiers&gt;   Lier les modules spécifiés dans cet assembly
+-link:&lt;liste_fichiers&gt;        Incorporer les métadonnées à partir des
                                fichiers d'assembly d'interopérabilité spécifiés (forme abrégée : /l)
- /analyzer:&lt;liste_fichiers&gt;    Exécuter les analyseurs à partir de cet assembly
+-analyzer:&lt;liste_fichiers&gt;    Exécuter les analyseurs à partir de cet assembly
                                (Forme abrégée : /a)
- /additionalfile:&lt;liste_fich.&gt; Fichiers supplémentaires qui n'affectent pas directement
+-additionalfile:&lt;liste_fich.&gt; Fichiers supplémentaires qui n'affectent pas directement
                                la génération de code mais qui peuvent être utilisés par les analyseurs pour produire
                                des erreurs ou des avertissements.
- /embed                        Incorporer tous les fichiers sources dans le fichier PDB.
- /embed:&lt;liste_fichiers&gt;       Incorporer des fichiers spécifiques dans le fichier PDB
+-embed                        Incorporer tous les fichiers sources dans le fichier PDB.
+-embed:&lt;liste_fichiers&gt;       Incorporer des fichiers spécifiques dans le fichier PDB
 
                         - RESSOURCES -
- /win32res:&lt;fichier&gt;           Spécifier un fichier de ressources Win32 (.res)
- /win32icon:&lt;fichier&gt;          Utiliser cette icône pour la sortie
- /win32manifest:&lt;fichier&gt;      Spécifier un fichier manifeste (.xml) Win32
- /nowin32manifest              Ne pas inclure le manifeste Win32 par défaut
- /resource:&lt;resinfo&gt;           Incorporer la ressource spécifiée (forme abrégée : /res)
- /linkresource:&lt;resinfo&gt;       Lier la ressource spécifiée à cet assembly
+-win32res:&lt;fichier&gt;           Spécifier un fichier de ressources Win32 (.res)
+-win32icon:&lt;fichier&gt;          Utiliser cette icône pour la sortie
+-win32manifest:&lt;fichier&gt;      Spécifier un fichier manifeste (.xml) Win32
+-nowin32manifest              Ne pas inclure le manifeste Win32 par défaut
+-resource:&lt;resinfo&gt;           Incorporer la ressource spécifiée (forme abrégée : /res)
+-linkresource:&lt;resinfo&gt;       Lier la ressource spécifiée à cet assembly
                                (forme abrégée : /linkres), où le format resinfo
                                est &lt;fichier&gt;[,&lt;nom_chaîne&gt;[,public|private]]
 
                         - GÉNÉRATION DE CODE -
- /debug[+|-]                   Émettre des informations de débogage
- /debug:{full|pdbonly|portable|embedded}
+-debug[+|-]                   Émettre des informations de débogage
+-debug:{full|pdbonly|portable|embedded}
                                Spécifier le type de débogage ('full' est la valeur par défaut,
                                'portable' est un format multiplateforme,
                                'embedded' est un format multiplateforme incorporé dans
                                le fichier .dll ou .exe cible)
- /optimize[+|-]                Activer les optimisations (forme abrégée : /o)
- /deterministic                Produire un assembly déterministe
+-optimize[+|-]                Activer les optimisations (forme abrégée : /o)
+-deterministic                Produire un assembly déterministe
                                (en incluant le GUID et l'horodatage de la version du module)
- /refonly                      Produire un assembly de référence à la place de la sortie principale
- /instrument:TestCoverage      Produire un assembly instrumenté pour collecter
+-refonly                      Produire un assembly de référence à la place de la sortie principale
+-instrument:TestCoverage      Produire un assembly instrumenté pour collecter
                                les informations de couverture
- /sourcelink:&lt;fichier&gt;         Informations du lien source à incorporer dans le fichier PDB.
+-sourcelink:&lt;fichier&gt;         Informations du lien source à incorporer dans le fichier PDB.
 
                         - ERREURS ET AVERTISSEMENTS -
- /warnaserror[+|-]             Signaler tous les avertissements comme des erreurs
- /warnaserror[+|-]:&lt;avertiss.&gt; Signaler des avertissements spécifiques comme des erreurs
- /warn:&lt;n&gt;                     Définir le niveau d'avertissement (0-4) (forme abrégée : /w)
- /nowarn:&lt;liste avertiss.&gt;     Désactiver des messages d'avertissement spécifiques
- /ruleset:&lt;fichier&gt;            Spécifier un fichier ruleset qui désactive des
+-warnaserror[+|-]             Signaler tous les avertissements comme des erreurs
+-warnaserror[+|-]:&lt;avertiss.&gt; Signaler des avertissements spécifiques comme des erreurs
+-warn:&lt;n&gt;                     Définir le niveau d'avertissement (0-4) (forme abrégée : /w)
+-nowarn:&lt;liste avertiss.&gt;     Désactiver des messages d'avertissement spécifiques
+-ruleset:&lt;fichier&gt;            Spécifier un fichier ruleset qui désactive des
                                diagnostics spécifiques.
- /errorlog:&lt;fichier&gt;           Spécifier un fichier pour journaliser tous les diagnostics du compilateur
+-errorlog:&lt;fichier&gt;           Spécifier un fichier pour journaliser tous les diagnostics du compilateur
                                et de l'analyseur.
- /reportanalyzer               Signaler des informations supplémentaires sur l'analyseur, comme
+-reportanalyzer               Signaler des informations supplémentaires sur l'analyseur, comme
                                la durée d'exécution.
 
                         - LANGAGE -
- /checked[+|-]                 Générer des contrôles de dépassement de capacité
- /unsafe[+|-]                  Autoriser du code 'unsafe'
- /define:&lt;liste_symboles&gt;      Définir les symboles de compilation conditionnelle (forme
+-checked[+|-]                 Générer des contrôles de dépassement de capacité
+-unsafe[+|-]                  Autoriser du code 'unsafe'
+-define:&lt;liste_symboles&gt;      Définir les symboles de compilation conditionnelle (forme
                                abrégée : /d)
- /langversion:?                Afficher les valeurs autorisées pour la version du langage
- /langversion:&lt;chaîne&gt;         Spécifier la version du langage, par exemple
+-langversion:?                Afficher les valeurs autorisées pour la version du langage
+-langversion:&lt;chaîne&gt;         Spécifier la version du langage, par exemple
                                'default' (dernière version principale) ou
                                'latest' (dernière version, en incluant les versions mineures),
                                ou des versions spécifiques comme '6' ou '7.1'
 
                         - SÉCURITÉ -
- /delaysign[+|-]               Différer la signature de l'assembly en utilisant uniquement
+-delaysign[+|-]               Différer la signature de l'assembly en utilisant uniquement
                                la partie publique de la clé de nom fort
- /publicsign[+|-]              Signer publiquement l'assembly en utilisant uniquement
+-publicsign[+|-]              Signer publiquement l'assembly en utilisant uniquement
                                la partie publique de la clé de nom fort
- /keyfile:&lt;fichier&gt;            Spécifier un fichier de clé de nom fort
- /keycontainer:&lt;chaîne&gt;        Spécifier un conteneur de clé de nom fort
- /highentropyva[+|-]           Activer la randomisation du format d'espace d'adresse d'entropie élevée
+-keyfile:&lt;fichier&gt;            Spécifier un fichier de clé de nom fort
+-keycontainer:&lt;chaîne&gt;        Spécifier un conteneur de clé de nom fort
+-highentropyva[+|-]           Activer la randomisation du format d'espace d'adresse d'entropie élevée
 
                         - DIVERS -
  @&lt;fichier&gt;                    Lire le fichier réponse pour plus d'options
- /help                         Afficher ce message d'utilisation (forme abrégée : /?)
- /nologo                       Supprimer le message de copyright du compilateur
- /noconfig                     Ne pas inclure automatiquement un fichier CSC.RSP
- /parallel[+|-]                Build simultanée.
- /version                      Afficher le numéro de version du compilateur et quitter le processus.
+-help                         Afficher ce message d'utilisation (forme abrégée : /?)
+-nologo                       Supprimer le message de copyright du compilateur
+-noconfig                     Ne pas inclure automatiquement un fichier CSC.RSP
+-parallel[+|-]                Build simultanée.
+-version                      Afficher le numéro de version du compilateur et quitter le processus.
 
                         - AVANCÉ -
- /baseaddress:&lt;adresse&gt;        Adresse de base de la bibliothèque à générer
- /checksumalgorithm:&lt;alg&gt;      Spécifier l'algorithme de calcul de la somme de contrôle
+-baseaddress:&lt;adresse&gt;        Adresse de base de la bibliothèque à générer
+-checksumalgorithm:&lt;alg&gt;      Spécifier l'algorithme de calcul de la somme de contrôle
                                de fichier source stockée dans le fichier PDB. Valeurs prises en charge :
                                SHA1 (par défaut) ou SHA256.
- /codepage:&lt;n&gt;                 Spécifier la page de codes à utiliser à l'ouverture
+-codepage:&lt;n&gt;                 Spécifier la page de codes à utiliser à l'ouverture
                                des fichiers sources
- /utf8output                   Messages du compilateur de sortie encodés en UTF-8
- /main:&lt;type&gt;                  Spécifier le type qui contient le point d'entrée
+-utf8output                   Messages du compilateur de sortie encodés en UTF-8
+-main:&lt;type&gt;                  Spécifier le type qui contient le point d'entrée
                                (ignorer tous les autres points d'entrée possibles) (forme
                                abrégée : /m)
- /fullpaths                    Le compilateur génère des chemins qualifiés complets
- /filealign:&lt;n&gt;                Spécifier l'alignement utilisé pour les
+-fullpaths                    Le compilateur génère des chemins qualifiés complets
+-filealign:&lt;n&gt;                Spécifier l'alignement utilisé pour les
                                sections du fichier de sortie
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                Spécifier un mappage pour les noms de chemins sources sortis par
                                le compilateur.
- /pdb:&lt;fichier&gt;                Spécifier le nom du fichier des informations de débogage (par défaut :
+-pdb:&lt;fichier&gt;                Spécifier le nom du fichier des informations de débogage (par défaut :
                                nom du fichier de sortie avec l'extension .pdb)
- /errorendlocation             Ligne et colonne de sortie de l'emplacement final de
+-errorendlocation             Ligne et colonne de sortie de l'emplacement final de
                                chaque erreur
- /preferreduilang              Spécifier le nom du langage de sortie préféré.
- /nostdlib[+|-]                Ne pas référencer la bibliothèque standard (mscorlib.dll)
- /subsystemversion:&lt;chaîne&gt;    Spécifier la version du sous-système de cet assembly
- /lib:&lt;liste_fichiers&gt;         Spécifier des répertoires supplémentaires dans lesquels rechercher les
+-preferreduilang              Spécifier le nom du langage de sortie préféré.
+-nostdlib[+|-]                Ne pas référencer la bibliothèque standard (mscorlib.dll)
+-subsystemversion:&lt;chaîne&gt;    Spécifier la version du sous-système de cet assembly
+-lib:&lt;liste_fichiers&gt;         Spécifier des répertoires supplémentaires dans lesquels rechercher les
                                références
- /errorreport:&lt;chaîne&gt;         Spécifier comment prendre en charge les erreurs internes du compilateur :
+-errorreport:&lt;chaîne&gt;         Spécifier comment prendre en charge les erreurs internes du compilateur :
                                prompt, send, queue ou none. La valeur par défaut est
                                queue.
- /appconfig:&lt;fichier&gt;          Spécifier un fichier de configuration de l'application
+-appconfig:&lt;fichier&gt;          Spécifier un fichier de configuration de l'application
                                contenant des paramètres de liaison d'assembly
- /moduleassemblyname:&lt;chaîne&gt;  Nom de l'assembly dont ce module
+-moduleassemblyname:&lt;chaîne&gt;  Nom de l'assembly dont ce module
                                doit faire partie
- /modulename:&lt;chaîne&gt;          Spécifier le nom du module source
+-modulename:&lt;chaîne&gt;          Spécifier le nom du module source
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -8002,7 +8012,7 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
         <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="needs-review-translation">Le SyntaxTree '{0}' résulte d'une directive #load, et ne peut pas être supprimé ou remplacé directement.</target>
+        <target state="translated">Le SyntaxTree résulte d'une directive #load, et ne peut pas être supprimé ou remplacé directement.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">
@@ -8217,12 +8227,12 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
         <source>Iterators cannot have by-reference locals</source>
-        <target state="needs-review-translation">Les itérateurs ne peuvent pas avoir de variables locales par référence</target>
+        <target state="translated">Les itérateurs ne peuvent pas avoir de variables locales par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
         <source>Async methods cannot have by-reference locals</source>
-        <target state="needs-review-translation">Les méthodes async ne peuvent pas avoir de variables locales par référence</target>
+        <target state="translated">Les méthodes async ne peuvent pas avoir de variables locales par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
@@ -8902,12 +8912,12 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">Le nom de fichier '{0}' est vide, contient des caractères non valides, spécifie un lecteur sans chemin d'accès absolu ou est trop long</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
-        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <target state="translated">__arglist ne peut pas avoir un argument passé par 'in' ou 'out'</target>
         <note />
       </trans-unit>
     </body>

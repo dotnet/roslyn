@@ -135,9 +135,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return true;
                 }
 
-                if (symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.Ordinary)
+                if (symbol.Kind == SymbolKind.Method)
                 {
-                    return true;
+                    var methodSymbol = (IMethodSymbol)symbol;
+                    if (methodSymbol.MethodKind == MethodKind.Ordinary ||
+                        methodSymbol.MethodKind == MethodKind.PropertyGet ||
+                        methodSymbol.MethodKind == MethodKind.PropertySet)
+                    {
+                        return true;
+                    }
                 }
             }
 

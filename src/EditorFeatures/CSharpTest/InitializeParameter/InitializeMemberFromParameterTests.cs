@@ -596,5 +596,57 @@ class C
     }
 }");
         }
+
+        [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeFieldWithParameterNameSelected1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private string s;
+
+    public C(string [|s|])
+    {
+    }
+}",
+@"
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+        this.s = s;
+    }
+}");
+        }
+
+        [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeFieldWithParameterNameSelected2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private string s;
+
+    public C(string [|s|], int i)
+    {
+    }
+}",
+@"
+class C
+{
+    private string s;
+
+    public C(string s, int i)
+    {
+        this.s = s;
+    }
+}");
+        }
     }
 }

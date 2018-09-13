@@ -897,7 +897,7 @@ class Test
         }
 
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AsyncInFinally003()
         {
             var source = @"

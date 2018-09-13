@@ -2,11 +2,11 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -38,7 +38,7 @@ class 123 { }
 
                 WpfTestRunner.RequireWpfFact($"This test uses {NameOf(IForegroundNotificationService)}")
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
-                Dim provider = New DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider)
+                Dim provider = New DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), diagnosticService, foregroundService, listenerProvider)
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
                 Using disposable = TryCast(tagger, IDisposable)
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
