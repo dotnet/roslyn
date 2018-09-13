@@ -857,6 +857,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool? IsMutableValueType(this ITypeSymbol type)
         {
+            if (type.IsNullable())
+            {
+                // Nullable<T> can only be mutable if T is mutable. This case ensures types like 'int?' are treated as
+                // immutable.
+                type = type.GetTypeArguments()[0];
+            }
+
             if (type.IsErrorType())
             {
                 return null;
@@ -865,26 +872,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (type.TypeKind != TypeKind.Struct)
             {
                 return false;
-            }
-
-            if (type.IsNullable())
-            {
-                // Nullable<T> can only be mutable if T is mutable. This case ensures types like 'int?' are treated as
-                // immutable.
-                var typeArguments = type.GetTypeArguments();
-                if (typeArguments.Length != 1)
-                {
-                    return null;
-                }
-
-                if (typeArguments[0].IsNullable())
-                {
-                    // Recursion prevention. This is not a valid type anyway since the T in Nullable<T> cannot itself be
-                    // nullable.
-                    return null;
-                }
-
-                return typeArguments[0].IsMutableValueType();
             }
 
             foreach (var member in type.GetMembers())
