@@ -3700,6 +3700,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use block body for lambda expressions.
+        /// </summary>
+        internal static string Use_block_body_for_lambda_expressions {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_lambda_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use block body for methods.
         /// </summary>
         internal static string Use_block_body_for_methods {
@@ -3768,6 +3777,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_expression_body_for_indexers {
             get {
                 return ResourceManager.GetString("Use_expression_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for lambda expressions.
+        /// </summary>
+        internal static string Use_expression_body_for_lambda_expressions {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_lambda_expressions", resourceCulture);
             }
         }
         
