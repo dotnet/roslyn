@@ -49,6 +49,16 @@
     <DeterministicSourcePaths>false</DeterministicSourcePaths>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true' and '$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(UsingToolNetFrameworkReferenceAssemblies)' == 'true'">
+    <TargetFrameworkRootPath>$(NuGetPackageRoot)microsoft.netframework.referenceassemblies.$(TargetFramework)\$(MicrosoftNetFrameworkReferenceAssembliesVersion)\build</TargetFrameworkRootPath>
+    <EnableFrameworkPathOverride>false</EnableFrameworkPathOverride>
+    <NoStdLib>true</NoStdLib>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsWpfTempProject)' == 'true' and '$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Reference Include="mscorlib" Pack="false" />
+  </ItemGroup>
+
   <!--
     Workaround for a race condition https://github.com/Microsoft/msbuild/issues/1479.
   -->
