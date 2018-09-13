@@ -161,6 +161,7 @@
     <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.0.0-beta2-63222-01</RoslynToolsVSIXExpInstallerVersion>
+    <RoslynToolsModifyVsixManifestVersion>1.0.0-beta2-63222-01</RoslynToolsModifyVsixManifestVersion>
     <RoslynToolsMSBuildVersion>0.5.0-alpha</RoslynToolsMSBuildVersion>
     <RoslynToolsNuGetRepackVersion>1.0.0-beta2-63223-01</RoslynToolsNuGetRepackVersion>
     <RoslynToolsReferenceAssembliesVersion>0.1.3</RoslynToolsReferenceAssembliesVersion>
@@ -184,6 +185,7 @@
     <SystemDynamicRuntimeVersion>4.3.0</SystemDynamicRuntimeVersion>
     <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
     <SystemGlobalizationVersion>4.3.0</SystemGlobalizationVersion>
+    <SystemGlobalizationCalendarsVersion>4.3.0</SystemGlobalizationCalendarsVersion>
     <SystemIdentityModelTokensJwtVersion>5.0.0</SystemIdentityModelTokensJwtVersion>
     <SystemIOVersion>4.3.0</SystemIOVersion>
     <SystemIOCompressionVersion>4.3.0</SystemIOCompressionVersion>
@@ -218,6 +220,7 @@
     <SystemRuntimeSerializationJsonVersion>4.3.0</SystemRuntimeSerializationJsonVersion>
     <SystemRuntimeSerializationPrimitivesVersion>4.3.0</SystemRuntimeSerializationPrimitivesVersion>
     <SystemSecurityAccessControlVersion>4.3.0</SystemSecurityAccessControlVersion>
+    <SystemSecurityClaimsVersion>4.3.0</SystemSecurityClaimsVersion>
     <SystemSecurityCryptographyAlgorithmsVersion>4.3.0</SystemSecurityCryptographyAlgorithmsVersion>
     <SystemSecurityCryptographyCspVersion>4.3.0</SystemSecurityCryptographyCspVersion>
     <SystemSecurityCryptographyEncodingVersion>4.3.0</SystemSecurityCryptographyEncodingVersion>
@@ -239,6 +242,7 @@
     <SystemXmlXDocumentVersion>4.3.0</SystemXmlXDocumentVersion>
     <SystemXmlXmlDocumentVersion>4.3.0</SystemXmlXmlDocumentVersion>
     <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>
+    <SystemXmlXPathVersion>4.3.0</SystemXmlXPathVersion>
     <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
@@ -327,6 +331,7 @@
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
+    <UsingToolVSSDK>true</UsingToolVSSDK>
   </PropertyGroup>
 
   <PropertyGroup>
