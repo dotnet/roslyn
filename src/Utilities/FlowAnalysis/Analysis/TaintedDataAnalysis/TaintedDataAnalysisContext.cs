@@ -10,30 +10,83 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     using TaintedDataAnalysisResult = DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
+    using InterproceduralTaintedDataAnalysisData = InterproceduralAnalysisData<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAbstractValue>;
+    using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 
     internal sealed class TaintedDataAnalysisContext : AbstractDataFlowAnalysisContext<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataAbstractValue>
     {
-        public TaintedDataAnalysisContext(
+        private TaintedDataAnalysisContext(
             AbstractValueDomain<TaintedDataAbstractValue> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            InterproceduralAnalysisKind interproceduralAnalysisKind,
             bool pessimisticAnalysis,
             DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt,
-            Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> getOrComputeAnalysisResultForInvokedMethod,
-            TaintedDataAnalysisData currentAnalysisDataAtCalleeOpt = default(TaintedDataAnalysisData),
-            ImmutableArray<TaintedDataAbstractValue> argumentValuesFromCalleeOpt = default(ImmutableArray<TaintedDataAbstractValue>),
-            ImmutableHashSet<IMethodSymbol> methodsBeingAnalyzedOpt = null)
-            : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, pessimisticAnalysis,
-                  predicateAnalysis: false, copyAnalysisResultOpt: null, pointsToAnalysisResultOpt: pointsToAnalysisResultOpt,
-                  getOrComputeAnalysisResultForInvokedMethod: getOrComputeAnalysisResultForInvokedMethod,
-                  currentAnalysisDataAtCalleeOpt: currentAnalysisDataAtCalleeOpt,
-                  argumentValuesFromCalleeOpt: argumentValuesFromCalleeOpt,
-                  methodsBeingAnalyzedOpt: methodsBeingAnalyzedOpt)
+            Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> getOrComputeAnalysisResult,
+            ControlFlowGraph parentControlFlowGraph,
+            InterproceduralTaintedDataAnalysisData interproceduralAnalysisDataOpt)
+            : base(
+                  valueDomain, 
+                  wellKnownTypeProvider, 
+                  controlFlowGraph, 
+                  owningSymbol, 
+                  interproceduralAnalysisKind,
+                  pessimisticAnalysis,
+                  predicateAnalysis: false, 
+                  copyAnalysisResultOpt: null, 
+                  pointsToAnalysisResultOpt: pointsToAnalysisResultOpt,
+                  getOrComputeAnalysisResult: getOrComputeAnalysisResult,
+                  parentControlFlowGraphOpt: parentControlFlowGraph,
+                  interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
         {
         }
 
-        public override int GetHashCode(int hashCode)
+        public static TaintedDataAnalysisContext Create(
+            AbstractValueDomain<TaintedDataAbstractValue> valueDomain,
+            WellKnownTypeProvider wellKnownTypeProvider,
+            ControlFlowGraph controlFlowGraph,
+            ISymbol owningSymbol,
+            InterproceduralAnalysisKind interproceduralAnalysisKind,
+            bool pessimisticAnalysis,
+            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt,
+            Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> getOrComputeAnalysisResult)
+        {
+            return new TaintedDataAnalysisContext(
+                valueDomain,
+                wellKnownTypeProvider,
+                controlFlowGraph,
+                owningSymbol,
+                interproceduralAnalysisKind,
+                pessimisticAnalysis,
+                pointsToAnalysisResultOpt,
+                getOrComputeAnalysisResult,
+                parentControlFlowGraph: null,
+                interproceduralAnalysisDataOpt: null);
+        }
+
+        public override TaintedDataAnalysisContext ForkForInterproceduralAnalysis(
+            IMethodSymbol invokedMethod,
+            ControlFlowGraph invokedCfg, 
+            IOperation operation,
+            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt, 
+            DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> copyAnalysisResultOpt,
+            InterproceduralTaintedDataAnalysisData interproceduralAnalysisData)
+        {
+            return new TaintedDataAnalysisContext(
+                this.ValueDomain,
+                this.WellKnownTypeProvider,
+                invokedCfg,
+                invokedMethod,
+                this.InterproceduralAnalysisKind,
+                this.PessimisticAnalysis,
+                pointsToAnalysisResultOpt,
+                this.GetOrComputeAnalysisResult,
+                this.ControlFlowGraph,
+                interproceduralAnalysisData);
+        }
+
+        protected override int GetHashCode(int hashCode)
         {
             return hashCode;
         }

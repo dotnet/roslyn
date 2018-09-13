@@ -1,13 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+    using CoreTaintedDataAnalysisData = IDictionary<AnalysisEntity, TaintedDataAbstractValue>;
+
 
     internal sealed class TaintedDataAnalysisData : AnalysisEntityBasedPredicateAnalysisData<TaintedDataAbstractValue>
     {
         public TaintedDataAnalysisData()
             : base()
+        {
+        }
+
+        public TaintedDataAnalysisData(CoreTaintedDataAnalysisData fromData)
+            : base(fromData)
         {
         }
 

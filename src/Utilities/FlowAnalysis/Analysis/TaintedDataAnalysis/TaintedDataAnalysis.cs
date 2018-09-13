@@ -1,17 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    using TaintedDataAnalysisResult = Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
-
-    using Analyzer.Utilities.Extensions;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.FlowAnalysis;
-    using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
-    using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
-    using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
-    using Microsoft.CodeAnalysis.Operations;
-    using System;
+    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
+    using TaintedDataAnalysisResult = DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
 
     internal partial class TaintedDataAnalysis : ForwardDataFlowAnalysis<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>
     {
@@ -22,27 +19,26 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
         }
 
-        internal static DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> GetOrComputeResult(ControlFlowGraph cfg, Compilation compilation, ISymbol containingMethod)
+        internal static DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> GetOrComputeResult(
+            ControlFlowGraph cfg,
+            Compilation compilation,
+            ISymbol containingMethod)
         {
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-            return GetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider);
-        }
+            PointsToAnalysisResult pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(
+                cfg,
+                containingMethod,
+                wellKnownTypeProvider,
+                InterproceduralAnalysisKind.ContextSensitive,
+                true,
+                true);
 
-        public static DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> GetOrComputeResult(
-            ControlFlowGraph cfg,
-            ISymbol owningSymbol,
-            WellKnownTypeProvider wellKnownTypeProvider)
-        {
-            var pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider);
-            var copyAnalysisResult = CopyAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, pointsToAnalysisResultOpt: pointsToAnalysisResult);
-            // Do another analysis pass to improve the results from PointsTo and Copy analysis.
-            pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, copyAnalysisResult);
-
-            TaintedDataAnalysisContext analysisContext = new TaintedDataAnalysisContext(
+            TaintedDataAnalysisContext analysisContext = TaintedDataAnalysisContext.Create(
                 TaintedDataAbstractValueDomain.Default,
                 wellKnownTypeProvider,
                 cfg,
-                owningSymbol,
+                containingMethod,
+                InterproceduralAnalysisKind.ContextSensitive,
                 true /* pessimisticAnalysis */,
                 pointsToAnalysisResult,
                 GetOrComputeResultForAnalysisContext);

@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.Operations;
+
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    using System.Collections.Immutable;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
-    using Microsoft.CodeAnalysis.Operations;
-    using TaintedDataAnalysisResult = Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
-
+    using Microsoft.CodeAnalysis.FlowAnalysis;
+    using TaintedDataAnalysisResult = DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
 
     internal partial class TaintedDataAnalysis
     {
@@ -109,6 +110,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             protected override void ResetCurrentAnalysisData()
             {
                 this.CurrentAnalysisData.Reset(this.ValueDomain.UnknownOrMayBeValue);
+            }
+
+            protected override TaintedDataAnalysisData GetEmptyAnalysisData()
+            {
+                return new TaintedDataAnalysisData();
+            }
+
+            protected override TaintedDataAnalysisData GetAnalysisDataAtBlockEnd(TaintedDataAnalysisResult analysisResult, BasicBlock block)
+            {
+                return new TaintedDataAnalysisData(analysisResult[block].OutputData);
             }
 
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, TaintedDataAbstractValue value)
