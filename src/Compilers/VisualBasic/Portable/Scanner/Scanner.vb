@@ -576,6 +576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         New VisualBasicRequiredLanguageVersion(Feature.CommentsAfterLineContinuation.GetLanguageVersion()))})
                 End If
                 tList.Add(comment)
+                ' Need to call CanGet here to prevent Peek reading past EndOfBuffer. This can happen when file ends with comment but no New Line.
                 ch = If(CanGet(), Peek(), ChrW(0))
                 atNewLine = IsNewLine(ch)
             End If
