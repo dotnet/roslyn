@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,41 +18,50 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         where TDocumentationCommentTriviaSyntax: SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
-        protected AbstractRemoveUnusedMembersDiagnosticAnalyzer(bool forceEnableRules)
-            : base(CreateDescriptors(forceEnableRules))
-        {
-        }
+        // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
+        private static readonly DiagnosticDescriptor s_removeUnusedMembersRule;
+        private static readonly DiagnosticDescriptor s_removeUnusedMembersWithFadingRule;
 
-        private static ImmutableArray<DiagnosticDescriptor> CreateDescriptors(bool forceEnableRules)
-        {
-            // TODO: Enable these rules by default once we have designed the Tools|Option location and UI for such code quality rules.
-            // https://github.com/dotnet/roslyn/issues/29519
+        // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
+        private static readonly DiagnosticDescriptor s_removeUnreadMembersRule;
+        private static readonly DiagnosticDescriptor s_removeUnreadMembersWithFadingRule;
 
-            // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
+        static AbstractRemoveUnusedMembersDiagnosticAnalyzer()
+        {
             var removeUnusedMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
             var removeUnusedMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_an_unused_private_member_1_which_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            var removeUnusedMembersRule = CreateDescriptor(
-                IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId, removeUnusedMembersTitle, removeUnusedMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
-            var removeUnusedMembersRuleWithFadingRule = CreateUnnecessaryDescriptor(
-                IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId, removeUnusedMembersTitle, removeUnusedMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
+            s_removeUnusedMembersRule = CreateDescriptor(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
+                                                         removeUnusedMembersTitle,
+                                                         removeUnusedMembersMessage,
+                                                         configurable: true,
+                                                         enabledByDefault: true);
+            s_removeUnusedMembersWithFadingRule = CreateUnnecessaryDescriptor(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
+                                                                              removeUnusedMembersTitle,
+                                                                              removeUnusedMembersMessage,
+                                                                              configurable: true,
+                                                                              enabledByDefault: true);
 
-            // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
             var removeUnreadMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
             var removeUnreadMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            var removeUnreadMembersRule = CreateDescriptor(
-                IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId, removeUnreadMembersTitle, removeUnreadMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
-            var removeUnreadMembersRuleUnnecessaryWithFadingRule = CreateUnnecessaryDescriptor(
-                IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId, removeUnreadMembersTitle, removeUnreadMembersMessage, configurable: true, enabledByDefault: forceEnableRules);
-
-            return ImmutableArray.Create(removeUnusedMembersRule, removeUnusedMembersRuleWithFadingRule,
-                    removeUnreadMembersRule, removeUnreadMembersRuleUnnecessaryWithFadingRule);
+            s_removeUnreadMembersRule = CreateDescriptor(IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
+                                                         removeUnreadMembersTitle,
+                                                         removeUnreadMembersMessage,
+                                                         configurable: true,
+                                                         enabledByDefault: true);
+            s_removeUnreadMembersWithFadingRule = CreateUnnecessaryDescriptor(IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
+                                                                              removeUnreadMembersTitle,
+                                                                              removeUnreadMembersMessage,
+                                                                              configurable: true,
+                                                                              enabledByDefault: true);
         }
 
-        // See CreateDescriptors method above for the indices.
-        // We should be able to cleanup the implementation to avoid hard coded indices
-        // once https://github.com/dotnet/roslyn/issues/29519 is implemented.
-        private DiagnosticDescriptor RemoveUnusedMemberRule => SupportedDiagnostics[1];
-        private DiagnosticDescriptor RemoveUnreadMemberRule => SupportedDiagnostics[3];
+        protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
+            : base (ImmutableArray.Create(s_removeUnusedMembersRule,
+                                          s_removeUnusedMembersWithFadingRule,
+                                          s_removeUnreadMembersRule,
+                                          s_removeUnreadMembersWithFadingRule))
+        {
+        }
 
         public override bool OpenFileOnly(Workspace workspace) => false;
 
@@ -70,20 +78,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
 
             context.RegisterCompilationStartAction(compilationStartContext
-                => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext, RemoveUnusedMemberRule, RemoveUnreadMemberRule));
+                => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext));
         }
 
         private sealed class CompilationAnalyzer
         {
-            private readonly DiagnosticDescriptor _removeUnusedMembersRule, _removeUnreadMembersRule;
             private readonly object _gate;
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
             private readonly INamedTypeSymbol _taskType, _genericTaskType;
 
-            private CompilationAnalyzer(Compilation compilation, DiagnosticDescriptor removeUnusedMembersRule, DiagnosticDescriptor removeUnreadMembersRule)
+            private CompilationAnalyzer(Compilation compilation)
             {
-                _removeUnusedMembersRule = removeUnusedMembersRule;
-                _removeUnreadMembersRule = removeUnreadMembersRule;
                 _gate = new object();
 
                 // State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
@@ -93,9 +98,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _genericTaskType = compilation.TaskOfTType();
             }
 
-            public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext, DiagnosticDescriptor removeUnusedMembersRule, DiagnosticDescriptor removeUnreadMembersRule)
+            public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext)
             {
-                var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation, removeUnusedMembersRule, removeUnreadMembersRule);
+                var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation);
                 compilationAnalyzer.RegisterActions(compilationStartContext);
             }
 
@@ -103,12 +108,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             {
                 // We register following actions in the compilation:
                 // 1. A symbol action for member symbols to ensure the member's unused state is initialized to true for every private member symbol.
-                // 2. Operation actions for member references and invocations to detect member usages, i.e. read or read reference taken.
+                // 2. Operation actions for member references, invocations and object creations to detect member usages, i.e. read or read reference taken.
                 // 3. Operation action for field initializers to detect non-constant initialization.
                 // 4. Operation action for invalid operations to bail out on erroneous code.
                 // 5. A symbol start/end action for named types to report diagnostics for candidate members that have no usage in executable code.
                 //
-                // Note that we need to register separately for OperationKind.Invocation due to https://github.com/dotnet/roslyn/issues/26206
+                // Note that we need to register separately for OperationKind.Invocation and OperationKind.ObjectCreation due to https://github.com/dotnet/roslyn/issues/26206
 
                 compilationStartContext.RegisterSymbolAction(AnalyzeSymbolDeclaration, SymbolKind.Method, SymbolKind.Field, SymbolKind.Property, SymbolKind.Event);
 
@@ -118,6 +123,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                     symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
                     symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
+                    symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
                     symbolStartContext.RegisterOperationAction(_ => hasInvalidOperation = true, OperationKind.Invalid);
                     symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasInvalidOperation));
                 }, SymbolKind.NamedType);
@@ -125,7 +131,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             private void AnalyzeSymbolDeclaration(SymbolAnalysisContext symbolContext)
             {
-                if (IsCandidateSymbol(symbolContext.Symbol))
+                var symbol = symbolContext.Symbol.OriginalDefinition;
+                if (IsCandidateSymbol(symbol))
                 {
                     lock (_gate)
                     {
@@ -134,9 +141,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // Note that we might receive a symbol reference (AnalyzeMemberOperation) callback before
                         // this symbol declaration callback, so even though we cannot receive duplicate callbacks for a symbol,
                         // an entry might already be present of the declared symbol here.
-                        if (!_symbolValueUsageStateMap.ContainsKey(symbolContext.Symbol))
+                        if (!_symbolValueUsageStateMap.ContainsKey(symbol))
                         {
-                            _symbolValueUsageStateMap.Add(symbolContext.Symbol, ValueUsageInfo.None);
+                            _symbolValueUsageStateMap.Add(symbol, ValueUsageInfo.None);
                         }
                     }
                 }
@@ -155,7 +162,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     foreach (var field in initializer.InitializedFields)
                     {
-                        OnSymbolUsage(field, ValueUsageInfo.Write);
+                        if (IsCandidateSymbol(field))
+                        {
+                            OnSymbolUsage(field, ValueUsageInfo.Write);
+                        }
                     }
                 }
             }
@@ -193,7 +203,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private void AnalyzeMemberReferenceOperation(OperationAnalysisContext operationContext)
             {
                 var memberReference = (IMemberReferenceOperation)operationContext.Operation;
-                if (IsCandidateSymbol(memberReference.Member))
+                var memberSymbol = memberReference.Member.OriginalDefinition;
+                if (IsCandidateSymbol(memberSymbol))
                 {
                     // Get the value usage info.
                     var valueUsageInfo = memberReference.GetValueUsageInfo();
@@ -225,18 +236,29 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         }
                     }
 
-                    OnSymbolUsage(memberReference.Member, valueUsageInfo);
+                    OnSymbolUsage(memberSymbol, valueUsageInfo);
                 }
             }
 
             private void AnalyzeInvocationOperation(OperationAnalysisContext operationContext)
             {
-                var invocation = (IInvocationOperation)operationContext.Operation;
-                if (IsCandidateSymbol(invocation.TargetMethod))
+                var targetMethod = ((IInvocationOperation)operationContext.Operation).TargetMethod.OriginalDefinition;
+                if (IsCandidateSymbol(targetMethod))
                 {
                     // A method invocation is considered as a read reference to the symbol
                     // to ensure that we consider the method as "used".
-                    OnSymbolUsage(invocation.TargetMethod, ValueUsageInfo.Read);
+                    OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
+                }
+            }
+
+            private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
+            {
+                var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor.OriginalDefinition;
+                if (IsCandidateSymbol(constructor))
+                {
+                    // An object creation is considered as a read reference to the constructor
+                    // to ensure that we consider the constructor as "used".
+                    OnSymbolUsage(constructor, ValueUsageInfo.Read);
                 }
             }
 
@@ -283,8 +305,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                             // Report IDE0051 or IDE0052 based on whether the underlying member has any Write/WritableRef/NonReadWriteRef references or not.
                             var rule = !valueUsageInfo.ContainsWriteOrWritableRef() && !valueUsageInfo.ContainsNonReadWriteRef() && !symbolsReferencedInDocComments.Contains(member)
-                                ? _removeUnusedMembersRule
-                                : _removeUnreadMembersRule;
+                                ? s_removeUnusedMembersWithFadingRule
+                                : s_removeUnreadMembersWithFadingRule;
                             var effectiveSeverity = rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options);
 
                             // Most of the members should have a single location, except for partial methods.
@@ -346,6 +368,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             private bool IsCandidateSymbol(ISymbol memberSymbol)
             {
+                Debug.Assert(memberSymbol == memberSymbol.OriginalDefinition);
+
                 if (memberSymbol.DeclaredAccessibility == Accessibility.Private &&
                     !memberSymbol.IsImplicitlyDeclared)
                 {
@@ -358,14 +382,28 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             //   2. Abstract/Virtual/Override methods
                             //   3. Extern methods
                             //   4. Interface implementation methods
+                            //   5. Constructors with no parameters.
+                            //   6. Static constructors.
+                            //   7. Destructors.
                             var methodSymbol = (IMethodSymbol)memberSymbol;
-                            return methodSymbol.AssociatedSymbol == null &&
-                                !IsEntryPoint(methodSymbol) &&
-                                !methodSymbol.IsAbstract &&
-                                !methodSymbol.IsVirtual &&
-                                !methodSymbol.IsOverride &&
-                                !methodSymbol.IsExtern &&
-                                methodSymbol.ExplicitInterfaceImplementations.IsEmpty;
+                            switch (methodSymbol.MethodKind)
+                            {
+                                case MethodKind.Constructor:
+                                    return methodSymbol.Parameters.Length > 0;
+
+                                case MethodKind.StaticConstructor:
+                                case MethodKind.Destructor:
+                                    return false;
+
+                                default:
+                                    return methodSymbol.AssociatedSymbol == null &&
+                                           !IsEntryPoint(methodSymbol) &&
+                                           !methodSymbol.IsAbstract &&
+                                           !methodSymbol.IsVirtual &&
+                                           !methodSymbol.IsOverride &&
+                                           !methodSymbol.IsExtern &&
+                                           methodSymbol.ExplicitInterfaceImplementations.IsEmpty;
+                            }
 
                         case SymbolKind.Field:
                             return ((IFieldSymbol)memberSymbol).AssociatedSymbol == null;
