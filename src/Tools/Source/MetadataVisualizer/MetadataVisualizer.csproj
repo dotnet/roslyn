@@ -10,7 +10,7 @@
     <RootNamespace>MetadataVisualizer</RootNamespace>
     <AssemblyName>mdv</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
