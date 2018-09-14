@@ -174,6 +174,8 @@
     <RoslynToolsNuGetRepackVersion>1.0.0-beta3.18524.1</RoslynToolsNuGetRepackVersion>
     <RoslynToolsBuildTasksVersion>1.0.0-beta3.18524.1</RoslynToolsBuildTasksVersion>
     <RoslynToolsReferenceAssembliesVersion>0.1.3</RoslynToolsReferenceAssembliesVersion>
+    <RoslynToolsOptProfVersion>1.0.0-beta3.18524.2</RoslynToolsOptProfVersion>
+    <RoslynOptProfRunSettingsGeneratorVersion>1.0.0-beta3.18524.2</RoslynOptProfRunSettingsGeneratorVersion>
     <RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>4.3.0</RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <StreamJsonRpcVersion>1.3.23</StreamJsonRpcVersion>
