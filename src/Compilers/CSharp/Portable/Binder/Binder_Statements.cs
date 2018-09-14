@@ -712,16 +712,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal MethodSymbol TryFindDisposePatternMethod(TypeSymbol exprType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             LookupResult lookupResult = LookupResult.GetInstance();
-            
-            MethodSymbol disposeMethod = FindPatternMethod(exprType, WellKnownMemberNames.DisposeMethodName, lookupResult, syntaxNode, searchExtensionMethods: true, warningsOnly: true, diagnostics, syntaxNode.SyntaxTree, MessageID.IDS_Disposable);
-            lookupResult.Free();
 
-            if (disposeMethod?.ReturnsVoid == false)
+            DiagnosticBag initialDiagnostics = DiagnosticBag.GetInstance();
+            MethodSymbol disposeMethod = FindPatternMethodRelaxed(exprType,
+                                                                  WellKnownMemberNames.DisposeMethodName,
+                                                                  lookupResult,
+                                                                  syntaxNode,
+                                                                  warningsOnly: true,
+                                                                  initialDiagnostics,
+                                                                  syntaxNode.SyntaxTree,
+                                                                  MessageID.IDS_Disposable);
+
+            if (disposeMethod != null && disposeMethod.ReturnsVoid == false)
             {
-                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, exprType, MessageID.IDS_Disposable.Localize(), disposeMethod);
+                ReportPatternWarning(initialDiagnostics, exprType, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
                 disposeMethod = null;
             }
 
+            if (disposeMethod is null)
+            {
+                lookupResult.Clear();
+                disposeMethod = FindPatternExtensionMethod(exprType,
+                                                           WellKnownMemberNames.DisposeMethodName,
+                                                           lookupResult,
+                                                           syntaxNode,
+                                                           diagnostics,
+                                                           MessageID.IDS_Disposable);
+
+                if (disposeMethod != null && disposeMethod.ReturnsVoid == false)
+                {
+                    ReportPatternWarning(diagnostics, exprType, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
+                    disposeMethod = null;
+                }
+            }
+
+            if (disposeMethod is null)
+            {
+                diagnostics.AddRange(initialDiagnostics);
+            }
+
+            lookupResult.Free();
             return disposeMethod;
         }
 
@@ -1009,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert((object)declTypeOpt != null);
-            
+
             if (kind == LocalDeclarationKind.FixedVariable)
             {
                 // NOTE: this is an error, but it won't prevent further binding.
@@ -1267,13 +1297,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 BoundExpression patternMethodCall = BindMethodGroupInvocation(
-                    initializer.Syntax, 
-                    initializer.Syntax, 
-                    methodName, 
-                    (BoundMethodGroup)boundAccess, 
-                    analyzedArguments, 
-                    bindingDiagnostics, 
-                    queryClause: null, 
+                    initializer.Syntax,
+                    initializer.Syntax,
+                    methodName,
+                    (BoundMethodGroup)boundAccess,
+                    analyzedArguments,
+                    bindingDiagnostics,
+                    queryClause: null,
                     allowUnexpandedForm: false);
 
                 analyzedArguments.Free();
@@ -1326,11 +1356,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// information it needs (e.g. conversions, helper methods).
         /// </summary>
         private BoundExpression GetFixedLocalCollectionInitializer(
-            BoundExpression initializer, 
-            TypeSymbol elementType, 
-            TypeSymbol declType, 
+            BoundExpression initializer,
+            TypeSymbol elementType,
+            TypeSymbol declType,
             MethodSymbol patternMethodOpt,
-            bool hasErrors, 
+            bool hasErrors,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(initializer != null);
@@ -1437,7 +1467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression op2,
             bool isRef,
             DiagnosticBag diagnostics)
-        {                      
+        {
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
 
@@ -1483,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Event assignment is a call to void WindowsRuntimeMarshal.AddEventHandler<T>().
                 type = this.GetSpecialType(SpecialType.System_Void, diagnostics, node);
-            } 
+            }
             else
             {
                 type = op1.Type;
@@ -1498,19 +1528,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expr.Kind)
             {
                 case BoundKind.PropertyAccess:
-                    {
-                        var propertyAccess = (BoundPropertyAccess)expr;
-                        receiver = propertyAccess.ReceiverOpt;
-                        propertySymbol = propertyAccess.PropertySymbol;
-                    }
-                    break;
+                {
+                    var propertyAccess = (BoundPropertyAccess)expr;
+                    receiver = propertyAccess.ReceiverOpt;
+                    propertySymbol = propertyAccess.PropertySymbol;
+                }
+                break;
                 case BoundKind.IndexerAccess:
-                    {
-                        var indexerAccess = (BoundIndexerAccess)expr;
-                        receiver = indexerAccess.ReceiverOpt;
-                        propertySymbol = indexerAccess.Indexer;
-                    }
-                    break;
+                {
+                    var indexerAccess = (BoundIndexerAccess)expr;
+                    receiver = indexerAccess.ReceiverOpt;
+                    propertySymbol = indexerAccess.Indexer;
+                }
+                break;
                 default:
                     receiver = null;
                     propertySymbol = null;
@@ -2059,91 +2089,91 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (operand.Kind)
             {
                 case BoundKind.BadExpression:
-                    {
-                        return;
-                    }
+                {
+                    return;
+                }
                 case BoundKind.UnboundLambda:
-                    {
-                        GenerateAnonymousFunctionConversionError(diagnostics, syntax, (UnboundLambda)operand, targetType);
-                        return;
-                    }
+                {
+                    GenerateAnonymousFunctionConversionError(diagnostics, syntax, (UnboundLambda)operand, targetType);
+                    return;
+                }
                 case BoundKind.TupleLiteral:
+                {
+                    var tuple = (BoundTupleLiteral)operand;
+                    var targetElementTypes = default(ImmutableArray<TypeSymbol>);
+
+                    // If target is a tuple or compatible type with the same number of elements,
+                    // report errors for tuple arguments that failed to convert, which would be more useful.
+                    if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
+                        targetElementTypes.Length == tuple.Arguments.Length)
                     {
-                        var tuple = (BoundTupleLiteral)operand;
-                        var targetElementTypes = default(ImmutableArray<TypeSymbol>);
-
-                        // If target is a tuple or compatible type with the same number of elements,
-                        // report errors for tuple arguments that failed to convert, which would be more useful.
-                        if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
-                            targetElementTypes.Length == tuple.Arguments.Length)
-                        {
-                            GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
-                            return;
-                        }
-
-                        // target is not compatible with source and source does not have a type
-                        if ((object)tuple.Type == null)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_ConversionNotTupleCompatible, syntax, tuple.Arguments.Length, targetType);
-                            return;
-                        }
-
-                        // Otherwise it is just a regular conversion failure from T1 to T2.
-                        break;
+                        GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
+                        return;
                     }
+
+                    // target is not compatible with source and source does not have a type
+                    if ((object)tuple.Type == null)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_ConversionNotTupleCompatible, syntax, tuple.Arguments.Length, targetType);
+                        return;
+                    }
+
+                    // Otherwise it is just a regular conversion failure from T1 to T2.
+                    break;
+                }
                 case BoundKind.MethodGroup:
+                {
+                    var methodGroup = (BoundMethodGroup)operand;
+                    if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
                     {
-                        var methodGroup = (BoundMethodGroup)operand;
-                        if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
+                        var nodeForSquiggle = syntax;
+                        while (nodeForSquiggle.Kind() == SyntaxKind.ParenthesizedExpression)
                         {
-                            var nodeForSquiggle = syntax;
-                            while (nodeForSquiggle.Kind() == SyntaxKind.ParenthesizedExpression)
-                            {
-                                nodeForSquiggle = ((ParenthesizedExpressionSyntax)nodeForSquiggle).Expression;
-                            }
-
-                            if (nodeForSquiggle.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForSquiggle.Kind() == SyntaxKind.PointerMemberAccessExpression)
-                            {
-                                nodeForSquiggle = ((MemberAccessExpressionSyntax)nodeForSquiggle).Name;
-                            }
-
-                            var location = nodeForSquiggle.Location;
-
-                            if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, location))
-                            {
-                                return;
-                            }
-
-                            Error(diagnostics,
-                                targetType.IsDelegateType() ? ErrorCode.ERR_MethDelegateMismatch : ErrorCode.ERR_MethGrpToNonDel,
-                                location, methodGroup.Name, targetType);
+                            nodeForSquiggle = ((ParenthesizedExpressionSyntax)nodeForSquiggle).Expression;
                         }
 
-                        return;
+                        if (nodeForSquiggle.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForSquiggle.Kind() == SyntaxKind.PointerMemberAccessExpression)
+                        {
+                            nodeForSquiggle = ((MemberAccessExpressionSyntax)nodeForSquiggle).Name;
+                        }
+
+                        var location = nodeForSquiggle.Location;
+
+                        if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, location))
+                        {
+                            return;
+                        }
+
+                        Error(diagnostics,
+                            targetType.IsDelegateType() ? ErrorCode.ERR_MethDelegateMismatch : ErrorCode.ERR_MethGrpToNonDel,
+                            location, methodGroup.Name, targetType);
                     }
+
+                    return;
+                }
                 case BoundKind.Literal:
+                {
+                    if (operand.IsLiteralNull())
                     {
-                        if (operand.IsLiteralNull())
+                        if (targetType.TypeKind == TypeKind.TypeParameter)
                         {
-                            if (targetType.TypeKind == TypeKind.TypeParameter)
-                            {
-                                Error(diagnostics, ErrorCode.ERR_TypeVarCantBeNull, syntax, targetType);
-                                return;
-                            }
-                            if (targetType.IsValueType)
-                            {
-                                Error(diagnostics, ErrorCode.ERR_ValueCantBeNull, syntax, targetType);
-                                return;
-                            }
+                            Error(diagnostics, ErrorCode.ERR_TypeVarCantBeNull, syntax, targetType);
+                            return;
                         }
-                        break;
+                        if (targetType.IsValueType)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_ValueCantBeNull, syntax, targetType);
+                            return;
+                        }
                     }
+                    break;
+                }
                 case BoundKind.StackAllocArrayCreation:
-                    {
-                        var stackAllocExpression = (BoundStackAllocArrayCreation)operand;
-                        Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
-                        return;
-                    }
+                {
+                    var stackAllocExpression = (BoundStackAllocArrayCreation)operand;
+                    Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
+                    return;
+                }
             }
 
             var sourceType = operand.Type;
@@ -2904,7 +2934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : ErrorCode.WRN_FilterIsConstantFalse;
 
                 // Since the expression is a constant, the name can be retrieved from the first token
-                Error(diagnostics, errorCode, filter.FilterExpression);                
+                Error(diagnostics, errorCode, filter.FilterExpression);
             }
 
             return boundFilter;
@@ -3132,8 +3162,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
                                                   constructor.Initializer == null ? null : bodyBinder.BindConstructorInitializer(constructor.Initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
-                                                  constructor.ExpressionBody == null ? 
-                                                      null : 
+                                                  constructor.ExpressionBody == null ?
+                                                      null :
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : new DiagnosticBag()));
         }
@@ -3158,9 +3188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundNonConstructorMethodBody(declaration,
                                                      blockBody == null ? null : (BoundBlock)BindStatement(blockBody, diagnostics),
-                                                     expressionBody == null ? 
-                                                         null : 
-                                                         BindExpressionBodyAsBlock(expressionBody, 
+                                                     expressionBody == null ?
+                                                         null :
+                                                         BindExpressionBodyAsBlock(expressionBody,
                                                                                    blockBody == null ? diagnostics : new DiagnosticBag()));
         }
 
@@ -3189,24 +3219,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Perform a lookup for the specified method on the specified type.  Perform overload resolution
-        /// on the lookup results.
+        /// Perform a lookup for the specified method on the specified type, stopping at the first resolved symbol.
+        /// Perform overload resolution on the lookup results.
         /// </summary>
         /// <param name="patternType">Type to search.</param>
         /// <param name="methodName">Method to search for.</param>
+        /// <param name="syntaxExpr">The expression for which lookup is being performed</param>
         /// <param name="lookupResult">Passed in for reusability.</param>
-        /// <param name="searchExtensionMethods">True if the lookup should consider extension methods as viable candidates</param>
         /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
         /// <param name="diagnostics">Populated with binding diagnostics.</param>
+        /// <param name="syntaxTree">The tree this lookup is being performed on.</param>
+        /// <param name="messageID">The ID of the message to use when reporting diagnostics</param>
         /// <returns>The desired method or null.</returns>
-        internal MethodSymbol FindPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult,
-                                                SyntaxNode syntaxExpr, bool searchExtensionMethods, bool warningsOnly, DiagnosticBag diagnostics,
-                                                SyntaxTree syntaxTree, MessageID messageID)
+        /// <remarks>This is the pre C# 8.0 resolution behavior, originally implemented for GetEnumerator/MoveNext</remarks>
+        internal MethodSymbol FindPatternMethodStrict(TypeSymbol patternType, string methodName, LookupResult lookupResult,
+                                                      SyntaxNode syntaxExpr, bool warningsOnly, DiagnosticBag diagnostics,
+                                                      SyntaxTree syntaxTree, MessageID messageID)
         {
             Debug.Assert(lookupResult.IsClear);
-
-            //prototype:
-            LookupOptions lookupOptions = (searchExtensionMethods) ? LookupOptions.MustBeInvocableIfMember : LookupOptions.Default;
 
             // Not using LookupOptions.MustBeInvocableMember because we don't want the corresponding lookup error.
             // We filter out non-methods below.
@@ -3217,16 +3247,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodName,
                 arity: 0,
                 basesBeingResolved: null,
-                options: lookupOptions,
+                options: LookupOptions.Default,
                 originalBinder: this,
                 diagnose: false,
                 useSiteDiagnostics: ref useSiteDiagnostics);
 
             diagnostics.Add(syntaxExpr, useSiteDiagnostics);
 
-            MethodSymbol patternMethod = null;
-
-            if (!lookupResult.IsMultiViable && !searchExtensionMethods)
+            if (!lookupResult.IsMultiViable)
             {
                 ReportPatternMemberLookupDiagnostics(lookupResult, patternType, methodName, syntaxExpr, warningsOnly, diagnostics, messageID);
                 return null;
@@ -3260,37 +3288,141 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            patternMethod = PerformPatternOverloadResolution(patternType, candidateMethods, syntaxExpr, warningsOnly, diagnostics, syntaxTree, messageID);
+            MethodSymbol patternMethod = PerformPatternOverloadResolution(patternType, candidateMethods, syntaxExpr, warningsOnly, diagnostics, syntaxTree, messageID);
             candidateMethods.Free();
 
+            return patternMethod;
+        }
 
-            // if we failed to find a method via normal lookup, see if there is an extension method that satisifies it
-            if (patternMethod == null && searchExtensionMethods)
+
+        /// <summary>
+        /// Perform a lookup for the specified method on the specified type, searching further if the first resolved symbol doesn't match
+        /// the requirements. Perform overload resolution the lookup results.
+        /// </summary>
+        /// <param name="patternType">Type to search.</param>
+        /// <param name="methodName">Method to search for.</param>
+        /// <param name="syntaxExpr">The expression for which lookup is being performed</param>
+        /// <param name="lookupResult">Passed in for reusability.</param>
+        /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
+        /// <param name="diagnostics">Populated with binding diagnostics.</param>
+        /// <param name="syntaxTree">The tree this lookup is being performed on.</param>
+        /// <param name="messageID">The ID of the message to use when reporting diagnostics</param>
+        /// <returns>The desired method or null.</returns>
+        internal MethodSymbol FindPatternMethodRelaxed(TypeSymbol patternType, string methodName, LookupResult lookupResult,
+                                                       SyntaxNode syntaxExpr, bool warningsOnly, DiagnosticBag diagnostics,
+                                                       SyntaxTree syntaxTree, MessageID messageID)
+        {
+            Debug.Assert(lookupResult.IsClear);
+
+            var currentType = patternType;
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            ArrayBuilder<MethodSymbol> candidateMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+            PooledHashSet<NamedTypeSymbol> checkedMethods = null;
+
+            while (!(patternType is null))
             {
-                var extLookupResult = LookupResult.GetInstance();
-                this.LookupExtensionMethods(extLookupResult, methodName, 0, lookupOptions, ref useSiteDiagnostics);
+                this.LookupMembersInType(lookupResult,
+                                         patternType,
+                                         methodName,
+                                         arity: 0,
+                                         basesBeingResolved: null,
+                                         options: LookupOptions.Default,
+                                         originalBinder: this,
+                                         diagnose: false,
+                                         useSiteDiagnostics: ref useSiteDiagnostics);
 
-                // if there are multiple extension methods found it is ambiguous which one to use 
-                if (extLookupResult.IsMultiViable && extLookupResult.Symbols.Count > 1)
+                if (lookupResult.IsMultiViable)
                 {
-                    diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, syntaxExpr.Location, patternType, messageID.Localize(),
-                      (MethodSymbol)extLookupResult.Symbols[0], (MethodSymbol)extLookupResult.Symbols[1]);
+                    // from the methods we found, see if any are viable
+                    foreach (Symbol member in lookupResult.Symbols)
+                    {
+                        if (member.Kind != SymbolKind.Method)
+                        {
+                            ReportPatternWarning(diagnostics, patternType, member, syntaxExpr, messageID);
+                        }
+
+                        //PROTOTYPE: for now both strict/relaxed lookup require zero params, but relaxed should allow e.g. (params object[])
+                        if (member is MethodSymbol method && !method.Parameters.Any())
+                        {
+                            candidateMethods.Add(method);
+                        }
+                    }
+
+                    if (candidateMethods.Any())
+                    {
+                        // we have found some valid methods, so stop searching
+                        break;
+                    }
+                    else
+                    {
+                        // the ones we found weren't viable. Try again, starting from the parent of where we found these
+                        patternType = patternType.GetNextBaseTypeNoUseSiteDiagnostics(null, Compilation, ref checkedMethods);
+                        lookupResult.Clear();
+                    }
                 }
-                else if (extLookupResult.IsSingleViable && extLookupResult.SingleSymbolOrDefault.GetParameters().Length == 1 && extLookupResult.SingleSymbolOrDefault is MethodSymbol method)
+                else
                 {
-                    patternMethod = method;
+                    break;
                 }
-
-                extLookupResult.Free();
-
-                if (patternMethod == null)
-                {
-                    ReportPatternMemberLookupDiagnostics(extLookupResult, patternType, methodName, syntaxExpr, warningsOnly, diagnostics, messageID);
-                    return null;
-                }
-
-
             }
+
+            MethodSymbol patternMethod = PerformPatternOverloadResolution(patternType, candidateMethods, syntaxExpr, warningsOnly, diagnostics, syntaxTree, messageID);
+            candidateMethods.Free();
+
+            return patternMethod;
+        }
+
+        /// <summary>
+        /// Finds a pattern method implemented as an extension method, stopping at the first matching method
+        /// </summary>
+        /// <param name="patternType">Type to search.</param>
+        /// <param name="methodName">Method to search for.</param>
+        /// <param name="syntaxExpr">The expression for which lookup is being performed</param>
+        /// <param name="lookupResult">Passed in for reusability.</param>
+        /// <param name="diagnostics">Populated with binding diagnostics.</param>
+        /// <param name="messageID">The ID of the message to use when reporting diagnostics</param>
+        /// <returns>The desired method or null.</returns>
+        private MethodSymbol FindPatternExtensionMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult,
+                                                        SyntaxNode syntaxExpr, DiagnosticBag diagnostics, MessageID messageID)
+        {
+            Debug.Assert(lookupResult.IsClear);
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            MethodSymbol patternMethod = null;
+            ArrayBuilder<MethodSymbol> checkedMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+
+            foreach (var scope in new ExtensionMethodScopes(this))
+            {
+                this.LookupExtensionMethodsInSingleBinder(scope, lookupResult, methodName, arity: 0, options: LookupOptions.Default, ref useSiteDiagnostics);
+
+                if (lookupResult.IsMultiViable)
+                {
+                    ArrayBuilder<MethodSymbol> candidateMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+                    foreach (var symbol in lookupResult.Symbols)
+                    {
+                        //PROTOTYPE: for now, just check for the single this param. We probably want to also  allow e.g. dispose(this, int a = 4, params object[] args)
+                        if (symbol is MethodSymbol method && method.ParameterCount == 1 && !checkedMethods.Contains(method))
+                        {
+                            candidateMethods.Add(method);
+                            checkedMethods.Add(method);
+                        }
+                    }
+
+                    if (candidateMethods.Count > 1)
+                    {
+                        // too many candidates
+                        diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, syntaxExpr.Location, patternType, messageID.Localize(), lookupResult.Symbols[0], lookupResult.Symbols[1]);
+                    }
+                    else if (candidateMethods.Count == 1)
+                    {
+                        patternMethod = candidateMethods.Single();
+                        candidateMethods.Free();
+                        break;
+                    }
+                    candidateMethods.Free();
+                }
+            }
+            checkedMethods.Free();
 
             return patternMethod;
         }
@@ -3381,7 +3513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string memberName, SyntaxNode expression,
             bool warningsOnly, DiagnosticBag diagnostics,
             MessageID messageID)
-        { 
+        {
             if (lookupResult.Symbols.Any())
             {
                 if (warningsOnly)

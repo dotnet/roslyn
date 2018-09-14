@@ -343,6 +343,43 @@ class C3
         }
 
         [Fact]
+        public void UsingPatternHidingInvalidInheritedWithPropertyTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public int Dispose() { return 0; }
+}
+
+class C2 : C1
+{
+    public new int Dispose { get; } 
+}
+
+class C3
+{
+    static void Main()
+    {
+        using (C2 c = new C2())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (17,16): warning CS0280: 'C2' does not implement the 'disposable' pattern. 'C1.Dispose()' has the wrong signature.
+                //         using (C2 c = new C2())
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C2 c = new C2()").WithArguments("C2", "disposable", "C1.Dispose()").WithLocation(17, 16),
+                // (17,16): warning CS0280: 'C2' does not implement the 'disposable' pattern. 'C2.Dispose' has the wrong signature.
+                //         using (C2 c = new C2())
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C2 c = new C2()").WithArguments("C2", "disposable", "C2.Dispose").WithLocation(17, 16),
+                // (17,16): error CS1674: 'C2': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (C2 c = new C2())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C2 c = new C2()").WithArguments("C2").WithLocation(17, 16)
+                );
+        }
+
+        [Fact]
         public void UsingPatternExtensionMethodTest()
         {
             var source = @"
@@ -368,6 +405,113 @@ class C3
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodPropertyHidingTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+
+    public int Dispose { get; }
+}
+
+static class C2 
+{
+    public static void Dispose(this C1 c1) { }
+}
+
+class C3
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+        C1 c1b = new C1();
+        using (c1b) { }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternHidingInvalidInheritedWithPropertyAndValidExtensionMethodTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public int Dispose() { return 0; }
+}
+
+class C2 : C1
+{
+    public new int Dispose { get; } 
+}
+
+static class C3
+{
+    public static void Dispose(this C1 c1){ }
+}
+
+class C4
+{
+    static void Main()
+    {
+        using (C2 c = new C2())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternHidingInvalidInheritedWithPropertyAndInvalidExtensionMethodTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public int Dispose() { return 0; }
+}
+
+class C2 : C1
+{
+    public new int Dispose { get; } 
+}
+
+static class C3
+{
+    public static int Dispose(this C1 c1){ return 0; }
+}
+
+class C4
+{
+    static void Main()
+    {
+        using (C2 c = new C2())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (22,16): warning CS0280: 'C2' does not implement the 'disposable' pattern. 'C4.Dispose(C1)' has the wrong signature.
+                //         using (C2 c = new C2())
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C2 c = new C2()").WithArguments("C2", "disposable", "C3.Dispose(C1)").WithLocation(22, 16),
+                // (17,16): warning CS0280: 'C2' does not implement the 'disposable' pattern. 'C1.Dispose()' has the wrong signature.
+                //         using (C2 c = new C2())
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C2 c = new C2()").WithArguments("C2", "disposable", "C1.Dispose()").WithLocation(22, 16),
+                // (17,16): warning CS0280: 'C2' does not implement the 'disposable' pattern. 'C2.Dispose' has the wrong signature.
+                //         using (C2 c = new C2())
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C2 c = new C2()").WithArguments("C2", "disposable", "C2.Dispose").WithLocation(22, 16),
+                // (17,16): error CS1674: 'C2': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (C2 c = new C2())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C2 c = new C2()").WithArguments("C2").WithLocation(22, 16)
+                );
         }
 
         [Fact]
