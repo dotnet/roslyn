@@ -625,7 +625,10 @@ function Stop-VSProcesses() {
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
+       
+    $fxVersion = (Get-ItemProperty -Path "HKLM:SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\").Version
 
+    Write-Host ".NET Framework Installed on the machine: $fxVersion"
     Write-Host "Repo Dir $repoDir"
     Write-Host "Binaries Dir $binariesDir"
 
