@@ -69,6 +69,14 @@ do
     echo Running "${runtime} ${file_name[@]}"
     if [[ "${runtime}" == "dotnet" ]]; then
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
+
+        # Disable the VB Semantic tests while we investigate the core dump issue
+        # https://github.com/dotnet/roslyn/issues/29660
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] 
+        then
+            echo "Skipping ${file_name[@]}"
+            continue
+        fi
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono
     fi
