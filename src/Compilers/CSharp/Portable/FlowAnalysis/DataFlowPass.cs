@@ -2256,7 +2256,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#endregion Visitors
+        protected override void ConditionallyAssignNullCoalescingOperator(BoundNullCoalescingAssignmentOperator node)
+        {
+            Assign(node.LeftOperand, node.RightOperand);
+        }
+
+        #endregion Visitors
 
         protected override string Dump(LocalState state)
         {

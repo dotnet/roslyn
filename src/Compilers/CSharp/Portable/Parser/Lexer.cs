@@ -573,7 +573,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (TextWindow.PeekChar() == '?')
                     {
                         TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.QuestionQuestionToken;
+
+                        if (TextWindow.PeekChar() == '=')
+                        {
+                            TextWindow.AdvanceChar();
+                            info.Kind = SyntaxKind.QuestionQuestionEqualsToken;
+                        }
+                        else
+                        {
+                            info.Kind = SyntaxKind.QuestionQuestionToken;
+                        }
                     }
                     else
                     {

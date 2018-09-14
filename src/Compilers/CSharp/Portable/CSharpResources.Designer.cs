@@ -10512,6 +10512,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to coalescing assignment.
+        /// </summary>
+        internal static string IDS_FeatureCoalesceAssignmentExpression {
+            get {
+                return ResourceManager.GetString("IDS_FeatureCoalesceAssignmentExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to collection initializer.
         /// </summary>
         internal static string IDS_FeatureCollectionInitializer {
@@ -11057,6 +11066,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureTypeVariance {
             get {
                 return ResourceManager.GetString("IDS_FeatureTypeVariance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unconstrained type parameters in null coalescing operator.
+        /// </summary>
+        internal static string IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator", resourceCulture);
             }
         }
         
@@ -12974,6 +12992,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_DebugFullNameTooLong_Title {
             get {
                 return ResourceManager.GetString("WRN_DebugFullNameTooLong_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;default&apos; is converted to &apos;null&apos;, not &apos;default({0})&apos;.
+        /// </summary>
+        internal static string WRN_DefaultLiteralConvertedToNullIsNotIntended {
+            get {
+                return ResourceManager.GetString("WRN_DefaultLiteralConvertedToNullIsNotIntended", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;default&apos; is converted to &apos;null&apos;.
+        /// </summary>
+        internal static string WRN_DefaultLiteralConvertedToNullIsNotIntended_Title {
+            get {
+                return ResourceManager.GetString("WRN_DefaultLiteralConvertedToNullIsNotIntended_Title", resourceCulture);
             }
         }
         

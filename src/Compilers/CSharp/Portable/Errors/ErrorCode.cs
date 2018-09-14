@@ -1461,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region more stragglers for C# 7
         ERR_VarInvocationLvalueReserved = 8199,
         //ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
-        //ERR_ExpressionVariableInQueryClause = 8201, 
+        //ERR_ExpressionVariableInQueryClause = 8201,
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
         ERR_BadAsyncMethodBuilderTaskProperty = 8204,
@@ -1582,6 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# 8.0
         ERR_FeatureNotAvailableInVersion8 = 8400,
         ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
+        WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
         #endregion diagnostics introduced for C# 8.0
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
