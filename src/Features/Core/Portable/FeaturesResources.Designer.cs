@@ -809,6 +809,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to CodeQuality.
+        /// </summary>
+        internal static string CodeQuality {
+            get {
+                return ResourceManager.GetString("CodeQuality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Collection initialization can be simplified.
         /// </summary>
         internal static string Collection_initialization_can_be_simplified {

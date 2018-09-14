@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,68 +13,42 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
     internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : DiagnosticAnalyzer, IBuiltInAnalyzer
         where TDocumentationCommentTriviaSyntax: SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
-        private static readonly DiagnosticDescriptor s_removeUnusedMembersRule;
-        private static readonly DiagnosticDescriptor s_removeUnusedMembersWithFadingRule;
+        private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
+            IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
+            new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_an_unused_private_member_1_which_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources)));
 
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
-        private static readonly DiagnosticDescriptor s_removeUnreadMembersRule;
-        private static readonly DiagnosticDescriptor s_removeUnreadMembersWithFadingRule;
+        private static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
+            IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
+            new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read), FeaturesResources.ResourceManager, typeof(FeaturesResources)));
 
-        static AbstractRemoveUnusedMembersDiagnosticAnalyzer()
-        {
-            var removeUnusedMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            var removeUnusedMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_an_unused_private_member_1_which_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            s_removeUnusedMembersRule = CreateDescriptor(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
-                                                         removeUnusedMembersTitle,
-                                                         removeUnusedMembersMessage,
-                                                         configurable: true,
-                                                         enabledByDefault: true);
-            s_removeUnusedMembersWithFadingRule = CreateUnnecessaryDescriptor(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
-                                                                              removeUnusedMembersTitle,
-                                                                              removeUnusedMembersMessage,
-                                                                              configurable: true,
-                                                                              enabledByDefault: true);
+        private static DiagnosticDescriptor CreateDescriptor(string id, LocalizableResourceString title, LocalizableResourceString messageFormat)
+            => new DiagnosticDescriptor(id, title, messageFormat, DiagnosticCategory.CodeQuality,
+                    DiagnosticSeverity.Info, isEnabledByDefault: true, customTags: DiagnosticCustomTags.Unnecessary);
 
-            var removeUnreadMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            var removeUnreadMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            s_removeUnreadMembersRule = CreateDescriptor(IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
-                                                         removeUnreadMembersTitle,
-                                                         removeUnreadMembersMessage,
-                                                         configurable: true,
-                                                         enabledByDefault: true);
-            s_removeUnreadMembersWithFadingRule = CreateUnnecessaryDescriptor(IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
-                                                                              removeUnreadMembersTitle,
-                                                                              removeUnreadMembersMessage,
-                                                                              configurable: true,
-                                                                              enabledByDefault: true);
-        }
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_removeUnusedMembersRule, s_removeUnreadMembersRule);
 
-        protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
-            : base (ImmutableArray.Create(s_removeUnusedMembersRule,
-                                          s_removeUnusedMembersWithFadingRule,
-                                          s_removeUnreadMembersRule,
-                                          s_removeUnreadMembersWithFadingRule))
-        {
-        }
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
+        public bool OpenFileOnly(Workspace workspace) => false;
 
         // We need to analyze the whole document even for edits within a method body,
         // because we might add or remove references to members in executable code.
         // For example, if we had an unused field with no references, then editing any single method body
         // to reference this field should clear the unused field diagnostic.
         // Hence, we need to re-analyze the declarations in the whole file for any edits within the document. 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        protected override void InitializeWorker(AnalysisContext context)
+        public sealed override void Initialize(AnalysisContext context)
         {
             // We want to analyze references in generated code, but not report unused members in generated code.
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+            context.EnableConcurrentExecution();
 
             context.RegisterCompilationStartAction(compilationStartContext
                 => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext));
@@ -305,16 +278,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                             // Report IDE0051 or IDE0052 based on whether the underlying member has any Write/WritableRef/NonReadWriteRef references or not.
                             var rule = !valueUsageInfo.ContainsWriteOrWritableRef() && !valueUsageInfo.ContainsNonReadWriteRef() && !symbolsReferencedInDocComments.Contains(member)
-                                ? s_removeUnusedMembersWithFadingRule
-                                : s_removeUnreadMembersWithFadingRule;
-                            var effectiveSeverity = rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options);
+                                ? s_removeUnusedMembersRule
+                                : s_removeUnreadMembersRule;
 
                             // Most of the members should have a single location, except for partial methods.
                             // We report the diagnostic on the first location of the member.
-                            var diagnostic = DiagnosticHelper.Create(
+                            var diagnostic = Diagnostic.Create(
                                 rule,
                                 member.Locations[0],
-                                effectiveSeverity,
                                 additionalLocations: null,
                                 properties: null,
                                 member.ContainingType.Name,

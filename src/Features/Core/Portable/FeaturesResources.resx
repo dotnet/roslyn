@@ -1430,4 +1430,7 @@ This version used in: {2}</value>
   <data name="Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read" xml:space="preserve">
     <value>Type '{0}' has a private member '{1}' that can be removed as the value assigned to it is never read.</value>
   </data>
+  <data name="CodeQuality" xml:space="preserve">
+    <value>CodeQuality</value>
+  </data>
 </root>
