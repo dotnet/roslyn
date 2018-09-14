@@ -2118,7 +2118,7 @@ End Module
 
             ' On CoreClr the '*' is a legal path character
             ' https://github.com/dotnet/docs/issues/4483
-            Dim expectedStarPath = If(ExecutionConditionUtil.IsCoreClr, "C:\A\B\*", "*")
+            Dim expectedStarPath = If(ExecutionConditionUtil.IsCoreClr, "/X/A/B/*", "*")
             CompileAndVerify(compilation, expectedOutput:=$"
 1: '/X/filename'
 2: '/X/A/B/a/c/d.vb'

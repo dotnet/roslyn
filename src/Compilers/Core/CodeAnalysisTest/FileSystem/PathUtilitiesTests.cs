@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
                 (null, false),
                 ("", false),
                 ("  ", PathUtilities.IsUnixLikePlatform),
-                ("path/?.txt", true),
+                ("path/?.txt", ExecutionConditionUtil.IsCoreClr),
                 ("path/*.txt", PathUtilities.IsUnixLikePlatform),
                 ("path/:.txt", PathUtilities.IsUnixLikePlatform),
                 ("path/\".txt", PathUtilities.IsUnixLikePlatform),

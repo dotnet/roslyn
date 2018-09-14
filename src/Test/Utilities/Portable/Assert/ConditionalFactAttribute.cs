@@ -130,7 +130,7 @@ namespace Roslyn.Test.Utilities
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsDesktop => CoreClrShim.AssemblyLoadContext.Type == null;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
-        public static bool IsMonoDesktop() => Type.GetType("Mono.Runtime") != null;
+        public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
         public static bool IsCoreClr => !IsDesktop;
     }
 
