@@ -474,6 +474,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding a method with an explicit interface specifier will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_f" +
+                        "rom_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Alias ambiguous type &apos;{0}&apos;.
         /// </summary>
         internal static string Alias_ambiguous_type_0 {
@@ -2797,6 +2807,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unread private members.
+        /// </summary>
+        internal static string Remove_unread_private_members {
+            get {
+                return ResourceManager.GetString("Remove_unread_private_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused member.
+        /// </summary>
+        internal static string Remove_unused_member {
+            get {
+                return ResourceManager.GetString("Remove_unused_member", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused private members.
+        /// </summary>
+        internal static string Remove_unused_private_members {
+            get {
+                return ResourceManager.GetString("Remove_unused_private_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove unused variable.
         /// </summary>
         internal static string Remove_unused_variable {
@@ -3274,6 +3311,25 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; has a private member &apos;{1}&apos; that can be removed as the value assigned to it is never read..
+        /// </summary>
+        internal static string Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read {
+            get {
+                return ResourceManager.GetString("Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_" +
+                        "never_read", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; has an unused private member &apos;{1}&apos; which can be removed..
+        /// </summary>
+        internal static string Type_0_has_an_unused_private_member_1_which_can_be_removed {
+            get {
+                return ResourceManager.GetString("Type_0_has_an_unused_private_member_1_which_can_be_removed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to type constraint.
         /// </summary>
         internal static string type_constraint {
@@ -3653,6 +3709,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use block body for lambda expressions.
+        /// </summary>
+        internal static string Use_block_body_for_lambda_expressions {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_lambda_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use block body for methods.
         /// </summary>
         internal static string Use_block_body_for_methods {
@@ -3721,6 +3786,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_expression_body_for_indexers {
             get {
                 return ResourceManager.GetString("Use_expression_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for lambda expressions.
+        /// </summary>
+        internal static string Use_expression_body_for_lambda_expressions {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_lambda_expressions", resourceCulture);
             }
         }
         
