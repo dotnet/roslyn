@@ -145,6 +145,28 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 return TaintedDataAbstractValueDomain.Default.Merge(leftAbstractValue, rightAbstractValue);
             }
+
+            public override TaintedDataAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
+                IMethodSymbol method, 
+                IOperation visitedInstance,
+                ImmutableArray<IArgumentOperation> visitedArguments, 
+                bool invokedAsDelegate,
+                IOperation originalOperation, 
+                TaintedDataAbstractValue defaultValue)
+            {
+                // Always invoke base visit.
+                TaintedDataAbstractValue baseVisit = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
+                if (method.Name == "Get"
+                    && visitedInstance.Type == this.WellKnownTypeProvider.NameValueCollection
+                    && this.GetCachedAbstractValue(visitedInstance).Kind == TaintedDataAbstractValueKind.Tainted)
+                {
+                    return TaintedDataAbstractValue.Tainted;
+                }
+                else
+                {
+                    return baseVisit;
+                }
+            }
         }
     }
 }
