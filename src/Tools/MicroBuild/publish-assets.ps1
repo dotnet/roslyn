@@ -9,7 +9,7 @@
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     # Standard options
-    [string]$configDir = "",
+    [string]$config = "",
     [string]$branchName = "",
     [string]$releaseName = "",
     [switch]$test,
@@ -58,28 +58,22 @@ function Publish-NuGet([string]$packageDir, [string]$uploadUrl) {
 }
 
 function Publish-Vsix([string]$uploadUrl) {
-    Push-Location $configDir
-    try { 
-        Write-Host "Publishing VSIX to $uploadUrl"
-        $apiKey = Get-PublishKey $uploadUrl
-        $extensions = [xml](Get-Content (Join-Path $configDir "myget_org-extensions.config"))
-        foreach ($extension in $extensions.extensions.extension) {
-            $vsix = Join-Path $extension.path ($extension.id + ".vsix")
-            if (-not (Test-Path $vsix)) {
-                throw "VSIX $vsix does not exist"
-            }
-
-            Write-Host "  Publishing '$vsix'"
-            if (-not $test) { 
-                $response = Invoke-WebRequest -Uri $uploadUrl -Headers @{"X-NuGet-ApiKey"=$apiKey} -ContentType 'multipart/form-data' -InFile $vsix -Method Post -UseBasicParsing
-                if ($response.StatusCode -ne 201) {
-                    throw "Failed to upload VSIX extension: $vsix. Upload failed with Status code: $response.StatusCode"
-                }
+    Write-Host "Publishing VSIX to $uploadUrl"
+    $apiKey = Get-PublishKey $uploadUrl
+    $extensions = [xml](Get-Content (Join-Path $repoDir "build\config\myget_org-extensions.config"))
+    foreach ($extension in $extensions.extensions.extension) {
+        $vsix = Join-Path $vsSetupDir ($extension.id + ".vsix")
+        if (-not (Test-Path $vsix)) {
+            throw "VSIX $vsix does not exist"
+        }
+        
+        Write-Host "  Publishing '$vsix'"
+        if (-not $test) { 
+            $response = Invoke-WebRequest -Uri $uploadUrl -Headers @{"X-NuGet-ApiKey"=$apiKey} -ContentType 'multipart/form-data' -InFile $vsix -Method Post -UseBasicParsing
+            if ($response.StatusCode -ne 201) {
+                throw "Failed to upload VSIX extension: $vsix. Upload failed with Status code: $response.StatusCode"
             }
         }
-    }
-    finally {
-        Pop-Location
     }
 }
 
@@ -124,7 +118,9 @@ function Publish-Entry($publishData, [switch]$isBranch) {
 
     # Finally get our channels uploaded to versions
     foreach ($channel in $publishData.channels) {
-        Publish-Channel $packageDir $channel
+        foreach ($nugetKind in $publishData.nugetKind) {
+            Publish-Channel (Join-Path $nugetDir $nugetKind) $channel
+        }
     }
 
     exit 0
@@ -149,10 +145,12 @@ function Normalize-BranchName([string]$branchName) {
 try {
     . (Join-Path $PSScriptRoot "..\..\..\build\scripts\build-utils.ps1")
     $dotnet = Ensure-DotnetSdk
+    $configDir = Join-Path $binariesDir $config
     $nugetDir = Join-Path $configDir "NuGet"
+    $vsSetupDir = Join-Path $binariesDir "VSSetup\$config"
 
-    if ($configDir -eq "") {
-        Write-Host "Must provide the build output with -configDir"
+    if ($config -eq "") {
+        Write-Host "Must provide the build configuration with -config"
         exit 1
     }
 

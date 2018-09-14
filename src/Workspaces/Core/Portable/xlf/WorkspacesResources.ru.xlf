@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
-        <target state="new">Refactoring Only</target>
+        <target state="translated">Только рефакторинг</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">

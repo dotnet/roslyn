@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class LocalSlotMappingTests
         Inherits EditAndContinueTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub OutOfOrderUserLocals()
             Dim source = MarkedSource("
 Imports System
@@ -158,7 +158,7 @@ End Class
         ' <summary>
         ' Enc debug info Is only present in debug builds.
         ' </summary>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DebugOnly()
             Dim source =
 <compilation>
@@ -452,7 +452,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SynthesizedVariablesInLambdas1()
             Dim source =
             <compilation>
@@ -560,7 +560,7 @@ End Class
 #End If
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SynthesizedVariablesInIterator()
             Dim source =
             <compilation>
@@ -733,7 +733,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SynthesizedVariablesInAsyncMethod()
             Dim source =
             <compilation>

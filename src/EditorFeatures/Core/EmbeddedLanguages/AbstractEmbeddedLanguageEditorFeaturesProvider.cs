@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
          
         protected AbstractEmbeddedLanguageEditorFeaturesProvider(EmbeddedLanguageInfo info) : base(info)
         {
+            // No 'Fallback' language added here.  That's because the Fallback language doesn't
+            // support any of the IEmbeddedLanguageFeatures or IEmbeddedLanguageEditorFeatures
+            // capabilities.
             Languages = ImmutableArray.Create<IEmbeddedLanguageEditorFeatures>(
                 new RegexEmbeddedLanguageEditorFeatures(this, info));
         }
