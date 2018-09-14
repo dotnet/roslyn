@@ -52,6 +52,15 @@
     <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <!--
+      Package references needed due to Microsoft.DiaSymReader.Converter dependency on Newtonsoft.Json 9.0.1, 
+      which doesn't have netstandard 2.0 binaries.
+    -->
+    <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
+    <PackageReference Include="System.IO.FileSystem.Primitives" Version="$(SystemIOFileSystemPrimitivesVersion)" />
+    <PackageReference Include="System.Text.Encoding.Extensions" Version="$(SystemTextEncodingExtensionsVersion)" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
   </ItemGroup>
