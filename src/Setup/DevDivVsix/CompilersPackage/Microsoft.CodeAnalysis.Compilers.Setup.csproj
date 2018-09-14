@@ -51,7 +51,7 @@ package name=$(VisualStudioInsertionComponent)
         version=$(VsixVersion)
 
 vs.dependencies
-  vs.dependency id=Microsoft.Net.PackageGroup.4.6.1.Redist
+  vs.dependency id=Microsoft.Net.PackageGroup.4.7.2.Redist
 
 vs.nonCriticalProcesses
   vs.nonCriticalProcess name="VBCSCompiler"
