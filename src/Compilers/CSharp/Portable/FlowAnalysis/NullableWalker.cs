@@ -3369,12 +3369,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expr.Kind)
             {
                 case BoundKind.Local:
-                case BoundKind.Parameter:
-                    // PROTOTYPE(NullableReferenceTypes): Warnings when assigning to `ref`
-                    // or `out` parameters should be regular warnings. Warnings assigning to
-                    // other parameters should be W warnings.
-                    // PROTOTYPE(NullableReferenceTypes): Should parameters be non-W warnings?
                     return true;
+                case BoundKind.Parameter:
+                    RefKind kind = ((BoundParameter)expr).ParameterSymbol.RefKind;
+                    return kind == RefKind.None;
                 default:
                     return false;
             }
@@ -4350,7 +4348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitQueryClause(BoundQueryClause node)
         {
             var result = base.VisitQueryClause(node);
-            SetResult(node); // PROTOTYPE(NullableReferenceTypes)
+            SetResult(node); // https://github.com/dotnet/roslyn/issues/29863 Implement nullability analysis in LINQ queries
             return result;
         }
 
@@ -4472,8 +4470,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct LocalState : AbstractLocalState
 #endif
         {
-            // PROTOTYPE(NullableReferenceTypes): Consider storing nullability rather than non-nullability
-            // or perhaps expose as nullability from `this[int]` even if stored differently.
+            // Consider storing nullability rather than non-nullability
+            // or perhaps expose as nullability from `this[int]` even if stored as non-nullability.
             private BitVector _knownNullState; // No diagnostics should be derived from a variable with a bit set to 0.
             private BitVector _notNull;
 
