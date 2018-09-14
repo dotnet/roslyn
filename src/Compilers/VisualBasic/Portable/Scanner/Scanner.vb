@@ -558,7 +558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim Here = GetWhitespaceLength(1)
             TryGet(Here, ch)
 
-            Dim foundComment = CanGet(Here) AndAlso IsSingleQuote(Peek(Here))
+            Dim foundComment = IsSingleQuote(ch)
             Dim atNewLine As Boolean = IsNewLine(ch)
             If Not foundComment AndAlso Not atNewLine AndAlso CanGet(Here) Then
                 Return False
@@ -577,8 +577,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
                 tList.Add(comment)
                 ' Need to call CanGet here to prevent Peek reading past EndOfBuffer. This can happen when file ends with comment but no New Line.
-                ch = If(CanGet(), Peek(), ChrW(0))
-                atNewLine = IsNewLine(ch)
+                If CanGet() Then
+                    ch = Peek()
+                    atNewLine = IsNewLine(ch)
+                Else
+                    atNewLine = False
+                End If
             End If
 
             If atNewLine Then
