@@ -1,35 +1,37 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
-    using System.Collections.Immutable;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
     using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
 
     /// <summary>
     /// Brace matching impl for embedded regex strings.
     /// </summary>
-    internal sealed class RegexEmbeddedBraceMatcher : IEmbeddedBraceMatcher
+    internal sealed class RegexBraceMatcher : IBraceMatcher
     {
         private readonly RegexEmbeddedLanguage _language;
 
-        public RegexEmbeddedBraceMatcher(RegexEmbeddedLanguage language)
+        public RegexBraceMatcher(RegexEmbeddedLanguage language)
         {
             _language = language;
         }
 
-        public async Task<EmbeddedBraceMatchingResult?> FindBracesAsync(
+        public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             var option = document.Project.Solution.Workspace.Options.GetOption(
@@ -39,27 +41,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return null;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, syntaxFacts))
-            {
-                return null;
-            }
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
-            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
-
-            if (tree == null)
-            {
-                return null;
-            }
-
-            return GetMatchingBraces(tree, position);
+            var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            return tree == null ? null : GetMatchingBraces(tree, position);
         }
 
-        private static EmbeddedBraceMatchingResult? GetMatchingBraces(RegexTree tree, int position)
+        private static BraceMatchingResult? GetMatchingBraces(RegexTree tree, int position)
         {
             var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position));
             if (virtualChar == null)
@@ -81,12 +67,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
         }
 
-        private static EmbeddedBraceMatchingResult? CreateResult(RegexToken open, RegexToken close)
+        private static BraceMatchingResult? CreateResult(RegexToken open, RegexToken close)
             => open.IsMissing || close.IsMissing
-                ? default(EmbeddedBraceMatchingResult?)
-                : new EmbeddedBraceMatchingResult(open.VirtualChars[0].Span, close.VirtualChars[0].Span);
+                ? default(BraceMatchingResult?)
+                : new BraceMatchingResult(open.VirtualChars[0].Span, close.VirtualChars[0].Span);
 
-        private static EmbeddedBraceMatchingResult? FindCommentBraces(RegexTree tree, VirtualChar ch)
+        private static BraceMatchingResult? FindCommentBraces(RegexTree tree, VirtualChar ch)
         {
             var trivia = FindTrivia(tree.Root, ch);
             if (trivia?.Kind != RegexKind.CommentTrivia)
@@ -97,17 +83,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             var firstChar = trivia.Value.VirtualChars[0];
             var lastChar = trivia.Value.VirtualChars[trivia.Value.VirtualChars.Length - 1];
             return firstChar != '(' || lastChar != ')'
-                ? default(EmbeddedBraceMatchingResult?)
-                : new EmbeddedBraceMatchingResult(firstChar.Span, lastChar.Span);
+                ? default(BraceMatchingResult?)
+                : new BraceMatchingResult(firstChar.Span, lastChar.Span);
         }
 
-        private static EmbeddedBraceMatchingResult? FindGroupingBraces(RegexTree tree, VirtualChar ch)
+        private static BraceMatchingResult? FindGroupingBraces(RegexTree tree, VirtualChar ch)
         {
             var node = FindGroupingNode(tree.Root, ch);
             return node == null ? null : CreateResult(node.OpenParenToken, node.CloseParenToken);
         }
 
-        private static EmbeddedBraceMatchingResult? FindCharacterClassBraces(RegexTree tree, VirtualChar ch)
+        private static BraceMatchingResult? FindCharacterClassBraces(RegexTree tree, VirtualChar ch)
         {
             var node = FindCharacterClassNode(tree.Root, ch);
             return node == null ? null : CreateResult(node.OpenBracketToken, node.CloseBracketToken);

@@ -2,15 +2,16 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages
+Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages
+Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicEmbeddedLanguageDiagnosticAnalyzer
         Inherits AbstractEmbeddedLanguageDiagnosticAnalyzer
 
         Public Sub New()
-            MyBase.New(VisualBasicEmbeddedLanguagesProvider.Instance)
+            MyBase.New(VisualBasicEmbeddedLanguageFeaturesProvider.Instance)
         End Sub
     End Class
 End Namespace
