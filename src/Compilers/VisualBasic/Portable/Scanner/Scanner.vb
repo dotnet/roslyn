@@ -576,11 +576,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         New VisualBasicRequiredLanguageVersion(Feature.CommentsAfterLineContinuation.GetLanguageVersion()))})
                 End If
                 tList.Add(comment)
-                ch = Peek()
+                ch = If(CanGet(), Peek(), ChrW(0))
                 atNewLine = IsNewLine(ch)
             End If
 
-            If atNewLine AndAlso CanGet() Then
+            If atNewLine Then
                 Dim newLine = SkipLineBreak(ch, 0)
                 Here = GetWhitespaceLength(newLine)
                 Dim spaces = Here - newLine
