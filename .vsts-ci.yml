@@ -22,6 +22,11 @@ steps:
     signType: real
   condition: and(succeeded(), in(variables['PB_SignType'], 'test', 'real'))
 
+- task: ms-vseng.MicroBuildTasks.965C8DC6-1483-45C9-B384-5AC75DA1F1A4.MicroBuildOptProfPlugin@1
+  inputs:
+    skipRunOptimize: true
+  displayName: 'Install OptProf Plugin'
+
 - task: ms-vseng.MicroBuildTasks.32f78468-e895-4f47-962c-58a699361df8.MicroBuildSwixPlugin@1
   inputs:
     feedSource: 'https://devdiv-test.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json'
@@ -63,6 +68,35 @@ steps:
     configuration: '$(BuildConfiguration)'
     maximumCpuCount: true
     logProjectEvents: false
+
+- task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+  inputs:
+    dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
+    buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.SourceVersion)'
+    sourcePath: '$(Build.ArtifactStagingDirectory)\OptProf\ProfilingInputs'
+    toLowerCase: false
+    usePat: false
+  displayName: 'Publish to Artifact Services - ProfilingInputs'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
+- task: VSBuild@1
+  displayName: 'Build Editor RunSettings project'
+  inputs:
+    solution: 'src/**/*.RunSettings.sln'
+    vsVersion: 15.0
+    platform: '$(BuildPlatform)'
+    configuration: '$(BuildConfiguration)'
+
+- task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+  inputs:
+    dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
+    buildNumber: 'RunSettings/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.SourceVersion)'
+    sourcePath: 'bin\RunSettings'
+    toLowerCase: false
+    usePat: false
+    dropMetadataContainerName: RunSettings
+  displayName: 'Publish to Artifact Services - RunSettings'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
 - task: PublishBuildArtifacts@1
   displayName: Publish Logs

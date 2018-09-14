@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+
+  <!--
+  This project defines run settings for Editor OptProf scenarios. Building this
+  file creates a runsettings file that can be tested locally with:
+  https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki?wikiVersion=GBwikiMaster&pagePath=%2FEngineering%20System%20%26%20Tools%2FTest%20Docs%2FTest%20Run%20Authoring%2FExecuting%20Test%20Runs%2FTest%20Platform%20Client
+
+  This runsettings file is upload to VSTS drops and then downloaded and run during the
+  OptProf profiling release environment.
+  -->
+
+  <PropertyGroup>
+    <RunName>RoslynOptProf</RunName>
+    <TestCaseFilter>TestCategory=OptProf</TestCaseFilter>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <ResultsDirectory>C:\Test\Results</ResultsDirectory>
+    <TestSessionTimeout>21600000</TestSessionTimeout>
+    <TestAdaptersPaths>%SystemDrive%\Test</TestAdaptersPaths>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.DevDiv.Validation.TestPlatform.Settings.Tasks" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup Label="TestContainers">
+    <TestContainer Include="VSLanguages.dll" />
+    <TestContainer Include="VSPE.dll" />
+    <TestContainer Include="VC.Tests.IDE.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Download our ProfileInputs drop produced from the OptProf ItemGroups in the projects. -->
+    <TestStore Include="vstsdrop:ProfilingInputs/$(SYSTEM_TEAMPROJECT)/$(BUILD_REPOSITORY_NAME)/$(BUILD_SOURCEBRANCHNAME)/$(BUILD_SOURCEVERSION)" />
+  </ItemGroup>
+
+  <ItemGroup>
+   <DataCollector Include="datacollector://Microsoft/DevDiv/TestExtensions/ProcDumpCollector/v1">
+      <FriendlyName>ProcDump Collector</FriendlyName>
+      <Configuration>
+        <RootDumpDirectory>C:\Test\Dumps</RootDumpDirectory>
+        <Deployment PackageName="Microsoft.DevDiv.TestExtensions.ProcDumpCollector" />
+      </Configuration>
+    </DataCollector>
+    <DataCollector Include="datacollector://Microsoft/DevDiv/TestExtensions/LingeringProcessCollector/v1">
+      <FriendlyName>Lingering Process Collector</FriendlyName>
+      <Configuration>
+        <KillLingeringProcesses>true</KillLingeringProcesses>
+        <LoggingBehavior>Warning</LoggingBehavior>
+        <WhiteList>
+          <ProcessName>conhost</ProcessName>
+          <ProcessName>MSBuild</ProcessName>
+          <ProcessName>MSpdbsrv</ProcessName>
+          <ProcessName>node</ProcessName>
+          <ProcessName>PerfWatson2</ProcessName>
+          <ProcessName>ServiceHub.DataWarehouseHost</ProcessName>
+          <ProcessName>ServiceHub.Host.CLR.x86</ProcessName>
+          <ProcessName>ServiceHub.Host.Node.x86</ProcessName>
+          <ProcessName>ServiceHub.IdentityHost</ProcessName>
+          <ProcessName>ServiceHub.RoslynCodeAnalysisService32</ProcessName>
+          <ProcessName>ServiceHub.SettingsHost</ProcessName>
+          <ProcessName>ServiceHub.VSDetouredHost</ProcessName>
+          <ProcessName>VBCSCompiler</ProcessName>
+          <ProcessName>VCTip</ProcessName>
+          <ProcessName>VSTestVideoRecorder</ProcessName>
+          <ProcessName>wermgr</ProcessName>
+        </WhiteList>
+        <Deployment PackageName="Microsoft.DevDiv.TestExtensions.LingeringProcessCollector" />
+      </Configuration>
+    </DataCollector>
+    <DataCollector Include="datacollector://Microsoft/DevDiv/TestExtensions/OptimizationDataCollector/v2">
+      <FriendlyName>Optimization Data Collector</FriendlyName>
+      <Configuration>
+        <ProfilesDirectory>%SystemDrive%\Profiles</ProfilesDirectory>
+        <Deployment PackageName="Microsoft.DevDiv.TestExtensions.OptimizationDataCollector" />
+      </Configuration>
+    </DataCollector>
+    <DataCollector Include="datacollector://Microsoft/DevDiv/VideoRecorder/2.0">
+      <FriendlyName>Screen and Voice Recorder</FriendlyName>
+      <Configuration>
+        <Deployment PackageName="Microsoft.DevDiv.Validation.MediaRecorder" />
+      </Configuration>
+    </DataCollector>
+  </ItemGroup>
+
+  <Target Name="Pack" />
+
+  <Target Name="TouchUpEnvironmentVariables" BeforeTargets="Build">
+
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass $(RepoRoot)tools\Get-BootstrapperVersion.ps1"
+          ConsoleToMsBuild="True">
+      <Output TaskParameter="ConsoleOutput" PropertyName="BuildNumber" />
+    </Exec>
+
+    <Error Condition=" '$(InsertTargetBranch)' == '' " Text="InsertTargetBranch is not defined. Run src\_release\variables\_vsts.ps1." />
+    <Error Condition=" '$(BuildNumber)' == '' " Text="BuildNumber is not defined. Failed to read from bootstrapper or env." />
+
+    <!-- TODO: this is technically incorrect. If we end up with a 2 digit minor version, we'll break. -->
+    <PropertyGroup>
+      <BuildNumber>$(BuildNumber.Substring(5))</BuildNumber>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <!-- Gets tests from the current drop of the VS repo for the InsertTargetBranch -->
+      <TestStore Include="vstsdrop:Tests/DevDiv/VS/$(InsertTargetBranch)/$(BuildNumber)/x86ret" />
+    </ItemGroup>
+  </Target>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+</Project>
