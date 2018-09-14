@@ -59,7 +59,6 @@ Test
 As Statement
 ");
 
-            // PROTOTYPE(null-operator-enhancements): lines 8 and 9 appear to be entirely redundant.
             verifier.VerifyIL("C.TestNullable()", @"
 {
   // Code size       43 (0x2b)
@@ -2044,12 +2043,16 @@ class C
     {
         int? a1 = null, b1 = null, c1 = 1;
         Console.WriteLine(a1 ??= b1 ??= c1);
+        Console.WriteLine(b1);
         int? a2 = null, b2 = null, c2 = 1;
         Console.WriteLine(a2 ??= (b2 ??= c2));
+        Console.WriteLine(b2);
     }
 }";
 
             CompileAndVerify(source, expectedOutput: @"
+1
+1
 1
 1
 ");

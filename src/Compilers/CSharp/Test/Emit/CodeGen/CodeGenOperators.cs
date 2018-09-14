@@ -1372,12 +1372,17 @@ static class Program
 {
     static void Main()
     {
-        Goo(default, 10);
-        Goo(1, 10);
+        Goo(default, 1000);
+        Goo(1, 1000);
         Goo(default, ""String parameter 1"");
         Goo(""String parameter 2"", ""Should not print"");
         Goo((int?)null, 4);
-        Goo((int?)5, 10);
+        Goo((int?)5, 1000);
+        Goo2(6, 1000);
+        Goo2<int?, object>(null, 7);
+        Goo2<int?, object>(8, 1000);
+        Goo2<int?, int?>(9, 1000);
+        Goo2<int?, int?>(null, 10);
     }
 
     static void Goo<T>(T x1, T x2)
@@ -1385,10 +1390,10 @@ static class Program
         Console.WriteLine(x1 ?? x2);
     }
 
-    static void Goo2<T1, T2>(T1 t1, T2 t2, dynamic d) where T1 : T2
+    static void Goo2<T1, T2>(T1 t1, T2 t2, dynamic d = null) where T1 : T2
     {
         // Verifying no type errors
-        T2 t = t1 ?? t2;
+        Console.WriteLine(t1 ?? t2);
         dynamic d2 = t1 ?? d;
     }
 }
@@ -1400,6 +1405,11 @@ String parameter 1
 String parameter 2
 4
 5
+6
+7
+8
+9
+10
 ");
 
             comp.VerifyIL("Program.Goo<T>(T, T)", expectedIL: @"
@@ -1418,6 +1428,32 @@ String parameter 2
   IL_000e:  box        ""T""
   IL_0013:  call       ""void System.Console.WriteLine(object)""
   IL_0018:  ret
+}
+");
+
+            comp.VerifyIL("Program.Goo2<T1, T2>(T1, T2, dynamic)", expectedIL: @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  1
+  .locals init (T1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  box        ""T1""
+  IL_0008:  brtrue.s   IL_000d
+  IL_000a:  ldarg.1
+  IL_000b:  br.s       IL_0018
+  IL_000d:  ldloc.0
+  IL_000e:  box        ""T1""
+  IL_0013:  unbox.any  ""T2""
+  IL_0018:  box        ""T2""
+  IL_001d:  call       ""void System.Console.WriteLine(object)""
+  IL_0022:  ldarg.0
+  IL_0023:  stloc.0
+  IL_0024:  ldloc.0
+  IL_0025:  box        ""T1""
+  IL_002a:  pop
+  IL_002b:  ret
 }
 ");
         }
@@ -5745,6 +5781,25 @@ class Program
                 //         return x ?? 0;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16)
                 );
+        }
+
+        [Fact]
+        public void TestNullCoalesce_UnconstrainedTypeParameter_OldLanguageVersion()
+        {
+            var source = @"
+class C
+{
+    void M<T>(T t1, T t2)
+    {
+        t1 = t1 ?? t2;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8370: Feature 'unconstrained type parameters in null coalescing operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         t1 = t1 ?? t2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator", "8.0").WithLocation(6, 14));
         }
     }
 }

@@ -11070,6 +11070,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to unconstrained type parameters in null coalescing operator.
+        /// </summary>
+        internal static string IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to unmanaged generic type constraints.
         /// </summary>
         internal static string IDS_FeatureUnmanagedGenericTypeConstraint {
