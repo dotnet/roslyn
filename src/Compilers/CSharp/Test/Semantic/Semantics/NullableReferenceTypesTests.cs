@@ -552,7 +552,7 @@ class C<T> where T : class
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(37, 35)
             };
 
-            // PROTOTYPE(NullableReferenceTypes): are annotations on events meaningful/allowed?
+            // https://github.com/dotnet/roslyn/issues/29839: are annotations on events meaningful/allowed?
 
             var c = CreateCompilation(source);
             c.VerifyDiagnostics(expectedDiagnostics);
@@ -1605,7 +1605,7 @@ namespace System
             VerifyUsesOfNullability(systemNamespace, expected);
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): Needs to be adjusted for NonNullTypes(false) default context")]
+        [Fact]
         public void UnannotatedAssemblies_01()
         {
             var source0 =
@@ -1652,6 +1652,36 @@ namespace System
             comp0.VerifyDiagnostics();
             compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
             metadataRefs0 = new[] { comp0.EmitToImageReference() };
+            Assert.Null(getParameterType(comp0).IsNullable);
+
+            // ... used in 7.0.
+            comp1 = CreateCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
+            comp1.VerifyDiagnostics();
+            Assert.Null(getParameterType(comp1).IsNullable);
+            comp1 = CreateCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
+            comp1.VerifyDiagnostics();
+            Assert.Null(getParameterType(comp1).IsNullable);
+
+            // ... used in 8.0.
+            comp1 = CreateCompilation(source1, references: compRefs0);
+            comp1.VerifyDiagnostics();
+            Assert.Null(getParameterType(comp1).IsNullable);
+            comp1 = CreateCompilation(source1, references: metadataRefs0);
+            comp1.VerifyDiagnostics();
+            Assert.Null(getParameterType(comp1).IsNullable);
+
+            comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: compRefs0);
+            comp1.VerifyDiagnostics();
+            Assert.Null(getParameterType(comp1).IsNullable);
+            comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: metadataRefs0);
+            comp1.VerifyDiagnostics();
+            Assert.Null(getParameterType(comp1).IsNullable);
+
+            // 8.0 library
+            comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue });
+            comp0.VerifyDiagnostics();
+            compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
+            metadataRefs0 = new[] { comp0.EmitToImageReference() };
             Assert.Equal(false, getParameterType(comp0).IsNullable);
 
             // ... used in 7.0.
@@ -1664,12 +1694,19 @@ namespace System
 
             // ... used in 8.0.
             comp1 = CreateCompilation(source1, references: compRefs0);
+            comp1.VerifyDiagnostics();
+            Assert.Equal(false, getParameterType(comp1).IsNullable);
+            comp1 = CreateCompilation(source1, references: metadataRefs0);
+            comp1.VerifyDiagnostics();
+            Assert.Equal(false, getParameterType(comp1).IsNullable);
+
+            comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: compRefs0);
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         A.F(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
             Assert.Equal(false, getParameterType(comp1).IsNullable);
-            comp1 = CreateCompilation(source1, references: metadataRefs0);
+            comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: metadataRefs0);
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         A.F(null);
@@ -2061,7 +2098,7 @@ public class D : C
             comp2D.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): Needs to be adjusted for NonNullTypes(false) default context")]
+        [Fact]
         public void UnannotatedAssemblies_09()
         {
             var source0 =
@@ -2106,7 +2143,14 @@ class P
     }
 }";
             var comp0 = CreateCompilation(source0);
-            comp0.VerifyDiagnostics();
+            comp0.VerifyDiagnostics(
+                // (3,47): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public abstract object? F(object x, object? y);
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 47),
+                // (3,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public abstract object? F(object x, object? y);
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 27)
+                );
             var ref0 = comp0.EmitToImageReference();
 
             var comp1 = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular7);
@@ -2114,6 +2158,42 @@ class P
             var ref1 = comp1.EmitToImageReference();
 
             var comp2 = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp2.VerifyDiagnostics(
+                // (9,37): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public override object? G(object? x, object? y) => x;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 37),
+                // (9,48): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public override object? G(object? x, object? y) => x;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 48),
+                // (9,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public override object? G(object? x, object? y) => x;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 27),
+                // (21,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static void F(object? x, object y, C2 c)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 25),
+                // (13,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static void F(object? x, object y, C1 c)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 25),
+                // (8,37): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public override object? F(object? x, object? y) => x;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 37),
+                // (8,48): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public override object? F(object? x, object? y) => x;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 48),
+                // (8,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public override object? F(object? x, object? y) => x;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 27)
+                );
+
+            comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue });
+            comp0.VerifyDiagnostics();
+            ref0 = comp0.EmitToImageReference();
+
+            comp1 = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular7);
+            comp1.VerifyDiagnostics();
+            ref1 = comp1.EmitToImageReference();
+
+            comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new[] { ref0, ref1 });
             comp2.VerifyDiagnostics(
                 // (15,13): warning CS8604: Possible null reference argument for parameter 'x' in 'object C1.F(object x, object y)'.
                 //         c.F(x, y).ToString();
@@ -3356,7 +3436,7 @@ public class Oblivious { }
                 // [assembly: NonNullTypes(false)]
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(4, 12)
                 );
-            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), true); // PROTOTYPE(NullableReferenceTypes): should be false
+            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), true); // The attribute is on assembly 
         }
 
         [Fact]
@@ -3403,7 +3483,7 @@ class B : A
             Assert.True(typeArg.IsValueType);
             Assert.Equal(false, typeArg.IsNullable);
 
-            // PROTOTYPE(NullableReferenceTypes): Test all combinations of base and derived
+            // https://github.com/dotnet/roslyn/issues/29843: Test all combinations of base and derived
             // including explicit Nullable<T>.
         }
 
@@ -4120,7 +4200,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "NullableReturnMethod").WithArguments("x", "string[]? C.NullableReturnMethod(string[] x)", "MyNullableDelegate").WithLocation(26, 33)
                 );
 
-            // PROTOTYPE(NullableReferenceTypes): Missing warnings 2 and 5
+            // https://github.com/dotnet/roslyn/issues/29844: Missing warnings 2 and 5
         }
 
         [Fact]
@@ -4280,7 +4360,7 @@ class C3
             verify("C3.F4", "System.Int32?", isAnnotated: true, isNullable: true);
             verify("C3.F5", "System.Int32?", isAnnotated: true, isNullable: true);
 
-            // PROTOTYPE(NullableReferenceTypes): Test nested nullability.
+            // https://github.com/dotnet/roslyn/issues/29845: Test nested nullability.
 
             void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable)
             {
@@ -4383,8 +4463,8 @@ class C3
             verify("C3.F6", "T?", isAnnotated: true, isNullable: true);
             verify("C3.F7", "T?", isAnnotated: true, isNullable: true);
 
-            // PROTOTYPE(NullableReferenceTypes): Test nested nullability.
-            // PROTOTYPE(NullableReferenceTypes): Test all combinations of overrides.
+            // https://github.com/dotnet/roslyn/issues/29845: Test nested nullability.
+            // https://github.com/dotnet/roslyn/issues/29845: Test all combinations of overrides.
 
             void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable)
             {
@@ -4546,8 +4626,6 @@ class B : A
             Assert.True(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Overriding_01 and Overriding_02 were removed
-        // because they were subsets of Overriding_03. Renumber Overriding_* to start from _01.
         [Fact]
         public void Overriding_03()
         {
@@ -4594,8 +4672,8 @@ class B : A
             Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Override matches other M3<T>.
-        [Fact(Skip = "TODO")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29846 : Override matches other M3<T>.")]
+        [WorkItem(29846, "https://github.com/dotnet/roslyn/issues/29846")]
         public void Overriding_04()
         {
             var source = @"
@@ -4660,6 +4738,7 @@ class B : A
         }
 
         [Fact]
+        [WorkItem(29847, "https://github.com/dotnet/roslyn/issues/29847")]
         public void Overriding_05()
         {
             var source = @"
@@ -4680,10 +4759,28 @@ class B : A
     {
     }
 } 
+
+class C
+{
+    public virtual void M2<T>(T? x) where T : class 
+    { 
+    }
+
+    public virtual void M2<T>(T? x) where T : struct 
+    { 
+    }
+}
+
+class D : C
+{
+    public override void M2<T>(T? x)
+    {
+    }
+} 
 ";
             var compilation = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            // PROTOTYPE(NullableReferenceTypes): The overriding is ambiguous.
+            // https://github.com/dotnet/roslyn/issues/29847: The overriding is ambiguous.
             // We simply matched the first candidate. Should this be an error?
             compilation.VerifyDiagnostics();
 
@@ -4691,6 +4788,11 @@ class B : A
             var m1 = b.GetMember<MethodSymbol>("M1");
             Assert.True(m1.Parameters[0].Type.IsNullableType());
             Assert.True(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+
+            var d = compilation.GetTypeByMetadataName("D");
+            var m2 = d.GetMember<MethodSymbol>("M2");
+            Assert.False(m2.Parameters[0].Type.IsNullableType());
+            Assert.False(m2.OverriddenMethod.Parameters[0].Type.IsNullableType());
         }
 
         [Fact]
@@ -5410,6 +5512,7 @@ class B2 : A
         }
 
         [Fact]
+        [WorkItem(29851, "https://github.com/dotnet/roslyn/issues/29851")]
         public void Overriding_Methods()
         {
             var source = @"
@@ -5428,7 +5531,7 @@ public abstract class A
 public class B1 : A
 {
     public override System.Action<string?> Oblivious1(System.Action<string?> x) => throw null;
-    public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // PROTOTYPE(NullableReferenceTypes): Should not warn
+    public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // https://github.com/dotnet/roslyn/issues/29851: Should not warn
     public override System.Action<string?> M3(System.Action<string?> x) => throw null; // warn 5 and 6
     public override System.Action<string?> M4(System.Action<string?> x) => throw null; // warn 7 and 8
     public override System.Action<string?> M5(System.Action<string?> x) => throw null; // warn 9 and 10
@@ -5457,10 +5560,10 @@ public class B2 : A
                 //     public abstract System.Action<string> Oblivious2([NonNullTypes(false)] System.Action<string> x);
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(8, 55),
                 // (17,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // PROTOTYPE(NullableReferenceTypes): Should not warn
+                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // https://github.com/dotnet/roslyn/issues/29851: Should not warn
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "Oblivious2").WithLocation(17, 44),
                 // (17,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // PROTOTYPE(NullableReferenceTypes): Should not warn
+                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // https://github.com/dotnet/roslyn/issues/29851: Should not warn
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "Oblivious2").WithArguments("x").WithLocation(17, 44),
                 // (18,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override System.Action<string?> M3(System.Action<string?> x) => throw null; // warn 5 and 6
@@ -5502,10 +5605,10 @@ public class B2 : A
             verifyMethodMatchesOverridden(expectMatch: false, b1, "M5");
 
             var b2 = compilation.GetTypeByMetadataName("B2");
-            verifyMethodMatchesOverridden(expectMatch: false, b2, "Oblivious1"); // PROTOTYPE(NullableReferenceTypes): They should match
-            verifyMethodMatchesOverridden(expectMatch: true, b2, "Oblivious2"); // PROTOTYPE(NullableReferenceTypes): They should not match
+            verifyMethodMatchesOverridden(expectMatch: false, b2, "Oblivious1"); // https://github.com/dotnet/roslyn/issues/29851: They should match
+            verifyMethodMatchesOverridden(expectMatch: true, b2, "Oblivious2"); // https://github.com/dotnet/roslyn/issues/29851: They should not match
             verifyMethodMatchesOverridden(expectMatch: false, b2, "M3");
-            verifyMethodMatchesOverridden(expectMatch: true, b2, "M4"); // PROTOTYPE(NullableReferenceTypes): They should not match
+            verifyMethodMatchesOverridden(expectMatch: true, b2, "M4"); // https://github.com/dotnet/roslyn/issues/29851: They should not match
             verifyMethodMatchesOverridden(expectMatch: false, b2, "M5");
 
             void verifyMethodMatchesOverridden(bool expectMatch, NamedTypeSymbol type, string methodName)
@@ -6324,8 +6427,8 @@ class B : A
 }
 ";
             var compilation = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should report return type mismatch
-            // for M1 and M2 (see https://github.com/dotnet/roslyn/issues/28684).
+            // https://github.com/dotnet/roslyn/issues/28684: Should report return type mismatch
+            // for M2 as well.
             compilation.VerifyDiagnostics(
                 // (18,31): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override string?[] M1()
@@ -6482,6 +6585,7 @@ class B : IA
         }
 
         [Fact]
+        [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
         public void ImplementingNonNullWithNullable()
         {
             var source = @"
@@ -6506,7 +6610,7 @@ class B : IA
     }
 }
 ";
-            // PROTOTYPE(NullableReferenceTypes): missing a warning on IA.M2
+            // https://github.com/dotnet/roslyn/issues/28684: missing a warning on IA.M2
             var compilation = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             compilation.VerifyDiagnostics(
                 // (11,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
@@ -6645,6 +6749,7 @@ class B : A
         }
 
         [Fact]
+        [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
         public void Overriding_24()
         {
             var source = @"
@@ -6682,7 +6787,7 @@ class B : A
                 //     public override void M1(string?[] x)
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 35)
                 );
-            // PROTOTYPE(NullableReferenceTypes): should warn on B.M1 and B.M2
+            // https://github.com/dotnet/roslyn/issues/28684: should warn WRN_NullabilityMismatchInParameterTypeOnOverride on B.M2 too
         }
 
         [Fact]
@@ -9566,6 +9671,7 @@ class Test
         }
 
         [Fact]
+        [WorkItem(29855, "https://github.com/dotnet/roslyn/issues/29855")]
         public void NotNullWhenFalse_EqualsTrue()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -9589,7 +9695,7 @@ public class C
 }
 ", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            // PROTOTYPE(NullableReferenceTypes): there should only be two diagnostics
+            // https://github.com/dotnet/roslyn/issues/29855: there should only be two diagnostics
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn
@@ -9604,6 +9710,7 @@ public class C
         }
 
         [Fact]
+        [WorkItem(29855, "https://github.com/dotnet/roslyn/issues/29855")]
         public void NotNullWhenFalse_EqualsFalse()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -9627,7 +9734,7 @@ public class C
 }
 ", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            // PROTOTYPE(NullableReferenceTypes): there should only be two diagnostics
+            // https://github.com/dotnet/roslyn/issues/29855: there should only be two diagnostics
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // ok
@@ -9642,6 +9749,7 @@ public class C
         }
 
         [Fact]
+        [WorkItem(29855, "https://github.com/dotnet/roslyn/issues/29855")]
         public void NotNullWhenFalse_NotEqualsFalse()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -9665,7 +9773,7 @@ public class C
 }
 ", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            // PROTOTYPE(NullableReferenceTypes): there should only be two diagnostics
+            // https://github.com/dotnet/roslyn/issues/29855: there should only be two diagnostics
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn
@@ -10063,7 +10171,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyOutVar(c, "string!"); // https://github.com/dotnet/roslyn/issues/29856: expecting string?
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -10127,7 +10235,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            VerifyVarLocal(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyVarLocal(c, "string!"); // https://github.com/dotnet/roslyn/issues/29856: expecting string?
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -10320,7 +10428,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            VerifyOutVar(c, "string![]"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            VerifyOutVar(c, "string![]"); // https://github.com/dotnet/roslyn/issues/29856: expecting string?[]
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -10341,7 +10449,7 @@ public class C
 }
 ", EnsuresNotNullAttributeDefinition, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): T is inferred to string! instead of string?, so the `var` gets `string!`
+            VerifyOutVar(c, "string!"); // https://github.com/dotnet/roslyn/issues/29856: T is inferred to string! instead of string?, so the `var` gets `string!`
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -10416,6 +10524,7 @@ public class C
         }
 
         [Fact]
+        [WorkItem(29857, "https://github.com/dotnet/roslyn/issues/29857")]
         public void MethodWithGenericOutParameter_WithNullableArgument_WithNonNullableString()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -10431,7 +10540,7 @@ public class C
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
             VerifyOutVar(c, "string!");
-            c.VerifyTypes(); // PROTOTYPE(NullableReferenceTypes): is string! correct?
+            c.VerifyTypes(); // https://github.com/dotnet/roslyn/issues/29857: is string! correct?
             c.VerifyDiagnostics(
                 // (6,14): warning CS8604: Possible null reference argument for parameter 'key' in 'void C.Copy<string>(string key, out string value)'.
                 //         Copy(key, out string s);
@@ -10522,7 +10631,7 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            VerifyVarLocal(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            VerifyVarLocal(c, "string!"); // https://github.com/dotnet/roslyn/issues/29856: expecting string?
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -10605,6 +10714,7 @@ public class C
         }
 
         [Fact]
+        [WorkItem(29858, "https://github.com/dotnet/roslyn/issues/29858")]
         public void GenericMethod_WithEnsuresNotNullOnReturnType()
         {
             CSharpCompilation c = CreateCompilation(@"
@@ -10621,10 +10731,11 @@ public class C
                 //     [EnsuresNotNull]
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "EnsuresNotNull").WithArguments("EnsuresNotNull", "parameter").WithLocation(5, 6)
                 );
-            // PROTOTYPE(NullableReferenceTypes): Need to confirm if this would be useful
+            // https://github.com/dotnet/roslyn/issues/29858: Need to confirm if this would be useful
         }
 
         [Fact]
+        [WorkItem(29862, "https://github.com/dotnet/roslyn/issues/29862")]
         public void SuppressedNullGivesNonNullResult()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -10632,7 +10743,7 @@ public class C
 {
     public void Main(string s)
     {
-        s = null!; // PROTOTYPE(NullableReferenceTypes): null! returns an oblivious result
+        s = null!; // https://github.com/dotnet/roslyn/issues/29862: null! returns an oblivious result
         var s2 = s;
         s2 /*T:string*/ .ToString(); // ok
         s2 = null; // warn
@@ -10646,6 +10757,7 @@ public class C
         }
 
         [Fact]
+        [WorkItem(29862, "https://github.com/dotnet/roslyn/issues/29862")]
         public void SuppressedDefaultGivesNonNullResult()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -10660,8 +10772,8 @@ public class C
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            // PROTOTYPE(NullableReferenceTypes): The suppression operator isn't producing a non-null result
-            // PROTOTYPE(NullableReferenceTypes): I'd expect null! to return a non-null result
+            // https://github.com/dotnet/roslyn/issues/29862: The suppression operator isn't producing a non-null result
+            //                                                I'd expect default! to return a non-null result
             VerifyVarLocal(c, "string!");
             c.VerifyTypes();
             c.VerifyDiagnostics();
@@ -12857,7 +12969,7 @@ public class C
 }
 ", EnsuresNotNullAttributeDefinition, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            // PROTOTYPE(NullableReferenceTypes): Should we be able to trace that s2 was assigned a non-null value?
+            // https://github.com/dotnet/roslyn/issues/29865: Should we be able to trace that s2 was assigned a non-null value?
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         s2.ToString(); // warn
@@ -12931,9 +13043,10 @@ public class C
         }
 
         [Fact]
+        [WorkItem(29867, "https://github.com/dotnet/roslyn/issues/29867")]
         public void EnsuresNotNull_TypeInference()
         {
-            // PROTOTYPE(NullableReferenceTypes): This test raises the question of flowing information from annotations into the inferred type
+            // https://github.com/dotnet/roslyn/issues/29867: This test raises the question of flowing information from annotations into the inferred type
             CSharpCompilation c = CreateCompilation(new[] { @"
 using System.Runtime.CompilerServices;
 public class C
@@ -13625,6 +13738,7 @@ class CL1
         }
 
         [Fact]
+        [WorkItem(26624, "https://github.com/dotnet/roslyn/issues/26624")]
         public void ConditionalBranching_08()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -13651,7 +13765,7 @@ class CL1
     public bool P2 { get { return true;} }
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Not tracking state of x?.P == expr
+            // Not tracking state of x?.P == expr
             // unless expr is `null`. See https://github.com/dotnet/roslyn/issues/26624.
             c.VerifyDiagnostics(
                 // (12,20): warning CS8602: Possible dereference of a null reference.
@@ -14375,9 +14489,10 @@ class C
         }
 
         [Fact]
+        [WorkItem(29868, "https://github.com/dotnet/roslyn/issues/29868")]
         public void ConditionalBranching_IsConstantPattern_Null_AlreadyTestedAsNonNull()
         {
-            // PROTOTYPE(NullableReferenceTypes): confirm that we want such hidden warnings
+            // https://github.com/dotnet/roslyn/issues/29868: confirm that we want such hidden warnings
             CSharpCompilation c = CreateCompilation(new[] { @"
 class C
 {
@@ -15092,7 +15207,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w3").WithLocation(67, 13));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Review /*T:...*/ and diagnostics.
+        // https://github.com/dotnet/roslyn/issues/29869: Review /*T:...*/ and diagnostics.
         [Fact]
         public void ConditionalOperator_14()
         {
@@ -15854,9 +15969,10 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x6").WithArguments("B<object?>?", "B<object>?").WithLocation(36, 16));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: Conversion
+        // https://github.com/dotnet/roslyn/issues/29871: Conversions: Conversion
         // (VisitConversion ignores nullability of operand in conversion from A<T> to B<T>.)
         [Fact]
+        [WorkItem(29871, "https://github.com/dotnet/roslyn/issues/29871")]
         public void IdentityConversion_NullCoalescingOperator_05()
         {
             var source =
@@ -16657,9 +16773,9 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            // PROTOTYPE(NullableReferenceTypes): Type should be `string!`.
+            // https://github.com/dotnet/roslyn/issues/29856: Type should be `string!`.
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            // PROTOTYPE(NullableReferenceTypes): IsNullable should be inferred nullable state: false.
+            // https://github.com/dotnet/roslyn/issues/29856: IsNullable should be inferred nullable state: false.
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
@@ -16879,15 +16995,15 @@ class CL1
 
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(null, symbol.Type.IsNullable);  // PROTOTYPE(NullableReferenceTypes): Inferred nullability: false
+            Assert.Equal(null, symbol.Type.IsNullable);  // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: false
 
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(null, symbol.Type.IsNullable); // PROTOTYPE(NullableReferenceTypes): Inferred nullability: true
+            Assert.Equal(null, symbol.Type.IsNullable); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
 
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[2]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(null, symbol.Type.IsNullable); // PROTOTYPE(NullableReferenceTypes): Inferred nullability: true
+            Assert.Equal(null, symbol.Type.IsNullable); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
         }
 
         [Fact]
