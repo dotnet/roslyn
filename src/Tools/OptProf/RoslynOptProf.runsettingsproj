@@ -91,7 +91,7 @@
 
   <Target Name="TouchUpEnvironmentVariables" BeforeTargets="Build">
 
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass $(RepoRoot)tools\Get-BootstrapperVersion.ps1"
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass $(RepoRoot)build\scripts\Get-BootstrapperVersion.ps1"
           ConsoleToMsBuild="True">
       <Output TaskParameter="ConsoleOutput" PropertyName="BuildNumber" />
     </Exec>
