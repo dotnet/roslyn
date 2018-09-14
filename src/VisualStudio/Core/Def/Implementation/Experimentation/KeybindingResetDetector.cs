@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return Task.CompletedTask;
             }
 
-            return InvokeBelowInputPriority(InitializeCore);
+            return InvokeBelowInputPriorityAsync(InitializeCore);
         }
 
         private void InitializeCore()
@@ -319,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (pguidCmdGroup == ReSharperCommandGroup && nCmdID >= ResumeId && nCmdID <= ToggleSuspendId)
             {
                 // Don't delay command processing to update resharper status
-                Task.Run(() => InvokeBelowInputPriority(UpdateStateMachine));
+                Task.Run(() => InvokeBelowInputPriorityAsync(UpdateStateMachine));
             }
 
             // No matter the command, we never actually want to respond to it, so always return not supported. We're just monitoring.
@@ -335,7 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             // extra QueryStatus.
             if (args.TransitionType == StateTransitionType.Exit)
             {
-                InvokeBelowInputPriority(UpdateStateMachine);
+                InvokeBelowInputPriorityAsync(UpdateStateMachine);
             }
         }
 
