@@ -101,5 +101,22 @@ class C
     }
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)>
+        Public Async Function TestFixAll3() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    sub M()
+        dim v = new with {{|FixAllInDocument:|}new with {me.Equals(1), me.Equals(2)}}
+    end sub
+end class",
+"
+class C
+    sub M()
+        dim v = new with {.P = new with {.V = me.Equals(1), .V1 = me.Equals(2)}}
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

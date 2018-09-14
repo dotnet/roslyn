@@ -102,5 +102,27 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
+        public async Task TestFixAll3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        var v = new { {|FixAllInDocument:|}new { this.GetType(), this.GetType() } };
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        var v = new { P = new { Type = this.GetType(), Type1 = this.GetType() } };
+    }
+}");
+        }
     }
 }
