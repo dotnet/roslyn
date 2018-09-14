@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
     /// 
     /// we use this indirection so that we can get different tokens based on host
     /// </summary>
-    [Export]
+    [Shared]
+    [Export(typeof(TodoCommentTokens))]
     internal class TodoCommentTokens
     {
         [ImportingConstructor]
