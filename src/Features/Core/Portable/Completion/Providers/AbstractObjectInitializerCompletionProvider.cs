@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -78,7 +80,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 
         private bool IsLegalFieldOrProperty(ISymbol symbol, ISymbol within)
-            => CanSupportCollectionInitializer(symbol, within) || symbol.IsWriteableFieldOrProperty() || CanSupportObjectInitializer(symbol, within);
+        {
+            return symbol.IsWriteableFieldOrProperty()
+                || CanSupportObjectInitializer(symbol, within);
+        }
 
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
@@ -92,39 +97,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static bool CanSupportObjectInitializer(ISymbol symbol, ISymbol within)
         {
-            if (symbol is IPropertySymbol propertySymbol)
+            Debug.Assert(!symbol.IsWriteableFieldOrProperty(), "Assertion failed - expected writable field/property check before calling this method.");
+
+            if (symbol is IFieldSymbol fieldSymbol)
             {
-                return propertySymbol.GetMethod != null && !propertySymbol.Type.IsStructType() && HasAccesseblePropertiesOrFields(propertySymbol.Type, within);
+                return !fieldSymbol.Type.IsStructType();
+            }
+            else if (symbol is IPropertySymbol propertySymbol)
+            {
+                return !propertySymbol.Type.IsStructType();
             }
 
-            return false;
-        }
-
-        private static bool HasAccesseblePropertiesOrFields(ITypeSymbol type, ISymbol within)
-        {
-            var types = new HashSet<ITypeSymbol>();
-            return HasAccesseblePropertiesOrFields(type, types);
-
-            bool HasAccesseblePropertiesOrFields(ITypeSymbol typeToCheck, HashSet<ITypeSymbol> alreadyCheckedTypes)
-            {
-                if (alreadyCheckedTypes.Contains(typeToCheck))
-                {
-                    return false;
-                }
-
-                alreadyCheckedTypes.Add(typeToCheck);
-                return typeToCheck.GetBaseTypesAndThis().SelectMany(x => x.GetMembers())
-                    .Where(member => member is IPropertySymbol || member is IFieldSymbol)
-                    .Any(member => member.IsWriteableFieldOrProperty() || 
-                            CanSupportCollectionInitializer(member, within) || 
-                            HasAccesseblePropertiesOrFields(member.GetMemberType(), alreadyCheckedTypes));
-            }
-        }
-
-        private static bool CanSupportCollectionInitializer(ISymbol symbol, ISymbol within)
-        {
-            var type = symbol.GetMemberType();
-            return type != null && type.CanSupportCollectionInitializer(within);
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

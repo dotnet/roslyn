@@ -698,8 +698,9 @@ class Program
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markup, "S");
-            await VerifyItemIsAbsentAsync(markup, "D");
+            // Can't use S={3}, but the object initializer syntax S={} is still valid
+            await VerifyItemExistsAsync(markup, "S");
+            await VerifyItemExistsAsync(markup, "D");
         }
 
         [WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
@@ -1015,7 +1016,7 @@ class Program
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markup, "PropB");
+            await VerifyItemExistsAsync(markup, "PropB");
         }
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
