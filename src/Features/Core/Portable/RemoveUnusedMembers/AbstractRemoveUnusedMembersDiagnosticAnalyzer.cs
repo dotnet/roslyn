@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
         protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_removeUnusedMembersRule, s_removeUnreadMembersRule),
-                  GeneratedCodeAnalysisFlags.Analyze, // We want to analyze references in generated code, but not report unused members in generated code.
-                  enableConcurrentExecution: true)
+                   GeneratedCodeAnalysisFlags.Analyze) // We want to analyze references in generated code, but not report unused members in generated code.
         {
         }
 
@@ -393,10 +392,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     if (attribute.AttributeClass == _debuggerDisplayAttributeType &&
                         attribute.ConstructorArguments.Length == 1 &&
-                        attribute.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
-                        attribute.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String)
+                        attribute.ConstructorArguments[0] is var arg &&
+                        arg.Kind == TypedConstantKind.Primitive &&
+                        arg.Type.SpecialType == SpecialType.System_String)
                     {
-                        var value = attribute.ConstructorArguments[0].Value as string;
+                        var value = arg.Value as string;
                         if (value != null)
                         {
                             builder.Add(value);

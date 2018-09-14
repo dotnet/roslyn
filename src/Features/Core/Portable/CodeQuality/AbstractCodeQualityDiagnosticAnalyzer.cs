@@ -11,16 +11,13 @@ namespace Microsoft.CodeAnalysis.CodeQuality
     internal abstract class AbstractCodeQualityDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private readonly GeneratedCodeAnalysisFlags _generatedCodeAnalysisFlags;
-        private readonly bool _enableConcurrentExecution;
 
         protected AbstractCodeQualityDiagnosticAnalyzer(
             ImmutableArray<DiagnosticDescriptor> descriptors,
-            GeneratedCodeAnalysisFlags generatedCodeAnalysisFlags,
-            bool enableConcurrentExecution)
+            GeneratedCodeAnalysisFlags generatedCodeAnalysisFlags)
         {
             SupportedDiagnostics = descriptors;
             _generatedCodeAnalysisFlags = generatedCodeAnalysisFlags;
-            _enableConcurrentExecution = enableConcurrentExecution;
         }
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
@@ -28,11 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
         public sealed override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(_generatedCodeAnalysisFlags);
-
-            if (_enableConcurrentExecution)
-            {
-                context.EnableConcurrentExecution();
-            }
+            context.EnableConcurrentExecution();
 
             InitializeWorker(context);
         }
