@@ -120,21 +120,28 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             rightNodeOpt = rightRoot;
             while (true)
             {
-                Debug.Assert(leftNode.RawKind == rightNodeOpt.RawKind);
+                if (rightNodeOpt != null &&  leftNode.RawKind != rightNodeOpt.RawKind)
+                {
+                    rightNodeOpt = null;
+                }
+
                 var leftChild = leftNode.ChildThatContainsPosition(leftPosition, out var childIndex);
                 if (leftChild.IsToken)
                 {
                     return;
                 }
 
-                var rightNodeChildNodesAndTokens = rightNodeOpt.ChildNodesAndTokens();
-                if (childIndex >= 0 && childIndex < rightNodeChildNodesAndTokens.Count)
+                if (rightNodeOpt != null)
                 {
-                    rightNodeOpt = rightNodeOpt.ChildNodesAndTokens()[childIndex].AsNode();
-                }
-                else
-                {
-                    rightNodeOpt = null;
+                    var rightNodeChildNodesAndTokens = rightNodeOpt.ChildNodesAndTokens();
+                    if (childIndex >= 0 && childIndex < rightNodeChildNodesAndTokens.Count)
+                    {
+                        rightNodeOpt = rightNodeChildNodesAndTokens[childIndex].AsNode();
+                    }
+                    else
+                    {
+                        rightNodeOpt = null;
+                    }
                 }
 
                 leftNode = leftChild.AsNode();
