@@ -133,6 +133,47 @@
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
+  
+  <!-- Configure OptProf and select tests. Adding or removing TestContainers requires a change to RoslynOptProf.runsettingsproj. -->
+  <PropertyGroup>
+    <InstallationPath Condition="'$(InstallationPath)' == ''">Common7\IDE\CommonExtensions\Microsoft\ManagedLanguages\VBCSharp\LanguageServices\$(TargetName).dll</InstallationPath>
+  </PropertyGroup>
+  <ItemGroup Label="OptProf Configuration" Condition="'$(NonShipping)' != 'true' and '$(IncludeInOptProf)' == 'true'">
+    <OptProf Include="$(OutputPath)$(AssemblyName).dll">
+      <Technology>IBC</Technology>
+      <InstallationPath>$(InstallationPath)</InstallationPath>
+      <InstrumentationArguments>/ExeConfig:"%VisualStudio.InstallationUnderTest.Path%\Common7\IDE\vsn.exe"</InstrumentationArguments>
+      <OptimizationArguments>-partialNGen</OptimizationArguments> 
+      <Scenarios>
+        <TestContainer Name="DDRIT.RPS.ManagedLangs">
+          <TestCase FullyQualifiedName="Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs" />
+        </TestContainer>
+        <TestContainer Name="DDRIT.RPS.CSharp">
+          <TestCase FullyQualifiedName="DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging" />
+          <TestCase FullyQualifiedName="DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner" />
+        </TestContainer>
+        <TestContainer Name="DDRIT.RPS.Xaml">
+          <TestCase FullyQualifiedName="DDRIT.RPS.Xaml.BuildAndDebugTests.UAP_BuildAndDebug" />
+        </TestContainer>
+        <TestContainer Name="WinForms">
+          <TestCase FullyQualifiedName="WinForms.OptProfTests.winforms_largeform_vb" />
+          <TestCase FullyQualifiedName="WinForms.OptProfTests.winforms_largeform_cs" />
+        </TestContainer>
+        <TestContainer Name="TeamEng">
+          <TestCase FullyQualifiedName="TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble_IBC" />
+          <TestCase FullyQualifiedName="TeamEng.OptProfTest.vs_debugger_EE_Managed_CSLambda" />
+        </TestContainer>
+        <TestContainer Name="VSPE">
+          <TestCase FullyQualifiedName="VSPE.OptProfTests.vs_perf_designtime_ide_searchtest" />
+          <TestCase FullyQualifiedName="VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs" />
+          <TestCase FullyQualifiedName="VSPE.OptProfTests.vs_asl_cs_scenario" />
+          <TestCase FullyQualifiedName="VSPE.OptProfTests.vs_ddbvtqa_vbwin" />
+          <TestCase FullyQualifiedName="VSPE.OptProfTests.vs_asl_vb_scenario" />
+          <TestCase FullyQualifiedName="VSPE.OptProfTests.vs_env_solution_createnewproject_vb_winformsapp" />
+        </TestContainer>
+      </Scenarios>
+    </OptProf>
+  </ItemGroup>
 
   <!--
     Language specifc settings

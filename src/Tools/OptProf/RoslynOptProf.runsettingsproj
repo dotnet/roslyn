@@ -25,9 +25,12 @@
   </ItemGroup>
 
   <ItemGroup Label="TestContainers">
-    <TestContainer Include="VSLanguages.dll" />
+    <TestContainer Include="DDRIT.RPS.ManagedLangs.dll" />
+    <TestContainer Include="DDRIT.RPS.CSharp.dll" />
+    <TestContainer Include="DDRIT.RPS.Xaml.dll" />
+    <TestContainer Include="WinForms.dll" />
+    <TestContainer Include="TeamEng.dll" />
     <TestContainer Include="VSPE.dll" />
-    <TestContainer Include="VC.Tests.IDE.dll" />
   </ItemGroup>
 
   <ItemGroup>
