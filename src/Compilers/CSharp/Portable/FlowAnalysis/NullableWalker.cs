@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Examples:
         /// `x is Point p`
-        /// `switch (x) ... case Point p:` // PROTOTYPE(NullableReferenceTypes): not yet handled
+        /// `switch (x) ... case Point p:` // https://github.com/dotnet/roslyn/issues/29873 not yet handled
         ///
         /// If the expression is trackable, we'll return with different null-states for that expression in the two conditional states.
         /// If the pattern is a `var` pattern, we'll also have re-inferred the `var` type with nullability and
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitPattern(expression, pattern);
             Debug.Assert(IsConditionalState);
 
-            // PROTOTYPE(NullableReferenceTypes): We should only report such
+            // https://github.com/dotnet/roslyn/issues/29873 We should only report such
             // diagnostics for locals that are set or checked explicitly within this method.
             if (!expressionResultType.IsNull && expressionResultType.IsNullable == false && isNull == true)
             {
@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TrackNullableStateForAssignment(argument, property.Type, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
             }
 
-            // PROTOTYPE(NullableReferenceTypes): _result may need to be a new anonymous
+            // https://github.com/dotnet/roslyn/issues/24018 _result may need to be a new anonymous
             // type since the properties may have distinct nullability from original.
             // (See NullableReferenceTypesTests.AnonymousObjectCreation_02.)
             _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
