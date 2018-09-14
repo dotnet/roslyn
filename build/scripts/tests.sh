@@ -17,10 +17,11 @@ unittest_dir="${binaries_path}"/"${build_configuration}"/UnitTests
 log_dir="${binaries_path}"/"${build_configuration}"/xUnitResults
 nuget_dir="${HOME}"/.nuget/packages
 xunit_console_version="$(get_package_version xunitrunnerconsole)"
+dotnet_runtime_version="$(get_tool_version dotnetRuntime)"
 
 if [[ "${runtime}" == "dotnet" ]]; then
-    target_framework=netcoreapp2.0
-    file_list=( "${unittest_dir}"/*/netcoreapp2.0/*.UnitTests.dll )
+    target_framework=netcoreapp2.1
+    file_list=( "${unittest_dir}"/*/netcoreapp2.1/*.UnitTests.dll )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
 elif [[ "${runtime}" == "mono" ]]; then
     file_list=(
@@ -68,8 +69,6 @@ do
 
     echo Running "${runtime} ${file_name[@]}"
     if [[ "${runtime}" == "dotnet" ]]; then
-        runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
-
         # Disable the VB Semantic tests while we investigate the core dump issue
         # https://github.com/dotnet/roslyn/issues/29660
         if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] 
@@ -77,6 +76,7 @@ do
             echo "Skipping ${file_name[@]}"
             continue
         fi
+        runner="dotnet exec --fx-version ${dotnet_runtime_version} --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono
     fi
