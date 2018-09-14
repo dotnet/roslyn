@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -529,7 +530,8 @@ class C
 {
     void M()
     {
-        var list1 = new List<int>(() => {
+        var list1 = new List<int>(() =>
+        {
             var list2 = new List<int>
             {
                 2
@@ -567,7 +569,8 @@ class C
     {
         var list1 = new List<int>
         {
-            () => {
+            () =>
+            {
                 var list2 = new List<int>
                 {
                     2
@@ -605,8 +608,7 @@ class C
             2 // Bar
         };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
@@ -632,14 +634,8 @@ class C
     {
         var c = new Dictionary<int, string>
         {
-            {
-                1,
-                ""x""
-            },
-            {
-                2,
-                ""y""
-            }
+            { 1, ""x"" },
+            { 2, ""y"" }
         };
     }
 }");
@@ -913,7 +909,7 @@ public class Goo
         };
 #endif
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
@@ -1014,7 +1010,28 @@ class MyClass
 
         int horse = 1;
     }
-}", ignoreTrivia: false);
+}");
+        }
+
+        [WorkItem(23672, "https://github.com/dotnet/roslyn/issues/23672")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestMissingWithExplicitImplementedAddMethod()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+using System.Dynamic;
+
+public class Goo
+{
+    public void M()
+    {
+        IDictionary<string, object> obj = [||]new ExpandoObject();
+        obj.Add(""string"", ""v"");
+        obj.Add(""int"", 1);
+        obj.Add("" object"", new { X = 1, Y = 2 });
+        }
+}");
         }
     }
 }

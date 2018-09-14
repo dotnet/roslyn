@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = SyntaxFactory.IndexerDeclaration(
                     attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
                     modifiers: GenerateModifiers(property, destination, options),
-                    type: GeneratePropertyType(property),
+                    type: property.GenerateTypeSyntax(),
                     explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                     parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, explicitInterfaceSpecifier != null, options),
                     accessorList: GenerateAccessorList(property, destination, workspace, options, parseOptions));
@@ -106,14 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddFormatterAndCodeGeneratorAnnotationsTo(
                 AddAnnotationsTo(property, declaration));
         }
-
-        private static TypeSyntax GeneratePropertyType(IPropertySymbol property)
-        {
-            return property.ReturnsByRef
-                            ? property.Type.GenerateRefTypeSyntax()
-                            : property.Type.GenerateTypeSyntax();
-        }
-
+        
         private static MemberDeclarationSyntax GeneratePropertyDeclaration(
            IPropertySymbol property, CodeGenerationDestination destination,
            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
@@ -131,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
                 modifiers: GenerateModifiers(property, destination, options),
-                type: GeneratePropertyType(property),
+                type: property.GenerateTypeSyntax(),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: property.Name.ToIdentifierToken(),
                 accessorList: accessorList,
@@ -156,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var accessor = accessorList.Accessors[0];
                 if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration))
                 {
-                    return TryGetExpressionBody(
+                    return TryGetArrowExpressionBody(
                         baseProperty.Kind(), accessor, options, preference,
                         out arrowExpression, out semicolonToken);
                 }
@@ -214,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (declaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
-                if (declaration.Body.TryConvertToExpressionBody(
+                if (declaration.Body.TryConvertToArrowExpressionBody(
                         declaration.Kind(), options, expressionBodyPreference,
                         out var expressionBody, out var semicolonToken))
                 {
@@ -227,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private static bool TryGetExpressionBody(
+        private static bool TryGetArrowExpressionBody(
             SyntaxKind declaratoinKind, AccessorDeclarationSyntax accessor, ParseOptions options, ExpressionBodyPreference preference,
             out ArrowExpressionClauseSyntax arrowExpression, out SyntaxToken semicolonToken)
         {
@@ -240,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return true;
             }
 
-            return accessor.Body.TryConvertToExpressionBody(
+            return accessor.Body.TryConvertToArrowExpressionBody(
                 declaratoinKind, options, preference, out arrowExpression, out semicolonToken);
         }
 

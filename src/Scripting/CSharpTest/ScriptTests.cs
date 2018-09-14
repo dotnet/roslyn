@@ -2,18 +2,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.IO;
-using System.Globalization;
-using System.Text;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.Scripting.Test;
+using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -65,6 +66,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             var state = await CSharpScript.RunAsync("1 + 2", globals: new ScriptTests());
             var compilation = state.Script.GetCompilation();
             Assert.Equal(state.Script.SourceText, compilation.SyntaxTrees.First().GetText());
+        }
+
+        [Fact]
+        public void TestEmit_PortablePdb() => TestEmit(DebugInformationFormat.PortablePdb);
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void TestEmit_WindowsPdb() => TestEmit(DebugInformationFormat.Pdb);
+
+        private void TestEmit(DebugInformationFormat format)
+        {
+            var script = CSharpScript.Create("1 + 2", options: ScriptOptions.Default.WithEmitDebugInformation(true));
+            var compilation = script.GetCompilation();
+            var emitOptions = ScriptBuilder.GetEmitOptions(emitDebugInformation: true).WithDebugInformationFormat(format);
+
+            var peStream = new MemoryStream();
+            var pdbStream = new MemoryStream();
+            var emitResult = ScriptBuilder.Emit(peStream, pdbStream, compilation, emitOptions, cancellationToken: default);
+
+            peStream.Position = 0;
+            pdbStream.Position = 0;
+
+            PdbValidation.ValidateDebugDirectory(
+                peStream, 
+                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null, 
+                pdbPath: compilation.AssemblyName + ".pdb", 
+                hashAlgorithm: default, 
+                hasEmbeddedPdb: false, 
+                isDeterministic: false);
         }
 
         [Fact]
@@ -140,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
         [WorkItem(5279, "https://github.com/dotnet/roslyn/issues/5279")]
         [Fact]
-        public async void TestRunExpressionStatement()
+        public async Task TestRunExpressionStatement()
         {
             var state = await CSharpScript.RunAsync(
 @"int F() { return 1; }
@@ -591,7 +620,7 @@ if (true)
         public async Task ReturnInLoadedFile()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 42;"));
+                KeyValuePairUtil.Create("a.csx", "return 42;"));
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
 
             var script = CSharpScript.Create("#load \"a.csx\"", options);
@@ -609,7 +638,7 @@ if (true)
         public async Task ReturnInLoadedFileTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 if (false)
 {
     return 42;
@@ -632,7 +661,7 @@ if (false)
         public void ReturnInLoadedFileTrailingVoidExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 if (false)
 {
     return 1;
@@ -655,8 +684,8 @@ System.Console.WriteLine(42)"));
         public async Task MultipleLoadedFilesWithTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "1"),
-                KeyValuePair.Create("b.csx", @"
+                KeyValuePairUtil.Create("a.csx", "1"),
+                KeyValuePairUtil.Create("b.csx", @"
 #load ""a.csx""
 2"));
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
@@ -665,8 +694,8 @@ System.Console.WriteLine(42)"));
             Assert.Null(result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "1"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "1"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -675,8 +704,8 @@ System.Console.WriteLine(42)"));
             Assert.Null(result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "1"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "1"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -690,8 +719,8 @@ System.Console.WriteLine(42)"));
         public async Task MultipleLoadedFilesWithReturnAndTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 1;"),
-                KeyValuePair.Create("b.csx", @"
+                KeyValuePairUtil.Create("a.csx", "return 1;"),
+                KeyValuePairUtil.Create("b.csx", @"
 #load ""a.csx""
 2"));
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
@@ -700,8 +729,8 @@ System.Console.WriteLine(42)"));
             Assert.Equal(1, result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 1;"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "return 1;"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -710,8 +739,8 @@ System.Console.WriteLine(42)"));
             Assert.Equal(1, result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 1;"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "return 1;"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -725,7 +754,7 @@ return 3;", options);
         public async Task LoadedFileWithReturnAndGoto()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 goto EOF;
 NEXT:
 return 1;
@@ -774,7 +803,7 @@ b");
         public async Task LoadedFileWithVoidReturn()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 var i = 42;
 return;
 i = -1;"));

@@ -520,12 +520,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 // We use the parent node as a root:
                 // - for field/property initializers the root is EqualsValueClause. 
-                // - for expression-bodies the root is ArrowExpressionClauseSyntax. 
+                // - for member expression-bodies the root is ArrowExpressionClauseSyntax.
                 // - for block bodies the root is a method/operator/accessor declaration (only happens when matching expression body with a block body)
                 // - for lambdas the root is a LambdaExpression.
                 // - for query lambdas the root is the query clause containing the lambda (e.g. where).
+                // - for local functions the root is LocalFunctionStatement.
 
-                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
+                SyntaxNode GetMatchingRoot(SyntaxNode body)
+                {
+                    var parent = body.Parent;
+                    // We could apply this change across all ArrowExpressionClause consistently not just for ones with LocalFunctionStatement parents
+                    // but it would require an essential refactoring. 
+                    return parent.IsKind(SyntaxKind.ArrowExpressionClause) && parent.Parent.IsKind(SyntaxKind.LocalFunctionStatement) ? parent.Parent : parent;
+                }
+
+                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(GetMatchingRoot(oldBody), GetMatchingRoot(newBody), knownMatches);
             }
 
             if (oldBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
@@ -557,13 +566,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ConstructorDeclaration:
-                    var newConstructor = (ConstructorDeclarationSyntax)newBody.Parent;
+                    var newConstructor = (ConstructorDeclarationSyntax)(newBody.Parent.IsKind(SyntaxKind.ArrowExpressionClause) ? newBody.Parent.Parent : newBody.Parent);
                     newStatement = (SyntaxNode)newConstructor.Initializer ?? newConstructor;
                     return true;
 
                 default:
                     // TODO: Consider mapping an expression body to an equivalent statement expression or return statement and vice versa.
                     // It would benefit transformations of expression bodies to block bodies of lambdas, methods, operators and properties.
+                    // See https://github.com/dotnet/roslyn/issues/22696
 
                     // field initializer, lambda and query expressions:
                     if (oldStatement == oldBody && !newBody.IsKind(SyntaxKind.Block))
@@ -646,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                     else
                     {
-                        span = default(TextSpan);
+                        span = default;
                         return false;
                     }
 
@@ -675,11 +685,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     if (parent.IsKind(SyntaxKind.Block))
                     {
-                        yield return KeyValuePair.Create(parent, (int)(direction > 0 ? BlockPart.CloseBrace : BlockPart.OpenBrace));
+                        yield return KeyValuePairUtil.Create(parent, (int)(direction > 0 ? BlockPart.CloseBrace : BlockPart.OpenBrace));
                     }
                     else if (parent.IsKind(SyntaxKind.ForEachStatement))
                     {
-                        yield return KeyValuePair.Create(parent, (int)ForEachPart.ForEach);
+                        yield return KeyValuePairUtil.Create(parent, (int)ForEachPart.ForEach);
                     }
 
                     if (direction > 0)
@@ -695,14 +705,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // We don't have any better place where to place the span than the initial field.
                         // Consider: in non-partial classes we could find a single constructor. 
                         // Otherwise, it would be confusing to select one arbitrarily.
-                        yield return KeyValuePair.Create(statement, -1);
+                        yield return KeyValuePairUtil.Create(statement, -1);
                     }
 
                     nodeOrToken = statement = parent;
                     fieldOrPropertyModifiers = SyntaxUtilities.TryGetFieldOrPropertyModifiers(statement);
                     direction = +1;
 
-                    yield return KeyValuePair.Create(nodeOrToken.AsNode(), 0);
+                    yield return KeyValuePairUtil.Create(nodeOrToken.AsNode(), 0);
                 }
                 else
                 {
@@ -725,14 +735,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     if (node.IsKind(SyntaxKind.Block))
                     {
-                        yield return KeyValuePair.Create(node, (int)(direction > 0 ? BlockPart.OpenBrace : BlockPart.CloseBrace));
+                        yield return KeyValuePairUtil.Create(node, (int)(direction > 0 ? BlockPart.OpenBrace : BlockPart.CloseBrace));
                     }
                     else if (node.IsKind(SyntaxKind.ForEachStatement))
                     {
-                        yield return KeyValuePair.Create(node, (int)ForEachPart.ForEach);
+                        yield return KeyValuePairUtil.Create(node, (int)ForEachPart.ForEach);
                     }
 
-                    yield return KeyValuePair.Create(node, 0);
+                    yield return KeyValuePairUtil.Create(node, 0);
                 }
             }
         }
@@ -987,9 +997,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return LambdaUtilities.IsLambda(node);
         }
 
-        internal override bool IsLambdaExpression(SyntaxNode node)
+        internal override bool IsNestedFunction(SyntaxNode node)
         {
-            return node is LambdaExpressionSyntax;
+            return node is LambdaExpressionSyntax || node is LocalFunctionStatementSyntax;
         }
 
         internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
@@ -1004,7 +1014,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken)
         {
-            return (IMethodSymbol)model.GetEnclosingSymbol(((AnonymousFunctionExpressionSyntax)lambdaExpression).Body.SpanStart, cancellationToken);
+            var bodyExpression = LambdaUtilities.GetNestedFunctionBody(lambdaExpression);
+            return (IMethodSymbol)model.GetEnclosingSymbol(bodyExpression.SpanStart, cancellationToken);
         }
 
         internal override SyntaxNode GetContainingQueryExpression(SyntaxNode node)
@@ -1053,6 +1064,35 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     return true;
             }
+        }
+
+        protected override void ReportLambdaSignatureRudeEdits(
+            SemanticModel oldModel,
+            SyntaxNode oldLambdaBody,
+            SemanticModel newModel,
+            SyntaxNode newLambdaBody,
+            List<RudeEditDiagnostic> diagnostics,
+            out bool hasErrors,
+            CancellationToken cancellationToken)
+        {
+            base.ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, diagnostics, out hasErrors, cancellationToken);
+
+            if (IsLocalFunctionBody(oldLambdaBody) != IsLocalFunctionBody(newLambdaBody))
+            {
+                var newLambda = GetLambda(newLambdaBody);
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
+                    GetDiagnosticSpan(newLambda, EditKind.Update),
+                    newLambda,
+                    new[] { GetLambdaDisplayName(newLambda) }));
+                hasErrors = true;
+            }
+        }
+
+        private static bool IsLocalFunctionBody(SyntaxNode lambdaBody)
+        {
+            var lambda = LambdaUtilities.GetLambda(lambdaBody);
+            return lambda.Kind() == SyntaxKind.LocalFunctionStatement;
         }
 
         private static bool GroupBySignatureComparer(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
@@ -1116,11 +1156,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (kind)
             {
                 case SyntaxKind.CompilationUnit:
-                    return default(TextSpan);
+                    return default;
 
                 case SyntaxKind.GlobalStatement:
                     // TODO:
-                    return default(TextSpan);
+                    return default;
 
                 case SyntaxKind.ExternAliasDirective:
                 case SyntaxKind.UsingDirective:
@@ -1559,6 +1599,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.Attribute:
                     return FeaturesResources.attribute;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    return FeaturesResources.local_function;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
@@ -1863,18 +1906,31 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
-                        ClassifyTypeWithPossibleExternMembersInsert((TypeDeclarationSyntax)node);
+                        var typeDeclaration = (TypeDeclarationSyntax)node;
+                        ClassifyTypeWithPossibleExternMembersInsert(typeDeclaration);
+                        ClassifyPossibleEmbeddedAttributesForType(typeDeclaration);
                         return;
 
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.EnumDeclaration:
+                        return;
+
                     case SyntaxKind.DelegateDeclaration:
+                        var delegateDeclaration = (DelegateDeclarationSyntax)node;
+                        ClassifyPossibleReadOnlyRefAttributesForType(delegateDeclaration, delegateDeclaration.ReturnType);
+                        ClassifyPossibleInModifierForParameters(delegateDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
                     case SyntaxKind.EventDeclaration:
                         ClassifyModifiedMemberInsert(((BasePropertyDeclarationSyntax)node).Modifiers);
+                        return;
+
+                    case SyntaxKind.IndexerDeclaration:
+                        var indexerDeclaration = (IndexerDeclarationSyntax)node;
+                        ClassifyModifiedMemberInsert(indexerDeclaration.Modifiers);
+                        ClassifyPossibleReadOnlyRefAttributesForType(indexerDeclaration, indexerDeclaration.Type);
+                        ClassifyPossibleInModifierForParameters(indexerDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.ConversionOperatorDeclaration:
@@ -1890,11 +1946,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // Allow adding parameterless constructor.
                         // Semantic analysis will determine if it's an actual addition or 
                         // just an update of an existing implicit constructor.
-                        var modifiers = ((BaseMethodDeclarationSyntax)node).Modifiers;
-                        if (SyntaxUtilities.IsParameterlessConstructor(node))
+                        var method = (BaseMethodDeclarationSyntax)node;
+                        if (SyntaxUtilities.IsParameterlessConstructor(method))
                         {
                             // Disallow adding an extern constructor
-                            if (modifiers.Any(SyntaxKind.ExternKeyword))
+                            if (method.Modifiers.Any(SyntaxKind.ExternKeyword))
                             {
                                 ReportError(RudeEditKind.InsertExtern);
                             }
@@ -1902,7 +1958,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             return;
                         }
 
-                        ClassifyModifiedMemberInsert(modifiers);
+                        ClassifyModifiedMemberInsert(method.Modifiers);
+                        ClassifyPossibleInModifierForParameters(method.ParameterList);
                         return;
 
                     case SyntaxKind.GetAccessorDeclaration:
@@ -1964,6 +2021,48 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return true;
             }
 
+            private void ClassifyPossibleEmbeddedAttributesForType(TypeDeclarationSyntax type)
+            {
+                if (type.Keyword.IsKind(SyntaxKind.StructKeyword))
+                {
+                    foreach (var modifier in type.Modifiers)
+                    {
+                        switch (modifier.Kind())
+                        {
+                            case SyntaxKind.RefKeyword:
+                                ReportError(RudeEditKind.RefStruct, type, type);
+                                return;
+                            case SyntaxKind.ReadOnlyKeyword:
+                                ReportError(RudeEditKind.ReadOnlyStruct, type, type);
+                                return;
+                        }
+                    }
+                }
+            }
+
+            private void ClassifyPossibleInModifierForParameters(BaseParameterListSyntax list)
+            {
+                foreach (var parameter in list.Parameters)
+                {
+                    foreach (var modifier in parameter.Modifiers)
+                    {
+                        if (modifier.IsKind(SyntaxKind.InKeyword))
+                        {
+                            ReportError(RudeEditKind.ReadOnlyReferences, parameter, parameter);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            private void ClassifyPossibleReadOnlyRefAttributesForType(SyntaxNode owner, TypeSyntax type)
+            {
+                if (type is RefTypeSyntax refType && refType.RefKeyword != default && refType.ReadOnlyKeyword != default)
+                {
+                    ReportError(RudeEditKind.ReadOnlyReferences, owner, owner);
+                }
+            }
+
             private void ClassifyTypeWithPossibleExternMembersInsert(TypeDeclarationSyntax type)
             {
                 // extern members are not allowed, even in a new type
@@ -2002,6 +2101,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 {
                     ReportError(RudeEditKind.InsertGenericMethod);
                 }
+
+                if (method.ExplicitInterfaceSpecifier != null)
+                {
+                    ReportError(RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier);
+                }
+
+                ClassifyPossibleReadOnlyRefAttributesForType(method, method.ReturnType);
+                ClassifyPossibleInModifierForParameters(method.ParameterList);
             }
 
             private void ClassifyAccessorInsert(AccessorDeclarationSyntax accessor)
@@ -2769,6 +2876,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         case SyntaxKind.StackAllocArrayCreationExpression:
                             ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
                             return;
+
+                        case SyntaxKind.LocalFunctionStatement:
+                            var localFunction = (LocalFunctionStatementSyntax)node;
+                            ClassifyPossibleReadOnlyRefAttributesForType(localFunction, localFunction.ReturnType);
+                            ClassifyPossibleInModifierForParameters(localFunction.ParameterList);
+                            break;
                     }
                 }
             }
@@ -2822,7 +2935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Exception Handling Rude Edits
 
-        protected override List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isLeaf)
+        protected override List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isNonLeaf)
         {
             var result = new List<SyntaxNode>();
 
@@ -2833,7 +2946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (kind)
                 {
                     case SyntaxKind.TryStatement:
-                        if (!isLeaf)
+                        if (isNonLeaf)
                         {
                             result.Add(node);
                         }
@@ -3002,8 +3115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             while (true)
             {
-                var statement = node as StatementSyntax;
-                if (statement != null)
+                if (node is StatementSyntax statement)
                 {
                     return statement;
                 }
@@ -3107,63 +3219,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             Match<SyntaxNode> match,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
-            bool isLeaf)
+            bool isNonLeaf)
         {
-            ReportRudeEditsForUnsupportedCSharp7EnC(diagnostics, match);
-            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
-            ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
-        }
-
-        /// <summary>
-        /// If either trees (after or before the edit) contain unsupported C# 7 features around the active statement, report it.
-        /// </summary>
-        private void ReportRudeEditsForUnsupportedCSharp7EnC(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match)
-        {
-            SyntaxNode foundCSharp7Syntax = match.NewRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
-            if (foundCSharp7Syntax != null)
-            {
-                AddRudeUpdateAroundActiveStatement(diagnostics, foundCSharp7Syntax);
-                return;
-            }
-
-            foundCSharp7Syntax = match.OldRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
-            if (foundCSharp7Syntax != null)
-            {
-                AddRudeUpdateInCSharp7Method(diagnostics, foundCSharp7Syntax);
-            }
-        }
-
-        /// <summary>
-        /// If the active method used unsupported C# 7 features before the edit, it needs to be reported.
-        /// </summary>
-        private void AddRudeUpdateInCSharp7Method(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldCSharp7Syntax)
-        {
-            diagnostics.Add(new RudeEditDiagnostic(
-                RudeEditKind.UpdateAroundActiveStatement,
-                default(TextSpan), // no span since the offending node is in the old syntax
-                oldCSharp7Syntax,
-                new[] { GetStatementDisplayName(oldCSharp7Syntax, EditKind.Update) }));
-        }
-
-        private static bool IsUnsupportedCSharp7EnCNode(SyntaxNode n)
-        {
-            switch (n.Kind())
-            {
-                case SyntaxKind.LocalFunctionStatement:
-                    return true;
-                default:
-                    return false;
-            }
+            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement);
+            ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isNonLeaf);
         }
 
         private void ReportRudeEditsForCheckedStatements(
             List<RudeEditDiagnostic> diagnostics,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
-            bool isLeaf)
+            bool isNonLeaf)
         {
-            // checked context can be changed around leaf active statement:
-            if (isLeaf)
+            // checked context can't be changed around non-leaf active statement:
+            if (!isNonLeaf)
             {
                 return;
             }
@@ -3215,8 +3284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             List<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
             SyntaxNode oldActiveStatement,
-            SyntaxNode newActiveStatement,
-            bool isLeaf)
+            SyntaxNode newActiveStatement)
         {
             // Rude Edits for fixed/using/lock/foreach statements that are added/updated around an active statement.
             // Although such changes are technically possible, they might lead to confusion since 

@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -14,23 +15,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal struct TokenSemanticInfo
     {
         public static readonly TokenSemanticInfo Empty = new TokenSemanticInfo(
-            null, null, ImmutableArray<ISymbol>.Empty, null);
+            null, null, ImmutableArray<ISymbol>.Empty, null, default(TextSpan));
 
         public readonly ISymbol DeclaredSymbol;
         public readonly IAliasSymbol AliasSymbol;
         public readonly ImmutableArray<ISymbol> ReferencedSymbols;
         public readonly ITypeSymbol Type;
+        public readonly TextSpan Span;
 
         public TokenSemanticInfo(
-            ISymbol declaredSymbol, 
+            ISymbol declaredSymbol,
             IAliasSymbol aliasSymbol,
             ImmutableArray<ISymbol> referencedSymbols,
-            ITypeSymbol type)
+            ITypeSymbol type,
+            TextSpan span)
         {
             DeclaredSymbol = declaredSymbol;
             AliasSymbol = aliasSymbol;
             ReferencedSymbols = referencedSymbols;
             Type = type;
+            Span = span;
         }
 
         public ImmutableArray<ISymbol> GetSymbols(bool includeType)
@@ -172,16 +176,39 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            var aliasSymbol = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
+            IAliasSymbol aliasSymbol;
+            ITypeSymbol type;
+            ISymbol declaredSymbol;
+            ImmutableArray<ISymbol> allSymbols;
 
-            var bindableParent = syntaxFacts.GetBindableParent(token);
-            var type = semanticModel.GetTypeInfo(bindableParent, cancellationToken).Type;
+            var overriddingIdentifier = syntaxFacts.GetDeclarationIdentifierIfOverride(token);
+            if (overriddingIdentifier.HasValue)
+            {
+                // on an "override" token, we'll find the overridden symbol
+                aliasSymbol = null;
+                var overriddingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overriddingIdentifier.Value, cancellationToken);
+                var overriddenSymbol = overriddingSymbol.GetOverriddenMember();
 
-            var declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
-            var allSymbols = semanticModel.GetSymbolInfo(bindableParent, cancellationToken)
-                                          .GetBestOrAllSymbols()
-                                          .WhereAsArray(s => !s.Equals(declaredSymbol))
-                                          .SelectAsArray(s => MapSymbol(s, type));
+                // on an "override" token, the overridden symbol is the only part of TokenSemanticInfo used by callers, so type doesn't matter
+                type = null;
+                declaredSymbol = null;
+                allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create(overriddenSymbol);
+            }
+            else
+            {
+                aliasSymbol = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
+                var bindableParent = syntaxFacts.GetBindableParent(token);
+                type = semanticModel.GetTypeInfo(bindableParent, cancellationToken).Type;
+                declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
+
+                var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
+                allSymbols = skipSymbolInfoLookup
+                    ? ImmutableArray<ISymbol>.Empty
+                    : semanticFacts
+                        .GetBestOrAllSymbols(semanticModel, bindableParent, token, cancellationToken)
+                        .WhereAsArray(s => !s.Equals(declaredSymbol))
+                        .SelectAsArray(s => MapSymbol(s, type));
+            }
 
             // NOTE(cyrusn): This is a workaround to how the semantic model binds and returns
             // information for VB event handlers.  Namely, if you have:
@@ -207,7 +234,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type);
+            if (allSymbols.Length == 0 && syntaxFacts.IsQueryKeyword(token))
+            {
+                type = null;
+            }
+
+            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, token.Span);
         }
 
         public static SemanticModel GetOriginalSemanticModel(this SemanticModel semanticModel)
@@ -233,6 +265,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return symbols;
+        }
+
+        public static IEnumerable<ISymbol> GetExistingSymbols(
+            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
+        {
+            // Ignore an anonymous type property or tuple field.  It's ok if they have a name that
+            // matches the name of the local we're introducing.
+            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
+                .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
         }
 
         private static void GetAllDeclaredSymbols(

@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -13,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new IntroduceVariableCodeRefactoringProvider();
 
-        protected Task TestAsync(string initial, string expected, int index = 0, bool ignoreTrivia = true)
+        protected Task TestAsync(string initial, string expected, int index = 0)
         {
-            return TestAsync(initial, expected, Options.Script, null, index, ignoreTrivia);
+            return TestAsync(initial, expected, Options.Script, null, index);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 @"private const int {|Rename:V|} = 1 + 1;
 int i = V + (1 + 1);";
 
-            await TestAsync(code, expected, index: 0, ignoreTrivia: false);
+            await TestAsync(code, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -77,7 +78,7 @@ int i = V + (1 + 1);";
 @"private const int {|Rename:V|} = 1 + 1;
 int i = V + V;";
 
-            await TestAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestAsync(code, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -174,8 +175,7 @@ class C
     }
 }
 ",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [WorkItem(546465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546465")]
@@ -206,8 +206,7 @@ ignoreTrivia: false);
             ""c"");
     }
 }
-",
-ignoreTrivia: false);
+");
         }
     }
 }

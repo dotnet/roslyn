@@ -1,22 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    [Export]
+    [Shared]
     internal sealed class LinkedFileUtilities : ForegroundThreadAffinitizedObject
     {
-        private LinkedFileUtilities()
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LinkedFileUtilities(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
         }
 
-        private static readonly LinkedFileUtilities s_singleton = new LinkedFileUtilities();
-
-        public static bool IsCurrentContextHierarchy(IVisualStudioHostDocument document, IVsRunningDocumentTable4 runningDocumentTable)
+        public bool IsCurrentContextHierarchy(IVisualStudioHostDocument document, IVsRunningDocumentTable4 runningDocumentTable)
         {
             // runningDocumentTable might be null for tests.
             return runningDocumentTable != null && document.Project.Hierarchy == GetContextHierarchy(document, runningDocumentTable);
@@ -29,12 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// currently open as indicated by the running document table. Otherwise, it returns the
         /// hierarchy of the document's project.
         /// </summary>
-        public static IVsHierarchy GetContextHierarchy(IVisualStudioHostDocument document, IVsRunningDocumentTable4 runningDocumentTable)
-        {
-            return s_singleton.GetContextHierarchyInternal(document, runningDocumentTable);
-        }
-
-        private IVsHierarchy GetContextHierarchyInternal(IVisualStudioHostDocument document, IVsRunningDocumentTable4 runningDocumentTable)
+        public IVsHierarchy GetContextHierarchy(IVisualStudioHostDocument document, IVsRunningDocumentTable4 runningDocumentTable)
         {
             AssertIsForeground();
 
@@ -100,12 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// If the itemId represents a document from a Shared Code project, this returns the 
         /// SharedProjectHierarchy to which it belongs. Otherwise, it returns null.
         /// </summary>
-        public static IVsHierarchy GetSharedHierarchyForItem(IVsHierarchy headProjectHierarchy, uint itemId)
-        {
-            return s_singleton.GetSharedHierarchyForItemInternal(headProjectHierarchy, itemId);
-        }
-
-        private IVsHierarchy GetSharedHierarchyForItemInternal(IVsHierarchy headProjectHierarchy, uint itemId)
+        public IVsHierarchy GetSharedHierarchyForItem(IVsHierarchy headProjectHierarchy, uint itemId)
         {
             AssertIsForeground();
             if (headProjectHierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_IsSharedItem, out var isShared) != VSConstants.S_OK || !(bool)isShared)
@@ -118,23 +113,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 : null;
         }
 
-        public static IVisualStudioHostProject GetContextHostProject(IVsHierarchy sharedHierarchy, IVisualStudioHostProjectContainer hostProjectContainer)
-        {
-            return s_singleton.GetContextHostProjectInternal(sharedHierarchy, hostProjectContainer);
-        }
-
-        private IVisualStudioHostProject GetContextHostProjectInternal(IVsHierarchy hierarchy, IVisualStudioHostProjectContainer hostProjectContainer)
+        public AbstractProject GetContextHostProject(IVsHierarchy hierarchy, VisualStudioProjectTracker projectTracker)
         {
             hierarchy = GetSharedItemContextHierarchy(hierarchy) ?? hierarchy;
             var projectName = GetActiveIntellisenseProjectContextInternal(hierarchy);
 
             if (projectName != null)
             {
-                return hostProjectContainer.GetProjects().FirstOrDefault(p => p.ProjectSystemName == projectName);
+                return projectTracker.ImmutableProjects.FirstOrDefault(p => p.ProjectSystemName == projectName);
             }
             else
             {
-                return hostProjectContainer.GetProjects().FirstOrDefault(p => p.Hierarchy == hierarchy);
+                return projectTracker.ImmutableProjects.FirstOrDefault(p => p.Hierarchy == hierarchy);
             }
         }
 
@@ -148,12 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 : null;
         }
 
-        public static bool TryGetSharedHierarchyAndItemId(IVsHierarchy hierarchy, uint itemId, out IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)
-        {
-            return s_singleton.TryGetSharedHierarchyAndItemIdInternal(hierarchy, itemId, out sharedHierarchy, out itemIdInSharedHierarchy);
-        }
-
-        private bool TryGetSharedHierarchyAndItemIdInternal(IVsHierarchy hierarchy, uint itemId, out IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)
+        public bool TryGetSharedHierarchyAndItemId(IVsHierarchy hierarchy, uint itemId, out IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)
         {
             AssertIsForeground();
 
@@ -165,11 +150,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return false;
             }
 
-            sharedHierarchy = s_singleton.GetSharedHierarchyForItemInternal(hierarchy, itemId);
+            sharedHierarchy = GetSharedHierarchyForItem(hierarchy, itemId);
 
             return sharedHierarchy == null
                 ? false
-                : s_singleton.TryGetItemIdInSharedHierarchyInternal(hierarchy, itemId, sharedHierarchy, out itemIdInSharedHierarchy);
+                : TryGetItemIdInSharedHierarchyInternal(hierarchy, itemId, sharedHierarchy, out itemIdInSharedHierarchy);
         }
 
         private bool TryGetItemIdInSharedHierarchyInternal(IVsHierarchy hierarchy, uint itemId, IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)

@@ -16,10 +16,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
     internal class DocumentProvider : ForegroundThreadAffinitizedObject, IDocumentProvider
     {
+        public DocumentProvider(IThreadingContext threadingContext)
+            : base(threadingContext)
+        {
+        }
+
         public Task<Document> GetDocumentAsync(ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
             AssertIsBackground();
-            return snapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken);
+            return Task.FromResult(snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken));
         }
 
         public Document GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot snapshot)

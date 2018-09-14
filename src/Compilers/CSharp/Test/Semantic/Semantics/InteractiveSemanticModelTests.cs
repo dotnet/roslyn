@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void NamespaceBindingInInteractiveCode()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using Z = Goo.Bar.Script.C;
 
 class C { }
@@ -265,60 +265,6 @@ var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
 
         #region helpers
 
-        protected List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
-        {
-            return GetSyntaxNodeList(syntaxTree.GetCompilationUnitRoot(), null);
-        }
-
-        protected List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
-        {
-            if (synList == null)
-                synList = new List<SyntaxNode>();
-
-            synList.Add(node);
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
-                    synList = GetSyntaxNodeList(child.AsNode(), synList);
-            }
-
-            return synList;
-        }
-
-        protected SyntaxNode GetSyntaxNodeForBinding(List<SyntaxNode> synList)
-        {
-            foreach (var node in synList)
-            {
-                string exprFullText = node.ToFullString();
-                exprFullText = exprFullText.Trim();
-
-                if (exprFullText.StartsWith("/*<bind>*/", StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains("/*</bind>*/"))
-                        if (exprFullText.EndsWith("/*</bind>*/", StringComparison.Ordinal))
-                            return node;
-                        else
-                            continue;
-                    else
-                        return node;
-                }
-
-                if (exprFullText.EndsWith("/*</bind>*/", StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains("/*<bind>*/"))
-                        if (exprFullText.StartsWith("/*<bind>*/", StringComparison.Ordinal))
-                            return node;
-                        else
-                            continue;
-                    else
-                        return node;
-                }
-            }
-
-            return null;
-        }
-
         private List<ExpressionSyntax> GetExprSyntaxList(SyntaxTree syntaxTree)
         {
             return GetExprSyntaxList(syntaxTree.GetCompilationUnitRoot(), null);
@@ -403,8 +349,7 @@ var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
 
         private CompilationUtils.SemanticInfoSummary GetBindInfoForTest(string testSrc)
         {
-            var compilation = CreateStandardCompilation(
-                testSrc, parseOptions: TestOptions.Script, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilation(testSrc, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));

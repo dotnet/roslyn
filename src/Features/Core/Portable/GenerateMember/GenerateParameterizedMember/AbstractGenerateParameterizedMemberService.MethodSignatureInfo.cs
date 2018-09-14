@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
                 => _methodSymbol.ReturnType;
 
-            protected override bool DetermineReturnsByRef(CancellationToken cancellationToken)
-                => _methodSymbol.ReturnsByRef;
+            protected override RefKind DetermineRefKind(CancellationToken cancellationToken)
+                => _methodSymbol.RefKind;
 
             protected override ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken)
                 => _methodSymbol.TypeParameters;

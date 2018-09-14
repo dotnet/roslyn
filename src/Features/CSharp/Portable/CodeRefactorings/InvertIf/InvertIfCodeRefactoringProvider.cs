@@ -1,331 +1,256 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings.InvertIf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 {
-    // [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf)]
-    internal partial class InvertIfCodeRefactoringProvider : CodeRefactoringProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
+    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<IfStatementSyntax, StatementSyntax, StatementSyntax>
     {
-        private static readonly Dictionary<SyntaxKind, Tuple<SyntaxKind, SyntaxKind>> s_binaryMap =
-            new Dictionary<SyntaxKind, Tuple<SyntaxKind, SyntaxKind>>(SyntaxFacts.EqualityComparer)
+        protected override string GetTitle()
+            => CSharpFeaturesResources.Invert_if;
+
+        protected override bool IsElseless(IfStatementSyntax ifNode)
+            => ifNode.Else == null;
+
+        protected override bool CanInvert(IfStatementSyntax ifNode)
+            => ifNode.IsParentKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+
+        protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
+            => ifNode.Condition;
+
+        protected override StatementRange GetIfBodyStatementRange(IfStatementSyntax ifNode)
+            => new StatementRange(ifNode.Statement, ifNode.Statement);
+
+        protected override bool IsStatementContainer(SyntaxNode node)
+            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+
+        protected override bool IsNoOpSyntaxNode(SyntaxNode node)
+            => node.IsKind(SyntaxKind.Block, SyntaxKind.EmptyStatement);
+
+        protected override bool IsExecutableStatement(SyntaxNode node)
+            => node is StatementSyntax;
+
+        protected override StatementSyntax GetNextStatement(StatementSyntax node)
+            => node.GetNextStatement();
+
+        protected override StatementSyntax GetIfBody(IfStatementSyntax ifNode)
+            => ifNode.Statement;
+
+        protected override StatementSyntax GetEmptyEmbeddedStatement()
+            => SyntaxFactory.Block();
+
+        protected override StatementSyntax GetElseBody(IfStatementSyntax ifNode)
+            => ifNode.Else.Statement;
+
+        protected override TextSpan GetHeaderSpan(IfStatementSyntax ifNode)
+        {
+            return TextSpan.FromBounds(
+                ifNode.IfKeyword.SpanStart,
+                ifNode.CloseParenToken.Span.End);
+        }
+
+        protected override bool CanControlFlowOut(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.SwitchSection:
+                case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                    return false;
+            }
+
+            return true;
+        }
+
+        protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode node)
+        {
+            switch (node)
+            {
+                case BlockSyntax n:
+                    return n.Statements;
+                case SwitchSectionSyntax n:
+                    return n.Statements;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+        }
+
+        protected override int GetJumpStatementRawKind(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.SwitchSection:
+                    return (int)SyntaxKind.BreakStatement;
+
+                case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return (int)SyntaxKind.ReturnStatement;
+
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                    return (int)SyntaxKind.ContinueStatement;
+            }
+
+            return -1;
+        }
+
+        protected override StatementSyntax GetJumpStatement(int rawKind)
+        {
+            switch ((SyntaxKind)rawKind)
+            {
+                case SyntaxKind.ContinueStatement:
+                    return SyntaxFactory.ContinueStatement();
+                case SyntaxKind.BreakStatement:
+                    return SyntaxFactory.BreakStatement();
+                case SyntaxKind.ReturnStatement:
+                    return SyntaxFactory.ReturnStatement();
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(rawKind);
+            }
+        }
+
+        protected override StatementSyntax AsEmbeddedStatement(IEnumerable<StatementSyntax> statements, StatementSyntax original)
+        {
+            var statementArray = statements.ToArray();
+            if (statementArray.Length > 0)
+            {
+                statementArray[0] = statementArray[0].GetNodeWithoutLeadingBlankLines();
+            }
+
+            return original is BlockSyntax block
+                ? block.WithStatements(SyntaxFactory.List(statementArray))
+                : statementArray.Length == 1
+                    ? statementArray[0]
+                    : SyntaxFactory.Block(statementArray);
+        }
+
+        protected override IfStatementSyntax UpdateIf(
+            SourceText sourceText,
+            IfStatementSyntax ifNode,
+            SyntaxNode condition,
+            StatementSyntax trueStatement,
+            StatementSyntax falseStatementOpt = null)
+        {
+            var isSingleLine = sourceText.AreOnSameLine(ifNode.GetFirstToken(), ifNode.GetLastToken());
+            if (isSingleLine && falseStatementOpt != null)
+            {
+                // If statement is on a single line, and we're swapping the true/false parts.
+                // In that case, try to swap the trailing trivia between the true/false parts.
+                // That way the trailing comments/newlines at the end of hte 'if' stay there,
+                // and the spaces after the true-part stay where they are.
+
+                (trueStatement, falseStatementOpt) =
+                    (trueStatement.WithTrailingTrivia(falseStatementOpt.GetTrailingTrivia()),
+                     falseStatementOpt.WithTrailingTrivia(trueStatement.GetTrailingTrivia()));
+            }
+
+            var updatedIf = ifNode
+                .WithCondition((ExpressionSyntax)condition)
+                .WithStatement(trueStatement is IfStatementSyntax
+                    ? SyntaxFactory.Block(trueStatement)
+                    : trueStatement);
+
+            if (falseStatementOpt != null)
+            {
+                var elseClause = updatedIf.Else != null
+                    ? updatedIf.Else.WithStatement(falseStatementOpt)
+                    : SyntaxFactory.ElseClause(falseStatementOpt);
+
+                updatedIf = updatedIf.WithElse(elseClause);
+            }
+
+            // If this is multiline, format things after we swap around the if/else.  Because 
+            // of all the different types of rewriting, we may need indentation fixed up and
+            // whatnot.  Don't do this with single-line because we want to ensure as closely
+            // as possible that we've kept things on that single line.
+            return isSingleLine
+                ? updatedIf
+                : updatedIf.WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        protected override SyntaxNode WithStatements(SyntaxNode node, IEnumerable<StatementSyntax> statements)
+        {
+            switch (node)
+            {
+                case BlockSyntax n:
+                    return n.WithStatements(SyntaxFactory.List(statements));
+                case SwitchSectionSyntax n:
+                    return n.WithStatements(SyntaxFactory.List(statements));
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+        }
+
+        protected override IEnumerable<StatementSyntax> UnwrapBlock(StatementSyntax ifBody)
+        {
+            return ifBody is BlockSyntax block
+                ? block.Statements
+                : SyntaxFactory.SingletonList(ifBody);
+        }
+
+        protected override bool IsSingleStatementStatementRange(StatementRange statementRange)
+        {
+            if (statementRange.IsEmpty)
+            {
+                return false;
+            }
+
+            if ((object)statementRange.FirstStatement != (object)statementRange.LastStatement)
+            {
+                return false;
+            }
+
+            return isSingleStatement(statementRange.FirstStatement);
+
+            bool isSingleStatement(StatementSyntax statement)
+            {
+                if (statement is BlockSyntax block)
                 {
-                    { SyntaxKind.EqualsExpression, Tuple.Create(SyntaxKind.NotEqualsExpression, SyntaxKind.ExclamationEqualsToken) },
-                    { SyntaxKind.NotEqualsExpression, Tuple.Create(SyntaxKind.EqualsExpression, SyntaxKind.EqualsEqualsToken) },
-                    { SyntaxKind.LessThanExpression, Tuple.Create(SyntaxKind.GreaterThanOrEqualExpression, SyntaxKind.GreaterThanEqualsToken) },
-                    { SyntaxKind.LessThanOrEqualExpression, Tuple.Create(SyntaxKind.GreaterThanExpression, SyntaxKind.GreaterThanToken) },
-                    { SyntaxKind.GreaterThanExpression, Tuple.Create(SyntaxKind.LessThanOrEqualExpression, SyntaxKind.LessThanEqualsToken) },
-                    { SyntaxKind.GreaterThanOrEqualExpression, Tuple.Create(SyntaxKind.LessThanExpression, SyntaxKind.LessThanToken) },
-                };
-
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-        {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
-
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-            {
-                return;
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var ifStatement = root.FindToken(textSpan.Start).GetAncestor<IfStatementSyntax>();
-            if (ifStatement == null || ifStatement.Else == null)
-            {
-                return;
-            }
-
-            if (!ifStatement.IfKeyword.Span.IntersectsWith(textSpan.Start))
-            {
-                return;
-            }
-
-            if (ifStatement.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
-            context.RegisterRefactoring(
-                new MyCodeAction(
-                    CSharpFeaturesResources.Invert_if_statement,
-                    c => InvertIfAsync(document, ifStatement, c)));
-        }
-
-        private async Task<Document> InvertIfAsync(Document document, IfStatementSyntax ifStatement, CancellationToken cancellationToken)
-        {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var ifNode = ifStatement;
-
-            // In the case that the else clause is actually an else if clause, place the if
-            // statement to be moved in a new block in order to make sure that the else
-            // statement matches the right if statement after the edit.
-            var newIfNodeStatement = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement ?
-                SyntaxFactory.Block(ifNode.Else.Statement) :
-                ifNode.Else.Statement;
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var invertedIf = ifNode.WithCondition(Negate(ifNode.Condition, semanticModel, cancellationToken))
-                      .WithStatement(newIfNodeStatement)
-                      .WithElse(ifNode.Else.WithStatement(ifNode.Statement))
-                      .WithAdditionalAnnotations(Formatter.Annotation);
-
-            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var result = root.ReplaceNode(ifNode, invertedIf);
-            return document.WithSyntaxRoot(result);
-        }
-
-        private bool IsComparisonOfZeroAndSomethingNeverLessThanZero(BinaryExpressionSyntax binaryExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            var canSimplify = false;
-
-            if (binaryExpression.Kind() == SyntaxKind.GreaterThanExpression &&
-                binaryExpression.Right.Kind() == SyntaxKind.NumericLiteralExpression)
-            {
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
-                    binaryExpression.Left,
-                    (LiteralExpressionSyntax)binaryExpression.Right,
-                    semanticModel,
-                    cancellationToken);
-            }
-            else if (binaryExpression.Kind() == SyntaxKind.LessThanExpression &&
-                     binaryExpression.Left.Kind() == SyntaxKind.NumericLiteralExpression)
-            {
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
-                    binaryExpression.Right,
-                    (LiteralExpressionSyntax)binaryExpression.Left,
-                    semanticModel,
-                    cancellationToken);
-            }
-            else if (binaryExpression.Kind() == SyntaxKind.EqualsExpression &&
-                     binaryExpression.Right.Kind() == SyntaxKind.NumericLiteralExpression)
-            {
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
-                    binaryExpression.Left,
-                    (LiteralExpressionSyntax)binaryExpression.Right,
-                    semanticModel,
-                    cancellationToken);
-            }
-            else if (binaryExpression.Kind() == SyntaxKind.EqualsExpression &&
-                     binaryExpression.Left.Kind() == SyntaxKind.NumericLiteralExpression)
-            {
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
-                    binaryExpression.Right,
-                    (LiteralExpressionSyntax)binaryExpression.Left,
-                    semanticModel,
-                    cancellationToken);
-            }
-
-            return canSimplify;
-        }
-
-        private bool CanSimplifyToLengthEqualsZeroExpression(
-            ExpressionSyntax variableExpression,
-            LiteralExpressionSyntax numericLiteralExpression,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            var numericValue = semanticModel.GetConstantValue(numericLiteralExpression, cancellationToken);
-            if (numericValue.HasValue && numericValue.Value is int && (int)numericValue.Value == 0)
-            {
-                var symbol = semanticModel.GetSymbolInfo(variableExpression, cancellationToken).Symbol;
-
-                if (symbol != null && (symbol.Name == "Length" || symbol.Name == "LongLength"))
-                {
-                    var containingType = symbol.ContainingType;
-                    if (containingType != null &&
-                        (containingType.SpecialType == SpecialType.System_Array ||
-                         containingType.SpecialType == SpecialType.System_String))
-                    {
-                        return true;
-                    }
+                    return block.Statements.Count == 1 && isSingleStatement(block.Statements[0]);
                 }
-
-                var typeInfo = semanticModel.GetTypeInfo(variableExpression, cancellationToken);
-                if (typeInfo.Type != null)
-                {
-                    switch (typeInfo.Type.SpecialType)
-                    {
-                        case SpecialType.System_Byte:
-                        case SpecialType.System_UInt16:
-                        case SpecialType.System_UInt32:
-                        case SpecialType.System_UInt64:
-                            return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private bool TryNegateBinaryComparisonExpression(
-            ExpressionSyntax expression,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken,
-            out ExpressionSyntax result)
-        {
-            if (s_binaryMap.TryGetValue(expression.Kind(), out var tuple))
-            {
-                var binaryExpression = (BinaryExpressionSyntax)expression;
-                var expressionType = tuple.Item1;
-                var operatorType = tuple.Item2;
-
-                // Special case negating Length > 0 to Length == 0 and 0 < Length to 0 == Length
-                // for arrays and strings. We can do this because we know that Length cannot be
-                // less than 0. Additionally, if we find Length == 0 or 0 == Length, we'll invert
-                // it to Length > 0 or 0 < Length, respectively.
-                if (IsComparisonOfZeroAndSomethingNeverLessThanZero(binaryExpression, semanticModel, cancellationToken))
-                {
-                    operatorType = binaryExpression.OperatorToken.Kind() == SyntaxKind.EqualsEqualsToken
-                        ? binaryExpression.Right is LiteralExpressionSyntax ? SyntaxKind.GreaterThanToken : SyntaxKind.LessThanToken
-                        : SyntaxKind.EqualsEqualsToken;
-                    expressionType = binaryExpression.Kind() == SyntaxKind.EqualsExpression
-                        ? binaryExpression.Right is LiteralExpressionSyntax ? SyntaxKind.GreaterThanExpression : SyntaxKind.LessThanExpression
-                        : SyntaxKind.EqualsExpression;
-                }
-
-                result = SyntaxFactory.BinaryExpression(
-                    expressionType,
-                    binaryExpression.Left,
-                    SyntaxFactory.Token(
-                        binaryExpression.OperatorToken.LeadingTrivia,
-                        operatorType,
-                        binaryExpression.OperatorToken.TrailingTrivia),
-                    binaryExpression.Right);
 
                 return true;
-            }
-
-            result = null;
-            return false;
-        }
-
-        private ExpressionSyntax Negate(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            if (TryNegateBinaryComparisonExpression(expression, semanticModel, cancellationToken, out var result))
-            {
-                return result;
-            }
-
-            switch (expression.Kind())
-            {
-                case SyntaxKind.ParenthesizedExpression:
-                    {
-                        var parenthesizedExpression = (ParenthesizedExpressionSyntax)expression;
-                        return parenthesizedExpression
-                            .WithExpression(Negate(parenthesizedExpression.Expression, semanticModel, cancellationToken))
-                            .WithAdditionalAnnotations(Simplifier.Annotation);
-                    }
-
-                case SyntaxKind.LogicalNotExpression:
-                    {
-                        var logicalNotExpression = (PrefixUnaryExpressionSyntax)expression;
-
-                        var notToken = logicalNotExpression.OperatorToken;
-                        var nextToken = logicalNotExpression.Operand.GetFirstToken(
-                            includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
-
-                        var existingTrivia = SyntaxFactory.TriviaList(
-                            notToken.LeadingTrivia.Concat(
-                                notToken.TrailingTrivia.Concat(
-                                    nextToken.LeadingTrivia)));
-
-                        var updatedNextToken = nextToken.WithLeadingTrivia(existingTrivia);
-
-                        return logicalNotExpression.Operand.ReplaceToken(
-                            nextToken,
-                            updatedNextToken);
-                    }
-
-                case SyntaxKind.LogicalOrExpression:
-                    {
-                        var binaryExpression = (BinaryExpressionSyntax)expression;
-                        result = SyntaxFactory.BinaryExpression(
-                            SyntaxKind.LogicalAndExpression,
-                            Negate(binaryExpression.Left, semanticModel, cancellationToken),
-                            SyntaxFactory.Token(
-                                binaryExpression.OperatorToken.LeadingTrivia,
-                                SyntaxKind.AmpersandAmpersandToken,
-                                binaryExpression.OperatorToken.TrailingTrivia),
-                            Negate(binaryExpression.Right, semanticModel, cancellationToken));
-
-                        return result
-                            .Parenthesize()
-                            .WithLeadingTrivia(binaryExpression.GetLeadingTrivia())
-                            .WithTrailingTrivia(binaryExpression.GetTrailingTrivia());
-                    }
-
-                case SyntaxKind.LogicalAndExpression:
-                    {
-                        var binaryExpression = (BinaryExpressionSyntax)expression;
-                        result = SyntaxFactory.BinaryExpression(
-                            SyntaxKind.LogicalOrExpression,
-                            Negate(binaryExpression.Left, semanticModel, cancellationToken),
-                            SyntaxFactory.Token(
-                                binaryExpression.OperatorToken.LeadingTrivia,
-                                SyntaxKind.BarBarToken,
-                                binaryExpression.OperatorToken.TrailingTrivia),
-                            Negate(binaryExpression.Right, semanticModel, cancellationToken));
-
-                        return result
-                            .Parenthesize()
-                            .WithLeadingTrivia(binaryExpression.GetLeadingTrivia())
-                            .WithTrailingTrivia(binaryExpression.GetTrailingTrivia());
-                    }
-
-                case SyntaxKind.TrueLiteralExpression:
-                    {
-                        var literalExpression = (LiteralExpressionSyntax)expression;
-                        return SyntaxFactory.LiteralExpression(
-                            SyntaxKind.FalseLiteralExpression,
-                            SyntaxFactory.Token(
-                                literalExpression.Token.LeadingTrivia,
-                                SyntaxKind.FalseKeyword,
-                                literalExpression.Token.TrailingTrivia));
-                    }
-
-                case SyntaxKind.FalseLiteralExpression:
-                    {
-                        var literalExpression = (LiteralExpressionSyntax)expression;
-                        return SyntaxFactory.LiteralExpression(
-                            SyntaxKind.TrueLiteralExpression,
-                            SyntaxFactory.Token(
-                                literalExpression.Token.LeadingTrivia,
-                                SyntaxKind.TrueKeyword,
-                                literalExpression.Token.TrailingTrivia));
-                    }
-            }
-
-            // Anything else we can just negate by adding a ! in front of the parenthesized expression.
-            // Unnecessary parentheses will get removed by the simplification service.
-            return SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.LogicalNotExpression,
-                expression.Parenthesize());
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
-            {
             }
         }
     }

@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         int symbolIndex = 0;
                         foreach (var symbol in newReferencedSymbols)
                         {
-                            if (conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].SymbolLocationsCount != symbol.Locations.Count())
+                            if (conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].SymbolLocationsCount != symbol.Locations.Length)
                             {
                                 hasConflict = true;
                                 break;
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             private IEnumerable<ISymbol> GetSymbolsInNewSolution(Document newDocument, SemanticModel newDocumentSemanticModel, RenameActionAnnotation conflictAnnotation, SyntaxNodeOrToken tokenOrNode)
             {
-                var newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Workspace, _cancellationToken);
+                IEnumerable<ISymbol> newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Workspace, _cancellationToken);
 
                 if (conflictAnnotation.IsInvocationExpression)
                 {
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     foreach (var language in documentsFromAffectedProjects.Select(d => d.Project.Language).Distinct())
                     {
                         solution.Workspace.Services.GetLanguageServices(language).GetService<IRenameRewriterLanguageService>()
-                            .TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
+                            ?.TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
                     }
 
                     await AddDocumentsWithPotentialConflicts(documentsFromAffectedProjects).ConfigureAwait(false);
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             _renameAnnotations,
                             _cancellationToken);
 
-                        var renameRewriterLanguageService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
+                        var renameRewriterLanguageService = document.GetLanguageService<IRenameRewriterLanguageService>();
                         var newRoot = renameRewriterLanguageService.AnnotateAndRename(parameters);
 
                         if (newRoot == originalSyntaxRoot)

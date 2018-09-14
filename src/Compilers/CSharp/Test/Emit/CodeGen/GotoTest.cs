@@ -817,7 +817,7 @@ L0: ;
 @"True
 False";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Passes);
         }
 
         [Fact]
@@ -868,7 +868,7 @@ if (Q < 4) goto L;";
 3: F
 4: Q";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -951,7 +951,7 @@ default:
             string expectedOutput =
 @"3";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Passes);
         }
 
         [Fact]
@@ -1011,7 +1011,7 @@ A: goto B;";
 @"#load ""a.csx""
 goto B;
 B: goto A;";
-            var resolver = TestSourceReferenceResolver.Create(KeyValuePair.Create("a.csx", sourceA));
+            var resolver = TestSourceReferenceResolver.Create(KeyValuePairUtil.Create("a.csx", sourceA));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             var compilation = CreateCompilationWithMscorlib45(sourceB, options: options, parseOptions: TestOptions.Script);
             compilation.GetDiagnostics().Verify(

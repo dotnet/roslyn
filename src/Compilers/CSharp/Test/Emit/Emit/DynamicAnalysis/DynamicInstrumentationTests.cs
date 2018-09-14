@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Roslyn.Test.Utilities;
 using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
@@ -1225,7 +1226,7 @@ True
 True
 ";
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails);
             verifier.VerifyDiagnostics();
         }
 
@@ -2310,7 +2311,7 @@ public class Program
 }
 ";
 
-            ImmutableArray<Diagnostic> diagnostics = CreateCompilation(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+            ImmutableArray<Diagnostic> diagnostics = CreateEmptyCompilation(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
             foreach (Diagnostic diagnostic in diagnostics)
             {
                 if (diagnostic.Code == (int)ErrorCode.ERR_MissingPredefinedMember &&
@@ -2401,11 +2402,11 @@ class C
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "C.M1");
-            AssertNotInstrumented(verifier, "C.<M1>g__L10_0");
+            AssertNotInstrumented(verifier, "C.<M1>g__L1|0_0");
             AssertNotInstrumented(verifier, "C.<>c.<M1>b__0_1");
 
             AssertInstrumented(verifier, "C.M2");
-            AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>g__L20"); // M2:L2
+            AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>g__L2|0"); // M2:L2
             AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>b__1"); // M2:L2 lambda
         }
 
@@ -2468,13 +2469,13 @@ class C
 
             AssertNotInstrumented(verifier, "C.P1.get");
             AssertNotInstrumented(verifier, "C.P1.set");
-            AssertNotInstrumented(verifier, "C.<get_P1>g__L11_0");
-            AssertNotInstrumented(verifier, "C.<set_P1>g__L22_0");
+            AssertNotInstrumented(verifier, "C.<get_P1>g__L1|1_0");
+            AssertNotInstrumented(verifier, "C.<set_P1>g__L2|2_0");
 
             AssertInstrumented(verifier, "C.P2.get");
             AssertInstrumented(verifier, "C.P2.set");
-            AssertInstrumented(verifier, "C.<get_P2>g__L34_0");
-            AssertInstrumented(verifier, "C.<set_P2>g__L45_0");
+            AssertInstrumented(verifier, "C.<get_P2>g__L3|4_0");
+            AssertInstrumented(verifier, "C.<set_P2>g__L4|5_0");
         }
 
         [Fact]
@@ -2650,7 +2651,7 @@ class D
     void M() {}
 }
 ";
-            var c = CreateStandardCompilation(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            var c = CreateCompilationWithMscorlib40(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
@@ -2687,7 +2688,7 @@ class D
     void M() {}
 }
 ";
-            var c = CreateStandardCompilation(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            var c = CreateCompilationWithMscorlib40(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
@@ -3211,9 +3212,9 @@ True
             Assert.True(expected == instrumented, $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented. Actual IL:{Environment.NewLine}{il}");
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)), verify: verify);
         }
 
         private CompilationVerifier CompileAndVerify((string Path, string Content)[] sources, string expectedOutput = null, CSharpCompilationOptions options = null)
@@ -3225,11 +3226,10 @@ True
                 trees.Add(Parse(source.Content, filename: source.Path));
             }
 
-            var compilation = CreateStandardCompilation(trees, s_refs, (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
+            var compilation = CreateCompilation(trees.ToArray(), options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
             trees.Free();
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
 
-        private static readonly MetadataReference[] s_refs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, ValueTupleRef, SystemRuntimeFacadeRef };
     }
 }

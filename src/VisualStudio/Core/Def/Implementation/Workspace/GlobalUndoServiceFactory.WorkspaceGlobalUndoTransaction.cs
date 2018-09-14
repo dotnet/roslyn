@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -13,6 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class GlobalUndoServiceFactory
     {
         private class WorkspaceUndoTransaction : ForegroundThreadAffinitizedObject, IWorkspaceGlobalUndoTransaction
@@ -27,12 +29,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private bool _transactionAlive;
 
             public WorkspaceUndoTransaction(
+                IThreadingContext threadingContext,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
                 IVsLinkedUndoTransactionManager undoManager,
                 Workspace workspace,
                 string description,
                 GlobalUndoService service)
-                : base(assertIsForeground: true)
+                : base(threadingContext, assertIsForeground: true)
             {
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _undoManager = undoManager;
@@ -122,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             ~WorkspaceUndoTransaction()
             {
                 // make sure we closed it correctly
-                Contract.Requires(!_transactionAlive);
+                Debug.Assert(!_transactionAlive);
             }
 #endif
 #pragma warning restore CA1821 // Remove empty Finalizers

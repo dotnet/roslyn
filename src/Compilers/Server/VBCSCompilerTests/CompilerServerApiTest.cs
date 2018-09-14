@@ -12,14 +12,16 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerApiTest : TestBase
     {
         private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
-            1,
+            BuildProtocolConstants.ProtocolVersion,
             RequestLanguage.CSharpCompile,
+            BuildProtocolConstants.GetCommitHash(),
             ImmutableArray<BuildRequest.Argument>.Empty);
 
         private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
@@ -93,6 +95,7 @@ class Hello
             return new BuildRequest(
                 BuildProtocolConstants.ProtocolVersion,
                 RequestLanguage.CSharpCompile,
+                BuildProtocolConstants.GetCommitHash(),
                 builder.ToImmutable());
         }
 
@@ -312,7 +315,11 @@ class Hello
                 try
                 {
                     var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-                    var result = DesktopBuildServerController.RunServer(pipeName, host.Object, keepAlive: null);
+                    var result = DesktopBuildServerController.RunServer(
+                        pipeName,
+                        Path.GetTempPath(),
+                        host.Object,
+                        keepAlive: null);
                     Assert.Equal(CommonCompiler.Failed, result);
                 }
                 finally
@@ -364,7 +371,11 @@ class Hello
                     return new TaskCompletionSource<IClientConnection>().Task;
                 });
 
-            var result = DesktopBuildServerController.RunServer(pipeName, host.Object, keepAlive: TimeSpan.FromSeconds(1));
+            var result = DesktopBuildServerController.RunServer(
+                pipeName,
+                Path.GetTempPath(),
+                host.Object,
+                keepAlive: TimeSpan.FromSeconds(1));
             Assert.Equal(CommonCompiler.Succeeded, result);
         }
 
@@ -383,7 +394,7 @@ class Hello
         /// A shutdown request should not abort an existing compilation.  It should be allowed to run to 
         /// completion.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task ShutdownDoesNotAbortCompilation()
         {
             var host = new TestableCompilerServerHost();
@@ -420,7 +431,7 @@ class Hello
         /// Multiple clients should be able to send shutdown requests to the server.
         /// </summary>
         /// <returns></returns>
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task ShutdownRepeated()
         {
             var host = new TestableCompilerServerHost();
@@ -458,7 +469,7 @@ class Hello
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task CancelWillCancelCompilation()
         {
             var host = new TestableCompilerServerHost();
@@ -509,6 +520,26 @@ class Hello
 
                     Assert.True(threw);
                 }
+            }
+        }
+
+        [Fact]
+        public async Task IncorrectProtocolReturnsMismatchedVersionResponse()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
+                Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
+            }
+        }
+
+        [Fact]
+        public async Task IncorrectServerHashReturnsIncorrectHashResponse()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
+                Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
             }
         }
     }

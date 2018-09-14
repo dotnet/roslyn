@@ -93,26 +93,25 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             accessibleIndexers = accessibleIndexers.FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
                                                    .Sort(symbolDisplayService, semanticModel, expression.SpanStart);
 
-            var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = GetTextSpan(expression, openBrace);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleIndexers.Select(p =>
                 Convert(p, openBrace, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
         private TextSpan GetTextSpan(ExpressionSyntax expression, SyntaxToken openBracket)
         {
             if (openBracket.Parent is BracketedArgumentListSyntax)
             {
-                var conditional = expression.Parent as ConditionalAccessExpressionSyntax;
-                if (conditional != null)
+                if (expression.Parent is ConditionalAccessExpressionSyntax conditional)
                 {
                     return TextSpan.FromBounds(conditional.Span.Start, openBracket.FullSpan.End);
                 }
@@ -247,6 +246,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             var result = new List<SymbolDisplayPart>();
 
+            if (indexer.ReturnsByRef)
+            {
+                result.Add(Keyword(SyntaxKind.RefKeyword));
+                result.Add(Space());
+            }
+            else if (indexer.ReturnsByRefReadonly)
+            {
+                result.Add(Keyword(SyntaxKind.RefKeyword));
+                result.Add(Space());
+                result.Add(Keyword(SyntaxKind.ReadOnlyKeyword));
+                result.Add(Space());
+            }
+
             result.AddRange(indexer.Type.ToMinimalDisplayParts(semanticModel, position));
             result.Add(Space());
             result.AddRange(indexer.ContainingType.ToMinimalDisplayParts(semanticModel, position));
@@ -302,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }
@@ -342,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }
@@ -383,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }

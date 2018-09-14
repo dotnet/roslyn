@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
@@ -16,21 +17,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal static class GoToDefinitionHelpers
     {
-        public static bool TryGoToDefinition(
+        public static ImmutableArray<DefinitionItem> GetDefinitions(
             ISymbol symbol,
             Project project,
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            CancellationToken cancellationToken,
-            bool thirdPartyNavigationAllowed = true,
-            bool throwOnHiddenDefinition = false)
+            bool thirdPartyNavigationAllowed,
+            CancellationToken cancellationToken)
         {
             var alias = symbol as IAliasSymbol;
             if (alias != null)
             {
-                var ns = alias.Target as INamespaceSymbol;
-                if (ns != null && ns.IsGlobalNamespace)
+                if (alias.Target is INamespaceSymbol ns && ns.IsGlobalNamespace)
                 {
-                    return false;
+                    return ImmutableArray.Create<DefinitionItem>();
                 }
             }
 
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // So, if we only have a single location to go to, this does no unnecessary work.  And,
             // if we do have multiple locations to show, it will just be done in the BG, unblocking
             // this command thread so it can return the user faster.
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
 
             if (thirdPartyNavigationAllowed)
             {
@@ -92,13 +90,43 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
 
             definitions.Add(definitionItem);
+            return definitions.ToImmutableAndFree();
+        }
+
+        public static bool TryGoToDefinition(
+            ISymbol symbol,
+            Project project,
+            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            CancellationToken cancellationToken,
+            bool thirdPartyNavigationAllowed = true,
+            bool throwOnHiddenDefinition = false)
+        {
+            var definitions = GetDefinitions(symbol, project, thirdPartyNavigationAllowed, cancellationToken);
 
             var presenter = streamingPresenters.FirstOrDefault()?.Value;
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
             return presenter.TryNavigateToOrPresentItemsAsync(
-                project.Solution.Workspace, title, definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
+                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
+        }
+
+        public static bool TryGoToDefinition(
+            ImmutableArray<DefinitionItem> definitions,
+            Project project,
+            string title,
+            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            CancellationToken cancellationToken)
+        {
+            if (definitions.IsDefaultOrEmpty)
+            {
+                return false;
+            }
+
+            var presenter = streamingPresenters.FirstOrDefault()?.Value;
+
+            return presenter.TryNavigateToOrPresentItemsAsync(
+                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
     }
 }

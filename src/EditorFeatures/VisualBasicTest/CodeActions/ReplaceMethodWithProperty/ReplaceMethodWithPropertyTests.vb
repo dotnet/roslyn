@@ -92,7 +92,8 @@ End class")
     End function
 End class",
 "class C
-    <A> ReadOnly Property Goo as integer
+    <A>
+    ReadOnly Property Goo as integer
         Get
         End Get
     End Property
@@ -113,8 +114,7 @@ End class",
         Get
         End Get
     End Property
-End class",
-ignoreTrivia:=False)
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
@@ -134,6 +134,106 @@ End class",
     End Property
 #End if
 End class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    function [||]GetGoo() as integer
+    End function
+
+    sub SetGoo(i as integer)
+    end sub
+#End if
+End class",
+"class C
+#if true
+    ReadOnly Property Goo as integer
+        Get
+        End Get
+    End Property
+
+    sub SetGoo(i as integer)
+    end sub
+#End if
+End class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod3() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    function [||]GetGoo() as integer
+    End function
+
+    sub SetGoo(i as integer)
+    end sub
+#End if
+End class",
+"class C
+#if true
+    Property Goo as integer
+        Get
+        End Get
+        Set(i as integer)
+        End Set
+    End Property
+#End if
+End class", index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod4() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    sub SetGoo(i as integer)
+    end sub
+
+    function [||]GetGoo() as integer
+    End function
+#End if
+End class",
+"class C
+#if true
+    sub SetGoo(i as integer)
+    end sub
+
+    ReadOnly Property Goo as integer
+        Get
+        End Get
+    End Property
+#End if
+End class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod5() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    sub SetGoo(i as integer)
+    end sub
+
+    function [||]GetGoo() as integer
+    End function
+#End if
+End class",
+"class C
+
+#if true
+
+    Property Goo as integer
+        Get
+        End Get
+        Set(i as integer)
+        End Set
+    End Property
+#End if
+End class", index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
@@ -157,8 +257,7 @@ End class",
         End Set
     End Property
 End class",
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
@@ -286,6 +385,7 @@ End class",
         Get
         End Get
     End Property
+
     sub Bar()
         dim x = Goo
     End sub
@@ -307,6 +407,7 @@ End class",
         Get
         End Get
     End Property
+
     sub Bar()
         dim x = me.Goo
     End sub
@@ -329,6 +430,7 @@ End class",
         Get
         End Get
     End Property
+
     sub Bar()
         dim x as C
         dim v = x?.Goo
@@ -395,6 +497,7 @@ End class",
         Get
         End Get
     End Property
+
     sub Bar()
         dim i = Goo
     End sub
@@ -442,6 +545,7 @@ class C
         Set(i as integer)
         End Set
     End Property
+
     sub Bar()
         dim i as Action(of integer) = addressof {|Conflict:Goo|}
     End sub
@@ -460,10 +564,11 @@ index:=1)
 End class",
 "class C
     public Property Goo as integer
-        Get End Get 
- Private Set(i as integer) 
- End Set
- End Property
+        Get
+        End Get
+        Private Set(i as integer)
+        End Set
+    End Property
 End class",
 index:=1)
         End Function
@@ -487,9 +592,9 @@ End class",
         Set(i as integer)
         End Set
     End Property
+
     sub Bar()
-        Goo = Goo + 1
-    End sub
+        Goo = Goo + 1    End sub
 End class",
 index:=1)
         End Function
@@ -644,7 +749,7 @@ end class",
             return count
         End Get
     End Property
-end class", ignoreTrivia:=False)
+end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
@@ -678,6 +783,36 @@ Class C
         End Get
     End Property
 End Class")
+        End Function
+
+        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestSystemObjectMetadataOverride() As Task
+            Await TestMissingAsync(
+"class C
+    public overrides function [||]ToString() as string
+    End function
+End class")
+        End Function
+
+        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestMetadataOverride() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    inherits system.type
+
+    public overrides function [||]GetArrayRank() as integer
+    End function
+End class",
+"class C
+    inherits system.type
+
+    public overrides ReadOnly Property {|Warning:ArrayRank|} as integer
+        Get
+        End Get
+    End Property
+End class")
         End Function
     End Class
 End Namespace

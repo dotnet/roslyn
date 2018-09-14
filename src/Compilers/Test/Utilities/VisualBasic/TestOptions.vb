@@ -7,8 +7,6 @@ Public Class TestOptions
     Public Shared ReadOnly Script As New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
     Public Shared ReadOnly Regular As New VisualBasicParseOptions(kind:=SourceCodeKind.Regular)
 
-    Public Shared ReadOnly RegularWithIOperationFeature As VisualBasicParseOptions = Regular.WithIOperationFeature()
-
     Public Shared ReadOnly ReleaseDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release)
     Public Shared ReadOnly ReleaseExe As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Release)
 
@@ -30,29 +28,5 @@ Friend Module TestOptionExtensions
     <Extension()>
     Public Function WithStrictFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
         Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("Strict", "true")}))
-    End Function
-
-    <Extension()>
-    Friend Function WithExperimental(options As VisualBasicParseOptions, ParamArray features As Feature()) As VisualBasicParseOptions
-        If features.Length = 0 Then
-            Throw New InvalidOperationException("Need at least one feature to enable")
-        End If
-
-        Dim list As New List(Of KeyValuePair(Of String, String))
-        For Each feature In features
-            Dim flagName = feature.GetFeatureFlag()
-            If flagName Is Nothing Then
-                Throw New InvalidOperationException($"{feature} is not an experimental feature")
-            End If
-
-            list.Add(New KeyValuePair(Of String, String)(flagName, "True"))
-        Next
-
-        Return options.WithFeatures(options.Features.Concat(list))
-    End Function
-
-    <Extension()>
-    Public Function WithIOperationFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
-        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("IOperation", "true")}))
     End Function
 End Module

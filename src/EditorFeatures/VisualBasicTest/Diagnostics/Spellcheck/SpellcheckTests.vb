@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
+Imports Microsoft.CodeAnalysis.VisualBasic.SpellCheck
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Spellcheck
@@ -499,8 +499,7 @@ End Class",
     Sub M()
         Dim goo = New AwesomeClass ' trailing trivia
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider

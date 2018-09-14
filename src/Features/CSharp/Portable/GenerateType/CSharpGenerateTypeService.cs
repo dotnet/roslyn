@@ -67,16 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 }
 
                 var parameterIndex = typeArgumentList.Arguments.IndexOf((TypeSyntax)expression);
-                var type = symbol as INamedTypeSymbol;
-                if (type != null)
+                if (symbol is INamedTypeSymbol type)
                 {
                     type = type.OriginalDefinition;
                     var typeParameter = parameterIndex < type.TypeParameters.Length ? type.TypeParameters[parameterIndex] : null;
                     return typeParameter != null && typeParameter.HasValueTypeConstraint;
                 }
 
-                var method = symbol as IMethodSymbol;
-                if (method != null)
+                if (symbol is IMethodSymbol method)
                 {
                     method = method.OriginalDefinition;
                     var typeParameter = parameterIndex < method.TypeParameters.Length ? method.TypeParameters[parameterIndex] : null;
@@ -219,7 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     return false;
                 }
 
-                if (!simpleName.IsLeftSideOfDot() && !simpleName.IsInsideNameOf())
+                if (!simpleName.IsLeftSideOfDot() &&
+                    !simpleName.IsInsideNameOfExpression(semanticModel, cancellationToken))
                 {
                     if (nameOrMemberAccessExpression == null || !nameOrMemberAccessExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression) || !simpleName.IsRightSideOfDot())
                     {
@@ -272,8 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 if (simpleName.IsRightSideOfDot())
                 {
-                    var parent = simpleName.Parent as QualifiedNameSyntax;
-                    if (parent != null)
+                    if (simpleName.Parent is QualifiedNameSyntax parent)
                     {
                         var leftSymbol = semanticModel.GetSymbolInfo(parent.Left, cancellationToken).Symbol;
 
@@ -496,6 +494,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 state.NameOrMemberAccessExpression as TypeSyntax, cancellationToken);
         }
 
+        private bool AllContainingTypesArePublicOrProtected(
+            State state,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            return semanticModel.AllContainingTypesArePublicOrProtected(
+                state.NameOrMemberAccessExpression as TypeSyntax, cancellationToken);
+        }
+
         protected override ImmutableArray<ITypeParameterSymbol> GetTypeParameters(
             State state,
             SemanticModel semanticModel,
@@ -557,6 +564,14 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     accessibilityConstraint == Accessibility.Internal)
                 {
                     accessibility = accessibilityConstraint;
+                }
+                else if (accessibilityConstraint == Accessibility.Protected ||
+                         accessibilityConstraint == Accessibility.ProtectedOrInternal)
+                {
+                    // If nested type is declared in public type then we should generate public type instead of internal
+                    accessibility = AllContainingTypesArePublicOrProtected(state, semanticModel, cancellationToken)
+                        ? Accessibility.Public
+                        : Accessibility.Internal;
                 }
             }
 
@@ -742,8 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     node.Parent != null &&
                     node.Parent is TypeDeclarationSyntax)
                 {
-                    var typeDecl = node.Parent as TypeDeclarationSyntax;
-                    if (typeDecl != null)
+                    if (node.Parent is TypeDeclarationSyntax typeDecl)
                     {
                         if (typeDecl.GetModifiers().Any(m => m.Kind() == SyntaxKind.PublicKeyword))
                         {
@@ -866,15 +880,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             ITypeInferenceService typeInference,
             CancellationToken cancellationToken)
         {
-            var parentAssignment = propertyName.Parent as AssignmentExpressionSyntax;
-            if (parentAssignment != null)
+            if (propertyName.Parent is AssignmentExpressionSyntax parentAssignment)
             {
                 return typeInference.InferType(
                     semanticModel, parentAssignment.Left, objectAsDefault: true, cancellationToken: cancellationToken);
             }
 
-            var isPatternExpression = propertyName.Parent as IsPatternExpressionSyntax;
-            if (isPatternExpression != null)
+            if (propertyName.Parent is IsPatternExpressionSyntax isPatternExpression)
             {
                 return typeInference.InferType(
                     semanticModel, isPatternExpression.Expression, objectAsDefault: true, cancellationToken: cancellationToken);
@@ -893,17 +905,17 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 explicitInterfaceImplementations: default,
                 name: propertyName.Identifier.ValueText,
                 type: propertyType,
-                returnsByRef: false,
-                parameters: default(ImmutableArray<IParameterSymbol>),
+                refKind: RefKind.None,
+                parameters: default,
                 getMethod: s_accessor,
                 setMethod: s_accessor,
                 isIndexer: false);
         }
 
         private static readonly IMethodSymbol s_accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-            attributes: default(ImmutableArray<AttributeData>),
+            attributes: default,
             accessibility: Accessibility.Public,
-            statements: default(ImmutableArray<SyntaxNode>));
+            statements: default);
 
         internal override bool TryGenerateProperty(
             SimpleNameSyntax propertyName,

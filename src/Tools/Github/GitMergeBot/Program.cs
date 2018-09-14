@@ -106,7 +106,7 @@ namespace GitMergeBot
             }
             else
             {
-                WriteLine("Existing merge PRs exist; aboring creation.");
+                WriteLine("Existing merge PRs exist; aborting creation.");
                 return;
             }
 

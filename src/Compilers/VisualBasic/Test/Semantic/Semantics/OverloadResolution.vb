@@ -84,7 +84,7 @@ End Class
             Dim optionStrictOffTree = VisualBasicSyntaxTree.ParseText(optionStrictOff.Value)
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
-                syntaxTrees:={VisualBasicSyntaxTree.ParseText(My.Resources.Resource.OverloadResolutionTestSource),
+                syntaxTrees:={VisualBasicSyntaxTree.ParseText(SemanticResourceUtil.OverloadResolutionTestSource),
                               optionStrictOnTree,
                               optionStrictOffTree},
                 references:={MscorlibRef, SystemCoreRef})
@@ -675,7 +675,6 @@ End Class
             Assert.Same(TestClass1_M5, result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.False(result.BestResult.HasValue)
 
-            'error BC30241: Named argument expected.
             'TestClass1.M4(x:=intVal, TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
@@ -688,9 +687,9 @@ End Class
 
             Assert.False(result.ResolutionIsLateBound)
             Assert.Equal(1, result.Candidates.Length)
-            Assert.Equal(CandidateAnalysisResultState.ArgumentMismatch, result.Candidates(0).State)
+            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
             Assert.Same(TestClass1_M4, result.Candidates(0).Candidate.UnderlyingSymbol)
-            Assert.False(result.BestResult.HasValue)
+            Assert.True(result.BestResult.HasValue)
 
             'error BC30057: Too many arguments to 'Public Shared Sub M2(Of T)()'.
             'TestClass1.M2(Of TestClass1)(intVal)
@@ -3062,7 +3061,7 @@ End Class
             Dim optionStrictOffTree = VisualBasicSyntaxTree.ParseText(optionStrictOff.Value)
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
-                syntaxTrees:={Parse(My.Resources.Resource.OverloadResolutionTestSource), optionStrictOffTree},
+                syntaxTrees:={Parse(SemanticResourceUtil.OverloadResolutionTestSource), optionStrictOffTree},
                 references:={TestReferences.NetFx.v4_0_21006.mscorlib},
                 options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
@@ -3170,7 +3169,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3237,7 +3236,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3278,7 +3277,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3447,7 +3446,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3645,7 +3644,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3743,7 +3742,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3805,7 +3804,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3865,7 +3864,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
 
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
 
@@ -3889,9 +3888,6 @@ BC30519: Overload resolution failed because no accessible 'F2' can be called wit
         ~~
 </expected>)
         End Sub
-
-
-
 
         <Fact(), WorkItem(527622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527622")>
         Public Sub NoisyDiagnostics()
@@ -3930,14 +3926,14 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30201: Expression expected.
+BC37302: Named argument 'y' is used out-of-position but is followed by an unnamed argument
         F4(y:=Nothing,)
-                      ~
-BC30241: Named argument expected.
+           ~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         F4(y:=Nothing,)
                       ~
 BC30198: ')' expected.
@@ -3976,7 +3972,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -4028,7 +4024,7 @@ End Class
     </file>
 </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 Function
@@ -4065,7 +4061,7 @@ End Module
     </file>
 </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -4078,7 +4074,7 @@ BC30518: Overload resolution failed because no accessible 'Goo' can be called wi
     ~~~
 </expected>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
 
@@ -4103,7 +4099,7 @@ End Module
     </file>
 </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -4139,10 +4135,10 @@ End Module
     </file>
       </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             CompileAndVerify(compilation, expectedOutput:="abc")
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
@@ -4170,7 +4166,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
 
@@ -4205,7 +4201,7 @@ End Module
     </file>
       </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             CompileAndVerify(compilation, expectedOutput:="B.Goo")
 
             compilationDef =
@@ -4243,7 +4239,7 @@ End Module
     </file>
       </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.AssertTheseDiagnostics(<![CDATA[
 BC30521: Overload resolution failed because no accessible 'Bar' is most specific for these arguments:
     'Public Sub Bar(a As Action(Of C))': Not most specific.
@@ -4251,7 +4247,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
     Console.WriteLine(Bar(Sub(p) p.Goo(x:=1)).ToLower())
                       ~~~]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.AssertTheseDiagnostics(<![CDATA[
 BC30521: Overload resolution failed because no accessible 'Bar' is most specific for these arguments:
     'Public Sub Bar(a As Action(Of C))': Not most specific.
@@ -4265,7 +4261,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
         Public Sub MethodTypeParameterInferenceBadArg()
             ' Method type parameter inference should complete in the case where
             ' the type of a method argument is ErrorType but HasErrors=False.
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
     Class C
@@ -4287,7 +4283,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
 
         <Fact()>
         Public Sub InaccessibleMethods()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4367,7 +4363,7 @@ BC30390: 'Module2.Private Sub M2(x As Long, y As Integer)' is not accessible in 
 
         <Fact()>
         Public Sub InaccessibleProperties()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4477,7 +4473,7 @@ BC30389: 'Module2.P2(x As Integer)' is not accessible in this context because it
 
         <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
         Public Sub OverloadWithIntermediateDifferentMember1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -4513,7 +4509,7 @@ BC40004: function 'Goo' conflicts with property 'Goo' in the base class 'B' and 
 
         <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
         Public Sub OverloadWithIntermediateDifferentMember2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -4552,7 +4548,7 @@ BC40004: function 'Goo' conflicts with property 'Goo' in the base class 'B' and 
 
         <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
         Public Sub OverloadWithIntermediateDifferentMember3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface A
@@ -4589,7 +4585,7 @@ BC40004: function 'Goo' conflicts with property 'Goo' in the base interface 'B' 
 
         <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -4619,7 +4615,7 @@ BC32016: 'Public Shared Overloads Sub Goo()' has no parameters and its return ty
 
         <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -4652,7 +4648,7 @@ BC30491: Expression does not produce a value.
 
         <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -4679,7 +4675,7 @@ End Class    ]]></file>
 
         <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub4()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -4715,7 +4711,7 @@ BC30516: Overload resolution failed because no accessible 'Goo' accepts this num
 
         <Fact, WorkItem(546129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546129")>
         Public Sub SameMethodNameDifferentCase()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Test
@@ -4768,7 +4764,7 @@ End Module
     </file>
       </compilation>
 
-            Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim Compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(Compilation, expectedOutput:="1qq")
         End Sub
@@ -4804,14 +4800,14 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="1qq")
         End Sub
 
         <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
         Public Sub Bug16716_1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 <ProvideMenuResource(1000, 1)>
@@ -4851,7 +4847,7 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
 
         <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
         Public Sub Bug16716_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 <ProvideMenuResource(1000, 1)>
@@ -4884,7 +4880,7 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
 
         <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
         Public Sub Bug16716_3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 <ProvideMenuResource(1000, 1)>
@@ -4925,7 +4921,7 @@ End Module
             Dim libRef = TestReferences.SymbolsTests.BigVisitor
 
             Dim start = DateTime.UtcNow
-            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {libRef}).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {libRef}).VerifyDiagnostics()
             Dim elapsed = DateTime.UtcNow - start
             Assert.InRange(elapsed.TotalSeconds, 0, 5) ' The key is seconds - not minutes - so feel free to loosen.
         End Sub
@@ -4962,9 +4958,9 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
 
-            Dim comp2 = CreateCompilationWithMscorlib(source2, references:={comp.EmitToImageReference()})
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp.EmitToImageReference()})
             CompilationUtils.AssertTheseDiagnostics(comp2,
                                                <expected>
 BC30521: Overload resolution failed because no accessible 'Add' is most specific for these arguments:
@@ -5022,7 +5018,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="CType2CType4")
         End Sub
@@ -5057,14 +5053,14 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
 
         <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
         Public Sub Regress738688Err()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -5127,7 +5123,7 @@ BC30521: Overload resolution failed because no accessible 'Goo' is most specific
 
         <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
         Public Sub Regress738688Err01()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -5201,7 +5197,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="A.Test")
         End Sub
@@ -5262,7 +5258,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="IDerived_X")
         End Sub
@@ -5324,7 +5320,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:=
 "IBase1_X
@@ -5370,7 +5366,7 @@ End Interface
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation)
         End Sub
@@ -5423,7 +5419,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -5512,7 +5508,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -5606,7 +5602,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -5719,7 +5715,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -5765,7 +5761,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -5816,7 +5812,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompileAndVerify(compilationDef, expectedOutput:=
 "Collection
@@ -5860,7 +5856,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>

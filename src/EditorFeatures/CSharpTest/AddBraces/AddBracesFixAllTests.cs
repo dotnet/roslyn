@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
@@ -26,7 +26,13 @@ class Program1
 {
     static void Main()
     {
-        if (true) { if (true) { return; } }
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
     }
 }
 ";
@@ -53,7 +59,13 @@ class Program1
 {
     static void Main()
     {
-        if (true) { if (true) { return; } }
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
     }
 }
 ";
@@ -145,7 +157,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -229,7 +241,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -316,7 +328,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected);
         }
     }
 }

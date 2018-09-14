@@ -160,12 +160,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private void VerifyBreakIntoWordParts(string original, params string[] parts)
         {
-            AssertEx.Equal(parts, BreakIntoWordParts(original));
+            Roslyn.Test.Utilities.AssertEx.Equal(parts, BreakIntoWordParts(original));
         }
 
         private void VerifyBreakIntoCharacterParts(string original, params string[] parts)
         {
-            AssertEx.Equal(parts, BreakIntoCharacterParts(original));
+            Roslyn.Test.Utilities.AssertEx.Equal(parts, BreakIntoCharacterParts(original));
         }
 
         private const bool CaseSensitive = true;

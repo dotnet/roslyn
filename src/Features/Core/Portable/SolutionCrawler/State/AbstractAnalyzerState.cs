@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             this.DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(default, GetCount(data));
         }
 
-        public bool Remove(TKey id)
+        public virtual bool Remove(TKey id)
         {
             // remove doesn't actually remove data from the persistent storage
             // that will be automatically managed by the service itself.
-            return this.DataCache.TryRemove(id, out var entry);
+            return this.DataCache.TryRemove(id, out _);
         }
 
         private async Task<bool> WriteToStreamAsync(TValue value, TData data, CancellationToken cancellationToken)

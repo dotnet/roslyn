@@ -3,6 +3,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using static Microsoft.CodeAnalysis.RoslynAssemblyHelper;

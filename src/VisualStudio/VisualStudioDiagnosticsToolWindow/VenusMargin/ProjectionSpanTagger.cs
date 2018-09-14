@@ -49,8 +49,7 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
 
             public IEnumerable<ITagSpan<TextMarkerTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
-                List<Span> allSpans;
-                if (!_textView.Properties.TryGetProperty(PropertyName, out allSpans))
+                if (!_textView.Properties.TryGetProperty(PropertyName, out List<Span> allSpans))
                 {
                     return null;
                 }

@@ -35,8 +35,10 @@ End Module",
         Dim f As Goo(Of Integer)
     End Sub
 End Module
+
 Friend Class Goo(Of T)
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -48,6 +50,7 @@ index:=1)
 End Class",
 "Class C
     Dim emp As List(Of Employee)
+
     Private Class Employee
     End Class
 End Class",
@@ -62,6 +65,7 @@ index:=2)
 End Class",
 "Class C
     dim f as Goo
+
     Private Class Goo
     End Class
 End Class",
@@ -77,8 +81,10 @@ End Class",
 "Class C
     dim f as Goo
 End Class
+
 Friend Class Goo
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -103,6 +109,7 @@ End Namespace",
     Class Goo
         Private x As New NS.Bar
     End Class
+
     Friend Class Bar
     End Class
 End Namespace",
@@ -118,6 +125,7 @@ parseOptions:=Nothing) ' Namespaces not supported in script
 End Class",
 "Class C
     Dim f As Goo = New Goo()
+
     Private Class Goo
         Public Sub New()
         End Sub
@@ -181,25 +189,33 @@ End Module",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Runtime.Serialization
+
 Module Program
     Sub Main(args As String())
         Throw New Goo()
     End Sub
 End Module
-<Serializable> Friend Class Goo
+
+<Serializable>
+Friend Class Goo
     Inherits Exception
+
     Public Sub New()
     End Sub
+
     Public Sub New(message As String)
         MyBase.New(message)
     End Sub
+
     Public Sub New(message As String, innerException As Exception)
         MyBase.New(message, innerException)
     End Sub
+
     Protected Sub New(info As SerializationInfo, context As StreamingContext)
         MyBase.New(info, context)
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -222,14 +238,17 @@ Module Program
         Call New Goo(1, ""blah"")
     End Sub
 End Module
+
 Friend Class Goo
     Private v1 As Integer
     Private v2 As String
+
     Public Sub New(v1 As Integer, v2 As String)
         Me.v1 = v1
         Me.v2 = v2
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -256,12 +275,15 @@ Module Program
         Dim d As B = New D(4)
     End Sub
 End Module
+
 Friend Class D
     Inherits B
+
     Public Sub New(value As Integer)
         MyBase.New(value)
     End Sub
 End Class
+
 Class B
     Protected Sub New(value As Integer)
     End Sub
@@ -291,6 +313,7 @@ Namespace Outer
             Call New Blah()
         End Sub
     End Module
+
     Friend Class Blah
         Public Sub New()
         End Sub
@@ -321,12 +344,15 @@ Module Program
         Dim d As B = New D(i)
     End Sub
 End Module
+
 Friend Class D
     Inherits B
+
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
 End Class
+
 Class B
     Protected i As Integer
 End Class",
@@ -352,8 +378,10 @@ Class Outer(Of M)
         Call New Goo(Of M)
     End Sub
 End Class
+
 Friend Class Goo(Of M)
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -375,6 +403,7 @@ Class Outer(Of M)
     Sub Main(i As Integer)
         Call New Goo(Of M)
     End Sub
+
     Private Class Goo(Of M)
     End Class
 End Class",
@@ -393,6 +422,7 @@ End Class",
     Sub Test()
         Dim d = New Program.Goo()
     End Sub
+
     Private Class Goo
         Public Sub New()
         End Sub
@@ -417,6 +447,7 @@ End Namespace",
             Dim d = New Goo.Bar()
         End Sub
     End Class
+
     Friend Class Bar
         Public Sub New()
         End Sub
@@ -439,8 +470,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program(Of T As {Goo, IBar})
 End Class
+
 Friend Interface IBar
-End Interface",
+End Interface
+",
 index:=1)
         End Function
 
@@ -460,7 +493,8 @@ End Class",
         Public Sub New()
         End Sub
     End Class
-End Namespace",
+End Namespace
+",
 expectedContainers:=ImmutableArray.Create("Goo"),
 expectedDocumentName:="Bar.vb")
         End Function
@@ -484,7 +518,7 @@ Friend Class Bar
 End Class
 ",
 expectedContainers:=ImmutableArray(Of String).Empty,
-expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
+expectedDocumentName:="Bar.vb")
         End Function
 
         <WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")>
@@ -504,7 +538,7 @@ End Class",
 End Class
 ",
 expectedContainers:=ImmutableArray(Of String).Empty,
-expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
+expectedDocumentName:="Bar.vb")
         End Function
 
         <WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")>
@@ -531,7 +565,7 @@ Friend Class Bar
 End Class
 ",
 expectedContainers:=ImmutableArray(Of String).Empty,
-expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
+expectedDocumentName:="Bar.vb")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -546,7 +580,8 @@ Module Program
     End Sub
 End Module",
 "Friend Class Goo
-End Class",
+End Class
+",
 expectedContainers:=ImmutableArray(Of String).Empty,
 expectedDocumentName:="Goo.vb")
         End Function
@@ -570,8 +605,10 @@ Module Program
         Dim d As IGoo = New Goo()
     End Sub
 End Module
+
 Friend Interface IGoo
-End Interface",
+End Interface
+",
 index:=1)
         End Function
 
@@ -596,9 +633,11 @@ Module Program
         Dim d As IGoo = New Goo()
     End Sub
 End Module
+
 Friend Class Goo
     Implements IGoo
 End Class
+
 Friend Interface IGoo
 End Interface",
 index:=1)
@@ -617,12 +656,15 @@ End Class",
         Dim x = New Bar(value:=7)
     End Sub
 End Class
+
 Friend Class Bar
     Private value As Integer
+
     Public Sub New(value As Integer)
         Me.value = value
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -649,8 +691,10 @@ End Class",
     Function F() As Bar
     End Function
 End Class
+
 Public Class Bar
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -663,8 +707,10 @@ End Class",
 "Class Goo
     Dim x As New [Class]
 End Class
+
 Friend Class [Class]
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -677,8 +723,10 @@ End Class",
 "Class Goo
     Dim x as New [Bar]
 End Class
+
 Friend Class Bar
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -695,6 +743,7 @@ End Namespace",
     Class Goo
         Dim x As New NS.Bar
     End Class
+
     Friend Class Bar
     End Class
 End Namespace",
@@ -711,6 +760,7 @@ parseOptions:=Nothing) ' Namespaces not supported in script
 End Module",
 "Module M
     Dim x As C
+
     Private Class C
     End Class
 End Module",
@@ -727,8 +777,10 @@ End Class",
 "Class C
     Implements D
 End Class
+
 Friend Interface D
-End Interface",
+End Interface
+",
 index:=1)
         End Function
 
@@ -758,7 +810,8 @@ End Class",
 "Friend Class Derived
     Public Sub New()
     End Sub
-End Class",
+End Class
+",
 expectedContainers:=ImmutableArray(Of String).Empty,
 expectedDocumentName:="Derived.vb")
         End Function
@@ -821,9 +874,11 @@ End Class",
         Dim p() As Base = New Derived(10) {}
     End Sub
 End Class
+
 Friend Class Derived
     Inherits Base
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -841,9 +896,11 @@ End Class",
         Dim p As Base() = New Derived(10) {}
     End Sub
 End Class
+
 Friend Class Derived
     Inherits Base
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -861,8 +918,10 @@ End Class",
         Dim p As Base = New Derived(10) {}
     End Sub
 End Class
+
 Friend Class Derived
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -882,8 +941,10 @@ End Class",
         Dim f As Goo(Of Integer)
     End Sub
 End Class
+
 Friend Class Goo(Of T)
 End Class
+
 Class Goo
 End Class",
 index:=1)
@@ -903,14 +964,17 @@ End Class",
         Dim a As Test = New Test(x, y)
     End Sub
 End Class
+
 Friend Class Test
     Private x As Object
     Private y As Object
+
     Public Sub New(x As Object, y As Object)
         Me.x = x
         Me.y = y
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -928,14 +992,17 @@ End Class",
         Dim a As Test(Of T1, T2) = New Test(Of T1, T2)(x, y)
     End Sub
 End Class
+
 Friend Class Test(Of T1, T2)
     Private x As T1
     Private y As T2
+
     Public Sub New(x As T1, y As T2)
         Me.x = x
         Me.y = y
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -957,12 +1024,15 @@ End Module",
     Sub M()
     End Sub
 End Module
+
 Friend Class C
     Private v As Object
+
     Public Sub New(v As Object)
         Me.v = v
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -980,12 +1050,15 @@ End Class",
         Dim x As New C(4)
     End Sub
 End Class
+
 Friend Class C
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1008,12 +1081,15 @@ End Class")
 Class C
 End Class",
 "Imports System
+
 <AttClass()>
 Class C
 End Class
+
 Friend Class AttClassAttribute
     Inherits Attribute
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1029,9 +1105,11 @@ End Class",
 <AttClass()>
 Class C
 End Class
+
 Friend Class AttClassAttribute
     Inherits Attribute
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1069,6 +1147,7 @@ Module StringExtensions
     Public Sub Print(ByVal aString As String, x As C)
         Console.WriteLine(aString)
     End Sub
+
     Public Class C
     End Class
 End Module",
@@ -1094,8 +1173,7 @@ End Class</Text>.NormalizedValue,
         End Sub
     End Class
 End Class</Text>.NormalizedValue,
-index:=2,
-ignoreTrivia:=False)
+index:=2)
         End Function
 
         <WorkItem(543290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543290")>
@@ -1218,17 +1296,21 @@ index:=1)
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main()
         Dim c = New C(Function() x)
     End Sub
 End Module
+
 Friend Class C
     Private p As Func(Of Object)
+
     Public Sub New(p As Func(Of Object))
         Me.p = p
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1248,14 +1330,17 @@ Module Program
         Dim x = New C(,)
     End Sub
 End Module
+
 Friend Class C
     Private p1 As Object
     Private p2 As Object
+
     Public Sub New(p1 As Object, p2 As Object)
         Me.p1 = p1
         Me.p2 = p2
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1275,9 +1360,11 @@ Module Program
     Sub Main()
     End Sub
 End Module
+
 Friend Class SystemAttribute
     Inherits Attribute
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1308,8 +1395,7 @@ End Class
 Class AA(Of T)
 End Class
 </text>.NormalizedValue,
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <WorkItem(821277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821277")>
@@ -1339,8 +1425,7 @@ End Class
 Class AA(Of T)
 End Class
 </text>.NormalizedValue,
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1370,7 +1455,6 @@ Friend Class T
 End Class
 </text>.NormalizedValue,
 index:=1,
-ignoreTrivia:=False,
 options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
         End Function
 
@@ -1407,7 +1491,7 @@ Namespace A
     End Class
 End Namespace</Text>.NormalizedValue
 
-            Await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
         <WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")>
@@ -1426,16 +1510,20 @@ Module Program
         Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = ""John"", .Age = Date.Today}
     End Sub
 End Module
+
 Friend Class Customer
     Private x As Integer
     Private y As String
+
     Public Sub New(x As Integer, y As String)
         Me.x = x
         Me.y = y
     End Sub
+
     Public Property Name As String
     Public Property Age As Date
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1455,16 +1543,20 @@ Module Program
         Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Nothing, .Age = Date.Today}
     End Sub
 End Module
+
 Friend Class Customer
     Private x As Integer
     Private y As String
+
     Public Sub New(x As Integer, y As String)
         Me.x = x
         Me.y = y
     End Sub
+
     Public Property Name As Object
     Public Property Age As Date
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1484,16 +1576,20 @@ Module Program
         Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Goo, .Age = Date.Today}
     End Sub
 End Module
+
 Friend Class Customer
     Private x As Integer
     Private y As String
+
     Public Sub New(x As Integer, y As String)
         Me.x = x
         Me.y = y
     End Sub
+
     Public Property Name As Object
     Public Property Age As Date
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1513,10 +1609,12 @@ Module Program
         Dim c As New [|Customer|] With {.Name = ""John"", .Age = Date.Today}
     End Sub
 End Module
+
 Friend Class Customer
     Public Property Name As String
     Public Property Age As Date
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1536,8 +1634,10 @@ Module Program
         Dim x = nameof([|Z|])
     End Sub
 End Module
+
 Friend Class Z
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1556,6 +1656,7 @@ Class Program
     Sub Main()
         Dim x = nameof([|Z|])
     End Sub
+
     Private Class Z
     End Class
 End Class",
@@ -1577,6 +1678,7 @@ Class Program
     Sub Main()
         Dim x = nameof([|Program.Z|])
     End Sub
+
     Private Class Z
     End Class
 End Class")
@@ -1616,8 +1718,10 @@ End Class
             Await TestInRegularAndScriptAsync(
 "Imports [|Fizz|]",
 "Imports Fizz
+
 Friend Class Fizz
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1631,7 +1735,8 @@ End Class",
 "Public Class B
     Public Sub New()
     End Sub
-End Class")
+End Class
+")
         End Function
 
         <WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")>
@@ -1648,7 +1753,8 @@ End Class
 Public Class B
     Public Sub New()
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1661,6 +1767,7 @@ index:=1)
 End Class",
 "Public Class A
     Public B As New B()
+
     Public Class B
         Public Sub New()
         End Sub
@@ -1677,7 +1784,8 @@ index:=2)
     Public B As New [|B|]
 End Class",
 "Public Class B
-End Class")
+End Class
+")
         End Function
 
         <WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")>
@@ -1692,7 +1800,8 @@ End Class",
 End Class
 
 Public Class B
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1705,6 +1814,7 @@ index:=1)
 End Class",
 "Public Class A
     Public B As New B
+
     Public Class B
     End Class
 End Class",
@@ -1719,7 +1829,8 @@ index:=2)
     Public B As New [|B(Of Integer)|]
 End Class",
 "Public Class B(Of T)
-End Class")
+End Class
+")
         End Function
 
         <WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")>
@@ -1734,7 +1845,8 @@ End Class",
 End Class
 
 Public Class B(Of T)
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1747,6 +1859,7 @@ index:=1)
 End Class",
 "Public Class A
     Public B As New B(Of Integer)
+
     Public Class B(Of T)
     End Class
 End Class",
@@ -1773,12 +1886,15 @@ index:=2)
     <[|Extension|]>
 End Module",
 "Imports System
+
 Module Program
     <Extension>
 End Module
+
 Friend Class ExtensionAttribute
     Inherits Attribute
-End Class",
+End Class
+",
 index:=1)
             End Function
         End Class

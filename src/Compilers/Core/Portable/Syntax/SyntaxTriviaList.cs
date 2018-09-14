@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis
     /// Represents a read-only list of <see cref="SyntaxTrivia"/>.
     /// </summary>
     [StructLayout(LayoutKind.Auto)]
-    public partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
+    public readonly partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
     {
         public static SyntaxTriviaList Empty => default(SyntaxTriviaList);
 
-        internal SyntaxTriviaList(SyntaxToken token, GreenNode node, int position, int index = 0)
+        internal SyntaxTriviaList(in SyntaxToken token, GreenNode node, int position, int index = 0)
         {
             Token = token;
             Node = node;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
             Index = index;
         }
 
-        internal SyntaxTriviaList(SyntaxToken token, GreenNode node)
+        internal SyntaxTriviaList(in SyntaxToken token, GreenNode node)
         {
             Token = token;
             Node = node;
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis
 
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(ref this);
+            return new Enumerator(in this);
         }
 
         public int IndexOf(SyntaxTrivia triviaInList)
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
             }
 
-            return new EnumeratorImpl(ref this);
+            return new EnumeratorImpl(in this);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
             }
 
-            return new EnumeratorImpl(ref this);
+            return new EnumeratorImpl(in this);
         }
 
         /// <summary>

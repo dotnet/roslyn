@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 else
                 {
                     // there must be trivia that contains or touch this position
-                    Contract.Assert(token.FullSpan.Contains(lastNonWhitespacePosition));
+                    Debug.Assert(token.FullSpan.Contains(lastNonWhitespacePosition));
 
                     // okay, now check whether the trivia is at the beginning of the line
                     var firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition();
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 if (token.IsSemicolonOfEmbeddedStatement() ||
                     token.IsCloseBraceOfEmbeddedBlock())
                 {
-                    Contract.Requires(
+                    Debug.Assert(
                         token.Parent != null &&
                         (token.Parent.Parent is StatementSyntax || token.Parent.Parent is ElseClauseSyntax));
 
@@ -256,41 +257,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             private IndentationResult? GetIndentationFromCommaSeparatedList(SyntaxToken token)
             {
                 var node = token.Parent;
-
-                var argument = node as BaseArgumentListSyntax;
-                if (argument != null)
+                switch (node)
                 {
-                    return GetIndentationFromCommaSeparatedList(argument.Arguments, token);
-                }
-
-                var parameter = node as BaseParameterListSyntax;
-                if (parameter != null)
-                {
-                    return GetIndentationFromCommaSeparatedList(parameter.Parameters, token);
-                }
-
-                var typeArgument = node as TypeArgumentListSyntax;
-                if (typeArgument != null)
-                {
-                    return GetIndentationFromCommaSeparatedList(typeArgument.Arguments, token);
-                }
-
-                var typeParameter = node as TypeParameterListSyntax;
-                if (typeParameter != null)
-                {
-                    return GetIndentationFromCommaSeparatedList(typeParameter.Parameters, token);
-                }
-
-                var enumDeclaration = node as EnumDeclarationSyntax;
-                if (enumDeclaration != null)
-                {
-                    return GetIndentationFromCommaSeparatedList(enumDeclaration.Members, token);
-                }
-
-                var initializerSyntax = node as InitializerExpressionSyntax;
-                if (initializerSyntax != null)
-                {
-                    return GetIndentationFromCommaSeparatedList(initializerSyntax.Expressions, token);
+                    case BaseArgumentListSyntax argument:
+                        return GetIndentationFromCommaSeparatedList(argument.Arguments, token);
+                    case BaseParameterListSyntax parameter:
+                        return GetIndentationFromCommaSeparatedList(parameter.Parameters, token);
+                    case TypeArgumentListSyntax typeArgument:
+                        return GetIndentationFromCommaSeparatedList(typeArgument.Arguments, token);
+                    case TypeParameterListSyntax typeParameter:
+                        return GetIndentationFromCommaSeparatedList(typeParameter.Parameters, token);
+                    case EnumDeclarationSyntax enumDeclaration:
+                        return GetIndentationFromCommaSeparatedList(enumDeclaration.Members, token);
+                    case InitializerExpressionSyntax initializerSyntax:
+                        return GetIndentationFromCommaSeparatedList(initializerSyntax.Expressions, token);
                 }
 
                 return GetDefaultIndentationFromToken(token);

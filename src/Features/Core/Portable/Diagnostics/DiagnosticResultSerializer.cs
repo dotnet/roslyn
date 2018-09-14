@@ -15,8 +15,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticResultSerializer
     {
-        public static void Serialize(ObjectWriter writer, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
+        public static (int diagnostics, int telemetry, int exceptions) Serialize(
+            ObjectWriter writer, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
         {
+            var diagnosticCount = 0;
             var diagnosticSerializer = new DiagnosticDataSerializer(VersionStamp.Default, VersionStamp.Default);
 
             var analysisResult = result.AnalysisResult;
@@ -26,11 +28,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 writer.WriteString(kv.Key);
 
-                Serialize(writer, diagnosticSerializer, kv.Value.SyntaxLocals, cancellationToken);
-                Serialize(writer, diagnosticSerializer, kv.Value.SemanticLocals, cancellationToken);
-                Serialize(writer, diagnosticSerializer, kv.Value.NonLocals, cancellationToken);
+                diagnosticCount += Serialize(writer, diagnosticSerializer, kv.Value.SyntaxLocals, cancellationToken);
+                diagnosticCount += Serialize(writer, diagnosticSerializer, kv.Value.SemanticLocals, cancellationToken);
+                diagnosticCount += Serialize(writer, diagnosticSerializer, kv.Value.NonLocals, cancellationToken);
 
                 diagnosticSerializer.WriteTo(writer, kv.Value.Others, cancellationToken);
+                diagnosticCount += kv.Value.Others.Length;
             }
 
             var telemetryInfo = result.TelemetryInfo;
@@ -50,6 +53,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 writer.WriteString(kv.Key);
                 diagnosticSerializer.WriteTo(writer, kv.Value, cancellationToken);
             }
+
+            // report how many data has been sent
+            return (diagnosticCount, telemetryInfo.Count, exceptions.Count);
         }
 
         public static DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult> Deserialize(
@@ -103,18 +109,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return DiagnosticAnalysisResultMap.Create(analysisMap.ToImmutable(), telemetryMap.ToImmutable(), exceptionMap.ToImmutable());
         }
 
-        private static void Serialize(
+        private static int Serialize(
             ObjectWriter writer,
             DiagnosticDataSerializer serializer,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> diagnostics,
             CancellationToken cancellationToken)
         {
+            var count = 0;
+
             writer.WriteInt32(diagnostics.Count);
             foreach (var kv in diagnostics)
             {
                 kv.Key.WriteTo(writer);
                 serializer.WriteTo(writer, kv.Value, cancellationToken);
+
+                count += kv.Value.Length;
             }
+
+            return count;
         }
 
         private static ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Deserialize(
@@ -146,6 +158,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             writer.WriteInt32(telemetryInfo.SyntaxTreeActionsCount);
             writer.WriteInt32(telemetryInfo.SemanticModelActionsCount);
             writer.WriteInt32(telemetryInfo.SymbolActionsCount);
+            writer.WriteInt32(telemetryInfo.SymbolStartActionsCount);
+            writer.WriteInt32(telemetryInfo.SymbolEndActionsCount);
             writer.WriteInt32(telemetryInfo.SyntaxNodeActionsCount);
             writer.WriteInt32(telemetryInfo.CodeBlockStartActionsCount);
             writer.WriteInt32(telemetryInfo.CodeBlockEndActionsCount);
@@ -155,6 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             writer.WriteInt32(telemetryInfo.OperationBlockStartActionsCount);
             writer.WriteInt32(telemetryInfo.OperationBlockEndActionsCount);
             writer.WriteInt64(telemetryInfo.ExecutionTime.Ticks);
+            writer.WriteBoolean(telemetryInfo.Concurrent);
         }
 
         private static AnalyzerTelemetryInfo Deserialize(ObjectReader reader, CancellationToken cancellationToken)
@@ -167,6 +182,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var syntaxTreeActionsCount = reader.ReadInt32();
             var semanticModelActionsCount = reader.ReadInt32();
             var symbolActionsCount = reader.ReadInt32();
+            var symbolStartActionsCount = reader.ReadInt32();
+            var symbolEndActionsCount = reader.ReadInt32();
             var syntaxNodeActionsCount = reader.ReadInt32();
             var codeBlockStartActionsCount = reader.ReadInt32();
             var codeBlockEndActionsCount = reader.ReadInt32();
@@ -176,6 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var operationBlockStartActionsCount = reader.ReadInt32();
             var operationBlockEndActionsCount = reader.ReadInt32();
             var executionTime = new TimeSpan(reader.ReadInt64());
+            var concurrent = reader.ReadBoolean();
 
             return new AnalyzerTelemetryInfo()
             {
@@ -186,6 +204,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 SyntaxTreeActionsCount = syntaxTreeActionsCount,
                 SemanticModelActionsCount = semanticModelActionsCount,
                 SymbolActionsCount = symbolActionsCount,
+                SymbolStartActionsCount = symbolStartActionsCount,
+                SymbolEndActionsCount = symbolEndActionsCount,
                 SyntaxNodeActionsCount = syntaxNodeActionsCount,
 
                 CodeBlockStartActionsCount = codeBlockStartActionsCount,
@@ -197,7 +217,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 OperationBlockEndActionsCount = operationBlockEndActionsCount,
                 OperationBlockActionsCount = operationBlockActionsCount,
 
-                ExecutionTime = executionTime
+                ExecutionTime = executionTime,
+
+                Concurrent = concurrent
             };
         }
 

@@ -18,9 +18,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Var,
         Tuples,
         RefLocalsReturns,
+        ReadOnlyReferences,
         OutVar,
         Patterns,
         DefaultLiteral,
         AsyncMain,
+        IOperation,
+        Dataflow,
+        NonTrailingNamedArgs,
+        PrivateProtected,
+        PEVerifyCompat,
+        RefConditionalOperator,
+        TupleEquality,
+        StackAllocInitializer,
     }
 }

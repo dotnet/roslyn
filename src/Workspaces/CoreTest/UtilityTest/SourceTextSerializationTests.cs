@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestSourceTextSerialization()
         {
-            var textService = new DesktopTextFactoryService();
+            var textService = new TextFactoryService();
 
             var maxSize = SourceTextExtensions.SourceTextLengthThreshold * 3;
             var sb = new StringBuilder(0, maxSize);

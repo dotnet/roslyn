@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -21,22 +22,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             => (new UseExpressionBodyDiagnosticAnalyzer(), new UseExpressionBodyCodeFixProvider());
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
 
         private IDictionary<OptionKey, object> UseBlockBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public void TestOptionSerialization1()
         {
             // Verify that bool-options can migrate to ExpressionBodyPreference-options.
-            var option = new CodeStyleOption<bool>(false, NotificationOption.None);
+            var option = new CodeStyleOption<bool>(false, NotificationOption.Silent);
             var serialized = option.ToXElement();
             var deserialized = CodeStyleOption<ExpressionBodyPreference>.FromXElement(serialized);
 
             Assert.Equal(ExpressionBodyPreference.Never, deserialized.Value);
 
-            option = new CodeStyleOption<bool>(true, NotificationOption.None);
+            option = new CodeStyleOption<bool>(true, NotificationOption.Silent);
             serialized = option.ToXElement();
             deserialized = CodeStyleOption<ExpressionBodyPreference>.FromXElement(serialized);
 
@@ -47,13 +48,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         public void TestOptionSerialization2()
         {
             // Verify that ExpressionBodyPreference-options can migrate to bool-options.
-            var option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.None);
+            var option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.Silent);
             var serialized = option.ToXElement();
             var deserialized = CodeStyleOption<bool>.FromXElement(serialized);
 
             Assert.Equal(false, deserialized.Value);
 
-            option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.None);
+            option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent);
             serialized = option.ToXElement();
             deserialized = CodeStyleOption<bool>.FromXElement(serialized);
 
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 
             // This new values can't actually translate back to a bool.  So we'll just get the default
             // value for this option.
-            option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption.None);
+            option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption.Silent);
             serialized = option.ToXElement();
             deserialized = CodeStyleOption<bool>.FromXElement(serialized);
 
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     int Goo() => throw new NotImplementedException(); // comment
-}", ignoreTrivia: false, options: UseExpressionBody);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         throw new NotImplementedException(); // comment
     }
-}", ignoreTrivia: false, options: UseBlockBody);
+}", options: UseBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -243,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     void Goo() =>
         // Comment
         Bar();
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -263,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     void Goo() =>
         // Comment
         Bar();
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -283,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     void Goo() =>
         // Comment
         throw Bar();
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -300,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     void Goo() => Bar(); // Comment
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     void Goo() => Bar(); // Comment
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -334,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     void Goo() => throw Bar(); // Comment
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
@@ -366,7 +367,7 @@ class Program
         Console.WriteLine();
 #endif
 
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
@@ -402,7 +403,7 @@ class Program
         Console.WriteLine(b);
 #endif
 
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
@@ -502,6 +503,162 @@ class C
 
     int M(bool b) => 0;
 }", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task Goo() [|=>|] await Bar();
+
+    Task Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task Goo()
+    {
+        await Bar();
+    }
+
+    Task Bar() { }
+}", options: UseBlockBody);
+        }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    async void Goo() [|=>|] await Bar();
+
+    Task Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async void Goo()
+    {
+        await Bar();
+    }
+
+    Task Bar() { }
+}", options: UseBlockBody);
+        }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    async void Goo() [|=>|] await Bar();
+
+    Task Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async void Goo()
+    {
+        await Bar();
+    }
+
+    Task Bar() { }
+}", options: UseBlockBody);
+        }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    async ValueTask Goo() [|=>|] await Bar();
+
+    Task Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async ValueTask Goo()
+    {
+        await Bar();
+    }
+
+    Task Bar() { }
+}", options: UseBlockBody);
+        }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync5()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task<int> Goo() [|=>|] await Bar();
+
+    Task<int> Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task<int> Goo()
+    {
+        return await Bar();
+    }
+
+    Task<int> Bar() { }
+}", options: UseBlockBody);
+        }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync6()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    Task Goo() [|=>|] Bar();
+
+    Task Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    Task Goo()
+    {
+        return Bar();
+    }
+
+    Task Bar() { }
+}", options: UseBlockBody);
         }
     }
 }

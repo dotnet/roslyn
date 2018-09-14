@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 foreach (var pair in modifiedSpans)
                 {
-                    result[pair.Item1] = pair.Item2;
+                    result[pair.oldSpan] = pair.newSpan;
                 }
             }
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     foreach (var pair in complexifiedSpan.ModifiedSubSpans)
                     {
-                        result[pair.Item1] = pair.Item2;
+                        result[pair.oldSpan] = pair.newSpan;
                     }
                 }
             }

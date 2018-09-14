@@ -140,9 +140,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <returns>The ITextBuffer. If one could not be found, this returns null.</returns>
         private ITextBuffer TryGetTextBufferFromDocData(IntPtr docData)
         {
-            var shimTextBuffer = Marshal.GetObjectForIUnknown(docData) as IVsTextBuffer;
 
-            if (shimTextBuffer != null)
+            if (Marshal.GetObjectForIUnknown(docData) is IVsTextBuffer shimTextBuffer)
             {
                 return _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
             }

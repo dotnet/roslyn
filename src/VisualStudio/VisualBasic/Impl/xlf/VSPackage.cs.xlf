@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="cs" original="../VSPackage.resx">
+    <body>
+      <trans-unit id="101">
+        <source>Visual Basic</source>
+        <target state="translated">Visual Basic</target>
+        <note>Used anywhere the string is needed (that is, everywhere.)</note>
+      </trans-unit>
+      <trans-unit id="1012">
+        <source>Microsoft Visual Basic Code Page Editor</source>
+        <target state="translated">Editor stránky kódu Microsoft Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="1013">
+        <source>Microsoft Visual Basic Editor</source>
+        <target state="translated">Microsoft Visual Basic Editor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="10160">
+        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
+        <target state="needs-review-translation">Automatické vložení konce konstrukce; Změnit nastavení pěkného výpisu; Změnit režim odsazení; Automatické vložení členů rozhraní a MustOverride; Zobrazit nebo skrýt oddělovače řádků procedur; Zapnout nebo vypnout návrhy oprav; Zapnout nebo vypnout zvýrazňování odkazů a klíčových slov</target>
+        <note>Advanced options page keywords</note>
+      </trans-unit>
+      <trans-unit id="102">
+        <source>Advanced</source>
+        <target state="translated">Upřesnit</target>
+        <note>"Advanced" node under Tools &gt;Options, Basic editor.</note>
+      </trans-unit>
+      <trans-unit id="103">
+        <source>Basic</source>
+        <target state="translated">Základní</target>
+        <note>"Basic" node in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="104">
+        <source>Basic Editor</source>
+        <target state="translated">Basic Editor</target>
+        <note>"Basic Editor" node in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="105">
+        <source>Options that control general editor features including Intellisense statement completion, line number display, and single-click URL navigation.</source>
+        <target state="translated">Možnosti, které ovládají funkce obecného editoru včetně dokončování příkazů Intellisense, zobrazení čísla řádku a navigaci adres URL jedním kliknutím.</target>
+        <note>"Basic" node help text in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="106">
+        <source>Options that control Visual Basic editor features including automatic insertion of end constructs, procedure line separators, and automatic code formatting.</source>
+        <target state="translated">Možnosti, které ovládají funkce editoru jazyka Visual Basic včetně automatického vkládání konců konstrukcí, oddělovačů řádků procedur a automatického formátování kódu.</target>
+        <note>"Basic Editor" node help text in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="107">
+        <source>Optimizes the environment so you can focus on building world-class applications. This collection of settings contains customizations to the window layout, command menus and keyboard shortcuts to make common Visual Basic commands more accessible.</source>
+        <target state="translated">Optimalizuje prostředí, abyste mohli všechnu pozornost věnovat vytváření aplikací světové úrovně. Tato kolekce nastavení obsahuje vlastní nastavení rozložení okna, nabídek příkazů a klávesových zkratek, aby běžné příkazy Visual Basicu byly přístupnější.</target>
+        <note>Profile description in profile Reset All Settings.</note>
+      </trans-unit>
+      <trans-unit id="108">
+        <source>Microsoft Visual Basic</source>
+        <target state="translated">Microsoft Visual Basic</target>
+        <note>Used for String in Tools &gt; Options, Text Editor, File Extensions</note>
+      </trans-unit>
+      <trans-unit id="109">
+        <source>Code Style</source>
+        <target state="translated">Styl kódu</target>
+        <note>"Code Style" category node under Tools &gt;Options, Basic editor.</note>
+      </trans-unit>
+      <trans-unit id="10161">
+        <source>Qualify with Me;Prefer intrinsic types;Style;Code Style</source>
+        <target state="translated">Kvalifikovat pomocí klíčového slova Me;Upřednostňovat vnitřní typy;Styl;Styl kódu</target>
+        <note>Code Style options page keywords</note>
+      </trans-unit>
+      <trans-unit id="110">
+        <source>Naming</source>
+        <target state="translated">Pojmenování</target>
+        <note>"Naming Style" node under Tools &gt;Options &gt; Basic editor &gt;Code Style.</note>
+      </trans-unit>
+      <trans-unit id="10162">
+        <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
+        <target state="translated">Styl pojmenování;Styly názvů;Pravidlo pro pojmenování;Konvence pojmenování</target>
+        <note>Naming Style options page keywords</note>
+      </trans-unit>
+      <trans-unit id="111">
+        <source>General</source>
+        <target state="translated">Obecné</target>
+        <note>"General" node under Tools &gt;Options &gt;Basic editor &gt;Code Style.</note>
+      </trans-unit>
+      <trans-unit id="112">
+        <source>IntelliSense</source>
+        <target state="translated">IntelliSense</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="312">
+        <source>Change completion list settings;Pre-select most recently used member</source>
+        <target state="translated">Změnit nastavení pro seznam dokončení;Předvolit naposledy použitou položku</target>
+        <note>IntelliSense options page keywords</note>
+      </trans-unit>
+      <trans-unit id="114">
+        <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
+        <target state="translated">Komponenty Visual Basicu použité v IDE. V závislosti na typu vašeho projektu a nastavení se může použít jiná verze kompilátoru.</target>
+        <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="113">
+        <source>Visual Basic Tools</source>
+        <target state="translated">Nástroje Visual Basicu</target>
+        <note>Help &gt; About</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

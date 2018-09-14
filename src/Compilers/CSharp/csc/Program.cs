@@ -24,7 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
         }
 
         private static int MainCore(string[] args)
-            => DesktopBuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, new DesktopAnalyzerAssemblyLoader());
+        {
+#if NET46
+            var loader = new DesktopAnalyzerAssemblyLoader();
+#else
+            var loader = new CoreClrAnalyzerAssemblyLoader();
+#endif
+            return DesktopBuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, loader);
+        }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
             => Csc.Run(args, new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir), textWriter, analyzerLoader);

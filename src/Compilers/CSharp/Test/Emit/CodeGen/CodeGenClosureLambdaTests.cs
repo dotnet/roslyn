@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -11,6 +12,103 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenClosureLambdaTests : CSharpTestBase
     {
+        [Fact]
+        public void LambdaInIndexerAndBinaryOperator()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+
+class C
+{
+    private static Func<int> _f1;
+    private static Func<int> _f2;
+
+    public static void Main() {
+        var c = new C();
+        c[() => 0] += 1;
+        Console.WriteLine(object.ReferenceEquals(_f1, _f2));
+    }
+
+    int this[Func<int> f] {
+        get { _f1 = f; return 0; }
+        set { _f2 = f; }
+    }
+}", expectedOutput: "True");
+        }
+
+        [Fact]
+        public void MethodGroupInIndexerAndBinaryOperator()
+        {
+            CompileAndVerify(@"
+using System;
+
+class C
+{
+    private static Func<int> _f1;
+    private static Func<int> _f2;
+
+    public static void Main() {
+        var c = new C();
+        c[F] += 1;
+        Console.WriteLine(object.ReferenceEquals(_f1, _f2));
+    }
+
+    static int F() => 0;
+    
+    public int this[Func<int> f] {
+        get { _f1 = f; return 0; }
+        set { _f2 = f; }
+    }
+}", expectedOutput: "True");
+        }
+
+        [Fact]
+        public void EnvironmentChainContainsUnusedEnvironment()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    void M(int x)
+    {
+        {
+            int y = 10;
+            Action f1 = () => Console.WriteLine(y);
+
+            {
+                int z = 5;
+                Action f2 = () => Console.WriteLine(z + x);
+                f2();
+            }
+            f1();
+        }
+    }
+    public static void Main() => new C().M(3);
+}", expectedOutput: @"8
+10");
+        }
+
+        [Fact]
+        public void CaptureThisAsFramePointer()
+        {
+            var comp = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    int _z = 0;
+    void M(IEnumerable<int> xs)
+    {
+        foreach (var x in xs)
+        {
+            Func<int, int> captureFunc = k => x + _z;
+        }
+    }
+}";
+            CompileAndVerify(comp);
+        }
+
         [Fact]
         public void StaticClosure01()
         {
@@ -1015,17 +1113,17 @@ class Program
 {
   // Code size      131 (0x83)
   .maxstack  3
-  .locals init (Program.<>c__DisplayClass1_2<T> V_0, //CS$<>8__locals0
-                Program.<>c__DisplayClass1_1<T> V_1, //CS$<>8__locals1
+  .locals init (Program.<>c__DisplayClass1_1<T> V_0, //CS$<>8__locals0
+                Program.<>c__DisplayClass1_2<T> V_1, //CS$<>8__locals1
                 T V_2)
-  IL_0000:  newobj     ""Program.<>c__DisplayClass1_2<T>..ctor()""
+  IL_0000:  newobj     ""Program.<>c__DisplayClass1_1<T>..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
-  IL_0008:  stfld      ""Program.<>c__DisplayClass1_0<T> Program.<>c__DisplayClass1_2<T>.CS$<>8__locals1""
+  IL_0008:  stfld      ""Program.<>c__DisplayClass1_0<T> Program.<>c__DisplayClass1_1<T>.CS$<>8__locals1""
   IL_000d:  ldloc.0
   IL_000e:  ldstr      ""y""
-  IL_0013:  stfld      ""string Program.<>c__DisplayClass1_2<T>.y""
+  IL_0013:  stfld      ""string Program.<>c__DisplayClass1_1<T>.y""
   .try
   {
     IL_0018:  ldstr      ""xy""
@@ -1041,17 +1139,17 @@ class Program
     IL_002c:  ldc.i4.0
     IL_002d:  br.s       IL_005d
     IL_002f:  unbox.any  ""T""
-    IL_0034:  newobj     ""Program.<>c__DisplayClass1_1<T>..ctor()""
+    IL_0034:  newobj     ""Program.<>c__DisplayClass1_2<T>..ctor()""
     IL_0039:  stloc.1
     IL_003a:  ldloc.1
     IL_003b:  ldloc.0
-    IL_003c:  stfld      ""Program.<>c__DisplayClass1_2<T> Program.<>c__DisplayClass1_1<T>.CS$<>8__locals2""
+    IL_003c:  stfld      ""Program.<>c__DisplayClass1_1<T> Program.<>c__DisplayClass1_2<T>.CS$<>8__locals2""
     IL_0041:  stloc.2
     IL_0042:  ldloc.1
     IL_0043:  ldloc.2
-    IL_0044:  stfld      ""T Program.<>c__DisplayClass1_1<T>.e""
+    IL_0044:  stfld      ""T Program.<>c__DisplayClass1_2<T>.e""
     IL_0049:  ldloc.1
-    IL_004a:  ldftn      ""bool Program.<>c__DisplayClass1_1<T>.<F>b__1()""
+    IL_004a:  ldftn      ""bool Program.<>c__DisplayClass1_2<T>.<F>b__1()""
     IL_0050:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
     IL_0055:  callvirt   ""bool System.Func<bool>.Invoke()""
     IL_005a:  ldc.i4.0
@@ -1064,8 +1162,8 @@ class Program
     IL_0065:  ldarg.0
     IL_0066:  ldfld      ""string Program.<>c__DisplayClass1_0<T>.x""
     IL_006b:  ldloc.1
-    IL_006c:  ldfld      ""Program.<>c__DisplayClass1_2<T> Program.<>c__DisplayClass1_1<T>.CS$<>8__locals2""
-    IL_0071:  ldfld      ""string Program.<>c__DisplayClass1_2<T>.y""
+    IL_006c:  ldfld      ""Program.<>c__DisplayClass1_1<T> Program.<>c__DisplayClass1_2<T>.CS$<>8__locals2""
+    IL_0071:  ldfld      ""string Program.<>c__DisplayClass1_1<T>.y""
     IL_0076:  call       ""string string.Concat(string, string, string)""
     IL_007b:  call       ""void System.Console.Write(string)""
     IL_0080:  leave.s    IL_0082
@@ -1363,7 +1461,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "this: D::F\r\nbase: B1::F");
+            CompileAndVerify(source, expectedOutput: $"this: D::F{Environment.NewLine}base: B1::F");
         }
 
         [Fact]
@@ -1422,7 +1520,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "this: D::F\r\nbase: B1::F");
+            CompileAndVerify(source, expectedOutput: $"this: D::F{Environment.NewLine}base: B1::F");
         }
 
         [Fact]
@@ -1596,7 +1694,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "D::F\r\nB1::F");
+            CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
         }
 
         [Fact]
@@ -1649,7 +1747,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "D::F\r\nB1::F");
+            CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
         }
 
         [Fact]
@@ -1704,7 +1802,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "D::F\r\nB1::F");
+            CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
         }
 
         [Fact]
@@ -2471,7 +2569,7 @@ class C
         d();
     }
 }";
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F");
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F", verify: Verification.Passes);
         }
 
         [Fact]
@@ -3646,17 +3744,17 @@ public static class Program
 {
   // Code size       89 (0x59)
   .maxstack  2
-  .locals init (Program.c1.<>c__DisplayClass1_1 V_0) //CS$<>8__locals0
-  IL_0000:  newobj     ""Program.c1.<>c__DisplayClass1_1..ctor()""
+  .locals init (Program.c1.<>c__DisplayClass1_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""Program.c1.<>c__DisplayClass1_0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
-  IL_0008:  stfld      ""Program.c1 Program.c1.<>c__DisplayClass1_1.<>4__this""
+  IL_0008:  stfld      ""Program.c1 Program.c1.<>c__DisplayClass1_0.<>4__this""
   IL_000d:  ldarg.0
   IL_000e:  call       ""bool Program.c1.T()""
   IL_0013:  brfalse.s  IL_002e
-  IL_0015:  ldarg.0
-  IL_0016:  ldftn      ""bool Program.c1.<Test>b__1_0(int)""
+  IL_0015:  ldloc.0
+  IL_0016:  ldftn      ""bool Program.c1.<>c__DisplayClass1_0.<Test>b__0(int)""
   IL_001c:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
   IL_0021:  ldc.i4.s   42
   IL_0023:  callvirt   ""bool System.Func<int, bool>.Invoke(int)""
@@ -3664,12 +3762,12 @@ public static class Program
   IL_002d:  ret
   IL_002e:  ldloc.0
   IL_002f:  ldc.i4.s   42
-  IL_0031:  stfld      ""int Program.c1.<>c__DisplayClass1_1.aaa""
+  IL_0031:  stfld      ""int Program.c1.<>c__DisplayClass1_0.aaa""
   IL_0036:  ldarg.0
   IL_0037:  call       ""bool Program.c1.T()""
   IL_003c:  brfalse.s  IL_0057
   IL_003e:  ldloc.0
-  IL_003f:  ldftn      ""bool Program.c1.<>c__DisplayClass1_1.<Test>b__2(int)""
+  IL_003f:  ldftn      ""bool Program.c1.<>c__DisplayClass1_0.<Test>b__2(int)""
   IL_0045:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
   IL_004a:  ldc.i4.s   42
   IL_004c:  callvirt   ""bool System.Func<int, bool>.Invoke(int)""
@@ -4056,7 +4154,6 @@ public class Program
 
             CompileAndVerify(
                 source,
-                new[] { LinqAssemblyRef },
                 expectedOutput:
 @"1
 1
@@ -4114,7 +4211,7 @@ namespace Lambda.Bugs
 }
 ";
 
-            CreateStandardCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(1, 1),
                 // (17,81): error CS7013: Name 'Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo' exceeds the maximum length allowed in metadata.
@@ -4172,7 +4269,6 @@ class Program
             // ref emit would just have different metadata tokens
             // we are not interested in testing that
             CompileAndVerify(source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: @"
 Void .ctor(System.Object, IntPtr)
 Int32 Invoke()
@@ -4183,7 +4279,7 @@ Int32 EndInvoke(System.IAsyncResult)
 
         [WorkItem(540092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540092")]
         [Fact]
-        public void NestedAnonymousMethodsusingLocalAndField()
+        public void NestedAnonymousMethodsUsingLocalAndField()
         {
             string source = @"
 using System;
@@ -4605,7 +4701,7 @@ class D
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
                 Signature("C+<>c__DisplayClass0_0`1", "<>9__0",
@@ -4697,7 +4793,7 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"
@@ -4826,7 +4922,7 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"
@@ -4842,15 +4938,15 @@ class D
   IL_0018:  ldc.i4.1
   IL_0019:  callvirt   ""System.Func<int> System.Func<int, System.Func<int>>.Invoke(int)""
   IL_001e:  pop
-  IL_001f:  ldsfld     ""System.Func<int, System.Func<int>> Program.<>c.<>9__1_2""
+  IL_001f:  ldsfld     ""System.Func<int, System.Func<int>> Program.<>c.<>9__1_1""
   IL_0024:  dup
   IL_0025:  brtrue.s   IL_003e
   IL_0027:  pop
   IL_0028:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_002d:  ldftn      ""System.Func<int> Program.<>c.<Test>b__1_2(int)""
+  IL_002d:  ldftn      ""System.Func<int> Program.<>c.<Test>b__1_1(int)""
   IL_0033:  newobj     ""System.Func<int, System.Func<int>>..ctor(object, System.IntPtr)""
   IL_0038:  dup
-  IL_0039:  stsfld     ""System.Func<int, System.Func<int>> Program.<>c.<>9__1_2""
+  IL_0039:  stsfld     ""System.Func<int, System.Func<int>> Program.<>c.<>9__1_1""
   IL_003e:  ldc.i4.1
   IL_003f:  callvirt   ""System.Func<int> System.Func<int, System.Func<int>>.Invoke(int)""
   IL_0044:  pop
@@ -4858,7 +4954,7 @@ class D
 }
 ");
 
-            verifier.VerifyIL("Program.<>c.<Test>b__1_2(int)",
+            verifier.VerifyIL("Program.<>c.<Test>b__1_1(int)",
 @"
 {
   // Code size       44 (0x2c)
@@ -4896,17 +4992,17 @@ class D
   IL_0004:  ldc.i4.s   123
   IL_0006:  call       ""void System.Console.WriteLine(int)""
   IL_000b:  ldarg.0
-  IL_000c:  ldfld      ""System.Func<int> Program.<>c__DisplayClass1_0.<>9__1""
+  IL_000c:  ldfld      ""System.Func<int> Program.<>c__DisplayClass1_0.<>9__2""
   IL_0011:  dup
   IL_0012:  brtrue.s   IL_002a
   IL_0014:  pop
   IL_0015:  ldarg.0
   IL_0016:  ldarg.0
-  IL_0017:  ldftn      ""int Program.<>c__DisplayClass1_0.<Test>b__1()""
+  IL_0017:  ldftn      ""int Program.<>c__DisplayClass1_0.<Test>b__2()""
   IL_001d:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0022:  dup
   IL_0023:  stloc.0
-  IL_0024:  stfld      ""System.Func<int> Program.<>c__DisplayClass1_0.<>9__1""
+  IL_0024:  stfld      ""System.Func<int> Program.<>c__DisplayClass1_0.<>9__2""
   IL_0029:  ldloc.0
   IL_002a:  ret
   IL_002b:  ldnull
@@ -5150,7 +5246,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -5170,7 +5266,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -5203,7 +5299,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [Fact, WorkItem(2549, "https://github.com/dotnet/roslyn/issues/2549")]
@@ -5222,7 +5318,7 @@ public class BadBaby
         return from child in Children select from T ch in Children select false;
     }
 }";
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [WorkItem(9131, "https://github.com/dotnet/roslyn/issues/9131")]

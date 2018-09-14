@@ -7,6 +7,7 @@ Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -52,7 +53,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <summary>
         ''' Determines if a SyntaxNodeOrToken is a specified kind.
         ''' </summary>
-        ''' <param name="nodeOrToken">The source SyntaxNodeOrToke.</param>
+        ''' <param name="nodeOrToken">The source SyntaxNodeOrToken.</param>
         ''' <param name="kind">The SyntaxKind to test for.</param>
         ''' <returns>A boolean value if nodeOrToken is of specified kind; otherwise false.</returns>
         <Extension>
@@ -1357,6 +1358,103 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return vbmodel.GetConversion(expression, cancellationToken)
             Else
                 Return Nothing
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from an <see cref="IConversionOperation"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="conversionExpression">The conversion expression to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/>.</returns>
+        ''' <exception cref="InvalidCastException">If the <see cref="IConversionOperation"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetConversion(conversionExpression As IConversionOperation) As Conversion
+            If conversionExpression.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(conversionExpression, BaseConversionExpression).ConvertibleConversion, Conversion)
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
+                                                          NameOf(IConversionOperation)),
+                                            NameOf(conversionExpression))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information for InConversion of <see cref="IArgumentOperation"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="argument">The argument to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/> of the InConversion.</returns>
+        ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetInConversion(argument As IArgumentOperation) As Conversion
+            If argument.Language = LanguageNames.VisualBasic Then
+                Dim inConversionConvertible As IConvertibleConversion = DirectCast(argument, BaseArgument).InConversionConvertibleOpt
+                Return If(inConversionConvertible IsNot Nothing, DirectCast(inConversionConvertible, Conversion), New Conversion(Conversions.Identity))
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
+                                                          NameOf(IArgumentOperation)),
+                                            NameOf(argument))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information for OutConversion of <see cref="IArgumentOperation"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="argument">The argument to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/> of the OutConversion.</returns>
+        ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetOutConversion(argument As IArgumentOperation) As Conversion
+            If argument.Language = LanguageNames.VisualBasic Then
+                Dim outConversionConvertible As IConvertibleConversion = DirectCast(argument, BaseArgument).OutConversionConvertibleOpt
+                Return If(outConversionConvertible IsNot Nothing, DirectCast(outConversionConvertible, Conversion), New Conversion(Conversions.Identity))
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
+                                                          NameOf(IArgumentOperation)),
+                                            NameOf(argument))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from this <see cref="ICompoundAssignmentOperation"/>. This
+        ''' conversion is applied before the operator is applied to the result of this conversion and <see cref="IAssignmentOperation.Value"/>.
+        ''' </summary>
+        ''' <remarks>
+        ''' This compound assignment must have been created from Visual Basic code.
+        ''' </remarks>
+        <Extension>
+        Public Function GetInConversion(compoundAssignment As ICompoundAssignmentOperation) As Conversion
+            If compoundAssignment Is Nothing Then
+                Throw New ArgumentNullException(NameOf(compoundAssignment))
+            End If
+
+            If compoundAssignment.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentExpression).InConversionConvertible, Conversion)
+            Else
+                Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
+                                                          NameOf(compoundAssignment)),
+                                            NameOf(compoundAssignment))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from this <see cref="ICompoundAssignmentOperation"/>. This
+        ''' conversion is applied after the operator is applied, before the result is assigned to <see cref="IAssignmentOperation.Target"/>.
+        ''' </summary>
+        ''' <remarks>
+        ''' This compound assignment must have been created from Visual Basic code.
+        ''' </remarks>
+        <Extension>
+        Public Function GetOutConversion(compoundAssignment As ICompoundAssignmentOperation) As Conversion
+            If compoundAssignment Is Nothing Then
+                Throw New ArgumentNullException(NameOf(compoundAssignment))
+            End If
+
+            If compoundAssignment.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentExpression).OutConversionConvertible, Conversion)
+            Else
+                Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
+                                                          NameOf(compoundAssignment)),
+                                            NameOf(compoundAssignment))
             End If
         End Function
 

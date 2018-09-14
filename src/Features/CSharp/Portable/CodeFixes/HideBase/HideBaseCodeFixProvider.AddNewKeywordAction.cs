@@ -9,7 +9,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal partial class HideBaseCodeFixProvider
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         private class AddNewKeywordAction : CodeActions.CodeAction
         {

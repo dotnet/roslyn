@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -17,10 +18,18 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         {
             private readonly ISet<UsingDirectiveSyntax> _unnecessaryUsingsDoNotAccessDirectly;
             private readonly CancellationToken _cancellationToken;
+            private readonly AbstractCSharpRemoveUnnecessaryImportsService _importsService;
+            private readonly Document _document;
 
-            public Rewriter(ISet<UsingDirectiveSyntax> unnecessaryUsings, CancellationToken cancellationToken)
+            public Rewriter(
+                AbstractCSharpRemoveUnnecessaryImportsService importsService,
+                Document document,
+                ISet<UsingDirectiveSyntax> unnecessaryUsings,
+                CancellationToken cancellationToken)
                 : base(visitIntoStructuredTrivia: true)
             {
+                _importsService = importsService;
+                _document = document;
                 _unnecessaryUsingsDoNotAccessDirectly = unnecessaryUsings;
                 _cancellationToken = cancellationToken;
             }
@@ -39,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             {
                 var currentUsings = new List<UsingDirectiveSyntax>(usings);
 
-                finalTrivia = default(SyntaxTriviaList);
+                finalTrivia = default;
                 for (int i = 0; i < usings.Count; i++)
                 {
                     if (usingsToRemove.Contains(usings[i]))
@@ -73,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 SyntaxList<UsingDirectiveSyntax> oldUsings,
                 SyntaxList<UsingDirectiveSyntax> newUsings)
             {
-                Contract.Requires(oldUsings.Count == newUsings.Count);
+                Debug.Assert(oldUsings.Count == newUsings.Count);
 
                 var result = new HashSet<UsingDirectiveSyntax>();
                 for (int i = 0; i < oldUsings.Count; i++)
@@ -115,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     // We've removed all the usings and now the first thing in the namespace is a
                     // type.  In this case, remove any newlines preceding the type.
                     var firstToken = resultCompilationUnit.GetFirstToken();
-                    var newFirstToken = StripNewLines(firstToken);
+                    var newFirstToken = _importsService.StripNewLines(_document, firstToken);
                     resultCompilationUnit = resultCompilationUnit.ReplaceToken(firstToken, newFirstToken);
                 }
 
@@ -149,16 +158,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     // We've removed all the usings and now the first thing in the namespace is a
                     // type.  In this case, remove any newlines preceding the type.
                     var firstToken = resultNamespace.Members.First().GetFirstToken();
-                    var newFirstToken = StripNewLines(firstToken);
+                    var newFirstToken = _importsService.StripNewLines(_document, firstToken);
                     resultNamespace = resultNamespace.ReplaceToken(firstToken, newFirstToken);
                 }
 
                 return resultNamespace;
-            }
-
-            private static SyntaxToken StripNewLines(SyntaxToken firstToken)
-            {
-                return firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.SkipWhile(t => t.Kind() == SyntaxKind.EndOfLineTrivia));
             }
         }
     }

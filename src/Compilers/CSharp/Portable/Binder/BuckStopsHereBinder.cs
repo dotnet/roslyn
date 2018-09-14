@@ -27,6 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Get <see cref="QuickAttributeChecker"/> that can be used to quickly
+        /// check for certain attribute applications in context of this binder.
+        /// </summary>
+        internal override QuickAttributeChecker QuickAttributeChecker
+        {
+            get
+            {
+                return QuickAttributeChecker.Predefined;
+            }
+        }
+
         internal override Imports GetImports(ConsList<Symbol> basesBeingResolved)
         {
             return Imports.Empty;
@@ -41,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
+
+        internal override uint LocalScopeDepth => Binder.ExternalScope;
 
         internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
         {

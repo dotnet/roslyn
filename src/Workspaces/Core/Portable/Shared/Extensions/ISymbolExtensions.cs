@@ -101,6 +101,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static ImmutableArray<T> ExplicitOrImplicitInterfaceImplementations<T>(this T symbol) where T : ISymbol
+        {
+            var containingType = symbol.ContainingType;
+            var allMembersInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers(symbol.Name));
+            var membersImplementingAnInterfaceMember = allMembersInAllInterfaces.Where(
+                memberInInterface => symbol.Equals(containingType.FindImplementationForInterfaceMember(memberInInterface)));
+            return membersImplementingAnInterfaceMember.Cast<T>().ToImmutableArrayOrEmpty();
+        }
+
         public static bool IsOverridable(this ISymbol symbol)
         {
             // Members can only have overrides if they are virtual, abstract or override and is not
@@ -126,9 +135,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return true;
                 }
 
-                if (symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.Ordinary)
+                if (symbol.Kind == SymbolKind.Method)
                 {
-                    return true;
+                    var methodSymbol = (IMethodSymbol)symbol;
+                    if (methodSymbol.MethodKind == MethodKind.Ordinary ||
+                        methodSymbol.MethodKind == MethodKind.PropertyGet ||
+                        methodSymbol.MethodKind == MethodKind.PropertySet)
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -302,17 +317,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsWriteableFieldOrProperty(this ISymbol symbol)
         {
-            var fieldSymbol = symbol as IFieldSymbol;
-            if (fieldSymbol != null)
+            switch (symbol)
             {
-                return !fieldSymbol.IsReadOnly
-                    && !fieldSymbol.IsConst;
-            }
-
-            var propertySymbol = symbol as IPropertySymbol;
-            if (propertySymbol != null)
-            {
-                return !propertySymbol.IsReadOnly;
+                case IFieldSymbol fieldSymbol:
+                    return !fieldSymbol.IsReadOnly && !fieldSymbol.IsConst;
+                case IPropertySymbol propertySymbol:
+                    return !propertySymbol.IsReadOnly;
             }
 
             return false;
@@ -358,8 +368,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (symbol.IsFunctionValue())
             {
-                var method = symbol.ContainingSymbol as IMethodSymbol;
-                if (method != null)
+                if (symbol.ContainingSymbol is IMethodSymbol method)
                 {
                     symbol = method;
 
@@ -375,8 +384,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return symbol;
             }
 
-            var parameter = symbol as IParameterSymbol;
-            if (parameter != null)
+            if (symbol is IParameterSymbol parameter)
             {
                 var method = parameter.ContainingSymbol as IMethodSymbol;
                 if (method?.IsReducedExtension() == true)
@@ -418,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 case IMethodSymbol m: return m.Parameters;
                 case IPropertySymbol nt: return nt.Parameters;
-                default: return ImmutableArray.Create<IParameterSymbol>();
+                default: return ImmutableArray<IParameterSymbol>.Empty;
             }
         }
 
@@ -428,8 +436,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 case IMethodSymbol m: return m.TypeParameters;
                 case INamedTypeSymbol nt: return nt.TypeParameters;
-                default: return ImmutableArray.Create<ITypeParameterSymbol>();
+                default: return ImmutableArray<ITypeParameterSymbol>.Empty;
             }
+        }
+
+        public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this ISymbol symbol)
+        {
+            var results = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
+
+            while (symbol != null)
+            {
+                results.AddRange(symbol.GetTypeParameters());
+                symbol = symbol.ContainingType;
+            }
+
+            return results.ToImmutableAndFree();
         }
 
         public static ImmutableArray<ITypeSymbol> GetTypeArguments(this ISymbol symbol)
@@ -477,65 +498,36 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             bool extensionUsedAsInstance = false)
         {
-            var type = symbol as ITypeSymbol;
-            if (type != null)
+            if (symbol is ITypeSymbol type)
             {
                 return type;
             }
 
-            var method = symbol as IMethodSymbol;
-            if (method != null && !method.Parameters.Any(p => p.RefKind != RefKind.None))
+            if (symbol is IMethodSymbol method && method.Parameters.All(p => p.RefKind == RefKind.None))
             {
+                var count = extensionUsedAsInstance ? Math.Max(0, method.Parameters.Length - 1) : method.Parameters.Length;
+                var skip = extensionUsedAsInstance ? 1 : 0;
+
+                string WithArity(string typeName, int arity) => arity > 0 ? typeName + '`' + arity : typeName;
+
                 // Convert the symbol to Func<...> or Action<...>
-                if (method.ReturnsVoid)
-                {
-                    var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
-                    var skip = extensionUsedAsInstance ? 1 : 0;
-                    count = Math.Max(0, count);
-                    if (count == 0)
-                    {
-                        // Action
-                        return compilation.ActionType();
-                    }
-                    else
-                    {
-                        // Action<TArg1, ..., TArgN>
-                        var actionName = "System.Action`" + count;
-                        var actionType = compilation.GetTypeByMetadataName(actionName);
+                var delegateType = compilation.GetTypeByMetadataName(method.ReturnsVoid
+                    ? WithArity("System.Action", count)
+                    : WithArity("System.Func", count + 1));
 
-                        if (actionType != null)
-                        {
-                            var types = method.Parameters
-                                .Skip(skip)
-                                .Select(p =>
-                                    p.Type == null ?
-                                    compilation.GetSpecialType(SpecialType.System_Object) :
-                                    p.Type)
-                                .ToArray();
-                            return actionType.Construct(types);
-                        }
-                    }
-                }
-                else
+                if (delegateType != null)
                 {
-                    // Func<TArg1,...,TArgN,TReturn>
-                    //
-                    // +1 for the return type.
-                    var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
-                    var skip = extensionUsedAsInstance ? 1 : 0;
-                    var functionName = "System.Func`" + (count + 1);
-                    var functionType = compilation.GetTypeByMetadataName(functionName);
+                    var types = method.Parameters
+                        .Skip(skip)
+                        .Select(p => p.Type ?? compilation.GetSpecialType(SpecialType.System_Object));
 
-                    if (functionType != null)
+                    if (!method.ReturnsVoid)
                     {
-                        var types = method.Parameters
-                            .Skip(skip)
-                            .Select(p => p.Type)
-                            .Concat(method.ReturnType)
-                            .Select(t => t ?? compilation.GetSpecialType(SpecialType.System_Object))
-                            .ToArray();
-                        return functionType.Construct(types);
+                        // +1 for the return type.
+                        types = types.Concat(method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object));
                     }
+
+                    return delegateType.TryConstruct(types.ToArray());
                 }
             }
 
@@ -553,29 +545,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.Kind == SymbolKind.Namespace;
         }
 
-        public static bool IsOrContainsAccessibleAttribute(this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly)
+        public static bool IsOrContainsAccessibleAttribute(
+            this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly, CancellationToken cancellationToken)
         {
-            var alias = symbol as IAliasSymbol;
-            if (alias != null)
-            {
-                symbol = alias.Target;
-            }
-
-            var namespaceOrType = symbol as INamespaceOrTypeSymbol;
+            var namespaceOrType = symbol is IAliasSymbol alias ? alias.Target : symbol as INamespaceOrTypeSymbol;
             if (namespaceOrType == null)
             {
                 return false;
             }
 
-            if (namespaceOrType.IsAttribute() && namespaceOrType.IsAccessibleWithin(withinType ?? withinAssembly))
+            // PERF: Avoid allocating a lambda capture
+            foreach (var type in namespaceOrType.GetAllTypes(cancellationToken))
             {
-                return true;
-            }
-
-            // PERF: Avoid allocating a lambda capture as this method is recursive
-            foreach (var namedType in namespaceOrType.GetTypeMembers())
-            {
-                if (namedType.IsOrContainsAccessibleAttribute(withinType, withinAssembly))
+                if (type.IsAttribute() && type.IsAccessibleWithin(withinType ?? withinAssembly))
                 {
                     return true;
                 }
@@ -875,34 +857,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ITypeSymbol GetSymbolType(this ISymbol symbol)
         {
-            var localSymbol = symbol as ILocalSymbol;
-            if (localSymbol != null)
+            switch (symbol)
             {
-                return localSymbol.Type;
-            }
-
-            var fieldSymbol = symbol as IFieldSymbol;
-            if (fieldSymbol != null)
-            {
-                return fieldSymbol.Type;
-            }
-
-            var propertySymbol = symbol as IPropertySymbol;
-            if (propertySymbol != null)
-            {
-                return propertySymbol.Type;
-            }
-
-            var parameterSymbol = symbol as IParameterSymbol;
-            if (parameterSymbol != null)
-            {
-                return parameterSymbol.Type;
-            }
-
-            var aliasSymbol = symbol as IAliasSymbol;
-            if (aliasSymbol != null)
-            {
-                return aliasSymbol.Target as ITypeSymbol;
+                case ILocalSymbol localSymbol:
+                    return localSymbol.Type;
+                case IFieldSymbol fieldSymbol:
+                    return fieldSymbol.Type;
+                case IPropertySymbol propertySymbol:
+                    return propertySymbol.Type;
+                case IParameterSymbol parameterSymbol:
+                    return parameterSymbol.Type;
+                case IAliasSymbol aliasSymbol:
+                    return aliasSymbol.Target as ITypeSymbol;
             }
 
             return symbol as ITypeSymbol;
@@ -1005,7 +971,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
             // check to see if we're referencing a symbol defined in source.
-            Func<Location, bool> isSymbolDefinedInSource = l => l.IsInSource;
+            bool isSymbolDefinedInSource(Location l) => l.IsInSource;
             return symbols.WhereAsArray(s =>
                 (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&

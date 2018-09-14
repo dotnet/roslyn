@@ -39,9 +39,8 @@ namespace Roslyn.Test.Utilities
         {
             ResolutionAttempts.Add(new ReferenceAndIdentity(definition, referenceIdentity));
 
-            MetadataReference reference;
             string nameAndVersion = referenceIdentity.Name + (referenceIdentity.Version != AssemblyIdentity.NullVersion ? $", {referenceIdentity.Version}" : "");
-            return _map.TryGetValue(nameAndVersion, out reference) ? (PortableExecutableReference)reference : null;
+            return _map.TryGetValue(nameAndVersion, out var reference) ? (PortableExecutableReference)reference : null;
         }
 
         public override bool ResolveMissingAssemblies => true;

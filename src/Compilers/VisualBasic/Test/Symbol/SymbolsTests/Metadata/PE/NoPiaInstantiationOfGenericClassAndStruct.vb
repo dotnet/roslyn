@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         Inherits BasicTestBase
 
         <Fact>
-        Public Sub NoPiaIllegalGenericInstantiationSymboleForClassThatInheritsGeneric()
+        Public Sub NoPiaIllegalGenericInstantiationSymbolForClassThatInheritsGeneric()
             'Test class that inherits Generic<NoPIAType>
             Dim localTypeSource = <text>
 public class NoPIAGenerics 
@@ -34,7 +34,7 @@ end class
         End Sub
 
         <Fact>
-        Public Sub NoPiaIllegalGenericInstantiationSymboleForGenericType()
+        Public Sub NoPiaIllegalGenericInstantiationSymbolForGenericType()
             'Test field with Generic(Of NoPIAType())
             Dim localTypeSource = <text>
 public class NoPIAGenerics 
@@ -50,7 +50,7 @@ end class
         End Sub
 
         <Fact>
-        Public Sub NoPiaIllegalGenericInstantiationSymboleForFieldWithNestedGenericType()
+        Public Sub NoPiaIllegalGenericInstantiationSymbolForFieldWithNestedGenericType()
             'Test field with Generic(Of IGeneric(Of NoPIAType))
             Dim localTypeSource = <text>
 public class NoPIAGenerics 
@@ -66,7 +66,7 @@ End class
         End Sub
 
         <Fact>
-        Public Sub NoPiaIllegalGenericInstantiationSymboleForFieldWithTwoNestedGenericType()
+        Public Sub NoPiaIllegalGenericInstantiationSymbolForFieldWithTwoNestedGenericType()
             'Test field with IGeneric(Of IGeneric(Of Generic(Of NoPIAType)))
             Dim localTypeSource = <text>
 public class NoPIAGenerics 
@@ -395,7 +395,7 @@ End Structure
         Public Sub NoPiaIllegalGenericInstantiationSymbolForAssemblyRefsWithClassThatInheritsGenericOfNoPiaType()
             'Test class that inherits Generic(Of NoPIAType)
             Dim sources = <compilation name="Dummy"></compilation>
-            Dim localConsumer = CreateCompilationWithMscorlibAndReferences(
+            Dim localConsumer = CreateCompilationWithMscorlib40AndReferences(
                 sources,
                 references:=New List(Of MetadataReference)() From {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             Dim localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies()
@@ -461,7 +461,7 @@ End class
     </file>
 </compilation>
 
-            Dim localType = CompilationUtils.CreateCompilationWithMscorlib(localTypeCompilationDef)
+            Dim localType = CompilationUtils.CreateCompilationWithMscorlib40(localTypeCompilationDef)
 
             localType = localType.AddReferences(TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(True))
 
@@ -471,7 +471,7 @@ End class
     </file>
 </compilation>
 
-            Dim localConsumer = CompilationUtils.CreateCompilationWithMscorlib(localConsumerCompilationDef)
+            Dim localConsumer = CompilationUtils.CreateCompilationWithMscorlib40(localConsumerCompilationDef)
             localConsumer = localConsumer.AddReferences(TestReferences.SymbolsTests.NoPia.GeneralPiaCopy, New VisualBasicCompilationReference(localType))
 
             Dim localConsumerRefsAsm = localConsumer.[Assembly].GetNoPiaResolutionAssemblies()
@@ -492,7 +492,7 @@ End class
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib(compilationDef)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef)
             Dim c2 = c1.AddReferences(TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1,
                                   TestReferences.SymbolsTests.NoPia.GeneralPiaCopy)
 

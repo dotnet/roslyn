@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariable
-
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.CorrectNextControlVariable), [Shared]>
     Partial Friend Class CorrectNextControlVariableCodeFixProvider
         Inherits CodeFixProvider

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -22,58 +23,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 
         private IDictionary<OptionKey, object> AllOptionsOff =>
             OptionsSet(
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
         private IDictionary<OptionKey, object> AllOptionsOn =>
             OptionsSet(
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
 
         private IDictionary<OptionKey, object> AccessorOptionsOn =>
             OptionsSet(
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
         private static readonly ParseOptions CSharp7_1 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool ignoreTrivia = true,
-            ParseOptions parseOptions = null)
+            int index = 0, ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, ignoreTrivia, options: AllOptionsOff);
+                index, options: AllOptionsOff);
         }
 
         internal async Task TestWithAllCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool compareTokens = true,
-            ParseOptions parseOptions = null)
+            int index = 0, ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: AllOptionsOn);
+                index, options: AllOptionsOn);
         }
 
         internal async Task TestWithAccessorCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool compareTokens = true,
-            ParseOptions parseOptions = null)
+            int index = 0, ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: AccessorOptionsOn);
+                index, options: AccessorOptionsOn);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -213,7 +211,8 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}" + s_tupleElementNamesAttribute);
+}
+" + s_tupleElementNamesAttribute);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -241,7 +240,8 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}" + s_tupleElementNamesAttribute,
+}
+" + s_tupleElementNamesAttribute,
 index: 1);
         }
 
@@ -278,7 +278,8 @@ class Class : IInterface
             throw new System.NotImplementedException();
         }
     }
-}" + s_tupleElementNamesAttribute);
+}
+" + s_tupleElementNamesAttribute);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -303,7 +304,8 @@ class Class : [|IInterface|]
 class Class : IInterface
 {
     public event Func<(int a, int b)> Event1;
-}" + s_tupleElementNamesAttribute);
+}
+" + s_tupleElementNamesAttribute);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -355,7 +357,8 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}");
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -374,8 +377,7 @@ interface IInterface2 : IInterface1
 class Class : [|IInterface2|]
 {
 }",
-@"
-interface IInterface1
+@"interface IInterface1
 {
     void Method1();
 }
@@ -1186,8 +1188,7 @@ public class A : DD
             throw new System.NotImplementedException();
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1232,11 +1233,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int Prop
-    {
-        get => throw new System.NotImplementedException();
-        }
-    }");
+    public int Prop { get => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1281,11 +1279,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int this[int i]
-    {
-        get => throw new System.NotImplementedException();
-        }
-    }");
+    public int this[int i] { get => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1330,7 +1325,7 @@ public class A : [|DD|]
 public class A : DD
 {
     public int Prop => throw new System.NotImplementedException();
-}", compareTokens: false);
+}");
         }
 
         [WorkItem(539522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539522")]
@@ -1353,11 +1348,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int Prop
-    {
-        get => throw new System.NotImplementedException();
-        }
-    }");
+    public int Prop { get => throw new System.NotImplementedException(); }
+}");
         }
 
         [WorkItem(539522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539522")]
@@ -1380,12 +1372,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int Prop
-    {
-        get => throw new System.NotImplementedException();
-        set => throw new System.NotImplementedException();
-        }
-    }");
+    public int Prop { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+}");
         }
 
         [WorkItem(539522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539522")]
@@ -1460,12 +1448,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int this[int i]
-    {
-        get => throw new System.NotImplementedException();
-        set => throw new System.NotImplementedException();
-        }
-    }");
+    public int this[int i] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1487,11 +1471,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int this[int i]
-    {
-        get => throw new System.NotImplementedException();
-        }
-    }");
+    public int this[int i] { get => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1513,12 +1494,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int this[int i]
-    {
-        get => throw new System.NotImplementedException();
-        set => throw new System.NotImplementedException();
-        }
-    }");
+    public int this[int i] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1544,8 +1521,7 @@ public class A : DD
     {
         throw new System.NotImplementedException();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(539991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539991")]
@@ -1563,8 +1539,7 @@ class C : IServiceProvider
         throw new NotImplementedException();
     }
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
@@ -2484,26 +2459,28 @@ class HasCanGoo : [|IGoo|]
 using System;
 
 interface IGoo
-{ 
-    event System.EventHandler E; 
+{
+    event System.EventHandler E;
 }
 
 class CanGoo : IGoo
-{ 
+{
     public event EventHandler E;
 }
 
 class HasCanGoo : IGoo
-{ 
+{
     CanGoo canGoo;
+
     public event EventHandler E
     {
         add
         {
             ((IGoo)canGoo).E += value;
         }
+
         remove
-        { 
+        {
             ((IGoo)canGoo).E -= value;
         }
     }
@@ -2515,7 +2492,23 @@ class HasCanGoo : IGoo
         {
             await TestInRegularAndScriptAsync(
 @"interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event IGoo.EventHandler E; } class HasCanGoo : [|IGoo|] { CanGoo canGoo; } ",
-@"using System ; interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event IGoo.EventHandler E; } class HasCanGoo : IGoo { CanGoo canGoo; public event EventHandler E { add { ((IGoo)canGoo).E += value; } remove { ((IGoo)canGoo).E -= value; } } } ",
+@"using System;
+
+interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event IGoo.EventHandler E; } class HasCanGoo : IGoo { CanGoo canGoo;
+
+    public event EventHandler E
+    {
+        add
+        {
+            ((IGoo)canGoo).E += value;
+        }
+
+        remove
+        {
+            ((IGoo)canGoo).E -= value;
+        }
+    }
+} ",
 index: 1);
         }
 
@@ -2532,6 +2525,7 @@ abstract class Goo : [|IGoo|]
 {
 }",
 @"using System;
+
 interface IGoo
 {
     event System.EventHandler E;
@@ -2817,6 +2811,7 @@ class A : [|I|]
 {
 }",
 @"using System;
+
 interface I
 {
     void Goo<T>() where T : System.Attribute;
@@ -3742,8 +3737,7 @@ partial class Program : IComparable
 #line hidden
     }
 }
-#line default",
-ignoreTrivia: false);
+#line default");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -3775,8 +3769,7 @@ partial class Program
     {
         throw new NotImplementedException();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545334")]
@@ -3978,7 +3971,14 @@ public class Goo : IGoo
         {
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface IGoo { void Goo ( string s = ""\"""" ) ; } class B : [|IGoo|] { } ",
-@"interface IGoo { void Goo ( string s = ""\"""" ) ; } class B : IGoo { public void Goo ( string s = ""\"""" ) { throw new System.NotImplementedException ( ) ; } } ");
+@"interface IGoo { void Goo ( string s = ""\"""" ) ; }
+class B : IGoo
+{
+    public void Goo(string s = ""\"""")
+    {
+        throw new System.NotImplementedException();
+    }
+} ");
         }
 
         [WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
@@ -4293,8 +4293,7 @@ class C : I
     {
         throw new System.NotImplementedException();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -4357,8 +4356,7 @@ class C : I
     {
         throw new NotImplementedException();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -4458,8 +4456,7 @@ class C : I
     {
         throw new NotImplementedException();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545695")]
@@ -4638,7 +4635,7 @@ class C : I
     }
 }";
 
-            await TestWithAllCodeStyleOptionsOffAsync(code, expected, ignoreTrivia: false);
+            await TestWithAllCodeStyleOptionsOffAsync(code, expected);
         }
 
         [WorkItem(545737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545737")]
@@ -4803,8 +4800,7 @@ class C : I
         throw new NotImplementedException();
     }
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(545897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545897")]
@@ -4914,7 +4910,8 @@ class C : I
     {
         throw new System.NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545922")]
@@ -4999,7 +4996,7 @@ class C : IServiceProvider /*
         throw new NotImplementedException();
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(529920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529920")]
@@ -5024,7 +5021,7 @@ class C : IServiceProvider
     }
 }
 #pragma warning disable
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")]
@@ -5045,7 +5042,7 @@ class C : IServiceProvider // Implement interface
         throw new NotImplementedException();
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")]
@@ -5068,7 +5065,7 @@ class C : IServiceProvider
     }
 }
 // Implement interface
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5087,7 +5084,7 @@ class C : IDisposable
         throw new NotImplementedException();
     }
 }
-", index: 0, ignoreTrivia: false);
+", index: 0);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5103,7 +5100,7 @@ class C : IDisposable
 {{
 {DisposePattern("protected virtual ", "C", "public void ")}
 }}
-", index: 1, ignoreTrivia: false);
+", index: 1);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5122,7 +5119,7 @@ class C : IDisposable
         throw new NotImplementedException();
     }
 }
-", index: 2, ignoreTrivia: false);
+", index: 2);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5146,7 +5143,7 @@ class C : System.IDisposable
     }}
 
 {DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
-}}", index: 3, ignoreTrivia: false);
+}}", index: 3);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5162,7 +5159,7 @@ abstract class C : IDisposable
 {
     public abstract void Dispose();
 }
-", index: 2, ignoreTrivia: false);
+", index: 2);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5185,7 +5182,7 @@ class C : IDisposable
     {
         goo.Dispose();
     }
-}", index: 2, ignoreTrivia: false);
+}", index: 2);
         }
 
         [WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
@@ -5198,7 +5195,7 @@ $@"class C : System.IDisposable
 {{
 {DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
 }}
-", index: 3, ignoreTrivia: false);
+", index: 3);
         }
 
         [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
@@ -5230,7 +5227,7 @@ class C : I
     {
         throw new NotImplementedException();
     }
-}", index: 0, ignoreTrivia: false);
+}", index: 0);
         }
 
         [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
@@ -5259,7 +5256,7 @@ class C : I
     }}
 
 {DisposePattern("protected virtual ", "C", "public void ")}
-}}", index: 1, ignoreTrivia: false);
+}}", index: 1);
         }
 
         [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
@@ -5288,7 +5285,7 @@ class C : I
     }}
 
 {DisposePattern("protected virtual ", "C", "void IDisposable.")}
-}}", index: 3, ignoreTrivia: false);
+}}", index: 3);
         }
 
         [WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
@@ -5319,7 +5316,7 @@ class C : I
             throw new NotImplementedException();
         }
     }
-}", index: 1, ignoreTrivia: false);
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -5336,7 +5333,7 @@ struct S : IDisposable
         throw new NotImplementedException();
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -5353,7 +5350,7 @@ struct S : IDisposable
         throw new NotImplementedException();
     }
 }
-", index: 1, ignoreTrivia: false);
+", index: 1);
         }
 
         [WorkItem(545924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545924")]
@@ -5409,12 +5406,13 @@ class D : I
 class C : [|IServiceProvider|] @""",
 @"using System;
 
-class C : IServiceProvider @"""" {
+class C : IServiceProvider @""""{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -5427,12 +5425,13 @@ class C : IServiceProvider @"""" {
 class C : [|IServiceProvider|] """,
 @"using System;
 
-class C : IServiceProvider """" {
+class C : IServiceProvider """"{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -5445,12 +5444,13 @@ class C : IServiceProvider """" {
 class C : [|IServiceProvider|] @""",
 @"using System;
 
-class C : IServiceProvider @"""" {
+class C : IServiceProvider @""""{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -5463,12 +5463,13 @@ class C : IServiceProvider @"""" {
 class C : [|IServiceProvider|] """,
 @"using System;
 
-class C : IServiceProvider """" {
+class C : IServiceProvider """"{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545940")]
@@ -5943,7 +5944,7 @@ public class Test : IGoo
         throw new System.NotImplementedException();
     }
 }
-";
+        ";
 
             await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 1);
         }
@@ -5982,13 +5983,13 @@ class C : I
     {
         throw new NotImplementedException();
     }
- 
+
     public void set_P(int x, object Value)
     {
         throw new NotImplementedException();
     }
 }
-";
+        ";
 
             await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
         }
@@ -6016,14 +6017,13 @@ class Goo : [|IComparable|]
 class Program : [|IDisposable|]
 {
 }",
-$@"
-using System;
+$@"using System;
 
 class Program : IDisposable
 {{
-{DisposePattern("protected virtual ", "C", "public void ")}
-}}
-", index: 1);
+
+{DisposePattern("protected virtual ", "Program", "public void ")}
+}}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6036,15 +6036,14 @@ class Program : [|IDisposable|]
 {
     private bool DisposedValue;
 }",
-$@"
-using System;
+$@"using System;
 
 class Program : IDisposable
 {{
     private bool DisposedValue;
+
 {DisposePattern("protected virtual ", "Program", "void IDisposable.")}
-}}
-", index: 3);
+}}", index: 3);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6106,14 +6105,13 @@ class Program : IDisposable
 sealed class Program : [|IDisposable|]
 {
 }",
-$@"
-using System;
+$@"using System;
 
 sealed class Program : IDisposable
 {{
+
 {DisposePattern("", "Program", "void IDisposable.")}
-}}
-", index: 3);
+}}", index: 3);
         }
 
         [WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")]
@@ -6237,6 +6235,8 @@ class C : I
             throw new System.NotImplementedException();
         }
     }
+
+
     // Comment
 }");
         }
@@ -6291,7 +6291,7 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
     }}
 
 {DisposePattern("protected virtual ", "C", "public void ")}
-}}", index: 1, ignoreTrivia: false);
+}}", index: 1);
         }
 
         [WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")]
@@ -6343,7 +6343,7 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
 
 partial class C
 {{
-}}", index: 3, ignoreTrivia: false);
+}}", index: 3);
         }
 
         private static string DisposePattern(string disposeVisibility, string className, string implementationVisibility)
@@ -6675,7 +6675,6 @@ class Class : IInterface
     void M() { }
 
     public int Prop => throw new System.NotImplementedException();
-    
 }", options: Option(ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
         }
 
@@ -6699,7 +6698,8 @@ interface IComInterface
 class Class : [|IComInterface|]
 {
 }",
-@"using System.Runtime.InteropServices;
+@"
+using System.Runtime.InteropServices;
 
 [ComImport]
 interface IComInterface
@@ -6712,9 +6712,21 @@ interface IComInterface
 
 class Class : IComInterface
 {
-    public void MOverload() { throw new System.NotImplementedException(); }
-    public void X() { throw new System.NotImplementedException(); }
-    public void MOverload(int i) { throw new System.NotImplementedException(); }
+    public void MOverload()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void X()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void MOverload(int i)
+    {
+        throw new System.NotImplementedException();
+    }
+
     public int Prop => throw new System.NotImplementedException();
 }");
         }
@@ -6783,9 +6795,7 @@ class Class : [|IInterface|]
 class Class : IInterface
 {
     public int ReadOnlyProp { get; }
-
     public int ReadWriteProp { get; set; }
-
     public int WriteOnlyProp { set => throw new System.NotImplementedException(); }
 }", parameters: new TestParameters(options: Option(
     ImplementTypeOptions.PropertyGenerationBehavior,
@@ -6822,6 +6832,141 @@ class Class : IInterface
         throw new System.NotImplementedException();
     }
 }", parseOptions: CSharp7_1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestInWithMethod_Parameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    void Method(in int p);
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    void Method(in int p);
+}
+public class Test : ITest
+{
+    public void Method(in int p)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReadOnlyWithMethod_ReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    ref readonly int Method();
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    ref readonly int Method();
+}
+public class Test : ITest
+{
+    public ref readonly int Method()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReadOnlyWithProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    ref readonly int Property { get; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    ref readonly int Property { get; }
+}
+public class Test : ITest
+{
+    public ref readonly int Property => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestInWithIndexer_Parameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    int this[in int p] { set; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    int this[in int p] { set; }
+}
+public class Test : ITest
+{
+    public int this[in int p] { set => throw new System.NotImplementedException(); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReadOnlyWithIndexer_ReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    ref readonly int this[int p] { get; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    ref readonly int this[int p] { get; }
+}
+public class Test : ITest
+{
+    public ref readonly int this[int p] => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnmanagedConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"public interface ITest
+{
+    void M<T>() where T : unmanaged;
+}
+public class Test : [|ITest|]
+{
+}",
+@"public interface ITest
+{
+    void M<T>() where T : unmanaged;
+}
+public class Test : ITest
+{
+    public void M<T>() where T : unmanaged
+    {
+        throw new System.NotImplementedException();
+    }
+}");
         }
     }
 }

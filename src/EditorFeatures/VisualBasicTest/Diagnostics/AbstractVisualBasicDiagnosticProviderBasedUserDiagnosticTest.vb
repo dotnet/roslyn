@@ -26,13 +26,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
         Friend Overloads Async Function TestAsync(
                 initialMarkup As XElement, expected As XElement, Optional index As Integer = 0,
-                Optional ignoreTrivia As Boolean = True, Optional priority As CodeActionPriority? = Nothing) As Threading.Tasks.Task
+                Optional priority As CodeActionPriority? = Nothing) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
 
             Await MyBase.TestAsync(initialMarkupStr, expectedStr,
                                    parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions,
-                                   index:=index, ignoreTrivia:=ignoreTrivia,
+                                   index:=index,
                                    priority:=priority)
         End Function
 

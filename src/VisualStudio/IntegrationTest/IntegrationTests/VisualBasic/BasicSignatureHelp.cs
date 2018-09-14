@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -67,7 +68,7 @@ End Class
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void MethodSignatureHelp()
         {
             SetUpEditor(Baseline);
@@ -81,7 +82,7 @@ End Class
                 ("i2", "an integer, anything you like."));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void GenericMethodSignatureHelp1()
         {
             SetUpEditor(Baseline);
@@ -95,7 +96,7 @@ End Class
                 ("i", "Param 1 of type T1"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void GenericMethodSignatureHelp2()
         {
             SetUpEditor(@"
@@ -136,7 +137,7 @@ End Class");
                 ("T1", "Type Parameter"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void GenericMethodSignatureHelp_InvokeSighelp()
         {
             SetUpEditor(@"
@@ -163,7 +164,7 @@ End Class");
                 ("T2", ""));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void VerifyActiveParameterChanges()
         {
             SetUpEditor(@"
@@ -181,7 +182,7 @@ End Module");
         }
 
         [WorkItem(741415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?id=741415&fullScreen=true&_a=edit")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void HandleBufferTextChangesDuringComputation()
         {
             SetUpEditor(@"
@@ -203,7 +204,7 @@ Class C
             Assert.False(VisualStudio.Editor.IsSignatureHelpActive());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void JaggedMultidimensionalArray()
         {
             SetUpEditor(Baseline);

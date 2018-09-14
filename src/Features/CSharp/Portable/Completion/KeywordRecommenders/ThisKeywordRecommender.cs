@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static bool IsExtensionMethodParameterContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // TODO(cyrusn): lambda/anon methods can have out/ref parameters
-            if (!context.SyntaxTree.IsParameterModifierContext(context.Position, context.LeftToken, cancellationToken, allowableIndex: 0))
+            if (!context.SyntaxTree.IsParameterModifierContext(context.Position, context.LeftToken, cancellationToken, isThisKeyword: true))
             {
                 return false;
             }

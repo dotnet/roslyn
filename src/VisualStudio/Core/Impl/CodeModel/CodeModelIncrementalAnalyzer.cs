@@ -24,13 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         [ImportingConstructor]
         public CodeModelIncrementalAnalyzerProvider(
             IForegroundNotificationService notificationService,
-            [ImportMany]IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _listener = new AggregateAsynchronousOperationListener(listeners, FeatureAttribute.CodeModel);
+            _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
             _notificationService = notificationService;
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
         {
             var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (visualStudioWorkspace == null)
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 FireEvents(document.Id, cancellationToken);
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void RemoveDocument(DocumentId documentId)
@@ -77,8 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         return false;
                     }
 
-                    var codeModelProvider = project as IProjectCodeModelProvider;
-                    if (codeModelProvider == null)
+                    var projectCodeModel = project.ProjectCodeModel as ProjectCodeModel;
+                    if (projectCodeModel == null)
                     {
                         return false;
                     }
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         return false;
                     }
 
-                    if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
+                    if (!projectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
                     {
                         return false;
                     }
@@ -104,22 +104,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             #region unused
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -129,12 +129,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void RemoveProject(ProjectId projectId)

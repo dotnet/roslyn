@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.ErrorReporting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class NamedParameterCompletionProvider
@@ -21,58 +22,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
-            Dim document = context.Document
-            Dim position = context.Position
-            Dim cancellationToken = context.CancellationToken
+            Try
+                Dim document = context.Document
+                Dim position = context.Position
+                Dim cancellationToken = context.CancellationToken
 
-            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            If syntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
-                syntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return
-            End If
+                Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+                If syntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
+                    syntaxTree.IsInSkippedText(position, cancellationToken) Then
+                    Return
+                End If
 
-            Dim token = syntaxTree.GetTargetToken(position, cancellationToken)
+                Dim token = syntaxTree.GetTargetToken(position, cancellationToken)
 
-            If Not token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) Then
-                Return
-            End If
+                If Not token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) Then
+                    Return
+                End If
 
-            Dim argumentList = TryCast(token.Parent, ArgumentListSyntax)
-            If argumentList Is Nothing Then
-                Return
-            End If
+                Dim argumentList = TryCast(token.Parent, ArgumentListSyntax)
+                If argumentList Is Nothing Then
+                    Return
+                End If
 
-            If token.Kind = SyntaxKind.CommaToken Then
-                For Each n In argumentList.Arguments.GetWithSeparators()
-                    If n.IsNode AndAlso DirectCast(n.AsNode(), ArgumentSyntax).IsNamed Then
+                If token.Kind = SyntaxKind.CommaToken Then
+                    ' Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
+                    ' See https://github.com/dotnet/roslyn/issues/20657
+                    Dim languageVersion = DirectCast(document.Project.ParseOptions, VisualBasicParseOptions).LanguageVersion
+                    If languageVersion < LanguageVersion.VisualBasic15_5 AndAlso token.IsMandatoryNamedParameterPosition() Then
                         context.IsExclusive = True
-                        Exit For
                     End If
+                End If
+
+                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)
+                Dim parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken)
+                If parameterLists Is Nothing Then
+                    Return
+                End If
+
+                Dim existingNamedParameters = GetExistingNamedParameters(argumentList, position)
+                parameterLists = parameterLists.Where(Function(p) IsValid(p, existingNamedParameters))
+
+                Dim unspecifiedParameters = parameterLists.SelectMany(Function(pl) pl).
+                                                           Where(Function(p) Not existingNamedParameters.Contains(p.Name))
+
+                Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+
+                For Each parameter In unspecifiedParameters
+                    context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                        displayText:=parameter.Name & s_colonEquals,
+                        insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
+                        symbols:=ImmutableArray.Create(parameter),
+                        contextPosition:=position,
+                        rules:=s_itemRules))
                 Next
-            End If
-
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)
-            Dim parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken)
-            If parameterLists Is Nothing Then
-                Return
-            End If
-
-            Dim existingNamedParameters = GetExistingNamedParameters(argumentList, position)
-            parameterLists = parameterLists.Where(Function(p) IsValid(p, existingNamedParameters))
-
-            Dim unspecifiedParameters = parameterLists.SelectMany(Function(pl) pl).
-                                                       Where(Function(p) Not existingNamedParameters.Contains(p.Name))
-
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-
-            For Each parameter In unspecifiedParameters
-                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                    displayText:=parameter.Name & s_colonEquals,
-                    insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
-                    symbols:=ImmutableArray.Create(parameter),
-                    contextPosition:=position,
-                    rules:=s_itemRules))
-            Next
+            Catch e As Exception When FatalError.ReportWithoutCrashUnlessCanceled(e)
+                ' nop
+            End Try
         End Function
 
         ' Typing : or = should not filter the list, but they should commit the list.

@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
                         "End Structure"
 
                 Case "File"
-                    Return String.Join(vbCrLf, lines)
+                    Return testSource.NormalizedValue
 
                 Case Else
                     Throw New ArgumentException("Unexpected testSource XML tag.", NameOf(testSource))

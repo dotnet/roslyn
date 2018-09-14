@@ -18,13 +18,6 @@ namespace Roslyn.Test.Utilities
         }
     }
 
-    public class PeVerifyException : Exception
-    {
-        public PeVerifyException(string output, string exePath) 
-            : base(GetMessageFromResult(output, exePath)) { }
-
-    }
-
     public class ExecutionException : Exception
     {
         public ExecutionException(string expectedOutput, string actualOutput, string exePath) 

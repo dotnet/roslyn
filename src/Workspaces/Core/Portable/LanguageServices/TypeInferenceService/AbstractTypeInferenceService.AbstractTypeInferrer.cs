@@ -81,8 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 
                 if (parameterSymbol.IsParams)
                 {
-                    var arrayTypeSymbol = parameterSymbol.Type as IArrayTypeSymbol;
-                    if (arrayTypeSymbol != null)
+                    if (parameterSymbol.Type is IArrayTypeSymbol arrayTypeSymbol)
                     {
                         result.Add(arrayTypeSymbol.ElementType);
                     }

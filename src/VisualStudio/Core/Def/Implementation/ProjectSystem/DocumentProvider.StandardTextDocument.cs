@@ -2,16 +2,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// </summary>
             private readonly DocumentProvider _documentProvider;
             private readonly string _itemMoniker;
-            private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
             private readonly FileChangeTracker _fileChangeTracker;
             private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
             private readonly TextLoader _doNotAccessDirectlyLoader;
@@ -38,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public DocumentId Id { get; }
             public IReadOnlyList<string> Folders { get; }
-            public IVisualStudioHostProject Project { get; }
+            public AbstractProject Project { get; }
             public SourceCodeKind SourceCodeKind { get; }
             public DocumentKey Key { get; }
 
@@ -48,21 +47,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             /// <summary>
             /// Creates a <see cref="StandardTextDocument"/>.
-            /// <para>Note: getFolderNames maps from a VSITEMID to the folders this document should be contained in.</para>
             /// </summary>
             public StandardTextDocument(
                 DocumentProvider documentProvider,
-                IVisualStudioHostProject project,
+                AbstractProject project,
                 DocumentKey documentKey,
-                Func<uint, IReadOnlyList<string>> getFolderNames,
+                ImmutableArray<string> folderNames,
                 SourceCodeKind sourceCodeKind,
-                ITextUndoHistoryRegistry textUndoHistoryRegistry,
                 IVsFileChangeEx fileChangeService,
                 ITextBuffer openTextBuffer,
                 DocumentId id,
                 EventHandler updatedOnDiskHandler,
                 EventHandler<bool> openedHandler,
                 EventHandler<bool> closingHandler)
+                : base(documentProvider.ThreadingContext)
             {
                 Contract.ThrowIfNull(documentProvider);
 
@@ -70,16 +68,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
                 _itemMoniker = documentKey.Moniker;
 
-                var itemid = this.GetItemId();
-                this.Folders = itemid == (uint)VSConstants.VSITEMID.Nil
-                    ? SpecializedCollections.EmptyReadOnlyList<string>()
-                    : getFolderNames(itemid);
+                this.Folders = folderNames;
 
                 _documentProvider = documentProvider;
 
                 this.Key = documentKey;
                 this.SourceCodeKind = sourceCodeKind;
-                _textUndoHistoryRegistry = textUndoHistoryRegistry;
                 _fileChangeTracker = new FileChangeTracker(fileChangeService, this.FilePath);
                 _fileChangeTracker.UpdatedOnDisk += OnUpdatedOnDisk;
 
@@ -88,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // The project system does not tell us the CodePage specified in the proj file, so
                 // we use null to auto-detect.
-                _doNotAccessDirectlyLoader = new FileTextLoader(documentKey.Moniker, defaultEncoding: null);
+                _doNotAccessDirectlyLoader = new FileChangeTrackingTextLoader(_fileChangeTracker, new FileTextLoader(documentKey.Moniker, defaultEncoding: null));
 
                 // If we aren't already open in the editor, then we should create a file change notification
                 if (openTextBuffer == null)
@@ -141,7 +135,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 get
                 {
-                    _fileChangeTracker.EnsureSubscription();
                     return _doNotAccessDirectlyLoader;
                 }
             }
@@ -211,42 +204,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // expensive source control check if the file is already checked out.
                 if (_openTextBuffer != null)
                 {
-                    UpdateText(newText, _openTextBuffer, EditOptions.DefaultMinimalChange);
+                    TextEditApplication.UpdateText(newText, _openTextBuffer, EditOptions.DefaultMinimalChange);
                 }
                 else
                 {
                     using (var invisibleEditor = ((VisualStudioWorkspaceImpl)this.Project.Workspace).OpenInvisibleEditor(this))
                     {
-                        UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
+                        TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
                     }
                 }
             }
 
-            private static void UpdateText(SourceText newText, ITextBuffer buffer, EditOptions options)
+            public ITextBuffer GetTextUndoHistoryBuffer()
             {
-                using (var edit = buffer.CreateEdit(options, reiteratedVersionNumber: null, editTag: null))
-                {
-                    var oldSnapshot = buffer.CurrentSnapshot;
-                    var oldText = oldSnapshot.AsText();
-                    var changes = newText.GetTextChanges(oldText);
-                    if (Workspace.TryGetWorkspace(oldText.Container, out var workspace))
-                    {
-                        var undoService = workspace.Services.GetService<ISourceTextUndoService>();
-                        undoService.BeginUndoTransaction(oldSnapshot);
-                    }
-
-                    foreach (var change in changes)
-                    {
-                        edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
-                    }
-                    
-                    edit.ApplyAndLogExceptions();
-                }
-            }
-
-            public ITextUndoHistory GetTextUndoHistory()
-            {
-                return _textUndoHistoryRegistry.GetHistory(GetOpenTextBuffer());
+                return GetOpenTextBuffer();
             }
 
             private string GetDebuggerDisplay()
@@ -263,9 +234,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return (uint)VSConstants.VSITEMID.Nil;
                 }
 
-                return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out var itemId) == VSConstants.S_OK
-                    ? itemId
-                    : (uint)VSConstants.VSITEMID.Nil;
+                return Project.Hierarchy.TryGetItemId(_itemMoniker);
+            }
+
+            /// <summary>
+            /// A wrapper for a <see cref="TextLoader"/> that ensures we are watching file contents prior to reading the file.
+            /// </summary>
+            private sealed class FileChangeTrackingTextLoader : TextLoader
+            {
+                private readonly FileChangeTracker _fileChangeTracker;
+                private readonly TextLoader _innerTextLoader;
+
+                public FileChangeTrackingTextLoader(FileChangeTracker fileChangeTracker, TextLoader innerTextLoader)
+                {
+                    _fileChangeTracker = fileChangeTracker;
+                    _innerTextLoader = innerTextLoader;
+                }
+
+                public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                {
+                    _fileChangeTracker.EnsureSubscription();
+                    return _innerTextLoader.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
+                }
+
+                internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                {
+                    _fileChangeTracker.EnsureSubscription();
+                    return _innerTextLoader.LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken);
+                }
             }
         }
     }

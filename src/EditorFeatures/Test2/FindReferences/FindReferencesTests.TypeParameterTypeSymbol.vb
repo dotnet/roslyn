@@ -25,6 +25,94 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input)
         End Function
 
+        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_LocalFunctionTypeParameter() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        void local<{|Definition:TPar$$am|}>([|TParam|] parameter)
+        {
+        }
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_LocalFunctionTypeParameter2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        void local<{|Definition:TParam|}>([|TPa$$ram|] parameter)
+        {
+        }
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_LocalFunctionTypeParameter3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M<{|Definition:TParam|}>()
+    {
+        void local([|TPa$$ram|] parameter)
+        {
+        }
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_LocalFunctionTypeParameter4() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M<{|Definition:TPa$$ram|}>()
+    {
+        void local([|TParam|] parameter)
+        {
+        }
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestTypeParameter2() As Task
             Dim input =

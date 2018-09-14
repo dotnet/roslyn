@@ -40,6 +40,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         public int SymbolActionsCount { get; set; } = 0;
 
         /// <summary>
+        /// Count of registered symbol start actions.
+        /// </summary>
+        public int SymbolStartActionsCount { get; set; } = 0;
+
+        /// <summary>
+        /// Count of registered symbol end actions.
+        /// </summary>
+        public int SymbolEndActionsCount { get; set; } = 0;
+
+        /// <summary>
         /// Count of registered syntax node actions.
         /// </summary>
         public int SyntaxNodeActionsCount { get; set; } = 0;
@@ -84,6 +94,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// </summary>
         public TimeSpan ExecutionTime { get; set; } = TimeSpan.Zero;
 
+        /// <summary>
+        /// Gets a value indicating whether the analyzer supports concurrent execution.
+        /// </summary>
+        public bool Concurrent { get; set; }
+
         internal AnalyzerTelemetryInfo(AnalyzerActionCounts actionCounts, TimeSpan executionTime)
         {
             CompilationStartActionsCount = actionCounts.CompilationStartActionsCount;
@@ -93,6 +108,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             SyntaxTreeActionsCount = actionCounts.SyntaxTreeActionsCount;
             SemanticModelActionsCount = actionCounts.SemanticModelActionsCount;
             SymbolActionsCount = actionCounts.SymbolActionsCount;
+            SymbolStartActionsCount = actionCounts.SymbolStartActionsCount;
+            SymbolEndActionsCount = actionCounts.SymbolEndActionsCount;
             SyntaxNodeActionsCount = actionCounts.SyntaxNodeActionsCount;
 
             CodeBlockStartActionsCount = actionCounts.CodeBlockStartActionsCount;
@@ -105,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             OperationBlockActionsCount = actionCounts.OperationBlockActionsCount;
 
             ExecutionTime = executionTime;
+            Concurrent = actionCounts.Concurrent;
         }
 
         /// <summary>

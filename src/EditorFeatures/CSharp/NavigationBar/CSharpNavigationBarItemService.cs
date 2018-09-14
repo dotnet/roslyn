@@ -282,8 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             }
 
             var declaringNode = reference.GetSyntax();
-            var enumMember = declaringNode as EnumMemberDeclarationSyntax;
-            if (enumMember != null)
+            if (declaringNode is EnumMemberDeclarationSyntax enumMember)
             {
                 var enumDeclaration = enumMember.GetAncestor<EnumDeclarationSyntax>();
 
@@ -343,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         [Conditional("DEBUG")]
         private static void ValidateSpanFromBounds(ITextSnapshot snapshot, int start, int end)
         {
-            Contract.Requires(start >= 0 && end <= snapshot.Length && start <= end);
+            Debug.Assert(start >= 0 && end <= snapshot.Length && start <= end);
         }
 
         [Conditional("DEBUG")]

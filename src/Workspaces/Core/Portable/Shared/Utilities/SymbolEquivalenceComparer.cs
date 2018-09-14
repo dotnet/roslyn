@@ -210,9 +210,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             yield return namedType;
 
-            IErrorTypeSymbol errorType = namedType as IErrorTypeSymbol;
 
-            if (errorType != null)
+            if (namedType is IErrorTypeSymbol errorType)
             {
                 foreach (var type in errorType.CandidateSymbols.OfType<INamedTypeSymbol>())
                 {

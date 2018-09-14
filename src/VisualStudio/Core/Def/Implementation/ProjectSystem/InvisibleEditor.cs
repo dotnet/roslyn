@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <see cref="IVsUIShellOpenDocument4.IsDocumentInAProject2"/>, which performs a much slower query of all
         /// projects in the solution.</para>
         /// </remarks>
-        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, IVisualStudioHostProject projectOpt, bool needsSave, bool needsUndoDisabled)
+        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, AbstractProject projectOpt, bool needsSave, bool needsUndoDisabled)
         {
             _serviceProvider = serviceProvider;
             _filePath = filePath;

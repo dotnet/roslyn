@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -70,7 +71,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 }",
 @"class C
 {
-    int Goo { get { return 0; } }
+    int Goo
+    {
+        get
+        {
+            return 0;
+        }
+    }
 }");
         }
 
@@ -152,8 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         {
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -186,12 +192,12 @@ ignoreTrivia: false);
             return count;
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public async Task TestIfDefMethod()
+        public async Task TestIfDefMethod1()
         {
             await TestWithAllCodeStyleOff(
 @"class C
@@ -213,6 +219,144 @@ ignoreTrivia: false);
     }
 #endif
 }");
+        }
+
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod2()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    int [||]GetGoo()
+    {
+    }
+
+    void SetGoo(int val)
+    {
+    }
+#endif
+}",
+@"class C
+{
+#if true
+    int Goo
+    {
+        get
+        {
+        }
+    }
+
+    void SetGoo(int val)
+    {
+    }
+#endif
+}");
+        }
+
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod3()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    int [||]GetGoo()
+    {
+    }
+
+    void SetGoo(int val)
+    {
+    }
+#endif
+}",
+@"class C
+{
+#if true
+    int Goo
+    {
+        get
+        {
+        }
+
+        set
+        {
+        }
+    }
+#endif
+}", index: 1);
+        }
+
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod4()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    void SetGoo(int val)
+    {
+    }
+
+    int [||]GetGoo()
+    {
+    }
+#endif
+}",
+@"class C
+{
+#if true
+    void SetGoo(int val)
+    {
+    }
+
+    int Goo
+    {
+        get
+        {
+        }
+    }
+#endif
+}");
+        }
+
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod5()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    void SetGoo(int val)
+    {
+    }
+
+    int [||]GetGoo()
+    {
+    }
+#endif
+}",
+@"class C
+{
+
+#if true
+
+    int Goo
+    {
+        get
+        {
+        }
+
+        set
+        {
+        }
+    }
+#endif
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -245,8 +389,7 @@ ignoreTrivia: false);
         }
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1288,8 +1431,7 @@ index: 1);
         public async Task TupleWithDifferentNames_GetAndSet()
         {
             // Cannot refactor tuples with different names together
-            await Assert.ThrowsAsync<Xunit.Sdk.InRangeException>(() =>
-                TestWithAllCodeStyleOff(
+            await TestActionCountAsync(
 @"using System;
 
 class C
@@ -1302,8 +1444,7 @@ class C
     {
     }
 }",
-@"",
-index: 1));
+count: 1, new TestParameters(options: AllCodeStyleOff));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1346,8 +1487,7 @@ index: 1));
         SetGoo(out int i);
     }
 }",
-index: 0,
-ignoreTrivia: false);
+index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1390,8 +1530,7 @@ ignoreTrivia: false);
         {|Conflict:Goo|}(out int i);
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1488,10 +1627,7 @@ ignoreTrivia: false);
 }",
 @"class C
 {
-    int Goo
-    {
-        get => 1;
-    }
+    int Goo { get => 1; }
 }", options: PreferExpressionBodiedAccessors);
         }
 
@@ -1550,11 +1686,7 @@ ignoreTrivia: false);
 }",
 @"class C
 {
-    int Goo
-    {
-        get => 1;
-        set => _i = value;
-    }
+    int Goo { get => 1; set => _i = value; }
 }", 
 index: 1,
 options: PreferExpressionBodiedAccessors);
@@ -1581,8 +1713,15 @@ options: PreferExpressionBodiedAccessors);
 {
     int Goo
     {
-        get { return 1; }
-        set { _i = value; }
+        get
+        {
+            return 1;
+        }
+
+        set
+        {
+            _i = value;
+        }
     }
 }", 
 index: 1,
@@ -1608,11 +1747,7 @@ options: PreferExpressionBodiedProperties);
 }",
 @"class C
 {
-    int Goo
-    {
-        get => 1;
-        set => _i = value;
-    }
+    int Goo { get => 1; set => _i = value; }
 }",
 index: 1,
 options: PreferExpressionBodiedAccessorsAndProperties);
@@ -1689,7 +1824,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
 @"class C
 {
     int Goo => throw e;
-}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1707,13 +1842,13 @@ options: PreferExpressionBodiedAccessorsAndProperties);
     {
         get
         {
-            throw e + 
-                e;
+            throw e +
+   e;
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1749,28 +1884,61 @@ class C : IGoo
 }");
         }
 
+        [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestSystemObjectMetadataOverride()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    public override string [||]ToString()
+    {
+    }
+}");
+        }
+
+        [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestMetadataOverride()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C : System.Type
+{
+    public override int [||]GetArrayRank()
+    {
+    }
+}",
+@"class C : System.Type
+{
+    public override int {|Warning:ArrayRank|}
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup, 
-            ParseOptions parseOptions = null, int index = 0, 
-            bool ignoreTrivia = true)
+            ParseOptions parseOptions = null, int index = 0)
         {
             await TestAsync(
                 initialMarkup, expectedMarkup, parseOptions,
                 index: index,
-                ignoreTrivia: ignoreTrivia,
                 options: AllCodeStyleOff);
         }
 
         private IDictionary<OptionKey, object> AllCodeStyleOff =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
         private IDictionary<OptionKey, object> PreferExpressionBodiedAccessors =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
         private IDictionary<OptionKey, object> PreferExpressionBodiedProperties =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
 
         private IDictionary<OptionKey, object> PreferExpressionBodiedAccessorsAndProperties =>

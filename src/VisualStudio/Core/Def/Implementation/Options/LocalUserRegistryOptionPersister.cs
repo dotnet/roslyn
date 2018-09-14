@@ -4,9 +4,10 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
@@ -26,8 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly RegistryKey _registryKey;
 
         [ImportingConstructor]
-        public LocalUserRegistryOptionPersister([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(assertIsForeground: true) // The VSRegistry.RegistryRoot call requires being on the UI thread or else it will marshal and risk deadlock
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LocalUserRegistryOptionPersister(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            : base(threadingContext, assertIsForeground: true) // The VSRegistry.RegistryRoot call requires being on the UI thread or else it will marshal and risk deadlock
         {
             this._registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
         }
@@ -152,6 +154,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     else if (optionKey.Option.Type == typeof(long))
                     {
                         subKey.SetValue(key, value, RegistryValueKind.QWord);
+                        return true;
+                    }
+                    else if (optionKey.Option.Type.IsEnum)
+                    {
+                        // If the enum is larger than an int, store as a QWord
+                        if (Marshal.SizeOf(Enum.GetUnderlyingType(optionKey.Option.Type)) > Marshal.SizeOf(typeof(int)))
+                        {
+                            subKey.SetValue(key, (long)value, RegistryValueKind.QWord);
+                        }
+                        else
+                        {
+                            subKey.SetValue(key, (int)value, RegistryValueKind.DWord);
+                        }
                         return true;
                     }
                     else

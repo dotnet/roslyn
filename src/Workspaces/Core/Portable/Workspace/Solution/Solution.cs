@@ -94,11 +94,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Project GetProject(ProjectId projectId)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
+            // ContainsProject checks projectId being null
             if (this.ContainsProject(projectId))
             {
                 return ImmutableHashMapExtensions.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
@@ -165,7 +161,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Document GetDocument(DocumentId documentId)
         {
-            if (documentId != null && this.ContainsDocument(documentId))
+            // ContainsDocument checks documentId being null
+            if (this.ContainsDocument(documentId))
             {
                 return this.GetProject(documentId.ProjectId).GetDocument(documentId);
             }
@@ -294,6 +291,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the reference assembly output file path.
+        /// </summary>
+        public Solution WithProjectOutputRefFilePath(ProjectId projectId, string outputRefFilePath)
+        {
+            var newState = _state.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
         public Solution WithProjectName(ProjectId projectId, string name)
@@ -352,6 +363,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Update a project as a result of option changes.
+        /// 
+        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
+        /// until then, this will explicitly fork current solution snapshot
+        /// </summary>
+        internal Solution WithProjectOptionsChanged(ProjectId projectId)
+        {
+            var newState = _state.WithProjectOptionsChanged(projectId);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
@@ -373,7 +401,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
-            var newState = _state.AddProjectReference(projectId, projectReference);
+            var newState = _state.AddProjectReferences(projectId, SpecializedCollections.SingletonEnumerable(projectReference));
             if (newState == _state)
             {
                 return this;
@@ -647,7 +675,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddDocument(DocumentInfo documentInfo)
         {
-            var newState = _state.AddDocument(documentInfo);
+            return AddDocuments(ImmutableArray.Create(documentInfo));
+        }
+
+        /// <summary>
+        /// Create a new <see cref="Solution"/> instance with the corresponding <see cref="Project"/>s updated to include
+        /// the documents specified by <paramref name="documentInfos"/>.
+        /// </summary>
+        /// <returns>A new <see cref="Solution"/> with the documents added.</returns>
+        public Solution AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddDocuments(documentInfos);
             if (newState == _state)
             {
                 return this;
@@ -917,9 +955,9 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
-        internal async Task<Solution> WithFrozenPartialCompilationIncludingSpecificDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            var newState = await _state.WithFrozenPartialCompilationIncludingSpecificDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+            var newState = _state.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
             return new Solution(newState);
         }
 

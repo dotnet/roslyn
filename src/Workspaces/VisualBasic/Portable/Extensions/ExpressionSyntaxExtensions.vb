@@ -52,10 +52,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function Parenthesize(expression As ExpressionSyntax) As ParenthesizedExpressionSyntax
-            Return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia()) _
-                                .WithTriviaFrom(expression) _
-                                .WithAdditionalAnnotations(Simplifier.Annotation)
+        Public Function Parenthesize(expression As ExpressionSyntax, Optional addSimplifierAnnotation As Boolean = True) As ParenthesizedExpressionSyntax
+            Dim result = SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia()) _
+                                      .WithTriviaFrom(expression)
+            Return If(addSimplifierAnnotation,
+                      result.WithAdditionalAnnotations(Simplifier.Annotation),
+                      result)
         End Function
 
 
@@ -368,6 +370,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
+        Public Function IsInInContext(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+            ' NOTE: VB does not support in parameters. Always return False here.
+            Return False
+        End Function
+
+        <Extension()>
         Public Function IsOnlyWrittenTo(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
             If expression.IsRightSideOfDot() Then
                 expression = TryCast(expression.Parent, ExpressionSyntax)
@@ -385,14 +393,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 End If
 
-                If expression.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
+                If expression.IsParentKind(SyntaxKind.NameColonEquals) AndAlso
+                   expression.Parent.IsParentKind(SyntaxKind.SimpleArgument) Then
+
+                    ' <C(Prop:=1)>
+                    ' this is only a write to Prop
                     Return True
                 End If
 
-                Return False
-            End If
+                If expression.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
+                        Return True
+                    End If
 
-            Return False
+                    Return False
+                End If
+
+                Return False
         End Function
 
         <Extension()>
@@ -1024,13 +1040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 End If
 
-                replacementNode = memberAccess.Name
-                replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
-                    .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
-                        memberAccess.Name.Identifier,
-                        semanticModel)) _
-                    .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
-                    .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+                replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
                 issueSpan = memberAccess.Expression.Span
 
                 If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken) Then
@@ -1045,6 +1055,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return False
+        End Function
+
+        <Extension>
+        Public Function GetNameWithTriviaMoved(memberAccess As MemberAccessExpressionSyntax,
+                                               semanticModel As SemanticModel) As SimpleNameSyntax
+            Dim replacementNode = memberAccess.Name
+            replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
+                .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
+                    memberAccess.Name.Identifier,
+                    semanticModel)) _
+                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
+                .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+
+            Return replacementNode
         End Function
 
         <Extension>
@@ -1085,7 +1109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' <Remarks>
         ''' Note: This helper exists solely to work around Bug 1012713. Once it is fixed, this helper must be
         ''' deleted in favor of <see cref="InsideCrefReference(ExpressionSyntax)"/>.
-        ''' Context: Bug 1012713 makes it so that the compiler doesn't support `PredefinedType.Member` inside crefs 
+        ''' Context: Bug 1012713 makes it so that the compiler doesn't support <c>PredefinedType.Member</c> inside crefs 
         ''' (i.e. System.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't 
         ''' support simplifying types names Like System.Int32.MaxValue to Integer.MaxValue.
         ''' </Remarks>
@@ -1761,6 +1785,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ' It's possible there is another symbol with the same name as the alias that binds first
         Private Function ValidateAliasForTarget(aliasReplacement As IAliasSymbol, semanticModel As SemanticModel, node As ExpressionSyntax, symbol As ISymbol) As Boolean
             Dim aliasName = aliasReplacement.Name
+
+            ' If we're the argument of a NameOf(X.Y) call, then we can't simplify to an
+            ' alias unless the alias has the same name as us (i.e. 'Y').
+            If node.IsNameOfArgumentExpression() Then
+                Dim nameofValueOpt = semanticModel.GetConstantValue(node.Parent.Parent.Parent)
+                If Not nameofValueOpt.HasValue Then
+                    Return False
+                End If
+
+                Dim existingValue = TryCast(nameofValueOpt.Value, String)
+                If existingValue Is Nothing OrElse existingValue <> aliasName Then
+                    Return False
+                End If
+            End If
+
             Dim boundSymbols = semanticModel.LookupNamespacesAndTypes(node.SpanStart, name:=aliasName)
             If boundSymbols.Length = 1 Then
                 Dim boundAlias = TryCast(boundSymbols(0), IAliasSymbol)
@@ -1774,6 +1813,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
             Return False
+        End Function
+
+        <Extension>
+        Public Function IsNameOfArgumentExpression(expression As ExpressionSyntax) As Boolean
+            Return expression.IsParentKind(SyntaxKind.NameOfExpression)
         End Function
 
         <Extension()>

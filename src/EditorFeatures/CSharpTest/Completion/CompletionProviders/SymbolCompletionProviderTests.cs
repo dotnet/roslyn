@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1263,9 +1264,15 @@ $$";
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SwitchLabelCase()
         {
-            var content = @"switch(i)
-    {
-        case $$";
+            var content = @"switch(i) { case $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SwitchPatternLabelCase()
+        {
+            var content = @"switch(i) { case $$ when";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
         }
@@ -1892,36 +1899,314 @@ class C<T, R>
 
         [WorkItem(540212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540212")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterRefInLambda()
+        public async Task AfterRefInLambda_TypeOnly()
         {
             var markup = @"
 using System;
 class C
 {
-    void M()
+    void M(String parameter)
     {
         Func<int, int> f = (ref $$
     }
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
         [WorkItem(540212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540212")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterOutInLambda()
+        public async Task AfterOutInLambda_TypeOnly()
         {
             var markup = @"
 using System;
 class C
 {
-    void M()
+    void M(String parameter)
     {
         Func<int, int> f = (out $$
     }
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
+        public async Task AfterInInLambda_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        Func<int, int> f = (in $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefInMethodDeclaration_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    String field;
+    void M(ref $$)
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "field");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterOutInMethodDeclaration_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    String field;
+    void M(out $$)
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "field");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
+        public async Task AfterInInMethodDeclaration_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    String field;
+    void M(in $$)
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "field");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefInInvocation_TypeAndVariable()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(ref String parameter)
+    {
+        M(ref $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemExistsAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterOutInInvocation_TypeAndVariable()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(out String parameter)
+    {
+        M(out $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemExistsAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
+        public async Task AfterInInInvocation_TypeAndVariable()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(in String parameter)
+    {
+        M(in $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemExistsAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        public async Task AfterRefExpression_TypeAndVariable()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref var x = ref $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemExistsAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        public async Task AfterRefInStatementContext_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        public async Task AfterRefReadonlyInStatementContext_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref readonly $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefLocalDeclaration_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref $$ int local;
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefReadonlyLocalDeclaration_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref readonly $$ int local;
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefLocalFunction_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref $$ int Function();
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefReadonlyLocalFunction_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref readonly $$ int Function();
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        public async Task AfterRefInMemberContext_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    String field;
+    ref $$
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "field");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        public async Task AfterRefReadonlyInMemberContext_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    String field;
+    ref readonly $$
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "field");
         }
 
         [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
@@ -2056,6 +2341,48 @@ class Program
 }";
 
             await VerifyItemExistsAsync(markup, "CompareTo");
+        }
+
+        [WorkItem(21596, "https://github.com/dotnet/roslyn/issues/21596")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AmbiguityBetweenExpressionAndLocalFunctionReturnType()
+        {
+            var markup = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        AwaitTest test = new AwaitTest();
+        test.Test1().Wait();
+    }
+}
+
+class AwaitTest
+{
+    List<string> stringList = new List<string>();
+
+    public async Task<bool> Test1()
+    {
+        stringList.$$
+
+        await Test2();
+
+        return true;
+    }
+
+    public async Task<bool> Test2()
+    {
+        return true;
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Add");
         }
 
         [WorkItem(540750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540750")]
@@ -2219,7 +2546,7 @@ class Program
             default:
                 goto $$";
 
-            await VerifyItemExistsAsync(markup, "default:");
+            await VerifyItemExistsAsync(markup, "default");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2574,6 +2901,100 @@ class Program { }";
             await VerifyItemIsAbsentAsync(markup, "@namespace", sourceCodeKind: SourceCodeKind.Regular);
         }
 
+        [WorkItem(25589, "https://github.com/dotnet/roslyn/issues/25589")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithNestedAttribute1()
+        {
+            var markup = @"
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class CustomAttribute : System.Attribute { } }
+}
+
+[$$]";
+            await VerifyItemExistsAsync(markup, "Namespace1");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithNestedAttribute2()
+        {
+            var markup = @"
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class CustomAttribute : System.Attribute { } }
+}
+
+[Namespace1.$$]";
+            await VerifyItemIsAbsentAsync(markup, "Namespace2");
+            await VerifyItemExistsAsync(markup, "Namespace3");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithNestedAttribute3()
+        {
+            var markup = @"
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class CustomAttribute : System.Attribute { } }
+}
+
+[Namespace1.Namespace3.$$]";
+            await VerifyItemExistsAsync(markup, "Namespace4");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithNestedAttribute4()
+        {
+            var markup = @"
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class CustomAttribute : System.Attribute { } }
+}
+
+[Namespace1.Namespace3.Namespace4.$$]";
+            await VerifyItemExistsAsync(markup, "Custom");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithNestedAttribute_NamespaceAlias()
+        {
+            var markup = @"
+using Namespace1Alias = Namespace1;
+using Namespace2Alias = Namespace1.Namespace2;
+using Namespace3Alias = Namespace1.Namespace3;
+using Namespace4Alias = Namespace1.Namespace3.Namespace4;
+
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class CustomAttribute : System.Attribute { } }
+}
+
+[$$]";
+            await VerifyItemExistsAsync(markup, "Namespace1Alias");
+            await VerifyItemIsAbsentAsync(markup, "Namespace2Alias");
+            await VerifyItemExistsAsync(markup, "Namespace3Alias");
+            await VerifyItemExistsAsync(markup, "Namespace4Alias");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeSearch_NamespaceWithoutNestedAttribute()
+        {
+            var markup = @"
+namespace Namespace1
+{
+    namespace Namespace2 { class NonAttribute { } }
+    namespace Namespace3.Namespace4 { class NonAttribute : System.NonAttribute { } }
+}
+
+[$$]";
+            await VerifyItemIsAbsentAsync(markup, "Namespace1");
+        }
+
         [WorkItem(542230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542230")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task RangeVariableInQuerySelect()
@@ -2591,6 +3012,36 @@ class P
             await VerifyItemExistsAsync(markup, "Length");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConstantsInIsExpression()
+        {
+            var markup = @"
+class C
+{
+    public const int MAX_SIZE = 10;
+    void M()
+    {
+        int i = 10;
+        if (i is $$ int"; // 'int' to force this to be parsed as an IsExpression rather than IsPatternExpression
+
+            await VerifyItemExistsAsync(markup, "MAX_SIZE");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConstantsInIsPatternExpression()
+        {
+            var markup = @"
+class C
+{
+    public const int MAX_SIZE = 10;
+    void M()
+    {
+        int i = 10;
+        if (i is $$ 1";
+
+            await VerifyItemExistsAsync(markup, "MAX_SIZE");
+        }
+
         [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInSwitchCase()
@@ -2605,6 +3056,24 @@ class C
         switch (i)
         {
             case $$";
+
+            await VerifyItemExistsAsync(markup, "MAX_SIZE");
+        }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-370148553")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConstantsInSwitchPatternCase()
+        {
+            var markup = @"
+class C
+{
+    public const int MAX_SIZE = 10;
+    void M()
+    {
+        int i = 10;
+        switch (i)
+        {
+            case $$ when";
 
             await VerifyItemExistsAsync(markup, "MAX_SIZE");
         }
@@ -7394,7 +7863,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = $"(field) int C.x";
+            var expectedDescription = $"({ FeaturesResources.field }) int C.x";
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
 
@@ -8606,6 +9075,25 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExceptionFilter1_NotBeforeOpenParen()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void M(bool x)
+    {
+        try
+        {
+        }
+        catch when $$
+";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExceptionFilter2()
         {
             var markup = @"
@@ -8619,6 +9107,59 @@ class C
         {
         }
         catch (Exception ex) when ($$
+";
+
+            await VerifyItemExistsAsync(markup, "x");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExceptionFilter2_NotBeforeOpenParen()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void M(bool x)
+    {
+        try
+        {
+        }
+        catch (Exception ex) when $$
+";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SwitchCaseWhenClause1()
+        {
+            var markup = @"
+class C
+{
+    void M(bool x)
+    {
+        switch (1)
+        {
+            case 1 when $$
+";
+
+            await VerifyItemExistsAsync(markup, "x");
+        }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SwitchCaseWhenClause2()
+        {
+            var markup = @"
+class C
+{
+    void M(bool x)
+    {
+        switch (1)
+        {
+            case int i when $$
 ";
 
             await VerifyItemExistsAsync(markup, "x");
@@ -9148,6 +9689,43 @@ class C
 }
 ";
             await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(420697, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=420697&_a=edit")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21766"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task DoNotCrashInExtensionMethoWithExpressionBodiedMember()
+        {
+            var markup =
+@"public static class Extensions { public static T Get<T>(this object o) => $$}
+";
+            await VerifyItemExistsAsync(markup, "o");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task EnumConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "Enum");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task DelegateConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "Delegate");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task MulticastDelegateConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "MulticastDelegate");
         }
     }
 }

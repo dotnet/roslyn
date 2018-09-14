@@ -24,8 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
         public IVsNavInfo CreateForReference(MetadataReference reference)
         {
-            var portableExecutableReference = reference as PortableExecutableReference;
-            if (portableExecutableReference != null)
+            if (reference is PortableExecutableReference portableExecutableReference)
             {
                 return new NavInfo(this, libraryName: portableExecutableReference.FilePath);
             }
@@ -35,28 +34,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
         public IVsNavInfo CreateForSymbol(ISymbol symbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
         {
-            var assemblySymbol = symbol as IAssemblySymbol;
-            if (assemblySymbol != null)
+            switch (symbol)
             {
-                return CreateForAssembly(assemblySymbol);
-            }
-
-            var aliasSymbol = symbol as IAliasSymbol;
-            if (aliasSymbol != null)
-            {
-                symbol = aliasSymbol.Target;
-            }
-
-            var namespaceSymbol = symbol as INamespaceSymbol;
-            if (namespaceSymbol != null)
-            {
-                return CreateForNamespace(namespaceSymbol, project, compilation, useExpandedHierarchy);
-            }
-
-            var typeSymbol = symbol as ITypeSymbol;
-            if (typeSymbol != null)
-            {
-                return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
+                case IAssemblySymbol assemblySymbol:
+                    return CreateForAssembly(assemblySymbol);
+                case IAliasSymbol aliasSymbol:
+                    symbol = aliasSymbol.Target;
+                    break;
+                case INamespaceSymbol namespaceSymbol:
+                    return CreateForNamespace(namespaceSymbol, project, compilation, useExpandedHierarchy);
+                case ITypeSymbol typeSymbol:
+                    return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
             }
 
             if (symbol.Kind == SymbolKind.Event ||

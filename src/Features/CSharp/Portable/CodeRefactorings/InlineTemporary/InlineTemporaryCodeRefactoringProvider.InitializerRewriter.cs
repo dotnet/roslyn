@@ -66,8 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             {
                 if (IsReference(node))
                 {
-                    var assignmentExpression = node.Parent as AssignmentExpressionSyntax;
-                    if (assignmentExpression != null)
+                    if (node.Parent is AssignmentExpressionSyntax assignmentExpression)
                     {
                         if (assignmentExpression.IsCompoundAssignExpression() &&
                             assignmentExpression.Left == node)

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly DeclarationModifiers _modifiers;
         internal readonly SourceMemberContainerTypeSymbol containingType;
 
-        protected SymbolCompletionState state;
+        private SymbolCompletionState _state;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private string _lazyDocComment;
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
@@ -61,12 +62,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasComplete(CompletionPart part)
         {
-            return state.HasComplete(part);
+            return _state.HasComplete(part);
         }
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            state.DefaultForceComplete(this);
+            if (!_state.HasComplete(CompletionPart.Attributes))
+            {
+                _ = GetAttributes();
+
+                // Consider the following items:
+                //  1. It is possible for parallel calls to GetAttributes to exist
+                //  2. GetAttributes will return when the attributes are available, not when the part is noted
+                //     as complete.
+                //  3. The thread which actually completes the attributes is the one which must set the CompletionParts.Attributes
+                //     value.
+                //  4. This call cannot correctly return until this part is set. 
+                //
+                // That is why it is necessary to check this value again. 
+                //
+                // Note: #2 above is common practice amongst all of the symbols.
+                //
+                // Note: #3 above is an invariant that has existed in the code for some time. It's not clear if this invariant
+                // is 100% correct. After inspection though it seems likely to be correct as the code is asserting that 
+                // SymbolDeclaredEvent is raised before CompletionPart.Attributes is noted as completed. Also this is a common
+                // pattern amongst the GetAttributes implementations.
+                _state.SpinWaitComplete(CompletionPart.Attributes, cancellationToken);
+            }
+
+            _state.NotePartComplete(CompletionPart.All);
         }
 
         public override abstract string Name { get; }
@@ -179,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
             {
                 DeclaringCompilation.SymbolDeclaredEvent(this);
-                var wasCompletedThisThread = state.NotePartComplete(CompletionPart.Attributes);
+                var wasCompletedThisThread = _state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(wasCompletedThisThread);
             }
 
@@ -296,9 +320,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (this.Type.ContainsDynamic())
             {

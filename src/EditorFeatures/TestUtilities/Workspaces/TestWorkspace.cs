@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
+        private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         public TestWorkspace()
             : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
@@ -50,8 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public TestWorkspace(ExportProvider exportProvider, string workspaceKind = null, bool disablePartialSolutions = true)
             : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceKind.Test)
         {
-            ResetThreadAffinity();
-
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
             this.ExportProvider = exportProvider;
             this.Projects = new List<TestHostProject>();
@@ -64,30 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _backgroundCompiler = new BackgroundCompiler(this);
             _backgroundParser = new BackgroundParser(this);
             _backgroundParser.Start();
-        }
 
-        /// <summary>
-        /// Reset the thread affinity, in particular the designated foreground thread, to the active 
-        /// thread.  
-        /// </summary>
-        internal static void ResetThreadAffinity(ForegroundThreadData foregroundThreadData = null)
-        {
-            foregroundThreadData = foregroundThreadData ?? ForegroundThreadAffinitizedObject.CurrentForegroundThreadData;
-
-            // HACK: When the platform team took over several of our components they created a copy
-            // of ForegroundThreadAffinitizedObject.  This needs to be reset in the same way as our copy
-            // does.  Reflection is the only choice at the moment. 
-            foreach (var assembly in System.AppDomain.CurrentDomain.GetAssemblies())
-            {
-                var type = assembly.GetType("Microsoft.VisualStudio.Language.Intellisense.Implementation.ForegroundThreadAffinitizedObject", throwOnError: false);
-                if (type != null)
-                {
-                    type.GetField("foregroundThread", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, foregroundThreadData.Thread);
-                    type.GetField("ForegroundTaskScheduler", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, foregroundThreadData.TaskScheduler);
-
-                    break;
-                }
-            }
+            _metadataAsSourceFileService = exportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
         protected internal override bool PartialSemanticsEnabled
@@ -121,11 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void Dispose(bool finalize)
         {
-            var metadataAsSourceService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
-            if (metadataAsSourceService != null)
-            {
-                metadataAsSourceService.CleanupGeneratedFiles();
-            }
+            _metadataAsSourceFileService?.CleanupGeneratedFiles();
 
             this.ClearSolutionData();
 
@@ -142,38 +115,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             foreach (var document in ProjectionDocuments)
             {
                 document.CloseTextView();
-            }
-
-            var exceptions = Flatten(ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions());
-
-            if (exceptions.Count > 0)
-            {
-                var messageBuilder = new StringBuilder();
-                messageBuilder.AppendLine(
-$@"{exceptions.Count} exception(s) were thrown during test.
-Note: exceptions may have been thrown by another test running concurrently with
-this test.  This can happen with any tests that share the same ExportProvider.
-Examining individual exception stacks may help reveal the original test and source 
-of the problem.");
-
-                messageBuilder.AppendLine();
-                for (int i = 0; i < exceptions.Count; i++)
-                {
-                    var exception = exceptions[i];
-                    messageBuilder.AppendLine($"Exception {i}:");
-                    messageBuilder.AppendLine(exception.ToString());
-                    messageBuilder.AppendLine();
-                }
-
-                var message = messageBuilder.ToString();
-                if (exceptions.Count == 1)
-                {
-                    throw new Exception(message, exceptions[0]);
-                }
-                else
-                {
-                    throw new AggregateException(message, exceptions);
-                }
             }
 
             if (SynchronizationContext.Current != null)
@@ -194,7 +135,6 @@ of the problem.");
             var aggregate = new AggregateException(exceptions);
             return aggregate.Flatten().InnerExceptions
                 .Select(UnwrapException)
-                .Where(ex => !(ex is JoinableTaskContextException))
                 .ToList();
         }
 
@@ -469,7 +409,7 @@ of the problem.");
             var languageServices = this.Services.GetLanguageServices(languageName);
 
             var projectionDocument = new TestHostDocument(
-                TestExportProvider.ExportProviderWithCSharpAndVisualBasic,
+                ExportProvider,
                 languageServices,
                 projectionBuffer,
                 path,
@@ -488,11 +428,9 @@ of the problem.");
             projectionBufferSpans = new List<object>();
             var projectionBufferSpanStartingPositions = new List<int>();
             mappedCaretLocation = null;
-            string inertText;
-            int? markupCaretLocation;
 
-            MarkupTestFile.GetPositionAndSpans(markup, 
-                out inertText, out markupCaretLocation, out var markupSpans);
+            MarkupTestFile.GetPositionAndSpans(markup,
+                out var inertText, out int? markupCaretLocation, out var markupSpans);
 
             var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
             var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
@@ -600,9 +538,8 @@ of the problem.");
 
                     foreach (var projectionSpan in projectionBufferSpans)
                     {
-                        var text = projectionSpan as string;
 
-                        if (text != null)
+                        if (projectionSpan is string text)
                         {
                             if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart <= positionInMarkup + text.Length)
                             {

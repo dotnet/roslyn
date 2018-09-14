@@ -147,6 +147,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     builder.Append("Friend")
                 Case Accessibility.ProtectedOrFriend
                     builder.Append("Protected Friend")
+                Case Accessibility.ProtectedAndFriend
+                    builder.Append("Private Protected")
                 Case Accessibility.Public
                     builder.Append("Public")
             End Select

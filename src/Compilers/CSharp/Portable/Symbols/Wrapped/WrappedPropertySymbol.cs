@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingProperty.IsImplicitlyDeclared; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get
             {

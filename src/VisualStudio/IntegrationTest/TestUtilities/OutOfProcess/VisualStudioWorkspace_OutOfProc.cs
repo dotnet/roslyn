@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -50,8 +49,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
             => _inProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
 
-        public void WaitForAllAsyncOperations()
-            => _inProc.WaitForAllAsyncOperations();
+        public void WaitForAllAsyncOperations(params string[] featureNames)
+            => _inProc.WaitForAllAsyncOperations(featureNames);
 
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();

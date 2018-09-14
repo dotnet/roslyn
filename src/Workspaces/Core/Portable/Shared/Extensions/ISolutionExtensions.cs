@@ -20,8 +20,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var projectId in solution.ProjectIds)
             {
                 var project = solution.GetProject(projectId);
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                results.Add(compilation.Assembly.GlobalNamespace);
+                if (project.SupportsCompilation)
+                {
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    results.Add(compilation.Assembly.GlobalNamespace);
+                }
             }
 
             return results.ToImmutableAndFree();

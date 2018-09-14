@@ -26,7 +26,7 @@ class C1
 }
 
 ");
-            CSharpCompilation c = CreateCompilation(new[] { t });
+            CSharpCompilation c = CreateEmptyCompilation(new[] { t });
             s_testModel = c.GetSemanticModel(t);
             s_testPosition = t.FindNodeOrTokenByKind(SyntaxKind.VariableDeclaration).SpanStart;
             s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception);
@@ -79,7 +79,7 @@ public class G<T>
 
     protected G<int>.N P { get; set; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -96,7 +96,7 @@ class C : G<int>
 {
     protected G<long>.N P { get; set; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -110,7 +110,7 @@ public class G<T>
 
     protected G<int>.N this[int x] { get { throw null; } }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -127,7 +127,7 @@ class C : G<int>
 {
     protected G<long>.N this[int x] { get { throw null; } }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -141,7 +141,7 @@ public class G<T>
 
     protected G<int>.N M() { throw null; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -158,7 +158,7 @@ class C : G<int>
 {
     protected G<long>.N M() { throw null; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -172,7 +172,7 @@ public class G<T>
 
     protected event G<int>.N E;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,30): warning CS0067: The event 'G<T>.E' is never used
                 //     protected event G<int>.N E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("G<T>.E"));
@@ -192,7 +192,7 @@ class C : G<int>
 {
     protected event G<long>.N E;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,31): warning CS0067: The event 'C.E' is never used
                 //     protected event G<long>.N E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
@@ -252,7 +252,7 @@ class Test
     {
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,32): warning CS0649: Field 'RuleE<T>.Z1.Goo' is never assigned to, and will always have its default value null
                 //         protected RuleE<int>.N Goo;    
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Goo").WithArguments("RuleE<T>.Z1.Goo", "null"),
@@ -289,7 +289,7 @@ class Test
         public C " + brackets + @" x;
     }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("P.x", "P.C" + brackets)
 );
         }

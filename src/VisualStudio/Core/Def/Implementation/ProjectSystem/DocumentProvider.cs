@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -30,13 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #region Immutable readonly fields/properties that can be accessed from foreground or background threads - do not need locking for access.
         private readonly object _gate = new object();
         private readonly uint _runningDocumentTableEventCookie;
-        private readonly IVisualStudioHostProjectContainer _projectContainer;
+        private readonly VisualStudioProjectTracker _projectTracker;
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly IVsTextManager _textManager;
-        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
+        private readonly LinkedFileUtilities _linkedFileUtilities;
         private readonly VisualStudioDocumentTrackingService _documentTrackingServiceOpt;
         #endregion
 
@@ -54,22 +55,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Creates a document provider.
         /// </summary>
-        /// <param name="projectContainer">Project container for the documents.</param>
         /// <param name="serviceProvider">Service provider</param>
         /// <param name="documentTrackingService">An optional <see cref="VisualStudioDocumentTrackingService"/> to track active and visible documents.</param>
         public DocumentProvider(
-            IVisualStudioHostProjectContainer projectContainer,
+            VisualStudioProjectTracker projectTracker,
             IServiceProvider serviceProvider,
-            VisualStudioDocumentTrackingService documentTrackingService)
+            VisualStudioDocumentTrackingService documentTrackingService,
+            LinkedFileUtilities linkedFileUtilities)
+            : base(projectTracker.ThreadingContext)
         {
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
-            _projectContainer = projectContainer;
+            _projectTracker = projectTracker;
             this._documentTrackingServiceOpt = documentTrackingService;
             this._runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             this._editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             this._contentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
-            _textUndoHistoryRegistry = componentModel.GetService<ITextUndoHistoryRegistry>();
+            _linkedFileUtilities = linkedFileUtilities;
             _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
 
             _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
@@ -85,6 +87,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Marshal.ThrowExceptionForHR(runningDocumentTableForEvents.AdviseRunningDocTableEvents(new RunningDocTableEventsSink(this), out _runningDocumentTableEventCookie));
         }
 
+        [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]
+        public IVisualStudioHostDocument TryGetDocumentForFile(
+            AbstractProject hostProject,
+            string filePath,
+            SourceCodeKind sourceCodeKind,
+            Func<ITextBuffer, bool> canUseTextBuffer,
+            Func<uint, IReadOnlyList<string>> getFolderNames,
+            EventHandler updatedOnDiskHandler = null,
+            EventHandler<bool> openedHandler = null,
+            EventHandler<bool> closingHandler = null)
+        {
+            var itemid = hostProject.Hierarchy.TryGetItemId(filePath);
+
+            var folderNames = getFolderNames(itemid).AsImmutableOrEmpty();
+            return TryGetDocumentForFile(
+                hostProject,
+                filePath,
+                sourceCodeKind,
+                canUseTextBuffer,
+                folderNames,
+                updatedOnDiskHandler,
+                openedHandler,
+                closingHandler);
+        }
+
         /// <summary>
         /// Gets the <see cref="IVisualStudioHostDocument"/> for the file at the given filePath.
         /// If we are on the foreground thread and this document is already open in the editor,
@@ -93,11 +120,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// whenever <see cref="NotifyDocumentRegisteredToProjectAndStartToRaiseEvents"/> is invoked for the returned document.
         /// </summary>
         public IVisualStudioHostDocument TryGetDocumentForFile(
-            IVisualStudioHostProject hostProject,
+            AbstractProject hostProject,
             string filePath,
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
-            Func<uint, IReadOnlyList<string>> getFolderNames,
+            ImmutableArray<string> folderNames,
             EventHandler updatedOnDiskHandler = null,
             EventHandler<bool> openedHandler = null,
             EventHandler<bool> closingHandler = null)
@@ -161,9 +188,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this,
                     hostProject,
                     documentKey,
-                    getFolderNames,
+                    folderNames,
                     sourceCodeKind,
-                    _textUndoHistoryRegistry,
                     _fileChangeService,
                     openTextBuffer,
                     id,
@@ -192,9 +218,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            var shimTextBuffer = docData as IVsTextBuffer;
 
-            if (shimTextBuffer != null)
+            if (docData is IVsTextBuffer shimTextBuffer)
             {
                 return _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
             }
@@ -331,12 +356,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
             _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemid);
 
-            var shimTextBuffer = _runningDocumentTable.GetDocumentData(docCookie) as IVsTextBuffer;
-
-            if (shimTextBuffer != null)
+            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
+            // which saves us JIT time in this method.
+            if ((object)_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer shimTextBuffer)
             {
                 var hasAssociatedRoslynDocument = false;
-                foreach (var project in _projectContainer.GetProjects())
+                foreach (var project in _projectTracker.ImmutableProjects)
                 {
                     var documentKey = new DocumentKey(project, moniker);
 
@@ -393,11 +418,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // This is opening some other designer or property page. If it's tied to our IVsHierarchy, we should
                 // let the workspace know
-                foreach (var project in _projectContainer.GetProjects())
+                foreach (var project in _projectTracker.ImmutableProjects)
                 {
                     if (hierarchy == project.Hierarchy)
                     {
-                        _projectContainer.NotifyNonDocumentOpenedForProject(project);
+                        _projectTracker.NotifyNonDocumentOpenedForProject(project);
                     }
                 }
             }
@@ -618,10 +643,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             foreach (var document in documents)
             {
-                var workspace = document.Project.Workspace as VisualStudioWorkspace;
-                if (workspace != null)
+                if (document.Project.Workspace is VisualStudioWorkspace workspace)
                 {
-                    workspace.RenameFileCodeModelInstance(document.Id, newMoniker);
+                    document.Project.ProjectCodeModel?.OnSourceFileRenaming(document.FilePath, newMoniker);
                 }
             }
         }
@@ -726,7 +750,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
             var document = documentKey.HostProject.GetCurrentDocumentFromPath(documentKey.Moniker);
-            return document != null && LinkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable);
+            return document != null && _linkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable);
         }
 
         public IDisposable ProvideDocumentIdHint(string filePath, DocumentId documentId)

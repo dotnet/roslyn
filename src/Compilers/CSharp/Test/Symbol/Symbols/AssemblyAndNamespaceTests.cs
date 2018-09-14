@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ";
             var simpleName = GetUniqueName();
-            var comp = CreateStandardCompilation(text, assemblyName: simpleName);
+            var comp = CreateCompilation(text, assemblyName: simpleName);
             var sym = comp.Assembly;
             // See bug 2058: the following lines assume System.Reflection.AssemblyName preserves the case of
             // the "displayName" passed to it, but it sometimes does not.
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     class A {}
 }
 ";
-            var comp = CreateStandardCompilation(text, assemblyName: "Test");
+            var comp = CreateCompilation(text, assemblyName: "Test");
 
             var sym = comp.SourceModule;
             Assert.Equal("Test.dll", sym.Name);
@@ -154,7 +154,7 @@ namespace NS.NS1 {
     }
 }
 ";
-            var comp1 = CreateStandardCompilation(text);
+            var comp1 = CreateCompilation(text);
             var compRef = new CSharpCompilationReference(comp1);
 
             var comp = CSharpCompilation.Create(assemblyName: "Test1", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
@@ -168,13 +168,13 @@ namespace NS.NS1 {
 
             var ns1 = ns.GetMembers("NS1").Single() as NamespaceSymbol;
             var type1 = ns1.GetTypeMembers("A").SingleOrDefault() as NamedTypeSymbol;
-            Assert.Equal(1, type1.Interfaces.Length);
-            Assert.Equal("IGoo", type1.Interfaces[0].Name);
+            Assert.Equal(1, type1.Interfaces().Length);
+            Assert.Equal("IGoo", type1.Interfaces()[0].Name);
 
             var ns2 = ns.GetMembers("NS2").Single() as NamespaceSymbol;
             var type2 = ns2.GetTypeMembers("C").SingleOrDefault() as NamedTypeSymbol;
-            Assert.NotNull(type2.BaseType);
-            Assert.Equal("NS.NS1.B", type2.BaseType.ToTestDisplayString());
+            Assert.NotNull(type2.BaseType());
+            Assert.Equal("NS.NS1.B", type2.BaseType().ToTestDisplayString());
         }
 
         [Fact]
@@ -195,13 +195,13 @@ namespace NS.NS1 {
     struct SGoo {}
 }
 ";
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "Compilation1");
-            var comp2 = CreateStandardCompilation(text2, assemblyName: "Compilation2");
+            var comp1 = CreateCompilation(text1, assemblyName: "Compilation1");
+            var comp2 = CreateCompilation(text2, assemblyName: "Compilation2");
 
             var compRef1 = new CSharpCompilationReference(comp1);
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilation(new string[] { text3 }, references: new MetadataReference[] { compRef1, compRef2 }.ToList(), assemblyName: "Test3");
+            var comp = CreateEmptyCompilation(new string[] { text3 }, references: new MetadataReference[] { compRef1, compRef2 }.ToList(), assemblyName: "Test3");
             //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
             //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text3) },
             //                        references: new MetadataReference[] { compRef1, compRef2 });
@@ -306,7 +306,7 @@ namespace NS.NS1 {
         [Fact]
         public void GetDeclaredSymbolDupNsAliasErr()
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateEmptyCompilation(@"
 namespace NS1 {
 	class A { }
 }	
@@ -330,14 +330,14 @@ namespace NS
             var globalNS = compilation.SourceModule.GlobalNamespace;
             var ns1 = globalNS.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns1.GetTypeMembers("C").First() as NamedTypeSymbol;
-            var b = type1.BaseType;
+            var b = type1.BaseType();
         }
 
         [WorkItem(540785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540785")]
         [Fact]
         public void GenericNamespace()
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateEmptyCompilation(@"
 namespace Goo<T>
 {
     class Program    
@@ -368,7 +368,7 @@ namespace Goo<T>
 
             var aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"));
 
-            var comp = CreateCompilation(source, new[] { aliasedCorlib });
+            var comp = CreateEmptyCompilation(source, new[] { aliasedCorlib });
 
             // NOTE: this doesn't compile in dev11 - it reports that it cannot find System.Object.
             // However, we've already changed how special type lookup works, so this is not a major issue.

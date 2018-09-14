@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             For Each parameter In Me.Parameters
-                If originalBinder.CanAddLookupSymbolInfo(parameter, options, Nothing) Then
+                If originalBinder.CanAddLookupSymbolInfo(parameter, options, nameSet, Nothing) Then
                     nameSet.AddSymbol(parameter, parameter.Name, 0)
                 End If
             Next

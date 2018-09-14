@@ -92,6 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeSymbol namespaceOrTypeSymbol = BindNamespaceOrTypeSymbol(syntax, unusedDiagnostics);
             unusedDiagnostics.Free();
 
+            // BindNamespaceOrTypeSymbol will wrap any tuple types in a TupleTypeSymbol. We unwrap it here, as doc comments don't consider the (T,T) form of tuples
+            if(namespaceOrTypeSymbol is TupleTypeSymbol t)
+            {
+                namespaceOrTypeSymbol = t.UnderlyingNamedType;
+            }
+
             Debug.Assert((object)namespaceOrTypeSymbol != null);
             return namespaceOrTypeSymbol;
         }
@@ -869,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (CrefParameterSyntax parameter in parameterListSyntax.Parameters)
             {
-                RefKind refKind = parameter.RefOrOutKeyword.Kind().GetRefKind();
+                RefKind refKind = parameter.RefKindKeyword.Kind().GetRefKind();
 
                 TypeSymbol type = BindCrefParameterOrReturnType(parameter.Type, (MemberCrefSyntax)parameterListSyntax.Parent, diagnostics);
 

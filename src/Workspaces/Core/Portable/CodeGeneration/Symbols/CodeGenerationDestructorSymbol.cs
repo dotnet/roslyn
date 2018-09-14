@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                  Accessibility.NotApplicable,
                  default,
                  returnType: null,
-                 returnsByRef: false,
+                 refKind: RefKind.None,
                  explicitInterfaceImplementations: default,
                  name: string.Empty,
                  typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,

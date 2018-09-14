@@ -9,9 +9,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     [GuidAttribute(Guids.CSharpOptionPageFormattingGeneralIdString)]
     internal class FormattingOptionPage : AbstractOptionPage
     {
+        private FormattingOptionPageControl _optionPageControl;
+
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
         {
-            return new FormattingOptionPageControl(serviceProvider);
+            _optionPageControl = new FormattingOptionPageControl(serviceProvider);
+            return _optionPageControl;
         }
     }
 }

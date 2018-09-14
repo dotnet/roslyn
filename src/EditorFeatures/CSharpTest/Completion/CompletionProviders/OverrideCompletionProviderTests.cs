@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -29,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         protected override void SetWorkspaceOptions(TestWorkspace workspace)
         {
             workspace.Options = workspace.Options
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement)
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
         }
 
         #region "CompletionItem tests"
@@ -162,7 +164,7 @@ public class a
 
 public class b : a
 {
-    protected override goo(){ }
+    protected override void goo() { }
 
     override $$
 }", "goo()");
@@ -2138,8 +2140,7 @@ End Class
                 var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Bar[int bay]"));
 
-                var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
-                if (customCommitCompletionProvider != null)
+                if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
@@ -2395,8 +2396,7 @@ int bar;
                 var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
-                var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
-                if (customCommitCompletionProvider != null)
+                if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
@@ -2451,8 +2451,7 @@ int bar;
                 var completionList = await GetCompletionListAsync(service, document, cursorPosition, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
-                var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
-                if (customCommitCompletionProvider != null)
+                if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
@@ -2629,6 +2628,134 @@ class Program : C
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FilterOutMethodsWithNonRoundTrippableSymbolKeys()
+        {
+            var text = XElement.Parse(@"<Workspace>
+    <Project Name=""P1"" Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C : ClassLibrary7.Class1
+{
+    override $$
+}
+]]>
+        </Document>
+    </Project>
+    <Project Name=""P2"" Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
+        <Document>
+namespace ClassLibrary2
+{
+    public class Missing {}
+}
+        </Document>
+    </Project>
+    <Project Name=""P3"" Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj3.dll"">
+        <ProjectReference>P2</ProjectReference>
+        <Document>
+namespace ClassLibrary7
+{
+    public class Class1
+    {
+        public virtual void Goo(ClassLibrary2.Missing m) {}
+        public virtual void Bar() {}
+    }
+}
+        </Document>
+    </Project>
+</Workspace>");
+
+            // P3 has a project ref to Project P2 and uses the type "Missing" from P2
+            // as the return type of a virtual method.
+            // P1 has a metadata reference to P3 and therefore doesn't get the transitive
+            // reference to P2. If we try to override Goo, the missing "Missing" type will
+            // prevent round tripping the symbolkey.
+            using (var workspace = TestWorkspace.Create(text))
+            {
+                var compilation = await workspace.CurrentSolution.Projects.First(p => p.Name == "P3").GetCompilationAsync();
+
+                // CompilationExtensions is in the Microsoft.CodeAnalysis.Test.Utilities namespace 
+                // which has a "Traits" type that conflicts with the one in Roslyn.Test.Utilities
+                var reference = MetadataReference.CreateFromImage(Test.Utilities.CompilationExtensions.EmitToArray(compilation));
+                var p1 = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
+                var updatedP1 = p1.AddMetadataReference(reference);
+                workspace.ChangeSolution(updatedP1.Solution);
+
+                var provider = new OverrideCompletionProvider();
+                var testDocument = workspace.Documents.First(d => d.Name == "CurrentDocument.cs");
+                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
+
+                Assert.True(completionList.Items.Any(c => c.DisplayText == "Bar()"));
+                Assert.False(completionList.Items.Any(c => c.DisplayText == "Goo()"));
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInParameter()
+        {
+            var source = XElement.Parse(@"<Workspace>
+    <Project Name=""P1"" Language=""C#"" LanguageVersion=""Latest"" CommonReferences=""true"" AssemblyName=""Proj1"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+public class SomeClass : Base
+{
+    override $$
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>");
+
+            using (var workspace = TestWorkspace.Create(source))
+            {
+                var before = @"
+public abstract class Base
+{
+    public abstract void M(in int x);
+}";
+
+                var after = @"
+public class SomeClass : Base
+{
+    public override void M(in int x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+";
+
+                var origComp = await workspace.CurrentSolution.Projects.Single().GetCompilationAsync();
+                var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+                var libComp = origComp.RemoveAllSyntaxTrees().AddSyntaxTrees(CSharpSyntaxTree.ParseText(before, options: options));
+                var libRef = MetadataReference.CreateFromImage(Test.Utilities.CompilationExtensions.EmitToArray(libComp));
+
+                var project = workspace.CurrentSolution.Projects.Single();
+                var updatedProject = project.AddMetadataReference(libRef);
+                workspace.ChangeSolution(updatedProject.Solution);
+
+                var provider = new OverrideCompletionProvider();
+                var testDocument = workspace.Documents.First(d => d.Name == "CurrentDocument.cs");
+                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
+                var completionItem = completionList.Items.Where(c => c.DisplayText == "M(in int x)").Single();
+
+                var commit = await service.GetChangeAsync(document, completionItem, commitKey: null, CancellationToken.None);
+
+                var text = await document.GetTextAsync();
+                var newText = text.WithChanges(commit.TextChange);
+                var newDoc = document.WithText(newText);
+                document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
+
+                var textBuffer = workspace.Documents.Single().TextBuffer;
+                string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
+
+                Assert.Equal(after, actualCodeAfterCommit);
+            }
         }
     }
 }

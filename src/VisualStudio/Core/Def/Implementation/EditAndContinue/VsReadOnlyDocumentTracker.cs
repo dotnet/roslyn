@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -16,32 +15,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     internal sealed class VsReadOnlyDocumentTracker : ForegroundThreadAffinitizedObject, IDisposable
     {
-        private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly IEditAndContinueService _encService;
         private readonly IVsEditorAdaptersFactoryService _adapters;
         private readonly Workspace _workspace;
-        private readonly AbstractProject _vsProject;
 
         private bool _isDisposed;
 
         internal static readonly TraceLog log = new TraceLog(2048, "VsReadOnlyDocumentTracker");
 
-        public VsReadOnlyDocumentTracker(IEditAndContinueWorkspaceService encService, IVsEditorAdaptersFactoryService adapters, AbstractProject vsProject)
-            : base(assertIsForeground: true)
+        public VsReadOnlyDocumentTracker(IThreadingContext threadingContext, IEditAndContinueService encService, IVsEditorAdaptersFactoryService adapters)
+            : base(threadingContext, assertIsForeground: true)
         {
             Debug.Assert(encService.DebuggingSession != null);
 
             _encService = encService;
             _adapters = adapters;
             _workspace = encService.DebuggingSession.InitialSolution.Workspace;
-            _vsProject = vsProject;
 
             _workspace.DocumentOpened += OnDocumentOpened;
             UpdateWorkspaceDocuments();
-        }
-
-        public Workspace Workspace
-        {
-            get { return _workspace; }
         }
 
         private void OnDocumentOpened(object sender, DocumentEventArgs e)
@@ -102,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             // while the code is running and get refreshed next time the web page is hit.
 
             // Note that Razor-like views are modelled as a ContainedDocument but normal code including code-behind are modelled as a StandardTextDocument.
-            var visualStudioWorkspace = _vsProject.Workspace as VisualStudioWorkspaceImpl;
+            var visualStudioWorkspace = _workspace as VisualStudioWorkspaceImpl;
             var containedDocument = visualStudioWorkspace?.GetHostDocument(documentId) as ContainedDocument;
             return containedDocument == null;
         }

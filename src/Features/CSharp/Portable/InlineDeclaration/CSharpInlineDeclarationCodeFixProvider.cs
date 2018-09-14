@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // it for apparent types
 
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
-            var newType = local.Type.GenerateTypeSyntaxOrVar(options, typeIsApparent: false);
+            var newType = GenerateTypeSyntaxOrVar(local.Type, options);
 
             var declarationExpression = GetDeclarationExpression(
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
@@ -175,6 +176,32 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             editor.ReplaceNode(identifier, declarationExpression);
+        }
+
+        public static TypeSyntax GenerateTypeSyntaxOrVar(
+           ITypeSymbol symbol, OptionSet options)
+        {
+            var useVar = IsVarDesired(symbol, options);
+
+            // Note: we cannot use ".GenerateTypeSyntax()" only here.  that's because we're
+            // actually creating a DeclarationExpression and currently the Simplifier cannot
+            // analyze those due to limitations between how it uses Speculative SemanticModels
+            // and how those don't handle new declarations well.
+            return useVar
+                ? SyntaxFactory.IdentifierName("var")
+                : symbol.GenerateTypeSyntax();
+        }
+
+        private static bool IsVarDesired(ITypeSymbol type, OptionSet options)
+        {
+            // If they want it for intrinsics, and this is an intrinsic, then use var.
+            if (type.IsSpecialType() == true)
+            {
+                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
+            }
+
+            // If they want "var" whenever possible, then use "var".
+            return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(
@@ -308,21 +335,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             speculativeModel = null;
             return false;
-        }
-
-        private TypeSyntax GetDeclarationType(
-            TypeSyntax type, bool useVarWhenDeclaringLocals, bool useImplicitTypeForIntrinsicTypes)
-        {
-            if (useVarWhenDeclaringLocals)
-            {
-                if (useImplicitTypeForIntrinsicTypes ||
-                    !TypeStyleHelper.IsPredefinedType(type))
-                {
-                    return SyntaxFactory.IdentifierName("var");
-                }
-            }
-
-            return type;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

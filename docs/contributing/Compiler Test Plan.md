@@ -1,4 +1,4 @@
-﻿This document provides guidance for thinking about language interactions and testing compiler changes.
+This document provides guidance for thinking about language interactions and testing compiler changes.
 
 # General concerns:
 - Completeness of the specification as a guide for testing (is the spec complete enough to suggest what the compiler should do in each scenario?)
@@ -26,14 +26,20 @@
     - AnalyzeStatementsDataFlow 
     - AnalyzeStatementDataFlow 
     - ClassifyConversion
+    - GetOperation (IOperation)
 - VB/F# interop
 - Performance and stress testing
  
 # Type and members
-- Access modifiers (public, protected, internal, protected internal, private), static modifier
-- Parameter modifiers (ref, out, params)
+- Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
+    - types
+    - methods
+    - fields
+    - properties (including get/set accessors)
+    - events (including add/remove accessors)
+- Parameter modifiers (ref, out, in, params)
 - Attributes (including security attribute)
-- Generics (type arguments, constraints, variance)
+- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`)
 - Default and constant values
 - Partial classes
 - Literals
@@ -41,7 +47,7 @@
 - Expression trees
 - Iterators
 - Initializers (object, collection, dictionary)
-- Array (single- or multi-dimensional, jagged, initializer)
+- Array (single- or multi-dimensional, jagged, initializer, fixed)
 - Expression-bodied methods/properties/...
 - Extension methods
 - Partial method
@@ -53,6 +59,7 @@
 - Multi-declaration
 - NoPIA
 - Dynamic
+- Ref structs, Readonly structs
  
 # Code
 - Operators (see Eric's list below)
@@ -64,7 +71,8 @@
 - Overload resolution, override/hide/implement (OHI)
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
-- Tuple types and literals (elements with explicit or inferred names, long tuples)
+- Tuple types and literals (elements with explicit or inferred names, long tuples), tuple equality
+- Deconstructions
 - Local functions
 - Unsafe code
 - LINQ
@@ -74,8 +82,10 @@
     - Ref / out parameters
     - Compound operators (+=, /=, etc ..) 
     - Assignment exprs
-- Ref returns
+- Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
+- Stackalloc (including initializers)
+- Patterns
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -92,6 +102,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Typing experience and dealing with incomplete code
     - Intellisense (squiggles, dot completion)
     - "go to" and renaming
+    - cref comments
     - UpgradeProject code fixer
     - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
 
@@ -130,6 +141,7 @@ while(…) …
 do … while(…); 
 for( … ; … ; … ) … 
 foreach(…) …
+fixed(…) … // (plain, or custom with `GetPinnableReference`)
 goto … ; 
 throw … ; 
 return … ; 
@@ -153,7 +165,8 @@ Every expression can be classified as exactly one of these:
 - Namespace 
 - Type 
 - Method group 
-- Null literal 
+- Null literal
+- Default literal
 - Anonymous function 
 - Property 
 - Indexer 

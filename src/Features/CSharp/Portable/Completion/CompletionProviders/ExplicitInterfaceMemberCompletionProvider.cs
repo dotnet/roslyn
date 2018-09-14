@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -38,69 +40,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-
-            var span = new TextSpan(position, length: 0);
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-            var syntaxTree = semanticModel.SyntaxTree;
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-
-            if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
-                semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
+            try
             {
-                return;
+                var document = context.Document;
+                var position = context.Position;
+                var options = context.Options;
+                var cancellationToken = context.CancellationToken;
+
+                var span = new TextSpan(position, length: 0);
+                var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+                var syntaxTree = semanticModel.SyntaxTree;
+
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+
+                if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
+                    semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
+                {
+                    return;
+                }
+
+                if (!syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken))
+                {
+                    return;
+                }
+
+                var node = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                     .GetPreviousTokenIfTouchingWord(position)
+                                     .Parent;
+
+                if (node.Kind() != SyntaxKind.ExplicitInterfaceSpecifier)
+                {
+                    return;
+                }
+
+                // Bind the interface name which is to the left of the dot
+                var name = ((ExplicitInterfaceSpecifierSyntax)node).Name;
+
+                var symbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol as ITypeSymbol;
+                if (symbol?.TypeKind != TypeKind.Interface)
+                {
+                    return;
+                }
+
+                var members = symbol.GetMembers();
+
+                // We're going to create a entry for each one, including the signature
+                var namePosition = name.SpanStart;
+
+                var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                foreach (var member in members)
+                {
+                    var displayText = member.ToMinimalDisplayString(
+                        semanticModel, namePosition, s_signatureDisplayFormat);
+                    var insertionText = displayText;
+
+                    var item = SymbolCompletionItem.CreateWithSymbolId(
+                        displayText,
+                        insertionText: insertionText,
+                        symbols: ImmutableArray.Create(member),
+                        contextPosition: position,
+                        rules: CompletionItemRules.Default);
+                    item = item.AddProperty(InsertionTextOnOpenParen, member.Name);
+
+                    context.AddItem(item);
+                }
             }
-
-            if (!syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken))
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                return;
-            }
-
-            var node = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                                 .GetPreviousTokenIfTouchingWord(position)
-                                 .Parent;
-
-            if (node.Kind() != SyntaxKind.ExplicitInterfaceSpecifier)
-            {
-                return;
-            }
-
-            // Bind the interface name which is to the left of the dot
-            var name = ((ExplicitInterfaceSpecifierSyntax)node).Name;
-
-            var symbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol as ITypeSymbol;
-            if (symbol?.TypeKind != TypeKind.Interface)
-            {
-                return;
-            }
-
-            var members = symbol.GetMembers();
-
-            // We're going to create a entry for each one, including the signature
-            var namePosition = name.SpanStart;
-
-            var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var member in members)
-            {
-                var displayText = member.ToMinimalDisplayString(
-                    semanticModel, namePosition, s_signatureDisplayFormat);
-                var insertionText = displayText;
-
-                var item = SymbolCompletionItem.CreateWithSymbolId(
-                    displayText,
-                    insertionText: insertionText,
-                    symbols: ImmutableArray.Create(member),
-                    contextPosition: position,
-                    rules: CompletionItemRules.Default);
-                item = item.AddProperty(InsertionTextOnOpenParen, member.Name);
-
-                context.AddItem(item);
+                // nop
             }
         }
 

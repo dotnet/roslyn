@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options = null, CancellationToken cancellationToken = default)
             => false;
 
-        public bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)
             => false;
 
         public bool WouldNavigateToSymbol(

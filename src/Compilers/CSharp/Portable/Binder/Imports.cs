@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void AddAliasSymbolToResult(LookupSymbolsInfo result, AliasSymbol aliasSymbol, LookupOptions options, Binder originalBinder)
         {
             var targetSymbol = aliasSymbol.GetAliasTarget(basesBeingResolved: null);
-            if (originalBinder.CanAddLookupSymbolInfo(targetSymbol, options, null))
+            if (originalBinder.CanAddLookupSymbolInfo(targetSymbol, options, result, accessThroughType: null, aliasSymbol: aliasSymbol))
             {
                 result.AddSymbol(aliasSymbol, aliasSymbol.Name, 0);
             }
@@ -859,7 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var member in namespaceSymbol.NamespaceOrType.GetMembersUnordered())
                 {
-                    if (IsValidLookupCandidateInUsings(member) && originalBinder.CanAddLookupSymbolInfo(member, options, null))
+                    if (IsValidLookupCandidateInUsings(member) && originalBinder.CanAddLookupSymbolInfo(member, options, result, null))
                     {
                         result.AddSymbol(member, member.Name, member.GetArity());
                     }

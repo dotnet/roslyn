@@ -44,10 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private Workspace _workspace;
 
         public NavigationBarController(
+            IThreadingContext threadingContext,
             INavigationBarPresenter presenter,
             ITextBuffer subjectBuffer,
             IWaitIndicator waitIndicator,
             IAsynchronousOperationListener asyncListener)
+            : base(threadingContext)
         {
             _presenter = presenter;
             _subjectBuffer = subjectBuffer;
@@ -357,8 +359,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             AssertIsForeground();
 
-            var presentedItem = item as NavigationBarPresentedItem;
-            if (presentedItem != null)
+            if (item is NavigationBarPresentedItem presentedItem)
             {
                 // Presented items are not navigable, but they may be selected due to a race
                 // documented in Bug #1174848. Protect all INavigationBarItemService implementers
@@ -366,8 +367,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 return;
             }
 
-            var projectItem = item as NavigationBarProjectItem;
-            if (projectItem != null)
+            if (item is NavigationBarProjectItem projectItem)
             {
                 projectItem.SwitchToContext();
 
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    var languageService = document.Project.LanguageServices.GetService<INavigationBarItemService>();
+                    var languageService = document.GetLanguageService<INavigationBarItemService>();
 
                     NavigateToItem(item, document, _subjectBuffer.CurrentSnapshot, languageService, cancellationToken);
                 }

@@ -2187,6 +2187,80 @@ class Test
         }
 
         [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepExteriorTrivia_2()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"m(a, b, /* trivia */
+c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepExteriorTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"m(a,  /* trivia */
+c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepExteriorTrivia_3()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"m(a, b,
+/* trivia */ c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepExteriorTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"m(a, 
+/* trivia */ c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepExteriorTrivia_4()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"SomeMethod(/*arg1:*/ a,
+    /*arg2:*/ b,
+    /*arg3:*/ c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepExteriorTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"SomeMethod(/*arg1:*/ a,
+    /*arg2:*/ 
+    /*arg3:*/ c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepExteriorTrivia_5()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"SomeMethod(// comment about a
+           a,
+           // some comment about b
+           b,
+           // some comment about c
+           c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepExteriorTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"SomeMethod(// comment about a
+           a,
+           // some comment about b
+           
+           // some comment about c
+           c)", text);
+        }
+
+        [Fact]
         public void TestRemoveNodeInSeparatedList_KeepNoTrivia()
         {
             var expr = SyntaxFactory.ParseExpression("m(a, b, /* trivia */ c)");
@@ -2198,6 +2272,77 @@ class Test
 
             var text = expr2.ToFullString();
             Assert.Equal("m(a, /* trivia */ c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepNoTrivia_2()
+        {
+            var expr = SyntaxFactory.ParseExpression(
+                @"m(a, b, /* trivia */ 
+c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepNoTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"m(a, c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepNoTrivia_3()
+        {
+            var expr = SyntaxFactory.ParseExpression(
+                @"m(a, b,
+/* trivia */ c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepNoTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"m(a, /* trivia */ c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepNoTrivia_4()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"SomeMethod(/*arg1:*/ a,
+    /*arg2:*/ b,
+    /*arg3:*/ c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepNoTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"SomeMethod(/*arg1:*/ a,
+    /*arg3:*/ c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepNoTrivia_5()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"SomeMethod(// comment about a
+           a,
+           // some comment about b
+           b,
+           // some comment about c
+           c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepNoTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"SomeMethod(// comment about a
+           a,
+           // some comment about c
+           c)", text);
         }
 
         [Fact]

@@ -1,12 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDelegateWithConditionalAccess
@@ -43,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
     void Goo()
     {
         a?.Invoke();
+
         a?.Invoke();
     }
 }");
@@ -78,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
     void Goo()
     {
         a?.Invoke();
+
         a?.Invoke();
     }
 }");
@@ -113,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
     void Goo()
     {
         a?.Invoke();
+
         a?.Invoke();
     }
 }");
@@ -148,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
     void Goo()
     {
         a?.Invoke();
+
         a?.Invoke();
     }
 }");
@@ -183,6 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
     void Goo()
     {
         a?.Invoke();
+
         a?.Invoke();
     }
 }");
@@ -218,6 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
     void Goo()
     {
         a?.Invoke();
+
         a?.Invoke();
     }
 }");

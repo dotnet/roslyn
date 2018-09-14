@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
             Solution solution, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (solution == null)
@@ -102,19 +102,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync, cancellationToken))
             {
-                if (!await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
+                if (await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
                 {
-                    return ImmutableArray<SymbolAndProjectId>.Empty;
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                    var unfiltered = compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
+                                                .Select(s => new SymbolAndProjectId(s, project.Id))
+                                                .ToImmutableArray();
+
+                    return DeclarationFinder.FilterByCriteria(unfiltered, filter);
                 }
-
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                var unfiltered = compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
-                                            .Select(s => new SymbolAndProjectId(s, project.Id))
-                                            .ToImmutableArray();
-                    
-                return DeclarationFinder.FilterByCriteria(unfiltered, filter);
             }
+
+            return ImmutableArray<SymbolAndProjectId>.Empty;
         }
     }
 }

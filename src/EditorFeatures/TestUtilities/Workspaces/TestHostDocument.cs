@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
@@ -135,8 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestHostDocument(
-            string text = "", string displayName = "", 
-            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, 
+            string text = "", string displayName = "",
+            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             DocumentId id = null, string filePath = null,
             IReadOnlyList<string> folders = null)
         {
@@ -194,16 +193,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return Task.FromResult(TextAndVersion.Create(text, VersionStamp.Create(), _hostDocument.FilePath));
             }
         }
-        
+
         public IWpfTextView GetTextView()
         {
             if (_textView == null)
             {
-                TestWorkspace.ResetThreadAffinity();
+                WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
 
-                WpfTestCase.RequireWpfFact($"Creates an IWpfTextView through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
+                var factory = _exportProvider.GetExportedValue<ITextEditorFactoryService>();
 
-                _textView = _exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(this.TextBuffer);
+                // Every default role but outlining. Starting in 15.2, the editor
+                // OutliningManager imports JoinableTaskContext in a way that's 
+                // difficult to satisfy in our unit tests. Since we don't directly
+                // depend on it, just disable it
+                var roles = factory.CreateTextViewRoleSet(PredefinedTextViewRoles.Analyzable,
+                    PredefinedTextViewRoles.Document,
+                    PredefinedTextViewRoles.Editable,
+                    PredefinedTextViewRoles.Interactive,
+                    PredefinedTextViewRoles.Zoomable);
+                _textView = factory.CreateTextView(this.TextBuffer, roles);
                 if (this.CursorPosition.HasValue)
                 {
                     _textView.Caret.MoveTo(new SnapshotPoint(_textView.TextSnapshot, CursorPosition.Value));

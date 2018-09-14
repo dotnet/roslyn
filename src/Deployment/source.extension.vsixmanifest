@@ -1,53 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="f6d4ae9d-5ca3-4e0b-9035-9457cccf53fa" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+    <Identity Id="f6d4ae9d-5ca3-4e0b-9035-9457cccf53fa" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>Roslyn Insiders (Without Tool Window)</DisplayName>
     <Description>Pre-release build of Roslyn compilers and language services.</Description>
   </Metadata>
   <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,]" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,]" />
   </Installation>
   <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-    
     <Dependency d:ProjectName="CompilerExtension" 
-                DisplayName="|CompilerExtension;VSIXNameProjectOutputGroup|" 
-                Version="[|%CurrentProject%;GetBuildVersion|,)"
+                DisplayName="Roslyn Compilers" 
+                Version="[|%CurrentProject%;GetVsixVersion|,)"
                 d:Source="Project" 
                 d:InstallSource="Embed" 
                 d:VsixSubPath="Vsixes" 
                 Location="|CompilerExtension;VSIXContainerProjectOutputGroup|" 
-                Id="|CompilerExtension;VSIXIdentifierProjectOutputGroup|" />
+                Id="7922692f-f018-45e7-8f3f-d3b7c0262841" />
     
     <Dependency d:ProjectName="VisualStudioSetup"
-                DisplayName="|VisualStudioSetup;VSIXNameProjectOutputGroup|"
-                Version="[|%CurrentProject%;GetBuildVersion|,)"
+                DisplayName="Roslyn Language Services"
+                Version="[|%CurrentProject%;GetVsixVersion|,)"
                 d:Source="Project"
                 d:InstallSource="Embed"
                 d:VsixSubPath="Vsixes"
                 Location="|VisualStudioSetup;VSIXContainerProjectOutputGroup|"
-                Id="|VisualStudioSetup;VSIXIdentifierProjectOutputGroup|" />
+                Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
     
     <Dependency d:ProjectName="VisualStudioInteractiveComponents" 
-                DisplayName="|VisualStudioInteractiveComponents;VSIXNameProjectOutputGroup|" 
-                Version="[|%CurrentProject%;GetBuildVersion|,)"
+                DisplayName="Roslyn Interactive Components" 
+                Version="[|%CurrentProject%;GetVsixVersion|,)"
                 d:Source="Project"  
                 d:InstallSource="Embed" 
                 d:VsixSubPath="Vsixes" 
                 Location="|VisualStudioInteractiveComponents;VSIXContainerProjectOutputGroup|" 
-                Id="|VisualStudioInteractiveComponents;VSIXIdentifierProjectOutputGroup|" />
+                Id="500fff63-afcf-4195-8db4-3fa8a5180e79" />
     
     <Dependency  d:ProjectName="ExpressionEvaluatorPackage" 
-                 DisplayName="|ExpressionEvaluatorPackage;VSIXNameProjectOutputGroup|" 
-                 Version="[|%CurrentProject%;GetBuildVersion|,)"
+                 DisplayName="Roslyn Expression Evaluators" 
+                 Version="[|%CurrentProject%;GetVsixVersion|,)"
                  d:Source="Project" 
                  d:InstallSource="Embed" 
                  d:VsixSubPath="Vsixes" 
                  Location="|ExpressionEvaluatorPackage;VSIXContainerProjectOutputGroup|" 
-                 Id="|ExpressionEvaluatorPackage;VSIXIdentifierProjectOutputGroup|" />
+                 Id="21BAC26D-2935-4D0D-A282-AD647E2592B5" />
   </Dependencies>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,17.0)" DisplayName="Visual Studio core editor" />
   </Prerequisites>
 </PackageManifest>

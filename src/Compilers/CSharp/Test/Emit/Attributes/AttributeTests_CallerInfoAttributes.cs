@@ -1313,7 +1313,7 @@ name: ThingHappened
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestCallerMemberName_ConstructorDestructor()
         {
             string source = @"
@@ -1486,7 +1486,7 @@ partial class A
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestCallerFilePath2()
         {
             string source1 = @"

@@ -3437,7 +3437,7 @@ End Module
                           End Sub
                      End Module
 
-            ]]>, Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, vbLf),
+            ]]>, Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, Environment.NewLine),
                  Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "                                    "))
     End Sub
 
@@ -4141,7 +4141,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+        Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
         compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedNext, "For j = 1 To 10"),
                                        Diagnostic(ERRID.ERR_ExtraNextVariable, "i"),
                                        Diagnostic(ERRID.ERR_NameNotDeclared1, "j").WithArguments("j"))
@@ -4165,7 +4165,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompileAndVerify(compilation)
 
         CompilationUtils.AssertNoErrors(compilation)
@@ -4194,7 +4194,7 @@ End Module
 </compilation>
 
         'Should be No errors and a single line lambda is in use
-        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompilationUtils.AssertTheseDiagnostics(Compilation, <expected>
                                                              </expected>)
         CompileAndVerify(Compilation)
@@ -4224,7 +4224,7 @@ End Module
 </compilation>
 
         'Should be No errors and a single line lambda is in use
-        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompilationUtils.AssertTheseDiagnostics(Compilation, <expected>
                                                              </expected>)
         CompileAndVerify(Compilation)
@@ -7599,53 +7599,88 @@ End Class
     <WorkItem(648998, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648998")>
     <Fact()>
     Public Sub Bug648998()
-        ParseAndVerify(<![CDATA[
+        Dim tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y, z = Nothing
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-                <error id="30241"/>
-                <error id="30198"/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y, z = Nothing
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y, z = Nothing
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y, z = Nothing
+           ~~~~~~~~~~~
+BC30198: ')' expected.
+    Dim y, z = Nothing
+                      ~
+                                    ]]></errors>)
+
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y()
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y()
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y()
+~
+                                    ]]></errors>)
+
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-                <error id="30198"/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y
+~
+BC30198: ')' expected.
+    Dim y
+    ~
+                                    ]]></errors>)
+
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
         b True,
         c:=Nothing)
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-            </errors>)
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        b True,
+        ~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        b True,
+          ~~~~
+BC30198: ')' expected.
+        b True,
+               ~
+BC30201: Expression expected.
+        b True,
+               ~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        b True,
+               ~
+BC30188: Declaration expected.
+        c:=Nothing)
+        ~
+                                    ]]></errors>)
+
     End Sub
 
     <WorkItem(649162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649162")>
@@ -8408,7 +8443,7 @@ End Module
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_01()
+    Public Sub ParseLineIfFollowedByAnotherStatement_01()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8431,7 +8466,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8454,7 +8489,7 @@ BC30081: 'If' must end with a matching 'End If'.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_02()
+    Public Sub ParseLineIfFollowedByAnotherStatement_02()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8485,7 +8520,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8508,7 +8543,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_03()
+    Public Sub ParseLineIfFollowedByAnotherStatement_03()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8533,7 +8568,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8547,7 +8582,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_04()
+    Public Sub ParseLineIfFollowedByAnotherStatement_04()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8578,7 +8613,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
@@ -8595,7 +8630,7 @@ BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_05()
+    Public Sub ParseLineIfFollowedByAnotherStatement_05()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8622,7 +8657,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8636,7 +8671,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_06()
+    Public Sub ParseLineIfFollowedByAnotherStatement_06()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8663,7 +8698,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8677,7 +8712,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_07()
+    Public Sub ParseLineIfFollowedByAnotherStatement_07()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8748,7 +8783,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8777,7 +8812,7 @@ BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_08()
+    Public Sub ParseLineIfFollowedByAnotherStatement_08()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8797,7 +8832,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 </expected>)
@@ -8805,7 +8840,7 @@ End Module
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_09()
+    Public Sub ParseLineIfFollowedByAnotherStatement_09()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8840,7 +8875,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8869,7 +8904,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_10()
+    Public Sub ParseLineIfFollowedByAnotherStatement_10()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8904,7 +8939,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8933,7 +8968,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_11()
+    Public Sub ParseLineIfFollowedByAnotherStatement_11()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8953,7 +8988,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8964,7 +8999,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_12()
+    Public Sub ParseLineIfFollowedByAnotherStatement_12()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -9012,7 +9047,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -9029,7 +9064,7 @@ Else 3")
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_13()
+    Public Sub ParseLineIfFollowedByAnotherStatement_13()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -9045,7 +9080,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30199: '(' expected.
@@ -9059,7 +9094,7 @@ BC33104: 'If' operator requires either two or three operands.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_14()
+    Public Sub ParseLineIfFollowedByAnotherStatement_14()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -9075,7 +9110,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30199: '(' expected.
@@ -9089,7 +9124,7 @@ BC33104: 'If' operator requires either two or three operands.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_15()
+    Public Sub ParseLineIfFollowedByAnotherStatement_15()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -9105,7 +9140,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30199: '(' expected.
@@ -9137,7 +9172,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -9172,7 +9207,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -9204,7 +9239,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30451: 'sServiceName' is not declared. It may be inaccessible due to its protection level.
@@ -9227,7 +9262,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30451: 'sServiceName' is not declared. It may be inaccessible due to its protection level.
@@ -9253,7 +9288,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30625: 'Module' statement must end with a matching 'End Module'.

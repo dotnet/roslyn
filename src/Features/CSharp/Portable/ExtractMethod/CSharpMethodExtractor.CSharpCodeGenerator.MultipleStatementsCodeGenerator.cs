@@ -101,16 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     Contract.ThrowIfNull(node);
                     Contract.ThrowIfFalse(node.IsStatementContainerNode());
 
-                    var blockNode = node as BlockSyntax;
-                    if (blockNode != null)
+                    switch (node)
                     {
-                        return blockNode.Statements;
-                    }
-
-                    var switchSectionNode = node as SwitchSectionSyntax;
-                    if (switchSectionNode != null)
-                    {
-                        return switchSectionNode.Statements;
+                        case BlockSyntax blockNode:
+                            return blockNode.Statements;
+                        case SwitchSectionSyntax switchSectionNode:
+                            return switchSectionNode.Statements;
                     }
 
                     return Contract.FailWithReturn<SyntaxList<StatementSyntax>>("unknown statements container!");

@@ -2,8 +2,8 @@
 
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override SyntaxNode Translate(SyntaxReference reference, CancellationToken cancellationToken)
+        {
+            return GetSyntax(reference, cancellationToken);
+        }
+
+        internal static SyntaxNode GetSyntax(SyntaxReference reference, CancellationToken cancellationToken)
         {
             var node = (CSharpSyntaxNode)reference.GetSyntax(cancellationToken);
 

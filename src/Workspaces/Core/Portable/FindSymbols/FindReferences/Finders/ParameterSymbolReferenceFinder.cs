@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IParameterSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): We can be smarter with parameters.  They will either be found
@@ -34,16 +35,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
         }
 
-        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IParameterSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetParameterSymbolsMatchFunction(
                 symbol, document.Project.Solution, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol.Name, document, symbolsMatch, cancellationToken);
+                symbol.Name, document, semanticModel, symbolsMatch, cancellationToken);
         }
 
         private Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetParameterSymbolsMatchFunction(
@@ -97,6 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var parameter = parameterAndProjectId.Symbol;
@@ -254,8 +258,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var parameter = parameterAndProjectId.Symbol;
             var ordinal = parameter.Ordinal;
-            var containingMethod = parameter.ContainingSymbol as IMethodSymbol;
-            if (containingMethod != null)
+            if (parameter.ContainingSymbol is IMethodSymbol containingMethod)
             {
                 var containingType = containingMethod.ContainingType as INamedTypeSymbol;
                 if (containingType.IsDelegateType())

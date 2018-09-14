@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -71,9 +72,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         public async Task InlineVariableWithConstructor1()
         {
             await TestInRegularAndScriptAsync(
-@"class C
+@"class C1
 {
-    void M()
+    public C1(int v, out int i) {}
+
+    void M(int v)
     {
         [|int|] i;
         if (new C1(v, out i))
@@ -81,9 +84,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
     }
 }",
-@"class C
+@"class C1
 {
-    void M()
+    public C1(int v, out int i) {}
+
+    void M(int v)
     {
         if (new C1(v, out int i))
         {
@@ -668,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -698,7 +703,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -730,7 +735,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -760,7 +765,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -790,7 +795,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -820,7 +825,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -850,7 +855,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -882,7 +887,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -915,7 +920,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
@@ -951,7 +956,7 @@ class Program
 
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
@@ -1003,7 +1008,7 @@ class Program
 
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
@@ -1124,7 +1129,7 @@ class C
     {
         if (x != null && TryBaz(out object s))
         {
-            Console.WriteLine(s); 
+            Console.WriteLine(s);
         }
     }
 
@@ -1603,7 +1608,7 @@ class C
 {
     static void Main(string[] args)
     {
-        for ( ; TryExtractTokenFromEmail(out string token); )
+        for (; TryExtractTokenFromEmail(out string token);)
         {
         }
     }
@@ -1825,11 +1830,9 @@ class C
 
         [WorkItem(17743, "https://github.com/dotnet/roslyn/issues/17743")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
-        public async Task TestInLocalFunction()
+        public async Task TestInLocalFunction1()
         {
-            // Note: this currently works, but it should be missing.  
-            // This test validates that we don't crash in this case though.
-            await TestInRegularAndScript1Async(
+            await TestMissingInRegularAndScriptAsync(
 @"
 using System;
 using System.Collections.Generic;
@@ -1850,6 +1853,33 @@ class Demo
             };
         }
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLocalFunction2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class Demo
+{
+    static void Main()
+    {
+        F();
+        void F()
+        {
+            Action f = () =>
+            {
+                Dictionary<int, int> dict = null;
+                int [|x|] = 0;
+                dict.TryGetValue(0, out x);
+                Console.WriteLine(x);
+            };
+        }
+    }
 }",
 @"
 using System;
@@ -1865,7 +1895,7 @@ class Demo
             Action f = () =>
             {
                 Dictionary<int, int> dict = null;
-                dict?.TryGetValue(0, out int x);
+                dict.TryGetValue(0, out int x);
                 Console.WriteLine(x);
             };
         }
@@ -1895,7 +1925,7 @@ class C
         string a; 
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
@@ -1920,7 +1950,7 @@ class C
         string a; /*leading*/  // trailing
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
@@ -1947,7 +1977,7 @@ class C
         /*leading*/ // trailing
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -2006,6 +2036,222 @@ class C
         Console.WriteLine(x);
     }
 }");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingOnCrossFunction1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+  static void Main(string[] args)
+  {
+    Method<string>();
+  }
+
+  public static void Method<T>()
+  { 
+    [|T t|];
+    void Local<T>()
+    {
+      Out(out t);
+      Console.WriteLine(t);
+    }
+    Local<int>();
+  }
+
+  public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingOnCrossFunction2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+  static void Main(string[] args)
+  {
+    Method<string>();
+  }
+
+  public static void Method<T>()
+  { 
+    void Local<T>()
+    {
+        [|T t|];
+        void InnerLocal<T>()
+        {
+          Out(out t);
+          Console.WriteLine(t);
+        }
+    }
+    Local<int>();
+  }
+
+  public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingOnCrossFunction3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Method<string>();
+    }
+
+    public static void Method<T>()
+    { 
+        [|T t|];
+        void Local<T>()
+        {
+            { // <-- note this set of added braces
+                Out(out t);
+                Console.WriteLine(t);
+            }
+        }
+        Local<int>();
+    }
+
+    public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingOnCrossFunction4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Method<string>();
+    }
+
+    public static void Method<T>()
+    {
+        { // <-- note this set of added braces
+            [|T t|];
+            void Local<T>()
+            {
+                { // <-- and my axe
+                    Out(out t);
+                    Console.WriteLine(t);
+                }
+            }
+            Local<int>();
+        }
+    }
+
+    public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDefiniteAssignment1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    static bool M(out bool i) => throw null;
+
+    static void M(bool condition)
+    {
+        [|bool|] x = false;
+        if (condition || M(out x))
+        {
+            Console.WriteLine(x);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDefiniteAssignment2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    static bool M(out bool i) => throw null;
+    static bool Use(bool i) => throw null;
+
+    static void M(bool condition)
+    {
+        [|bool|] x = false;
+        if (condition || M(out x))
+        {
+            x = Use(x);
+        }
+    }
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [InlineData("c && M(out x)", "c && M(out bool x)")]
+        [InlineData("false || M(out x)", "false || M(out bool x)")]
+        [InlineData("M(out x) || M(out x)", "M(out bool x) || M(out x)")]
+        public async Task TestDefiniteAssignment3(string input, string output)
+        {
+            await TestInRegularAndScriptAsync(
+$@"
+using System;
+
+class C
+{{
+    static bool M(out bool i) => throw null;
+    static bool Use(bool i) => throw null;
+
+    static void M(bool c)
+    {{
+        [|bool|] x = false;
+        if ({input})
+        {{
+            Console.WriteLine(x);
+        }}
+    }}
+}}",
+$@"
+using System;
+
+class C
+{{
+    static bool M(out bool i) => throw null;
+    static bool Use(bool i) => throw null;
+
+    static void M(bool c)
+    {{
+        if ({output})
+        {{
+            Console.WriteLine(x);
+        }}
+    }}
+}}");
         }
     }
 }

@@ -1,17 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.InteractiveWindow.Commands;
-using System.Collections.Generic;
-using System;
-using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion.Presentation
 {
@@ -22,30 +20,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion.Presentation
     {
         private readonly ICompletionBroker _completionBroker;
         private readonly IGlyphService _glyphService;
-        private readonly ICompletionSetFactory _completionSetFactory;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionPresenter(
+            IThreadingContext threadingContext,
             ICompletionBroker completionBroker,
-            IGlyphService glyphService,
-            [ImportMany] IEnumerable<Lazy<ICompletionSetFactory, VisualStudioVersionMetadata>> completionSetFactories)
+            IGlyphService glyphService)
+            : base(threadingContext)
         {
             _completionBroker = completionBroker;
             _glyphService = glyphService;
-            _completionSetFactory = VersionSelector.SelectHighest(completionSetFactories);
         }
 
         ICompletionPresenterSession IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, ICompletionSession sessionOpt)
         {
             AssertIsForeground();
             return new CompletionPresenterSession(
-                _completionSetFactory, _completionBroker, _glyphService, textView, subjectBuffer);
+                ThreadingContext,
+                _completionBroker, _glyphService, textView, subjectBuffer);
         }
 
         ICompletionSource ICompletionSourceProvider.TryCreateCompletionSource(ITextBuffer textBuffer)
         {
             AssertIsForeground();
-            return new CompletionSource();
+            return new CompletionSource(ThreadingContext);
         }
     }
 }

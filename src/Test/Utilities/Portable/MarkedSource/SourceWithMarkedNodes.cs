@@ -109,9 +109,7 @@ namespace Roslyn.Test.Utilities
 #endif
             return new Func<SyntaxNode, SyntaxNode>(node1 =>
             {
-                int mark;
-                SyntaxNode result;
-                if (map1.TryGetValue(node1, out mark) && map0.TryGetValue(mark, out result))
+                if (map1.TryGetValue(node1, out var mark) && map0.TryGetValue(mark, out var result))
                 {
                     return result;
                 }

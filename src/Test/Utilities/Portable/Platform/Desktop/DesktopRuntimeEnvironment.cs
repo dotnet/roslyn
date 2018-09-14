@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using static Roslyn.Test.Utilities.RuntimeUtilities; 
+using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities; 
 
 namespace Roslyn.Test.Utilities.Desktop
 {
@@ -223,8 +223,7 @@ namespace Roslyn.Test.Utilities.Desktop
             }
             else
             {
-                string dumpDir;
-                DumpAssemblyData(dependencies, out dumpDir);
+                DumpAssemblyData(dependencies, out var dumpDir);
 
                 // This method MUST throw if compilation did not succeed.  If compilation succeeded and there were errors, that is bad.
                 // Please see KevinH if you intend to change this behavior as many tests expect the Exception to indicate failure.
@@ -242,8 +241,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
                 if (expectedOutput != null && expectedOutput.Trim() != output.Trim())
                 {
-                    string dumpDir;
-                    GetEmitData().Manager.DumpAssemblyData(out dumpDir);
+                    GetEmitData().Manager.DumpAssemblyData(out var dumpDir);
                     throw new ExecutionException(expectedOutput, output, dumpDir);
                 }
 
@@ -256,8 +254,7 @@ namespace Roslyn.Test.Utilities.Desktop
                     throw;
                 }
 
-                string dumpDir;
-                _emitData.Manager.DumpAssemblyData(out dumpDir);
+                _emitData.Manager.DumpAssemblyData(out var dumpDir);
                 throw new ExecutionException(tie.InnerException, dumpDir);
             }
         }
@@ -292,32 +289,44 @@ namespace Roslyn.Test.Utilities.Desktop
             return GetEmitData().AllModuleData;
         }
 
-        public void PeVerify()
+        public void Verify(Verification verification)
         {
+            // Verification is only done on windows desktop 
+            if (!ExecutionConditionUtil.IsWindowsDesktop)
+            {
+                return;
+            }
+
+            if (verification == Verification.Skipped)
+            {
+                return;
+            }
+
+            var shouldSucceed = verification == Verification.Passes;
             try
             {
                 var emitData = GetEmitData();
                 emitData.RuntimeData.PeverifyRequested = true;
-                emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName });
+                emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName }, throwOnError: true);
+                if (!shouldSucceed)
+                {
+                    throw new Exception("Verification succeeded unexpectedly");
+                }
             }
-            catch (RuntimePeVerifyException e)
+            catch (RuntimePeVerifyException)
             {
-                throw new PeVerifyException(e.Output, e.ExePath);
+                if (shouldSucceed)
+                {
+                    throw new Exception("Verification failed");
+                }
             }
         }
 
-        public string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true)
+        public string[] VerifyModules(string[] modulesToVerify)
         {
-            try
-            {
-                var emitData = GetEmitData();
-                emitData.RuntimeData.PeverifyRequested = true;
-                return emitData.Manager.PeVerifyModules(modulesToVerify, throwOnError);
-            }
-            catch (RuntimePeVerifyException e)
-            {
-                throw new PeVerifyException(e.Output, e.ExePath);
-            }
+            var emitData = GetEmitData();
+            emitData.RuntimeData.PeverifyRequested = true;
+            return emitData.Manager.PeVerifyModules(modulesToVerify, throwOnError: false);
         }
 
         public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)

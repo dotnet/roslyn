@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ),
                     rewrittenInitializer,
                     localSymbol.Type,
-                    localSymbol.RefKind),
+                    localSymbol.IsRef),
                 hasErrors);
 
             return InstrumentLocalDeclarationIfNecessary(originalOpt, localSymbol, rewrittenLocalDeclaration);

@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandNullable))
             {
                 //if we're expanding nullable, we just visit nullable types normally
-                if (IsNullableType(symbol) && !symbol.IsDefinition)
+                if (ITypeSymbolHelpers.IsNullableType(symbol) && !symbol.IsDefinition)
                 {
                     // Can't have a type called "int*?".
                     var typeArg = symbol.TypeArguments[0];
@@ -173,6 +173,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (invokeMethod.ReturnsByRef)
                     {
                         AddRefIfRequired();
+                    }
+                    else if (invokeMethod.ReturnsByRefReadonly)
+                    {
+                        AddRefReadonlyIfRequired();
                     }
 
                     if (invokeMethod.ReturnsVoid)
@@ -214,12 +218,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AddNameAndTypeArgumentsOrParameters(symbol);
-        }
-
-        private static bool IsNullableType(INamedTypeSymbol type)
-        {
-            var original = type.OriginalDefinition;
-            return original != null && original.SpecialType == SpecialType.System_Nullable_T;
         }
 
         private void AddNameAndTypeArgumentsOrParameters(INamedTypeSymbol symbol)
@@ -543,33 +541,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var kindKeyword = GetKindKeyword(symbol.TypeKind);
-                    if (kindKeyword != SyntaxKind.None)
+                    switch (symbol.TypeKind)
                     {
-                        AddKeyword(kindKeyword);
-                        AddSpace();
+                        case TypeKind.Module:
+                        case TypeKind.Class:
+                            AddKeyword(SyntaxKind.ClassKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Enum:
+                            AddKeyword(SyntaxKind.EnumKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Delegate:
+                            AddKeyword(SyntaxKind.DelegateKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Interface:
+                            AddKeyword(SyntaxKind.InterfaceKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Struct:
+                            if (symbol is NamedTypeSymbol csharpType)
+                            {
+                                if (csharpType.IsReadOnly)
+                                {
+                                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                                    AddSpace();
+                                }
+
+                                if (csharpType.IsByRefLikeType)
+                                {
+                                    AddKeyword(SyntaxKind.RefKeyword);
+                                    AddSpace();
+                                }
+                            }
+
+                            AddKeyword(SyntaxKind.StructKeyword);
+                            AddSpace();
+                            break;
                     }
                 }
-            }
-        }
-
-        private static SyntaxKind GetKindKeyword(TypeKind typeKind)
-        {
-            switch (typeKind)
-            {
-                case TypeKind.Module:
-                case TypeKind.Class:
-                    return SyntaxKind.ClassKeyword;
-                case TypeKind.Enum:
-                    return SyntaxKind.EnumKeyword;
-                case TypeKind.Delegate:
-                    return SyntaxKind.DelegateKeyword;
-                case TypeKind.Interface:
-                    return SyntaxKind.InterfaceKeyword;
-                case TypeKind.Struct:
-                    return SyntaxKind.StructKeyword;
-                default:
-                    return SyntaxKind.None;
             }
         }
 
@@ -620,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        typeArg.Accept(this.NotFirstVisitor);
+                        typeArg.Accept(this.NotFirstVisitorNamespaceOrType);
                     }
 
                     if (modifiersSourceOpt != null)
@@ -667,6 +682,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (typeParam.HasReferenceTypeConstraint)
                             {
                                 AddKeyword(SyntaxKind.ClassKeyword);
+                                needComma = true;
+                            }
+                            else if (typeParam.HasUnmanagedTypeConstraint)
+                            {
+                                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "unmanaged"));
                                 needComma = true;
                             }
                             else if (typeParam.HasValueTypeConstraint)

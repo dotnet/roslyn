@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.AssertStackEmpty();
             }
 #endif
+
+            ReleaseExpressionTemps();
         }
 
         private int EmitStatementAndCountInstructions(BoundStatement statement)
@@ -488,7 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             object fallThrough = null;
 
                             EmitCondBranch(receiver, ref fallThrough, sense: false);
-                            EmitReceiverRef(receiver, isAccessConstrained: false);
+                            // receiver is a reference type, and we only intend to read it
+                            EmitReceiverRef(receiver, AddressKind.ReadOnly);
                             EmitCondBranch(ca.WhenNotNull, ref dest, sense: true);
 
                             if (fallThrough != null)
@@ -501,7 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             // gotoif(receiver == null) labDest
                             // gotoif(!receiver.Access) labDest
                             EmitCondBranch(receiver, ref dest, sense: false);
-                            EmitReceiverRef(receiver, isAccessConstrained: false);
+                            // receiver is a reference type, and we only intend to read it
+                            EmitReceiverRef(receiver, AddressKind.ReadOnly);
                             condition = ca.WhenNotNull;
                             goto oneMoreTime;
                         }
@@ -563,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitCondBranch(sequence.Value, ref dest, sense);
 
             // sequence is used as a value, can release all locals
-            FreeLocals(sequence, doNotRelease: null);
+            FreeLocals(sequence);
         }
 
         private void EmitLabelStatement(BoundLabelStatement boundLabelStatement)
@@ -609,6 +613,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 foreach (var local in block.Locals)
                 {
+                    Debug.Assert(local.RefKind == RefKind.None || local.SynthesizedKind.IsLongLived(), 
+                        "A ref local ended up in a block and claims it is shortlived. That is dangerous. Are we sure it is short lived?");
+
                     var declaringReferences = local.DeclaringSyntaxReferences;
                     DefineLocal(local, !declaringReferences.IsEmpty ? (CSharpSyntaxNode)declaringReferences[0].GetSyntax() : block.Syntax);
                 }
@@ -717,7 +724,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                this.EmitAddress(expressionOpt, AddressKind.Writeable);
+                // NOTE: passing "ReadOnlyStrict" here. 
+                //       we should never return an address of a copy
+                var unexpectedTemp = this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+                Debug.Assert(unexpectedTemp == null, "ref-returning a temp?");
             }
 
             if (ShouldUseIndirectReturn())
@@ -1013,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var temp = AllocateTemp(exceptionSource.Type, exceptionSource.Syntax);
                         _builder.EmitLocalStore(temp);
 
-                        var receiverTemp = EmitReceiverRef(left.ReceiverOpt);
+                        var receiverTemp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable);
                         Debug.Assert(receiverTemp == null);
 
                         _builder.EmitLocalLoad(temp);
@@ -1225,7 +1235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (sequence != null)
             {
-                FreeLocals(sequence, doNotRelease: null);
+                // sequence was used as a value, can release all its locals.
+                FreeLocals(sequence);
             }
         }
 
@@ -1537,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
 
                 // Synthesized locals emitted for switch case patterns are all associated with the switch statement 
-                // and have distinct types. We use theier types to match them, not the ordinal as the ordinal might
+                // and have distinct types. We use their types to match them, not the ordinal as the ordinal might
                 // change if switch cases are reordered.
                 int ordinal = (localKind != SynthesizedLocalKind.SwitchCasePatternMatching) ?
                     _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset) : 0;

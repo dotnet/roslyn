@@ -2,20 +2,20 @@
 
 Imports System.Collections.ObjectModel
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
-Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
+    <[UseExportProvider]>
     Public Class RenameTagProducerTests
         Private Async Function VerifyEmptyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
             Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, SpecializedCollections.EmptyEnumerable(Of Span))
@@ -566,8 +566,7 @@ class C
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 textBuffer.Replace(New Span(location, 3), "Goo")
@@ -593,11 +592,11 @@ class C
                 End Using
 
                 ' Delete Goo and type "as"
-                commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace())
-                commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace())
-                commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace())
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "a"c), Sub() editorOperations.InsertText("a"))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "s"c), Sub() editorOperations.InsertText("s"))
+                commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace(), Utilities.TestCommandExecutionContext.Create())
+                commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace(), Utilities.TestCommandExecutionContext.Create())
+                commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace(), Utilities.TestCommandExecutionContext.Create())
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "a"c), Sub() editorOperations.InsertText("a"), Utilities.TestCommandExecutionContext.Create())
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "s"c), Sub() editorOperations.InsertText("s"), Utilities.TestCommandExecutionContext.Create())
 
                 Using resolvedConflictWorkspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -1074,13 +1073,12 @@ End Class
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim textViewService = New TextBufferAssociatedViewService()
                 Dim buffers = New Collection(Of ITextBuffer)
                 buffers.Add(view.TextBuffer)
-                DirectCast(textViewService, IWpfTextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)
+                DirectCast(textViewService, ITextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
 
@@ -1090,7 +1088,9 @@ End Class
                 ' Type first in the main identifier
                 view.Selection.Clear()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "e"c), Sub() editorOperations.InsertText("e"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "e"c),
+                                              Sub() editorOperations.InsertText("e"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' Verify fixup/resolved conflict span.
                 Using resolvedConflictWorkspace = CreateWorkspaceWithWaiter(
@@ -1112,7 +1112,9 @@ End Class
                 End Using
 
                 ' Make another edit to change "New" to "Nexw" so that we have no more conflicts or escaping.
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "x"c), Sub() editorOperations.InsertText("x"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "x"c),
+                                              Sub() editorOperations.InsertText("x"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' Verify resolved escaping conflict spans.
                 Using resolvedConflictWorkspace = CreateWorkspaceWithWaiter(
@@ -1154,13 +1156,12 @@ End Class
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim textViewService = New TextBufferAssociatedViewService()
                 Dim buffers = New Collection(Of ITextBuffer)
                 buffers.Add(view.TextBuffer)
-                DirectCast(textViewService, IWpfTextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)
+                DirectCast(textViewService, ITextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)
 
                 Dim location = view.Caret.Position.BufferPosition.Position
                 view.Selection.Select(New SnapshotSpan(view.Caret.Position.BufferPosition, 2), False)
@@ -1171,9 +1172,9 @@ End Class
 
                 ' Type few characters.
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "e"c), Sub() editorOperations.InsertText("e"))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "f"c), Sub() editorOperations.InsertText("f"))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "g"c), Sub() editorOperations.InsertText("g"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "e"c), Sub() editorOperations.InsertText("e"), Utilities.TestCommandExecutionContext.Create())
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "f"c), Sub() editorOperations.InsertText("f"), Utilities.TestCommandExecutionContext.Create())
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "g"c), Sub() editorOperations.InsertText("g"), Utilities.TestCommandExecutionContext.Create())
 
                 session.Commit()
                 Dim selectionLength = view.Selection.End.Position - view.Selection.Start.Position

@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="de" original="../VSPackage.resx">
+    <body>
+      <trans-unit id="101">
+        <source>Visual Basic</source>
+        <target state="translated">Visual Basic</target>
+        <note>Used anywhere the string is needed (that is, everywhere.)</note>
+      </trans-unit>
+      <trans-unit id="1012">
+        <source>Microsoft Visual Basic Code Page Editor</source>
+        <target state="translated">Microsoft Visual Basic-Codepage-Editor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="1013">
+        <source>Microsoft Visual Basic Editor</source>
+        <target state="translated">Microsoft Visual Basic-Editor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="10160">
+        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
+        <target state="needs-review-translation">End-Konstruktionen automatisch einfügen;Einstellungen für automatische Strukturierung und Einrückung ändern;Gliederungsmodus ändern;Schnittstellen- und MustOverride-Member automatisch einfügen;Zeilentrennzeichen zwischen Prozeduren anzeigen oder ausblenden;Vorschläge für Fehlerkorrektur ein- oder ausschalten;Markierung von Verweisen und Schlüsselwörtern ein- oder ausschalten</target>
+        <note>Advanced options page keywords</note>
+      </trans-unit>
+      <trans-unit id="102">
+        <source>Advanced</source>
+        <target state="translated">Erweitert</target>
+        <note>"Advanced" node under Tools &gt;Options, Basic editor.</note>
+      </trans-unit>
+      <trans-unit id="103">
+        <source>Basic</source>
+        <target state="translated">Standard</target>
+        <note>"Basic" node in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="104">
+        <source>Basic Editor</source>
+        <target state="translated">Basic Editor</target>
+        <note>"Basic Editor" node in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="105">
+        <source>Options that control general editor features including Intellisense statement completion, line number display, and single-click URL navigation.</source>
+        <target state="translated">Optionen, die allgemeine Editor-Funktionen steuern, z.B. IntelliSense-Anweisungsvervollständigung, Zeilenanzahlanzeige und einfaches Klicken für URLs.</target>
+        <note>"Basic" node help text in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="106">
+        <source>Options that control Visual Basic editor features including automatic insertion of end constructs, procedure line separators, and automatic code formatting.</source>
+        <target state="translated">Optionen, die Editor-Funktionen in Visual Basic steuern, z.B. automatisches Einfügen von End-Konstrukten, Zeilentrennzeichen zwischen Prozeduren und automatische Codeformatierung.</target>
+        <note>"Basic Editor" node help text in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="107">
+        <source>Optimizes the environment so you can focus on building world-class applications. This collection of settings contains customizations to the window layout, command menus and keyboard shortcuts to make common Visual Basic commands more accessible.</source>
+        <target state="translated">Optimiert die Umgebung, sodass Sie sich auf das Erstellen hervorragender Anwendungen konzentrieren können. Diese Einstellungssammlung enthält Anpassungen am Windows-Layout, an Befehlsmenüs und Tastenkombinationen, damit gängige Visual Basic-Befehle leichter zugänglich sind.</target>
+        <note>Profile description in profile Reset All Settings.</note>
+      </trans-unit>
+      <trans-unit id="108">
+        <source>Microsoft Visual Basic</source>
+        <target state="translated">Microsoft Visual Basic</target>
+        <note>Used for String in Tools &gt; Options, Text Editor, File Extensions</note>
+      </trans-unit>
+      <trans-unit id="109">
+        <source>Code Style</source>
+        <target state="translated">Codeformat</target>
+        <note>"Code Style" category node under Tools &gt;Options, Basic editor.</note>
+      </trans-unit>
+      <trans-unit id="10161">
+        <source>Qualify with Me;Prefer intrinsic types;Style;Code Style</source>
+        <target state="translated">Mit mir qualifizieren;systeminterne Typen bevorzugen;Format;Codeformat</target>
+        <note>Code Style options page keywords</note>
+      </trans-unit>
+      <trans-unit id="110">
+        <source>Naming</source>
+        <target state="translated">Benennung</target>
+        <note>"Naming Style" node under Tools &gt;Options &gt; Basic editor &gt;Code Style.</note>
+      </trans-unit>
+      <trans-unit id="10162">
+        <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
+        <target state="translated">Benennungsstil;Namenstile;Benennungsregel;Namenskonventionen</target>
+        <note>Naming Style options page keywords</note>
+      </trans-unit>
+      <trans-unit id="111">
+        <source>General</source>
+        <target state="translated">Allgemein</target>
+        <note>"General" node under Tools &gt;Options &gt;Basic editor &gt;Code Style.</note>
+      </trans-unit>
+      <trans-unit id="112">
+        <source>IntelliSense</source>
+        <target state="translated">IntelliSense</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="312">
+        <source>Change completion list settings;Pre-select most recently used member</source>
+        <target state="translated">Einstellungen der Vervollständigungsliste ändern;Vorauswahl des zuletzt verwendeten Members</target>
+        <note>IntelliSense options page keywords</note>
+      </trans-unit>
+      <trans-unit id="114">
+        <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
+        <target state="translated">Visual Basic-Komponenten, die in der IDE verwendet werden. Abhängig von Ihrem Projekttyp und den zugehörigen Einstellungen kann eine andere Version des Compilers verwendet werden.</target>
+        <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="113">
+        <source>Visual Basic Tools</source>
+        <target state="translated">Visual Basic-Tools</target>
+        <note>Help &gt; About</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

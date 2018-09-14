@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,47 +11,28 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 {
+    [UseExportProvider]
     public partial class WorkspaceTests
     {
-        [Shared]
-        [Export(typeof(IAsynchronousOperationListener))]
-        [Export(typeof(IAsynchronousOperationWaiter))]
-        [Feature(FeatureAttribute.Workspace)]
-        private class WorkspaceWaiter : AsynchronousOperationListener
-        {
-            internal WorkspaceWaiter()
-            {
-            }
-        }
-
-        private static Lazy<ExportProvider> s_exportProvider = new Lazy<ExportProvider>(CreateExportProvider);
-
-        private static ExportProvider CreateExportProvider()
-        {
-            var catalog = MinimalTestExportProvider.WithPart(
-                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic(),
-                typeof(WorkspaceWaiter));
-            return MinimalTestExportProvider.CreateExportProvider(catalog);
-        }
-
         private TestWorkspace CreateWorkspace(bool disablePartialSolutions = true)
         {
-            return new TestWorkspace(s_exportProvider.Value, disablePartialSolutions: disablePartialSolutions);
+            return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, disablePartialSolutions: disablePartialSolutions);
         }
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
         {
             var workspaceWaiter = workspace.ExportProvider
-                .GetExports<IAsynchronousOperationListener, FeatureMetadata>()
-                .First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
+                                    .GetExportedValue<AsynchronousOperationListenerProvider>()
+                                    .GetWaiter(FeatureAttribute.Workspace);
+
             await workspaceWaiter.CreateWaitTask();
         }
 
@@ -226,7 +206,7 @@ class D { }
         }
 
         [Fact]
-        public async void TestAddedSubmissionParseTreeHasEmptyFilePath()
+        public async Task TestAddedSubmissionParseTreeHasEmptyFilePath()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -654,7 +634,7 @@ class D { }
                     if (hasX)
                     {
                         var doc2Z = cs.GetDocument(document2.Id);
-                        var partialDoc2Z = await doc2Z.WithFrozenPartialSemanticsAsync(CancellationToken.None);
+                        var partialDoc2Z = doc2Z.WithFrozenPartialSemantics(CancellationToken.None);
                         var compilation2Z = await partialDoc2Z.Project.GetCompilationAsync();
                         var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
                         var classCz = classDz.BaseType;
@@ -1021,7 +1001,7 @@ class D { }
     </Project>
 </Workspace>";
 
-            using (var workspace = TestWorkspace.Create(input, exportProvider: s_exportProvider.Value))
+            using (var workspace = TestWorkspace.Create(input, exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic))
             {
                 var eventArgs = new List<WorkspaceChangeEventArgs>();
 

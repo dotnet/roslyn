@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Composition;
 using System.IO;
@@ -68,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 try
                 {
-                    byte[] value;
-                    if (!s_encodingCache.TryGetValue(encoding, out value))
+                    if (!s_encodingCache.TryGetValue(encoding, out var value))
                     {
                         // we don't have cache, cache it
                         var formatter = new BinaryFormatter();

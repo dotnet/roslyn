@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ProbablyContainsInt64Value(long value) => _literalInfo.ProbablyContainsInt64Value(value);
 
         public bool ContainsForEachStatement => _contextInfo.ContainsForEachStatement;
+        public bool ContainsDeconstruction => _contextInfo.ContainsDeconstruction;
+        public bool ContainsAwait => _contextInfo.ContainsAwait;
         public bool ContainsLockStatement => _contextInfo.ContainsLockStatement;
         public bool ContainsUsingStatement => _contextInfo.ContainsUsingStatement;
         public bool ContainsQueryExpression => _contextInfo.ContainsQueryExpression;
@@ -27,5 +29,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsBaseConstructorInitializer => _contextInfo.ContainsBaseConstructorInitializer;
         public bool ContainsElementAccessExpression => _contextInfo.ContainsElementAccessExpression;
         public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
+        public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
     }
 }

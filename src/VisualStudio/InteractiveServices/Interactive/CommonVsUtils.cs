@@ -20,8 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         internal static string GetFilePath(ITextBuffer textBuffer)
         {
-            ITextDocument textDocument;
-            if (textBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out textDocument))
+            if (textBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out var textDocument))
             {
                 return textDocument.FilePath;
             }
@@ -43,8 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 return null;
             }
 
-            object curDocument;
-            if (ErrorHandler.Failed(monitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out curDocument)))
+            if (ErrorHandler.Failed(monitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var curDocument)))
             {
                 // TODO: Report error
                 return null;
@@ -57,8 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 return null;
             }
 
-            object docView = null;
-            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out docView)))
+            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out var docView)))
             {
                 // TODO: Report error
                 return null;
@@ -66,8 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             if (docView is IVsCodeWindow)
             {
-                IVsTextView textView;
-                if (ErrorHandler.Failed(((IVsCodeWindow)docView).GetPrimaryView(out textView)))
+                if (ErrorHandler.Failed(((IVsCodeWindow)docView).GetPrimaryView(out var textView)))
                 {
                     // TODO: Report error
                     return null;

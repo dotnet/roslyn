@@ -7,12 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public class SymbolKeyTests : TestBase
     {
         [Fact]
@@ -819,8 +821,7 @@ class C
             {
                 symbols.Add(member);
 
-                var nsOrType = member as INamespaceOrTypeSymbol;
-                if (nsOrType != null)
+                if (member is INamespaceOrTypeSymbol nsOrType)
                 {
                     GetDeclaredSymbols(nsOrType, symbols);
                 }

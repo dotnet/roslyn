@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -817,6 +818,36 @@ class Program
 }";
 
             await VerifyItemExistsAsync(markup, "Value");
+        }
+
+        [WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerEscapeKeywords()
+        {
+            var markup = @"
+class c
+{
+    public int @new { get; set; }
+
+    public int @this { get; set; }
+
+    public int now { get; set; }
+}
+
+class d
+{
+    static void Main(string[] args)
+    {
+        var t = new c() { $$ };
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "@new");
+            await VerifyItemExistsAsync(markup, "@this");
+            await VerifyItemExistsAsync(markup, "now");
+
+            await VerifyItemIsAbsentAsync(markup, "new");
+            await VerifyItemIsAbsentAsync(markup, "this");
         }
 
         [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]

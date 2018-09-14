@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -53,6 +54,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return true;
         }
 
+        /// <summary>
+        /// Returns the methodSymbol and any partial parts.
+        /// </summary>
+        public static ImmutableArray<IMethodSymbol> GetAllMethodSymbolsOfPartialParts(this IMethodSymbol method)
+        {
+            if (method.PartialDefinitionPart != null)
+            {
+                Debug.Assert(method.PartialImplementationPart == null && method.PartialDefinitionPart != method);
+                return ImmutableArray.Create(method, method.PartialDefinitionPart);
+            }
+            else if (method.PartialImplementationPart != null)
+            {
+                Debug.Assert(method.PartialImplementationPart != method);
+                return ImmutableArray.Create(method.PartialImplementationPart, method);
+            }
+            else
+            {
+                return ImmutableArray.Create(method);
+            }
+        }
+
         public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, IList<string> newNames)
         {
             if (method.TypeParameters.Select(t => t.Name).SequenceEqual(newNames))
@@ -76,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
                 method.ReturnType.SubstituteTypes(mapping, typeGenerator),
-                method.ReturnsByRef,
+                method.RefKind,
                 method.ExplicitInterfaceImplementations,
                 method.Name,
                 updatedTypeParameters,
@@ -102,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
                 method.ReturnType,
-                method.ReturnsByRef,
+                method.RefKind,
                 method.ExplicitInterfaceImplementations,
                 method.Name,
                 method.TypeParameters,
@@ -110,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static ImmutableArray<ITypeParameterSymbol> RenameTypeParameters(
-            IList<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
             IList<string> newNames,
             ITypeGenerator typeGenerator)
         {
@@ -118,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // parameter.  The second updates the constraints to point at this new type parameter.
             var newTypeParameters = new List<CodeGenerationTypeParameterSymbol>();
             var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
-            for (int i = 0; i < typeParameters.Count; i++)
+            for (int i = 0; i < typeParameters.Length; i++)
             {
                 var typeParameter = typeParameters[i];
 
@@ -131,6 +153,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     typeParameter.HasConstructorConstraint,
                     typeParameter.HasReferenceTypeConstraint,
                     typeParameter.HasValueTypeConstraint,
+                    typeParameter.HasUnmanagedTypeConstraint,
                     typeParameter.Ordinal);
 
                 newTypeParameters.Add(newTypeParameter);
@@ -175,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this IMethodSymbol method, ISymbol accessibleWithin,
             params INamedTypeSymbol[] removeAttributeTypes)
         {
-            Func<AttributeData, bool> shouldRemoveAttribute = a =>
+            bool shouldRemoveAttribute(AttributeData a) =>
                 removeAttributeTypes.Any(attr => attr != null && attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
 
             return method.RemoveAttributesCore(
@@ -206,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
                 method.ReturnType,
-                method.ReturnsByRef,
+                method.RefKind,
                 method.ExplicitInterfaceImplementations,
                 method.Name,
                 method.TypeParameters,

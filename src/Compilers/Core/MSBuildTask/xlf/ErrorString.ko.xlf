@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../ErrorString.resx">
+    <body>
+      <trans-unit id="Compiler_UnexpectedException">
+        <source>MSB3883: Unexpected exception: </source>
+        <target state="translated">MSB3883: 예기치 않은 예외: </target>
+        <note>{StrBegin="MSB3883: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_AssemblyAliasContainsIllegalCharacters">
+        <source>MSB3053: The assembly alias "{1}" on reference "{0}" contains illegal characters.</source>
+        <target state="translated">MSB3053: "{0}" 참조의 어셈블리 별칭 "{1}"에 잘못된 문자가 포함되어 있습니다.</target>
+        <note>{StrBegin="MSB3053: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_InvalidParameter">
+        <source>MSB3051: The parameter to the compiler is invalid.  {0}</source>
+        <target state="translated">MSB3051: 컴파일러에 대한 매개 변수가 잘못되었습니다. {0}</target>
+        <note>{StrBegin="MSB3051: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_InvalidParameterWarning">
+        <source>MSB3052: The parameter to the compiler is invalid, '{0}{1}' will be ignored.</source>
+        <target state="translated">MSB3052: 컴파일러에 대한 매개 변수가 잘못되었습니다. '{0}{1}'이(가) 무시됩니다.</target>
+        <note>{StrBegin="MSB3052: "}</note>
+      </trans-unit>
+      <trans-unit id="General_CannotConvertStringToBool">
+        <source>The string "{0}" cannot be converted to a boolean (true/false) value.</source>
+        <target state="translated">"{0}" 문자열을 부울 값(true/false)으로 변환할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_CouldNotSetHostObjectParameter">
+        <source>MSB3081: A problem occurred while trying to set the "{0}" parameter for the IDE's in-process compiler. {1}</source>
+        <target state="translated">MSB3081: IDE의 In-Process 컴파일러에 "{0}" 매개 변수를 설정하는 동안 문제가 발생했습니다. {1}</target>
+        <note>{StrBegin="MSB3081: "}</note>
+      </trans-unit>
+      <trans-unit id="General_DuplicateItemsNotSupported">
+        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
+        <target state="translated">MSB3105: "{0}" 항목을 "{1}" 매개 변수에 두 번 이상 지정했습니다.  "{1}" 매개 변수는 중복 항목을 지원하지 않습니다.</target>
+        <note>{StrBegin="MSB3105: "}</note>
+      </trans-unit>
+      <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
+        <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
+        <target state="translated">MSB3083: "{0}" 항목이 "{1}" 매개 변수에 두 번 이상 지정되었으며 두 항목이 "{3}" 메타데이터에 대해 동일한 값 "{2}"을(를) 가지고 있습니다.  "{3}" 메타데이터에 대한 값이 같으면 "{1}" 매개 변수는 중복 항목을 지원하지 않습니다.</target>
+        <note>{StrBegin="MSB3083: "}</note>
+      </trans-unit>
+      <trans-unit id="General_ExpectedFileMissing">
+        <source>Expected file "{0}" does not exist.</source>
+        <target state="translated">필요한 "{0}" 파일이 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_SkippingCopy1">
+        <source>Reference assembly "{0}" already has latest information. Leaving it untouched.</source>
+        <target state="translated">참조 어셈블리 "{0}"에 이미 최신 정보가 있습니다. 그대로 유지합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_SourceNotRef1">
+        <source>Could not extract the MVID from "{0}". Are you sure it is a reference assembly?</source>
+        <target state="translated">"{0}"에서 MVID를 추출할 수 없습니다. 참조 어셈블리가 맞는지 확인하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_BadSource3">
+        <source>Failed to check the content hash of the source ref assembly '{0}': {1}
+{2}</source>
+        <target state="translated">소스 참조 어셈블리 '{0}'의 콘텐츠 해시를 확인하지 못했습니다. {1}
+{2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_BadDestination1">
+        <source>Failed to check the content hash of the destination ref assembly '{0}'. It will be overwritten.</source>
+        <target state="translated">대상 참조 어셈블리 '{0}'의 콘텐츠 해시를 확인하지 못했으므로 이 대상 참조 어셈블리를 덮어씁니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ToolFileNotFound">
+        <source>MSB3082: Task failed because "{0}" was not found.</source>
+        <target state="translated">MSB3082: "{0}"을(를) 찾을 수 없어서 작업에 실패했습니다.</target>
+        <note>{StrBegin="MSB3082: "}</note>
+      </trans-unit>
+      <trans-unit id="General_IncorrectHostObject">
+        <source>MSB3087: An incompatible host object was passed into the "{0}" task.  The host object for this task must implement the "{1}" interface.</source>
+        <target state="translated">MSB3087: 호환되지 않는 호스트 개체가 "{0}" 작업에 전달되었습니다.  이 작업의 호스트 개체는 "{1}" 인터페이스를 구현해야 합니다.</target>
+        <note>{StrBegin="MSB3087: "}</note>
+      </trans-unit>
+      <trans-unit id="General_InvalidAttributeMetadata">
+        <source>Item "{0}" has attribute "{1}" with value "{2}" that could not be converted to "{3}".</source>
+        <target state="translated">"{0}" 항목에 "{3}"(으)로 변환할 수 없는 "{2}" 값이 있는 "{1}" 특성이 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ParameterUnsupportedOnHostCompiler">
+        <source>The IDE's in-process compiler does not support the specified values for the "{0}" parameter.  Therefore, this task will fallback to using the command-line compiler.</source>
+        <target state="translated">IDE의 In-Process 컴파일러에서는 "{0}" 매개 변수에 지정한 값이 지원되지 않으므로  대신 명령줄 컴파일러에서 이 작업을 처리합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ReferenceDoesNotExist">
+        <source>MSB3104: The referenced assembly "{0}" was not found. If this assembly is produced by another one of your projects, please make sure to build that project before building this one.</source>
+        <target state="translated">MSB3104: 참조된 어셈블리 "{0}"을(를) 찾을 수 없습니다. 다른 프로젝트에서 이 어셈블리를 생성한 경우 이 어셈블리를 빌드하기 전에 해당 프로젝트를 빌드해야 합니다.</target>
+        <note>{StrBegin="MSB3104: "}</note>
+      </trans-unit>
+      <trans-unit id="SharedCompilationFallback">
+        <source>Shared compilation failed; falling back to tool: {0}</source>
+        <target state="translated">공유 컴파일 실패, 다음 도구로 변경 중: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UsingSharedCompilation">
+        <source>Using shared compilation with compiler from directory: {0}</source>
+        <target state="translated">디렉터리의 컴파일러로 공유 컴파일 사용: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Vbc_EnumParameterHasInvalidValue">
+        <source>MSB3401: "{1}" is an invalid value for the "{0}" parameter.  The valid values are: {2}</source>
+        <target state="translated">MSB3401: "{1}"은(는) "{0}" 매개 변수에 사용할 수 없는 값입니다. 유효한 값은 {2}입니다.</target>
+        <note>{StrBegin="MSB3401: "}</note>
+      </trans-unit>
+      <trans-unit id="Vbc_ParameterHasInvalidValue">
+        <source>"{1}" is an invalid value for the "{0}" parameter.</source>
+        <target state="translated">"{1}"은(는) "{0}" 매개 변수에 사용할 수 없는 값입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Vbc_RenamePDB">
+        <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
+        <target state="translated">MSB3402: pdb 파일 "{0}"을(를) 만드는 동안 오류가 발생했습니다. {1}</target>
+        <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">충돌 메타데이터 '{2}'이(가) 있는 중복 항목 '{1}'이(가) {0}에 포함되어 있습니다. '{3}' 및 '{4}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">{0} 경로는 슬래시 또는 백슬래시로 끝나야 합니다. '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">{0} 항목은 {1}이(가) true인 경우 최상위(중첩되지 않은) 항목을 하나 이상 포함해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">{1} 항목에서 {0}의 값을 찾을 수 없거나 해당 항목이 최상위 소스 루트가 아닙니다. '{2}'</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

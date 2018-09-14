@@ -58,10 +58,15 @@ namespace Microsoft.CodeAnalysis
         public string OutputFilePath => _projectState.OutputFilePath;
 
         /// <summary>
-        /// <code>true</code> if this <see cref="Project"/> supports providing data through the
+        /// The path to the reference assembly output file, or null if it is not known.
+        /// </summary>
+        public string OutputRefFilePath => _projectState.OutputRefFilePath;
+
+        /// <summary>
+        /// <see langword="true"/> if this <see cref="Project"/> supports providing data through the
         /// <see cref="GetCompilationAsync(CancellationToken)"/> method.
         /// 
-        /// If <code>false</code> then this method will return <code>null</code> instead.
+        /// If <see langword="false"/> then this method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsCompilation => this.LanguageServices.GetService<ICompilationFactoryService>() != null;
 
@@ -219,9 +224,16 @@ namespace Microsoft.CodeAnalysis
             return _projectState.GetAdditionalDocumentState(documentId);
         }
 
-        internal Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        internal async Task<bool> ContainsSymbolsWithNameAsync(string name, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            return _solution.State.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken);
+            return this.SupportsCompilation &&
+                   await _solution.State.ContainsSymbolsWithNameAsync(Id, name, filter, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal async Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return this.SupportsCompilation &&
+                   await _solution.State.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false);
         }
 
         internal async Task<IEnumerable<Document>> GetDocumentsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)

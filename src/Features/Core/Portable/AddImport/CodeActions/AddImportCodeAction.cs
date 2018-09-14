@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -44,9 +45,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                 FixData = fixData;
 
                 Title = fixData.Title;
-                Tags = fixData.Tags;
+                Tags = fixData.Tags.ToImmutableArrayOrEmpty();
                 Priority = fixData.Priority;
-                _textChanges = fixData.TextChanges;
+                _textChanges = fixData.TextChanges.ToImmutableArrayOrEmpty();
             }
 
             protected async Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)

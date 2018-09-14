@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -17,14 +18,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void OpenCSharpThenVBSolution()
         {
             base.OpenCSharpThenVBSolution();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1826"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1826"), Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void MetadataReference()
         {
@@ -41,13 +42,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             base.MetadataReference();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19223"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19223"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public override void ProjectReference()
         {
             base.ProjectReference();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ProjectProperties()
         {

@@ -195,12 +195,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 
             // This needs to be in different folder from referencesdir to cause the other code path 
             // to be triggered for NeedsShadowCopy method
-            var dir2 = Path.GetTempPath();
-            string dll2 = Path.Combine(dir2, "a2.dll");
-            File.WriteAllBytes(dll2, TestResources.MetadataTests.InterfaceAndClass.CSClasses01);
+            var dir2 = Temp.CreateDirectory();
+            var dll2 = dir2.CreateFile("a2.dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01);
 
             Assert.Equal(1, _provider.CacheSize);
-            var sc3a = _provider.GetMetadataShadowCopy(dll2, MetadataImageKind.Module);
+            var sc3a = _provider.GetMetadataShadowCopy(dll2.Path, MetadataImageKind.Module);
             Assert.Equal(2, _provider.CacheSize);
         }
 

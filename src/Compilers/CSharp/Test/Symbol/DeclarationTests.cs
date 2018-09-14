@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 //test
@@ -265,7 +266,7 @@ namespace NA
             Assert.Equal(SymbolKind.NamedType, comp.GlobalNamespace.GetMembers()[0].Kind);
         }
 
-        [Fact()]
+        [NoIOperationValidationFact]
         public void OnlyOneParse()
         {
             var underlyingTree = SyntaxFactory.ParseSyntaxTree(@"
@@ -287,7 +288,7 @@ public class B
 
             var countedTree = new CountedSyntaxTree(foreignType);
 
-            var compilation = CreateStandardCompilation(new SyntaxTree[] { underlyingTree, countedTree });
+            var compilation = CreateCompilation(new SyntaxTree[] { underlyingTree, countedTree });
 
             var type = compilation.Assembly.GlobalNamespace.GetTypeMembers().First();
             Assert.Equal(1, countedTree.AccessCount);   // parse once to build the decl table
@@ -297,7 +298,7 @@ public class B
             Assert.Equal(1, countedTree.AccessCount);
 
             // Getting the interfaces will cause us to do some more binding of the current type.
-            var interfaces = type.Interfaces;
+            var interfaces = type.Interfaces();
             Assert.Equal(1, countedTree.AccessCount);
 
             // Now bind the members.

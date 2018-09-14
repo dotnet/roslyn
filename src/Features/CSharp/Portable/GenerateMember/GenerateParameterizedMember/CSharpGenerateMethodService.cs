@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
 {
     [ExportLanguageService(typeof(IGenerateParameterizedMemberService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpGenerateMethodService :
+    internal sealed class CSharpGenerateMethodService :
         AbstractGenerateMethodService<CSharpGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 }
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             methodSymbol = null;
             typeToGenerateIn = null;
             return false;
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 }
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             simpleNameOrMemberAccessExpression = null;
             invocationExpressionOpt = null;
             isInConditionalAccessExpression = false;

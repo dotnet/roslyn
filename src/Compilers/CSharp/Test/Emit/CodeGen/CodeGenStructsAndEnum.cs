@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1242,7 +1243,7 @@ public class D
         }
 
         [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void InplaceCtor005()
         {
             string source = @"
@@ -1520,6 +1521,88 @@ public class D
   IL_0079:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void InheritedCallOnReadOnly()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main()
+        {
+            var obj = new C1();
+            System.Console.WriteLine(obj.field.ToString());
+        }
+    }
+
+    class C1
+    {
+        public readonly S1 field;
+    }
+
+    struct S1
+    {
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: Verification.Skipped);
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  ldflda     ""S1 C1.field""
+  IL_000a:  constrained. ""S1""
+  IL_0010:  callvirt   ""string object.ToString()""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
+}
+");
+            compilation = CompileAndVerify(source, expectedOutput: "S1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  ldfld      ""S1 C1.field""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  constrained. ""S1""
+  IL_0013:  callvirt   ""string object.ToString()""
+  IL_0018:  call       ""void System.Console.WriteLine(string)""
+  IL_001d:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(27049, "https://github.com/dotnet/roslyn/issues/27049")]
+        public void BoxingRefStructForBaseCall()
+        {
+            CreateCompilation(@"
+ref struct S
+{
+    public override bool Equals(object obj) => base.Equals(obj);
+
+    public override int GetHashCode() => base.GetHashCode();
+
+    public override string ToString() => base.ToString();
+}").VerifyDiagnostics(
+                // (4,48): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override bool Equals(object obj) => base.Equals(obj);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(4, 48),
+                // (6,42): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override int GetHashCode() => base.GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(6, 42),
+                // (8,42): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override string ToString() => base.ToString();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(8, 42));
         }
 
         #endregion
@@ -1922,8 +2005,9 @@ struct S
   // Code size      116 (0x74)
   .maxstack  4
   .locals init (S V_0,
-  S V_1,
-  bool V_2)
+                S V_1,
+                bool V_2,
+                S V_3)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
@@ -1941,24 +2025,223 @@ struct S
   IL_002e:  callvirt   ""bool object.Equals(object)""
   IL_0033:  stloc.2
   IL_0034:  ldloca.s   V_2
-  IL_0036:  ldloca.s   V_0
+  IL_0036:  ldloca.s   V_1
   IL_0038:  initobj    ""S""
-  IL_003e:  ldloca.s   V_0
+  IL_003e:  ldloca.s   V_1
   IL_0040:  ldc.i4.1
   IL_0041:  stfld      ""int S.x""
-  IL_0046:  ldloca.s   V_0
-  IL_0048:  ldloca.s   V_1
+  IL_0046:  ldloca.s   V_1
+  IL_0048:  ldloca.s   V_3
   IL_004a:  initobj    ""S""
-  IL_0050:  ldloca.s   V_1
+  IL_0050:  ldloca.s   V_3
   IL_0052:  ldc.i4.1
   IL_0053:  stfld      ""int S.x""
-  IL_0058:  ldloc.1
+  IL_0058:  ldloc.3
   IL_0059:  box        ""S""
   IL_005e:  constrained. ""S""
   IL_0064:  callvirt   ""bool object.Equals(object)""
   IL_0069:  call       ""bool bool.Equals(bool)""
   IL_006e:  call       ""void System.Console.WriteLine(bool)""
   IL_0073:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InitTemp003()
+        {
+            string source = @"
+using System;
+
+readonly struct S
+{
+    readonly int x;
+
+    public S(int x)
+    {
+        this.x = x;
+    }
+
+    static void Main()
+    {
+        // named argument reordering introduces a sequence with temps
+        // and we cannot know whether RefMethod returns a ref to a sequence local
+        // so we must assume that it can, and therefore must keep all the sequence the locals in use 
+        // for the duration of the most-encompassing expression.
+        Console.WriteLine(RefMethod(arg2: I(5), arg1: I(3)).GreaterThan(
+                          RefMethod(arg2: I(0), arg1: I(0))));
+    }
+
+    public static ref readonly S RefMethod(in S arg1, in S arg2)
+    {
+        return ref arg2;
+    }
+
+    public bool GreaterThan(in S arg)
+    {
+        return this.x > arg.x;
+    }
+
+    public static S I(int arg)
+    {
+        return new S(arg);
+    }
+}
+
+";
+
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: "True");
+
+            compilation.VerifyIL("S.Main",
+@"
+{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (S V_0,
+                S V_1,
+                S V_2,
+                S V_3)
+  IL_0000:  ldc.i4.5
+  IL_0001:  call       ""S S.I(int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.3
+  IL_0008:  call       ""S S.I(int)""
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""ref readonly S S.RefMethod(in S, in S)""
+  IL_0017:  ldc.i4.0
+  IL_0018:  call       ""S S.I(int)""
+  IL_001d:  stloc.2
+  IL_001e:  ldc.i4.0
+  IL_001f:  call       ""S S.I(int)""
+  IL_0024:  stloc.3
+  IL_0025:  ldloca.s   V_3
+  IL_0027:  ldloca.s   V_2
+  IL_0029:  call       ""ref readonly S S.RefMethod(in S, in S)""
+  IL_002e:  call       ""bool S.GreaterThan(in S)""
+  IL_0033:  call       ""void System.Console.WriteLine(bool)""
+  IL_0038:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InitTemp004()
+        {
+            string source = @"
+using System;
+
+readonly struct S
+{
+    public readonly int x;
+
+    public S(int x)
+    {
+        this.x = x;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(TestRO().x);
+        System.Console.WriteLine();
+        System.Console.Write(Test().x);
+    }
+
+    static ref readonly S TestRO()
+    {
+        try
+        {
+            // both args are refs
+            return ref RefMethodRO(arg2: I(5), arg1: I(3));
+        }
+        finally
+        {
+            // first arg is a value!!
+            RefMethodRO(arg2: I_Val(5), arg1: I(3));
+        }
+    }
+
+    public static ref readonly S RefMethodRO(in S arg1, in S arg2)
+    {
+        System.Console.Write(arg2.x);
+        return ref arg2;
+    }
+
+    // similar as above, but with regular (not readonly) refs for comparison
+    static ref S Test()
+    {
+        try
+        {
+            return ref RefMethod(arg2: ref I(5), arg1: ref I(3));
+        }
+        finally
+        {
+            var temp = I(5);
+            RefMethod(arg2: ref temp, arg1: ref I(3));
+        }
+    }
+
+    public static ref S RefMethod(ref S arg1, ref S arg2)
+    {
+        System.Console.Write(arg2.x);
+        return ref arg2;
+    }
+
+    private static S[] arr = new S[] { new S() };
+
+    public static ref S I(int arg)
+    {
+        arr[0] = new S(arg);
+        return ref arr[0];
+    }
+
+    public static S I_Val(int arg)
+    {
+        arr[0] = new S(arg);
+        return arr[0];
+    }
+}
+
+";
+
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: @"353
+353");
+
+            compilation.VerifyIL("S.TestRO",
+@"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (S& V_0,
+                S& V_1,
+                S V_2)
+  .try
+  {
+    IL_0000:  ldc.i4.5
+    IL_0001:  call       ""ref S S.I(int)""
+    IL_0006:  stloc.0
+    IL_0007:  ldc.i4.3
+    IL_0008:  call       ""ref S S.I(int)""
+    IL_000d:  ldloc.0
+    IL_000e:  call       ""ref readonly S S.RefMethodRO(in S, in S)""
+    IL_0013:  stloc.1
+    IL_0014:  leave.s    IL_002c
+  }
+  finally
+  {
+    IL_0016:  ldc.i4.5
+    IL_0017:  call       ""S S.I_Val(int)""
+    IL_001c:  stloc.2
+    IL_001d:  ldc.i4.3
+    IL_001e:  call       ""ref S S.I(int)""
+    IL_0023:  ldloca.s   V_2
+    IL_0025:  call       ""ref readonly S S.RefMethodRO(in S, in S)""
+    IL_002a:  pop
+    IL_002b:  endfinally
+  }
+  IL_002c:  ldloc.1
+  IL_002d:  ret
 }
 ");
         }
@@ -1999,7 +2282,7 @@ public class Test
             compilation.VerifyIL("NullableTest.EqualEqual",
 @"
 {
-  // Code size      120 (0x78)
+  // Code size      112 (0x70)
   .maxstack  2
   .locals init (decimal? V_0)
   IL_0000:  ldc.i4.0
@@ -2013,31 +2296,27 @@ public class Test
   IL_001c:  ldloca.s   V_0
   IL_001e:  call       ""decimal decimal?.GetValueOrDefault()""
   IL_0023:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_0028:  brtrue.s   IL_002d
-  IL_002a:  ldc.i4.0
-  IL_002b:  br.s       IL_0034
-  IL_002d:  ldloca.s   V_0
-  IL_002f:  call       ""bool decimal?.HasValue.get""
-  IL_0034:  box        ""bool""
-  IL_0039:  ldc.i4.0
-  IL_003a:  box        ""bool""
-  IL_003f:  call       ""void Test.Eval(object, object)""
-  IL_0044:  ldsfld     ""decimal decimal.Zero""
-  IL_0049:  ldsfld     ""decimal? NullableTest.NULL""
-  IL_004e:  stloc.0
-  IL_004f:  ldloca.s   V_0
-  IL_0051:  call       ""decimal decimal?.GetValueOrDefault()""
-  IL_0056:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_005b:  brtrue.s   IL_0060
-  IL_005d:  ldc.i4.0
-  IL_005e:  br.s       IL_0067
-  IL_0060:  ldloca.s   V_0
-  IL_0062:  call       ""bool decimal?.HasValue.get""
-  IL_0067:  box        ""bool""
-  IL_006c:  ldc.i4.0
-  IL_006d:  box        ""bool""
-  IL_0072:  call       ""void Test.Eval(object, object)""
-  IL_0077:  ret
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""bool decimal?.HasValue.get""
+  IL_002f:  and
+  IL_0030:  box        ""bool""
+  IL_0035:  ldc.i4.0
+  IL_0036:  box        ""bool""
+  IL_003b:  call       ""void Test.Eval(object, object)""
+  IL_0040:  ldsfld     ""decimal decimal.Zero""
+  IL_0045:  ldsfld     ""decimal? NullableTest.NULL""
+  IL_004a:  stloc.0
+  IL_004b:  ldloca.s   V_0
+  IL_004d:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0052:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0057:  ldloca.s   V_0
+  IL_0059:  call       ""bool decimal?.HasValue.get""
+  IL_005e:  and
+  IL_005f:  box        ""bool""
+  IL_0064:  ldc.i4.0
+  IL_0065:  box        ""bool""
+  IL_006a:  call       ""void Test.Eval(object, object)""
+  IL_006f:  ret
 }
 ");
         }

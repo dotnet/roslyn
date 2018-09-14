@@ -81,7 +81,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,28): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                 //         Console.Write(o is null);
                 Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(7, 28),
@@ -994,7 +994,7 @@ public class C
     }
 }";
             var comp = CompileAndVerify(source,
-                additionalRefs: new[] { CSharpRef, SystemCoreRef_v4_0_30319_17929 },
+                references: new[] { CSharpRef },
                 expectedOutput: string.Empty);
             comp.VerifyIL("C.Get",
 @"{
@@ -1380,7 +1380,7 @@ static class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (10,17): error CS0019: Operator '??' cannot be applied to operands of type 'T' and 'T'
                 //         var y = default(T) ?? x;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) ?? x").WithArguments("??", "T", "T").WithLocation(10, 17)); ;
@@ -1440,7 +1440,7 @@ public class Test
         a = M ?? a;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '??' cannot be applied to operands of type 'method group' and 'System.Action'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "M ?? a").WithArguments("??", "method group", "System.Action").WithLocation(7, 13));
         }
@@ -2139,7 +2139,7 @@ class P
     }
 }";
             // the grammar does not allow a query on the right-hand-side of &&, but we allow it except in strict mode.
-            CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (23,26): error CS1525: Invalid expression term 'from'
                 //         var b = false && from x in src select x; // WRN CS0429
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "from x in src").WithArguments("from").WithLocation(23, 26),
@@ -2150,8 +2150,7 @@ class P
                 // using System.Linq;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(3, 1)
                 );
-            CompileAndVerify(source, additionalRefs: new[] { LinqAssemblyRef },
-                expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(543109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543109")]
@@ -2172,8 +2171,7 @@ class P
         return (errCount > 0) ? 1 : 0;
     }
 }";
-            CompileAndVerify(source, additionalRefs: new[] { LinqAssemblyRef },
-                expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(543377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543377")]
@@ -3760,7 +3758,7 @@ False");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestFloatNegativeZero()
         {
             var text = @"
@@ -3796,7 +3794,7 @@ Infinity");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestDoubleNegativeZero()
         {
             var text = @"
@@ -3833,7 +3831,7 @@ Infinity");
         // NOTE: decimal doesn't have infinity, so we convert to double.
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestDecimalNegativeZero()
         {
             var text = @"
@@ -3921,8 +3919,7 @@ public class Test
   // Code size       73 (0x49)
   .maxstack  3
   .locals init (int V_0,
-  T V_1,
-  T V_2)
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T Test.Nop<T>(T)""
   IL_0006:  stloc.1
@@ -3938,8 +3935,8 @@ public class Test
   IL_001f:  callvirt   ""void I.IntPropI.set""
   IL_0024:  ldarg.0
   IL_0025:  call       ""T Test.Nop<T>(T)""
-  IL_002a:  stloc.2
-  IL_002b:  ldloca.s   V_2
+  IL_002a:  stloc.1
+  IL_002b:  ldloca.s   V_1
   IL_002d:  dup
   IL_002e:  constrained. ""T""
   IL_0034:  callvirt   ""int I.IntPropI.get""
@@ -4413,7 +4410,7 @@ using System.Security;
     }
 ";
 
-            var comp = CompileAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"");
+            var comp = CompileAndVerify(new string[] { source }, expectedOutput: @"");
             //            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
@@ -4861,7 +4858,7 @@ class Program
         }
 
         [Fact]
-        public void TestCompoundOnAfieldOfGeneric()
+        public void TestCompoundOnAFieldOfGeneric()
         {
             var source = @"
 class Program
@@ -5008,7 +5005,8 @@ class test<T> where T : c0
 ");
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_01()
         {
             var source =
@@ -5067,7 +5065,8 @@ class Test
             return builder.ToString();
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_02()
         {
             var source =
@@ -5095,7 +5094,7 @@ class Test
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
 
-        [Fact]
+        [NoIOperationValidationFact]
         [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
@@ -5123,7 +5122,7 @@ class Test
 }
 ";
 
-                var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+                var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
                 diagnostics = compilation.GetEmitDiagnostics();
             }
 
@@ -5156,7 +5155,8 @@ class Test
             return builder.ToString();
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_04()
         {
             var source =
@@ -5181,7 +5181,7 @@ class Test
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (17,16): error CS8078: An expression is too long or complex to compile
     //         return 1 * f[0] + 2 * f[1] + 3 * f[2] + 4 * f[3] + ...
@@ -5189,7 +5189,8 @@ class Test
                 );
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_05()
         {
             int count = 50;
@@ -5241,7 +5242,8 @@ class Test
 5180801");
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_06()
         {
             var source =
@@ -5287,7 +5289,7 @@ struct S1
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (10,16): error CS8078: An expression is too long or complex to compile
     //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...

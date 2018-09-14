@@ -2253,10 +2253,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Else
                         typeName = ParseTypeName()
 
-                        If typeName.Kind = SyntaxKind.TupleType Then
-                            typeName = ReportSyntaxError(typeName, ERRID.ERR_NewWithTupleTypeSyntax)
-                        End If
-
                         If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
                             ' New <Type> ( <Arguments> )
                             newArguments = ParseParenthesizedArguments()
@@ -5583,7 +5579,7 @@ checkNullable:
                         typeName = ResyncAt(typeName, SyntaxKind.GreaterThanToken)
 
                     ElseIf CurrentToken.Kind = SyntaxKind.OpenParenToken Then
-                        arguments = ParseParenthesizedArguments()
+                        arguments = ParseParenthesizedArguments(attributeListParent:=True)
                     End If
 
                     Dim attribute As AttributeSyntax = SyntaxFactory.Attribute(optionalTarget, typeName, arguments)
@@ -6169,14 +6165,7 @@ checkNullable:
                 Return node
             End If
 
-            If feature = Feature.InterpolatedStrings Then
-                ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
-                ' an unlocalized string and fix this to be localized in the next release.
-                Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
-                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), "interpolated strings", requiredVersion)
-            Else
-                Return ReportFeatureUnavailable(feature, node, languageVersion)
-            End If
+            Return ReportFeatureUnavailable(feature, node, languageVersion)
         End Function
 
         Private Shared Function ReportFeatureUnavailable(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode, languageVersion As LanguageVersion) As TNode

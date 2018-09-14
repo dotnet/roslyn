@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
         protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
-            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
+            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default)
         {
             if (trigger.Kind != CompletionTriggerKind.Snippets)
             {
@@ -48,10 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 else if (token.IsPreProcessorExpressionContext())
                 {
                     return CreateEmptySuggestionModeItem();
-                }
-                else if (IsImplicitArrayCreation(semanticModel, token, position, typeInferrer, cancellationToken))
-                {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.implicit_array_creation, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_implicit_array_creation);
                 }
                 else if (token.IsKindOrHasMatchingText(SyntaxKind.FromKeyword) || token.IsKindOrHasMatchingText(SyntaxKind.JoinKeyword))
                 {

@@ -86,7 +86,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
         public string DumpAssemblyData(out string dumpDirectory)
         {
-            return RuntimeUtilities.DumpAssemblyData(ModuleDatas, out dumpDirectory);
+            return RuntimeEnvironmentUtilities.DumpAssemblyData(ModuleDatas, out dumpDirectory);
         }
 
         public void Dispose()
@@ -160,10 +160,7 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             foreach (var module in modules.Select(x => x.Data))
             {
-                // If the module is already added then nothing else to do
-                AssemblyData assemblyData;
-                bool fullMatch;
-                if (TryGetMatchingByFullName(module.Id, out assemblyData, out fullMatch))
+                if (TryGetMatchingByFullName(module.Id, out var assemblyData, out var fullMatch))
                 {
                     if (!fullMatch)
                     {
@@ -186,9 +183,12 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             foreach (var id in moduleDataIds.Select(x => x.Id))
             {
-                AssemblyData assemblyData;
-                bool fullMatch;
-                if (TryGetMatchingByFullName(id, out assemblyData, out fullMatch) && !fullMatch)
+                if (TryGetMatchingByFullName(id, out _, out var fullMatch) && !fullMatch)
+                {
+                    return true;
+                }
+
+                if (TryGetMatchingByMvid(id, out _, out fullMatch) && !fullMatch)
                 {
                     return true;
                 }
@@ -211,9 +211,7 @@ namespace Roslyn.Test.Utilities.Desktop
             var list = new List<RuntimeModuleDataId>();
             foreach (var id in moduleIds.Select(x => x.Id))
             {
-                AssemblyData other;
-                bool fullMatch;
-                if (!TryGetMatchingByFullName(id, out other, out fullMatch) || !fullMatch)
+                if (!TryGetMatchingByFullName(id, out var other, out var fullMatch) || !fullMatch)
                 {
                     list.Add(new RuntimeModuleDataId(id));
                 }
@@ -235,10 +233,22 @@ namespace Roslyn.Test.Utilities.Desktop
             return false;
         }
 
+        private bool TryGetMatchingByMvid(ModuleDataId id, out AssemblyData assemblyData, out bool fullMatch)
+        {
+            if (_mvidToAssemblyDataMap.TryGetValue(id.Mvid, out assemblyData))
+            {
+                fullMatch = _preloadedSet.Contains(id.SimpleName) || StringComparer.OrdinalIgnoreCase.Equals(id.FullName, assemblyData.Id.FullName);
+                return true;
+            }
+
+            assemblyData = default(AssemblyData);
+            fullMatch = false;
+            return false;
+        }
+
         private ImmutableArray<byte> GetModuleBytesByName(string moduleName)
         {
-            AssemblyData data;
-            if (!_fullNameToAssemblyDataMap.TryGetValue(moduleName, out data))
+            if (!_fullNameToAssemblyDataMap.TryGetValue(moduleName, out var data))
             {
                 throw new KeyNotFoundException(String.Format("Could not find image for module '{0}'.", moduleName));
             }
@@ -289,8 +299,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
         private Assembly GetAssembly(string fullName, bool reflectionOnly)
         {
-            AssemblyData data;
-            if (!_fullNameToAssemblyDataMap.TryGetValue(fullName, out data))
+            if (!_fullNameToAssemblyDataMap.TryGetValue(fullName, out var data))
             {
                 return null;
             }
@@ -378,7 +387,6 @@ namespace Roslyn.Test.Utilities.Desktop
             Debug.Assert(entryPoint != null, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
 
             object result = null;
-            string stdOut, stdErr;
             DesktopRuntimeEnvironment.Capture(() =>
             {
                 var count = entryPoint.GetParameters().Length;
@@ -397,7 +405,7 @@ namespace Roslyn.Test.Utilities.Desktop
                 }
 
                 result = entryPoint.Invoke(null, args);
-            }, expectedOutputLength ?? 0, out stdOut, out stdErr);
+            }, expectedOutputLength ?? 0, out var stdOut, out var stdErr);
 
             output = stdOut + stdErr;
             return result is int ? (int)result : 0;
@@ -443,8 +451,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
             if (throwOnError && errors.Length > 0)
             {
-                string dumpDir;
-                RuntimeUtilities.DumpAssemblyData(ModuleDatas, out dumpDir);
+                RuntimeEnvironmentUtilities.DumpAssemblyData(ModuleDatas, out var dumpDir);
                 throw new RuntimePeVerifyException(errors.ToString(), dumpDir);
             }
             return allOutput.ToArray();

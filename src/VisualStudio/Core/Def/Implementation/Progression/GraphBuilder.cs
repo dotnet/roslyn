@@ -478,8 +478,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             // Set type-specific properties
-            var typeSymbol = symbol as ITypeSymbol;
-            if (typeSymbol != null && typeSymbol.IsAnonymousType)
+            if (symbol is ITypeSymbol typeSymbol && typeSymbol.IsAnonymousType)
             {
                 node[Properties.IsAnonymous] = true;
             }

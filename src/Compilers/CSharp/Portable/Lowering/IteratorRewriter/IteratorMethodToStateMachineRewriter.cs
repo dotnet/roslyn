@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Generate the body for MoveNext()
             ///////////////////////////////////
 
-            F.CurrentMethod = moveNextMethod;
+            F.CurrentFunction = moveNextMethod;
             int initialState;
             GeneratedLabelSymbol initialLabel;
             AddState(out initialState, out initialLabel);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /////////////////////////////////// 
             // Generate the body for Dispose().
             ///////////////////////////////////
-            F.CurrentMethod = disposeMethod;
+            F.CurrentFunction = disposeMethod;
             var rootFrame = _currentFinallyFrame;
 
             if (rootFrame.knownStates == null)
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression caseExpressionOpt = (BoundExpression)this.Visit(node.CaseExpressionOpt);
             BoundLabel labelExpressionOpt = (BoundLabel)this.Visit(node.LabelExpressionOpt);
             var proxyLabel = _currentFinallyFrame.ProxyLabelIfNeeded(node.Label);
-            Debug.Assert(node.Label == proxyLabel || !(F.CurrentMethod is IteratorFinallyMethodSymbol), "should not be proxying branches in finally");
+            Debug.Assert(node.Label == proxyLabel || !(F.CurrentFunction is IteratorFinallyMethodSymbol), "should not be proxying branches in finally");
             return node.Update(proxyLabel, caseExpressionOpt, labelExpressionOpt);
         }
 
@@ -375,10 +375,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(frame.parent.knownStates.ContainsValue(frame), "parent must be aware about states in the child frame");
 
             var finallyMethod = frame.handler;
-            var origMethod = F.CurrentMethod;
+            var origMethod = F.CurrentFunction;
 
             // rewrite finally block into a Finally method.
-            F.CurrentMethod = finallyMethod;
+            F.CurrentFunction = finallyMethod;
             var rewrittenHandler = (BoundStatement)this.Visit(node.FinallyBlockOpt);
 
             _tryNestingLevel--;
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             );
 
             F.CloseMethod(rewrittenHandler);
-            F.CurrentMethod = origMethod;
+            F.CurrentFunction = origMethod;
 
 
             var bodyStatements = ArrayBuilder<BoundStatement>.GetInstance();

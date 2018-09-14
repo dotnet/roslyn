@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Organizing
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
+    <[UseExportProvider]>
     Public MustInherit Class AbstractOrganizerTests
 
         Protected Async Function CheckAsync(initial As XElement, final As XElement) As System.Threading.Tasks.Task

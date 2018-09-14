@@ -459,7 +459,7 @@ c1 = c2;
             var badTypeRef = MetadataReference.CreateFromImage(badTypeBytes.AsImmutableOrNull());
 
             // TODO: enable this with our AssemblyLoader:
-            ResolveEventHandler handler = (_, args) =>
+            Assembly handler(object _, ResolveEventArgs args)
             {
                 if (args.Name.StartsWith("b,", StringComparison.Ordinal))
                 {
@@ -467,7 +467,7 @@ c1 = c2;
                 }
 
                 return null;
-            };
+            }
 
             AppDomain.CurrentDomain.AssemblyResolve += handler;
             try

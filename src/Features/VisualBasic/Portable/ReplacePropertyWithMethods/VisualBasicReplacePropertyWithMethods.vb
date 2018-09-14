@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 Return Nothing
             End If
 
-            ' a parameterized property can be trivially converted to a method.
+            ' a parameterized property cannot be trivially converted to a method.
             If containingProperty.ParameterList IsNot Nothing Then
                 Return Nothing
             End If

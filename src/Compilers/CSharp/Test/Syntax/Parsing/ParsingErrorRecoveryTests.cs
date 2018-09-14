@@ -1875,7 +1875,7 @@ class C
             Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[1].Code);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (1,21): error CS1003: Syntax error, ']' expected
                 // class c { int this[ }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]", "}").WithLocation(1, 21),
@@ -1987,7 +1987,7 @@ class C
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (1,21): error CS1056: Unexpected character '$'
                 // class c { int this[ $ ] { } }
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 21),
@@ -2072,7 +2072,7 @@ class C
             Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[1].Code);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (1,21): error CS1003: Syntax error, ']' expected
                 // class c { int this[ public void m() { } }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "public").WithArguments("]", "public").WithLocation(1, 21),
@@ -3917,7 +3917,7 @@ class C
             Assert.Equal(1, diags.Length);
             Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, diags[0].Code);
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (1,31): error CS1026: ) expected
                 // class c { void m() { fixed(t v; } }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31),
@@ -6380,7 +6380,7 @@ class C
         [Fact]
         public void ParseMethodWithConstructorInitializer()
         {
-            //someone has a typo in the name of their ctor - parse it as a method, but accept the initializer 
+            //someone has a typo in the name of their ctor - parse it as a ctor, and accept the initializer 
             var text = @"
 class C
 {
@@ -6392,9 +6392,7 @@ class C
             var file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_MemberNeedsType, file.Errors()[0].Code); //for the missing 'void'
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedToken, file.Errors()[1].Code); //colon is unexpected
+            Assert.Equal(0, file.Errors().Length);
 
             // CONSIDER: Dev10 actually gives 'CS1002: ; expected', because it thinks you were trying to
             // specify a method without a body.  This is a little silly, since we already know the method
@@ -6404,8 +6402,8 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, classDecl.Kind());
 
             var methodDecl = classDecl.ChildNodesAndTokens()[3];
-            Assert.Equal(SyntaxKind.MethodDeclaration, methodDecl.Kind()); //not ConstructorDeclaration
-            Assert.True(methodDecl.ContainsDiagnostics);
+            Assert.Equal(SyntaxKind.ConstructorDeclaration, methodDecl.Kind()); //not MethodDeclaration
+            Assert.False(methodDecl.ContainsDiagnostics);
 
             var methodBody = methodDecl.ChildNodesAndTokens()[3];
             Assert.Equal(SyntaxKind.Block, methodBody.Kind());
@@ -6753,7 +6751,7 @@ _ _::this
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (2,4): error CS1003: Syntax error, '.' expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".", "::").WithLocation(2, 4),

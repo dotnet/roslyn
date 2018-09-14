@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -36,12 +37,13 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
-        private IEnumerable<EmbeddedText> _embedddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
+        private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
 
         // Only set when running tests to allow realized IL for a given method to be looked up by method.
         internal ConcurrentDictionary<IMethodSymbol, CompilationTestData.MethodData> TestData { get; private set; }
 
         internal readonly DebugInformationFormat DebugInformationFormat;
+        internal readonly HashAlgorithmName PdbChecksumAlgorithm;
 
         public CommonPEModuleBuilder(
             IEnumerable<ResourceDescription> manifestResources,
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Emit
             SerializationProperties = serializationProperties;
             _methodBodyMap = new ConcurrentDictionary<IMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
             DebugInformationFormat = emitOptions.DebugInformationFormat;
+            PdbChecksumAlgorithm = emitOptions.PdbChecksumAlgorithm;
         }
 
         /// <summary>
@@ -173,7 +176,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// provide a basis for approximating the capacities of
         /// various databases used during Emit.
         /// </summary>
-        public int HintNumberOfMethodDefinitions => _methodBodyMap.Count;
+        public int HintNumberOfMethodDefinitions
+            // Try to guess at the size of tables to prevent re-allocation. The method body
+            // map is pretty close, but unfortunately it tends to undercount. x1.5 seems like
+            // a healthy amount of room based on compiling Roslyn.
+            => (int)(_methodBodyMap.Count * 1.5);
 
         internal Cci.IMethodBody GetMethodBody(IMethodSymbol methodSymbol)
         {
@@ -368,12 +375,12 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             get 
             { 
-                return _embedddedTexts; 
+                return _embeddedTexts; 
             }
             set
             {
                 Debug.Assert(value != null);
-                _embedddedTexts = value;
+                _embeddedTexts = value;
             }
         }
 

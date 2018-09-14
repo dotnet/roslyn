@@ -144,15 +144,18 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private async Task<ISymbol> GetSymbolAsync(Solution solution, ProjectId projectId, string symbolId, CancellationToken cancellationToken)
         {
-            var comp = await solution.GetProject(projectId).GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(symbolId, comp).ToList();
+            var project = solution.GetProject(projectId);
+            if (project.SupportsCompilation)
+            {
+                var comp = await solution.GetProject(projectId).GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(symbolId, comp).ToList();
 
-            if (symbols.Count == 1)
-            {
-                return symbols[0];
-            }
-            else if (symbols.Count > 1)
-            {
+                if (symbols.Count == 1)
+                {
+                    return symbols[0];
+                }
+                else if (symbols.Count > 1)
+                {
 #if false
                 // if we have multiple matches, use the same index that it appeared as in the original solution.
                 var originalComp = await this.originalSolution.GetProject(projectId).GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -163,8 +166,9 @@ namespace Microsoft.CodeAnalysis.Editing
                     return symbols[index];
                 }
 #else
-                return symbols[0];
+                    return symbols[0];
 #endif
+                }
             }
 
             return null;
@@ -258,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
             {
                 editAction(e, d);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             },
             cancellationToken);
         }
@@ -311,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="editAction">The action that makes edits to the declaration.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/>.</param>
         /// <returns>The new symbol including the changes.</returns>
-        public async Task<ISymbol> EditOneDeclarationAsync(
+        public Task<ISymbol> EditOneDeclarationAsync(
             ISymbol symbol,
             Location location,
             AsyncDeclarationEditAction editAction,
@@ -319,16 +323,10 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var sourceTree = location.SourceTree;
 
-            var doc = _currentSolution.GetDocument(sourceTree);
+            var doc = _currentSolution.GetDocument(sourceTree) ?? _originalSolution.GetDocument(sourceTree);
             if (doc != null)
             {
-                return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken).ConfigureAwait(false);
-            }
-
-            doc = _originalSolution.GetDocument(sourceTree);
-            if (doc != null)
-            {
-                return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken).ConfigureAwait(false);
+                return EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken);
             }
 
             throw new ArgumentException("The location specified is not part of the solution.", nameof(location));
@@ -355,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
                 {
                     editAction(e, d);
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 },
                 cancellationToken);
         }
@@ -438,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
                 {
                     editAction(e, d);
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 },
                 cancellationToken);
         }
@@ -519,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
                 {
                     editAction(e, d);
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 },
                 cancellationToken);
         }

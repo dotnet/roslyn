@@ -3,23 +3,26 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
     internal partial class Controller :
         AbstractController<Controller.Session, Model, ISignatureHelpPresenterSession, ISignatureHelpSession>,
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<InvokeSignatureHelpCommandArgs>
+        IChainedCommandHandler<TypeCharCommandArgs>,
+        IChainedCommandHandler<InvokeSignatureHelpCommandArgs>
     {
         private static readonly object s_controllerPropertyKey = new object();
 
@@ -27,33 +30,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private ImmutableArray<ISignatureHelpProvider> _providers;
         private IContentType _lastSeenContentType;
 
+        public string DisplayName => EditorFeaturesResources.Signature_Help;
+
         public Controller(
+            IThreadingContext threadingContext,
             ITextView textView,
             ITextBuffer subjectBuffer,
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
             IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
-            : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
+            : base(threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
             _allProviders = allProviders;
         }
 
         // For testing purposes.
         internal Controller(
+            IThreadingContext threadingContext,
             ITextView textView,
             ITextBuffer subjectBuffer,
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
             IList<ISignatureHelpProvider> providers)
-            : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
+            : base(threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
             _providers = providers.ToImmutableArray();
         }
 
         internal static Controller GetInstance(
-            CommandArgs args,
+            IThreadingContext threadingContext,
+            EditorCommandArgs args,
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
@@ -61,10 +69,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
             return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_controllerPropertyKey,
-                (v, b) => new Controller(v, b,
+                (v, b) => new Controller(threadingContext, v, b,
                     presenter,
                     asyncListener,
-                    new DocumentProvider(),
+                    new DocumentProvider(threadingContext),
                     allProviders));
         }
 

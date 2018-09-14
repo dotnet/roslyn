@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _documentId = documentId;
             _textManagerAdapter = textManagerAdapter;
 
-            _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>();
+            _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>(state.ThreadingContext);
 
             _batchMode = false;
             _batchDocument = null;
@@ -332,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             });
         }
 
-        private void ApplyChanges(Workspace workspace, Document document)
+        private void ApplyChanges(Microsoft.CodeAnalysis.Workspace workspace, Document document)
         {
             if (IsBatchOpen)
             {
@@ -518,7 +518,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var lineNumber = point.Line - 1;
             var column = point.LineCharOffset - 1;
-            var line = GetDocument().GetTextAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None).Lines[lineNumber];
+            var line = GetDocument().GetTextSynchronously(CancellationToken.None).Lines[lineNumber];
             var position = line.Start + column;
 
             return position;
@@ -795,7 +795,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 var keyedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element);
                 if (keyedElement != null)
                 {
-                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default(CancellationToken));
+                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default);
                 }
             }
         }

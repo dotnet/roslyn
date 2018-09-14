@@ -17,7 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             private readonly IVsActivityLog _activityLog;
 
-            public LogService(IVsActivityLog activityLog)
+            public LogService(IThreadingContext threadingContext, IVsActivityLog activityLog)
+                : base(threadingContext)
             {
                 _activityLog = activityLog;
             }
@@ -35,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             private Task LogAsync(string text, __ACTIVITYLOG_ENTRYTYPE type)
             {
                 Log(text, type);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             private void Log(string text, __ACTIVITYLOG_ENTRYTYPE type)

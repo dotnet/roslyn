@@ -112,6 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
             public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
             {
                 return GetEmptyTypeArgumentCustomModifiers(ordinal);
@@ -180,6 +182,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public override bool IsAbstract
+            {
+                get { return false; }
+            }
+
+            internal sealed override bool IsByRefLikeType
+            {
+                get { return false;  }
+            }
+
+            internal sealed override bool IsReadOnly
             {
                 get { return false; }
             }
@@ -302,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return DefaultMarshallingCharSet; }
             }
 
-            internal override bool IsSerializable
+            public override bool IsSerializable
             {
                 get { return false; }
             }

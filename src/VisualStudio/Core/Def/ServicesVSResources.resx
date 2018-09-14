@@ -231,8 +231,8 @@
   <data name="Could_not_find_location_of_folder_on_disk" xml:space="preserve">
     <value>Could not find location of folder on disk</value>
   </data>
-  <data name="Error_while_reading_0_colon_1" xml:space="preserve">
-    <value>Error while reading '{0}': {1}</value>
+  <data name="ErrorReadingFile" xml:space="preserve">
+    <value>Error while reading file '{0}': {1}</value>
   </data>
   <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
@@ -654,7 +654,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 2. Open a Visual Studio Developer Command Prompt
 3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
 4. Delete .vs directory/.suo file
-5. Restart VS from the command prompt you set the environment varaible (devenv)
+5. Restart VS from the command prompt you set the environment variable (devenv)
 6. Open the solution
 7. Check '{0}' and look for the failed tasks (FAILED)</value>
   </data>
@@ -780,8 +780,8 @@ Additional information: {1}</value>
   <data name="Manage_specifications" xml:space="preserve">
     <value>Manage specifications</value>
   </data>
-  <data name="Manage_styles" xml:space="preserve">
-    <value>Manage styles</value>
+  <data name="Manage_naming_styles" xml:space="preserve">
+    <value>Manage naming styles</value>
   </data>
   <data name="Reorder" xml:space="preserve">
     <value>Reorder</value>
@@ -876,6 +876,9 @@ Additional information: {1}</value>
   <data name="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio" xml:space="preserve">
     <value>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</value>
   </data>
+  <data name="analyzer_Prefer_auto_properties" xml:space="preserve">
+    <value>Prefer auto properties</value>
+  </data>
   <data name="Add_a_symbol_specification" xml:space="preserve">
     <value>Add a symbol specification</value>
   </data>
@@ -900,7 +903,7 @@ Additional information: {1}</value>
   <data name="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread" xml:space="preserve">
     <value>VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</value>
   </data>
-  <data name="prefer_auto_properties" xml:space="preserve">
+  <data name="codegen_prefer_auto_properties" xml:space="preserve">
     <value>prefer auto properties</value>
   </data>
   <data name="prefer_throwing_properties" xml:space="preserve">
@@ -960,6 +963,107 @@ Additional information: {1}</value>
     <value>Changes are not allowed while code is running.</value>
   </data>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
-    <value>Prefere local function over anonymous function</value>
+    <value>Prefer local function over anonymous function</value>
+  </data>
+  <data name="Keep_all_parentheses_in_colon" xml:space="preserve">
+    <value>Keep all parentheses in:</value>
+  </data>
+  <data name="In_other_operators" xml:space="preserve">
+    <value>In other operators</value>
+  </data>
+  <data name="Never_if_unnecessary" xml:space="preserve">
+    <value>Never if unnecessary</value>
+  </data>
+  <data name="Always_for_clarity" xml:space="preserve">
+    <value>Always for clarity</value>
+  </data>
+  <data name="Parentheses_preferences_colon" xml:space="preserve">
+    <value>Parentheses preferences:</value>
+  </data>
+  <data name="ModuleHasBeenUnloaded" xml:space="preserve">
+    <value>Module has been unloaded.</value>
+  </data>
+  <data name="CantApplyChangesModuleHasBeenUnloaded" xml:space="preserve">
+    <value>Can't apply changes -- module '{0}' has been unloaded.</value>
+  </data>
+  <data name="CantApplyChangesUnexpectedError" xml:space="preserve">
+    <value>Can't apply changes -- unexpected error: '{0}'</value>
+  </data>
+  <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
+    <value>Prefer deconstructed variable declaration</value>
+  </data>
+  <data name="External_reference_found" xml:space="preserve">
+    <value>External reference found</value>
+  </data>
+  <data name="No_references_found_to_0" xml:space="preserve">
+    <value>No references found to '{0}'</value>
+  </data>
+  <data name="Search_found_no_results" xml:space="preserve">
+    <value>Search found no results</value>
+  </data>
+  <data name="Sync_Class_View" xml:space="preserve">
+    <value>Sync Class View</value>
+  </data>
+  <data name="Reset_Visual_Studio_default_keymapping" xml:space="preserve">
+    <value>Reset Visual Studio default keymapping</value>
+  </data>
+  <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
+    <value>Enable navigation to decompiled sources (experimental)</value>
+  </data>
+  <data name="Decompiler_Legal_Notice_Message" xml:space="preserve">
+    <value>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
+ 
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
+(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
+(ii) obtain permission to decompile the binary code from the owner of the software.
+ 
+Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+
+I agree to all of the foregoing:</value>
+  </data>
+  <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
+    <value>Decompiler Legal Notice</value>
+  </data>
+  <data name="Colorize_regular_expressions" xml:space="preserve">
+    <value>Colorize regular expressions</value>
+  </data>
+  <data name="Highlight_related_components_under_cursor" xml:space="preserve">
+    <value>Highlight related components under cursor</value>
+  </data>
+  <data name="Regular_Expressions" xml:space="preserve">
+    <value>Regular Expressions</value>
+  </data>
+  <data name="Report_invalid_regular_expressions" xml:space="preserve">
+    <value>Report invalid regular expressions</value>
+  </data>
+  <data name="Code_style_header_use_editor_config" xml:space="preserve">
+    <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
+  </data>
+  <data name="Field_preferences_colon" xml:space="preserve">
+    <value>Field preferences:</value>
+  </data>
+  <data name="Prefer_readonly" xml:space="preserve">
+    <value>Prefer readonly</value>
+  </data>
+  <data name="Analyzing_0" xml:space="preserve">
+    <value>Analyzing '{0}'</value>
+  </data>
+  <data name="Live_code_analysis" xml:space="preserve">
+    <value>Live code analysis</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with assignments</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_returns" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with returns</value>
+  </data>
+  <data name="Apply_0_keymapping_scheme" xml:space="preserve">
+    <value>Apply '{0}' keymapping scheme</value>
+  </data>
+  <data name="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor" xml:space="preserve">
+    <value>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</value>
+  </data>
+  <data name="Use_expression_body_for_lambdas" xml:space="preserve">
+    <value>Use expression body for lambdas</value>
   </data>
 </root>

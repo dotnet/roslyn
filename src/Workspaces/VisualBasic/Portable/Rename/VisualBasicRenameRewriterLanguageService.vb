@@ -278,8 +278,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim prefix = If(isRenameLocation AndAlso Me._renameLocations(token.Span).IsRenamableAccessor, newToken.ValueText.Substring(0, newToken.ValueText.IndexOf("_"c) + 1), String.Empty)
                 Dim suffix As String = Nothing
 
-                If symbols.Count() = 1 Then
-                    Dim symbol = symbols.Single()
+                If symbols.Length = 1 Then
+                    Dim symbol = symbols(0)
 
                     If symbol.IsConstructor() Then
                         symbol = symbol.ContainingSymbol
@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     isNamespaceDeclarationReference = True
                 End If
 
-                Dim isMemberGroupReference = _semanticFactsService.IsNameOfContext(_semanticModel, token.Span.Start, _cancellationToken)
+                Dim isMemberGroupReference = _semanticFactsService.IsInsideNameOfExpression(_semanticModel, token.Parent, _cancellationToken)
 
                 Dim renameAnnotation = New RenameActionAnnotation(
                                     token.Span,
@@ -680,6 +680,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
                                .Select(Function(loc) reverseMappedLocations(loc)))
+
+                ' If this is a parameter symbol for a partial method definition, be sure we visited 
+                ' the implementation part's body.
+                If renamedSymbol.Kind = SymbolKind.Parameter AndAlso
+                    renamedSymbol.ContainingSymbol.Kind = SymbolKind.Method Then
+                    Dim methodSymbol = DirectCast(renamedSymbol.ContainingSymbol, IMethodSymbol)
+                    If methodSymbol.PartialImplementationPart IsNot Nothing Then
+                        Dim matchingParameterSymbol = methodSymbol.PartialImplementationPart.Parameters((DirectCast(renamedSymbol, IParameterSymbol)).Ordinal)
+
+                        token = matchingParameterSymbol.Locations.Single().FindToken(cancellationToken)
+                        methodBase = token.GetAncestor(Of MethodBlockSyntax)
+                        visitor = New LocalConflictVisitor(token, newSolution, cancellationToken)
+                        visitor.Visit(methodBase)
+
+                        conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
+                                       .Select(Function(loc) reverseMappedLocations(loc)))
+                    End If
+                End If
 
                 ' in VB parameters of properties are not allowed to be the same as the containing property
                 If renamedSymbol.Kind = SymbolKind.Parameter AndAlso

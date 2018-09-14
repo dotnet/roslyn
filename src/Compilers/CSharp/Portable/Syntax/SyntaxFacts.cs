@@ -330,9 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Accessibility.Private:
                     return SyntaxFacts.GetText(PrivateKeyword);
                 case Accessibility.ProtectedAndInternal:
-                    // TODO: C# doesn't have a representation for this.
-                    // For now, use Reflector's representation.
-                    return SyntaxFacts.GetText(InternalKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
+                    return SyntaxFacts.GetText(PrivateKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
                 case Accessibility.Internal:
                     return SyntaxFacts.GetText(InternalKeyword);
                 case Accessibility.Protected:
@@ -474,6 +472,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsReservedTupleElementName(string elementName)
         {
             return TupleTypeSymbol.IsElementNameReserved(elementName) != -1;
+        }
+
+        internal static bool HasAnyBody(this BaseMethodDeclarationSyntax declaration)
+        {
+            return (declaration.Body ?? (SyntaxNode)declaration.ExpressionBody) != null;
         }
     }
 }

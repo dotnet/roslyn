@@ -4,14 +4,15 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
+    [UseExportProvider]
     public class RenameTrackingTaggerProviderTests
     {
         [WpfFact]
@@ -854,9 +855,17 @@ End Enum";
             Assert.False(RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
 
             source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();
+            source.TrySetException(new OperationCanceledException());
+            Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifier(source.Task, waitForResult, CancellationToken.None));
+            Assert.False(RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
+            Assert.False(RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, new CancellationTokenSource().Token));
+
+            source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();
             Assert.Throws<OperationCanceledException>(() => RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, new CancellationToken(canceled: true)));
-            source.TrySetException(new Exception());
-            Assert.Throws<AggregateException>(() => RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
+            var thrownException = new Exception();
+            source.TrySetException(thrownException);
+            var caughtException = Assert.Throws<Exception>(() => RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
+            Assert.Same(thrownException, caughtException);
         }
 
         [WpfFact, WorkItem(1063943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063943")]
@@ -1472,6 +1481,70 @@ public struct ValueTuple&lt;T1&gt;
             {
                 state.EditorOperations.InsertText("2");
                 await state.AssertTag("ValueTuple", "ValueTuple2");
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameTrackingOnDeconstruct()
+        {
+            var code = @"
+class C
+{
+    void Deconstruct$$(out int x1, out int x2) { x1 = 1; x2 = 2; }
+    void M()
+    {
+        var (y1, y2) = this;
+    }
+}";
+            using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("2");
+                await state.AssertTag("Deconstruct", "Deconstruct2");
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameTracking_UnmanagedConstraint_Keyword()
+        {
+            var code = @"
+class C&lt;T&gt; where T : $$unmanaged
+{
+}";
+            using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
+            {
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameTracking_UnmanagedConstraint_Type()
+        {
+            var code = @"
+interface unmanaged
+{
+}
+class C&lt;T&gt; where T : $$unmanaged
+{
+}";
+            using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("my");
+
+                await state.AssertTag("unmanaged", "myunmanaged", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+interface myunmanaged
+{
+}
+class C<T> where T : myunmanaged
+{
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                await state.AssertNoTag();
             }
         }
     }

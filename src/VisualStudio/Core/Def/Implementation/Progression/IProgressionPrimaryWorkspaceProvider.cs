@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     // Workaround since ETA doesn't export VisualStudioWorkspace
     internal interface IProgressionPrimaryWorkspaceProvider
     {

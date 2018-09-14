@@ -94,8 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             object parentInstance = ComAggregate.GetManagedObject<object>(parentObject);
             Debug.Assert(!Marshal.IsComObject(parentInstance), "We should have a pure managed object!");
 
-            var container = parentInstance as ICodeElementContainer<T>;
-            if (container != null)
+            if (parentInstance is ICodeElementContainer<T> container)
             {
                 return container.GetCollection();
             }

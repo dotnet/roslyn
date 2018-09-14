@@ -28,21 +28,25 @@ function Package-Normal() {
 # The debugger DLLs have a more complex structure and it's easier to special case
 # copying them over.
 function Copy-Debugger() { 
-    $debuggerRefDir = Join-Path $dllPath "debugger\ref"
-    $debuggerImplDir = Join-Path $dllPath "debugger\lib\net45"
+    $debuggerDir = Join-Path $dllPath "debugger"
+    $debuggerRefDir = Join-Path $debuggerDir "ref"
+    $debuggerImplDir = Join-Path $debuggerDir "lib\net45"
     Create-Directory $debuggerRefDir
     Create-Directory $debuggerImplDir
     
     Copy-Item -re -fo (Join-Path $dropPath "..\..\Debugger\ReferenceDLL\*") $debuggerRefDir
     Copy-Item -re -fo (Join-Path $dropPath "..\..\Debugger\IDE\Microsoft.VisualStudio.Debugger.Engine.dll") $debuggerImplDir
     Copy-Item -re -fo (Join-Path $dropPath "Microsoft.VisualStudio.Debugger.Metadata.dll") $debuggerImplDir
+    Copy-Item -re -fo (Join-Path $dropPath "Microsoft.VisualStudio.Debugger.UI.Interfaces.dll") $debuggerImplDir
+    
+    Get-ChildItem $debuggerDir -Recurse -File | ForEach-Object { & $fakeSign -f $_.FullName }
 }
 
 # Used to package debugger nugets
 function Package-Debugger() {
-    param( [string]$kind )
+    param( [string]$simpleName )
     $debuggerPath = Join-Path $dllPath "debugger"
-    $nuspecPath = Join-Path $PSScriptRoot "$kind.nuspec"
+    $nuspecPath = Join-Path $PSScriptRoot "$simpleName.nuspec"
     & $nuget pack $nuspecPath -OutputDirectory $packagePath -Properties version=$packageVersion`;debuggerPath=$debuggerPath
 }
 
@@ -56,11 +60,11 @@ try {
 
     $list = Get-Content (Join-Path $PSScriptRoot "files.txt")
     $dropPath = "\\cpvsbuild\drops\VS\$branch\raw\$version\binaries.x86ret\bin\i386"
-    $nuget = Join-Path $PSScriptRoot "..\..\..\nuget.exe"
+    $nuget = Join-Path $PSScriptRoot "..\..\..\Binaries\Tools\nuget.exe"
     $fakeSign = Join-Path (Get-PackageDir "FakeSign") "Tools\FakeSign.exe"
 
     $shortVersion = $version.Substring(0, $version.IndexOf('.'))
-    $packageVersion = "15.0.$shortVersion-$versionSuffix"
+    $packageVersion = "15.8.$shortVersion-$versionSuffix"
     $dllPath = Join-Path $outPath "Dlls"
     $packagePath = Join-Path $outPath "Packages"
 
@@ -79,10 +83,11 @@ try {
             $name = Split-Path -leaf $item
             $simpleName = [IO.Path]::GetFileNameWithoutExtension($name) 
             Write-Host "Packing $simpleName"
-            switch ($simpleName) {
-                "Microsoft.VisualStudio.Debugger.Engine" { Package-Debugger "engine" }
-                "Microsoft.VisualStudio.Debugger.Metadata" { Package-Debugger "metadata" }
-                default { Package-Normal }
+
+            if ($simpleName.StartsWith("Microsoft.VisualStudio.Debugger")) {
+              Package-Debugger $simpleName     
+            } else {
+              Package-Normal
             }
         }
     }

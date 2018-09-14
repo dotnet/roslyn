@@ -92,8 +92,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                     if (paramNodeIndex + 1 < paramNodeSiblings.Count)
                     {
                         var nextSibling = paramNodeSiblings[paramNodeIndex + 1];
-                        var textSyntax = nextSibling as TXmlTextSyntax;
-                        if (textSyntax != null)
+                        if (nextSibling is TXmlTextSyntax textSyntax)
                         {
                             // Walk the next text block forward, making sure we only see whitespace
                             // until we hit the next newline.  If that's all we can remove the preceding

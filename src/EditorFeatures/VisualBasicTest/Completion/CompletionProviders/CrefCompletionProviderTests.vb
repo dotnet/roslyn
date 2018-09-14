@@ -440,5 +440,18 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Assert.True(called)
             End Using
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoSuggestionAfterEmptyCref() As Task
+            Dim text = "
+Class C
+    ''' <see cref="""" $$
+    Sub Goo()
+    End Sub
+End Class
+"
+
+            Await VerifyNoItemsExistAsync(text)
+        End Function
     End Class
 End Namespace

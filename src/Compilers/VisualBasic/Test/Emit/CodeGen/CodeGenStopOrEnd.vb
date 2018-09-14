@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       26 (0x1a)
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Goo",
             <![CDATA[{
   // Code size       16 (0x10)
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       26 (0x1a)
@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       16 (0x10)
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 }]]>)
 
             ' We are looking for a nop after a call to System.Diagnostics.Debugger.Break():
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.DebugExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.DebugExe)
             compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       19 (0x13)

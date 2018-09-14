@@ -1,13 +1,26 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend MustInherit Class DisplayClassInstance
         Friend MustOverride ReadOnly Property ContainingSymbol As Symbol
-        Friend MustOverride ReadOnly Property Type As NamedTypeSymbol
+        Friend MustOverride ReadOnly Property Type As TypeSymbol
         Friend MustOverride Function ToOtherMethod(method As MethodSymbol, typeMap As TypeSubstitution) As DisplayClassInstance
         Friend MustOverride Function ToBoundExpression(syntax As SyntaxNode) As BoundExpression
+
+        Friend Function GetDebuggerDisplay(fields As ConsList(Of FieldSymbol)) As String
+            Return GetDebuggerDisplay(GetInstanceName(), fields)
+        End Function
+
+        Private Shared Function GetDebuggerDisplay(expr As String, fields As ConsList(Of FieldSymbol)) As String
+            Return If(fields.Any(),
+                $"{GetDebuggerDisplay(expr, fields.Tail)}.{fields.Head.Name}",
+                expr)
+        End Function
+
+        Protected MustOverride Function GetInstanceName() As String
     End Class
 
     Friend NotInheritable Class DisplayClassInstanceFromLocal
@@ -28,9 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Type As NamedTypeSymbol
+        Friend Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return DirectCast(Me.Local.Type, NamedTypeSymbol)
+                Return Me.Local.Type
             End Get
         End Property
 
@@ -41,6 +54,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function ToBoundExpression(syntax As SyntaxNode) As BoundExpression
             Return New BoundLocal(syntax, Me.Local, Me.Local.Type).MakeCompilerGenerated()
+        End Function
+
+        Protected Overrides Function GetInstanceName() As String
+            Return Local.Name
         End Function
     End Class
 
@@ -63,9 +80,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Type As NamedTypeSymbol
+        Friend Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return DirectCast(Me.Parameter.Type, NamedTypeSymbol)
+                Return Me.Parameter.Type
             End Get
         End Property
 
@@ -78,6 +95,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function ToBoundExpression(syntax As SyntaxNode) As BoundExpression
             Return New BoundParameter(syntax, Me.Parameter, Me.Parameter.Type).MakeCompilerGenerated()
+        End Function
+
+        Protected Overrides Function GetInstanceName() As String
+            Return Parameter.Name
         End Function
     End Class
 End Namespace

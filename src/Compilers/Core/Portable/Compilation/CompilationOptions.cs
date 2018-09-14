@@ -170,12 +170,13 @@ namespace Microsoft.CodeAnalysis
         internal bool DebugPlusMode_internal_protected_set { set { DebugPlusMode = value; } }
 
         /// <summary>
-        /// Import internal/private members from all references regardless of "internals-visible-to" relationship.
+        /// Specifies whether to import members with accessibility other than public or protected by default. 
+        /// Default value is <see cref="MetadataImportOptions.Public"/>. The value specified is not going to 
+        /// affect correctness of analysis performed by compilers because all members needed for correctness 
+        /// are going to be imported regardless. This setting can force compilation to import members that it 
+        /// normally doesn't.
         /// </summary>
-        internal MetadataImportOptions MetadataImportOptions { get; private set; }
-
-        // TODO: change visibility of the MetadataImportOptions setter to internal & protected
-        internal MetadataImportOptions MetadataImportOptions_internal_protected_set { set { MetadataImportOptions = value; } }
+        public MetadataImportOptions MetadataImportOptions { get; protected set; }
 
         /// <summary>
         /// Apply additional disambiguation rules during resolution of referenced assemblies.
@@ -503,7 +504,7 @@ namespace Microsoft.CodeAnalysis
             return CommonWithCheckOverflow(checkOverflow);
         }
 
-        internal CompilationOptions WithMetadataImportOptions(MetadataImportOptions value) => CommonWithMetadataImportOptions(value);
+        public CompilationOptions WithMetadataImportOptions(MetadataImportOptions value) => CommonWithMetadataImportOptions(value);
 
         protected abstract CompilationOptions CommonWithConcurrentBuild(bool concurrent);
         protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
@@ -528,7 +529,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey);
         protected abstract CompilationOptions CommonWithDelaySign(bool? delaySign);
         protected abstract CompilationOptions CommonWithCheckOverflow(bool checkOverflow);
-        internal abstract CompilationOptions CommonWithMetadataImportOptions(MetadataImportOptions value);
+        protected abstract CompilationOptions CommonWithMetadataImportOptions(MetadataImportOptions value);
 
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);

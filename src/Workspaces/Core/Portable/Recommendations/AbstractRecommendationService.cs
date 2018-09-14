@@ -151,8 +151,10 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
                 if (_context.IsAttributeNameContext)
                 {
-                    var enclosingSymbol = _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken);
-                    return symbol.IsOrContainsAccessibleAttribute(enclosingSymbol, _context.SemanticModel.Compilation.Assembly);
+                    return symbol.IsOrContainsAccessibleAttribute(
+                        _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken),
+                        _context.SemanticModel.Compilation.Assembly,
+                        _cancellationToken);
                 }
 
                 if (_context.IsEnumTypeMemberAccessContext)
@@ -172,8 +174,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                     }
                 }
 
-                var namespaceSymbol = symbol as INamespaceSymbol;
-                if (namespaceSymbol != null)
+                if (symbol is INamespaceSymbol namespaceSymbol)
                 {
                     return namespaceSymbol.ContainsAccessibleTypesOrNamespaces(_context.SemanticModel.Compilation.Assembly);
                 }

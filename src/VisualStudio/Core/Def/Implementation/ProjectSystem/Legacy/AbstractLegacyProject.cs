@@ -1,17 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using VSLangProj;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
@@ -53,10 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             base.SetArguments(commandLine: string.Empty);
         }
 
-        /// <summary>
-        /// string (Guid) of the Hierarchy project type
-        /// </summary>
-        public string ProjectType => GetProjectType(Hierarchy);
+        protected LinkedFileUtilities LinkedFileUtilities
+            => ProjectTracker.LinkedFileUtilities;
 
         public override void Disconnect()
         {
@@ -68,8 +63,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         protected void AddFile(string filename, SourceCodeKind sourceCodeKind)
         {
-            Func<IVisualStudioHostDocument, bool> getIsCurrentContext = document => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable);
-            AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNamesFromHierarchy);
+            bool getIsCurrentContext(IVisualStudioHostDocument document) => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable);
+            var itemid = Hierarchy?.TryGetItemId(filename) ?? VSConstants.VSITEMID_NIL;
+
+            var folderNames = ImmutableArray<string>.Empty;
+
+            if (itemid != VSConstants.VSITEMID_NIL)
+            {
+                folderNames = GetFolderNamesFromHierarchy(itemid);
+            }
+
+            AddFile(filename, sourceCodeKind, getIsCurrentContext, folderNames);
         }
 
         protected void SetOutputPathAndRelatedData(string objOutputPath)
@@ -128,22 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             return ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var filePath)) ? filePath : null;
         }
 
-        private static string GetProjectType(IVsHierarchy hierarchy)
-        {
-            var aggregatableProject = hierarchy as IVsAggregatableProject;
-            if (aggregatableProject == null)
-            {
-                return string.Empty;
-            }
-
-            if (ErrorHandler.Succeeded(aggregatableProject.GetAggregateProjectTypeGuids(out var projectType)))
-            {
-                return projectType;
-            }
-
-            return string.Empty;
-        }
-
         private static Guid GetProjectIDGuid(IVsHierarchy hierarchy)
         {
             if (hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var guid))
@@ -168,95 +156,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             return false;
-        }
-
-        protected sealed override void ValidateReferences()
-        {
-            ValidateReferencesCore();
-        }
-
-        [Conditional("DEBUG")]
-        private void ValidateReferencesCore()
-        {
-            // can happen when project is unloaded and reloaded or in Venus (aspx) case
-            if (ProjectFilePath == null || BinOutputPath == null || ObjOutputPath == null)
-            {
-                return;
-            }
-
-            if (ErrorHandler.Failed(Hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out var property)))
-            {
-                return;
-            }
-
-            var dteProject = property as EnvDTE.Project;
-            if (dteProject == null)
-            {
-                return;
-            }
-
-            var vsproject = dteProject.Object as VSProject;
-            if (vsproject == null)
-            {
-                return;
-            }
-
-            var noReferenceOutputAssemblies = new List<string>();
-            var factory = this.ServiceProvider.GetService(typeof(SVsEnumHierarchyItemsFactory)) as IVsEnumHierarchyItemsFactory;
-            if (ErrorHandler.Failed(factory.EnumHierarchyItems(Hierarchy, (uint)__VSEHI.VSEHI_Leaf, (uint)VSConstants.VSITEMID.Root, out var items)))
-            {
-                return;
-            }
-
-            VSITEMSELECTION[] item = new VSITEMSELECTION[1];
-            while (ErrorHandler.Succeeded(items.Next(1, item, out var fetched)) && fetched == 1)
-            {
-                // ignore ReferenceOutputAssembly=false references since those will not be added to us in design time.
-                var storage = Hierarchy as IVsBuildPropertyStorage;
-                storage.GetItemAttribute(item[0].itemid, "ReferenceOutputAssembly", out var value);
-                Hierarchy.GetProperty(item[0].itemid, (int)__VSHPROPID.VSHPROPID_Caption, out var caption);
-
-                if (string.Equals(value, "false", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(value, "off", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(value, "0", StringComparison.OrdinalIgnoreCase))
-                {
-                    noReferenceOutputAssemblies.Add((string)caption);
-                }
-            }
-
-            var projectReferences = GetCurrentProjectReferences();
-            var metadataReferences = GetCurrentMetadataReferences();
-            var set = new HashSet<string>(vsproject.References.OfType<Reference>().Select(r => PathUtilities.IsAbsolute(r.Name) ? Path.GetFileNameWithoutExtension(r.Name) : r.Name), StringComparer.OrdinalIgnoreCase);
-            var delta = set.Count - noReferenceOutputAssemblies.Count - (projectReferences.Length + metadataReferences.Length);
-            if (delta == 0)
-            {
-                return;
-            }
-
-            // okay, two has different set of dlls referenced. check special Microsoft.VisualBasic case.
-            if (delta != 1)
-            {
-                //// Contract.Requires(false, "different set of references!!!");
-                return;
-            }
-
-            set.ExceptWith(noReferenceOutputAssemblies);
-            set.ExceptWith(projectReferences.Select(r => ProjectTracker.GetProject(r.ProjectId).DisplayName));
-            set.ExceptWith(metadataReferences.Select(m => Path.GetFileNameWithoutExtension(m.FilePath)));
-
-            //// Contract.Requires(set.Count == 1);
-
-            var reference = set.First();
-            if (!string.Equals(reference, "Microsoft.VisualBasic", StringComparison.OrdinalIgnoreCase))
-            {
-                //// Contract.Requires(false, "unknown new reference " + reference);
-                return;
-            }
-
-#if DEBUG
-            // when we are missing microsoft.visualbasic reference, make sure we have embedded vb core option on.
-            Contract.Requires(Debug_VBEmbeddedCoreOptionOn);
-#endif
         }
     }
 }

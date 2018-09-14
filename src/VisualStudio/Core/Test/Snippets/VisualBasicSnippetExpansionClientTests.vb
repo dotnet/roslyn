@@ -1,17 +1,18 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
+    <[UseExportProvider]>
     Public Class VisualBasicSnippetExpansionClientTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function TestAddImport_EmptyDocument() As Task
@@ -361,6 +362,7 @@ End Class</Test>
                     .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     document.GetTextView(),
                     document.TextBuffer,
@@ -400,6 +402,7 @@ End Class</Test>
 
             Using workspace = TestWorkspace.Create(workspaceXml)
                 Dim expansionClient = New SnippetExpansionClient(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.VisualBasicDebuggerLanguageId,
                     workspace.Documents.Single().GetTextView(),
                     workspace.Documents.Single().GetTextBuffer(),
@@ -427,6 +430,7 @@ End Class</Test>
                     options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     surfaceBufferDocument.GetTextView(),
                     subjectBufferDocument.TextBuffer,

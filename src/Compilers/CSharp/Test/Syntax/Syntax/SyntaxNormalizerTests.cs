@@ -235,6 +235,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class c{void M([a]int x,[b] [c,d]int y){}}", "class c\r\n{\r\n  void M([a] int x, [b][c, d] int y)\r\n  {\r\n  }\r\n}");
         }
 
+        [Fact]
+        [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
+        public void TestSpacingOnInvocationLikeKeywords()
+        {
+            // no space between typeof and (
+            TestNormalizeExpression("typeof (T)", "typeof(T)");
+
+            // no space between sizeof and (
+            TestNormalizeExpression("sizeof (T)", "sizeof(T)");
+
+            // no space between default and (
+            TestNormalizeExpression("default (T)", "default(T)");
+
+            // no space between new and (
+            // newline between > and where
+            TestNormalizeDeclaration(
+                "class C<T> where T : new() { }",
+                "class C<T>\r\n  where T : new()\r\n{\r\n}");
+
+            // no space between this and (
+            TestNormalizeDeclaration(
+                "class C { C() : this () { } }",
+                "class C\r\n{\r\n  C(): this()\r\n  {\r\n  }\r\n}");
+
+            // no space between base and (
+            TestNormalizeDeclaration(
+                "class C { C() : base () { } }",
+                "class C\r\n{\r\n  C(): base()\r\n  {\r\n  }\r\n}");
+
+            // no space between checked and (
+            TestNormalizeExpression("checked (a)", "checked(a)");
+
+            // no space between unchecked and (
+            TestNormalizeExpression("unchecked (a)", "unchecked(a)");
+
+            // no space between __arglist and (
+            TestNormalizeExpression("__arglist (a)", "__arglist(a)");
+        }
+
+        [Fact]
+        [WorkItem(24454, "https://github.com/dotnet/roslyn/issues/24454")]
+        public void TestSpacingOnInterpolatedString()
+        {
+            TestNormalizeExpression("$\"{3:C}\"", "$\"{3:C}\"");
+            TestNormalizeExpression("$\"{3: C}\"", "$\"{3: C}\"");
+        }
+
+        [Fact]
+        [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
+        public void TestSpacingOnMethodConstraint()
+        {
+            // newline between ) and where
+            TestNormalizeDeclaration(
+                "class C { void M<T>() where T : struct { } }",
+                "class C\r\n{\r\n  void M<T>()\r\n    where T : struct\r\n  {\r\n  }\r\n}");
+        }
+
         [WorkItem(541684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541684")]
         [Fact]
         public void TestNormalizeRegion1()

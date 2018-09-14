@@ -24,11 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SynthesizedMethodBaseSymbol(NamedTypeSymbol containingType,
                                               MethodSymbol baseMethod,
                                               SyntaxReference syntaxReference,
-                                              SyntaxReference blockSyntaxReference,
                                               Location location,
                                               string name,
                                               DeclarationModifiers declarationModifiers)
-            : base(containingType, syntaxReference, blockSyntaxReference, location)
+            : base(containingType, syntaxReference, location)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)baseMethod != null);
@@ -59,9 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // TODO: move more functionality into here, making these symbols more lazy
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             // do not generate attributes for members of compiler-generated types:
             if (ContainingType.IsImplicitlyDeclared)
@@ -130,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
-        internal sealed override RefKind RefKind
+        public sealed override RefKind RefKind
         {
             get { return this.BaseMethod.RefKind; }
         }

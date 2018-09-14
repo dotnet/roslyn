@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.ValidateFormatString;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -156,7 +157,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        testStr = string.Format(new CultureInfo(""pt-BR""), ""The current price is {0[||]:C2} per ounce"", 2.45);
+        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0[||]:C2} per ounce"", 2.45);
     }     
 }");
         }
@@ -169,7 +170,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        testStr = string.Format(new CultureInfo(""pt-BR""), ""The current price is {0[||]:C2} per {1} "", 2.45, ""ounce"");
+        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0[||]:C2} per {1} "", 2.45, ""ounce"");
     }     
 }");
         }
@@ -182,7 +183,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        testStr = string.Format(new CultureInfo(""pt-BR""), ""The current price is {0} {[||]1} {2} "", 
+        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0} {[||]1} {2} "", 
             2.45, ""per"", ""ounce"");
     }     
 }");
@@ -196,7 +197,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        testStr = string.Format(new CultureInfo(""pt-BR""), ""The current price is {0} {1[||]} {2} {3} "", 
+        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0} {1[||]} {2} {3} "", 
             2.45, ""per"", ""ounce"", ""today only"");
     }     
 }");
@@ -211,7 +212,7 @@ class Program
     static void Main(string[] args)
     {
         object[] objectArray = { 1.25, ""2"", ""teststring""};
-        string.Format(new CultureInfo(""pt-BR""), ""This {0} {1} {[||]2} works"", objectArray); 
+        string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""This {0} {1} {[||]2} works"", objectArray); 
     }     
 }");
         }
@@ -344,7 +345,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(arg0: ""test"", provider: new CultureInfo(""pt-BR""), format: ""This {0[||]} works""); 
+        string.Format(arg0: ""test"", provider: new CultureInfo(""pt-BR"", useUserOverride: false), format: ""This {0[||]} works""); 
     }     
 }");
         }
@@ -643,7 +644,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(new CultureInfo(""pt-BR""), ""This [|{1}|] is my test"", ""teststring1"");
+        string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""This [|{1}|] is my test"", ""teststring1"");
     }     
 }",
                 options: null,
@@ -660,7 +661,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(new CultureInfo(""pt-BR""), ""This [|{2}|] is my test"", ""teststring1"", ""teststring2"");
+        string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""This [|{2}|] is my test"", ""teststring1"", ""teststring2"");
     }     
 }",
                 options: null,
@@ -677,7 +678,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(new CultureInfo(""pt-BR""), ""This{0}{1}{2}[|{3}|] is my test"", ""teststring1"", 
+        string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""This{0}{1}{2}[|{3}|] is my test"", ""teststring1"", 
             ""teststring2"", ""teststring3"");
     }     
 }",
@@ -695,7 +696,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(new CultureInfo(""pt-BR""), ""This{0}{1}{2}{3}[|{4}|] is my test"", ""teststring1"", 
+        string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""This{0}{1}{2}{3}[|{4}|] is my test"", ""teststring1"", 
             ""teststring2"", ""teststring3"", ""teststring4"");
     }     
 }",
@@ -794,7 +795,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(arg0: ""test"", arg1: ""also"", format: ""This {0} [|{2}|] works"", provider: new CultureInfo(""pt-BR""))
+        string.Format(arg0: ""test"", arg1: ""also"", format: ""This {0} [|{2}|] works"", provider: new CultureInfo(""pt-BR"", useUserOverride: false))
     }     
 }",
                 options: null,
@@ -963,6 +964,20 @@ class Program
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: FeaturesResources.Format_string_contains_invalid_placeholder);
+        }
+
+        [WorkItem(29398, "https://github.com/dotnet/roslyn/issues/29398")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
+        public async Task LocalFunctionNamedFormat()
+        {
+            await TestDiagnosticMissingAsync(@"public class C
+{
+    public void M()
+    {
+        Forma[||]t();
+        void Format() { }
+    }
+}");
         }
     }
 }

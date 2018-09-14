@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -169,13 +170,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 currentHash = CombineNamedTypeHashCode(x, currentHash);
 
-                var errorType = x as IErrorTypeSymbol;
-                if (errorType != null)
+                if (x is IErrorTypeSymbol errorType)
                 {
                     foreach (var candidate in errorType.CandidateSymbols)
                     {
-                        var candidateNamedType = candidate as INamedTypeSymbol;
-                        if (candidateNamedType != null)
+                        if (candidate is INamedTypeSymbol candidateNamedType)
                         {
                             currentHash = CombineNamedTypeHashCode(candidateNamedType, currentHash);
                         }
@@ -283,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             public int CombineHashCodes(ITypeParameterSymbol x, int currentHash)
             {
-                Contract.Requires(
+                Debug.Assert(
                     (x.TypeParameterKind == TypeParameterKind.Method && IsConstructedFromSelf(x.DeclaringMethod)) ||
                     (x.TypeParameterKind == TypeParameterKind.Type && IsConstructedFromSelf(x.ContainingType)) ||
                     x.TypeParameterKind == TypeParameterKind.Cref);

@@ -12,6 +12,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// Base implementation of ITableEntriesSnapshot
     /// </summary>
@@ -160,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var currentSnapshot = textBuffer.CurrentSnapshot;
-            return GetLinePosition(snapshot, trackingPoint);
+            return GetLinePosition(currentSnapshot, trackingPoint);
         }
 
         private LinePosition GetLinePosition(ITextSnapshot snapshot, ITrackingPoint trackingPoint)

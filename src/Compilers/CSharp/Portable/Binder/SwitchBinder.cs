@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // bind the pattern, to cause its pattern variables to be inferred if necessary
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
                         var pattern = sectionBinder.BindPattern(
-                            matchLabel.Pattern, SwitchGoverningExpression, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag, wasSwitchCase: true);
+                            SwitchGoverningExpression, matchLabel.Pattern, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag);
                         break;
 
                     default:
@@ -546,6 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundSwitchSection BindSwitchSection(SwitchSectionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             var sectionBinder = originalBinder.GetBinder(node);
+            var locals = sectionBinder.GetDeclaredLocalsForScope(node);
 
             // Bind switch section labels
             var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
@@ -563,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));
             }
 
-            return new BoundSwitchSection(node, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
+            return new BoundSwitchSection(node, locals, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
         }
 
         private Dictionary<SyntaxNode, LabelSymbol> _labelsByNode;
@@ -623,9 +624,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
 
-                    if (caseLabelSyntax.Value.Kind() == SyntaxKind.DefaultLiteralExpression)
+                    SyntaxNode innerValueSyntax = caseLabelSyntax.Value.SkipParens();
+                    if (innerValueSyntax.Kind() == SyntaxKind.DefaultLiteralExpression)
                     {
-                        diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
+                        diagnostics.Add(ErrorCode.ERR_DefaultInSwitch, innerValueSyntax.Location);
                     }
 
                     // LabelSymbols for all the switch case labels are created by BuildLabels().

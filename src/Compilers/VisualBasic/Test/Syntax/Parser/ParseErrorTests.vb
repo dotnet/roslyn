@@ -844,7 +844,7 @@ End Module
 
     <Fact()>
     Public Sub BC30059ERR_RequiredConstExpr_1()
-        CreateCompilationWithMscorlibAndVBRuntime(
+        CreateCompilationWithMscorlib40AndVBRuntime(
         <compilation name="ArrayInitializerForNonConstDim">
             <file name="a.vb">
             Option Infer On
@@ -1522,7 +1522,7 @@ End Class
     <WorkItem(542238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542238")>
     <Fact()>
     Public Sub BC30201ERR_ExpectedExpression_3()
-        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ArrayInitializerForNonConstDim">
     <file name="a.vb">
                         Imports System
@@ -1728,15 +1728,34 @@ BC30306: Array subscript expression missing.
 
     <Fact()>
     Public Sub BC30241ERR_ExpectedNamedArgument()
-        Dim code = <![CDATA[
-                	<Attr1(1, b:=2, 3, e:="Scen1")> Class Class1
+        Dim tree = Parse(<![CDATA[
+<Attr1(1, b:=2, 3, e:="Scen1")>
+Class Class1
 
-	                End Class
-            ]]>.Value
+End Class
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
 
-        ParseAndVerify(code, <errors>
-                                 <error id="30241"/>
-                             </errors>)
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC37303: Named argument expected.
+<Attr1(1, b:=2, 3, e:="Scen1")>
+                ~
+                                    ]]></errors>)
+    End Sub
+
+    <Fact()>
+    Public Sub BC30241ERR_ExpectedNamedArgument_VBLatest()
+        Dim tree = Parse(<![CDATA[
+<Attr1(1, b:=2, 3, e:="Scen1")>
+Class Class1
+
+End Class
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC37303: Named argument expected.
+<Attr1(1, b:=2, 3, e:="Scen1")>
+                ~
+                                    ]]></errors>)
     End Sub
 
     ' old name - ParseInvalidDirective_ERR_ExpectedConditionalDirective

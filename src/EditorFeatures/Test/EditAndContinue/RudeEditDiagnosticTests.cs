@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.InsertFile,
                 RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas,
                 RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
+                RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
+                RudeEditKind.RefStruct,
+                RudeEditKind.ReadOnlyStruct,
+                RudeEditKind.ReadOnlyReferences,
+                RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
             };
 
             var arg2 = new HashSet<RudeEditKind>()
@@ -66,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.DeleteLambdaWithMultiScopeCapture,
             };
 
-            List<RudeEditKind> errors = new List<RudeEditKind>();
             foreach (RudeEditKind value in Enum.GetValues(typeof(RudeEditKind)))
             {
                 if (value == RudeEditKind.None)

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -413,6 +414,51 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInObjectCreation()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program x = new P$$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInArrayCreation()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program[] x = new $$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInArrayCreation2()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program[] x = new Pr$$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TupleExpressionInVarDeclaration()
         {
             var markup = @"using System;
@@ -647,7 +693,7 @@ class a
         int[] a = new $$;
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -797,6 +843,262 @@ class Program
             await VerifyBuilderAsync(markup);
         }
 
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod1()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(a$$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod2()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(a$$)
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod3()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(($$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod4()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(($$)
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod5()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(($$))
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod6()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar((a, $$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod7()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(async (a$$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithNonDelegateExtensionAndInstanceMethod1()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, int val)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(a$$
+    }
+}
+";
+            await VerifyNotBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
         {
             await VerifyWorkerAsync(markup, isBuilder: false);
@@ -821,6 +1123,8 @@ class Program
                     var document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
                     await CheckResultsAsync(document2, position, isBuilder);
                 }
+
+                workspaceFixture.DisposeAfterTest();
             }
         }
 
@@ -842,7 +1146,7 @@ class Program
                 if (isBuilder)
                 {
                     Assert.NotNull(completionList);
-                    Assert.NotNull(completionList.SuggestionModeItem);
+                    Assert.True(completionList.SuggestionModeItem != null, "Expecting a suggestion mode, but none was present");
                 }
                 else
                 {

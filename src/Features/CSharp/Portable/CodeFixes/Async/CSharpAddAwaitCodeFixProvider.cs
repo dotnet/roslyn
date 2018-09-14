@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
             if (newRoot == null)
             {
-                return default(DescriptionAndNode);
+                return default;
             }
 
             return new DescriptionAndNode(CSharpFeaturesResources.Insert_await, newRoot);

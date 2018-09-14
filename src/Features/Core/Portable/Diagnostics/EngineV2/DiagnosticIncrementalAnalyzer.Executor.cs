@@ -3,13 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -27,10 +27,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private class Executor
         {
             private readonly DiagnosticIncrementalAnalyzer _owner;
+            private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
 
             public Executor(DiagnosticIncrementalAnalyzer owner)
             {
                 _owner = owner;
+                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(_owner.Owner, _owner.HostDiagnosticUpdateSource);
             }
 
             public IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)
@@ -77,6 +79,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var nullFilterSpan = (TextSpan?)null;
                         var diagnostics = await ComputeDiagnosticsAsync(analyzerDriverOpt, document, stateSet.Analyzer, kind, nullFilterSpan, cancellationToken).ConfigureAwait(false);
 
+                        // this is no-op in product. only run in test environment
+                        Logger.Log(functionId, (t, d, a, ds) => $"{GetDocumentLogMessage(t, d, a)}, {string.Join(Environment.NewLine, ds)}",
+                            title, document, stateSet.Analyzer, diagnostics);
+
                         // we only care about local diagnostics
                         return new DocumentAnalysisData(version, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());
                     }
@@ -112,6 +118,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // perf optimization. check whether we want to analyze this project or not.
                         if (!FullAnalysisEnabled(project, forceAnalyzerRun))
                         {
+                            Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"FSA off ({p.FilePath ?? p.Name})", project);
+
                             return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                         }
 
@@ -148,12 +156,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return result;
                 }
 
-                DiagnosticAnalysisResult analysisResult;
-                if (!result.TryGetValue(compilerAnalyzer, out analysisResult))
+                if (!result.TryGetValue(compilerAnalyzer, out var analysisResult))
                 {
                     // no result from compiler analyzer
                     return result;
                 }
+
+                Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"Failed to Load Successfully ({p.FilePath ?? p.Name})", project);
 
                 // get rid of any result except syntax from compiler analyzer result
                 var newCompilerAnalysisResult = new DiagnosticAnalysisResult(
@@ -176,8 +185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
                 CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? spanOpt, CancellationToken cancellationToken)
             {
-                var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
-                if (documentAnalyzer != null)
+                if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
                 {
                     var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, kind, analyzerDriverOpt?.Compilation, cancellationToken).ConfigureAwait(false);
                     return ConvertToLocalDiagnostics(document, diagnostics);
@@ -327,12 +335,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // create result map
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var builder = new DiagnosticAnalysisResultBuilder(project, version);
 
                     foreach (var analyzer in ideAnalyzers)
                     {
-                        var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
-                        if (documentAnalyzer != null)
+                        var builder = new DiagnosticAnalysisResultBuilder(project, version);
+
+                        if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
                         {
                             foreach (var document in project.Documents)
                             {
@@ -350,8 +358,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             }
                         }
 
-                        var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
-                        if (projectAnalyzer != null)
+                        if (analyzer is ProjectDiagnosticAnalyzer projectAnalyzer)
                         {
                             builder.AddCompilationDiagnostics(await ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(project, projectAnalyzer, compilationOpt, cancellationToken).ConfigureAwait(false));
                         }
@@ -452,10 +459,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // quick optimization to reduce allocations.
                 if (analyzerDriverOpt == null || !_owner.SupportAnalysisKind(analyzer, document.Project.Language, kind))
                 {
+                    LogSyntaxInfo(analyzerDriverOpt, document, analyzer, kind);
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                if (!await SemanticAnalysisEnabled(document, analyzer, kind, cancellationToken).ConfigureAwait(false))
+                if (!await AnalysisEnabled(document, analyzer, kind, cancellationToken).ConfigureAwait(false))
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -468,28 +476,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     case AnalysisKind.Syntax:
                         var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                         var diagnostics = await analyzerDriverOpt.GetAnalyzerSyntaxDiagnosticsAsync(tree, oneAnalyzers, cancellationToken).ConfigureAwait(false);
+                        LogSyntaxInfo(document, analyzer, diagnostics, tree);
 
-                        Contract.Requires(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
+                        Debug.Assert(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
                         return diagnostics.ToImmutableArrayOrEmpty();
                     case AnalysisKind.Semantic:
                         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         diagnostics = await analyzerDriverOpt.GetAnalyzerSemanticDiagnosticsAsync(model, spanOpt, oneAnalyzers, cancellationToken).ConfigureAwait(false);
 
-                        Contract.Requires(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
+                        Debug.Assert(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
                         return diagnostics.ToImmutableArrayOrEmpty();
                     default:
                         return Contract.FailWithReturn<ImmutableArray<Diagnostic>>("shouldn't reach here");
                 }
             }
 
-            private async Task<bool> SemanticAnalysisEnabled(Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, CancellationToken cancellationToken)
+            private async Task<bool> AnalysisEnabled(Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
-                var disabled = kind != AnalysisKind.Syntax &&
-                               _owner.HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer) &&
-                               !await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                if (kind == AnalysisKind.Syntax || !_owner.HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer))
+                {
+                    return true;
+                }
 
-                return !disabled;
+                var enabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a.ToString()}, ({d.Id}, {d.Project.Id}), Enabled:{e}", analyzer, document, enabled);
+
+                return enabled;
             }
 
             private void UpdateAnalyzerTelemetryData(
@@ -572,8 +586,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
                 }
 
-                var executor = project.Solution.Workspace.Services.GetService<ICodeAnalysisDiagnosticAnalyzerExecutor>();
-                return await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
+                return await _diagnosticAnalyzerRunner.AnalyzeAsync(analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
             }
 
             private IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithCompilation(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)
@@ -624,42 +637,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // ignore these kinds
                         break;
                     case LocationKind.SourceFile:
+                    {
+                        if (project.GetDocument(location.SourceTree) == null)
                         {
-                            if (project.GetDocument(location.SourceTree) == null)
-                            {
-                                // Disallow diagnostics with source locations outside this project.
-                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceTree.FilePath), "diagnostic");
-                            }
-
-                            if (location.SourceSpan.End > location.SourceTree.Length)
-                            {
-                                // Disallow diagnostics with source locations outside this project.
-                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
-                            }
+                            // Disallow diagnostics with source locations outside this project.
+                            throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceTree.FilePath), "diagnostic");
                         }
-                        break;
+
+                        if (location.SourceSpan.End > location.SourceTree.Length)
+                        {
+                            // Disallow diagnostics with source locations outside this project.
+                            throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
+                        }
+                    }
+                    break;
                     case LocationKind.ExternalFile:
+                    {
+                        var filePath = location.GetLineSpan().Path;
+                        var document = TryGetDocumentWithFilePath(project, filePath);
+                        if (document == null)
                         {
-                            var filePath = location.GetLineSpan().Path;
-                            var document = TryGetDocumentWithFilePath(project, filePath);
-                            if (document == null)
-                            {
-                                // this is not a roslyn file. we don't care about this file.
-                                return;
-                            }
-
-                            // this can be potentially expensive since it will load text if it is not already loaded.
-                            // but, this text is most likely already loaded since producer of this diagnostic (Document/ProjectDiagnosticAnalyzers)
-                            // should have loaded it to produce the diagnostic at the first place. once loaded, it should stay in memory until
-                            // project cache goes away. when text is already there, await should return right away.
-                            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            if (location.SourceSpan.End > text.Length)
-                            {
-                                // Disallow diagnostics with locations outside this project.
-                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, filePath), "diagnostic");
-                            }
+                            // this is not a roslyn file. we don't care about this file.
+                            return;
                         }
-                        break;
+
+                        // this can be potentially expensive since it will load text if it is not already loaded.
+                        // but, this text is most likely already loaded since producer of this diagnostic (Document/ProjectDiagnosticAnalyzers)
+                        // should have loaded it to produce the diagnostic at the first place. once loaded, it should stay in memory until
+                        // project cache goes away. when text is already there, await should return right away.
+                        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        if (location.SourceSpan.End > text.Length)
+                        {
+                            // Disallow diagnostics with locations outside this project.
+                            throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, filePath), "diagnostic");
+                        }
+                    }
+                    break;
                     default:
                         throw ExceptionUtilities.Unreachable;
                 }
@@ -696,6 +709,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         Contract.Fail("shouldn't reach here");
                         break;
                 }
+            }
+
+            private static void LogSyntaxInfo(Document document, DiagnosticAnalyzer analyzer, ImmutableArray<Diagnostic> diagnostics, SyntaxTree tree)
+            {
+                if (!diagnostics.IsDefaultOrEmpty)
+                {
+                    return;
+                }
+
+                Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
+                    (d, a, t) => $"{d.Id}, {d.Project.Id}, {a.ToString()}, {t.Length}", document, analyzer, tree);
+            }
+
+            private static void LogSyntaxInfo(CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind)
+            {
+                if (kind != AnalysisKind.Syntax)
+                {
+                    return;
+                }
+
+                Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
+                    (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a.ToString()}, {k}", analyzerDriverOpt, document, analyzer, kind);
             }
         }
     }

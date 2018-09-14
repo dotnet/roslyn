@@ -135,8 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             AddDocumentationPart(textContentBuilder, symbol, semanticModel, position, formatter, cancellationToken);
 
-            ImmutableArray<TaggedText> parts;
-            if (sections.TryGetValue(SymbolDescriptionGroups.AwaitableUsageText, out parts))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AwaitableUsageText, out var parts))
             {
                 textContentBuilder.AddRange(parts);
             }

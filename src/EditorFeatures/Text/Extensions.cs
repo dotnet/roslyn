@@ -37,10 +37,13 @@ namespace Microsoft.CodeAnalysis.Text
             => line.Snapshot.AsText().Lines[line.LineNumber];
 
         public static SourceText AsText(this ITextSnapshot textSnapshot)
-            => SnapshotSourceText.From(textSnapshot);
+        {
+            textSnapshot.TextBuffer.Properties.TryGetProperty<ITextBufferCloneService>(typeof(ITextBufferCloneService), out var textBufferCloneServiceOpt);
+            return SnapshotSourceText.From(textBufferCloneServiceOpt, textSnapshot);
+        }
 
-        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, Encoding encoding)
-            => new SnapshotSourceText.ClosedSnapshotSourceText(((ITextSnapshot2)textSnapshot).TextImage, encoding);
+        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, ITextBufferCloneService textBufferCloneServiceOpt, Encoding encoding)
+            => new SnapshotSourceText.ClosedSnapshotSourceText(textBufferCloneServiceOpt, ((ITextSnapshot2)textSnapshot).TextImage, encoding);
 
         /// <summary>
         /// Gets the workspace corresponding to the text buffer.
@@ -87,16 +90,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// with the specified text's container, or the text's container isn't associated with a workspace,
         /// then the method returns false.
         /// </summary>
-        internal static async Task<Document> GetDocumentWithFrozenPartialSemanticsAsync(this SourceText text, CancellationToken cancellationToken)
+        internal static Document GetDocumentWithFrozenPartialSemantics(this SourceText text, CancellationToken cancellationToken)
         {
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
-
-            if (document != null)
-            {
-                return await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            return null;
+            return document?.WithFrozenPartialSemantics(cancellationToken);
         }
 
         internal static bool CanApplyChangeDocumentToWorkspace(this ITextBuffer buffer)

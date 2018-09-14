@@ -4821,6 +4821,50 @@ var(x,y)=(1,2);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInTupleArrayCreation()
+        {
+            var code = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new(string a, string b) [1];
+    }
+}";
+            var expectedCode = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new (string a, string b)[1];
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInTupleArrayCreation2()
+        {
+            var code = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new(
+    }
+}";
+            var expectedCode = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new (
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleExtension()
         {
             var code = @"static class Class5
@@ -7855,7 +7899,7 @@ switch (o)
 
         private Task AssertFormatBodyAsync(string expected, string input)
         {
-            Func<string, string> transform = s =>
+            string transform(string s)
             {
                 var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 for (int i = 0; i < lines.Length; i++)
@@ -7866,7 +7910,7 @@ switch (o)
                     }
                 }
                 return string.Join(Environment.NewLine, lines);
-            };
+            }
 
             var pattern = @"
 class C
@@ -7947,6 +7991,64 @@ class C {
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        public async Task FormatMultipleAttributeOnSameLineAsField1()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr1]
+    [Attr2]
+    [Attr3] [Attr4] int i;
+}",
+@"
+class C {
+    [Attr1]
+    [Attr2]
+    [Attr3][Attr4]   int   i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        public async Task FormatMultipleAttributesOnSameLineAsField2()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr1]
+    [Attr2]
+    [Attr3] [Attr4] int i;
+}",
+@"
+class C {
+    [Attr1][Attr2]
+    [Attr3][Attr4]   int   i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        public async Task FormatMultipleAttributeOnSameLineAndFieldOnNewLine()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr1]
+    [Attr2]
+    int i;
+}",
+@"
+class C {
+    [Attr1][Attr2]
+    int   i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
         public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_2()
         {
@@ -7963,6 +8065,13 @@ class C
     }
 }";
             await AssertFormatAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
+        public async Task FormatSingleStructDeclaration()
+        {
+            await Formatter.FormatAsync(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
         }
     }
 }

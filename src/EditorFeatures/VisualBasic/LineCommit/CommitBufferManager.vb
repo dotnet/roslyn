@@ -2,7 +2,6 @@
 
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports System.Windows.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 

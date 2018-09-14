@@ -144,6 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         callExpr.MethodGroupOpt,
                         callExpr.ReceiverOpt,
                         callExpr.Arguments,
+                        callExpr.DefaultArguments,
                         callExpr.ConstantValueOpt,
                         isLValue:=False,
                         suppressObjectClone:=False,
@@ -429,7 +430,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     tmpDiagnostics.Clear()
 
                     If withoutArgs.Kind = BoundKind.PropertyAccess Then
+                        Dim receiverOpt As BoundExpression = DirectCast(withoutArgs, BoundPropertyAccess).ReceiverOpt
+                        If receiverOpt?.Syntax Is withoutArgs.Syntax AndAlso Not receiverOpt.WasCompilerGenerated Then
+                            withoutArgs.MakeCompilerGenerated()
+                        End If
+
                         withoutArgs = MakeRValue(withoutArgs, diagnostics)
+
+                    Else
+                        Dim receiverOpt As BoundExpression = DirectCast(withoutArgs, BoundCall).ReceiverOpt
+                        If receiverOpt?.Syntax Is withoutArgs.Syntax AndAlso Not receiverOpt.WasCompilerGenerated Then
+                            withoutArgs.MakeCompilerGenerated()
+                        End If
                     End If
 
                     If withoutArgs.Kind = BoundKind.BadExpression Then
@@ -832,7 +844,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics.AddRange(bestResult.TypeArgumentInferenceDiagnosticsOpt)
             End If
 
-            boundArguments = PassArguments(node, bestResult, boundArguments, diagnostics)
+            Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(node, bestResult, boundArguments, diagnostics)
+            boundArguments = argumentInfo.Arguments
             Debug.Assert(Not boundArguments.IsDefault)
 
             Dim hasErrors As Boolean = False
@@ -931,7 +944,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     constantValue,
                     returnType,
                     suppressObjectClone:=False,
-                    hasErrors:=hasErrors)
+                    hasErrors:=hasErrors,
+                    defaultArguments:=argumentInfo.DefaultArguments)
 
             Else
                 Dim [property] = DirectCast(methodOrProperty, PropertySymbol)
@@ -965,6 +979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     [property].IsWritable(receiver, Me),
                     receiver,
                     boundArguments,
+                    argumentInfo.DefaultArguments,
                     hasErrors:=hasErrors)
             End If
 
@@ -1857,7 +1872,7 @@ ProduceBoundNode:
                                                          callerInfoOpt:=callerInfoOpt,
                                                          representCandidateInDiagnosticsOpt:=Nothing)
 
-                diagnosticPerSymbol.Add(KeyValuePair.Create(candidates(i).Candidate.UnderlyingSymbol, candidateDiagnostics.ToReadOnlyAndFree()))
+                diagnosticPerSymbol.Add(KeyValuePairUtil.Create(candidates(i).Candidate.UnderlyingSymbol, candidateDiagnostics.ToReadOnlyAndFree()))
 
             Next
 
@@ -2020,15 +2035,30 @@ ProduceBoundNode:
                 Dim paramIndex = 0
                 Dim someArgumentsBad As Boolean = False
                 Dim someParamArrayArgumentsBad As Boolean = False
+                Dim seenOutOfPositionNamedArgIndex As Integer = -1
 
                 Dim candidateSymbol As Symbol = candidate.UnderlyingSymbol
                 Dim candidateIsExtension As Boolean = candidate.IsExtensionMethod
 
                 For i As Integer = 0 To arguments.Length - 1 Step 1
 
+                    ' A named argument which is used in-position counts as positional
                     If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
-                        ' First named argument
-                        Exit For
+                        If Not candidate.TryGetNamedParamIndex(argumentNames(i), paramIndex) Then
+                            Exit For
+                        End If
+
+                        If paramIndex <> i Then
+                            ' all remaining arguments must be named
+                            seenOutOfPositionNamedArgIndex = i
+                            Exit For
+                        End If
+
+                        If paramIndex = candidate.ParameterCount - 1 AndAlso candidate.Parameters(paramIndex).IsParamArray Then
+                            Exit For
+                        End If
+
+                        Debug.Assert(parameterToArgumentMap(paramIndex) = -1)
                     End If
 
                     If paramIndex = candidate.ParameterCount Then
@@ -2055,7 +2085,7 @@ ProduceBoundNode:
 
                             If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
                                 ' First named argument
-                                Exit While
+                                Continue For
                             End If
 
                             If arguments(i).Kind = BoundKind.OmittedArgument Then
@@ -2079,8 +2109,6 @@ ProduceBoundNode:
                     positionalArguments += 1
                 Next
 
-                Debug.Assert(argumentNames.IsDefault OrElse positionalArguments < arguments.Length)
-
                 Dim skippedSomeArguments As Boolean = False
 
                 '§11.8.2 Applicable Methods
@@ -2093,8 +2121,11 @@ ProduceBoundNode:
                     Debug.Assert(argumentNames(i) Is Nothing OrElse argumentNames(i).Length > 0)
 
                     If argumentNames(i) Is Nothing Then
-                        ' Unnamed argument follows named arguments, parser should have detected an error.
-                        Debug.Assert(arguments(i).Syntax.Parent.ContainsDiagnostics)
+                        ' Unnamed argument follows out-of-position named arguments
+                        If Not someArgumentsBad Then
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(seenOutOfPositionNamedArgIndex).Syntax),
+                                         ERRID.ERR_BadNonTrailingNamedArgument, argumentNames(seenOutOfPositionNamedArgIndex))
+                        End If
                         Return
                     End If
 
@@ -2438,7 +2469,6 @@ ProduceBoundNode:
             End Try
         End Sub
 
-
         ''' <summary>
         ''' Should be in sync with OverloadResolution.MatchArgumentToByRefParameter
         ''' </summary>
@@ -2605,7 +2635,7 @@ ProduceBoundNode:
             ByRef candidate As OverloadResolution.CandidateAnalysisResult,
             arguments As ImmutableArray(Of BoundExpression),
             diagnostics As DiagnosticBag
-        ) As ImmutableArray(Of BoundExpression)
+        ) As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector)
 
             Debug.Assert(candidate.State = OverloadResolution.CandidateAnalysisResultState.Applicable)
 
@@ -2617,6 +2647,7 @@ ProduceBoundNode:
 
             Dim parameterToArgumentMap = ArrayBuilder(Of Integer).GetInstance(paramCount, -1)
             Dim argumentsInOrder = ArrayBuilder(Of BoundExpression).GetInstance(paramCount)
+            Dim defaultArguments = BitVector.Null
 
             Dim paramArrayItems As ArrayBuilder(Of Integer) = Nothing
 
@@ -2720,10 +2751,15 @@ ProduceBoundNode:
                 If argument Is Nothing Then
                     Debug.Assert(Not candidate.OptionalArguments.IsEmpty, "Optional arguments expected")
 
+                    If defaultArguments.IsNull Then
+                        defaultArguments = BitVector.Create(paramCount)
+                    End If
+
                     ' Deal with Optional arguments
                     Dim defaultArgument As OverloadResolution.OptionalArgument = candidate.OptionalArguments(paramIndex)
                     argument = defaultArgument.DefaultValue
                     argumentIsDefaultValue = True
+                    defaultArguments(paramIndex) = True
                     Debug.Assert(argument IsNot Nothing)
                     conversion = defaultArgument.Conversion
 
@@ -2760,7 +2796,7 @@ ProduceBoundNode:
             End If
 
             parameterToArgumentMap.Free()
-            Return argumentsInOrder.ToImmutableAndFree()
+            Return (argumentsInOrder.ToImmutableAndFree(), defaultArguments)
         End Function
 
 
@@ -3010,10 +3046,17 @@ ProduceBoundNode:
                                 End If
 
                                 argumentNamesLocationsBuilder.Add(id.GetLocation())
+                            ElseIf argumentNamesBuilder IsNot Nothing Then
+                                argumentNamesBuilder.Add(Nothing)
+                                argumentNamesLocationsBuilder.Add(Nothing)
                             End If
 
                         Case SyntaxKind.OmittedArgument
                             boundArgumentsBuilder.Add(New BoundOmittedArgument(argumentSyntax, Nothing))
+                            If argumentNamesBuilder IsNot Nothing Then
+                                argumentNamesBuilder.Add(Nothing)
+                                argumentNamesLocationsBuilder.Add(Nothing)
+                            End If
 
                         Case SyntaxKind.RangeArgument
                             ' NOTE: Redim statement supports range argument, like: Redim x(0 To 3)(0 To 6)
@@ -3023,6 +3066,10 @@ ProduceBoundNode:
                             Dim rangeArgument = DirectCast(argumentSyntax, RangeArgumentSyntax)
                             CheckRangeArgumentLowerBound(rangeArgument, diagnostics)
                             boundArgumentsBuilder.Add(BindValue(rangeArgument.UpperBound, diagnostics))
+                            If argumentNamesBuilder IsNot Nothing Then
+                                argumentNamesBuilder.Add(Nothing)
+                                argumentNamesLocationsBuilder.Add(Nothing)
+                            End If
 
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(argumentSyntax.Kind)
@@ -3189,7 +3236,7 @@ ProduceBoundNode:
                     End If
 
                     If methodSymbol IsNot Nothing Then
-                        Dim argument = New BoundLiteral(syntax, ConstantValue.Null, param.Type)
+                        Dim argument = New BoundLiteral(syntax, ConstantValue.Null, param.Type).MakeCompilerGenerated()
                         defaultArgument = New BoundObjectCreationExpression(syntax, methodSymbol,
                                                                             ImmutableArray.Create(Of BoundExpression)(argument),
                                                                             Nothing,
@@ -3202,7 +3249,7 @@ ProduceBoundNode:
 
             End If
 
-            Return defaultArgument
+            Return defaultArgument?.MakeCompilerGenerated()
         End Function
 
         Private Shared Function GetCallerLocation(syntax As SyntaxNode) As TextSpan

@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             out IEnumerable<Symbol> readOutside,
             out IEnumerable<Symbol> writtenOutside,
             out IEnumerable<Symbol> captured,
-            out IEnumerable<Symbol> unsafeAddressTaken)
+            out IEnumerable<Symbol> unsafeAddressTaken,
+            out IEnumerable<Symbol> capturedInside,
+            out IEnumerable<Symbol> capturedOutside)
         {
             var walker = new ReadWriteWalker(compilation, member, node, firstInRegion, lastInRegion, unassignedVariableAddressOfSyntaxes);
             try
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Analyze(ref badRegion);
                 if (badRegion)
                 {
-                    readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = Enumerable.Empty<Symbol>();
+                    readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = capturedInside = capturedOutside = Enumerable.Empty<Symbol>();
                 }
                 else
                 {
@@ -39,6 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     writtenOutside = walker._writtenOutside;
 
                     captured = walker.GetCaptured();
+                    capturedInside = walker.GetCapturedInside();
+                    capturedOutside = walker.GetCapturedOutside();
+
                     unsafeAddressTaken = walker.GetUnsafeAddressTaken();
                 }
             }
@@ -61,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void EnterRegion()
         {
-            for (MethodSymbol m = this.currentMethodOrLambda; (object)m != null; m = m.ContainingSymbol as MethodSymbol)
+            for (var m = this.currentSymbol as MethodSymbol; (object)m != null; m = m.ContainingSymbol as MethodSymbol)
             {
                 foreach (var p in m.Parameters)
                 {
@@ -172,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void AssignImpl(BoundNode node, BoundExpression value, RefKind refKind, bool written, bool read)
+        protected override void AssignImpl(BoundNode node, BoundExpression value, bool isRef, bool written, bool read)
         {
             switch (node.Kind)
             {
@@ -182,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.QueryClause:
                     {
-                        base.AssignImpl(node, value, refKind, written, read);
+                        base.AssignImpl(node, value, isRef, written, read);
                         var symbol = ((BoundQueryClause)node).DefinedSymbol;
                         if ((object)symbol != null)
                         {
@@ -193,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.FieldAccess:
                     {
-                        base.AssignImpl(node, value, refKind, written, read);
+                        base.AssignImpl(node, value, isRef, written, read);
                         var fieldAccess = node as BoundFieldAccess;
                         if (!IsInside && node.Syntax != null && node.Syntax.Span.Contains(RegionSpan))
                         {
@@ -203,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    base.AssignImpl(node, value, refKind, written, read);
+                    base.AssignImpl(node, value, isRef, written, read);
                     break;
             }
         }

@@ -2,9 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
@@ -12,15 +10,15 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
+    [UseExportProvider]
     public abstract partial class AbstractMetadataAsSourceTests
     {
         internal static async Task GenerateAndVerifySourceAsync(
-            string metadataSource, string symbolName, string projectLanguage, string expected,
-            bool ignoreTrivia = true, bool includeXmlDocComments = false, string languageVersion = null)
+            string metadataSource, string symbolName, string projectLanguage, string expected, bool includeXmlDocComments = false, string languageVersion = null)
         {
             using (var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments, languageVersion: languageVersion))
             {
-                await context.GenerateAndVerifySourceAsync(symbolName, expected, ignoreTrivia);
+                await context.GenerateAndVerifySourceAsync(symbolName, expected);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -8,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits BasicTestBase
         <Fact()>
         Public Sub SelectCaseExpression_NothingLiteral()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Public Module M
@@ -41,7 +42,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Literal()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Public Module M
@@ -75,7 +76,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Local_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -110,7 +111,7 @@ Ehd Module
 
         <Fact()>
         Public Sub SelectCaseExpression_MethodCall_InvocationExpressionSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -149,7 +150,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_MethodCall_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -188,7 +189,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Lambda()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Public Module M
@@ -220,7 +221,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_ParenthesizedLambda()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Public Module M
@@ -253,7 +254,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Error_NotAValue_InvocationExpressionSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -293,7 +294,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Error_NotAValue_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -333,7 +334,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Error_OverloadResolutionFailure()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -374,7 +375,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCase_RelationalCaseClauseExpression_Literal()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -408,9 +409,63 @@ End Module
             Assert.Equal(1, semanticSummary.ConstantValue.Value)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub SelectCase_RelationalCaseClauseExpression_IOperation()
+            Dim source = <![CDATA[
+Class C
+    Function LessThan(i As Integer, j As Integer) As Boolean
+        Select Case i
+            Case Is < j'BIND:"Is < j"
+                Return True
+            Case Else
+                Return False
+        End Select
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IRelationalCaseClauseOperation (Relational operator kind: BinaryOperatorKind.LessThan) (CaseKind.Relational) (OperationKind.CaseClause, Type: null) (Syntax: 'Is < j')
+  Value: 
+    IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of RelationalCaseClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub SelectCase_RangeCaseClauseExpression_IOperation()
+            Dim source = <![CDATA[
+Class C
+    Function InRange(i As Integer, min As Integer, max As Integer) As Boolean
+        Select Case i
+            Case min To max'BIND:"min To max"
+                Return True
+            Case Else
+                Return False
+        End Select
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null) (Syntax: 'min To max')
+  Min: 
+    IParameterReferenceOperation: min (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'min')
+  Max: 
+    IParameterReferenceOperation: max (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'max')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of RangeCaseClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
         <Fact()>
         Public Sub SelectCase_RangeCaseClauseExpression_MethodCall()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -449,7 +504,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCase_SimpleCaseClauseExpression_DateTime()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -490,7 +545,7 @@ End Module
         <WorkItem(543098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543098")>
         <Fact()>
         Public Sub SelectCase_BoundLocal()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -533,7 +588,7 @@ End Class
         <WorkItem(543387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543387")>
         <Fact()>
         Public Sub SelectCase_AnonymousLambda()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -565,10 +620,88 @@ BC42016: Implicit conversion from 'Object' to 'Boolean'.
 </expected>)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub SelectCase_AnonymousLambda_OperationTree()
+            Dim source = <![CDATA[
+Module Program
+    Sub Main()
+        Select Case Nothing'BIND:"Select Case Nothing"
+            Case Function() 5
+                System.Console.WriteLine("Failed")
+            Case Else
+                System.Console.WriteLine("Succeeded")
+        End Select
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ISwitchOperation (2 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) (Syntax: 'Select Case ... End Select')
+  Switch expression: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+  Sections:
+      ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'Case Functi ... e("Failed")')
+          Clauses:
+              ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null) (Syntax: 'Function() 5')
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'Function() 5')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As System.Int32, IsImplicit) (Syntax: 'Function() 5')
+                        Target: 
+                          IAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function() 5')
+                            IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function() 5')
+                              Locals: Local_1: <anonymous local> As System.Int32
+                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '5')
+                                ReturnedValue: 
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                              ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Function() 5')
+                                Statement: 
+                                  null
+                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Function() 5')
+                                ReturnedValue: 
+                                  ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'Function() 5')
+          Body:
+              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Case Functi ... e("Failed")')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... e("Failed")')
+                  Expression: 
+                    IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... e("Failed")')
+                      Instance Receiver: 
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Failed"')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Failed") (Syntax: '"Failed"')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'Case Else ... Succeeded")')
+          Clauses:
+              IDefaultCaseClauseOperation (CaseKind.Default) (OperationKind.CaseClause, Type: null) (Syntax: 'Case Else')
+          Body:
+              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Case Else ... Succeeded")')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Succeeded")')
+                  Expression: 
+                    IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Succeeded")')
+                      Instance Receiver: 
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Succeeded"')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Succeeded") (Syntax: '"Succeeded"')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of SelectBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
         <WorkItem(948019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948019")>
         <Fact()>
         Public Sub Bug948019_01()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -576,7 +709,7 @@ Class C
         Dim day2 = day
         Select Case day 'BIND:"day"
             Case DayOfWeek.A
-            Case 
+            Case
         End Select
     End Sub
     Enum DayOfWeek
@@ -605,7 +738,7 @@ End Class
         <WorkItem(948019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948019")>
         <Fact()>
         Public Sub Bug948019_02()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C

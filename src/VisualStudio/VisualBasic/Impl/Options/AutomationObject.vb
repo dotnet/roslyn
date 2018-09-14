@@ -15,9 +15,9 @@ Imports Microsoft.CodeAnalysis.SymbolSearch
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ComVisible(True)>
     Public Class AutomationObject
-        Private ReadOnly _workspace As Workspace
+        Private ReadOnly _workspace As CodeAnalysis.Workspace
 
-        Friend Sub New(workspace As Workspace)
+        Friend Sub New(workspace As CodeAnalysis.Workspace)
             _workspace = workspace
         End Sub
 
@@ -252,12 +252,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property Style_PreferInferredTupleNames As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferInferredTupleNames)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferInferredTupleNames, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferInferredAnonymousTypeMemberNames As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, value)
+            End Set
+        End Property
+
         Public Property Style_PreferExplicitTupleNames As String
             Get
                 Return GetXmlOption(CodeStyleOptions.PreferExplicitTupleNames)
             End Get
             Set(value As String)
                 SetXmlOption(CodeStyleOptions.PreferExplicitTupleNames, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferReadonly As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferReadonly)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferReadonly, value)
             End Set
         End Property
 

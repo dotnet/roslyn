@@ -80,12 +80,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' (for example, interfaces), Nothing is returned. Also the special class System.Object
         ''' always has a BaseType of Nothing.
         ''' </summary>
-        Public ReadOnly Property BaseType As NamedTypeSymbol
-            Get
-                Return BaseTypeNoUseSiteDiagnostics
-            End Get
-        End Property
-
         Friend MustOverride ReadOnly Property BaseTypeNoUseSiteDiagnostics As NamedTypeSymbol
 
         Friend Function BaseTypeWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As NamedTypeSymbol
@@ -113,12 +107,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Gets the set of interfaces that this type directly implements. This set does not
         ''' include interfaces that are base interfaces of directly implemented interfaces.
         ''' </summary>
-        Public ReadOnly Property Interfaces As ImmutableArray(Of NamedTypeSymbol)
-            Get
-                Return InterfacesNoUseSiteDiagnostics
-            End Get
-        End Property
-
         Friend MustOverride ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
 
         ''' <summary>
@@ -134,12 +122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Note: When interfaces specified on the same inheritance level differ by tuple names only,
         ''' only the last one will be listed here.
         ''' </summary>
-        Public ReadOnly Property AllInterfaces As ImmutableArray(Of NamedTypeSymbol)
-            Get
-                Return AllInterfacesNoUseSiteDiagnostics
-            End Get
-        End Property
-
         Friend ReadOnly Property AllInterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
                 If (_lazyAllInterfaces.IsDefault) Then

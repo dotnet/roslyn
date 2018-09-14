@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 #if NETCOREAPP2_0
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
-using static Roslyn.Test.Utilities.RuntimeUtilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities;
 
 namespace Roslyn.Test.Utilities.CoreClr
 {
@@ -62,8 +64,7 @@ namespace Roslyn.Test.Utilities.CoreClr
             }
             else
             {
-                string dumpDir;
-                DumpAssemblyData(dependencies, out dumpDir);
+                DumpAssemblyData(dependencies, out var dumpDir);
 
                 // This method MUST throw if compilation did not succeed.  If compilation succeeded and there were errors, that is bad.
                 // Please see KevinH if you intend to change this behavior as many tests expect the Exception to indicate failure.
@@ -95,19 +96,17 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         public ImmutableArray<byte> GetMainPdb() => GetEmitData().MainModulePdb;
 
-        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)
-        {
-            throw new NotImplementedException();
-        }
+        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName) => 
+            GetEmitData().GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName);
 
-        public void PeVerify()
+        public void Verify(Verification verification)
         {
             var emitData = GetEmitData();
             emitData.RuntimeData.PeverifyRequested = true;
             // TODO(https://github.com/dotnet/coreclr/issues/295): Implement peverify
         }
 
-        public string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true)
+        public string[] VerifyModules(string[] modulesToVerify)
         {
             // TODO(https://github.com/dotnet/coreclr/issues/295): Implement peverify
             return null;
@@ -155,6 +154,11 @@ namespace Roslyn.Test.Utilities.CoreClr
             internal ImmutableArray<byte> MainModulePdb;
 
             internal ImmutableArray<Diagnostic> Diagnostics;
+
+            public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)
+            {
+                return LoadContext.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName, AllModuleData.Select(x => x.Id));
+            }
         }
     }
 }

@@ -445,7 +445,7 @@ class C
             var runtime = CreateRuntimeInstance(compilation);
             var moduleInstances = runtime.Modules;
             var blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
-            compilation = blocks.ToCompilation();
+            compilation = blocks.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies);
             var frame = (PEMethodSymbol)GetMethodOrTypeBySignature(compilation, methodName);
 
             // Once we have the method token, we want to look up the method (again)
@@ -453,7 +453,7 @@ class C
             // async/iterator "MoveNext" methods to the original source method.
             MethodSymbol method = compilation.GetSourceMethod(
                 ((PEModuleSymbol)frame.ContainingModule).Module.GetModuleVersionIdOrThrow(),
-                MetadataTokens.GetToken(frame.Handle));
+                frame.Handle);
             if (serializedTypeArgumentNames != null)
             {
                 Assert.NotEmpty(serializedTypeArgumentNames);

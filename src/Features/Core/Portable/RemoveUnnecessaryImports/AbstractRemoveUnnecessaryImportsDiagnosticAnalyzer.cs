@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+
             context.RegisterSemanticModelAction(this.AnalyzeSemanticModel);
         }
 

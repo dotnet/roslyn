@@ -676,6 +676,132 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
+        [Fact]
+        public void RefStructInsert()
+        {
+            string src1 = "";
+            string src2 = "ref struct X { }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [ref struct X { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.RefStruct, "ref struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
+        }
+
+        [Fact]
+        public void ReadOnlyStructInsert()
+        {
+            string src1 = "";
+            string src2 = "readonly struct X { }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [readonly struct X { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ReadOnlyStruct, "readonly struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
+        }
+
+        [Fact]
+        public void RefStructUpdate()
+        {
+            string src1 = "struct X { }";
+            string src2 = "ref struct X { }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Update [struct X { }]@0 -> [ref struct X { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
+        }
+
+        [Fact]
+        public void ReadOnlyStructUpdate()
+        {
+            string src1 = "struct X { }";
+            string src2 = "readonly struct X { }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Update [struct X { }]@0 -> [readonly struct X { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "readonly struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
+        }
+
+        [Fact]
+        public void Class_ImplementingInterface_Add()
+        {
+            var src1 = @"
+using System;
+
+public interface ISample
+{
+    string Get();
+}
+
+public interface IConflict
+{
+    string Get();
+}
+
+public class BaseClass : ISample
+{
+    public virtual string Get() => string.Empty;
+}
+";
+            var src2 = @"
+using System;
+
+public interface ISample
+{
+    string Get();
+}
+
+public interface IConflict
+{
+    string Get();
+}
+
+public class BaseClass : ISample
+{
+    public virtual string Get() => string.Empty;
+}
+
+public class SubClass : BaseClass, IConflict
+{
+    public override string Get() => string.Empty;
+
+    string IConflict.Get() => String.Empty;
+}
+";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                @"Insert [public class SubClass : BaseClass, IConflict
+{
+    public override string Get() => string.Empty;
+
+    string IConflict.Get() => String.Empty;
+}]@219",
+                "Insert [public override string Get() => string.Empty;]@272",
+                "Insert [string IConflict.Get() => String.Empty;]@325",
+                "Insert [()]@298",
+                "Insert [()]@345");
+
+            // Here we add a class implementing an interface and a method inside it with explicit interface specifier.
+            // We want to be sure that adding the method will not tirgger a rude edit as it happens if adding a single method with explicit interface specifier.
+            edits.VerifyRudeDiagnostics();
+        }
+
         #endregion
 
         #region Enums
@@ -1418,6 +1544,84 @@ public interface I
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "[return:A]", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void Delegates_ReadOnlyRef_Parameter_InsertWhole()
+        {
+            var src1 = "";
+            var src2 = "public delegate int D(in int b);";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [public delegate int D(in int b);]@0",
+                "Insert [(in int b)]@21",
+                "Insert [in int b]@22");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Delegates_ReadOnlyRef_Parameter_InsertParameter()
+        {
+            var src1 = "public delegate int D();";
+            var src2 = "public delegate int D(in int b);";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [in int b]@22");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "in int b", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Delegates_ReadOnlyRef_Parameter_Update()
+        {
+            var src1 = "public delegate int D(int b);";
+            var src2 = "public delegate int D(in int b);";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Update [int b]@22 -> [in int b]@22");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "in int b", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Delegates_ReadOnlyRef_ReturnType_Insert()
+        {
+            var src1 = "";
+            var src2 = "public delegate ref readonly int D();";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [public delegate ref readonly int D();]@0",
+                "Insert [()]@34");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "public delegate ref readonly int D()", FeaturesResources.delegate_));
+        }
+
+        [Fact]
+        public void Delegates_ReadOnlyRef_ReturnType_Update()
+        {
+            var src1 = "public delegate int D();";
+            var src2 = "public delegate ref readonly int D();";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Update [public delegate int D();]@0 -> [public delegate ref readonly int D();]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "public delegate ref readonly int D()", FeaturesResources.delegate_));
         }
 
         #endregion
@@ -2503,7 +2707,7 @@ class Test
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.await_expression),
-                Diagnostic(RudeEditKind.ModifiersUpdate, "public Task<int> WaitAsync()", "method"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public Task<int> WaitAsync()", FeaturesResources.method));
         }
 
         [Fact]
@@ -3210,6 +3414,168 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
+        [Fact]
+        public void MethodUpdate_LocalFunctionsParameterRefnessInBody()
+        {
+            var src1 = @"class C { public void M(int a) { void f(ref int b) => b = 1; } }";
+            var src2 = @"class C { public void M(int a) { void f(out int b) => b = 1; } } ";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyEdits(
+                "Update [public void M(int a) { void f(ref int b) => b = 1; }]@10 -> [public void M(int a) { void f(out int b) => b = 1; }]@10");
+        }
+
+        [Fact]
+        public void MethodUpdate_LambdaParameterRefnessInBody()
+        {
+            var src1 = @"class C { public void M(int a) { f((ref int b) => b = 1); } }";
+            var src2 = @"class C { public void M(int a) { f((out int b) => b = 1); } } ";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyEdits(
+                "Update [public void M(int a) { f((ref int b) => b = 1); }]@10 -> [public void M(int a) { f((out int b) => b = 1); }]@10");
+        }
+
+        [Fact]
+        public void Method_ReadOnlyRef_Parameter_InsertWhole()
+        {
+            var src1 = "class Test { }";
+            var src2 = "class Test { int M(in int b) => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [int M(in int b) => throw null;]@13",
+                "Insert [(in int b)]@18",
+                "Insert [in int b]@19");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Method_ReadOnlyRef_Parameter_InsertParameter()
+        {
+            var src1 = "class Test { int M() => throw null; }";
+            var src2 = "class Test { int M(in int b) => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [in int b]@19");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "in int b", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Method_ReadOnlyRef_Parameter_Update()
+        {
+            var src1 = "class Test { int M(int b) => throw null; }";
+            var src2 = "class Test { int M(in int b) => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Update [int b]@19 -> [in int b]@19");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "in int b", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Method_ReadOnlyRef_ReturnType_Insert()
+        {
+            var src1 = "class Test { }";
+            var src2 = "class Test { ref readonly int M() => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [ref readonly int M() => throw null;]@13",
+                "Insert [()]@31");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int M()", FeaturesResources.method));
+        }
+
+        [Fact]
+        public void Method_ReadOnlyRef_ReturnType_Update()
+        {
+            var src1 = "class Test { int M() => throw null; }";
+            var src2 = "class Test { ref readonly int M() => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Update [int M() => throw null;]@13 -> [ref readonly int M() => throw null;]@13");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int M()", FeaturesResources.method));
+        }
+
+        [Fact]
+        public void Method_ImplementingInterface_Add()
+        {
+            var src1 = @"
+using System;
+
+public interface ISample
+{
+    string Get();
+}
+
+public interface IConflict
+{
+    string Get();
+}
+
+public class BaseClass : ISample
+{
+    public virtual string Get() => string.Empty;
+}
+
+public class SubClass : BaseClass, IConflict
+{
+    public override string Get() => string.Empty;
+}
+";
+            var src2 = @"
+using System;
+
+public interface ISample
+{
+    string Get();
+}
+
+public interface IConflict
+{
+    string Get();
+}
+
+public class BaseClass : ISample
+{
+    public virtual string Get() => string.Empty;
+}
+
+public class SubClass : BaseClass, IConflict
+{
+    public override string Get() => string.Empty;
+
+    string IConflict.Get() => String.Empty;
+}
+";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [string IConflict.Get() => String.Empty;]@325",
+                "Insert [()]@345");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier, "string IConflict.Get()", FeaturesResources.method));
+        }
+
         #endregion
 
         #region Operators
@@ -3412,6 +3778,38 @@ class C
                 "Reorder [public static C operator -(C c, C d) { return d; }]@74 -> @18");
 
             edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Operator_ReadOnlyRef_Parameter_InsertWhole()
+        {
+            var src1 = "class Test { }";
+            var src2 = "class Test { public static bool operator !(in Test b) => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [public static bool operator !(in Test b) => throw null;]@13",
+                "Insert [(in Test b)]@42",
+                "Insert [in Test b]@43");
+
+            edits.VerifyRudeDiagnostics(
+                 Diagnostic(RudeEditKind.InsertOperator, "public static bool operator !(in Test b)", FeaturesResources.operator_));
+        }
+
+        [Fact]
+        public void Operator_ReadOnlyRef_Parameter_Update()
+        {
+            var src1 = "class Test { public static bool operator !(Test b) => throw null; }";
+            var src2 = "class Test { public static bool operator !(in Test b) => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Update [Test b]@43 -> [in Test b]@43");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "in Test b", FeaturesResources.parameter));
         }
 
         #endregion
@@ -4633,6 +5031,53 @@ public class C
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Finalize"), preserveLocalVariables: false)
                 });
+        }
+
+        [Fact]
+        public void Constructor_ReadOnlyRef_Parameter_InsertWhole()
+        {
+            var src1 = "class Test { }";
+            var src2 = "class Test { Test(in int b) => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [Test(in int b) => throw null;]@13",
+                "Insert [(in int b)]@17",
+                "Insert [in int b]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Constructor_ReadOnlyRef_Parameter_InsertParameter()
+        {
+            var src1 = "class Test { Test() => throw null; }";
+            var src2 = "class Test { Test(in int b) => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [in int b]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "in int b", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Constructor_ReadOnlyRef_Parameter_Update()
+        {
+            var src1 = "class Test { Test(int b) => throw null; }";
+            var src2 = "class Test { Test(in int b) => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Update [int b]@18 -> [in int b]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "in int b", FeaturesResources.parameter));
         }
 
         #endregion
@@ -7025,6 +7470,37 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
+        [Fact]
+        public void Property_ReadOnlyRef_Insert()
+        {
+            var src1 = "class Test { }";
+            var src2 = "class Test { ref readonly int M() { get; } }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [ref readonly int M() { get; }]@13",
+                "Insert [()]@31");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int M()", FeaturesResources.method));
+        }
+
+        [Fact]
+        public void Property_ReadOnlyRef_Update()
+        {
+            var src1 = "class Test { int M() { get; } }";
+            var src2 = "class Test { ref readonly int M() { get; } }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Update [int M() { get; }]@13 -> [ref readonly int M() { get; }]@13");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int M()", FeaturesResources.method));
+        }
+
         #endregion
 
         #region Indexers
@@ -7229,7 +7705,7 @@ class C
                 "Delete [set { Console.WriteLine(0); }]@46");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "int this[int a]", "indexer setter"));
+                Diagnostic(RudeEditKind.Delete, "int this[int a]", CSharpFeaturesResources.indexer_setter));
         }
 
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
@@ -7350,7 +7826,7 @@ class C
                 "Update [(int, int, int a) M() { return (1, 2, 3); }]@10 -> [(int, int) M() { return (1, 2); }]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "(int, int) M()", "method"));
+                Diagnostic(RudeEditKind.TypeUpdate, "(int, int) M()", FeaturesResources.method));
         }
 
         [Fact]
@@ -7365,7 +7841,7 @@ class C
                 "Update [(int, int) M() { return (1, 2); }]@10 -> [(int, int, int a) M() { return (1, 2, 3); }]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "(int, int, int a) M()", "method"));
+                Diagnostic(RudeEditKind.TypeUpdate, "(int, int, int a) M()", FeaturesResources.method));
         }
 
         [Fact]
@@ -7622,6 +8098,70 @@ class SampleCollection<T>
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "const int x = 0", FeaturesResources.const_field));
+        }
+
+        [Fact]
+        public void Indexer_ReadOnlyRef_Parameter_InsertWhole()
+        {
+            var src1 = "class Test { }";
+            var src2 = "class Test { int this[in int i] => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [int this[in int i] => throw null;]@13",
+                "Insert [[in int i]]@21",
+                "Insert [in int i]@22");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int i", FeaturesResources.parameter));
+        }
+        
+        [Fact]
+        public void Indexer_ReadOnlyRef_Parameter_Update()
+        {
+            var src1 = "class Test { int this[int i] => throw null; }";
+            var src2 = "class Test { int this[in int i] => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Update [int i]@22 -> [in int i]@22");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "in int i", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Indexer_ReadOnlyRef_ReturnType_Insert()
+        {
+            var src1 = "class Test { }";
+            var src2 = "class Test { ref readonly int this[int i] => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [ref readonly int this[int i] => throw null;]@13",
+                "Insert [[int i]]@34",
+                "Insert [int i]@35");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int this[int i]", FeaturesResources.indexer_));
+        }
+
+        [Fact]
+        public void Indexer_ReadOnlyRef_ReturnType_Update()
+        {
+            var src1 = "class Test { int this[int i] => throw null; }";
+            var src2 = "class Test { ref readonly int this[int i] => throw null; }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Update [int this[int i] => throw null;]@13 -> [ref readonly int this[int i] => throw null;]@13");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int this[int i]", FeaturesResources.indexer_));
         }
 
         #endregion
@@ -8266,7 +8806,7 @@ public class C
         #region Type Parameter Constraints
 
         [Fact]
-        public void TypeConstraintInsert()
+        public void TypeConstraintInsert_Class()
         {
             var src1 = "class C<T> { }";
             var src2 = "class C<T> where T : class { }";
@@ -8281,7 +8821,22 @@ public class C
         }
 
         [Fact]
-        public void TypeConstraintInsert2()
+        public void TypeConstraintInsert_Unmanaged()
+        {
+            var src1 = "class C<T> { }";
+            var src2 = "class C<T> where T : unmanaged { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [where T : unmanaged]@11");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "where T : unmanaged", FeaturesResources.type_constraint));
+        }
+
+        [Fact]
+        public void TypeConstraintInsert_DoubleStatement_New()
         {
             var src1 = "class C<S,T> where T : class { }";
             var src2 = "class C<S,T> where S : new() where T : class { }";
@@ -8296,7 +8851,22 @@ public class C
         }
 
         [Fact]
-        public void TypeConstraintDelete1()
+        public void TypeConstraintInsert_DoubleStatement_Unmanaged()
+        {
+            var src1 = "class C<S,T> where T : class { }";
+            var src2 = "class C<S,T> where S : unmanaged where T : class { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [where S : unmanaged]@13");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "where S : unmanaged", FeaturesResources.type_constraint));
+        }
+
+        [Fact]
+        public void TypeConstraintDelete_Class()
         {
             var src1 = "class C<S,T> where T : class { }";
             var src2 = "class C<S,T> { }";
@@ -8311,7 +8881,22 @@ public class C
         }
 
         [Fact]
-        public void TypeConstraintDelete2()
+        public void TypeConstraintDelete_Unmanaged()
+        {
+            var src1 = "class C<S,T> where T : unmanaged { }";
+            var src2 = "class C<S,T> { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [where T : unmanaged]@13");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "class C<S,T>", FeaturesResources.type_constraint));
+        }
+
+        [Fact]
+        public void TypeConstraintDelete_DoubleStatement_New()
         {
             var src1 = "class C<S,T> where S : new() where T : class  { }";
             var src2 = "class C<S,T> where T : class { }";
@@ -8326,7 +8911,22 @@ public class C
         }
 
         [Fact]
-        public void TypeConstraintReorder()
+        public void TypeConstraintDelete_DoubleStatement_Unmanaged()
+        {
+            var src1 = "class C<S,T> where S : unmanaged where T : class  { }";
+            var src2 = "class C<S,T> where T : class { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [where S : unmanaged]@13");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "class C<S,T>", FeaturesResources.type_constraint));
+        }
+
+        [Fact]
+        public void TypeConstraintReorder_Class()
         {
             var src1 = "class C<S,T> where S : struct where T : class  { }";
             var src2 = "class C<S,T> where T : class where S : struct { }";
@@ -8335,6 +8935,20 @@ public class C
 
             edits.VerifyEdits(
                 "Reorder [where T : class]@30 -> @13");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void TypeConstraintReorder_Unmanaged()
+        {
+            var src1 = "class C<S,T> where S : struct where T : unmanaged  { }";
+            var src2 = "class C<S,T> where T : unmanaged where S : struct { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [where T : unmanaged]@30 -> @13");
 
             edits.VerifyRudeDiagnostics();
         }

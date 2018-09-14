@@ -12,24 +12,18 @@ namespace Microsoft.CodeAnalysis.Utilities
         StaUnitTest,
         JoinableTask,
         ForcedByPackageInitialize,
+        MonoDevelopGtk,
+        MonoDevelopXwt,
         Unknown
     }
 
     internal static class ForegroundThreadDataInfo
     {
-        private static readonly ForegroundThreadDataKind s_fallbackForegroundThreadDataKind;
-        private static ForegroundThreadDataKind? s_currentForegroundThreadDataKind;
-
-        static ForegroundThreadDataInfo()
-        {
-            s_fallbackForegroundThreadDataKind = CreateDefault(Unknown);
-        }
-
         internal static ForegroundThreadDataKind CreateDefault(ForegroundThreadDataKind defaultKind)
         {
-            var syncConextTypeName = SynchronizationContext.Current?.GetType().FullName;
+            var syncContextTypeName = SynchronizationContext.Current?.GetType().FullName;
 
-            switch (syncConextTypeName)
+            switch (syncContextTypeName)
             {
                 case "System.Windows.Threading.DispatcherSynchronizationContext":
 
@@ -43,20 +37,18 @@ namespace Microsoft.CodeAnalysis.Utilities
 
                     return WinForms;
 
+                case "MonoDevelop.Ide.DispatchService+GtkSynchronizationContext":
+
+                    return MonoDevelopGtk;
+
+                case "Xwt.XwtSynchronizationContext":
+
+                    return MonoDevelopXwt;
+
                 default:
 
                     return defaultKind;
             }
-        }
-
-        internal static ForegroundThreadDataKind CurrentForegroundThreadDataKind
-        {
-            get { return s_currentForegroundThreadDataKind ?? s_fallbackForegroundThreadDataKind; }
-        }
-
-        internal static void SetCurrentForegroundThreadDataKind(ForegroundThreadDataKind? kind)
-        {
-            s_currentForegroundThreadDataKind = kind;
         }
     }
 }

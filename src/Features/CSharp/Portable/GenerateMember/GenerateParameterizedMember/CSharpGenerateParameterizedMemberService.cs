@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                     _invocationExpression.ArgumentList, cancellationToken);
             }
 
-            protected override bool DetermineReturnsByRef(CancellationToken cancellationToken)
-                => _invocationExpression.IsParentKind(SyntaxKind.RefExpression);
+            protected override RefKind DetermineRefKind(CancellationToken cancellationToken)
+                => _invocationExpression.IsParentKind(SyntaxKind.RefExpression) ? RefKind.Ref : RefKind.None;
 
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
             {

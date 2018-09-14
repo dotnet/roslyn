@@ -387,8 +387,8 @@ End Class
                 End Sub
 
             CompileAndVerify(verifiable, validator:=validator)
-            CompileAndVerify(unverifiable, validator:=validator, verify:=False)
-            CompileAndVerify(unloadable, validator:=validator, verify:=False)
+            CompileAndVerify(unverifiable, validator:=validator, verify:=Verification.Fails)
+            CompileAndVerify(unloadable, validator:=validator, verify:=Verification.Fails)
         End Sub
 
         <Fact>
@@ -430,7 +430,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
 BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=1, Pack:=-1)>
                                               ~~~~~~~~
@@ -470,7 +470,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
 BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=-1)>
                                      ~~~~~~~~
@@ -508,7 +508,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
 BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(DirectCast((-1), LayoutKind), CharSet:=CharSet.Ansi)>
               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -564,7 +564,7 @@ End Class
     </file>
 </compilation>
             ' type C can't be loaded
-            CompileAndVerify(source, verify:=False)
+            CompileAndVerify(source, verify:=Verification.Fails)
         End Sub
 
         <Fact>
@@ -676,7 +676,7 @@ End Enum
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
 BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value.
     <FieldOffset(-1)>
                  ~~

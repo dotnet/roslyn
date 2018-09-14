@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // An explicit interface method will cascade to all the methods that it implements.
@@ -32,19 +33,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // An explicit method can't be referenced anywhere.
             return SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // An explicit method can't be referenced anywhere.
-            return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
+            return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
         }
     }
 }

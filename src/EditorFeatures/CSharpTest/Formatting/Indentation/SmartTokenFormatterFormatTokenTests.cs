@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -558,10 +559,8 @@ class Program
 
         private Task AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(string markup, int baseIndentation, int expectedIndentation)
         {
-            string code;
-            int position;
-            TextSpan span;
-            MarkupTestFile.GetPositionAndSpan(markup, out code, out position, out span);
+            MarkupTestFile.GetPositionAndSpan(markup,
+                out var code, out var position, out TextSpan span);
 
             return AssertSmartTokenFormatterOpenBraceAsync(
                 code,
@@ -599,10 +598,8 @@ class Program
 
         private Task AssertSmartTokenFormatterCloseBraceWithBaseIndentation(string markup, int baseIndentation, int expectedIndentation)
         {
-            string code;
-            int position;
-            TextSpan span;
-            MarkupTestFile.GetPositionAndSpan(markup, out code, out position, out span);
+            MarkupTestFile.GetPositionAndSpan(markup,
+                out var code, out var position, out TextSpan span);
 
             return AssertSmartTokenFormatterCloseBraceAsync(
                 code,

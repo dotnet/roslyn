@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -339,6 +340,43 @@ class Program
             await VerifyItemExistsAsync(text, "string");
             await VerifyItemExistsAsync(text, "byte");
             await VerifyItemExistsAsync(text, "char");
+        }
+    
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PrivateOrProtectedModifiers()
+        {
+            var text = @"
+class C
+{
+$$
+}";
+
+            await VerifyItemExistsAsync(text, "private");
+            await VerifyItemExistsAsync(text, "protected");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PrivateProtectedModifier()
+        {
+            var text = @"
+class C
+{
+    private $$
+}";
+
+            await VerifyItemExistsAsync(text, "protected");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ProtectedPrivateModifier()
+        {
+            var text = @"
+class C
+{
+    protected $$
+}";
+
+            await VerifyItemExistsAsync(text, "private");
         }
     }
 }

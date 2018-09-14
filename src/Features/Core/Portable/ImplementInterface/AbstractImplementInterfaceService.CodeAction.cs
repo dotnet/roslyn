@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var result = document;
                 var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var isComImport = unimplementedMembers.Any(t => t.Item1.IsComImport);
+                var isComImport = unimplementedMembers.Any(t => t.type.IsComImport);
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var propertyGenerationBehavior = options.GetOption(ImplementTypeOptions.PropertyGenerationBehavior);
 
@@ -536,7 +537,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 string memberName,
                 ISymbol baseMember)
             {
-                Contract.Requires(memberName == baseMember.Name);
+                Debug.Assert(memberName == baseMember.Name);
 
                 if (member.Kind == SymbolKind.Method && baseMember.Kind == SymbolKind.Method)
                 {

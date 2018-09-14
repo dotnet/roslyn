@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
         }
 
         private static void TryDetermineTypeToGenerateInWorker(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             INamedTypeSymbol containingType,
             TExpressionSyntax expression,
             CancellationToken cancellationToken,
@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             typeToGenerateIn = null;
             isStatic = false;
 
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticModel = document.SemanticModel;
+            var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = semanticDocument.SemanticModel;
             if (syntaxFacts.IsSimpleMemberAccessExpression(expression))
             {
                 // Figure out what's before the dot.  For VB, that also means finding out 

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -268,7 +268,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(expected, testObject.DocComment);
         }
 
-        [ConditionalFact(typeof(x86), Skip = "636860")]
+        [ConditionalFact(typeof(x86), AlwaysSkip = "636860")]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Overloads_Count()
         {

@@ -2,10 +2,11 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryCast;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -58,12 +59,11 @@ class Program
     {
         int x = 2;
         int i = 1;
-        Goo((x < i), x > (2 + 3));
+        Goo(x < (i), x > (2 + 3));
     }
  
     static void Goo(bool a, bool b) { }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545146")]
@@ -93,8 +93,7 @@ class C
         Action a = Console.WriteLine;
         a();
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545160")]
@@ -122,8 +121,7 @@ class Program
     {
         var x = (Decimal)(-1);
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545138")]
@@ -383,8 +381,7 @@ class Program
     static void M1(int? i1 = null)
     {
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545289")]
@@ -408,8 +405,7 @@ class Program
     {
         return 5;
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
@@ -435,8 +431,7 @@ class Program
     {
         Func<long> f1 = () => 5;
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
@@ -462,8 +457,7 @@ class Program
     {
         Func<long> f1 = () => { return 5; };
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
@@ -489,8 +483,7 @@ class Program
     {
         Func<long> f1 = _ => { return 5; };
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
@@ -516,8 +509,7 @@ class Program
     {
         Func<long> f1 = _ => 5;
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
@@ -545,8 +537,7 @@ class Test
 
         long f1 = (b == 5) ? 4 : (long)5;
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
@@ -574,8 +565,7 @@ class Test
 
         long f1 = (b == 5) ? (long)4 : 5;
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
@@ -603,8 +593,7 @@ class Test
 
         long f1 = (b == 5) ? 4 : 5;
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
@@ -647,8 +636,7 @@ class Test
 
         var f1 = (b == 5) ? (long)4 : 5;
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545459")]
@@ -682,8 +670,7 @@ class Test
     }
 
     public static void M1(int i) { }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545419")]
@@ -715,8 +702,7 @@ class Test
             return /*Lambda returning int const*/() => 5 /*Const returned is 5*/;
         };
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545422")]
@@ -748,8 +734,7 @@ class Test
                 break;
         }
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545578")]
@@ -783,8 +768,7 @@ class Test
                 break;
         }
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545595")]
@@ -812,8 +796,7 @@ class Program
     {
         var z = new List<long> { 0 };
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
@@ -893,8 +876,7 @@ class X
         string x = "";
         var s = new object[] { x };
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545616")]
@@ -932,8 +914,7 @@ class MyAction
     {
         throw new NotImplementedException();
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545822")]
@@ -963,8 +944,7 @@ class Program
         Action a = null;
         var x = (Goo<Guid>) == a;
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545560")]
@@ -1090,8 +1070,7 @@ class E
         throw new Exception();
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545945")]
@@ -1207,8 +1186,7 @@ class X
     {
         return "";
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545855")]
@@ -1265,8 +1243,7 @@ static class Program
     }
 }
 ",
-    parseOptions: null,
-    ignoreTrivia: false);
+    parseOptions: null);
         }
 
         [WorkItem(529816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
@@ -1298,8 +1275,7 @@ class A
     {
         Console.WriteLine(from y in new A() select 0);
     }
-}",
-    ignoreTrivia: false);
+}");
         }
 
         [WorkItem(529816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
@@ -1505,8 +1481,7 @@ static class Program
         Console.WriteLine(y.Value);
     }
 }
-",
-    ignoreTrivia: false);
+");
         }
 
         [WorkItem(545877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545877")]
@@ -1561,8 +1536,7 @@ class Program
             1;
     }
 }
-",
-    ignoreTrivia: false);
+");
         }
 
         [WorkItem(529791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529791")]
@@ -1590,8 +1564,7 @@ class X
         object y = null;
     }
 }
-",
-    ignoreTrivia: false);
+");
         }
 
         [WorkItem(545842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545842")]
@@ -1621,8 +1594,7 @@ static class C
         long? z = x + y;
     }
 }
-",
-    ignoreTrivia: false);
+");
         }
 
         [WorkItem(545850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545850")]
@@ -1650,8 +1622,7 @@ class Program
         x.ToString();
     }
 }
-",
-    ignoreTrivia: false);
+");
         }
 
         [WorkItem(529846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529846")]
@@ -1775,8 +1746,7 @@ class C
     C(int x) { }
     C() : this(1) { }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545958"), WorkItem(880752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/880752")]
@@ -1804,8 +1774,7 @@ class C
     C(object x) { }
     C() : this("""") { }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545957")]
@@ -1852,8 +1821,7 @@ static class C
         long? z = x + y;
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545942")]
@@ -2143,8 +2111,7 @@ sealed class C : I
         new C().Goo();
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
@@ -2203,8 +2170,7 @@ sealed class C : I
         Console.WriteLine(new C().Goo);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
@@ -2267,8 +2233,7 @@ sealed class C : I
         Console.WriteLine(Instance.Goo);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
@@ -2351,8 +2316,7 @@ sealed class C : I
         new C().Goo(2);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
@@ -2438,8 +2402,7 @@ sealed class C : I
         Console.WriteLine(new C()[x: 1]);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
@@ -2581,8 +2544,7 @@ class Program
         return x.GetEnumerator();
     }
 }
-",
-    ignoreTrivia: false);
+");
         }
 
         [WorkItem(544655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544655")]
@@ -2617,8 +2579,7 @@ class C
         var c = a.Clone();
     }
 }
-",
-    ignoreTrivia: false);
+");
         }
 
         [WorkItem(545926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545926")]
@@ -2653,8 +2614,7 @@ class C
         var c = a.Clone(); 
     }
 }
-",
-    ignoreTrivia: false);
+");
         }
 
         [WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
@@ -2689,8 +2649,7 @@ class Program
         var y = e.GetTypeCode();
     }
 }
-",
-    ignoreTrivia: false);
+");
         }
 
         #endregion
@@ -2787,8 +2746,7 @@ class C
         Goo(null);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(529911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
@@ -2818,8 +2776,7 @@ class C
         Goo(null);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(529911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
@@ -2849,8 +2806,7 @@ class C
         Goo(null);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(529911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
@@ -2880,8 +2836,7 @@ class C
         Goo(null, null);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(529911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
@@ -2911,8 +2866,7 @@ class C
         Goo(null, null);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -2940,8 +2894,7 @@ class C
 
     static void Goo(params object[] x) { }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         #endregion
@@ -3177,8 +3130,7 @@ class X : Y
         Console.WriteLine(x);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(529916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529916")]
@@ -3215,8 +3167,7 @@ static class Program
 
     static void Goo(this string x) { }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(609497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609497")]
@@ -3599,11 +3550,10 @@ class C
 {
     void Goo(Task<Action> x)
     {
-        x.Result();
+        (x.Result)();
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(626026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/626026")]
@@ -3841,6 +3791,29 @@ class Program
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [WorkItem(24791, "https://github.com/dotnet/roslyn/issues/24791")]
+        public async Task SimpleBoolCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        if (![|(bool)|]M()) throw null;
+        throw null;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        if (!M()) throw null;
+        throw null;
+    }
+}");
+        }
+
         [WorkItem(12572, "https://github.com/dotnet/roslyn/issues/12572")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastThatUnboxes()
@@ -3935,6 +3908,25 @@ class Program
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToMethodWithParamsArgsWithIncorrectMethodDefintion()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        TakesParams([|(string)|]null);
+    }
+
+    private static void TakesParams(params string wrongDefined)
+    {
+        Console.WriteLine(wrongDefined.Length);
+    }
+}");
+        }
+
         [WorkItem(18978, "https://github.com/dotnet/roslyn/issues/18978")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastOnCallToMethodWithParamsArgsIfImplicitConversionExists()
@@ -3967,6 +3959,187 @@ class Program
     {
         System.Console.WriteLine(goo.Length);
     }
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToAttributeWithParamsArgs()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+  public readonly string[] Arr;
+
+  public MarkAttribute(params string[] arr)
+  {
+    Arr = arr;
+  }
+}
+[Mark([|(string)|]null)]   // wrong instance of: IDE0004 Cast is redundant.
+static class Program
+{
+  static void Main()
+  {
+  }
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsAndProperty()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(params string[] arr)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark([|(string)|]null, Prop = 1)] 
+static class Program
+{
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsPropertyAndOtherArg()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, params string[] arr)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(true, [|(string)|]null, Prop = 1)] 
+static class Program
+{
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsNamedArgsAndProperty()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, params string[] arr)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(arr: [|(string)|]null, otherArg: true, Prop = 1)]
+static class Program
+{
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsNamedArgsWithIncorrectMethodDefintion()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, params string wrongDefined)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(true, [|(string)|]null, Prop = 1)]
+static class Program
+{
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastOnCallToAttributeWithParamsArgsWithImplicitCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, params object[] arr)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(arr: ([|object[])new[]|] { ""Hello"", ""World"" }, otherArg: true, Prop = 1)]
+static class Program
+{
+}",
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, params object[] arr)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(arr: (new[] { ""Hello"", ""World"" }), otherArg: true, Prop = 1)]
+static class Program
+{
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastOnCallToAttributeWithCastInPropertySetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute()
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(Prop = [|(int)1|])]
+static class Program
+{
+}",
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute()
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(Prop = 1)]
+static class Program
+{
 }");
         }
 
@@ -4050,9 +4223,314 @@ enum Sign
         void Goo()
         {
             Sign mySign = Sign.Positive;
-            Sign invertedSign = (Sign) ( ~mySign );
+            Sign invertedSign = (Sign) ( ~mySign);
         }
     }");
+        }
+
+        [WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456#issuecomment-373549735")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInSwitchCase()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case [|(bool)default|]:
+                break;
+        }
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInSwitchCase_CastInsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case ([|(bool)default|]):
+                break;
+        }
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInSwitchCase_DefaultInsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case [|(bool)(default)|]:
+                break;
+        }
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInSwitchCase_RemoveDoubleCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[|(bool)default|]:
+                break;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)default:
+                break;
+        }
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInPatternSwitchCase()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case [|(bool)default|] when true:
+                break;
+        }
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInPatternSwitchCase_CastInsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case ([|(bool)default|]) when true:
+                break;
+        }
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInPatternSwitchCase_DefaultInsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case [|(bool)(default)|] when true:
+                break;
+        }
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInPatternSwitchCase_RemoveDoubleCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[|(bool)default|] when true:
+                break;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)default when true:
+                break;
+        }
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInPatternSwitchCase_RemoveInsideWhenClause()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)default when [|(bool)default|]:
+                break;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)default when default:
+                break;
+        }
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInPatternIs()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        if (true is [|(bool)default|]);
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInPatternIs_CastInsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        if (true is ([|(bool)default|]));
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInPatternIs_DefaultInsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        if (true is [|(bool)(default)|]);
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontIntroduceDefaultLiteralInPatternIs_RemoveDoubleCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        if (true is (bool)[|(bool)default|]);
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        if (true is (bool)default) ;
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
+        }
+
+        [WorkItem(27239, "https://github.com/dotnet/roslyn/issues/27239")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastWhereNoConversionExists()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                @"
+using System;
+
+class C
+{
+    void M()
+    {
+        object o = null;
+        TypedReference r2 = [|(TypedReference)o|];
+    }
+}");
+        }
+
+        [WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastWhenAccessingHiddenProperty()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System.Collections.Generic;
+class Fruit
+{
+    public IDictionary<string, object> Properties { get; set; }
+}
+class Apple : Fruit
+{
+    public new IDictionary<string, object> Properties { get; }
+}
+class Tester
+{
+    public void Test()
+    {
+        var a = new Apple();
+        ([|(Fruit)a|]).Properties[""Color""] = ""Red"";
+    }
+}");
         }
     }
 }

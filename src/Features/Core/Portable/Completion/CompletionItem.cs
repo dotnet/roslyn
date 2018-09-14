@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public ImmutableDictionary<string, string> Properties { get; }
 
         /// <summary>
-        /// Descriptive tags from <see cref="CompletionTags"/>.
+        /// Descriptive tags from <see cref="Tags.WellKnownTags"/>.
         /// These tags may influence how the item is displayed.
         /// </summary>
         public ImmutableArray<string> Tags { get; }
@@ -53,6 +53,14 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Rules that declare how this item should behave.
         /// </summary>
         public CompletionItemRules Rules { get; }
+
+        /// <summary>
+        /// The <see cref="Document"/> that this <see cref="CompletionItem"/> was
+        /// created for.  Not available to clients.  Only used by the Completion
+        /// subsystem itself for things like being able to go back to the originating
+        /// Document when doing things like getting descriptions.
+        /// </summary>
+        internal Document Document { get; set; }
 
         private CompletionItem(
             string displayText,

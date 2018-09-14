@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -763,8 +764,7 @@ namespace B
         {
             await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|Int32|] i; } }",
-@"class Class { void Test() { /*goo*/System.Int32 i; } }",
-ignoreTrivia: false);
+@"class Class { void Test() { /*goo*/System.Int32 i; } }");
         }
 
         [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
@@ -773,8 +773,7 @@ ignoreTrivia: false);
         {
             await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|List<int>|] l; } }",
-@"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }",
-ignoreTrivia: false);
+@"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }");
         }
 
         [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
@@ -803,6 +802,35 @@ class Test
 class Test
 {
     Program.Inner i;
+}");
+        }
+
+        [WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestFullyQualifyUnboundIdentifier3()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    public [|Inner|] Name
+}",
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    public Program.Inner Name
 }");
         }
 
@@ -1028,7 +1056,7 @@ class Program
 
             await TestInRegularAndScriptAsync(
 input,
-@"[assembly: System.Runtime.InteropServices.Guid(""9ed54f84-a89d-4fcd-a854-44251e925f09"")]");
+@"[ assembly : System.Runtime.InteropServices.Guid( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
         }
 
         [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
