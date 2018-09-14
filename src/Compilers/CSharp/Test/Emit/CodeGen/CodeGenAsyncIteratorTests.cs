@@ -40,6 +40,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         // Do some manual validation on debugging scenarios, including with exceptions (thrown after yield and after await).
 
         [Fact]
+        public void MissingMember_IAsyncStateMachine_MoveNext_SetStateMachine()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> WaitForNextAsync();
+        T TryGetNext(out bool success);
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "MoveNext").WithLocation(5, 5)
+                );
+
+            comp = CreateCompilationWithTasksExtensions(new[] { source });
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(5, 5)
+                );
+        }
+
+        [Fact]
         public void MissingType_IAsyncIEnumerable()
         {
             string source = @"
@@ -493,7 +548,7 @@ class C
     }
     async System.Collections.Generic.IAsyncEnumerable<int> M2()
     {
-        return 1;
+        return 4;
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
@@ -503,7 +558,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
                 // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
+                // (12,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return 4;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(12, 9)
                 );
         }
 
@@ -531,7 +589,50 @@ class C
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
                 // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
+                // (12,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return null;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void AsyncIteratorWithReturnRef()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M(ref string s)
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+        return ref s;
+    }
+    async System.Collections.Generic.IAsyncEnumerable<int> M2(ref string s2)
+    {
+        return ref s2;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
+            comp.VerifyDiagnostics(
+                // (4,73): error CS1988: Async methods cannot have ref, in or out parameters
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M(ref string s)
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s").WithLocation(4, 73),
+                // (4,73): error CS1623: Iterators cannot have ref, in or out parameters
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M(ref string s)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "s").WithLocation(4, 73),
+                // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return ref s;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
+                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M2(ref string s2)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
+                // (10,74): error CS1988: Async methods cannot have ref, in or out parameters
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M2(ref string s2)
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s2").WithLocation(10, 74),
+                // (12,9): error CS8149: By-reference returns may only be used in methods that return by reference
+                //         return ref s2;
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(12, 9)
                 );
         }
 
@@ -559,7 +660,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
                 // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
+                // (12,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return default;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(12, 9)
                 );
         }
 

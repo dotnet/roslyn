@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
         [Fact, WorkItem(29656, "https://github.com/dotnet/roslyn/issues/29656")]
-        public void RefReturningAyncLocalFunction()
+        public void RefReturningAsyncLocalFunction()
         {
             var source = @"
 public class C

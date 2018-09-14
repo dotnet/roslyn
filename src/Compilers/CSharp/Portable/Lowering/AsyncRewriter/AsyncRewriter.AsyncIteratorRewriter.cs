@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
             {
+                base.VerifyPresenceOfRequiredAPIs(bag);
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext, bag);

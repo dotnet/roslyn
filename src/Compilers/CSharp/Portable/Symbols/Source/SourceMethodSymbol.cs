@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses { get; }
 
-        protected void ReportBadRefToken(TypeSyntax returnTypeSyntax, DiagnosticBag diagnostics)
+        protected static void ReportBadRefToken(TypeSyntax returnTypeSyntax, DiagnosticBag diagnostics)
         {
             if (!returnTypeSyntax.HasErrors)
             {
