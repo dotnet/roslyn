@@ -769,16 +769,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
-            this.Type.ReportAnnotatedUnconstrainedTypeParameterIfAny(location, diagnostics);
             if (this.Type.ContainsNullableReferenceTypes())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
-                ReportNullableReferenceTypesIfNeeded(diagnostics, location);
             }
 
-            ParameterHelpers.ReportAnnotatedUnconstrainedTypeParameters(this.Parameters, diagnostics);
             ParameterHelpers.EnsureNullableAttributeExists(this.Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.ReportNullableReferenceTypesIfNeeded(this.Parameters, diagnostics);
         }
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics)

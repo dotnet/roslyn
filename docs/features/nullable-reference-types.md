@@ -175,6 +175,13 @@ A `class?` constraint is allowed, which, like class, requires the type argument 
 [Nullable strawman](https://github.com/dotnet/csharplang/issues/790)
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
 
+An explicit `object` (or `System.Object`) constraint is allowed, which requires the type to be non-nullable when it is a reference type.
+However, an explicit `object?` constraint is not allowed.
+An unconstrained type parameter is essentially equivalent to one constrained by `object?`.
+[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+Note, the `object`/`System.Object` constraint is represented in metadata as any other type constraint, the type is System.Object.
+
+
 A warning is reported for nullable type argument for type parameter with `class` constraint or non-nullable reference type or interface type constraint.
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
 ```c#

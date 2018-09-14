@@ -1417,16 +1417,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // PROTOTYPE(NullableReferenceTypes): Report diagnostics for base type and interfaces at more specific locations.
             var baseType = BaseTypeNoUseSiteDiagnostics;
             var interfaces = InterfacesNoUseSiteDiagnostics();
-            if (baseType?.ContainsAnnotatedUnconstrainedTypeParameter() == true ||
-                interfaces.Any(t => t.ContainsAnnotatedUnconstrainedTypeParameter()))
-            {
-                TypeSymbolWithAnnotations.ReportAnnotatedUnconstrainedTypeParameter(location, diagnostics);
-            }
             if (baseType?.ContainsNullableReferenceTypes() == true ||
                 interfaces.Any(t => t.ContainsNullableReferenceTypes()))
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
-                ReportNullableReferenceTypesIfNeeded(diagnostics, location);
             }
         }
 

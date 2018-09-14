@@ -396,25 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Symbol containingSymbol = typeParameter.ContainingSymbol;
 
-            bool onLocalFunction = containingSymbol.Kind == SymbolKind.Method && ((MethodSymbol)containingSymbol).MethodKind == MethodKind.LocalFunction;
-
-            if ((constraintClause.Constraints & TypeParameterConstraintKind.NullableReferenceType) == TypeParameterConstraintKind.NullableReferenceType)
-            {
-                Location location = constraintClause.ClauseSyntax.Location;
-
-                foreach (TypeParameterConstraintSyntax constraintSyntax in constraintClause.ClauseSyntax.Constraints)
-                {
-                    if (constraintSyntax.IsKind(SyntaxKind.ClassConstraint) &&
-                        ((ClassOrStructConstraintSyntax)constraintSyntax).QuestionToken.IsKind(SyntaxKind.QuestionToken))
-                    {
-                        location = ((ClassOrStructConstraintSyntax)constraintSyntax).QuestionToken.GetLocation();
-                        break;
-                    }
-                }
-
-                typeParameter.ReportNullableReferenceTypesIfNeeded(diagnostics, location);
-            }
-
             var constraintTypeBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             var constraintTypes = constraintClause.ConstraintTypes;
             int n = constraintTypes.Length;
@@ -430,14 +411,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     containingSymbol.CheckConstraintTypeVisibility(syntax.Location, constraintType, diagnostics);
                     constraintTypeBuilder.Add(constraintType);
-                }
-
-                constraintType.ReportAnnotatedUnconstrainedTypeParameterIfAny(syntax.Location, diagnostics);
-
-                if (!onLocalFunction && constraintType.ContainsNullableReferenceTypes())
-                {
-                    // Note: Misuse of ? annotation on declarations of local functions is reported when binding their types (since in executable context)
-                    typeParameter.ReportNullableReferenceTypesIfNeeded(diagnostics, syntax.Location);
                 }
             }
 
@@ -966,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (!SatisfiesConstraintType(conversions, typeArgument, constraintType, ref useSiteDiagnostics) ||
                             (typeArgument.IsNullable == true && !typeArgument.IsValueType &&
-                             TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType, ConsList<TypeParameterSymbol>.Empty) == true))
+                             TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType) == true))
                         {
                             var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
                             warningsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));

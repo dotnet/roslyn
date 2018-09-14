@@ -571,19 +571,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)typeParameter != null;
         }
 
-        public void ReportAnnotatedUnconstrainedTypeParameterIfAny(Location location, DiagnosticBag diagnostics)
-        {
-            if (ContainsAnnotatedUnconstrainedTypeParameter())
-            {
-                ReportAnnotatedUnconstrainedTypeParameter(location, diagnostics);
-            }
-        }
-
-        public static void ReportAnnotatedUnconstrainedTypeParameter(Location location, DiagnosticBag diagnostics)
-        {
-            diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, location ?? NoLocation.Singleton);
-        }
-
         public void AddNullableTransforms(ArrayBuilder<bool> transforms)
         {
             var typeSymbol = TypeSymbol;

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var constraintTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             _map.SubstituteTypesDistinctWithoutModifiers(_underlyingTypeParameter.GetConstraintTypes(inProgress, early), constraintTypes, null);
-            return constraintTypes.ToImmutableAndFree().WhereAsArray(s_isNotObjectFunc);
+            return constraintTypes.ToImmutableAndFree().WhereAsArray(type => type.SpecialType != SpecialType.System_Object || !type.IsAnnotated);
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
@@ -117,7 +117,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _map.SubstituteType(_underlyingTypeParameter.GetDeducedBaseType(inProgress)).AsTypeSymbolOnly();
         }
-
-        private static readonly Func<TypeSymbolWithAnnotations, bool> s_isNotObjectFunc = type => type.SpecialType != SpecialType.System_Object;
     }
 }

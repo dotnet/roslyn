@@ -6370,7 +6370,7 @@ tryAgain:
                 SyntaxToken questionToken = null;
                 if (allowQuestionToken && this.CurrentToken.Kind == SyntaxKind.QuestionToken)
                 {
-                    questionToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureStaticNullChecking);
+                    questionToken = this.EatToken();
                 }
 
                 return _syntaxFactory.ArrayRankSpecifier(open, list, close, questionToken);

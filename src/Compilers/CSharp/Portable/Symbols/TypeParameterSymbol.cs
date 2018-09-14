@@ -444,15 +444,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return AnyConstraintTypes(constraintTypes, inProgress, (type, arg) => ConstraintImpliesReferenceType(type.TypeSymbol, arg));
         }
 
-        internal bool? IsNotNullableIfReferenceTypeFromConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes, ConsList<TypeParameterSymbol> inProgress)
+        internal static bool? IsNotNullableIfReferenceTypeFromConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes)
         {
             Debug.Assert(!constraintTypes.IsDefaultOrEmpty);
-            inProgress = inProgress.Prepend(this);
 
             bool? result = false;
             foreach (TypeSymbolWithAnnotations constraintType in constraintTypes)
             {
-                bool? fromType = IsNotNullableIfReferenceTypeFromConstraintType(constraintType, inProgress);
+                bool? fromType = IsNotNullableIfReferenceTypeFromConstraintType(constraintType);
                 if (fromType == true)
                 {
                     return true;
@@ -466,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeSymbolWithAnnotations constraintType, ConsList<TypeParameterSymbol> inProgress)
+        internal static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeSymbolWithAnnotations constraintType)
         {
             if (constraintType.IsAnnotated)
             {
@@ -475,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (constraintType.TypeKind == TypeKind.TypeParameter)
             {
-                bool? isNotNullableIfReferenceType = ((TypeParameterSymbol)constraintType.TypeSymbol).GetIsNotNullableIfReferenceType(inProgress);
+                bool? isNotNullableIfReferenceType = ((TypeParameterSymbol)constraintType.TypeSymbol).GetIsNotNullableIfReferenceType();
 
                 if (isNotNullableIfReferenceType == false)
                 {
@@ -535,13 +534,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsReferenceType => GetIsReferenceType(ConsList<TypeParameterSymbol>.Empty);
 
-        internal bool? GetIsNotNullableIfReferenceType(ConsList<TypeParameterSymbol> inProgress)
+        internal bool? GetIsNotNullableIfReferenceType()
         {
-            if (inProgress.ContainsReference(this))
-            {
-                return false;
-            }
-
             bool? fromReferenceTypeConstraint = false;
 
             if (this.HasReferenceTypeConstraint)
@@ -554,14 +548,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            ImmutableArray<TypeSymbolWithAnnotations> constraintTypes = this.GetConstraintTypesNoUseSiteDiagnostics(inProgress, early: true);
+            ImmutableArray<TypeSymbolWithAnnotations> constraintTypes = this.ConstraintTypesNoUseSiteDiagnostics;
 
             if (constraintTypes.IsEmpty)
             {
                 return fromReferenceTypeConstraint;
             }
 
-            bool? fromTypes = IsNotNullableIfReferenceTypeFromConstraintTypes(constraintTypes, inProgress);
+            bool? fromTypes = IsNotNullableIfReferenceTypeFromConstraintTypes(constraintTypes);
 
             if (fromTypes == true || fromReferenceTypeConstraint == false)
             {
@@ -574,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // https://github.com/dotnet/roslyn/issues/26198 Should this API be exposed through ITypeParameterSymbol?
-        internal bool? IsNotNullableIfReferenceType => GetIsNotNullableIfReferenceType(ConsList<TypeParameterSymbol>.Empty);
+        internal bool? IsNotNullableIfReferenceType => GetIsNotNullableIfReferenceType();
 
         internal bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress)
         {

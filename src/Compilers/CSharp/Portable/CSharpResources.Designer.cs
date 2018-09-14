@@ -10863,6 +10863,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to object generic type constraint.
+        /// </summary>
+        internal static string IDS_FeatureObjectGenericTypeConstraint {
+            get {
+                return ResourceManager.GetString("IDS_FeatureObjectGenericTypeConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to object initializer.
         /// </summary>
         internal static string IDS_FeatureObjectInitializer {
