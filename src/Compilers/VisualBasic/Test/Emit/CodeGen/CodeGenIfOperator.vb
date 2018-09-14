@@ -1262,12 +1262,17 @@ Friend Module Mod1
     End Sub
 
     Sub Main()
-        M1(Nothing, 10)
-        M1(1, 10)
+        M1(Nothing, 1000)
+        M1(1, 1000)
         M1(Nothing, "String Parameter 1")
         M1("String Parameter 2", "Should not print")
         M1(Of Integer?)(Nothing, 4)
-        M1(Of Integer?)(5, 10)
+        M1(Of Integer?)(5, 1000)
+        M2(1000, 6)
+        M2(Of Object, Integer?)(7, Nothing)
+        M2(Of Object, Integer?)(1000, 8)
+        M2(Of Integer?, Integer?)(9, Nothing)
+        M2(Of Integer?, Integer?)(1000, 10)
     End Sub
 End Module
     </file>
@@ -1278,6 +1283,11 @@ String Parameter 1
 String Parameter 2
 4
 5
+6
+7
+8
+9
+10
 ]]>).VerifyIL("Mod1.M1", <![CDATA[
 {
   // Code size       22 (0x16)
