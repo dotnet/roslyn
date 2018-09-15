@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -12,13 +13,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private abstract class AbstractRemoveDocumentUndoUnit : AbstractAddRemoveUndoUnit
         {
             protected readonly DocumentId DocumentId;
+            protected readonly IEnumerable<string> CreatedFolder;
 
             protected AbstractRemoveDocumentUndoUnit(
                 VisualStudioWorkspaceImpl workspace,
-                DocumentId documentId)
+                DocumentId documentId,
+                IEnumerable<string> createdFolder)
                 : base(workspace, documentId.ProjectId)
             {
                 DocumentId = documentId;
+                CreatedFolder = createdFolder;
             }
 
             protected abstract IReadOnlyList<DocumentId> GetDocumentIds(Project fromProject);
@@ -30,11 +34,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var currentSolution = Workspace.CurrentSolution;
                 var fromProject = currentSolution.GetProject(FromProjectId);
 
-                if (fromProject != null &&
-                    GetDocumentIds(fromProject).Contains(DocumentId))
+                if (fromProject == null)
+                {
+                    return;
+                }
+
+                if (GetDocumentIds(fromProject).Contains(DocumentId))
                 {
                     var updatedProject = fromProject.RemoveDocument(DocumentId);
                     Workspace.TryApplyChanges(updatedProject.Solution);
+                }
+
+                if (CreatedFolder.Any())
+                {
+                    var project = Workspace.TryGetDTEProject(FromProjectId);
+                    project?.FindFolder(CreatedFolder)?.Remove();
                 }
             }
 

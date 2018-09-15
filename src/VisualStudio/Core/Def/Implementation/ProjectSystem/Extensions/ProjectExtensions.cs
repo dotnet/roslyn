@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
@@ -10,25 +11,56 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions
 {
     internal static class ProjectExtensions
-    {
-        public static ProjectItem FindOrCreateFolder(this EnvDTE.Project project, IEnumerable<string> containers)
+    {      
+        public static ProjectItem FindOrCreateFolder(this EnvDTE.Project project, IEnumerable<string> containers, out ImmutableArray<string> createdContainer)
+        {
+            return FindOrCreateFolder(project, containers, createIfNotFound:true, out createdContainer);
+        }
+
+        public static ProjectItem FindFolder(this EnvDTE.Project project, IEnumerable<string> containers)
+        {         
+            return FindOrCreateFolder(project, containers, createIfNotFound: false, out _);
+        }
+
+        /// <remarks>
+        /// If any folder is created, <paramref name="createdContainer"/> contains from first entry in <paramref name="containers"/> 
+        /// up to the first new folder created. Otherwise, <paramref name="createdContainer"/> is empty.
+        /// </remarks> 
+        private static ProjectItem FindOrCreateFolder(this EnvDTE.Project project, IEnumerable<string> containers, bool createIfNotFound, out ImmutableArray<string> createdContainer)
         {
             Debug.Assert(containers.Any());
 
+            int firstCreationIndex = -1;
+            int index = 0;
             var currentItems = project.ProjectItems;
             foreach (var container in containers)
             {
                 var folderItem = currentItems.FindFolder(container);
                 if (folderItem == null)
                 {
-                    folderItem = CreateFolder(currentItems, container);
+                    if (createIfNotFound)
+                    {
+                        folderItem = CreateFolder(currentItems, container);
+                        if (firstCreationIndex < 0)
+                        {
+                            firstCreationIndex = index;
+                        }
+                    }
+                    else
+                    {
+                        createdContainer = ImmutableArray<string>.Empty;
+                        return null;
+                    }
                 }
 
                 currentItems = folderItem.ProjectItems;
+                ++index;
             }
 
+            createdContainer = containers.Take(firstCreationIndex + 1).ToImmutableArrayOrEmpty();
             return (ProjectItem)currentItems.Parent;
-        }
+        } 
+
 
         private static ProjectItem CreateFolder(ProjectItems currentItems, string container)
         {

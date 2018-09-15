@@ -557,13 +557,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             folders = FilterFolderForProjectType(project, folders);
 
+            var firstCreatedFolder = Enumerable.Empty<string>();   
             if (IsWebsite(project))
             {
-                AddDocumentToFolder(hostProject, project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
+                (_, firstCreatedFolder) = AddDocumentToFolder(hostProject, project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
             }
             else if (folders.Any())
             {
-                AddDocumentToFolder(hostProject, project, info.Id, folders, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
+
+                (_, firstCreatedFolder) = AddDocumentToFolder(hostProject, project, info.Id, folders, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
             }
             else
             {
@@ -574,11 +576,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (isAdditionalDocument)
             {
-                undoManager?.Add(new RemoveAdditionalDocumentUndoUnit(this, info.Id));
+                undoManager?.Add(new RemoveAdditionalDocumentUndoUnit(this, info.Id, firstCreatedFolder));
             }
             else
             {
-                undoManager?.Add(new RemoveDocumentUndoUnit(this, info.Id));
+                undoManager?.Add(new RemoveDocumentUndoUnit(this, info.Id, firstCreatedFolder));
             }
         }
 
@@ -659,7 +661,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return AddDocumentToProjectItems(hostProject, project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
         }
 
-        private ProjectItem AddDocumentToFolder(
+        private (ProjectItem, IEnumerable<string>) AddDocumentToFolder(
             AbstractProject hostProject,
             EnvDTE.Project project,
             DocumentId documentId,
@@ -670,7 +672,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filePath = null,
             bool isAdditionalDocument = false)
         {
-            var folder = project.FindOrCreateFolder(folders);
+            var folder = project.FindOrCreateFolder(folders, out var firstCreatedFolder);
 
             string folderPath = null;
             if (filePath == null && !folder.TryGetFullPath(out folderPath))
@@ -679,7 +681,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
-            return AddDocumentToProjectItems(hostProject, folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
+            var addedDocument = AddDocumentToProjectItems(hostProject, folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
+            return (addedDocument, firstCreatedFolder);
         }
 
         private ProjectItem AddDocumentToProjectItems(

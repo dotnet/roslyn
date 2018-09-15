@@ -11,8 +11,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             public RemoveDocumentUndoUnit(
                 VisualStudioWorkspaceImpl workspace,
-                DocumentId documentId)
-                : base(workspace, documentId)
+                DocumentId documentId,
+                IEnumerable<string> createdFolder)
+                : base(workspace, documentId, createdFolder)
             {
             }
 
