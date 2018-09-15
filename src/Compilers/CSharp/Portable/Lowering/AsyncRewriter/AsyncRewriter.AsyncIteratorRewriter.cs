@@ -42,6 +42,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext, bag);
                 EnsureWellKnownMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor, bag);
+
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult, bag);
+
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted, bag);
+
+                EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__Value, bag);
             }
 
             protected override void GenerateMethodImplementations()
@@ -447,17 +463,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // var inst = this;
                 // this._builder.Start(ref inst);
 
-                // PROTOTYPE(async-streams): Can we factor this code? (copied and modified from below)
-
                 LocalSymbol instSymbol = F.SynthesizedLocal(this.stateMachineType);
                 MethodSymbol startMethod = _asyncMethodBuilderMemberCollection.Start.Construct(this.stateMachineType);
                 BoundLocal instLocal = F.Local(instSymbol);
-
-                // PROTOTYPE(async-streams): Test constraints scenario
-                //if (_asyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
-                //{
-                //    startMethod.CheckConstraints(F.Compilation.Conversions, F.Syntax, F.Compilation, diagnostics);
-                //}
+                Debug.Assert(!_asyncMethodBuilderMemberCollection.CheckGenericMethodConstraints);
 
                 // this._builder.Start(ref inst);
                 BoundExpressionStatement startCall = F.ExpressionStatement(
@@ -520,16 +529,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     setExceptionMethod = (MethodSymbol)setExceptionMethod.SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
                 }
-
-                // PROTOTYPE(async-streams): We should have checked for required members earlier
-                //if (setResultMethod is null)
-                //{
-                //    var descriptor = WellKnownMembers.GetDescriptor(member);
-                //    var diagnostic = new CSDiagnostic(
-                //        new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, (customBuilder ? (object)builderType : descriptor.DeclaringTypeMetadataName), descriptor.Name),
-                //        F.Syntax.Location);
-                //    F.Diagnostics.Add(diagnostic);
-                //}
 
                 var rewriter = new AsyncMethodToStateMachineRewriter(
                     method: method,
