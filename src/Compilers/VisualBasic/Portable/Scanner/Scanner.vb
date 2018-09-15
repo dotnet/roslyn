@@ -536,9 +536,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function TryGet(num As Integer, ByRef ch As Char) As Boolean
-            Dim ok = CanGet(num)
-            ch = If(ok, Peek(num), ch)
-            Return ok
+            If CanGet(num) Then
+                ch = Peek(num)
+                Return True
+            End If
+            Return False
         End Function
 
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
@@ -581,7 +583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ch = Peek()
                     atNewLine = IsNewLine(ch)
                 Else
-                    atNewLine = False
+                    Debug.Assert(atNewLine = False)
                 End If
             End If
 

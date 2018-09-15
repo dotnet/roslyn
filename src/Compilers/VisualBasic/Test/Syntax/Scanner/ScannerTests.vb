@@ -510,36 +510,56 @@ Public Class ScannerTests
         tk = ScanOnce(" _'", startStatement:=True)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _'", tk.ToFullString())
+        Assert.Equal(3, tk.LeadingTrivia.Count)
         Assert.True(tk.LeadingTrivia(0).Kind = SyntaxKind.WhitespaceTrivia)
         Assert.True(tk.LeadingTrivia(1).Kind = SyntaxKind.LineContinuationTrivia)
         Assert.True(tk.LeadingTrivia(2).Kind = SyntaxKind.CommentTrivia)
-        Assert.Equal(37306, tk.Errors.First().Code)
+        Assert.True(tk.Errors.Count = 1)
+        Assert.Equal(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, tk.Errors.First().Code)
 
         ' PROTOTYPE LanguageVersion.VisualBasic15_5 should be LanguageVersion.VisualBasic16
         tk = ScanOnce(" _'", LanguageVersion.VisualBasic15_5)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _'", tk.ToFullString())
+        Assert.Equal(3, tk.LeadingTrivia.Count)
         Assert.True(tk.LeadingTrivia(0).Kind = SyntaxKind.WhitespaceTrivia)
         Assert.True(tk.LeadingTrivia(1).Kind = SyntaxKind.LineContinuationTrivia)
+        Assert.True(tk.LeadingTrivia(2).Kind = SyntaxKind.CommentTrivia)
         Assert.True(tk.Errors.Count = 0)
 
         tk = ScanOnce(" _' Comment", LanguageVersion.VisualBasic15_3)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _' Comment", tk.ToFullString())
-        Assert.True(tk.LeadingTrivia.Count = 3)
+        Assert.Equal(3, tk.LeadingTrivia.Count)
         Assert.True(tk.LeadingTrivia(0).Kind = SyntaxKind.WhitespaceTrivia)
+        Assert.False(tk.LeadingTrivia(0).ContainsDiagnostics)
         Assert.True(tk.LeadingTrivia(1).Kind = SyntaxKind.LineContinuationTrivia)
+        Assert.False(tk.LeadingTrivia(1).ContainsDiagnostics)
         Assert.True(tk.LeadingTrivia(2).Kind = SyntaxKind.CommentTrivia)
-        Assert.Equal(37306, tk.Errors.First().Code)
+        Assert.True(tk.LeadingTrivia(2).ContainsDiagnostics)
+        Assert.True(tk.Errors.Count = 1)
+        Assert.Equal(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, tk.Errors.First().Code)
 
         ' PROTOTYPE LanguageVersion.VisualBasic15_5 should be LanguageVersion.VisualBasic16
         tk = ScanOnce(" _' Comment", LanguageVersion.VisualBasic15_5)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _' Comment", tk.ToFullString())
-        Assert.True(tk.LeadingTrivia.Count = 3)
+        Assert.Equal(3, tk.LeadingTrivia.Count)
         Assert.True(tk.LeadingTrivia(0).Kind = SyntaxKind.WhitespaceTrivia)
         Assert.True(tk.LeadingTrivia(1).Kind = SyntaxKind.LineContinuationTrivia)
         Assert.True(tk.LeadingTrivia(2).Kind = SyntaxKind.CommentTrivia)
+        Assert.True(tk.Errors.Count = 0)
+
+        ' PROTOTYPE LanguageVersion.VisualBasic15_5 should be LanguageVersion.VisualBasic16
+        tk = ScanOnce(" _  ' Comment" & vbCrLf, LanguageVersion.VisualBasic15_5)
+        Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
+        Assert.Equal(" _  ' Comment" & vbCrLf, tk.ToFullString())
+        Assert.Equal(5, tk.LeadingTrivia.Count)
+        Assert.True(tk.LeadingTrivia(0).Kind = SyntaxKind.WhitespaceTrivia)
+        Assert.True(tk.LeadingTrivia(1).Kind = SyntaxKind.LineContinuationTrivia)
+        Assert.True(tk.LeadingTrivia(2).Kind = SyntaxKind.WhitespaceTrivia)
+        Assert.True(tk.LeadingTrivia(3).Kind = SyntaxKind.CommentTrivia)
+        Assert.True(tk.LeadingTrivia(4).Kind = SyntaxKind.EndOfLineTrivia)
         Assert.True(tk.Errors.Count = 0)
 
         tk = ScanOnce(" _ rem", startStatement:=True)
@@ -580,7 +600,7 @@ Public Class ScannerTests
     Public Sub Scanner_LineContInsideStatement()
 
         ' this would be a case of      )_
-        ' valid _ would have been consumed by   ) 
+        ' valid _ would have been consumed by   )
         Dim tk = ScanOnce("_" & vbLf, False)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal("_" + vbLf, tk.ToFullString)
@@ -1663,7 +1683,7 @@ End If
     <Fact>
     Public Sub OghamSpacemark()
         ParseAndVerify(<![CDATA[
-Module M 
+Module M
 End Module
 
         ]]>)
@@ -1738,9 +1758,9 @@ a<
     Public Sub ParseHugeNumber()
         ParseAndVerify(<![CDATA[
 Module M
-    Sub Main     
+    Sub Main
  Dim x = CompareDouble(-7.92281625142643E337593543950335D)
-    End Sub 
+    End Sub
 EndModule
 
 
@@ -1758,10 +1778,10 @@ EndModule
     Public Sub ParseHugeNumberLabel()
         ParseAndVerify(<![CDATA[
 Module M
-    Sub Main     
- 
+    Sub Main
+
 678901234567890123456789012345678901234567456789012345678901234567890123456789012345
-    End Sub 
+    End Sub
 EndModule
 
         ]]>,
@@ -1785,9 +1805,9 @@ Public Class Assembly001bDll
         Asb = System.Reflection.Assembly.GetExecutingAssembly()
 
 
-        
-        
-        
+
+
+
 
         apcompare(Left(CurDir(), 1) & ":\School\assembly001bdll.dll", Asb.Location, "location")
 

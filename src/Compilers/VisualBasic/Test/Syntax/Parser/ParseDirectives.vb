@@ -2357,6 +2357,9 @@ End Module]]>,
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation2()
         ' PROTOTYPE LanguageVersion.VisualBasic15_3 should be LanguageVersion.VisualBasic15_5
+        ' PROTOTYPE 37306 must be set to the value of ERRID.ERR_CommentsAfterLineContinuationNotAvailable1
+        Assert.Equal(37306, ERRID.ERR_CommentsAfterLineContinuationNotAvailable1)
+        ' PROTOTYPE "37306" must be set to the string value of ERRID.ERR_CommentsAfterLineContinuationNotAvailable1
         Dim tree = ParseAndVerify(code:=<![CDATA[#Enable Warning _ 'Comment]]>,
                                   options:=New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
                                     <errors>
@@ -2423,6 +2426,9 @@ End Module]]>,
     Public Sub ParseWarningDirective_LineContinuation4()
         ' PROTOTYPE LanguageVersion.VisualBasic15_3 should be LanguageVersion.VisualBasic15_5
         ' PROTOTYPE 15.5 should be 16
+        ' PROTOTYPE 37306 should be value of ERRID.ERR_CommentsAfterLineContinuationNotAvailable1
+        Assert.Equal(37306, ERRID.ERR_CommentsAfterLineContinuationNotAvailable1)
+        ' PROTOTYPE "37306" must be set to the string value of ERRID.ERR_CommentsAfterLineContinuationNotAvailable1
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc41007 _ 'Comment]]>,
                                   New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
             <errors>
