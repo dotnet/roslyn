@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
-        // PROTOTYPE(async-streams)
+        // PROTOTYPE(async-streams) Add more tests:
         // Test missing remaining types/members once BCL APIs are finalized (MRVTSL, IStrongBox, IValueTaskSource)
         // test missing AsyncTaskMethodBuilder<T> or missing members Create(), Task, ...
         // Test with yield or await in try/catch/finally
@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         // test `async IAsyncEnumerable<int> M() { return TaskLike(); }`
         // Can we avoid making IAsyncEnumerable<T> special from the start? Making mark it with an attribute like we did for task-like?
         // Do some manual validation on debugging scenarios, including with exceptions (thrown after yield and after await).
+        // Test with one or both or the threadID APIs missing.
+        // Test with parameters, including `this`
 
         private void VerifyMissingMember(WellKnownMember member, params DiagnosticDescription[] expected)
         {
@@ -51,9 +53,9 @@ class C
     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
 }
 ";
-                var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib_ref });
-                comp.MakeMemberMissing(member);
-                comp.VerifyEmitDiagnostics(expected);
+            var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib_ref });
+            comp.MakeMemberMissing(member);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         private void VerifyMissingType(WellKnownType type, params DiagnosticDescription[] expected)
@@ -68,9 +70,9 @@ class C
     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
 }
 ";
-                var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib_ref });
-                comp.MakeTypeMissing(type);
-                comp.VerifyEmitDiagnostics(expected);
+            var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib_ref });
+            comp.MakeTypeMissing(type);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
@@ -186,6 +188,16 @@ class C
                 // (5,64): error CS0656: Missing compiler required member 'System.Threading.Tasks.Sources.IValueTaskSource`1.OnCompleted'
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Threading.Tasks.Sources.IValueTaskSource`1", "OnCompleted").WithLocation(5, 64)
+                );
+        }
+
+        [Fact]
+        public void MissingMember_AsyncVoidMethodBuilder()
+        {
+            VerifyMissingMember(WellKnownMember.System_Runtime_CompilerServices_AsyncVoidMethodBuilder__Create,
+                // (5,64): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create'
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder", "Create").WithLocation(5, 64)
                 );
         }
 
@@ -1095,6 +1107,36 @@ class C
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
                 }
             }
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void AsyncIteratorWithGenericReturn()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<T> M<T>(T value)
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return value;
+        Write("" 4 "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        foreach await (var i in M(3))
+        {
+            Write(i);
+        }
+        Write(""5"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
         [Fact]

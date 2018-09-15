@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class AsyncIteratorRewriter : AsyncRewriter
         {
+            private readonly TypeSymbol _elementType;
+
             private FieldSymbol _promiseOfValueOrEndField; // this struct implements the IValueTaskSource logic
             private FieldSymbol _promiseIsActiveField;
             private FieldSymbol _currentField; // stores the current/yielded value
@@ -30,6 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
             {
                 Debug.Assert(method.IteratorElementType != null);
+
+                // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
+                _elementType = stateMachineType.ElementType;
 
                 // PROTOTYPE(async-streams): Why does AsyncRewriter have logic to ignore accessibility?
             }
@@ -102,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GeneratedNames.MakeAsyncIteratorPromiseIsActiveFieldName(), isPublic: true);
 
                 // Add a field: T current
-                _currentField = F.StateMachineField(method.IteratorElementType, GeneratedNames.MakeIteratorCurrentFieldName());
+                _currentField = F.StateMachineField(_elementType, GeneratedNames.MakeIteratorCurrentFieldName());
             }
 
             /// <summary>
@@ -110,8 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType)
             {
-                // PROTOTYPE(async-streams): TODO review this (what is this error case at the start?)
-
                 // If the async method's result type is a type parameter of the method, then the AsyncTaskMethodBuilder<T>
                 // needs to use the method's type parameters inside the rewritten method body. All other methods generated
                 // during async rewriting are members of the synthesized state machine struct, and use the type parameters
@@ -510,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // The implementation doesn't depend on the method body of the iterator method.
                 // Generates IAsyncEnumerator<elementType> IAsyncEnumerable<elementType>.GetEnumerator()
-                OpenMethodImplementation( IAsyncEnumerableOfElementType_GetEnumerator, hasMethodBodyDependency: false);
+                OpenMethodImplementation(IAsyncEnumerableOfElementType_GetEnumerator, hasMethodBodyDependency: false);
 
                 // PROTOTYPE(async-streams): 0 is not the proper state to start with
                 F.CloseMethod(F.Block(
