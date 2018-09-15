@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../VBFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_Await">
+        <source>Add Await</source>
+        <target state="new">Add Await</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add Await and 'ConfigureAwait(false)'</source>
+        <target state="new">Add Await and 'ConfigureAwait(false)'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>
         <target state="translated">Instrukcja „if” może zostać uproszczona</target>

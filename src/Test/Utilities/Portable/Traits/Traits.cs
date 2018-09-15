@@ -162,6 +162,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ErrorSquiggles = nameof(ErrorSquiggles);
             public const string EventHookup = nameof(EventHookup);
             public const string Expansion = nameof(Expansion);
+            public const string AddAwait = "Refactoring.AddAwait";
             public const string ExtractInterface = "Refactoring.ExtractInterface";
             public const string ExtractMethod = "Refactoring.ExtractMethod";
             public const string F1Help = nameof(F1Help);
