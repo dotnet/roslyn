@@ -1732,5 +1732,33 @@ namespace RoslynSandbox
 
 }");
         }
+        [WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleLineWithDoubleDirectives()
+        {
+            await TestInRegularAndScriptAsync(
+@"class TestClass
+{
+    #region Field
+    [|int i|];
+    #endregion
+
+    #region Property
+    int P
+    {
+        get { return i; }
+    }
+    #endregion
+}",
+@"class TestClass
+{
+    #region Field
+    #endregion
+
+    #region Property
+    int P { get; }
+    #endregion
+}");
+        }
     }
 }
