@@ -1,23 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers
 {
-    internal abstract class AbstractEmbeddedLanguagesTokenClassifier : AbstractSyntaxClassifier
+    internal abstract class AbstractEmbeddedLanguagesClassifier : AbstractSyntaxClassifier
     {
         private readonly IEmbeddedLanguagesProvider _languagesProvider;
 
-        protected AbstractEmbeddedLanguagesTokenClassifier(IEmbeddedLanguagesProvider languagesProvider)
+        public override ImmutableArray<int> SyntaxTokenKinds { get; } 
+
+        protected AbstractEmbeddedLanguagesClassifier(IEmbeddedLanguagesProvider languagesProvider)
         {
             _languagesProvider = languagesProvider;
+            SyntaxTokenKinds = 
+                languagesProvider.Languages.SelectMany(p => p.Classifier.SyntaxTokenKinds).Distinct().ToImmutableArray();
         }
 
-        public sealed override void AddClassifications(Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public override void AddClassifications(Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            foreach (var language in _languagesProvider.GetEmbeddedLanguages())
+            foreach (var language in _languagesProvider.Languages)
             {
                 var classifier = language.Classifier;
                 if (classifier != null)
