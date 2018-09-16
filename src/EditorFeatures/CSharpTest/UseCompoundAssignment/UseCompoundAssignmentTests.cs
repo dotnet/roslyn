@@ -432,5 +432,22 @@ public class D
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotWithSideEffects()
+        {
+            await TestMissingAsync(
+@"public class C
+{
+    int i;
+
+    C Goo() => this;
+
+    void M()
+    {
+        this.Goo().i [||]= this.Goo().i + 10;
+    }
+}");
+        }
     }
 }
