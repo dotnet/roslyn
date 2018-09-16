@@ -316,5 +316,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestParenthesized()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    int a;
+
+    void M()
+    {
+        (a) [||]= (a) + 10;
+    }
+}",
+@"public class C
+{
+    int a;
+
+    void M()
+    {
+        (a) += 10;
+    }
+}");
+        }
     }
 }
