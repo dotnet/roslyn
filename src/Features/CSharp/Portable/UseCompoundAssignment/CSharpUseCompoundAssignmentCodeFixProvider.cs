@@ -3,12 +3,13 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.UseCompoundAssignment;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseCompoundAssignmentCodeFixProvider 
-        : AbstractUseCompoundAssignmentCodeFixProvider<SyntaxKind, ExpressionSyntax>
+        : AbstractUseCompoundAssignmentCodeFixProvider<SyntaxKind, AssignmentExpressionSyntax, ExpressionSyntax>
     {
         public CSharpUseCompoundAssignmentCodeFixProvider()
             : base(Maps.BinaryToAssignmentMap,
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
         protected override SyntaxToken Token(SyntaxKind kind)
             => SyntaxFactory.Token(kind);
 
-        protected override SyntaxNode AssignmentExpression(
+        protected override AssignmentExpressionSyntax Assignment(
             SyntaxKind assignmentOpKind, ExpressionSyntax left, SyntaxToken syntaxToken, ExpressionSyntax right)
         {
             return SyntaxFactory.AssignmentExpression(assignmentOpKind, left, syntaxToken, right);

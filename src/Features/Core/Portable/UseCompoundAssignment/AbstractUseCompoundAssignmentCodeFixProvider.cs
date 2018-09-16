@@ -11,11 +11,13 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
+namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 {
-    internal abstract class AbstractUseCompoundAssignmentCodeFixProvider<TSyntaxKind, TExpressionSyntax> 
+    internal abstract class AbstractUseCompoundAssignmentCodeFixProvider<
+        TSyntaxKind, TAssignmentSyntax, TExpressionSyntax> 
         : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
+        where TAssignmentSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 
         protected abstract TSyntaxKind GetSyntaxKind(int rawKind);
         protected abstract SyntaxToken Token(TSyntaxKind kind);
-        protected abstract SyntaxNode AssignmentExpression(
+        protected abstract TAssignmentSyntax Assignment(
             TSyntaxKind assignmentOpKind, TExpressionSyntax left, SyntaxToken syntaxToken, TExpressionSyntax right);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 
                     var assignmentOpKind = BinaryToAssignmentMap[GetSyntaxKind(rightOfAssign.RawKind)];
                         var compoundOperator = Token(AssignmentToTokenMap[assignmentOpKind]);
-                        return AssignmentExpression(
+                        return Assignment(
                             assignmentOpKind,
                             (TExpressionSyntax)leftOfAssign,
                             compoundOperator.WithTriviaFrom(equalsToken),
