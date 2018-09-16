@@ -10,7 +10,7 @@ Build all cross-platform projects with:
 
 ```
 cd <roslyn-git-directory>
-./build/scripts/restore.sh
+./build.sh --restore
 dotnet build Compilers.sln
 ```
 
