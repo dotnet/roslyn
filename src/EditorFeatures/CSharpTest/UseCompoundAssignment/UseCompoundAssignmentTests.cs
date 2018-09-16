@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseCompoundAssignmentDiagnosticAnalyzer(), new CSharpUseCompoundAssignmentCodeFixProvider());
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestAddExpression()
         {
@@ -35,6 +34,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     void M(int a)
     {
         a += 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestSubtractExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a - 10;
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a -= 10;
     }
 }");
         }
