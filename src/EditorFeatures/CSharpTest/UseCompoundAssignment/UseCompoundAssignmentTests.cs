@@ -514,5 +514,25 @@ public class D
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNestedAssignment()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M(int a, int b)
+    {
+        b = (a [||]= a + 10);
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        b = (a += 10);
+    }
+}");
+        }
     }
 }
