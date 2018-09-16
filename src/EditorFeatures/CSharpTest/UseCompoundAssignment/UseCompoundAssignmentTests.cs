@@ -370,5 +370,54 @@ public class D : C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestMultiAccess()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    public int a;
+}
+
+public class D
+{
+    C c;
+
+    void M()
+    {
+        this.c.a [||]= this.c.a + 10;
+    }
+}",
+@"public class C
+{
+    public int a;
+}
+
+public class D
+{
+    C c;
+
+    void M()
+    {
+        this.c.a += 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnProp()
+        {
+            await TestMissingAsync(
+@"public class C
+{
+    int a { get; set; }
+
+    void M()
+    {
+        a [||]= a + 10;
+    }
+}");
+        }
     }
 }
