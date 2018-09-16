@@ -507,7 +507,7 @@ public class D
 }",
 @"public class C
 {
-    void M(int a)
+    void M(int a, int b)
     {
         a += 10;
         b -= a;
@@ -528,7 +528,7 @@ public class D
 }",
 @"public class C
 {
-    void M(int a)
+    void M(int a, int b)
     {
         b = (a += 10);
     }
