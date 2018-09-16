@@ -286,5 +286,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestStaticFieldThroughNamespaceAndType()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace NS
+{
+    public class C
+    {
+        static int a;
+
+        void M()
+        {
+            NS.C.a [||]= NS.C.a + 10;
+        }
+    }
+}",
+@"namespace NS
+{
+    public class C
+    {
+        static int a;
+
+        void M()
+        {
+            NS.C.a += 10;
+        }
+    }
+}");
+        }
     }
 }
