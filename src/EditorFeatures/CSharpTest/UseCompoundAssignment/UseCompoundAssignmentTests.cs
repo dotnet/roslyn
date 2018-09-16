@@ -114,5 +114,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestBitwiseAndExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a & 10;
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a &= 10;
+    }
+}");
+        }
     }
 }
