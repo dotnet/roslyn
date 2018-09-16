@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzerAssignment, GetAnalysisKind());
+            => context.RegisterSyntaxNodeAction(AnalyzeAssignment, GetAnalysisKind());
 
-        private void AnalyzerAssignment(SyntaxNodeAnalysisContext context)
+        private void AnalyzeAssignment(SyntaxNodeAnalysisContext context)
         {
             var cancellationToken = context.CancellationToken;
             var assignment = (TAssignmentSyntax)context.Node;
