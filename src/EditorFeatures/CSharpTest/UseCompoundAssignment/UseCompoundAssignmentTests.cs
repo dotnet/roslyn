@@ -340,5 +340,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestThroughBase()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    public int a;
+}
+
+public class D : C
+{
+    void M()
+    {
+        base.a [||]= base.a + 10;
+    }
+}",
+@"public class C
+{
+    public int a;
+}
+
+public class D : C
+{
+    void M()
+    {
+        base.a += 10;
+    }
+}");
+        }
     }
 }
