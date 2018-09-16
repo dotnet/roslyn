@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 _syntaxFacts.GetPartsOfParenthesizedExpression(expr,
                     out _, out var expression, out _);
 
-                return IsSideEffectFree(expr, semanticModel, cancellationToken);
+                return IsSideEffectFree(expression, semanticModel, cancellationToken);
             }
 
             if (_syntaxFacts.IsSimpleMemberAccessExpression(expr))

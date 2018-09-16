@@ -458,7 +458,7 @@ public class D
 {
     void M(int a)
     {
-        // Before
+        // before
         a [||]= a + 10; // after
     }
 }",
@@ -487,7 +487,6 @@ public class D
 {
     void M(int a)
     {
-        // before
         a /*mid1*/ += /*mid2*/ 10;
     }
 }");
