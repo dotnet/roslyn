@@ -264,6 +264,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestTriviaInsensitive()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    int a;
+
+    void M()
+    {
+        this  .  /*trivia*/ a [||]= this /*comment*/ .a + 10;
+    }
+}",
+@"public class C
+{
+    int a;
+
+    void M()
+    {
+        this  .  /*trivia*/ a += 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestStaticFieldThroughType()
         {
             await TestInRegularAndScriptAsync(
