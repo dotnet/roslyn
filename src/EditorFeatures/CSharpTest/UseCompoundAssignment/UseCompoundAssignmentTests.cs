@@ -419,5 +419,18 @@ public class D
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnUnboundSymbol()
+        {
+            await TestMissingAsync(
+@"public class C
+{
+    void M()
+    {
+        a [||]= a + 10;
+    }
+}");
+        }
     }
 }
