@@ -492,5 +492,27 @@ public class D
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestFixAll()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M(int a, int b)
+    {
+        a {|FixAllInDocument:|}= a + 10;
+        b = b - a;
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a += 10;
+        b -= a;
+    }
+}");
+        }
     }
 }
