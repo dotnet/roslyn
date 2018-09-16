@@ -2,7 +2,7 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
+namespace Microsoft.CodeAnalysis.InvertIf
 {
     internal abstract partial class AbstractInvertIfCodeRefactoringProvider<TIfStatementSyntax, TStatementSyntax, TEmbeddedStatement>
     {
