@@ -214,25 +214,6 @@ end namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
-        Public Async Function TestParenthesized() As Task
-            Await TestInRegularAndScriptAsync(
-"public class C
-    private a as integer
-
-    sub M()
-        (a) [||]= (a) + 10
-    end sub
-end class",
-"public class C
-    private a as integer
-
-    sub M()
-        (a) += 10
-    end sub
-end class")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
         Public Async Function TestThroughBase() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
