@@ -449,5 +449,48 @@ public class D
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M(int a)
+    {
+        // Before
+        a [||]= a + 10; // after
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        // before
+        a += 10; // after
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestTrivia2()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M(int a)
+    {
+        a /*mid1*/ [||]= /*mid2*/ a + 10;
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        // before
+        a /*mid1*/ += /*mid2*/ 10;
+    }
+}");
+        }
     }
 }
