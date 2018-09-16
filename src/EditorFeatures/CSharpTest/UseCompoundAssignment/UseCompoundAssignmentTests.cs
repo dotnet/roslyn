@@ -214,5 +214,77 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestField()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    int a;
+
+    void M()
+    {
+        a [||]= a + 10;
+    }
+}",
+@"public class C
+{
+    int a;
+
+    void M()
+    {
+        a += 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestFieldWithThis()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    int a;
+
+    void M()
+    {
+        this.a [||]= this.a + 10;
+    }
+}",
+@"public class C
+{
+    int a;
+
+    void M()
+    {
+        this.a += 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestStaticFieldThroughType()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    static int a;
+
+    void M()
+    {
+        C.a [||]= C.a + 10;
+    }
+}",
+@"public class C
+{
+    static int a;
+
+    void M()
+    {
+        C.a += 10;
+    }
+}");
+        }
     }
 }
