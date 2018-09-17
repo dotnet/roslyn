@@ -1,0 +1,79 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.InvertLogical;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
+{
+    public partial class InvertLogicalTests : AbstractCSharpCodeActionTest
+    {
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+            => new CSharpInvertLogicalCodeRefactoringProvider();
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertConditional1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = a > 10 [||]|| b < 20;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = !(a <= 10 && b >= 20);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertConditional2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = !(a <= 10 [||]&& b >= 20);
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = a > 10 || b < 20;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task TestTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = !(a <= 10 [||]&&
+                  b >= 20);
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = a > 10 ||
+                  b < 20;
+    }
+}");
+        }
+    }
+}
