@@ -103,6 +103,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
+        public async Task TestTrivia2()
+        {
+            // We currently do not move trivia along with the true/false parts.  We could consider
+            // trying to intelligently do that in the future.  It would require moving the comments,
+            // but preserving the whitespace/newlines.
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = [||]x
+            ? a /*trivia1*/
+            : b /*trivia2*/;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = !x
+            ? b /*trivia1*/
+            : a /*trivia2*/;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
         public async Task TestStartOfConditional()
         {
             await TestInRegularAndScriptAsync(
