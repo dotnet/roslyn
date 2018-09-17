@@ -13209,7 +13209,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="True")
         End Sub
 
-        Private Shared Function BuildSequenceOfBinaryExpressions_01(Optional count As Integer = 4096) As String
+        Private Shared Function BuildSequenceOfBinaryExpressions_01(Optional count As Integer = 8192) As String
             Dim builder = New System.Text.StringBuilder()
             Dim i As Integer
 
