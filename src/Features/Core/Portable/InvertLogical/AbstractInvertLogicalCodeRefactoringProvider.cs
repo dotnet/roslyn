@@ -87,8 +87,6 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var generator = SyntaxGenerator.GetGenerator(document);
-
             // Walk up to the topmost binary of the same type.  When converting || to && (or vice versa)
             // we want to grab the entire set.  i.e.  `!a && !b && !c` should become `!(a || b || c)` not
             // `!(a || b) && !c`
@@ -98,7 +96,9 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 binaryExpression = binaryExpression.Parent;
             }
 
+            var generator = SyntaxGenerator.GetGenerator(document);
             var newBinary = generator.Negate(binaryExpression, semanticModel, cancellationToken);
+
             return document.WithSyntaxRoot(
                 root.ReplaceNode(
                     binaryExpression,
