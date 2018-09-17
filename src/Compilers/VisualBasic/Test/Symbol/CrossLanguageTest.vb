@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub CanAchieveHandledEvents()
-            Dim csharpSource = <![CDATA[
+            Dim csharpCompilation = CreateCSharpCompilation(<![CDATA[
 [assembly:System.CLSCompliant(true)]
 public class Sample
 {
@@ -15,13 +15,7 @@ public class Sample
     {
     }
 }
-]]>
-
-            Dim csharpCompilation = CreateCSharpCompilation(
-                csharpSource,
-                compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:="Test",
-                referencedAssemblies:={MscorlibRef_v4_0_30316_17626})
+]]>)
 
             Dim method = csharpCompilation.GetTypeByMetadataName("Sample").GetMembers("Create").OfType(Of IMethodSymbol).SingleOrDefault()
 
