@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             var newRight = (TExpressionSyntax)generator.Negate(right, semanticModel, cancellationToken);
 
             var invertedKind = InvertedKind(GetKind(binary.RawKind));
-            var opreatorKind = GetOperatorTokenKind(invertedKind);
+            var operatorKind = GetOperatorTokenKind(invertedKind);
             var newOp = CreateOperatorToken(opreatorKind).WithTriviaFrom(op);
 
             var newBinary = BinaryExpression(
