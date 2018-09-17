@@ -36773,17 +36773,10 @@ class C
         foreach (T local in new[] { parameter })
         {
         }
-
-        if (parameter == null) throw null;
-        foreach (T local2 in new[] { parameter })
-        {
-        }
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/29850 Expecting a W warning for assigning possibly null value to local
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            comp.VerifyDiagnostics(
-            );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
