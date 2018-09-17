@@ -3397,13 +3397,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.State.Reachable)
             {
-                // PROTOTYPE(NullableReferenceTypes): Update increment method based on operand type.
+                // https://github.com/dotnet/roslyn/issues/29961 Update increment method based on operand type.
                 MethodSymbol incrementOperator = (node.OperatorKind.IsUserDefined() && (object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1) ? node.MethodOpt : null;
                 TypeSymbolWithAnnotations targetTypeOfOperandConversion;
                 AssignmentKind assignmentKind = AssignmentKind.Assignment;
                 ParameterSymbol target = null;
 
-                // PROTOTYPE(NullableReferenceTypes): Update conversion method based on operand type.
+                // https://github.com/dotnet/roslyn/issues/29961 Update conversion method based on operand type.
                 if (node.OperandConversion.IsUserDefined && (object)node.OperandConversion.Method != null && node.OperandConversion.Method.ParameterCount == 1)
                 {
                     targetTypeOfOperandConversion = node.OperandConversion.Method.ReturnType;
@@ -3424,7 +3424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!targetTypeOfOperandConversion.IsNull)
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Should something special be done for targetTypeOfOperandConversion for lifted case?
+                    // https://github.com/dotnet/roslyn/issues/29961 Should something special be done for targetTypeOfOperandConversion for lifted case?
                     resultOfOperandConversionType = ApplyConversion(
                         node.Operand,
                         node.Operand,
@@ -3465,7 +3465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     useLegacyWarnings: false,
                     AssignmentKind.Assignment);
 
-                // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
+                // https://github.com/dotnet/roslyn/issues/29961 Check node.Type.IsErrorType() instead?
                 if (!node.HasErrors)
                 {
                     var op = node.OperatorKind.Operator();
@@ -3486,7 +3486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
-            VisitLvalue(node.Left); // PROTOTYPE(NullableReferenceTypes): Method should be called VisitValue rather than VisitLvalue.
+            VisitLvalue(node.Left); // https://github.com/dotnet/roslyn/issues/29962 Method should be called VisitValue rather than VisitLvalue.
             TypeSymbolWithAnnotations leftType = _resultType;
 
             TypeSymbolWithAnnotations resultType;
@@ -3496,10 +3496,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbolWithAnnotations leftOnRightType = GetAdjustedResult(leftType, MakeSlot(node.Left));
 
-                // PROTOTYPE(NullableReferenceTypes): Update operator based on inferred argument types.
+                // https://github.com/dotnet/roslyn/issues/29962 Update operator based on inferred argument types.
                 if ((object)node.Operator.LeftType != null)
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Ignoring top-level nullability of operator left parameter.
+                    // https://github.com/dotnet/roslyn/issues/29962 Ignoring top-level nullability of operator left parameter.
                     leftOnRightType = ApplyConversion(
                         node.Left,
                         node.Left,
@@ -3550,7 +3550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _resultType = resultType;
             }
             //else
-            //{
+            //{   // https://github.com/dotnet/roslyn/issues/29962 code should be restored?
             //    VisitRvalue(node.Right);
             //    AfterRightHasBeenVisited(node);
             //    resultType = null;
