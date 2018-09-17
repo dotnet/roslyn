@@ -29,14 +29,10 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             }
 
             var position = span.Start;
-            var conditional = await FindConditionalAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
-            if (conditional == null)
-            {
-                return;
-            }
+            var conditional = await FindConditionalAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-            if (position < conditional.Span.Start ||
+            if (conditional == null ||
+                position < conditional.Span.Start ||
                 !ShouldOffer(conditional, position))
             {
                 return;
@@ -58,8 +54,7 @@ namespace Microsoft.CodeAnalysis.InvertConditional
         private async Task<Document> InvertConditionalAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var conditional = await FindConditionalAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
+            var conditional = await FindConditionalAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
