@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             var node = root.GetAnnotatedNodes(s_annotation).Single();
 
             // Walk up parens and !'s.  That way we don't end up with something like !!.
-            // It also ensures that this refactoring is reversible by invoking it again.
+            // It also ensures that this refactoring reverses itself when invoked twice.
             while (syntaxFacts.IsParenthesizedExpression(node.Parent) ||
                    syntaxFacts.IsLogicalNotExpression(node.Parent))
             {
