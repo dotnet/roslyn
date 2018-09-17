@@ -99,10 +99,9 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             var generator = SyntaxGenerator.GetGenerator(document);
             var newBinary = generator.Negate(binaryExpression, semanticModel, cancellationToken);
 
-            return document.WithSyntaxRoot(
-                root.ReplaceNode(
-                    binaryExpression,
-                    newBinary.WithAdditionalAnnotations(s_annotation)));
+            return document.WithSyntaxRoot(root.ReplaceNode(
+                binaryExpression,
+                newBinary.WithAdditionalAnnotations(s_annotation)));
         }
 
         private async Task<Document> InvertOuterExpressionAsync(
@@ -112,25 +111,23 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            var node = root.GetAnnotatedNodes(s_annotation).Single();
+            var expression = root.GetAnnotatedNodes(s_annotation).Single();
 
             // Walk up parens and !'s.  That way we don't end up with something like !!.
             // It also ensures that this refactoring reverses itself when invoked twice.
-            while (syntaxFacts.IsParenthesizedExpression(node.Parent) ||
-                   syntaxFacts.IsLogicalNotExpression(node.Parent))
+            while (syntaxFacts.IsParenthesizedExpression(expression.Parent) ||
+                   syntaxFacts.IsLogicalNotExpression(expression.Parent))
             {
-                node = node.Parent;
+                expression = expression.Parent;
             }
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
             // Negate the containing binary expr.  Pass the 'negateBinary:false' flag so we don't
             // just negate the work we're actually doing right now.
-            var updatedNode = generator.Negate(node, semanticModel, negateBinary: false, cancellationToken);
-
-            var updatedRoot = root.ReplaceNode(node, updatedNode);
-
-            return document.WithSyntaxRoot(updatedRoot);
+            return document.WithSyntaxRoot(root.ReplaceNode(
+                expression,
+                generator.Negate(expression, semanticModel, negateBinary: false, cancellationToken)));
         }
 
         private string GetTitle(TSyntaxKind binaryExprKind)
