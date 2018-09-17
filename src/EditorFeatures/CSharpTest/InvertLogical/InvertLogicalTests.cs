@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }",
 @"class C
 {
-    void M(bool x, int a, int b)
+    void M(bool x, int a, int b, int c)
     {
         var c = a > 10 ||
                   b < 20 ||
