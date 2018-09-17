@@ -1,11 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.InvertConditional
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Xunit
+Imports Microsoft.CodeAnalysis.VisualBasic.InvertConditional
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertConditional
     Partial Public Class InvertConditionalTests
@@ -60,6 +57,16 @@ end class",
         dim c = if(Not x,
             b,
             a)
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)>
+        Public Async Function MissingOnBinaryIf() As Task
+            Await TestMissingAsync(
+"class C
+    sub M(x as integer?, a as integer)
+        dim c = [||]if(x, a)
     end sub
 end class")
         End Function

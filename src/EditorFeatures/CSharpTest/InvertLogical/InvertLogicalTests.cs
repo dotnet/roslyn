@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
-        public async Task TestTrivia()
+        public async Task TestTrivia1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -72,6 +72,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     {
         var c = a > 10 ||
                   b < 20;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task TestTrivia2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, int b, int c)
+    {
+        var c = !(a <= 10 [||]&&
+                  b >= 20 &&
+                  c == 30);
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = a > 10 ||
+                  b < 20 ||
+                  c != 30;
     }
 }");
         }
