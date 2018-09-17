@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertLogical
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
-        Public Async Function InvertConditional1() As Task
+        Public Async Function InvertLogical1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(x as boolean, a as integer, b as integer)
@@ -28,7 +28,7 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
-        Public Async Function InvertConditional2() As Task
+        Public Async Function InvertLogical2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(x as boolean, a as integer, b as integer)

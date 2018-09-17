@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
             => new CSharpInvertLogicalCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
-        public async Task InvertConditional1()
+        public async Task InvertLogical1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
-        public async Task InvertConditional2()
+        public async Task InvertLogical2()
         {
             await TestInRegularAndScriptAsync(
 @"class C
