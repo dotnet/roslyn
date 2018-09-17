@@ -24,9 +24,10 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         protected abstract TSyntaxKind GetKind(int rawKind);
-        protected abstract string GetOperatorText(TSyntaxKind binaryExprKind);
         protected abstract TSyntaxKind InvertedKind(TSyntaxKind binaryExprKind);
-        protected abstract SyntaxToken CreateOpToken(TSyntaxKind binaryExprKind);
+
+        protected abstract TSyntaxKind GetOperatorTokenKind(TSyntaxKind binaryExprKind);
+        protected abstract SyntaxToken CreateOperatorToken(TSyntaxKind operatorTokenKind);
 
         protected abstract TBinaryExpressionSyntax BinaryExpression(
             TSyntaxKind syntaxKind, TExpressionSyntax newLeft, SyntaxToken newOp, TExpressionSyntax newRight);
@@ -114,7 +115,8 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             var newRight = (TExpressionSyntax)generator.Negate(right, semanticModel, cancellationToken);
 
             var invertedKind = InvertedKind(GetKind(binary.RawKind));
-            var newOp = CreateOpToken(invertedKind).WithTriviaFrom(op);
+            var opreatorKind = GetOperatorTokenKind(invertedKind);
+            var newOp = CreateOperatorToken(opreatorKind).WithTriviaFrom(op);
 
             var newBinary = BinaryExpression(
                 invertedKind, newLeft, newOp, newRight).WithAdditionalAnnotations(s_annotation);
@@ -127,6 +129,9 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         private string GetTitle(TSyntaxKind binaryExprKind)
             => string.Format(FeaturesResources.Replace_0_with_1,
                     GetOperatorText(binaryExprKind), GetOperatorText(InvertedKind(binaryExprKind)));
+
+        private string GetOperatorText(TSyntaxKind binaryExprKind)
+            => CreateOperatorToken(GetOperatorTokenKind(binaryExprKind)).Text;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
