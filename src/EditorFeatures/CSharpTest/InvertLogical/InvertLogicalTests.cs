@@ -155,5 +155,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task TestMissingOnShortCircuitAnd()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = a > 10 [||]& b < 20;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task TestMissingOnShortCircuitOr()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = a > 10 [||]| b < 20;
+    }
+}");
+        }
     }
 }
