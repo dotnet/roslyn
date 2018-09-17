@@ -17983,10 +17983,11 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d[0].F").WithLocation(19, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): The array element type should be nullable,
+        // https://github.com/dotnet/roslyn/issues/29888: The array element type should be nullable,
         // even though there is no best type when considering nullability for C<object>? and
         // C<object?>. In short, should report WRN_NullReferenceReceiver for `c[0].ToString()`
         [Fact]
+        [WorkItem(29888, "https://github.com/dotnet/roslyn/issues/29888")]
         public void ImplicitlyTypedArrayCreation_08()
         {
             var source =
@@ -18882,6 +18883,7 @@ struct TS2
         }
 
         [Fact]
+        [WorkItem(29889, "https://github.com/dotnet/roslyn/issues/29889")]
         public void AnonymousTypes_01()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -18998,7 +19000,7 @@ struct S1
 }",
 NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            // PROTOTYPE(NullableReferenceTypes): Why isn't u2 = v2 causing a warning?
+            // https://github.com/dotnet/roslyn/issues/29889: Why isn't u2 = v2 causing a warning?
             c.VerifyDiagnostics(
                 // (10,14): hidden CS8607: Expression is probably never null.
                 //         x1 = y1.p1 ?? x1;
@@ -19201,6 +19203,7 @@ class CL1<T>
         }
 
         [Fact]
+        [WorkItem(29889, "https://github.com/dotnet/roslyn/issues/29889")]
         public void AnonymousTypes_05()
         {
             var source =
@@ -19239,8 +19242,8 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should report a warning for `a0 = b0`.
-            // PROTOTYPE(NullableReferenceTypes): Should not report a warning for `b3 = a3`.
+            // https://github.com/dotnet/roslyn/issues/29889: Should report a warning for `a0 = b0`.
+            // https://github.com/dotnet/roslyn/issues/29889: Should not report a warning for `b3 = a3`.
             comp.VerifyDiagnostics(
                 // (17,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: I<string?> F>' doesn't match target type '<anonymous type: I<string> F>'.
                 //         a1 = b1;
@@ -19263,6 +19266,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29890, "https://github.com/dotnet/roslyn/issues/29890")]
         public void AnonymousTypes_06()
         {
             var source =
@@ -19275,7 +19279,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should report ErrorCode.HDN_ExpressionIsProbablyNeverNull.
+            // https://github.com/dotnet/roslyn/issues/29890: Should report ErrorCode.HDN_ExpressionIsProbablyNeverNull.
             // See comment in DataFlowPass.VisitAnonymousObjectCreationExpression.
             comp.VerifyDiagnostics();
         }
@@ -19300,9 +19304,10 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new { P = o }).P").WithLocation(5, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): NullableWalker.VisitAnonymousObjectCreationExpression
+        // https://github.com/dotnet/roslyn/issues/29891: NullableWalker.VisitAnonymousObjectCreationExpression
         // should support initializers with inferred nullability.
-        [Fact(Skip = "TODO")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29891")]
+        [WorkItem(29891, "https://github.com/dotnet/roslyn/issues/29891")]
         public void AnonymousObjectCreation_02()
         {
             var source =
@@ -20918,6 +20923,7 @@ static class E
         /// local function invocations, as if the local function was inlined.
         /// </summary>
         [Fact]
+        [WorkItem(29892, "https://github.com/dotnet/roslyn/issues/29892")]
         public void LocalFunction_01()
         {
             var source =
@@ -20962,7 +20968,7 @@ static class E
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should report warnings as indicated in source above.
+            // https://github.com/dotnet/roslyn/issues/29892: Should report warnings as indicated in source above.
             comp.VerifyDiagnostics(
                 // (10,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //             z1 = x1; // warning
@@ -20988,6 +20994,7 @@ static class E
         /// Should report warnings within unused local functions.
         /// </summary>
         [Fact]
+        [WorkItem(29892, "https://github.com/dotnet/roslyn/issues/29892")]
         public void LocalFunction_NoCallers()
         {
             var source =
@@ -21031,7 +21038,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should report warnings for `y3.ToString()`.
+            // https://github.com/dotnet/roslyn/issues/29892: Should report warnings for `y3.ToString()`.
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             x1.ToString(); // 1
@@ -21183,8 +21190,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Report warnings
-        // if `where T : new()` implies T is non-nullable.
+        // `where T : new()` does not imply T is non-nullable.
         [Fact]
         public void New_03()
         {
@@ -21257,7 +21263,7 @@ class CL0
     }
 }";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): We should be able to report warnings
+            // https://github.com/dotnet/roslyn/issues/29893: We should be able to report warnings
             // when all applicable methods agree on the nullability of particular parameters.
             // (For instance, x in F(x, y) above.)
             comp.VerifyDiagnostics();
@@ -22177,7 +22183,7 @@ class CL0
     }
 }";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): We should be able to report warnings
+            // https://github.com/dotnet/roslyn/issues/29893: We should be able to report warnings
             // when all applicable methods agree on the nullability of particular parameters.
             // (For instance, x in F(x, y) above.)
             comp.VerifyDiagnostics();
@@ -22392,6 +22398,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29844, "https://github.com/dotnet/roslyn/issues/29844")]
         public void IdentityConversion_DelegateParameter_02()
         {
             var source =
@@ -22417,11 +22424,12 @@ class B
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullabilityMismatchInReturnTypeOfTargetDelegate for `e = x.M`.
+            // https://github.com/dotnet/roslyn/issues/29844: Should report WRN_NullabilityMismatchInReturnTypeOfTargetDelegate for `e = x.M`.
             comp.VerifyDiagnostics();
         }
 
         [Fact]
+        [WorkItem(29844, "https://github.com/dotnet/roslyn/issues/29844")]
         public void IdentityConversion_DelegateOutParameter()
         {
             var source =
@@ -22445,7 +22453,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should not warn for `b`, `e`, `h`.
+            // https://github.com/dotnet/roslyn/issues/29844: Should not warn for `b`, `e`, `h`.
             comp.VerifyDiagnostics(
                 // (7,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static void F<T>(out T t) { t = default; }
@@ -22583,6 +22591,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29894, "https://github.com/dotnet/roslyn/issues/29894")]
         public void TypeOf_02()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -22604,7 +22613,7 @@ class C<T, TClass, TStruct>
 }
 ", NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            // PROTOTYPE(NullableReferenceTypes): should nullable reference types be disallowed in `typeof`?
+            // https://github.com/dotnet/roslyn/issues/29894: should nullable reference types be disallowed in `typeof`?
             c.VerifyDiagnostics(
                 // (10,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         _ = typeof(T?);
@@ -22743,7 +22752,7 @@ class C
             Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
             Assert.Equal(null, symbol.Type.IsNullable);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            // PROTOTYPE(NullableReferenceTypes): Is T correct?
+            // https://github.com/dotnet/roslyn/issues/29856: Is T correct?
             Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
             Assert.Equal(null, symbol.Type.IsNullable);
         }
@@ -22872,7 +22881,7 @@ class C
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Improve this diagnostic. default is the cause of the error, but is not mentioned in the diagnostic.
+            // https://github.com/dotnet/roslyn/issues/29895: Improve this diagnostic. default is the cause of the error, but is not mentioned in the diagnostic.
             comp.VerifyDiagnostics(
                 // (5,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         T s = default;
@@ -22929,8 +22938,9 @@ class C
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Track nullability through deconstruction assignment.
-        [Fact(Skip = "TODO")]
+        // https://github.com/dotnet/roslyn/issues/29618: Track nullability through deconstruction assignment.
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29618")]
+        [WorkItem(29896, "https://github.com/dotnet/roslyn/issues/29618")]
         public void DeconstructionTypeInference()
         {
             var source =
@@ -22994,8 +23004,8 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Assign each of the deconstructed values.
-            // PROTOTYPE(NullableReferenceTypes): The expected warning is confusing: "warning CS8619: Nullability of
+            // https://github.com/dotnet/roslyn/issues/29618: Assign each of the deconstructed values.
+            // The expected warning is confusing: "warning CS8619: Nullability of
             // reference types in value of type 'C<object>' doesn't match target type '(IIn<object?> x, IOut<object?> y)'".
             comp.VerifyDiagnostics();
             //// (13,18): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type '(IIn<object?> x, IOut<object?> y)'.
@@ -23157,7 +23167,7 @@ class C
         ((x, _) = t).Item2.ToString();
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullReferenceReceiver.
+            // https://github.com/dotnet/roslyn/issues/29618: Should report WRN_NullReferenceReceiver.
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics();
             //// (7,9): warning CS8602: Possible dereference of a null reference.
@@ -24143,7 +24153,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report conversion warnings.
+            // https://github.com/dotnet/roslyn/issues/29844: Report conversion warnings.
             comp.VerifyDiagnostics(
                 // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = y;
@@ -24665,7 +24675,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report the base types that did not match
+            // https://github.com/dotnet/roslyn/issues/29897: Report the base types that did not match
             // rather than the derived or implementing type. For instance, report `'IIn<object>'
             // doesn't match ... 'IIn<object?>'` rather than `'A<string>' doesn't match ...`.
             comp.VerifyDiagnostics(
@@ -24708,7 +24718,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Several issues with implicit user-defined conversions and
+            // https://github.com/dotnet/roslyn/issues/29898: Several issues with implicit user-defined conversions and
             // nested nullability: should report `'A<object?>' doesn't match ... 'A<object>'` rather than
             // `'A<object>' doesn't match ... 'A<object?>'`; should report warning for `G(y)` only, not `G(z)`
             // (see NullabilityWalker.ApplyConversion).
@@ -25030,7 +25040,7 @@ static class E
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("IOut<object?>", "IOut<object>", "o", "void E.F4B(IOut<object> o)").WithLocation(38, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Update this method to use types from unannotated assemblies
+        // https://github.com/dotnet/roslyn/issues/29899: Clone this method using types from unannotated assemblies
         // rather than `x!`, particularly because `x!` results in IsNullable=false rather than IsNullable=null.
         [Fact]
         public void IdentityConversion_TypeInference_IsNullableNull()
@@ -26128,8 +26138,8 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInAssignment for compound assignment.
             comp.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/29900: Report WRN_NullabilityMismatchInAssignment for compound assignment.
                 //// (12,9): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
                 ////         y += c;
                 //Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(12, 9),
@@ -26221,9 +26231,10 @@ class Test
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Events are not tracked for structs.
+        // https://github.com/dotnet/roslyn/issues/29901: Events are not tracked for structs.
         // (This should be fixed if/when struct member state is populated lazily.)
-        [Fact(Skip = "TODO")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29901")]
+        [WorkItem(29901, "https://github.com/dotnet/roslyn/issues/29901")]
         public void Events_02()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -26277,9 +26288,10 @@ struct TS1
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Events are not tracked for structs.
+        // https://github.com/dotnet/roslyn/issues/29901: Events are not tracked for structs.
         // (This should be fixed if/when struct member state is populated lazily.)
-        [Fact(Skip = "TODO")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29901")]
+        [WorkItem(29901, "https://github.com/dotnet/roslyn/issues/29901")]
         public void Events_03()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -29995,8 +30007,6 @@ struct S
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 26));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Update other tests with WithNullCheckingFeature(NullableReferenceFlags.None) to verify expected changes.
-
         [Fact]
         public void WarningOnConversion_Assignment()
         {
@@ -30426,8 +30436,9 @@ class C<T>
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Binder should report an error for `!!`.
+        // https://github.com/dotnet/roslyn/issues/29902: Binder should report an error for `!!`.
         [Fact]
+        [WorkItem(29902, "https://github.com/dotnet/roslyn/issues/29902")]
         public void SuppressNullableWarning_Multiple()
         {
             var source =
@@ -30850,8 +30861,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullabilityMismatch*.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void SuppressNullableWarning_ImplicitConversion()
         {
             var source =
@@ -30876,13 +30886,19 @@ class C
                 // (8,13): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'I<object>'.
                 //         a = x;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object?>", "I<object>").WithLocation(8, 13),
+                // (9,13): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'I<object>'.
+                //         a = x!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x!").WithArguments("C<object?>", "I<object>").WithLocation(9, 13),
                 // (11,13): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'I<object?>'.
                 //         b = y;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object>", "I<object?>").WithLocation(11, 13));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object>", "I<object?>").WithLocation(11, 13),
+                // (12,13): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'I<object?>'.
+                //         b = y!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object>", "I<object?>").WithLocation(12, 13)
+                );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullabilityMismatch*.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void SuppressNullableWarning_ImplicitExtensionMethodThisConversion()
         {
             var source =
@@ -30910,9 +30926,16 @@ static class E
                 // (7,9): warning CS8620: Nullability of reference types in argument of type 'C<object?>' doesn't match target type 'I<object>' for parameter 'o' in 'void E.F1(I<object> o)'.
                 //         x.F1();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("C<object?>", "I<object>", "o", "void E.F1(I<object> o)").WithLocation(7, 9),
+                // (8,9): warning CS8620: Nullability of reference types in argument of type 'C<object?>' doesn't match target type 'I<object>' for parameter 'o' in 'void E.F1(I<object> o)'.
+                //         x!.F1();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x!").WithArguments("C<object?>", "I<object>", "o", "void E.F1(I<object> o)").WithLocation(8, 9),
                 // (9,9): warning CS8620: Nullability of reference types in argument of type 'C<object>' doesn't match target type 'I<object?>' for parameter 'o' in 'void E.F2(I<object?> o)'.
                 //         y.F2();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<object>", "I<object?>", "o", "void E.F2(I<object?> o)").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<object>", "I<object?>", "o", "void E.F2(I<object?> o)").WithLocation(9, 9),
+                // (10,9): warning CS8620: Nullability of reference types in argument of type 'C<object>' doesn't match target type 'I<object?>' for parameter 'o' in 'void E.F2(I<object?> o)'.
+                //         y!.F2();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y!").WithArguments("C<object>", "I<object?>", "o", "void E.F2(I<object?> o)").WithLocation(10, 9)
+                );
         }
 
         [Fact]
@@ -31223,8 +31246,9 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): 't! = s' should be an error.
+        // https://github.com/dotnet/roslyn/issues/29903: 't! = s' should be an error.
         [Fact]
+        [WorkItem(29903, "https://github.com/dotnet/roslyn/issues/29903")]
         public void SuppressNullableWarning_Assignment()
         {
             var source =
@@ -31284,9 +31308,10 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("a", "A.implicit operator B(A a)").WithLocation(12, 14));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): PreciseAbstractFlowPass.VisitSuppressNullableWarningExpression
+        // https://github.com/dotnet/roslyn/issues/29905: PreciseAbstractFlowPass.VisitSuppressNullableWarningExpression
         // should not assume node.Expression is an rvalue.
-        [Fact(Skip = "CS0165: Use of unassigned local variable 'o'")]
+        [Fact]
+        [WorkItem(29906, "https://github.com/dotnet/roslyn/issues/29906")]
         public void SuppressNullableWarning_Condition()
         {
             var source =
@@ -31306,9 +31331,13 @@ class C
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,16): error CS8624: The ! operator can only be applied to reference types.
+                // (5,16): warning CS8624: The suppression operator (!) can only be applied to reference types.
                 //         return (b && G(out var o))!? o : null;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "(b && G(out var o))!").WithLocation(5, 16));
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "(b && G(out var o))!").WithLocation(5, 16),
+                // (5,38): error CS0165: Use of unassigned local variable 'o'
+                //         return (b && G(out var o))!? o : null;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(5, 38)
+                );
         }
 
         [Fact]
@@ -31624,7 +31653,7 @@ class B5 : A<int>
             var comp = CreateCompilation(
                 new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Report error for `default!`.
+            // https://github.com/dotnet/roslyn/issues/29907: Report error for `default!`.
             comp.VerifyDiagnostics(
                 // (19,14): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         t2 = default(T)!; // 1
@@ -31690,8 +31719,7 @@ class B5 : A<int>
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.P").WithArguments("C.P").WithLocation(6, 11));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Assert failure in Binder.GenerateImplicitConversionError.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void SuppressNullableWarning_InvalidArrayInitializer()
         {
             var source =
@@ -31705,8 +31733,8 @@ class B5 : A<int>
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
                 // (5,46): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
-                //         var a = new object[] { new object(), F };
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(5, 46));
+                //         var a = new object[] { new object(), F! };
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F!").WithArguments("F", "object").WithLocation(5, 46));
         }
 
         [Fact]
@@ -31936,8 +31964,9 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should not warn on either call to F(string).
-        [Fact(Skip = "TODO")]
+        // https://github.com/dotnet/roslyn/issues/29909: Should not warn on either call to F(string).
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29909")]
+        [WorkItem(29909, "https://github.com/dotnet/roslyn/issues/29909")]
         public void IsPattern_02()
         {
             var source =
@@ -31957,8 +31986,9 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should only warn on F(x) in `case null`.
-        [Fact(Skip = "TODO")]
+        // https://github.com/dotnet/roslyn/issues/29909: Should only warn on F(x) in `case null`.
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29909")]
+        [WorkItem(29909, "https://github.com/dotnet/roslyn/issues/29909")]
         public void PatternSwitch()
         {
             var source =
@@ -32038,8 +32068,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): [NonNullTypes(true)] is disabled.
-        [Fact(Skip = "[NonNullTypes(true)] is disabled")]
+        [Fact]
         public void AllowMemberOptOut()
         {
             var source =
@@ -32059,18 +32088,15 @@ class C
                 new[] { source, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (9,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.G(object o)'.
-                //         G(o);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "void C.G(object o)").WithLocation(9, 11));
+                // (6,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static void M(object? o)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 25)
+                );
 
             comp = CreateCompilation(
-                new[] { source, NonNullTypesAttributesDefinition },
+                new[] { source, NonNullTypesAttributesDefinition, NonNullTypesTrue },
                 parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Should warn that [NonNullTypes(true)] is ignored.
             comp.VerifyDiagnostics(
-                // (8,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F(object o)'.
-                //         F(o);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "void C.F(object o)").WithLocation(8, 11),
                 // (9,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.G(object o)'.
                 //         G(o);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "void C.G(object o)").WithLocation(9, 11));
@@ -32388,6 +32414,7 @@ F(v).ToString();";
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [WorkItem(29910, "https://github.com/dotnet/roslyn/issues/29910")]
         [Fact]
         public void ParameterDefaultValue_03()
         {
@@ -32497,7 +32524,7 @@ class P
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Duplicate WRN_NullAsNonNullable diagnoistics at some locations
+            // https://github.com/dotnet/roslyn/issues/29910: Duplicate WRN_NullAsNonNullable diagnoistics at some locations
             comp.VerifyDiagnostics(
                 // (6,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static void F1<T>(T t = null) where T : class { }
@@ -32817,7 +32844,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "default(T)").WithArguments("T", "System.Collections.Generic.IEnumerator<T>").WithLocation(4, 37));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullabilityMismatchInAssignment.
         [Fact]
         public void DeconstructionConversion_NoDeconstructMethod()
         {
@@ -32847,8 +32873,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(5, 17));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Error is reported on `type 'T'` rather than `type 'Func<T>'`.
-        [Fact(Skip = "TODO")]
+        [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
         public void ConditionalAccessDelegateInvoke()
         {
             var source =
@@ -32861,10 +32887,15 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            // https://github.com/dotnet/roslyn/issues/29916: WRN_NullabilityMismatchInAssignment is cascading, caused by the binding error.
             comp.VerifyDiagnostics(
-                // (6,17): error CS0023: Operator '?' cannot be applied to operand of type 'Func<T>'
+                // (6,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
                 //         return f?.Invoke();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "Func<T>").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(6, 17),
+                // (6,16): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'T'.
+                //         return f?.Invoke();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "f?.Invoke()").WithArguments("?", "T").WithLocation(6, 16)
+                );
         }
 
         [Fact]
