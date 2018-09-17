@@ -58,5 +58,65 @@ end class",
     end sub
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        Public Async Function InvertMultiConditional1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as integer, b as integer, c as integer)
+        dim x = a > 10 [||]OrElse b < 20 OrElse c = 30
+    end sub
+end class",
+"class C
+    sub M(a as integer, b as integer, c as integer)
+        dim x = Not (a <= 10 AndAlso b >= 20 AndAlso c <> 30)
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        Public Async Function InvertMultiConditional2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as integer, b as integer, c as integer)
+        dim x = a > 10 OrElse b < 20 [||]OrElse c = 30
+    end sub
+end class",
+"class C
+    sub M(a as integer, b as integer, c as integer)
+        dim x = Not (a <= 10 AndAlso b >= 20 AndAlso c <> 30)
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        Public Async Function InvertMultiConditional3() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as integer, b as integer, c as integer)
+        dim x = Not (a <= 10 [||]AndAlso b >= 20 AndAlso c <> 30)
+    end sub
+end class",
+"class C
+    sub M(a as integer, b as integer, c as integer)
+        dim x = a > 10 OrElse b < 20 OrElse c = 30
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        Public Async Function InvertMultiConditional4() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as integer, b as integer, c as integer)
+        dim x = Not (a <= 10 AndAlso b >= 20 [||]AndAlso c <> 30)
+    end sub
+end class",
+"class C
+    sub M(a as integer, b as integer, c as integer)
+        dim x = a > 10 OrElse b < 20 OrElse c = 30
+    end sub
+end class")
+        End Function
     End Class
 End Namespace
