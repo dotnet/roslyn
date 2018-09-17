@@ -74,6 +74,36 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             return updatedDocument2;
         }
 
+        private async Task<Document> InvertLeftAndRightOfBinaryAsync(
+            Document document, int position, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            var binaryExpression = root.FindToken(position).Parent;
+            while (binaryExpression.Parent?.RawKind == binaryExpression.RawKind)
+            {
+                binaryExpression = binaryExpression.Parent;
+            }
+
+            syntaxFacts.GetPartsOfBinaryExpression(binaryExpression,
+                out var left, out var op, out var right);
+
+            var invertedKind = InvertedKind(GetKind(binaryExpression.RawKind));
+
+            var newBinary = BinaryExpression(
+                invertedKind,
+                (TExpressionSyntax)generator.Negate(left, semanticModel, cancellationToken),
+                CreateOperatorToken(GetOperatorTokenKind(invertedKind)).WithTriviaFrom(op),
+                (TExpressionSyntax)generator.Negate(right, semanticModel, cancellationToken));
+
+            return document.WithSyntaxRoot(
+                root.ReplaceNode(binaryExpression, newBinary.WithAdditionalAnnotations(s_annotation)));
+        }
+
         private async Task<Document> InvertBinaryAsync(
             Document document, CancellationToken cancellationToken)
         {
@@ -96,35 +126,10 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             // Negate the containing binary expr.  Pass the 'negateBinary:false' flag so we don't
             // just negate the work we're actually doing right now.
             var updatedNode = generator.Negate(node, semanticModel, negateBinary: false, cancellationToken);
-            
+
             var updatedRoot = root.ReplaceNode(node, updatedNode);
 
             return document.WithSyntaxRoot(updatedRoot);
-        }
-
-        private async Task<Document> InvertLeftAndRightOfBinaryAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            var binaryExpression = root.FindToken(position).Parent;
-
-            syntaxFacts.GetPartsOfBinaryExpression(binaryExpression,
-                out var left, out var op, out var right);
-
-            var invertedKind = InvertedKind(GetKind(binaryExpression.RawKind));
-
-            var newBinary = BinaryExpression(
-                invertedKind,
-                (TExpressionSyntax)generator.Negate(left, semanticModel, cancellationToken),
-                CreateOperatorToken(GetOperatorTokenKind(invertedKind)).WithTriviaFrom(op),
-                (TExpressionSyntax)generator.Negate(right, semanticModel, cancellationToken));
-
-            return document.WithSyntaxRoot(
-                root.ReplaceNode(binaryExpression.WithAdditionalAnnotations(s_annotation), newBinary));
         }
 
         private string GetTitle(TSyntaxKind binaryExprKind)

@@ -75,5 +75,85 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertMultiConditional1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int a, int b, int c)
+    {
+        var x = a > 10 [||]|| b < 20 || c == 30;
+    }
+}",
+@"class C
+{
+    void M(int a, int b, int c)
+    {
+        var x = !(a <= 10 && b >= 20 && c != 30);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertMultiConditional2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int a, int b, int c)
+    {
+        var x = a > 10 || b < 20 [||]|| c == 30;
+    }
+}",
+@"class C
+{
+    void M(int a, int b, int c)
+    {
+        var x = !(a <= 10 && b >= 20 && c != 30);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertMultiConditional3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int a, int b, int c)
+    {
+        var x = !(a <= 10 [||]&& b >= 20 && c != 30);
+    }
+}",
+@"class C
+{
+    void M(int a, int b, int c)
+    {
+        var x = a > 10 || b < 20 || c == 30;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertMultiConditional4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int a, int b, int c)
+    {
+        var x = !(a <= 10 && b >= 20 [||]&& c != 30);
+    }
+}",
+@"class C
+{
+    void M(int a, int b, int c)
+    {
+        var x = a > 10 || b < 20 || c == 30;
+    }
+}");
+        }
     }
 }
