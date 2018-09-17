@@ -110,13 +110,12 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             var generator = SyntaxGenerator.GetGenerator(document);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            var token = root.FindToken(position);
-            var binary = token.Parent;
+            var binaryExpression = root.FindToken(position).Parent;
 
-            syntaxFacts.GetPartsOfBinaryExpression(binary,
+            syntaxFacts.GetPartsOfBinaryExpression(binaryExpression,
                 out var left, out var op, out var right);
 
-            var invertedKind = InvertedKind(GetKind(binary.RawKind));
+            var invertedKind = InvertedKind(GetKind(binaryExpression.RawKind));
 
             var newBinary = BinaryExpression(
                 invertedKind,
@@ -125,7 +124,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 (TExpressionSyntax)generator.Negate(right, semanticModel, cancellationToken));
 
             return document.WithSyntaxRoot(
-                root.ReplaceNode(binary.WithAdditionalAnnotations(s_annotation), newBinary));
+                root.ReplaceNode(binaryExpression.WithAdditionalAnnotations(s_annotation), newBinary));
         }
 
         private string GetTitle(TSyntaxKind binaryExprKind)
