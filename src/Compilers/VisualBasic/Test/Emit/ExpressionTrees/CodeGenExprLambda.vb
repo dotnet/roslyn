@@ -1849,7 +1849,7 @@ End Structure
                                         Optional latestReferences As Boolean = False,
                                         Optional addXmlReferences As Boolean = False,
                                         Optional diagnostics() As DiagnosticDescription = Nothing)
-            TestExpressionTrees(sourceFile, TestBase.NormalizeNewLines(result), checked, optimize, latestReferences, addXmlReferences, diagnostics)
+            TestExpressionTrees(sourceFile, TestHelpers.NormalizeNewLines(result), checked, optimize, latestReferences, addXmlReferences, diagnostics)
         End Sub
 
         Private Class ExpressionTreeTest

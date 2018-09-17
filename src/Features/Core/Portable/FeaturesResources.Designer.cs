@@ -809,6 +809,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code Quality.
+        /// </summary>
+        internal static string Code_Quality {
+            get {
+                return ResourceManager.GetString("Code_Quality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Collection initialization can be simplified.
         /// </summary>
         internal static string Collection_initialization_can_be_simplified {
@@ -2618,6 +2627,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Private member &apos;{0}&apos; can be removed as the value assigned to it is never read..
+        /// </summary>
+        internal static string Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read {
+            get {
+                return ResourceManager.GetString("Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private member &apos;{0}&apos; is unused..
+        /// </summary>
+        internal static string Private_member_0_is_unused {
+            get {
+                return ResourceManager.GetString("Private_member_0_is_unused", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Project.
         /// </summary>
         internal static string Project {
@@ -3298,25 +3325,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string TODO_colon_set_large_fields_to_null {
             get {
                 return ResourceManager.GetString("TODO_colon_set_large_fields_to_null", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{0}&apos; has a private member &apos;{1}&apos; that can be removed as the value assigned to it is never read..
-        /// </summary>
-        internal static string Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read {
-            get {
-                return ResourceManager.GetString("Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_" +
-                        "never_read", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{0}&apos; has an unused private member &apos;{1}&apos; which can be removed..
-        /// </summary>
-        internal static string Type_0_has_an_unused_private_member_1_which_can_be_removed {
-            get {
-                return ResourceManager.GetString("Type_0_has_an_unused_private_member_1_which_can_be_removed", resourceCulture);
             }
         }
         

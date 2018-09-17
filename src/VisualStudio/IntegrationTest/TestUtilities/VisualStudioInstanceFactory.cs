@@ -75,6 +75,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     Path.Combine(logDir, $"{baseFileName}.log"),
                     $"{exception}.GetType().Name{Environment.NewLine}{exception.StackTrace}");
 
+                EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
+                EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
             }
             finally
             {
