@@ -36,12 +36,8 @@ namespace Microsoft.CodeAnalysis.InvertConditional
                 return;
             }
 
-            if (position < conditional.Span.Start)
-            {
-                return;
-            }
-
-            if (!ShouldOffer(conditional, position))
+            if (position < conditional.Span.Start ||
+                !ShouldOffer(conditional, position))
             {
                 return;
             }
