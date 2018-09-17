@@ -1,6 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -14,37 +20,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 .Any();
 
         private static SpacingWithinParenthesesOption? ConvertToSpacingOption(string value)
+            => s_spacingWithinParenthesisOptionsEditorConfigMap.GetValueOrDefault(value);
+
+        private static string GetSpacingWithParenthesesEditorConfigString(OptionSet optionSet)
         {
-            switch (value)
+            List<string> editorConfigStringBuilderOpt = null;
+            foreach (var kvp in SpacingWithinParenthesisOptionsMap)
             {
-                case "expressions": return SpacingWithinParenthesesOption.Expressions;
-                case "type_casts": return SpacingWithinParenthesesOption.TypeCasts;
-                case "control_flow_statements": return SpacingWithinParenthesesOption.ControlFlowStatements;
-                default: return null;
+                var value = optionSet.GetOption(kvp.Key);
+                if (value)
+                {
+                    editorConfigStringBuilderOpt = editorConfigStringBuilderOpt ?? new List<string>(SpacingWithinParenthesisOptionsMap.Count);
+                    Debug.Assert(s_spacingWithinParenthesisOptionsEditorConfigMap.ContainsValue(kvp.Value));
+                    editorConfigStringBuilderOpt.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
+                }
+            }
+
+            if (editorConfigStringBuilderOpt == null)
+            {
+                // No spacing within parenthesis option set.
+                return "false";
+            }
+            else
+            {
+                return string.Join(",", editorConfigStringBuilderOpt.Order());
             }
         }
 
         internal static BinaryOperatorSpacingOptions ParseEditorConfigSpacingAroundBinaryOperator(string binaryOperatorSpacingValue)
-        {
-            switch (binaryOperatorSpacingValue)
-            {
-                case "ignore": return BinaryOperatorSpacingOptions.Ignore;
-                case "none": return BinaryOperatorSpacingOptions.Remove;
-                case "before_and_after": return BinaryOperatorSpacingOptions.Single;
-                default: return BinaryOperatorSpacingOptions.Single;
-            }
-        }
+            => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetValue(binaryOperatorSpacingValue, out var value) ? value : BinaryOperatorSpacingOptions.Single;
 
-        internal static LabelPositionOptions ParseEditorConfigLablePositioning(string lableIndentationValue)
-        {
-            switch (lableIndentationValue)
-            {
-                case "flush_left": return LabelPositionOptions.LeftMost;
-                case "no_change": return LabelPositionOptions.NoIndent;
-                case "one_less_than_current": return LabelPositionOptions.OneLess;
-                default: return LabelPositionOptions.NoIndent;
-            }
-        }
+        private static string GetSpacingAroundBinaryOperatorEditorConfigString(BinaryOperatorSpacingOptions value)
+            => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetKey(value, out string key) ? key : null;
+
+        internal static LabelPositionOptions ParseEditorConfigLabelPositioning(string labelIndentationValue)
+            => s_labelPositionOptionsEditorConfigMap.TryGetValue(labelIndentationValue, out var value) ? value : LabelPositionOptions.NoIndent;
+        private static string GetLabelPositionOptionEditorConfigString(LabelPositionOptions value)
+            => s_labelPositionOptionsEditorConfigMap.TryGetKey(value, out string key) ? key : null;
 
         internal static bool DetermineIfNewLineOptionIsSet(string value, NewLineOption optionName)
         {
@@ -67,24 +79,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     .Any();
         }
 
-
         private static NewLineOption? ConvertToNewLineOption(string value)
+            => s_newLineOptionsEditorConfigMap.GetValueOrDefault(value);
+        private static string GetNewLineOptionEditorConfigString(OptionSet optionSet)
         {
-            switch (value.Trim())
+            List<string> editorConfigStringBuilderOpt = null;
+            foreach (var kvp in NewLineOptionsMap)
             {
-                case "accessors": return NewLineOption.Accessors;
-                case "types": return NewLineOption.Types;
-                case "methods": return NewLineOption.Methods;
-                case "properties": return NewLineOption.Properties;
-                case "indexers": return NewLineOption.Indexers;
-                case "events": return NewLineOption.Events;
-                case "anonymous_methods": return NewLineOption.AnonymousMethods;
-                case "control_blocks": return NewLineOption.ControlBlocks;
-                case "anonymous_types": return NewLineOption.AnonymousTypes;
-                case "object_collection_array_initalizers": return NewLineOption.ObjectCollectionsArrayInitializers;
-                case "lambdas": return NewLineOption.Lambdas;
-                case "local_functions": return NewLineOption.LocalFunction;
-                default: return null;
+                var value = optionSet.GetOption(kvp.Key);
+                if (value)
+                {
+                    editorConfigStringBuilderOpt = editorConfigStringBuilderOpt ?? new List<string>(NewLineOptionsMap.Count);
+                    Debug.Assert(s_newLineOptionsEditorConfigMap.ContainsValue(kvp.Value));
+                    editorConfigStringBuilderOpt.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
+                }
+            }
+
+            if (editorConfigStringBuilderOpt == null)
+            {
+                // No NewLine option set.
+                return "none";
+            }
+            else if (editorConfigStringBuilderOpt.Count == s_newLineOptionsMapBuilder.Count)
+            {
+                // All NewLine options set.
+                return "all";
+            }
+            else
+            {
+                return string.Join(",", editorConfigStringBuilderOpt.Order());
             }
         }
 
