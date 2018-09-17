@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
+        /// <summary>
+        /// See comment in <see cref="InvertLogicalAsync"/> to understand the need for this annotation.
+        /// </summary>
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         protected abstract TSyntaxKind GetKind(int rawKind);
