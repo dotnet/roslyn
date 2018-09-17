@@ -513,5 +513,47 @@ namespace Analyzer.Utilities.Extensions
                 }
             }
         }
+
+        /// <summary>
+        /// For a reference operation passed to <see cref="Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor&lt;TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue&gt;.ComputeAnalysisValueForReferenceOperation(IOperation, TAbstractAnalysisValue)"/>, gets the containing instance if any.
+        /// </summary>
+        /// <param name="operation">Reference operation.</param>
+        /// <returns>Containing instance if any, null otherwise.</returns>
+        public static IOperation GetReferenceOperationReferencee(this IOperation operation)
+        {
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            switch (operation)
+            {
+                // Handles:
+                // - IEventReferenceOperation
+                // - IFieldReferenceOperation
+                // - IMethodReferenceOperation
+                // - IPropertyReferenceOperation
+                case IMemberReferenceOperation memberReferenceOperation:
+                    return memberReferenceOperation.Instance;
+
+                case ILocalReferenceOperation localReferenceOperation:
+                    return null;
+
+                case IParameterReferenceOperation parameterReferenceOperation:
+                    return null;
+
+                case IArrayElementReferenceOperation arrayElementReferenceOperation:
+                    return arrayElementReferenceOperation.ArrayReference;
+
+                case IDynamicMemberReferenceOperation dynamicMemberReferenceOperation:
+                    return dynamicMemberReferenceOperation.Instance;
+
+                case IFlowCaptureReferenceOperation flowCaptureReferenceOperation:
+                    return null;
+
+                default:
+                    throw new NotImplementedException("Unhandled IOperation " + operation.Kind);
+            }
+        }
     }
 }

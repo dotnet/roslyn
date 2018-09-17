@@ -87,6 +87,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         public ImmutableHashSet<INamedTypeSymbol> CollectionTypes { get; }
 
+        /// <summary>
+        /// Attempts to get the full type name (namespace + type) of the specifed symbol.
+        /// </summary>
+        /// <param name="symbol">Symbol.</param>
+        /// <param name="fullTypeName">Namespace + type name.</param>
+        /// <returns>True if found, false otherwise.</returns>
+        public bool TryGetFullTypeName(ISymbol symbol, out string fullTypeName)
+        {
+            if (symbol == this.HttpRequest)
+            {
+                fullTypeName = Analyzer.Utilities.WellKnownTypes.SystemWebHttpRequest;
+                return true;
+            }
+            else
+            {
+                fullTypeName = null;
+                return false;
+            }
+        }
+
         private static ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes(Compilation compilation)
         {
             var builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();

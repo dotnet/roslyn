@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
+    using Analyzer.Utilities.Extensions;
     using Microsoft.CodeAnalysis.FlowAnalysis;
     using TaintedDataAnalysisResult = DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
 
@@ -21,43 +22,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override TaintedDataAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TaintedDataAbstractValue defaultValue)
             {
-                switch (operation)
+                if (operation is IPropertyReferenceOperation propertyReferenceOperation
+                    && WebInputSources.IsTaintedProperty(this.WellKnownTypeProvider, propertyReferenceOperation))
                 {
-                    case IPropertyReferenceOperation propertyReferenceOperation:
-                        // TODO: Need a good way to identify sources.
-                        // HttpRequest.Form["somestring"]
-                        // NameValueCollection blah = HttpWebRequest.Form;
-                        // blah["somestring"];
-                        if (propertyReferenceOperation.Instance != null
-                            && propertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.HttpRequest
-                            && (propertyReferenceOperation.Member.MetadataName == "Form"
-                                || propertyReferenceOperation.Member.MetadataName == "UserLanguages"))
-                        {
-                            // HttpRequest.Form
-                            return TaintedDataAbstractValue.Tainted;
-                        }
-                        else if (propertyReferenceOperation.Instance != null
-                            && propertyReferenceOperation.Instance.Type == this.WellKnownTypeProvider.NameValueCollection
-                            && this.GetCachedAbstractValue(propertyReferenceOperation.Instance).Kind == TaintedDataAbstractValueKind.Tainted)
-                        {
-                            // propertyReferenceOperation.Instance is a NameValueCollection from an HttpRequest.Form
-                            return TaintedDataAbstractValue.Tainted;
-                        }
-
-                        break;
-
-                    case IArrayElementReferenceOperation arrayElementOperation:
-                        if (arrayElementOperation.ArrayReference.Type is IArrayTypeSymbol arrayTypeSymbol
-                            && arrayTypeSymbol.ElementType.SpecialType == SpecialType.System_String
-                            && this.GetCachedAbstractValue(arrayElementOperation.ArrayReference).Kind == TaintedDataAbstractValueKind.Tainted)
-                        {
-                            return TaintedDataAbstractValue.Tainted;
-                        }
-
-                        break;
+                    return TaintedDataAbstractValue.Tainted;
                 }
 
-                if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
+                IOperation referenceeOperation = operation.GetReferenceOperationReferencee();
+                if (referenceeOperation != null
+                    && this.GetCachedAbstractValue(referenceeOperation).Kind == TaintedDataAbstractValueKind.Tainted)
+                {
+                    return TaintedDataAbstractValue.Tainted;
+                }
+                else if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
                 {
                     return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue value) ? value : defaultValue;
                 }
@@ -156,9 +133,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 // Always invoke base visit.
                 TaintedDataAbstractValue baseVisit = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
-                if (method.Name == "Get"
-                    && visitedInstance.Type == this.WellKnownTypeProvider.NameValueCollection
-                    && this.GetCachedAbstractValue(visitedInstance).Kind == TaintedDataAbstractValueKind.Tainted)
+                if (visitedInstance != null
+                    && (this.GetCachedAbstractValue(visitedInstance).Kind == TaintedDataAbstractValueKind.Tainted
+                        || WebInputSources.IsTaintedMethod(this.WellKnownTypeProvider, visitedInstance, method)))
                 {
                     return TaintedDataAbstractValue.Tainted;
                 }

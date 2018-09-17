@@ -7,6 +7,8 @@ namespace Analyzer.Utilities
 {
     internal static class WellKnownTypes
     {
+        public const string SystemWebHttpRequest = "System.Web.HttpRequest";
+
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.ICollection");
@@ -49,7 +51,7 @@ namespace Analyzer.Utilities
 
         internal static INamedTypeSymbol HttpRequest(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.HttpRequest");
+            return compilation.GetTypeByMetadataName(SystemWebHttpRequest);
         }
 
         internal static INamedTypeSymbol NameValueCollection(Compilation compilation)
