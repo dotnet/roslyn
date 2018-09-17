@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return false;
                         }
-                        // PROTOTYPE(NullableReferenceTypes): Use AssociatedField for field-like events?
+                        // https://github.com/dotnet/roslyn/issues/29901 Use AssociatedField for field-like events?
                         member = eventSymbol;
                         receiver = eventAccess.ReceiverOpt;
                         break;
@@ -1148,12 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private new void VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
-            if (node.AddMethod.CallsAreOmitted(node.SyntaxTree))
-            {
-                // PROTOTYPE(NullableReferenceTypes): Should skip state set in arguments
-                // of omitted call. See PreciseAbstractFlowPass.VisitCollectionElementInitializer.
-            }
-
+            // Note: we analyze even omitted calls
             VisitArguments(node, node.Arguments, refKindsOpt: default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
             SetUnknownResultNullability();
         }
@@ -3638,7 +3633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(receiverOpt);
             CheckPossibleNullReceiver(receiverOpt);
 
-            // PROTOTYPE(NullableReferenceTypes): Update indexer based on inferred receiver type.
+            // https://github.com/dotnet/roslyn/issues/29964 Update indexer based on inferred receiver type.
             VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Indexer, node.ArgsToParamsOpt, node.Expanded);
 
             _resultType = node.Indexer.Type;
@@ -3777,7 +3772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.OperatorKind.IsLifted())
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
+                    // https://github.com/dotnet/roslyn/issues/29953 Conversions: Lifted operator
                 }
                 else if ((object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
                 {
@@ -3829,7 +3824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.OperatorKind.IsLifted())
             {
-                // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
+                // https://github.com/dotnet/roslyn/issues/29953 Conversions: Lifted operator
                 return TypeSymbolWithAnnotations.Create(node.Type);
             }
             // Update method based on inferred operand types: see https://github.com/dotnet/roslyn/issues/29605.
@@ -3849,7 +3844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 TypeSymbolWithAnnotations leftType = _resultType;
-                // PROTOTYPE(NullableReferenceTypes): Update operator methods based on inferred operand types.
+                // https://github.com/dotnet/roslyn/issues/29605 Update operator methods based on inferred operand types.
                 MethodSymbol logicalOperator = null;
                 MethodSymbol trueFalseOperator = null;
                 BoundExpression left = null;
@@ -4115,7 +4110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitRangeVariable(BoundRangeVariable node)
         {
             var result = base.VisitRangeVariable(node);
-            SetResult(node); // PROTOTYPE(NullableReferenceTypes)
+            SetResult(node); // https://github.com/dotnet/roslyn/issues/29863 Need to review this
             return result;
         }
 
