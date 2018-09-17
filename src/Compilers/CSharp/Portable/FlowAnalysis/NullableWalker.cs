@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
             bool reportNullLiteralAssignmentIfNecessary()
             {
-                if (value.ConstantValue?.IsNull != true && !IsDefaultOfUnconstrainedTypeParameter(value))
+                if (value.ConstantValue?.IsNull != true && !isDefaultOfUnconstrainedTypeParameter(value))
                 {
                     return false;
                 }
@@ -553,6 +553,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, value.Syntax);
                 }
                 return true;
+            }
+
+            bool isDefaultOfUnconstrainedTypeParameter(BoundExpression expr)
+            {
+                switch (expr.Kind)
+                {
+                    case BoundKind.Conversion:
+                        {
+                            var conversion = (BoundConversion)expr;
+                            return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
+                                isDefaultOfUnconstrainedTypeParameter(conversion.Operand);
+                        }
+                    case BoundKind.DefaultExpression:
+                        return IsUnconstrainedTypeParameter(expr.Type);
+                    default:
+                        return false;
+                }
             }
         }
 
@@ -604,20 +621,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isByRefTarget = IsByRefTarget(targetSlot);
                 if (targetSlot >= this.State.Capacity) Normalize(ref this.State);
 
-                // PROTOTYPE(NullableReferenceTypes): Remove isByRefTarget check?
+                // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
                 this.State[targetSlot] = isByRefTarget ?
                     // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
                     // regardless of what value is being assigned.
                     (targetType.IsNullable == true) ? (bool?)false : null :
                     !valueType.IsNullable;
 
-                // PROTOTYPE(NullableReferenceTypes): Might this clear state that
+                // https://github.com/dotnet/roslyn/issues/29968 Might this clear state that
                 // should be copied in InheritNullableStateOfTrackableType?
                 InheritDefaultState(targetSlot);
 
                 if (targetType.IsReferenceType)
                 {
-                    // PROTOTYPE(NullableReferenceTypes): We should copy all tracked state from `value`,
+                    // https://github.com/dotnet/roslyn/issues/29968 We should copy all tracked state from `value`,
                     // regardless of BoundNode type, but we'll need to handle cycles. (For instance, the
                     // assignment to C.F below. See also NullableReferenceTypesTests.Members_FieldCycle_01.)
                     // class C
@@ -627,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // }
                     // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
                     if ((value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || value.Kind == BoundKind.DynamicObjectCreationExpression || targetType.TypeSymbol.IsAnonymousType) &&
-                        targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.ConsiderEverything)) // PROTOTYPE(NullableReferenceTypes): Allow assignment to base type.
+                        targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.ConsiderEverything)) // https://github.com/dotnet/roslyn/issues/29968 Allow assignment to base type.
                     {
                         if (valueSlot > 0)
                         {
@@ -705,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                     bool? value = !fieldOrPropertyType.IsNullable;
-                    // PROTOTYPE(NullableReferenceTypes): Remove isByRefTarget check?
+                    // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
                     if (isByRefTarget)
                     {
                         // This is a member access through a by ref entity and it isn't considered declared as not-nullable. 
@@ -2785,7 +2802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
             }
-            // PROTOTYPE(NullableReferenceTypes): Handle other cases such as interfaces.
+            // https://github.com/dotnet/roslyn/issues/29967 Handle other cases such as interfaces.
             Debug.Assert(symbolDefContainer.IsInterface);
             return symbol;
         }
@@ -4004,8 +4021,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var operandType = node.Operand.Type;
                             if (operandType?.IsValueType == true)
                             {
-                                // PROTOTYPE(NullableReferenceTypes): Should we worry about a pathological case of boxing nullable value known to be not null?
-                                //       For example, new int?(0)
                                 isNullable = operandType.IsNullableType();
                             }
                             else
@@ -4156,7 +4171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckPossibleNullReceiver(receiverOpt);
             }
             VisitRvalue(node.Argument);
-            SetResult(node); // PROTOTYPE(NullableReferenceTypes)
+            SetResult(node); // https://github.com/dotnet/roslyn/issues/29969 Review whether this is the correct result
             return null;
         }
 
@@ -4268,24 +4283,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
                 }
-            }
-        }
-
-        private static bool IsDefaultOfUnconstrainedTypeParameter(BoundExpression expr)
-        {
-            switch (expr.Kind)
-            {
-                case BoundKind.Conversion:
-                    {
-                        var conversion = (BoundConversion)expr;
-                        // PROTOTYPE(NullableReferenceTypes): Check target type is unconstrained type parameter?
-                        return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
-                            IsDefaultOfUnconstrainedTypeParameter(conversion.Operand);
-                    }
-                case BoundKind.DefaultExpression:
-                    return IsUnconstrainedTypeParameter(expr.Type);
-                default:
-                    return false;
             }
         }
 
