@@ -444,7 +444,7 @@ namespace BuildBoss
                     case "net46":
                     case "netstandard1.3":
                     case "netcoreapp1.1":
-                    case "netcoreapp2.0":
+                    case "netcoreapp2.1":
                     case "$(RoslynPortableTargetFrameworks)":
                         break;
                     default:
