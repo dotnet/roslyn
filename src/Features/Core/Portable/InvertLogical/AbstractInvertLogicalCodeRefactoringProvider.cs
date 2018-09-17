@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             // Walk up to the topmost binary of the same type.  When converting || to && (or vice versa)
-            // we want to grab the entire set.  i.e.  `a && b && c` should become `!(!a || !b || !c)` not
-            // `!(!a || !b) && c`
+            // we want to grab the entire set.  i.e.  `!a && !b && !c` should become `!(a || b || c)` not
+            // `!(a || b) && !c`
             var binaryExpression = root.FindToken(position).Parent;
             while (binaryExpression.Parent?.RawKind == binaryExpression.RawKind)
             {
