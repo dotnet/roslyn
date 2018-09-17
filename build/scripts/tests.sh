@@ -22,7 +22,7 @@ dotnet_runtime_version="$(get_tool_version dotnetRuntime)"
 if [[ "${runtime}" == "dotnet" ]]; then
     target_framework=netcoreapp2.1
     file_list=( "${unittest_dir}"/*/netcoreapp2.1/*.UnitTests.dll )
-    xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
+    xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/netcoreapp2.0/xunit.console.dll
 elif [[ "${runtime}" == "mono" ]]; then
     file_list=(
         "${unittest_dir}/Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests/net46/Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.dll"
