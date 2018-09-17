@@ -138,5 +138,20 @@ end class")
     end sub
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        Public Async Function TestSelectedOperator() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(x as boolean, a as integer, b as integer)
+        dim c = a > 10 [|orelse|] b < 20
+    end sub
+end class",
+"class C
+    sub M(x as boolean, a as integer, b as integer)
+        dim c = Not (a <= 10 AndAlso b >= 20)
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

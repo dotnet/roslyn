@@ -205,5 +205,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task TestSelectedOperator()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = a > 10 [||||] b < 20;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = !(a <= 10 && b >= 20);
+    }
+}");
+        }
     }
 }
