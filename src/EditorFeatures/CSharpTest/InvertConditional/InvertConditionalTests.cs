@@ -77,5 +77,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
+        public async Task TestStartOfConditional()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = [||]x ? a : b;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = !x ? b : a;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
+        public async Task TestMissingAfterCondition()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = x ? a [||]: b;
+    }
+}");
+        }
     }
 }
