@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         }
 
         private async Task<Document> InvertLogicalAsync(
-            Document document, int position, CancellationToken cancellationToken)
+            Document document1, int position, CancellationToken cancellationToken)
         {
-            var updatedDocument1 = await InvertLeftAndRightOfBinaryAsync(document, position, cancellationToken).ConfigureAwait(false);
-            var updatedDocument2 = await InvertBinaryAsync(updatedDocument1, cancellationToken).ConfigureAwait(false);
-            return updatedDocument2;
+            var document2 = await InvertInnerExpressionAsync(document1, position, cancellationToken).ConfigureAwait(false);
+            var document3 = await InvertOuterExpressionAsync(document2, cancellationToken).ConfigureAwait(false);
+            return document3;
         }
 
-        private async Task<Document> InvertLeftAndRightOfBinaryAsync(
+        private async Task<Document> InvertInnerExpressionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -92,22 +92,14 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 binaryExpression = binaryExpression.Parent;
             }
 
-            syntaxFacts.GetPartsOfBinaryExpression(binaryExpression,
-                out var left, out var op, out var right);
-
-            var invertedKind = InvertedKind(GetKind(binaryExpression.RawKind));
-
-            var newBinary = BinaryExpression(
-                invertedKind,
-                (TExpressionSyntax)generator.Negate(left, semanticModel, cancellationToken),
-                CreateOperatorToken(GetOperatorTokenKind(invertedKind)).WithTriviaFrom(op),
-                (TExpressionSyntax)generator.Negate(right, semanticModel, cancellationToken));
-
+            var newBinary = generator.Negate(binaryExpression, semanticModel, cancellationToken);
             return document.WithSyntaxRoot(
-                root.ReplaceNode(binaryExpression, newBinary.WithAdditionalAnnotations(s_annotation)));
+                root.ReplaceNode(
+                    binaryExpression,
+                    newBinary.WithAdditionalAnnotations(s_annotation)));
         }
 
-        private async Task<Document> InvertBinaryAsync(
+        private async Task<Document> InvertOuterExpressionAsync(
             Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
