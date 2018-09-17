@@ -116,19 +116,16 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             syntaxFacts.GetPartsOfBinaryExpression(binary,
                 out var left, out var op, out var right);
 
-            var newLeft = (TExpressionSyntax)generator.Negate(left, semanticModel, cancellationToken);
-            var newRight = (TExpressionSyntax)generator.Negate(right, semanticModel, cancellationToken);
-
             var invertedKind = InvertedKind(GetKind(binary.RawKind));
-            var operatorKind = GetOperatorTokenKind(invertedKind);
-            var newOp = CreateOperatorToken(operatorKind).WithTriviaFrom(op);
 
             var newBinary = BinaryExpression(
-                invertedKind, newLeft, newOp, newRight).WithAdditionalAnnotations(s_annotation);
-            var newRoot = root.ReplaceNode(binary, newBinary);
+                invertedKind,
+                (TExpressionSyntax)generator.Negate(left, semanticModel, cancellationToken),
+                CreateOperatorToken(GetOperatorTokenKind(invertedKind)).WithTriviaFrom(op),
+                (TExpressionSyntax)generator.Negate(right, semanticModel, cancellationToken));
 
-            var updatedDocument = document.WithSyntaxRoot(newRoot);
-            return updatedDocument;
+            return document.WithSyntaxRoot(
+                root.ReplaceNode(binary.WithAdditionalAnnotations(s_annotation), newBinary));
         }
 
         private string GetTitle(TSyntaxKind binaryExprKind)
