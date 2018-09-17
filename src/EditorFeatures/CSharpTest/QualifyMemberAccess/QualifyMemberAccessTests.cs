@@ -772,22 +772,6 @@ CodeStyleOptions.QualifyMethodAccess);
 
         [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyLocalMethodAccess_NotSuggestedInMethodCall()
-        {
-            await TestMissingAsyncWithOption(
-@"class C
-{
-    void M()
-    {
-        int Local() => 1;
-        [|Local|]();
-    }
-}",
-CodeStyleOptions.QualifyMethodAccess);
-        }
-
-        [WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_NotSuggestedOnCollectionInitializer()
         {
             await TestMissingAsyncWithOption(
