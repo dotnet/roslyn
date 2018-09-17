@@ -583,7 +583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ch = Peek()
                     atNewLine = IsNewLine(ch)
                 Else
-                    Debug.Assert(atNewLine = False)
+                    Debug.Assert(Not atNewLine)
                 End If
             End If
 
