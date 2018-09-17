@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.InvertLogical
 
             var node = root.GetAnnotatedNodes(s_annotation).Single();
 
+            // Walk up parens and !'s.  That way we don't end up with something like !!.
+            // It also ensures that this refactoring is reversible by invoking it again.
             while (syntaxFacts.IsParenthesizedExpression(node.Parent) ||
                    syntaxFacts.IsLogicalNotExpression(node.Parent))
             {
@@ -90,6 +92,9 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             }
 
             var generator = SyntaxGenerator.GetGenerator(document);
+
+            // Negate the containing binary expr.  Pass the 'negateBinary:false' flag so we don't
+            // just negate the work we're actually doing right now.
             var updatedNode = generator.Negate(node, semanticModel, negateBinary: false, cancellationToken);
             
             var updatedRoot = root.ReplaceNode(node, updatedNode);
