@@ -13,18 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertConditional
         Protected Overrides Function ShouldOffer(
             conditional As TernaryConditionalExpressionSyntax, position As Integer) As Boolean
 
-            If position > conditional.FirstCommaToken.Span.Start Then
-                Return False
-            End If
-
-            If conditional.FirstCommaToken.IsMissing OrElse
-               conditional.SecondCommaToken.IsMissing OrElse
-               conditional.CloseParenToken.IsMissing Then
-
-                Return False
-            End If
-
-            Return True
+            Return position <= conditional.FirstCommaToken.Span.Start AndAlso
+                   Not conditional.FirstCommaToken.IsMissing AndAlso
+                   Not conditional.SecondCommaToken.IsMissing AndAlso
+                   Not conditional.CloseParenToken.IsMissing
         End Function
     End Class
 End Namespace
