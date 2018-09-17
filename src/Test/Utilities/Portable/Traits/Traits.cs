@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInsertMissingCast = "CodeActions.InsertMissingCast";
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
             public const string CodeActionsIntroduceVariable = "CodeActions.IntroduceVariable";
+            public const string CodeActionsInvertConditional = "CodeActions.InvertConditional";
             public const string CodeActionsInvertIf = "CodeActions.InvertIf";
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
