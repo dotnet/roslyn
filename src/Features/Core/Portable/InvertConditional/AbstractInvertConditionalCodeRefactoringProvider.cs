@@ -12,8 +12,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InvertConditional
 {
-    internal abstract class AbstractInvertConditionalCodeRefactoringProvider<
-        TConditionalExpressionSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractInvertConditionalCodeRefactoringProvider<TConditionalExpressionSyntax> 
+        : CodeRefactoringProvider
         where TConditionalExpressionSyntax : SyntaxNode
     {
         protected abstract bool ShouldOffer(TConditionalExpressionSyntax conditional, int position);
