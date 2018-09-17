@@ -1433,4 +1433,7 @@ This version used in: {2}</value>
   <data name="Invert_conditional" xml:space="preserve">
     <value>Invert conditional</value>
   </data>
+  <data name="Replace_0_with_1" xml:space="preserve">
+    <value>Replace '{0}' with '{1}' </value>
+  </data>
 </root>
