@@ -284,7 +284,6 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Editor"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.GraphModel"/>
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.InteractiveWindow"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.ImageCatalog"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Imaging"/>
