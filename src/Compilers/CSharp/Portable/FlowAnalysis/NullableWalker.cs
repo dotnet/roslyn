@@ -1917,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
+            // https://github.com/dotnet/roslyn/issues/29605 Can we handle some error cases?
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
             if (!node.HasErrors)
             {
@@ -2031,7 +2031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Record in the node whether type
+        // https://github.com/dotnet/roslyn/issues/29863 Record in the node whether type
         // arguments were implicit, to allow for cases where the syntax is not an
         // invocation (such as a synthesized call from a query interpretation).
         private static bool HasImplicitTypeArguments(BoundExpression node)
@@ -2173,7 +2173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argument = arguments[i];
             if (refKind != RefKind.Out)
             {
-                // PROTOTYPE(NullReferenceTypes): `ref` arguments should be treated as l-values
+                // https://github.com/dotnet/roslyn/issues/29958 `ref` arguments should be treated as l-values
                 // for assignment. See `ref x3` in NullableReferenceTypesTests.PassingParameters_01.
                 if (preserveConditionalState)
                 {
@@ -2418,7 +2418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RefKind refKind = GetRefKind(refKindsOpt, i);
                     var argument = arguments[i];
                     var conversion = Conversion.Identity;
-                    // PROTOTYPE(NullableReferenceTypes): Should `RefKind.In` be treated similarly to `RefKind.None`?
+                    // https://github.com/dotnet/roslyn/issues/29958 Should `RefKind.In` be treated similarly to `RefKind.None`?
                     if (refKind == RefKind.None)
                     {
                         var before = argument;
@@ -2823,7 +2823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConversion(BoundConversion node)
         {
-            // PROTOTYPE(NullableReferenceTypes): Assert VisitConversion is only used for explicit conversions.
+            // https://github.com/dotnet/roslyn/issues/29959 Assert VisitConversion is only used for explicit conversions.
             //Debug.Assert(node.ExplicitCastInCode);
             //Debug.Assert(node.ConversionGroupOpt != null);
             //Debug.Assert(!node.ConversionGroupOpt.ExplicitType.IsNull);
@@ -2959,11 +2959,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Parameter nullability is expected to match exactly. This corresponds to the behavior of initial binding.
                 //    Action<string> x = (object o) => { }; // error CS1661: Cannot convert lambda expression to delegate type 'Action<string>' because the parameter types do not match the delegate parameter types
                 //    Action<object> y = (object? o) => { }; // warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object>'.
-                // PROTOTYPE(NullableReferenceTypes): Consider relaxing and allow implicit conversions of nullability.
+                // https://github.com/dotnet/roslyn/issues/29959 Consider relaxing and allow implicit conversions of nullability.
                 // (Compare with method group conversions which pass `requireIdentity: false`.)
                 if (IsNullabilityMismatch(invokeParameter.Type, unboundLambda.ParameterType(i), requireIdentity: true))
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Consider using location of specific lambda parameter.
+                    // https://github.com/dotnet/roslyn/issues/29959 Consider using location of specific lambda parameter.
                     ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
                         unboundLambda.ParameterName(i),
                         unboundLambda.MessageID.Localize(),
@@ -3099,7 +3099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType, useLegacyWarnings, assignmentKind, target: null);
 
                         // conversion "to" type -> final type
-                        // PROTOTYPE(NullableReferenceTypes): If the original conversion was
+                        // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
                         // explicit, this conversion should not report nested nullability mismatches.
                         // (see NullableReferenceTypesTests.ExplicitCast_UserDefined_02).
                         operandType = ClassifyAndApplyConversion(node, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target);
@@ -3118,7 +3118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:
                     if (!operandType.IsNull && operandType.IsValueType)
                     {
-                        // PROTOTYPE(NullableReferenceTypes): Should we worry about a pathological case of boxing nullable value known to be not null?
+                        // https://github.com/dotnet/roslyn/issues/29959 Should we worry about a pathological case of boxing nullable value known to be not null?
                         //       For example, new int?(0)
                         isNullableIfReferenceType = operandType.IsNullableType();
                     }
@@ -3158,7 +3158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Inherit state from the operand.
                         if (checkConversion)
                         {
-                            // PROTOTYPE(NullableReferenceTypes): Assert conversion is similar to original.
+                            // https://github.com/dotnet/roslyn/issues/29959 Assert conversion is similar to original.
                             conversion = GenerateConversion(_conversions, operandOpt, operandType.TypeSymbol, targetType, fromExplicitCast, extensionMethodThisArgument);
                             canConvertNestedNullability = conversion.Exists;
                         }
