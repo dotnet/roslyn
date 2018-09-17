@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.IO.Compression;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -17,15 +19,17 @@ namespace Roslyn.Assets
         private class StreamSolutionProvider : ISolutionProvider
         {
             private readonly Stream _stream;
+            private readonly ImmutableArray<Assembly> _hostAssemblies;
 
-            public StreamSolutionProvider(Stream stream)
+            public StreamSolutionProvider(Stream stream, IEnumerable<Assembly> hostAssemblies)
             {
                 _stream = stream;
+                _hostAssemblies = hostAssemblies.ToImmutableArray();
             }
 
             public async Task<Solution> CreateSolutionAsync(CancellationToken cancellationToken)
             {
-                var adhocWorkspace = new AdhocWorkspace(MefHostServices.Create(ExternalHostAssemblies));
+                var adhocWorkspace = new AdhocWorkspace(MefHostServices.Create(ExternalHostAssemblies.Concat(_hostAssemblies).Distinct()));
                 var serializer = adhocWorkspace.Services.GetService<ISerializerService>();
 
                 var solutionChecksum = default(Checksum);

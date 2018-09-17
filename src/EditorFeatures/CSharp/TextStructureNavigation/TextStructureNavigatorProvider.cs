@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
 {
-    [Export(typeof(ITextStructureNavigatorProvider))]
+    // [Export(typeof(ITextStructureNavigatorProvider))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     internal class TextStructureNavigatorProvider : AbstractTextStructureNavigatorProvider
     {

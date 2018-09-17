@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
-    <ExportLanguageService(GetType(IEditorBraceCompletionSessionFactory), LanguageNames.VisualBasic), [Shared]>
+    ' <ExportLanguageService(GetType(IEditorBraceCompletionSessionFactory), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicEditorBraceCompletionSessionFactory
         Inherits AbstractEditorBraceCompletionSessionFactory
 

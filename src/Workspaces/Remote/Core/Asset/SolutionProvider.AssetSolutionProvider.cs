@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,17 +19,19 @@ namespace Roslyn.Assets
     {
         private class AssetSolutionProvider : ISolutionProvider
         {
-            private readonly ISolutionAsset asset;
+            private readonly ISolutionAsset _asset;
+            private readonly ImmutableArray<Assembly> _hostAssemblies;
 
-            public AssetSolutionProvider(ISolutionAsset asset)
+            public AssetSolutionProvider(ISolutionAsset asset, IEnumerable<Assembly> hostAssemblies)
             {
-                this.asset = asset;
+                _asset = asset;
+                _hostAssemblies = hostAssemblies.ToImmutableArray();
             }
 
             public async Task<Solution> CreateSolutionAsync(CancellationToken cancellationToken)
             {
                 var projectInfos = new List<ProjectInfo>();
-                var projectAssets = await this.asset.GetProjectsAsync(cancellationToken).ConfigureAwait(false);
+                var projectAssets = await this._asset.GetProjectsAsync(cancellationToken).ConfigureAwait(false);
 
                 var projectIdMap = CreateProjectIdMap(projectAssets, cancellationToken);
 
@@ -82,7 +86,7 @@ namespace Roslyn.Assets
 
                 var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId("No solution info"), VersionStamp.Create(), projects: projectInfos);
 
-                var workspace = new AdhocWorkspace(MefHostServices.Create(ExternalHostAssemblies));
+                var workspace = new AdhocWorkspace(MefHostServices.Create(ExternalHostAssemblies.Concat(_hostAssemblies).Distinct()));
                 return workspace.AddSolution(solutionInfo);
             }
 

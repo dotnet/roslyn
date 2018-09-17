@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
-    [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), ServiceLayer.Default), Shared]
+    // [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), ServiceLayer.Default), Shared]
     internal class TextUndoHistoryWorkspaceServiceFactoryService : IWorkspaceServiceFactory
     {
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;

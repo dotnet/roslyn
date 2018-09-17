@@ -15,7 +15,7 @@ Imports Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
-    <ExportLanguageService(GetType(IEndConstructGenerationService), LanguageNames.VisualBasic), [Shared]>
+    ' <ExportLanguageService(GetType(IEndConstructGenerationService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicEndConstructService
         Implements IEndConstructGenerationService
 

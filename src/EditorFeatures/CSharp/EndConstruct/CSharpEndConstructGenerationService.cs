@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EndConstructGeneration
 {
-    [ExportLanguageService(typeof(IEndConstructGenerationService), LanguageNames.CSharp), Shared]
+    // [ExportLanguageService(typeof(IEndConstructGenerationService), LanguageNames.CSharp), Shared]
     [ExcludeFromCodeCoverage]
     internal class CSharpEndConstructGenerationService : IEndConstructGenerationService
     {

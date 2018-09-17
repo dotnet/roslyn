@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking
 {
     // TODO: Remove the ExtensionOrder attributes once a better ordering mechanism is available
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RenameTracking), Shared]
+    // [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RenameTracking), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
     [ExtensionOrder(Before = PredefinedCodeFixProviderNames.AddMissingReference)]
     [ExtensionOrder(Before = PredefinedCodeFixProviderNames.FullyQualify)]

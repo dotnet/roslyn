@@ -18,6 +18,6 @@ Roslyn.Assets.ISolutionAsset.GetProjectsAsync(System.Threading.CancellationToken
 Roslyn.Assets.ISolutionProvider
 Roslyn.Assets.ISolutionProvider.CreateSolutionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
 Roslyn.Assets.SolutionProvider
-static Roslyn.Assets.SolutionProvider.FromAsset(Roslyn.Assets.ISolutionAsset asset) -> Roslyn.Assets.ISolutionProvider
-static Roslyn.Assets.SolutionProvider.FromStream(System.IO.Stream stream) -> Roslyn.Assets.ISolutionProvider
+static Roslyn.Assets.SolutionProvider.FromAsset(Roslyn.Assets.ISolutionAsset asset, System.Collections.Generic.IEnumerable<System.Reflection.Assembly> hostAssemblies) -> Roslyn.Assets.ISolutionProvider
+static Roslyn.Assets.SolutionProvider.FromStream(System.IO.Stream stream, System.Collections.Generic.IEnumerable<System.Reflection.Assembly> hostAssemblies) -> Roslyn.Assets.ISolutionProvider
 static readonly Roslyn.Assets.SolutionProvider.ExternalHostAssemblies -> System.Collections.Immutable.ImmutableArray<System.Reflection.Assembly>

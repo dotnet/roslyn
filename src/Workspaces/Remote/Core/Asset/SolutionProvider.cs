@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor;
@@ -18,18 +19,19 @@ namespace Roslyn.Assets
                 .Add(typeof(TemporaryStorageServiceFactory.TemporaryStorageService).Assembly)
                 // This adds the exported MEF services from the RemoteWorkspaces assembly.
                 .Add(typeof(RoslynServices).Assembly)
+                .Add(typeof(Microsoft.CodeAnalysis.Text.Extensions).Assembly)
                 .Add(typeof(IMetadataAsSourceFileService).Assembly)
                 .Add(typeof(CSharpNavigationBarItemService).Assembly)
                 .Add(typeof(VisualBasicNavigationBarItemService).Assembly);
 
-        public static ISolutionProvider FromAsset(ISolutionAsset asset)
+        public static ISolutionProvider FromAsset(ISolutionAsset asset, IEnumerable<Assembly> hostAssemblies)
         {
-            return new AssetSolutionProvider(asset);
+            return new AssetSolutionProvider(asset, hostAssemblies);
         }
 
-        public static ISolutionProvider FromStream(Stream stream)
+        public static ISolutionProvider FromStream(Stream stream, IEnumerable<Assembly> hostAssemblies)
         {
-            return new StreamSolutionProvider(stream);
+            return new StreamSolutionProvider(stream, hostAssemblies);
         }
     }
 }

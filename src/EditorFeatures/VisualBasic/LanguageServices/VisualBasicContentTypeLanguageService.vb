@@ -4,7 +4,7 @@ Imports System.Composition
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
-    <ExportContentTypeLanguageService(ContentTypeNames.VisualBasicContentType, LanguageNames.VisualBasic), [Shared]>
+    ' <ExportContentTypeLanguageService(ContentTypeNames.VisualBasicContentType, LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicContentTypeLanguageService
         Implements IContentTypeLanguageService
 

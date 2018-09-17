@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text.Differencing;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
 {
-    [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Host), Shared]
+    // [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Host), Shared]
     internal class EditorTextDifferencingService : IDocumentTextDifferencingService
     {
         private readonly ITextBufferFactoryService _textBufferFactoryService;

@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
 {
-    [ExportWorkspaceServiceFactory(typeof(ITextBufferCloneService), ServiceLayer.Editor), Shared]
+    // [ExportWorkspaceServiceFactory(typeof(ITextBufferCloneService), ServiceLayer.Editor), Shared]
     internal class TextBufferCloneServiceFactory : IWorkspaceServiceFactory
     {
         private readonly ITextBufferCloneService _singleton;
@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
             return _singleton;
         }
 
-        [Export(typeof(ITextBufferCloneService)), Shared]
         private class TextBufferCloneService : ITextBufferCloneService
         {
             private readonly ITextBufferFactoryService3 _textBufferFactoryService;

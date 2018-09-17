@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 {
-    [ExportLanguageService(typeof(IEditorBraceCompletionSessionFactory), LanguageNames.CSharp), Shared]
+    // [ExportLanguageService(typeof(IEditorBraceCompletionSessionFactory), LanguageNames.CSharp), Shared]
     internal class CSharpEditorBraceCompletionSessionFactory : AbstractEditorBraceCompletionSessionFactory
     {
         private readonly ITextBufferUndoManagerProvider _undoManager;

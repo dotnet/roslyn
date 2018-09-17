@@ -9,7 +9,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking
     ' TODO: Remove the ExtensionOrder attributes once a better ordering mechanism is available
 
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RenameTracking), [Shared]>
+    ' <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RenameTracking), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddImport)>
     <ExtensionOrder(Before:=PredefinedCodeFixProviderNames.AddMissingReference)>
     <ExtensionOrder(Before:=PredefinedCodeFixProviderNames.FullyQualify)>

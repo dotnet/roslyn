@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeRefactorings
 {
-    [ExportWorkspaceServiceFactory(typeof(ICodeRefactoringHelpersService), ServiceLayer.Editor), Shared]
+    // [ExportWorkspaceServiceFactory(typeof(ICodeRefactoringHelpersService), ServiceLayer.Editor), Shared]
     internal class EditorLayerCodeActionHelpersService : IWorkspaceServiceFactory
     {
         private readonly IInlineRenameService _renameService;

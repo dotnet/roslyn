@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
-    [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Editor), Shared]
+    // [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Editor), Shared]
     internal class EditorTextFactoryService : ITextFactoryService
     {
         private readonly ITextBufferCloneService _textBufferCloneService;

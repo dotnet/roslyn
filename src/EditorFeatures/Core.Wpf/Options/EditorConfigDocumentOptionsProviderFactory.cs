@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
-    [Export(typeof(IDocumentOptionsProviderFactory)), Shared]
+    // [Export(typeof(IDocumentOptionsProviderFactory)), Shared]
     class EditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         private readonly ICodingConventionsManager _codingConventionsManager;
