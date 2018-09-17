@@ -4146,7 +4146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(node.Type.IsReferenceType);
 
-            // PROTOTYPE(NullableReferenceTypes): Update applicable members based on inferred argument types.
+            // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
             bool? isNullable = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableMethods));
             _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: isNullable);
             return null;
@@ -4252,7 +4252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(node.Type.IsDynamic());
 
-            // PROTOTYPE(NullableReferenceTypes): Update applicable members based on inferred argument types.
+            // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
             bool? isNullable = node.Type != null && !node.Type.IsValueType ?
                 InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
                 null;
