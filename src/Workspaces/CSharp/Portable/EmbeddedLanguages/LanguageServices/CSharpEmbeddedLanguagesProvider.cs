@@ -11,14 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices
     [ExportLanguageService(typeof(IEmbeddedLanguagesProvider), LanguageNames.CSharp), Shared]
     internal class CSharpEmbeddedLanguagesProvider : AbstractEmbeddedLanguagesProvider
     {
+        public static EmbeddedLanguageInfo Info = new EmbeddedLanguageInfo(
+            (int)SyntaxKind.StringLiteralToken,
+            (int)SyntaxKind.InterpolatedStringTextToken,
+            CSharpSyntaxFactsService.Instance,
+            CSharpSemanticFactsService.Instance,
+            CSharpVirtualCharService.Instance);
         public static IEmbeddedLanguagesProvider Instance = new CSharpEmbeddedLanguagesProvider();
 
-        public CSharpEmbeddedLanguagesProvider()
-            : base((int)SyntaxKind.StringLiteralToken,
-                   (int)SyntaxKind.InterpolatedStringTextToken,
-                   CSharpSyntaxFactsService.Instance,
-                   CSharpSemanticFactsService.Instance,
-                   CSharpVirtualCharService.Instance)
+        public CSharpEmbeddedLanguagesProvider() : base(Info)
         {
         }
     }
