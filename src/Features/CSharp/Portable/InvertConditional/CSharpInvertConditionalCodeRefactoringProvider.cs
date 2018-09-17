@@ -7,7 +7,8 @@ using Microsoft.CodeAnalysis.InvertConditional;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvertConditional
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertConditional), Shared]
     internal class CSharpInvertConditionalCodeRefactoringProvider
         : AbstractInvertConditionalCodeRefactoringProvider<ConditionalExpressionSyntax>
     {

@@ -7,7 +7,8 @@ using Microsoft.CodeAnalysis.InvertLogical;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvertLogical
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertLogical), Shared]
     internal class CSharpInvertLogicalCodeRefactoringProvider : 
         AbstractInvertLogicalCodeRefactoringProvider<SyntaxKind, ExpressionSyntax, BinaryExpressionSyntax>
     {
