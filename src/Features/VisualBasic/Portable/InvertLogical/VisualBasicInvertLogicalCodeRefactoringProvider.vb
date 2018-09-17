@@ -20,20 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertLogical
                       SyntaxKind.AndAlsoExpression)
         End Function
 
-        Protected Overrides Function GetOperatorTokenKind(binaryExprKind As SyntaxKind) As SyntaxKind
+        Protected Overrides Function GetOperatorText(binaryExprKind As SyntaxKind) As String
             Return If(binaryExprKind = SyntaxKind.AndAlsoExpression,
-                      SyntaxKind.AndAlsoKeyword,
-                      SyntaxKind.OrElseKeyword)
-        End Function
-
-        Protected Overrides Function CreateOperatorToken(operatorTokenKind As SyntaxKind) As SyntaxToken
-            Return SyntaxFactory.Token(operatorTokenKind)
-        End Function
-
-        Protected Overrides Function BinaryExpression(
-                syntaxKind As SyntaxKind, newLeft As ExpressionSyntax, newOp As SyntaxToken, newRight As ExpressionSyntax) As BinaryExpressionSyntax
-
-            Return SyntaxFactory.BinaryExpression(syntaxKind, newLeft, newOp, newRight)
+                      SyntaxFacts.GetText(SyntaxKind.AndAlsoKeyword),
+                      SyntaxFacts.GetText(SyntaxKind.OrElseKeyword))
         End Function
     End Class
 End Namespace

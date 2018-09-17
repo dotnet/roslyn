@@ -25,12 +25,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
 
         protected abstract TSyntaxKind GetKind(int rawKind);
         protected abstract TSyntaxKind InvertedKind(TSyntaxKind binaryExprKind);
-
-        protected abstract TSyntaxKind GetOperatorTokenKind(TSyntaxKind binaryExprKind);
-        protected abstract SyntaxToken CreateOperatorToken(TSyntaxKind operatorTokenKind);
-
-        protected abstract TBinaryExpressionSyntax BinaryExpression(
-            TSyntaxKind syntaxKind, TExpressionSyntax newLeft, SyntaxToken newOp, TExpressionSyntax newRight);
+        protected abstract string GetOperatorText(TSyntaxKind binaryExprKind);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -130,9 +125,6 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         private string GetTitle(TSyntaxKind binaryExprKind)
             => string.Format(FeaturesResources.Replace_0_with_1,
                     GetOperatorText(binaryExprKind), GetOperatorText(InvertedKind(binaryExprKind)));
-
-        private string GetOperatorText(TSyntaxKind binaryExprKind)
-            => CreateOperatorToken(GetOperatorTokenKind(binaryExprKind)).Text;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

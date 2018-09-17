@@ -19,16 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertLogical
                 ? SyntaxKind.LogicalOrExpression
                 : SyntaxKind.LogicalAndExpression;
 
-        protected override SyntaxKind GetOperatorTokenKind(SyntaxKind binaryExprKind)
+        protected override string GetOperatorText(SyntaxKind binaryExprKind)
             => binaryExprKind == SyntaxKind.LogicalAndExpression
-                ? SyntaxKind.AmpersandAmpersandToken
-                : SyntaxKind.BarBarToken;
-
-        protected override SyntaxToken CreateOperatorToken(SyntaxKind operatorTokenKind)
-            => SyntaxFactory.Token(operatorTokenKind);
-
-        protected override BinaryExpressionSyntax BinaryExpression(
-            SyntaxKind syntaxKind, ExpressionSyntax newLeft, SyntaxToken newOp, ExpressionSyntax newRight)
-            => SyntaxFactory.BinaryExpression(syntaxKind, newLeft, newOp, newRight);
+                ? SyntaxFacts.GetText(SyntaxKind.AmpersandAmpersandToken)
+                : SyntaxFacts.GetText(SyntaxKind.BarBarToken);
     }
 }
