@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
 
             var invertedKind = InvertedKind(GetKind(binary.RawKind));
             var operatorKind = GetOperatorTokenKind(invertedKind);
-            var newOp = CreateOperatorToken(opreatorKind).WithTriviaFrom(op);
+            var newOp = CreateOperatorToken(operatorKind).WithTriviaFrom(op);
 
             var newBinary = BinaryExpression(
                 invertedKind, newLeft, newOp, newRight).WithAdditionalAnnotations(s_annotation);
