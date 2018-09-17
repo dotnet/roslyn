@@ -271,6 +271,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// The result of this method captures some AnalyzedArguments, which must be free'ed by the caller.
+        /// </summary>
         private AnalyzedAttributeArguments BindAttributeArguments(
             AttributeArgumentListSyntax attributeArgumentList,
             NamedTypeSymbol attributeType,

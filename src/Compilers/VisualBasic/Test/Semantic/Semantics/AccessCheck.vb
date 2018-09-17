@@ -2139,5 +2139,76 @@ BC30389: 'C1.D(i As Integer)' is not accessible in this context because it is 'P
 
         End Sub
 
+        <Fact>
+        Public Sub InaccessibleToUnnamedExe_01()
+            Dim sourceA =
+"Class A
+End Class"
+            Dim comp = CreateCompilation(sourceA)
+            Dim refA = comp.EmitToImageReference()
+
+            Dim sourceB =
+"Class B
+    Shared Sub Main()
+        Dim a = New A()
+    End Sub
+End Class"
+            ' Unnamed assembly (the default from the command-line compiler).
+            comp = CreateCompilation(sourceB, references:={refA}, options:=TestOptions.ReleaseExe, assemblyName:=Nothing)
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30389: 'A' is not accessible in this context because it is 'Friend'.
+        Dim a = New A()
+                    ~
+</expected>)
+
+            ' Named assembly.
+            comp = CreateCompilation(sourceB, references:={refA}, options:=TestOptions.ReleaseExe, assemblyName:="B")
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30389: 'A' is not accessible in this context because it is 'Friend'.
+        Dim a = New A()
+                    ~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub InaccessibleToUnnamedExe_02()
+            Dim sourceA =
+"<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""B"")>
+Class A
+End Class"
+            Dim comp = CreateCompilation(sourceA)
+            Dim refA = comp.EmitToImageReference()
+
+            Dim sourceB =
+"Class B
+    Shared Sub Main()
+        Dim a = New A()
+    End Sub
+End Class"
+            ' Unnamed assembly (the default from the command-line compiler).
+            comp = CreateCompilation(sourceB, references:={refA}, options:=TestOptions.ReleaseExe, assemblyName:=Nothing)
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30389: 'A' is not accessible in this context because it is 'Friend'.
+        Dim a = New A()
+                    ~
+</expected>)
+
+            ' Named assembly.
+            comp = CreateCompilation(sourceB, references:={refA}, options:=TestOptions.ReleaseExe, assemblyName:="B")
+            comp.AssertTheseDiagnostics()
+
+            ' Named assembly (distinct).
+            comp = CreateCompilation(sourceB, references:={refA}, options:=TestOptions.ReleaseExe, assemblyName:="B2")
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30389: 'A' is not accessible in this context because it is 'Friend'.
+        Dim a = New A()
+                    ~
+</expected>)
+        End Sub
+
     End Class
 End Namespace

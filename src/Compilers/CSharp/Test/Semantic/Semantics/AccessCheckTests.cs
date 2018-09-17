@@ -1243,5 +1243,74 @@ public abstract class Class1
 }";
             CompileAndVerify(text).VerifyDiagnostics();
         }
+
+        [WorkItem(29253, "https://github.com/dotnet/roslyn/issues/29253")]
+        [Fact]
+        public void InaccessibleToUnnamedExe_01()
+        {
+            string sourceA =
+@"class A { }";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB =
+@"class B
+{
+    static void Main()
+    {
+        new A();
+    }
+}";
+            // Unnamed assembly (the default from the command-line compiler).
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: null);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
+
+            // Named assembly.
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: "B");
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
+        }
+
+        [WorkItem(29253, "https://github.com/dotnet/roslyn/issues/29253")]
+        [Fact]
+        public void InaccessibleToUnnamedExe_02()
+        {
+            string sourceA =
+@"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""B"")]
+class A { }";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB =
+@"class B
+{
+    static void Main()
+    {
+        new A();
+    }
+}";
+            // Unnamed assembly (the default from the command-line compiler).
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: null);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
+
+            // Named assembly.
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: "B");
+            comp.VerifyDiagnostics();
+
+            // Named assembly (distinct).
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: "B2");
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
+        }
     }
 }

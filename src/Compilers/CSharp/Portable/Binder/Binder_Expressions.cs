@@ -6053,17 +6053,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnType: returnType);
                 diagnostics.Add(expression, useSiteDiagnostics);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
-                var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, actualArguments, methodGroup.ResultKind, sealedDiagnostics);
 
-                // If the search in the current scope resulted in any applicable method (regardless of whether a best 
+                // Note: the MethodGroupResolution instance is responsible for freeing its copy of actual arguments
+                var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance(actualArguments), methodGroup.ResultKind, sealedDiagnostics);
+
+                // If the search in the current scope resulted in any applicable method (regardless of whether a best
                 // applicable method could be determined) then our search is complete. Otherwise, store aside the
                 // first non-applicable result and continue searching for an applicable result.
                 if (result.HasAnyApplicableMethod)
                 {
                     if (!firstResult.IsEmpty)
                     {
-                        // Free parts of the previous result but do not free AnalyzedArguments
-                        // since we're using the same arguments for the returned result.
                         firstResult.MethodGroup.Free();
                         firstResult.OverloadResolutionResult.Free();
                     }
@@ -6082,6 +6082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert((actualArguments == null) || !firstResult.IsEmpty);
+            actualArguments?.Free();
             return firstResult;
         }
 
@@ -7108,6 +7109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnostics = DiagnosticBag.GetInstance();
                 diagnostics.AddRange(methodResolution.Diagnostics); // Could still have use site warnings.
                 BindMemberAccessReportError(node, diagnostics);
+
+                // Note: no need to free `methodResolution`, we're transferring the pooled objects it owned
                 return new MethodGroupResolution(methodResolution.MethodGroup, methodResolution.OtherSymbol, methodResolution.OverloadResolutionResult, methodResolution.AnalyzedArguments, methodResolution.ResultKind, diagnostics.ToReadOnlyAndFree());
             }
             return methodResolution;
@@ -7251,7 +7254,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowUnexpandedForm: allowUnexpandedForm,
                     returnRefKind: returnRefKind,
                     returnType: returnType);
-                return new MethodGroupResolution(methodGroup, null, result, analyzedArguments, methodGroup.ResultKind, sealedDiagnostics);
+
+                // Note: the MethodGroupResolution instance is responsible for freeing its copy of analyzed arguments
+                return new MethodGroupResolution(methodGroup, null, result, AnalyzedArguments.GetInstance(analyzedArguments), methodGroup.ResultKind, sealedDiagnostics);
             }
         }
 

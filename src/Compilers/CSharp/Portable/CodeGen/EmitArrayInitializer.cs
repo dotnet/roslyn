@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                if (EnablePEVerifyCompat())
+                if (IsPeVerifyCompatEnabled())
                 {
                     return false;
                 }
