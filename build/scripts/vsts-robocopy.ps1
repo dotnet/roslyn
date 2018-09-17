@@ -60,10 +60,10 @@ else {
 $OutputEncoding = [System.Text.Encoding]::Default
 
 $ExcludeArg = ""
-if ($Exclude -ne $null -and $Exclude.Length > 0) {
+if (($null -ne $Exclude) -and ($Exclude.Length -gt 0)) {
     $ExcludeArg = "/XD "
-    foreach ($e in $ExcludeArg) {
-        $ExcludeArg += $e
+    foreach ($e in $Exclude) {
+        $ExcludeArg += "$e "
     }
 }
 

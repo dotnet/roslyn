@@ -92,7 +92,7 @@ steps:
 - task: PowerShell@2
   displayName: Publish Drop - Binaries
   inputs:
-    arguments: '-Source Binaries\$(BuildConfiguration) -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration) -ParallelCount 8 -Exclude Binaries\$(BuildConfiguration)\UnitTests,Binaries\$(BuildConfiguration)\PerfTetss'
+    arguments: '-Source Binaries\$(BuildConfiguration) -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration) -ParallelCount 8 -Exclude Binaries\$(BuildConfiguration)\UnitTests,Binaries\$(BuildConfiguration)\PerfTests'
     filePath: 'build\scripts\vsts-robocopy.ps1'
   condition: succeededOrFailed()
 
