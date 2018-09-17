@@ -12,6 +12,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InvertLogical
 {
+    /// <summary>
+    /// Code refactoring to help convert code like `!a || !b` to `!(a &amp;&amp; b)`
+    /// </summary>
     internal abstract class AbstractInvertLogicalCodeRefactoringProvider<
         TSyntaxKind, 
         TExpressionSyntax,
@@ -64,13 +67,13 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         private async Task<Document> InvertLogicalAsync(
             Document document1, int position, CancellationToken cancellationToken)
         {
-            // We invert in two steps.  To invert `a op b` we are effectively generating
+            // We invert in two steps.  To invert `a op b` we are effectively generating two negations:
             // `!(!(a op b)`.  The inner `!` will distribute on the inside to make `!a op' !b` leaving
-            // us with `!(!a op' !b)`.  
+            // us with `!(!a op' !b)`.
             
             // Because we need to do two negations, we actually perform the inner one, marking the
             // result with an annotation, then we do the outer one (making sure we don't descend in
-            // and undo the work we just did.  Because our negation helper needs semantics, we generate
+            // and undo the work we just did).  Because our negation helper needs semantics, we generate
             // a new document at each step so that we'll be able to properly analyze things as we go
             // along.
             var document2 = await InvertInnerExpressionAsync(document1, position, cancellationToken).ConfigureAwait(false);
