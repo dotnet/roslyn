@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)receiver.Type != null;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Use backing field for struct property
+        // https://github.com/dotnet/roslyn/issues/29619 Use backing field for struct property
         // for now, to avoid cycles if the struct type contains a property of the struct type.
         // Remove this and populate struct members lazily to match classes.
         private Symbol GetBackingFieldIfStructProperty(Symbol symbol)
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var containingType = property.ContainingType;
                 if (containingType.TypeKind == TypeKind.Struct)
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Relying on field name
+                    // https://github.com/dotnet/roslyn/issues/29619 Relying on field name
                     // will not work for properties declared in other languages.
                     var fieldName = GeneratedNames.MakeBackingFieldName(property.Name);
                     return _emptyStructTypeCache.GetStructInstanceFields(containingType).FirstOrDefault(f => f.Name == fieldName);
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Temporary, until we're using
+        // https://github.com/dotnet/roslyn/issues/29619 Temporary, until we're using
         // properties on structs directly.
         private new int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
         {
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetOrCreateSlot(symbol, containingSlot);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Remove use of MakeSlot.
+        // https://github.com/dotnet/roslyn/issues/29952 Remove use of MakeSlot.
         protected override int MakeSlot(BoundExpression node)
         {
             switch (node.Kind)
@@ -473,7 +473,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static object GetTypeAsDiagnosticArgument(TypeSymbol typeOpt)
         {
-            // PROTOTYPE(NullableReferenceTypes): Avoid hardcoded string.
             return typeOpt ?? (object)"<null>";
         }
 
@@ -557,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Can this method be replaced by VisitOptionalImplicitConversion or ApplyConversion?
+        // Maybe this method can be replaced by VisitOptionalImplicitConversion or ApplyConversion
         private void ReportAssignmentWarnings(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings)
         {
             Debug.Assert(value != null);
@@ -683,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetSlot > 0);
             Debug.Assert(EmptyStructTypeCache.IsTrackableStructType(targetType));
 
-            // PROTOTYPE(NullableReferenceTypes): Handle properties not backed by fields.
+            // https://github.com/dotnet/roslyn/issues/29619 Handle properties not backed by fields.
             // See ModifyMembers_StructPropertyNoBackingField and PropertyCycle_Struct tests.
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
             {
@@ -1155,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // of omitted call. See PreciseAbstractFlowPass.VisitCollectionElementInitializer.
             }
 
-            VisitArguments(node, node.Arguments, default(ImmutableArray<RefKind>), node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
+            VisitArguments(node, node.Arguments, refKindsOpt: default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
             SetUnknownResultNullability();
         }
 
@@ -1200,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameter = constructor.Parameters[i];
                 ReportArgumentWarnings(argument, argumentType, parameter);
 
-                // PROTOTYPE(NullableReferenceTypes): node.Declarations includes
+                // https://github.com/dotnet/roslyn/issues/24018 node.Declarations includes
                 // explicitly-named properties only. For now, skip expressions
                 // with implicit names. See NullableReferenceTypesTests.AnonymousTypes_05.
                 if (node.Declarations.Length < arguments.Length)
@@ -1246,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementBuilder = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
             GetArrayElements(initialization, elementBuilder);
 
-            // PROTOTYPE(NullableReferenceTypes): Removing and recalculating conversions should not
+            // https://github.com/dotnet/roslyn/issues/27961 Removing and recalculating conversions should not
             // be necessary for explicitly typed arrays. In those cases, VisitConversion should warn
             // on nullability mismatch (although we'll need to ensure we handle the case where
             // initial binding calculated an Identity conversion, even though nullability was distinct).
@@ -1261,14 +1260,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultBuilder.Add(VisitRvalueWithResult(element));
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Record in the BoundArrayCreation
+            // Consider recording in the BoundArrayCreation
             // whether the array was implicitly typed, rather than relying on syntax.
             if (node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
             {
                 var resultTypes = resultBuilder.ToImmutable();
-                // PROTOTYPE(NullableReferenceTypes): Initial binding calls InferBestType(ImmutableArray<BoundExpression>, ...)
+                // https://github.com/dotnet/roslyn/issues/27961 Initial binding calls InferBestType(ImmutableArray<BoundExpression>, ...)
                 // overload. Why are we calling InferBestType(ImmutableArray<TypeSymbolWithAnnotations>, ...) here?
-                // PROTOTYPE(NullableReferenceTypes): InferBestType(ImmutableArray<BoundExpression>, ...)
+                // https://github.com/dotnet/roslyn/issues/27961 InferBestType(ImmutableArray<BoundExpression>, ...)
                 // uses a HashSet<TypeSymbol> to reduce the candidates to the unique types before comparing.
                 // Should do the same here.
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -1283,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Mark the error type as null-oblivious.
                     bestType = TypeSymbolWithAnnotations.Create(bestType.TypeSymbol);
                 }
-                // PROTOTYPE(NullableReferenceTypes): Report a special ErrorCode.WRN_NoBestNullabilityArrayElements
+                // https://github.com/dotnet/roslyn/issues/27961 Report a special ErrorCode.WRN_NoBestNullabilityArrayElements
                 // when InferBestType fails, and avoid reporting conversion warnings for each element in those cases.
                 // (See similar code for conditional expressions: ErrorCode.WRN_NoBestNullabilityConditionalExpression.)
                 if (!bestType.IsNull)
@@ -1358,7 +1357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (operatorKind.IsLifted())
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
+                    // https://github.com/dotnet/roslyn/issues/29953 Conversions: Lifted operator
                     return TypeSymbolWithAnnotations.Create(resultType);
                 }
                 // Update method based on operand types: see https://github.com/dotnet/roslyn/issues/29605.
@@ -1447,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (operandComparedToNull != null)
                     {
-                        // PROTOTYPE(NullableReferenceTypes): This check is incorrect since it compares declared
+                        // https://github.com/dotnet/roslyn/issues/29953 This check is incorrect since it compares declared
                         // nullability rather than tracked nullability. Moreover, we should only report such
                         // diagnostics for locals that are set or checked explicitly within this method.
                         if (!operandComparedToNullType.IsNull && operandComparedToNullType.IsNullable == false)
@@ -1504,7 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (operand.Kind)
                     {
                         case BoundKind.Conversion:
-                            // PROTOTYPE(NullableReferenceTypes): Detect when conversion has a nullable operand
+                            // https://github.com/dotnet/roslyn/issues/29953 Detect when conversion has a nullable operand
                             operand = ((BoundConversion)operand).Operand;
                             continue;
                         case BoundKind.ConditionalAccess:
@@ -1539,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Attempt to create a slot for the current thing. If there were any more conditional accesses,
                             // they would have been on top, so this is the last thing we need to specially handle.
 
-                            // PROTOTYPE(NullableReferenceTypes): When we handle unconditional access survival (ie after
+                            // https://github.com/dotnet/roslyn/issues/29953 When we handle unconditional access survival (ie after
                             // c.D has been invoked, c must be nonnull or we've thrown a NullRef), revisit whether
                             // we need more special handling here
 
@@ -1616,7 +1615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUnreachable();
             }
 
-            // PROTOTYPE(NullableReferenceTypes): For cases where the left operand determines
+            // https://github.com/dotnet/roslyn/issues/29955 For cases where the left operand determines
             // the type, we should unwrap the right conversion and re-apply.
             rightResult = VisitRvalueWithResult(rightOperand);
             IntersectWith(ref this.State, ref leftState);
@@ -1744,10 +1743,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.AccessExpression);
             IntersectWith(ref this.State, ref receiverState);
 
-            // PROTOTYPE(NullableReferenceTypes): Use flow analysis type rather than node.Type
+            // https://github.com/dotnet/roslyn/issues/29956 Use flow analysis type rather than node.Type
             // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
             _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: receiverType.IsNullable | _resultType.IsNullable);
-            // PROTOTYPE(NullableReferenceTypes): Report conversion warnings.
+            // https://github.com/dotnet/roslyn/issues/29956 Report conversion warnings.
             return null;
         }
 
@@ -1900,7 +1899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
         {
             var result = base.VisitConditionalReceiver(node);
-            // PROTOTYPE(NullableReferenceTypes): ConditionalReceiver does not
+            // https://github.com/dotnet/roslyn/issues/29956 ConditionalReceiver does not
             // have a result type. Should this be moved to ConditionalAccess?
             _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
             return result;
