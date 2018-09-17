@@ -12,7 +12,10 @@ param(
     [int]$ParallelCount,
 
     [Parameter(Mandatory = $false)]
-    [string]$File)
+    [string]$File,
+    
+    [Parameter(Mandatory = $false)]
+    [string[]]$Exclude)
 
 # This script translates the output from robocopy into UTF8. Node has limited
 # built-in support for encodings.
@@ -56,6 +59,14 @@ else {
 # from the external command.
 $OutputEncoding = [System.Text.Encoding]::Default
 
+$ExcludeArg = ""
+if ($Exclude -ne $null -and $Exclude.Length > 0) {
+    $ExcludeArg = "/XD "
+    foreach ($e in $ExcludeArg) {
+        $ExcludeArg += $e
+    }
+}
+
 #             Usage :: ROBOCOPY source destination [file [file]...] [options]
 #            source :: Source Directory (drive:\path or \\server\share\path).
 #       destination :: Destination Dir  (drive:\path or \\server\share\path).
@@ -76,7 +87,7 @@ $OutputEncoding = [System.Text.Encoding]::Default
 #
 # Note, the /MT parameter is only supported on 2008 R2 and higher.
 if ($ParallelCount -gt 1) {
-    & robocopy.exe /E /COPY:DA /NP /R:3 /MT:$ParallelCount $Source $Target $File 2>&1 |
+    & robocopy.exe /E /COPY:DA /NP /R:3 /MT:$ParallelCount $Source $Target $File $ExcludeArg 2>&1 |
         ForEach-Object {
         if ($_ -is [System.Management.Automation.ErrorRecord]) {
             [System.Console]::WriteLine($_.Exception.Message)
@@ -87,7 +98,7 @@ if ($ParallelCount -gt 1) {
     }
 }
 else {
-    & robocopy.exe /E /COPY:DA /NP /R:3 $Source $Target $File 2>&1 |
+    & robocopy.exe /E /COPY:DA /NP /R:3 $Source $Target $File $ExcludeArg 2>&1 |
         ForEach-Object {
         if ($_ -is [System.Management.Automation.ErrorRecord]) {
             [System.Console]::WriteLine($_.Exception.Message)
