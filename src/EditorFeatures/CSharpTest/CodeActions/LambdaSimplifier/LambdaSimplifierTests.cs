@@ -349,7 +349,7 @@ class A
 }", parameters: new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestOnAmbiguity()
         {
             await TestInRegularAndScriptAsync(
