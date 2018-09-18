@@ -382,6 +382,52 @@ setY
         }
 
         [Fact]
+        public void VerifyExecutionOrder_Deconstruct_Conditional()
+        {
+            string source = @"
+using System;
+class C
+{
+    int x { set { Console.WriteLine($""setX""); } }
+    int y { set { Console.WriteLine($""setY""); } }
+
+    C getHolderForX() { Console.WriteLine(""getHolderforX""); return this; }
+    C getHolderForY() { Console.WriteLine(""getHolderforY""); return this; }
+    C getDeconstructReceiver() { Console.WriteLine(""getDeconstructReceiver""); return this; }
+
+    static void Main()
+    {
+        C c = new C();
+        bool b = true;
+        (c.getHolderForX().x, c.getHolderForY().y) = b ? c.getDeconstructReceiver() : default;
+    }
+    public void Deconstruct(out D1 x, out D2 y) { x = new D1(); y = new D2(); Console.WriteLine(""Deconstruct""); }
+}
+class D1
+{
+    public static implicit operator int(D1 d) { Console.WriteLine(""Conversion1""); return 1; }
+}
+class D2
+{
+    public static implicit operator int(D2 d) { Console.WriteLine(""Conversion2""); return 2; }
+}
+";
+
+            string expected =
+@"getHolderforX
+getHolderforY
+getDeconstructReceiver
+Deconstruct
+Conversion1
+Conversion2
+setX
+setY
+";
+            var comp = CompileAndVerify(source, expectedOutput: expected);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void VerifyExecutionOrder_TupleLiteral()
         {
             string source = @"
@@ -418,6 +464,52 @@ getHolderforY
 Constructor1
 Conversion1
 Constructor2
+Conversion2
+setX
+setY
+";
+            var comp = CompileAndVerify(source, expectedOutput: expected);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VerifyExecutionOrder_TupleLiteral_Conditional()
+        {
+            string source = @"
+using System;
+class C
+{
+    int x { set { Console.WriteLine($""setX""); } }
+    int y { set { Console.WriteLine($""setY""); } }
+
+    C getHolderForX() { Console.WriteLine(""getHolderforX""); return this; }
+    C getHolderForY() { Console.WriteLine(""getHolderforY""); return this; }
+
+    static void Main()
+    {
+        C c = new C();
+        bool b = true;
+        (c.getHolderForX().x, c.getHolderForY().y) =  b ? (new D1(), new D2()) : default;
+    }
+}
+class D1
+{
+    public D1() { Console.WriteLine(""Constructor1""); }
+    public static implicit operator int(D1 d) { Console.WriteLine(""Conversion1""); return 1; }
+}
+class D2
+{
+    public D2() { Console.WriteLine(""Constructor2""); }
+    public static implicit operator int(D2 d) { Console.WriteLine(""Conversion2""); return 2; }
+}
+";
+
+            string expected =
+@"getHolderforX
+getHolderforY
+Constructor1
+Constructor2
+Conversion1
 Conversion2
 setX
 setY
@@ -477,6 +569,67 @@ Constructor2
 Constructor3
 Conversion3
 deconstruct
+setX
+setY
+setZ
+setX
+";
+            var comp = CompileAndVerify(source, expectedOutput: expected);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VerifyExecutionOrder_TupleLiteralAndDeconstruction_Conditional()
+        {
+            string source = @"
+using System;
+class C
+{
+    int w { set { Console.WriteLine($""setW""); } }
+    int x { set { Console.WriteLine($""setX""); } }
+    int y { set { Console.WriteLine($""setY""); } }
+    int z { set { Console.WriteLine($""setZ""); } }
+
+    C getHolderForW() { Console.WriteLine(""getHolderforW""); return this; }
+    C getHolderForX() { Console.WriteLine(""getHolderforX""); return this; }
+    C getHolderForY() { Console.WriteLine(""getHolderforY""); return this; }
+    C getHolderForZ() { Console.WriteLine(""getHolderforZ""); return this; }
+
+    static void Main()
+    {
+        C c = new C();
+        bool b = false;
+        (c.getHolderForW().x, (c.getHolderForY().y, c.getHolderForZ().z), c.getHolderForX().x) = b ? default : (new D1(), new D2(), new D3());
+    }
+}
+class D1
+{
+    public D1() { Console.WriteLine(""Constructor1""); }
+    public static implicit operator int(D1 d) { Console.WriteLine(""Conversion1""); return 1; }
+}
+class D2
+{
+    public D2() { Console.WriteLine(""Constructor2""); }
+    public void Deconstruct(out int x, out int y) { x = 2; y = 3; Console.WriteLine(""deconstruct""); }
+}
+class D3
+{
+    public D3() { Console.WriteLine(""Constructor3""); }
+    public static implicit operator int(D3 d) { Console.WriteLine(""Conversion3""); return 3; }
+}
+";
+
+            string expected =
+@"getHolderforW
+getHolderforY
+getHolderforZ
+getHolderforX
+Constructor1
+Constructor2
+Constructor3
+deconstruct
+Conversion1
+Conversion3
 setX
 setY
 setZ
@@ -2635,6 +2788,66 @@ class C
     {
         C c = new C();
         (c.getHolderForX().x, (c.getHolderForY().y, c.getHolderForZ().z)) = c.getDeconstructReceiver();
+    }
+    public void Deconstruct(out D1 x, out C1 t) { x = new D1(); t = new C1(); Console.WriteLine(""Deconstruct1""); }
+}
+class C1
+{
+    public void Deconstruct(out D2 y, out D3 z) { y = new D2(); z = new D3(); Console.WriteLine(""Deconstruct2""); }
+}
+class D1
+{
+    public static implicit operator int(D1 d) { Console.WriteLine(""Conversion1""); return 1; }
+}
+class D2
+{
+    public static implicit operator int(D2 d) { Console.WriteLine(""Conversion2""); return 2; }
+}
+class D3
+{
+    public static implicit operator int(D3 d) { Console.WriteLine(""Conversion3""); return 3; }
+}
+";
+
+            string expected =
+@"getHolderforX
+getHolderforY
+getHolderforZ
+getDeconstructReceiver
+Deconstruct1
+Deconstruct2
+Conversion1
+Conversion2
+Conversion3
+setX
+setY
+setZ
+";
+            var comp = CompileAndVerify(source, expectedOutput: expected);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VerifyNestedExecutionOrder_Conditional()
+        {
+            string source = @"
+using System;
+class C
+{
+    int x { set { Console.WriteLine($""setX""); } }
+    int y { set { Console.WriteLine($""setY""); } }
+    int z { set { Console.WriteLine($""setZ""); } }
+
+    C getHolderForX() { Console.WriteLine(""getHolderforX""); return this; }
+    C getHolderForY() { Console.WriteLine(""getHolderforY""); return this; }
+    C getHolderForZ() { Console.WriteLine(""getHolderforZ""); return this; }
+    C getDeconstructReceiver() { Console.WriteLine(""getDeconstructReceiver""); return this; }
+
+    static void Main()
+    {
+        C c = new C();
+        bool b = false;
+        (c.getHolderForX().x, (c.getHolderForY().y, c.getHolderForZ().z)) = b ? default : c.getDeconstructReceiver();
     }
     public void Deconstruct(out D1 x, out C1 t) { x = new D1(); t = new C1(); Console.WriteLine(""Deconstruct1""); }
 }
@@ -8711,24 +8924,36 @@ class C
         M(true, false);
         M(false, true);
         M(false, false);
+        SideEffect(true);
+        SideEffect(false);
     }
 
-    static int field;
+    static int left;
+    static int right;
 
-    static ref int SideEffect(int i)
+    static ref int SideEffect(bool isLeft)
     {
-        Console.Write(i);
-        return ref field;
+        Console.WriteLine($""{(isLeft ? ""left"" : ""right"")}: {(isLeft ? left : right)}"");
+        return ref isLeft ? ref left : ref right;
     }
 
     static void M(bool b1, bool b2)
     {
-        (SideEffect(1), SideEffect(2)) = b1 ? (10, 20) : b2 ? (30, 40) : (50, 60);
+        (SideEffect(isLeft: true), SideEffect(isLeft: false)) = b1 ? (10, 20) : b2 ? (30, 40) : (50, 60);
     }
 }
 ";
 
-            var comp = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "121212");
+            var expected =
+@"left: 0
+right: 0
+left: 10
+right: 20
+left: 30
+right: 40
+left: 50
+right: 60";
+            var comp = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expected);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.M", @"
 {
@@ -8737,10 +8962,10 @@ class C
   .locals init (int& V_0,
                 int& V_1)
   IL_0000:  ldc.i4.1
-  IL_0001:  call       ""ref int C.SideEffect(int)""
+  IL_0001:  call       ""ref int C.SideEffect(bool)""
   IL_0006:  stloc.0
-  IL_0007:  ldc.i4.2
-  IL_0008:  call       ""ref int C.SideEffect(int)""
+  IL_0007:  ldc.i4.0
+  IL_0008:  call       ""ref int C.SideEffect(bool)""
   IL_000d:  stloc.1
   IL_000e:  ldarg.0
   IL_000f:  brtrue.s   IL_0026
@@ -8768,6 +8993,59 @@ class C
   IL_002d:  stind.i4
   IL_002e:  ret
 }");
+        }
+
+        [Fact]
+        public void AssigningConditional_SideEffects_RHS()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        M(true, false);
+        M(false, true);
+        M(false, false);
+    }
+
+    static T Echo<T>(T v, int i)
+    {
+        Console.WriteLine(i + "": "" + v);
+        return v;
+    }
+
+    static void M(bool b1, bool b2)
+    {
+        var (x, y) = Echo(b1, 1) ? Echo((10, 20), 2) : Echo(b2, 3) ? Echo((30, 40), 4) : Echo((50, 60), 5);
+        Console.WriteLine(""x: "" + x);
+        Console.WriteLine(""y: "" + y);
+        Console.WriteLine();
+    }
+}
+";
+
+            var expectedOutput =
+@"1: True
+2: (10, 20)
+x: 10
+y: 20
+
+1: False
+3: True
+4: (30, 40)
+x: 30
+y: 40
+
+1: False
+3: False
+5: (50, 60)
+x: 50
+y: 60
+";
+            var comp = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
