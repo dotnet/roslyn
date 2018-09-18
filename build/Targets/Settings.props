@@ -138,7 +138,7 @@
   <PropertyGroup>
     <InstallationPath Condition="'$(InstallationPath)' == ''">Common7\IDE\CommonExtensions\Microsoft\ManagedLanguages\VBCSharp\LanguageServices\$(TargetName).dll</InstallationPath>
   </PropertyGroup>
-  <ItemGroup Label="OptProf Configuration" Condition="'$(NonShipping)' != 'true' and '$(IncludeInOptProf)' == 'true'">
+  <ItemGroup Label="OptProf Configuration" Condition="'$(IsShipping)' != '' and '$(IsShipping)' == 'true'">
     <OptProf Include="$(OutputPath)$(AssemblyName).dll">
       <Technology>IBC</Technology>
       <InstallationPath>$(InstallationPath)</InstallationPath>
