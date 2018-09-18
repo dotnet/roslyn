@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             else
             {
                 var cts = new CancellationTokenSource();
-                var task = InvokeBelowInputPriority(() => NotifyDocumentRegisteredToProjectAndStartToRaiseEvents_Core(document, cts.Token), cts.Token);
+                var task = InvokeBelowInputPriorityAsync(() => NotifyDocumentRegisteredToProjectAndStartToRaiseEvents_Core(document, cts.Token), cts.Token);
                 AddPendingDocumentInitializationTask(document, task, cts);
             }
         }
@@ -664,7 +664,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
             else
             {
-                InvokeBelowInputPriority(() => StopTrackingDocument_Core(document), CancellationToken.None);
+                InvokeBelowInputPriorityAsync(() => StopTrackingDocument_Core(document), CancellationToken.None);
             }
         }
 

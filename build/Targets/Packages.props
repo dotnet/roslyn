@@ -74,7 +74,7 @@
     <MicrosoftNETCoreCompilersVersion>2.9.0-beta7-63018-03</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
     <MicrosoftNETCoreAppVersion>2.0.0</MicrosoftNETCoreAppVersion>
-    <MicrosoftNETCorePlatformsVersion>2.0.0</MicrosoftNETCorePlatformsVersion>
+    <MicrosoftNETCorePlatformsVersion>2.1.0</MicrosoftNETCorePlatformsVersion>
     <MicrosoftNETCorePortableCompatibilityVersion>1.0.1</MicrosoftNETCorePortableCompatibilityVersion>
     <MicrosoftNETCoreRuntimeCoreCLRVersion>2.0.0</MicrosoftNETCoreRuntimeCoreCLRVersion>
     <MicrosoftNETCoreTestHostVersion>1.1.0</MicrosoftNETCoreTestHostVersion>
