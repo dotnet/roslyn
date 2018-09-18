@@ -538,7 +538,7 @@ class C
     static void Main()
     {
         C c = new C();
-        (c.getHolderForW().x, (c.getHolderForY().y, c.getHolderForZ().z), c.getHolderForX().x) = (new D1(), new D2(), new D3());
+        (c.getHolderForW().w, (c.getHolderForY().y, c.getHolderForZ().z), c.getHolderForX().x) = (new D1(), new D2(), new D3());
     }
 }
 class D1
@@ -569,7 +569,7 @@ Constructor2
 Constructor3
 Conversion3
 deconstruct
-setX
+setW
 setY
 setZ
 setX
@@ -599,7 +599,7 @@ class C
     {
         C c = new C();
         bool b = false;
-        (c.getHolderForW().x, (c.getHolderForY().y, c.getHolderForZ().z), c.getHolderForX().x) = b ? default : (new D1(), new D2(), new D3());
+        (c.getHolderForW().w, (c.getHolderForY().y, c.getHolderForZ().z), c.getHolderForX().x) = b ? default : (new D1(), new D2(), new D3());
     }
 }
 class D1
@@ -630,7 +630,7 @@ Constructor3
 deconstruct
 Conversion1
 Conversion3
-setX
+setW
 setY
 setZ
 setX
