@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     }
 
     // This will be renamed to replace INavigateToSearchService as part of https://github.com/dotnet/roslyn/issues/28343
-    internal interface INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate : ILanguageService
+    public interface INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate : ILanguageService
     {
         IImmutableSet<string> KindsProvided
         {
