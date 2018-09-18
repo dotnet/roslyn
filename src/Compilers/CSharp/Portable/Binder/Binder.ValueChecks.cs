@@ -2203,10 +2203,8 @@ moreArguments:
                 case BoundKind.NullCoalescingOperator:
                     var coalescingOp = (BoundNullCoalescingOperator)expr;
 
-                    var leftEscape = GetValEscape(coalescingOp.LeftOperand, scopeOfTheContainingExpression);
-                    var rightEscape = GetValEscape(coalescingOp.RightOperand, scopeOfTheContainingExpression);
-
-                    return Math.Max(leftEscape, rightEscape);
+                    return Math.Max(GetValEscape(coalescingOp.LeftOperand, scopeOfTheContainingExpression),
+                                    GetValEscape(coalescingOp.RightOperand, scopeOfTheContainingExpression));
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
