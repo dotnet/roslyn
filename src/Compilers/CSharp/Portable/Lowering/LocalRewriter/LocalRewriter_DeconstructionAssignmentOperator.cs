@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (right.Kind == BoundKind.ConditionalOperator)
             {
                 var conditional = (BoundConditionalOperator)right;
+                Debug.Assert(!conditional.IsRef);
                 return conditional.Update(
                     conditional.IsRef,
                     VisitExpression(conditional.Condition),
@@ -85,10 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Deconstructions with no effects lower to nothing. For example, `(_, _) = (1, 2);`
                     return null;
                 }
-                else
-                {
-                    return _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), last);
-                }
+
+                return _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), last);
             }
             else
             {
