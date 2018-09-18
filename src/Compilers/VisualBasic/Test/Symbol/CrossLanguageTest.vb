@@ -37,7 +37,7 @@ End Class
 
             method = basicCompilation.GetTypeByMetadataName("Sample").GetMembers("Create").OfType(Of IMethodSymbol).SingleOrDefault()
             Assert.NotNull(method)
-            Assert.Equal(method.HandledEvents().Length, 1)
+            Assert.Equal(1, method.HandledEvents().Length)
 
         End Sub
 
