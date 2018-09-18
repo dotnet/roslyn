@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly SourceAssemblySymbol _sourceAssembly;
 
-        // PROTOTYPE(NullableReferenceTypes): Remove the Binder if possible. 
         private readonly Binder _binder;
         private readonly Conversions _conversions;
 
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static readonly TypeSymbolWithAnnotations _invalidType = TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
 
-        private TypeSymbolWithAnnotations _resultType; // PROTOTYPE(NullableReferenceTypes): Should be return value from the visitor, not mutable state.
+        private TypeSymbolWithAnnotations _resultType;
 
         /// <summary>
         /// Instances being constructed.
@@ -137,8 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _sourceAssembly = (method is null) ? null : (SourceAssemblySymbol)method.ContainingAssembly;
             _callbackOpt = callbackOpt;
-            // PROTOTYPE(NullableReferenceTypes): Do we really need a Binder?
-            // If so, are we interested in an InMethodBinder specifically?
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             Debug.Assert(!_binder.Conversions.IncludeNullability);
             _conversions = (Conversions)_binder.Conversions.WithNullability(true);
@@ -162,8 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
-        // PROTOTYPE(NullableReferenceTypes): Investigate remaining IsReferenceType usage for replacement by !IsValueType if necessary.
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
@@ -856,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Examples:
         /// `x is Point p`
-        /// `switch (x) ... case Point p:` // PROTOTYPE(NullableReferenceTypes): not yet handled
+        /// `switch (x) ... case Point p:` // https://github.com/dotnet/roslyn/issues/29873 not yet handled
         ///
         /// If the expression is trackable, we'll return with different null-states for that expression in the two conditional states.
         /// If the pattern is a `var` pattern, we'll also have re-inferred the `var` type with nullability and
@@ -909,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitPattern(expression, pattern);
             Debug.Assert(IsConditionalState);
 
-            // PROTOTYPE(NullableReferenceTypes): We should only report such
+            // https://github.com/dotnet/roslyn/issues/29873 We should only report such
             // diagnostics for locals that are set or checked explicitly within this method.
             if (!expressionResultType.IsNull && expressionResultType.IsNullable == false && isNull == true)
             {
@@ -954,16 +949,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method.IsGenericTaskReturningAsync(compilation) ?
                 ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single() :
                 returnType;
-        }
-
-        private static bool IsNullable(TypeSymbolWithAnnotations typeOpt)
-        {
-            return !typeOpt.IsNull && typeOpt.IsNullable == true;
-        }
-
-        private static bool IsNonNullable(TypeSymbolWithAnnotations typeOpt)
-        {
-            return !typeOpt.IsNull && typeOpt.IsNullable == false && typeOpt.IsReferenceType;
         }
 
         private static bool IsUnconstrainedTypeParameter(TypeSymbol typeOpt)
@@ -1234,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TrackNullableStateForAssignment(argument, property.Type, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
             }
 
-            // PROTOTYPE(NullableReferenceTypes): _result may need to be a new anonymous
+            // https://github.com/dotnet/roslyn/issues/24018 _result may need to be a new anonymous
             // type since the properties may have distinct nullability from original.
             // (See NullableReferenceTypesTests.AnonymousObjectCreation_02.)
             _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: false);
@@ -1923,14 +1908,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCall(BoundCall node)
         {
+            // Note: we analyze even omitted calls
             var method = node.Method;
-
-            if (method.CallsAreOmitted(node.SyntaxTree))
-            {
-                // PROTOTYPE(NullableReferenceTypes): Should skip state set in
-                // arguments of omitted call. See PreciseAbstractFlowPass.VisitCall.
-            }
-
             var receiverOpt = node.ReceiverOpt;
             if (receiverOpt != null && method.MethodKind != MethodKind.Constructor)
             {
@@ -2140,8 +2119,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
-            // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
             if (!node.HasErrors && !parameters.IsDefault)
             {
                 VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results);
@@ -2468,7 +2445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private VariableState GetVariableState()
         {
-            // PROTOTYPE(NullableReferenceTypes): To track nullability of captured variables inside and
+            // https://github.com/dotnet/roslyn/issues/29617 To track nullability of captured variables inside and
             // outside a lambda, the lambda should be considered executed at the location the lambda
             // is converted to a delegate.
             return new VariableState(
@@ -2544,7 +2521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             Debug.Assert(method.IsGenericMethod);
-            // PROTOTYPE(NullableReferenceTypes): OverloadResolution.IsMemberApplicableInNormalForm and
+            // https://github.com/dotnet/roslyn/issues/27961 OverloadResolution.IsMemberApplicableInNormalForm and
             // IsMemberApplicableInExpandedForm use the least overridden method. We need to do the same here.
             var definition = method.ConstructedFrom;
             var refKinds = ArrayBuilder<RefKind>.GetInstance();
@@ -2552,7 +2529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 refKinds.AddRange(node.ArgumentRefKindsOpt);
             }
-            // PROTOTYPE(NullableReferenceTypes): Do we really need OverloadResolution.GetEffectiveParameterTypes?
+            // https://github.com/dotnet/roslyn/issues/27961 Do we really need OverloadResolution.GetEffectiveParameterTypes?
             // Aren't we doing roughly the same calculations in GetCorrespondingParameter?
             OverloadResolution.GetEffectiveParameterTypes(
                 definition,
@@ -2560,7 +2537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ArgsToParamsOpt,
                 refKinds,
                 isMethodGroupConversion: false,
-                // PROTOTYPE(NullableReferenceTypes): `allowRefOmittedArguments` should be
+                // https://github.com/dotnet/roslyn/issues/27961 `allowRefOmittedArguments` should be
                 // false for constructors and several other cases (see Binder use). Should we
                 // capture the original value in the BoundCall?
                 allowRefOmittedArguments: true,
@@ -2589,10 +2566,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> GetArgumentsForMethodTypeInference(ImmutableArray<BoundExpression> arguments, ImmutableArray<TypeSymbolWithAnnotations> argumentResults)
         {
-            // PROTOTYPE(NullableReferenceTypes): MethodTypeInferrer.Infer relies
+            // https://github.com/dotnet/roslyn/issues/27961 MethodTypeInferrer.Infer relies
             // on the BoundExpressions for tuple element types and method groups.
             // By using a generic BoundValuePlaceholder, we're losing inference in those cases.
-            // PROTOTYPE(NullableReferenceTypes): Inference should be based on
+            // https://github.com/dotnet/roslyn/issues/27961 Inference should be based on
             // unconverted arguments. Consider cases such as `default`, lambdas, tuples.
             int n = arguments.Length;
             var builder = ArrayBuilder<BoundExpression>.GetInstance(n);
@@ -2649,7 +2626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   SyntaxNode syntax,
                                   bool writes)
         {
-            // PROTOTYPE(NullableReferenceTypes): Support field initializers in local functions.
+            // https://github.com/dotnet/roslyn/issues/27233 Support field initializers in local functions.
         }
 
         /// <summary>
@@ -2792,7 +2769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction)
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Handle type substitution for local functions.
+                    // https://github.com/dotnet/roslyn/issues/27233 Handle type substitution for local functions.
                     return symbol;
                 }
             }
@@ -3392,12 +3369,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expr.Kind)
             {
                 case BoundKind.Local:
-                case BoundKind.Parameter:
-                    // PROTOTYPE(NullableReferenceTypes): Warnings when assigning to `ref`
-                    // or `out` parameters should be regular warnings. Warnings assigning to
-                    // other parameters should be W warnings.
-                    // PROTOTYPE(NullableReferenceTypes): Should parameters be non-W warnings?
                     return true;
+                case BoundKind.Parameter:
+                    RefKind kind = ((BoundParameter)expr).ParameterSymbol.RefKind;
+                    return kind == RefKind.None;
                 default:
                     return false;
             }
@@ -3697,7 +3672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We are supposed to track information for the node. Use whatever we managed to
                     // accumulate so far.
-                    if (resultType.IsReferenceType)
+                    if (!resultType.IsValueType)
                     {
                         int containingSlot = (receiverOpt is null) ? -1 : MakeSlot(receiverOpt);
                         int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(member, containingSlot);
@@ -4373,7 +4348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitQueryClause(BoundQueryClause node)
         {
             var result = base.VisitQueryClause(node);
-            SetResult(node); // PROTOTYPE(NullableReferenceTypes)
+            SetResult(node); // https://github.com/dotnet/roslyn/issues/29863 Implement nullability analysis in LINQ queries
             return result;
         }
 
@@ -4495,8 +4470,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct LocalState : AbstractLocalState
 #endif
         {
-            // PROTOTYPE(NullableReferenceTypes): Consider storing nullability rather than non-nullability
-            // or perhaps expose as nullability from `this[int]` even if stored differently.
+            // Consider storing nullability rather than non-nullability
+            // or perhaps expose as nullability from `this[int]` even if stored as non-nullability.
             private BitVector _knownNullState; // No diagnostics should be derived from a variable with a bit set to 0.
             private BitVector _notNull;
 
