@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -12,6 +13,7 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Hosting.Diagnostics.PerfMargin;
 using Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
 using Task = System.Threading.Tasks.Task;
 
@@ -58,16 +60,10 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            // Get the instance number 0 of this tool window. This window is single instance so this instance
-            // is actually the only one.
-            // The last flag is set to true so that if the tool window does not exists it will be created.
-            ToolWindowPane window = this.FindToolWindow(typeof(DiagnosticsWindow), 0, true);
-            if ((null == window) || (null == window.Frame))
+            JoinableTaskFactory.RunAsync(async () =>
             {
-                throw new NotSupportedException(Resources.CanNotCreateWindow);
-            }
-            IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+                await ShowToolWindowAsync(typeof(DiagnosticsWindow), id: 0, create: true, this.DisposalToken).ConfigureAwait(true);
+            });
         }
 
         /////////////////////////////////////////////////////////////////////////////
@@ -103,5 +99,26 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             }
         }
         #endregion
+
+        public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
+        {
+            // Return this for everything, as all our windows are now async
+            return this;
+        }
+
+        protected override string GetToolWindowTitle(Type toolWindowType, int id)
+        {
+            if (toolWindowType == typeof(DiagnosticsWindow))
+            {
+                return Resources.ToolWindowTitle;
+            }
+
+            return null;
+        }
+
+        protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new object());
+        }
     }
 }

@@ -53,7 +53,8 @@ Public Class BuildDevDivInsertionFiles
     Public Sub Execute()
         Retry(Sub()
                   DeleteDirContents(_outputDirectory)
-                  DeleteDirContents(_outputPackageDirectory)
+                  DeleteDirContents(Path.Combine(_outputPackageDirectory, "NativeDependencies"))
+                  DeleteDirContents(Path.Combine(_outputPackageDirectory, "ManagedDependencies"))
               End Sub)
 
         ' Build a dependency map
@@ -97,12 +98,18 @@ Public Class BuildDevDivInsertionFiles
         files.Add(Path.Combine(objDir, "Roslyn.VisualStudio.Setup.Dependencies\project.assets.json"))
 
         For Each projectLockJson In files
-            Dim items = JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson))
-            Const targetFx = ".NETFramework,Version=v4.6/win"
+            Dim items = DirectCast(JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson)), JObject)
+            Const targetFx = ".NETFramework,Version=v4.6"
 
-            Dim targetObj = DirectCast(DirectCast(DirectCast(items, JObject).Property("targets")?.Value, JObject).Property(targetFx)?.Value, JObject)
+            Dim targets = DirectCast(items.Property("targets")?.Value, JObject)
+            If targets Is Nothing Then
+                Throw New InvalidDataException($"Invalid format for '{projectLockJson}': missing 'targets' property")
+            End If
+
+            Dim targetObj = DirectCast(targets.Property(targetFx)?.Value, JObject)
             If targetObj Is Nothing Then
-                Throw New InvalidDataException($"Expected platform Not found in '{projectLockJson}': '{targetFx}'")
+                Dim availablePlatforms = String.Join(",", targets.Properties.Select(Function(p) $"'{p.Name}'"))
+                Throw New InvalidDataException($"Expected platform not found in '{projectLockJson}': '{targetFx}'. Available platforms: {availablePlatforms}")
             End If
 
             For Each targetProperty In targetObj.Properties
@@ -133,6 +140,7 @@ Public Class BuildDevDivInsertionFiles
                    packageName = "Microsoft.Composition" OrElse
                    packageName = "System.Net.Http" OrElse
                    packageName = "System.Diagnostics.DiagnosticSource" OrElse
+                   packageName = "StreamJsonRpc" OrElse
                    packageName = "Newtonsoft.Json" Then
                     Continue For
                 End If
@@ -161,7 +169,10 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing AndAlso packageName <> "Microsoft.Build" OrElse packageName = "System.IO.Pipes.AccessControl"))
+                                                                isFacade:=(frameworkAssemblies IsNot Nothing AndAlso
+                                                                           packageName <> "Microsoft.Build" AndAlso
+                                                                           packageName <> "Microsoft.DiaSymReader") OrElse
+                                                                           packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next

@@ -1416,7 +1416,7 @@ class Program
             });
             using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
             {
-                var request = new BuildRequest(1, RequestLanguage.CSharpCompile, new BuildRequest.Argument[0]);
+                var request = new BuildRequest(1, RequestLanguage.CSharpCompile, string.Empty, new BuildRequest.Argument[0]);
                 var compileTask = ServerUtil.Send(serverData.PipeName, request);
                 var response = await compileTask;
                 Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);

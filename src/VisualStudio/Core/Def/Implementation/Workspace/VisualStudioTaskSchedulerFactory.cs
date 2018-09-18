@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 _joinableTaskFactory.RunAsync(async () =>
                 {
-                    await _joinableTaskFactory.SwitchToMainThreadAsync();
+                    await _joinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
                     TryExecuteTask(task);
                 });
             }

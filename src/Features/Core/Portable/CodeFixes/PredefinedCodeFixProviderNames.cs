@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string GenerateVariable = nameof(GenerateVariable);
         public const string GenerateMethod = nameof(GenerateMethod);
         public const string GenerateConversion = nameof(GenerateConversion);
+        public const string GenerateDeconstructMethod = nameof(GenerateDeconstructMethod);
         public const string GenerateType = nameof(GenerateType);
         public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
         public const string ImplementInterface = nameof(ImplementInterface);
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
         public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
+        public const string RemoveUnusedMembers = nameof(RemoveUnusedMembers);
         public const string RemoveUnusedVariable = nameof(RemoveUnusedVariable);
         public const string RenameTracking = nameof(RenameTracking);
         public const string SimplifyNames = nameof(SimplifyNames);
