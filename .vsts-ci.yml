@@ -11,6 +11,7 @@ queue:
 
 variables:
   BuildPlatform: 'Any CPU'
+  InsertTargetBranch: '16.0'
 steps:
 - task: NuGetCommand@2
   inputs:

@@ -96,8 +96,8 @@
       <Output TaskParameter="ConsoleOutput" PropertyName="BuildNumber" />
     </Exec>
 
-    <Error Condition=" '$(InsertTargetBranch)' == '' " Text="InsertTargetBranch is not defined. Run src\_release\variables\_vsts.ps1." />
-    <Error Condition=" '$(BuildNumber)' == '' " Text="BuildNumber is not defined. Failed to read from bootstrapper or env." />
+    <Error Condition=" '$(InsertTargetBranch)' == '' " Text="InsertTargetBranch is not defined." />
+    <Error Condition=" '$(BuildNumber)' == '' " Text="BuildNumber is not defined." />
 
     <!-- TODO: this is technically incorrect. If we end up with a 2 digit minor version, we'll break. -->
     <PropertyGroup>
