@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
-    internal interface IMefHostExportProvider
+    public interface IMefHostExportProvider
     {
         IEnumerable<Lazy<TExtension, TMetadata>> GetExports<TExtension, TMetadata>();
         IEnumerable<Lazy<TExtension>> GetExports<TExtension>();
