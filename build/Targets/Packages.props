@@ -264,6 +264,12 @@
       produced by the build can be installed in projects building with those older releases.
     -->
     <CodeStyleLayerCodeAnalysisVersion>2.8.2</CodeStyleLayerCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisCommonFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCommonFixedVersion>
+    <MicrosoftCodeAnalysisWorkspacesCommonFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisWorkspacesCommonFixedVersion>
+    <MicrosoftCodeAnalysisCSharpFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpFixedVersion>
+    <MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>
+    <MicrosoftCodeAnalysisVisualBasicFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicFixedVersion>
+    <MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>
   </PropertyGroup>
 
   <!-- 

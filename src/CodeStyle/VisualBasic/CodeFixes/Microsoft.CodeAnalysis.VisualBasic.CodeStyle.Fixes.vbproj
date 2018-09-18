@@ -33,7 +33,7 @@
     </ItemGroup>
   </Target>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="$(CodeStyleLayerCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="$(MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
