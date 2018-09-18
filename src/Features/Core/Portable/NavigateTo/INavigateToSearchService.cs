@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
     [Obsolete("Use " + nameof(INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate) + " instead.")]
-    internal interface INavigateToSearchService : ILanguageService
+    public interface INavigateToSearchService : ILanguageService
     {
         Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, CancellationToken cancellationToken);
         Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, CancellationToken cancellationToken);

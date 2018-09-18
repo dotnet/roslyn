@@ -3,7 +3,7 @@
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal enum NavigateToMatchKind
+    public enum NavigateToMatchKind
     {
         Exact = 0,
         Prefix = 1,

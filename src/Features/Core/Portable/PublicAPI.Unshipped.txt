@@ -1,3 +1,18 @@
+Microsoft.CodeAnalysis.DocumentHighlighting.DocumentHighlights
+Microsoft.CodeAnalysis.DocumentHighlighting.DocumentHighlights.Document.get -> Microsoft.CodeAnalysis.Document
+Microsoft.CodeAnalysis.DocumentHighlighting.DocumentHighlights.DocumentHighlights(Microsoft.CodeAnalysis.Document document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpan> highlightSpans) -> void
+Microsoft.CodeAnalysis.DocumentHighlighting.DocumentHighlights.HighlightSpans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpan>
+Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpan
+Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpan.HighlightSpan(Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpanKind kind) -> void
+Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpan.Kind.get -> Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpanKind
+Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpan.TextSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpanKind
+Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpanKind.Definition = 1 -> Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpanKind
+Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpanKind.None = 0 -> Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpanKind
+Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpanKind.Reference = 2 -> Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpanKind
+Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpanKind.WrittenReference = 3 -> Microsoft.CodeAnalysis.DocumentHighlighting.HighlightSpanKind
+Microsoft.CodeAnalysis.DocumentHighlighting.IDocumentHighlightsService
+Microsoft.CodeAnalysis.DocumentHighlighting.IDocumentHighlightsService.GetDocumentHighlightsAsync(Microsoft.CodeAnalysis.Document document, int position, System.Collections.Immutable.IImmutableSet<Microsoft.CodeAnalysis.Document> documentsToSearch, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentHighlighting.DocumentHighlights>>
 Microsoft.CodeAnalysis.DocumentSpan
 Microsoft.CodeAnalysis.DocumentSpan.Document.get -> Microsoft.CodeAnalysis.Document
 Microsoft.CodeAnalysis.DocumentSpan.DocumentSpan(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan sourceSpan) -> void
@@ -95,6 +110,31 @@ Microsoft.CodeAnalysis.Glyph.StructurePrivate = 68 -> Microsoft.CodeAnalysis.Gly
 Microsoft.CodeAnalysis.Glyph.StructureProtected = 67 -> Microsoft.CodeAnalysis.Glyph
 Microsoft.CodeAnalysis.Glyph.StructurePublic = 66 -> Microsoft.CodeAnalysis.Glyph
 Microsoft.CodeAnalysis.Glyph.TypeParameter = 70 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult.AdditionalInformation.get -> string
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult.IsCaseSensitive.get -> bool
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult.Kind.get -> string
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult.MatchKind.get -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult.Name.get -> string
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult.NameMatchSpans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult.NavigableItem.get -> Microsoft.CodeAnalysis.Navigation.INavigableItem
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult.SecondarySort.get -> string
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult.Summary.get -> string
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchService
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchService.SearchDocumentAsync(Microsoft.CodeAnalysis.Document document, string searchPattern, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult>>
+Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchService.SearchProjectAsync(Microsoft.CodeAnalysis.Project project, string searchPattern, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchResult>>
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind.CamelCaseExact = 5 -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind.CamelCaseNonContiguousPrefix = 7 -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind.CamelCaseNonContiguousSubstring = 9 -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind.CamelCasePrefix = 6 -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind.CamelCaseSubstring = 8 -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind.Exact = 0 -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind.Fuzzy = 10 -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind.None = 4 -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind.Prefix = 1 -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind.Regular = 3 -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
+Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind.Substring = 2 -> Microsoft.CodeAnalysis.NavigateTo.NavigateToMatchKind
 Microsoft.CodeAnalysis.Navigation.INavigableItem
 Microsoft.CodeAnalysis.Navigation.INavigableItem.ChildItems.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Navigation.INavigableItem>
 Microsoft.CodeAnalysis.Navigation.INavigableItem.DisplayFileLocation.get -> bool

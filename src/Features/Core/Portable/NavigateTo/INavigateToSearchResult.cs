@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal interface INavigateToSearchResult
+    public interface INavigateToSearchResult
     {
         string AdditionalInformation { get; }
         string Kind { get; }
