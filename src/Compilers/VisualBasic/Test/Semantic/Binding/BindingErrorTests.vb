@@ -24122,7 +24122,8 @@ End Sub
 End Module
 ]]>
 
-            compilation = compilation.AddSyntaxTrees(Parse(text))
+            ' https://github.com/dotnet/roslyn/issues/29819 remove explicit options when VB 16 is latest
+            compilation = compilation.AddSyntaxTrees(Parse(text, options:=TestOptions.Regular))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
