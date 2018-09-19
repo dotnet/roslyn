@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -40,34 +41,46 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var options = context.Options.GetDocumentOptionSetAsync(context.Tree, context.CancellationToken).GetAwaiter().GetResult();
+            var tree = context.Tree;
+            var cancellationToken = context.CancellationToken;
+
+            var options = context.Options.GetDocumentOptionSetAsync(tree, cancellationToken).GetAwaiter().GetResult();
             if (options == null)
             {
                 return;
             }
 
             var workspace = workspaceAnalyzerOptions.Services.Workspace;
-            var formattingChanges = Formatter.GetFormattedTextChanges(context.Tree.GetRoot(context.CancellationToken), workspace, options, context.CancellationToken);
+            var oldText = tree.GetText(cancellationToken);
+            var formattingChanges = Formatter.GetFormattedTextChanges(tree.GetRoot(cancellationToken), workspace, options, cancellationToken);
+
+            // formattingChanges could include changes that impact a larger section of the original document than
+            // necessary. Before reporting diagnostics, process the changes to minimize the span of individual
+            // diagnostics.
             foreach (var formattingChange in formattingChanges)
             {
                 var change = formattingChange;
                 if (change.NewText.Length > 0 && !change.Span.IsEmpty)
                 {
-                    var oldText = context.Tree.GetText(context.CancellationToken);
-
-                    // Handle cases where the change is a substring removal from the beginning
+                    // Handle cases where the change is a substring removal from the beginning. In these cases, we want
+                    // the diagnostic span to cover the unwanted leading characters (which should be removed), and
+                    // nothing more.
                     var offset = change.Span.Length - change.NewText.Length;
-                    if (offset >= 0 && oldText.GetSubText(new TextSpan(change.Span.Start + offset, change.NewText.Length)).ContentEquals(SourceText.From(change.NewText)))
+                    if (offset >= 0)
                     {
-                        change = new TextChange(new TextSpan(change.Span.Start, offset), "");
-                    }
-                    else
-                    {
-                        // Handle cases where the change is a substring removal from the end
-                        if (change.NewText.Length < change.Span.Length
-                            && oldText.GetSubText(new TextSpan(change.Span.Start, change.NewText.Length)).ContentEquals(SourceText.From(change.NewText)))
+                        if (oldText.GetSubText(new TextSpan(change.Span.Start + offset, change.NewText.Length)).ContentEquals(SourceText.From(change.NewText)))
                         {
-                            change = new TextChange(new TextSpan(change.Span.Start + change.NewText.Length, change.Span.Length - change.NewText.Length), "");
+                            change = new TextChange(new TextSpan(change.Span.Start, offset), "");
+                        }
+                        else
+                        {
+                            // Handle cases where the change is a substring removal from the end. In these cases, we want
+                            // the diagnostic span to cover the unwanted trailing characters (which should be removed), and
+                            // nothing more.
+                            if (oldText.GetSubText(new TextSpan(change.Span.Start, change.NewText.Length)).ContentEquals(SourceText.From(change.NewText)))
+                            {
+                                change = new TextChange(new TextSpan(change.Span.Start + change.NewText.Length, offset), "");
+                            }
                         }
                     }
                 }
@@ -75,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (change.NewText.Length == 0 && change.Span.IsEmpty)
                 {
                     // No actual change
-                    continue;
+                    throw ExceptionUtilities.Unreachable;
                 }
 
                 ImmutableDictionary<string, string> properties;
@@ -88,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     properties = ImmutableDictionary.Create<string, string>().Add(ReplaceTextKey, change.NewText);
                 }
 
-                var location = Location.Create(context.Tree, change.Span);
+                var location = Location.Create(tree, change.Span);
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     location,

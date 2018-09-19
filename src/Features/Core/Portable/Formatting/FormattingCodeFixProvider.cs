@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var changes = new List<TextChange>();
             foreach (var diagnostic in diagnostics)
             {
-                if (!tree.Equals(diagnostic.Location.SourceTree)
-                    || !diagnostic.Properties.TryGetValue(FormattingDiagnosticAnalyzer.ReplaceTextKey, out var replacement))
+                if (!diagnostic.Properties.TryGetValue(FormattingDiagnosticAnalyzer.ReplaceTextKey, out var replacement))
                 {
                     continue;
                 }

@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var changes = new List<TextChange>();
             foreach (var diagnostic in diagnostics)
             {
-                if (!tree.Equals(diagnostic.Location.SourceTree)
-                    || !diagnostic.Properties.TryGetValue(AbstractFormattingAnalyzerImpl.ReplaceTextKey, out var replacement))
+                if (!diagnostic.Properties.TryGetValue(AbstractFormattingAnalyzerImpl.ReplaceTextKey, out var replacement))
                 {
                     continue;
                 }
