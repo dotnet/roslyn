@@ -23,15 +23,17 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId);
 
-        protected readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> BinaryToAssignmentMap;
-        protected readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> AssignmentToTokenMap;
+        // See comments in the analyzer for what these maps are for.
+
+        private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _binaryToAssignmentMap;
+        private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _assignmentToTokenMap;
 
         protected AbstractUseCompoundAssignmentCodeFixProvider(
             ImmutableDictionary<TSyntaxKind, TSyntaxKind> binaryToAssignmentMap,
             ImmutableDictionary<TSyntaxKind, TSyntaxKind> assignmentToTokenMap)
         {
-            BinaryToAssignmentMap = binaryToAssignmentMap;
-            AssignmentToTokenMap = assignmentToTokenMap;
+            _binaryToAssignmentMap = binaryToAssignmentMap;
+            _assignmentToTokenMap = assignmentToTokenMap;
         }
 
         protected abstract TSyntaxKind GetSyntaxKind(int rawKind);
@@ -70,8 +72,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         syntaxFacts.GetPartsOfBinaryExpression(rightOfAssign,
                            out _, out var opToken, out var rightExpr);
 
-                    var assignmentOpKind = BinaryToAssignmentMap[GetSyntaxKind(rightOfAssign.RawKind)];
-                        var compoundOperator = Token(AssignmentToTokenMap[assignmentOpKind]);
+                    var assignmentOpKind = _binaryToAssignmentMap[GetSyntaxKind(rightOfAssign.RawKind)];
+                        var compoundOperator = Token(_assignmentToTokenMap[assignmentOpKind]);
                         return Assignment(
                             assignmentOpKind,
                             (TExpressionSyntax)leftOfAssign,

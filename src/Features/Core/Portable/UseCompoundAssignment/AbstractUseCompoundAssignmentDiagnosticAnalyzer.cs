@@ -20,8 +20,18 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         where TBinaryExpressionSyntax : SyntaxNode
     {
         private readonly ISyntaxFactsService _syntaxFacts;
-        protected readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> BinaryToAssignmentMap;
-        protected readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> AssignmentToTokenMap;
+
+        /// <summary>
+        /// Maps from a binary expression kind (like AddExpression) to the corresponding assignment
+        /// form (like AddAssignmentExpression).
+        /// </summary>
+        private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _binaryToAssignmentMap;
+
+        /// <summary>
+        /// Maps from an assignment form (like AddAssignmentExpression) to the corresponding
+        /// operator type (like PlusEqualsToken).
+        /// </summary>
+        private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _assignmentToTokenMap;
 
         protected AbstractUseCompoundAssignmentDiagnosticAnalyzer(
             ISyntaxFactsService syntaxFacts,
@@ -32,11 +42,11 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                        nameof(FeaturesResources.Use_compound_assignment), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _syntaxFacts = syntaxFacts;
-            BinaryToAssignmentMap = binaryToAssignmentMap;
-            AssignmentToTokenMap = assignmentToTokenMap;
+            _binaryToAssignmentMap = binaryToAssignmentMap;
+            _assignmentToTokenMap = assignmentToTokenMap;
 
-            Debug.Assert(BinaryToAssignmentMap.Count == AssignmentToTokenMap.Count);
-            Debug.Assert(BinaryToAssignmentMap.Values.All(AssignmentToTokenMap.ContainsKey));
+            Debug.Assert(_binaryToAssignmentMap.Count == _assignmentToTokenMap.Count);
+            Debug.Assert(_binaryToAssignmentMap.Values.All(_assignmentToTokenMap.ContainsKey));
         }
 
         protected abstract TSyntaxKind GetKind(int rawKind);
@@ -82,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             }
 
             var binaryKind = GetKind(binaryExpression.RawKind);
-            if (!BinaryToAssignmentMap.ContainsKey(binaryKind))
+            if (!_binaryToAssignmentMap.ContainsKey(binaryKind))
             {
                 return;
             }
