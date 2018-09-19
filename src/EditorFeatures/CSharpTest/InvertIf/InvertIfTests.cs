@@ -2,12 +2,13 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf;
+using Microsoft.CodeAnalysis.CSharp.InvertIf;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.InvertIf
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 {
     public partial class InvertIfTests : AbstractCSharpCodeActionTest
     {

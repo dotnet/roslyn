@@ -2018,6 +2018,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invert conditional.
+        /// </summary>
+        internal static string Invert_conditional {
+            get {
+                return ResourceManager.GetString("Invert_conditional", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to is.
         /// </summary>
         internal static string is_ {
@@ -2905,6 +2914,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Replace_0_and_1_with_property {
             get {
                 return ResourceManager.GetString("Replace_0_and_1_with_property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with &apos;{1}&apos; .
+        /// </summary>
+        internal static string Replace_0_with_1 {
+            get {
+                return ResourceManager.GetString("Replace_0_with_1", resourceCulture);
             }
         }
         
