@@ -24,8 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode GetTypeBlock(SyntaxNode node)
             => node;
 
-        protected override IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => InitializeParameterHelpers.GetBlockOperation(functionDeclaration, semanticModel, cancellationToken);
+        protected override bool CanOfferRefactoring(SyntaxNode functionDeclaration, OperationKind operationKind)
+            => InitializeParameterHelpers.CanOfferRefactoring(functionDeclaration, operationKind);
+
+        protected override IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, IOperation operation, CancellationToken cancellationToken)
+            => InitializeParameterHelpers.GetBlockOperation(functionDeclaration, semanticModel, operation, cancellationToken);
 
         protected override SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
             => InitializeParameterHelpers.TryGetLastStatement(blockStatementOpt);

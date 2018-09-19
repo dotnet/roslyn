@@ -19,7 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             || node is LocalFunctionStatementSyntax
             || node is AnonymousFunctionExpressionSyntax;
 
-        public static IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public static bool CanOfferRefactoring(SyntaxNode functionDeclaration, OperationKind operationKind)
+            => true;
+
+        public static IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, IOperation operation, CancellationToken cancellationToken)
         {
             var bodyOpt = GetBody(functionDeclaration);
             if (bodyOpt == null)
@@ -29,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             // body might be an expression in a lambda - in that case we wouldn't get a block operation out of that
             return functionDeclaration is AnonymousFunctionExpressionSyntax
-                ? ((IAnonymousFunctionOperation)semanticModel.GetOperation(functionDeclaration, cancellationToken)).Body
+                ? ((IAnonymousFunctionOperation)operation).Body
                 : (IBlockOperation)semanticModel.GetOperation(bodyOpt, cancellationToken);
         }
 

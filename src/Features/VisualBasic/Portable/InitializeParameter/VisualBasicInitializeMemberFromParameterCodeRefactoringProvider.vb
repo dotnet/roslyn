@@ -25,12 +25,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return DirectCast(node, TypeStatementSyntax).Parent
         End Function
 
+        Protected Overrides Function CanOfferRefactoring(functionDeclaration As SyntaxNode, operationKind As OperationKind) As Boolean
+            Return InitializeParameterHelpers.CanOfferRefactoring(functionDeclaration, operationKind)
+        End Function
+
         Protected Overrides Function TryGetLastStatement(blockStatement As IBlockOperation) As SyntaxNode
             Return InitializeParameterHelpers.TryGetLastStatement(blockStatement)
         End Function
 
-        Protected Overrides Function GetBlockOperation(functionDeclaration As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As IBlockOperation
-            Return InitializeParameterHelpers.GetBlockOperation(functionDeclaration, semanticModel, cancellationToken)
+        Protected Overrides Function GetBlockOperation(functionDeclaration As SyntaxNode, semanticModel As SemanticModel, operation As IOperation, cancellationToken As CancellationToken) As IBlockOperation
+            Return InitializeParameterHelpers.GetBlockOperation(functionDeclaration, semanticModel, operation, cancellationToken)
         End Function
 
         Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean

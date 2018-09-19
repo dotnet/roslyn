@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
     {
         protected abstract bool IsFunctionDeclaration(SyntaxNode node);
 
-        protected abstract IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract bool CanOfferRefactoring(SyntaxNode functionDeclaration, OperationKind operationKind);
+
+        protected abstract IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, IOperation operation, CancellationToken cancellationToken);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
@@ -98,10 +100,16 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
+            var operation = semanticModel.GetOperation(functionDeclaration, cancellationToken);
+
+            if (!CanOfferRefactoring(functionDeclaration, operation.Kind))
+            {
+                return;
+            }
             // We support initializing parameters, even when the containing member doesn't have a
             // body. This is useful for when the user is typing a new constructor and hasn't written
             // the body yet.
-            var blockStatementOpt = GetBlockOperation(functionDeclaration, semanticModel, cancellationToken);
+            var blockStatementOpt = GetBlockOperation(functionDeclaration, semanticModel, operation, cancellationToken);
           
             // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
             // actually determine if there are any viable refactorings here.
