@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -26,34 +25,34 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    CodeStyleFixesResources.Formatting_analyzer_code_fix,
-                    c => FixOneAsync(context.Document, context.Diagnostics, c),
-                    nameof(FormattingCodeFixProvider)),
-                context.Diagnostics);
+            foreach (var diagnostic in context.Diagnostics)
+            {
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        CodeStyleFixesResources.Formatting_analyzer_code_fix,
+                        c => FixOneAsync(context.Document, diagnostic, c),
+                        nameof(FormattingCodeFixProvider)),
+                    diagnostic);
+            }
 
             return Task.CompletedTask;
         }
 
-        protected async Task<Document> FixOneAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        protected async Task<Document> FixOneAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+            // The span to format is the full line(s) containing the diagnostic
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var changes = new List<TextChange>();
-            foreach (var diagnostic in diagnostics)
-            {
-                if (!diagnostic.Properties.TryGetValue(AbstractFormattingAnalyzerImpl.ReplaceTextKey, out var replacement))
-                {
-                    continue;
-                }
+            var diagnosticSpan = diagnostic.Location.SourceSpan;
+            var diagnosticLinePositionSpan = text.Lines.GetLinePositionSpan(diagnosticSpan);
+            var spanToFormat = TextSpan.FromBounds(
+                text.Lines[diagnosticLinePositionSpan.Start.Line].Start,
+                text.Lines[diagnosticLinePositionSpan.End.Line].End);
 
-                changes.Add(new TextChange(diagnostic.Location.SourceSpan, replacement));
-            }
 
-            changes.Sort((left, right) => left.Span.Start.CompareTo(right.Span.Start));
-
-            return document.WithText(text.WithChanges(changes));
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return await Formatter.FormatAsync(document, spanToFormat, options, cancellationToken).ConfigureAwait(false);
         }
 
         private class FixAll : DocumentBasedFixAllProvider

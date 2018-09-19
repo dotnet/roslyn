@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -12,11 +11,6 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal class FormattingDiagnosticAnalyzer
         : AbstractCodeStyleDiagnosticAnalyzer
     {
-        public static readonly string ReplaceTextKey = nameof(ReplaceTextKey);
-
-        public static readonly ImmutableDictionary<string, string> RemoveTextProperties =
-            ImmutableDictionary.Create<string, string>().Add(ReplaceTextKey, "");
-
         public FormattingDiagnosticAnalyzer()
             : base(
                 IDEDiagnosticIds.FormattingDiagnosticId,
@@ -91,23 +85,13 @@ namespace Microsoft.CodeAnalysis.Formatting
                     throw ExceptionUtilities.Unreachable;
                 }
 
-                ImmutableDictionary<string, string> properties;
-                if (change.NewText.Length == 0)
-                {
-                    properties = RemoveTextProperties;
-                }
-                else
-                {
-                    properties = ImmutableDictionary.Create<string, string>().Add(ReplaceTextKey, change.NewText);
-                }
-
                 var location = Location.Create(tree, change.Span);
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     location,
                     ReportDiagnostic.Default,
                     additionalLocations: null,
-                    properties));
+                    properties: null));
             }
         }
     }
