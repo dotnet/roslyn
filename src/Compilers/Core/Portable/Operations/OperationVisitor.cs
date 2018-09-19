@@ -284,6 +284,11 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        public virtual void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitIsType(IIsTypeOperation operation)
         {
             DefaultVisit(operation);
@@ -843,6 +848,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitCoalesce(ICoalesceOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

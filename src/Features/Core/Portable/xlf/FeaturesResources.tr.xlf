@@ -117,6 +117,11 @@
         <target state="new">Use expression body for lambda expressions</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="new">Use interpolated verbatim string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">genel aşırı yükleme</target>

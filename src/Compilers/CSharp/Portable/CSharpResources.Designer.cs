@@ -305,6 +305,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To use &apos;@$&apos; instead of &apos;$@&apos; for an interpolated verbatim string, please use language version {0} or greater..
+        /// </summary>
+        internal static string ERR_AltInterpolatedVerbatimStringsNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_AltInterpolatedVerbatimStringsNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on operands of type &apos;{1}&apos; and &apos;{2}&apos;.
         /// </summary>
         internal static string ERR_AmbigBinaryOps {
@@ -4589,6 +4598,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is experimental and unsupported; use &apos;/features:{1}&apos; to enable..
+        /// </summary>
+        internal static string ERR_FeatureIsExperimental {
+            get {
+                return ResourceManager.GetString("ERR_FeatureIsExperimental", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not implemented in this compiler..
         /// </summary>
         internal static string ERR_FeatureIsUnimplemented {
@@ -4684,6 +4702,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_FeatureNotAvailableInVersion7_3 {
             get {
                 return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion7_3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 8.0. Please use language version {1} or greater..
+        /// </summary>
+        internal static string ERR_FeatureNotAvailableInVersion8 {
+            get {
+                return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion8", resourceCulture);
             }
         }
         
@@ -10413,6 +10440,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to alternative interpolated verbatim strings.
+        /// </summary>
+        internal static string IDS_FeatureAltInterpolatedVerbatimStrings {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAltInterpolatedVerbatimStrings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous methods.
         /// </summary>
         internal static string IDS_FeatureAnonDelegates {
@@ -10472,6 +10508,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureBinaryLiteral {
             get {
                 return ResourceManager.GetString("IDS_FeatureBinaryLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to coalescing assignment.
+        /// </summary>
+        internal static string IDS_FeatureCoalesceAssignmentExpression {
+            get {
+                return ResourceManager.GetString("IDS_FeatureCoalesceAssignmentExpression", resourceCulture);
             }
         }
         
@@ -11021,6 +11066,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureTypeVariance {
             get {
                 return ResourceManager.GetString("IDS_FeatureTypeVariance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unconstrained type parameters in null coalescing operator.
+        /// </summary>
+        internal static string IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator", resourceCulture);
             }
         }
         
@@ -12938,6 +12992,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_DebugFullNameTooLong_Title {
             get {
                 return ResourceManager.GetString("WRN_DebugFullNameTooLong_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;default&apos; is converted to &apos;null&apos;, not &apos;default({0})&apos;.
+        /// </summary>
+        internal static string WRN_DefaultLiteralConvertedToNullIsNotIntended {
+            get {
+                return ResourceManager.GetString("WRN_DefaultLiteralConvertedToNullIsNotIntended", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;default&apos; is converted to &apos;null&apos;.
+        /// </summary>
+        internal static string WRN_DefaultLiteralConvertedToNullIsNotIntended_Title {
+            get {
+                return ResourceManager.GetString("WRN_DefaultLiteralConvertedToNullIsNotIntended_Title", resourceCulture);
             }
         }
         
