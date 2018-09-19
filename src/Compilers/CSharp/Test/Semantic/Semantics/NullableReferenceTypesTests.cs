@@ -33029,9 +33029,8 @@ class A : System.Attribute
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(4, 17));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should not report warning for
-        // c.ToString(); // 3
-        [Fact(Skip = "TODO")]
+        [Fact]
+        [WorkItem(29954, "https://github.com/dotnet/roslyn/issues/29954")]
         public void UnassignedOutParameterClass()
         {
             var source =
@@ -33047,13 +33046,18 @@ class A : System.Attribute
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            // https://github.com/dotnet/roslyn/issues/29954: Should not report warning for
+            // c.ToString(); // 3
             comp.VerifyDiagnostics(
                 // (5,9): error CS0269: Use of unassigned out parameter 'c'
                 //         c.ToString(); // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolationOut, "c").WithArguments("c").WithLocation(5, 9),
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         c.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         c.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 9));
         }
 
         [Fact]
@@ -33467,8 +33471,9 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(10, 48));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullAsNonNullable for F0.
+        // https://github.com/dotnet/roslyn/issues/29957: Should not report WRN_NullReferenceReturn for F0.
         [WorkItem(23275, "https://github.com/dotnet/roslyn/issues/23275")]
+        [WorkItem(29957, "https://github.com/dotnet/roslyn/issues/29957")]
         [Fact]
         public void AsyncTaskMethodReturningNull()
         {
@@ -33878,6 +33883,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29960, "https://github.com/dotnet/roslyn/issues/29960")]
         public void MultipleConversions_Explicit_04()
         {
             var source =
@@ -33905,7 +33911,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should only report one WRN_ConvertingNullableToNonNullable
+            // https://github.com/dotnet/roslyn/issues/29960: Should only report one WRN_ConvertingNullableToNonNullable
             // warning for `B b2 = (B)s;` and `A a = (B)s;`.
             comp.VerifyDiagnostics(
                 // (16,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -33991,6 +33997,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29966, "https://github.com/dotnet/roslyn/issues/29966")]
         public void Conversions_ImplicitTupleLiteral_01()
         {
             var source =
@@ -34063,7 +34070,7 @@ static class E
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
+            // https://github.com/dotnet/roslyn/issues/29966: Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
             comp.VerifyDiagnostics(
                 // (12,31): warning CS8619: Nullability of reference types in value of type '(string x, string? y)' doesn't match target type '(string, string)'.
                 //         (string, string) t1 = (x, y); // 1
@@ -34527,6 +34534,7 @@ class D
         }
 
         [Fact]
+        [WorkItem(29966, "https://github.com/dotnet/roslyn/issues/29966")]
         public void Conversions_ImplicitTupleLiteral_ExtensionThis()
         {
             var source =
@@ -34568,7 +34576,7 @@ static class E
     static void F4B(this (IOut<object?>, IOut<object?>) t) { }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
+            // https://github.com/dotnet/roslyn/issues/29966: Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
             comp.VerifyDiagnostics(
                 // (11,9): warning CS8620: Nullability of reference types in argument of type '(object x, object? y)' doesn't match target type '(object, object)' for parameter 't' in 'void E.F1A((object, object) t)'.
                 //         (x, y).F1A(); // 1
@@ -34985,6 +34993,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void TupleTypeInference_06()
         {
             var source =
@@ -35005,7 +35014,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should not report warning for
+            // https://github.com/dotnet/roslyn/issues/29970: Should not report warning for
             // `t.Item1.Item2`, `t.Item2`, `t.Item1.y`, or `t.z`.
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
@@ -35029,6 +35038,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void TupleTypeInference_07()
         {
             var source =
@@ -35048,7 +35058,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should not report warning for `t._9` or `t.Rest.Item2`.
+            // https://github.com/dotnet/roslyn/issues/29970: Should not report warning for `t._9` or `t.Rest.Item2`.
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             t._7.ToString();
@@ -35186,7 +35196,7 @@ class C
         z.E2?.Invoke().ToString();
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullReferenceReceiver for `y.E2?.Invoke()`.
+
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition }, targetFramework: TargetFramework.Mscorlib46);
             comp.VerifyDiagnostics(
                 // (27,11): error CS0070: The event '(object, object).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object, object)')
@@ -36709,6 +36719,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29971, "https://github.com/dotnet/roslyn/issues/29971")]
         public void ForEach_10()
         {
             var source =
@@ -36733,7 +36744,7 @@ class C
             b1.ToString();
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullabilityMismatchInAssignment
+            // https://github.com/dotnet/roslyn/issues/29971: Should report WRN_NullabilityMismatchInAssignment
             // for `A<object> a3 in c` and `B b1 in c`.
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
@@ -36773,8 +36784,8 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Location of WRN_NullabilityMismatchInAssignment should be `y` rather than `B`.
-            // PROTOTYPE(NullableReferenceTypes): Reword WRN_NullabilityMismatchInAssignment since there is not an explicit assignment.
+            // https://github.com/dotnet/roslyn/issues/29971: Location of WRN_NullabilityMismatchInAssignment should be `y` rather than `B`.
+            //                                                Reword WRN_NullabilityMismatchInAssignment since there is not an explicit assignment.
             comp.VerifyDiagnostics(
                 // (15,18): warning CS8601: Possible null reference assignment.
                 //         foreach (B y in e)
@@ -36989,6 +37000,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29972, "https://github.com/dotnet/roslyn/issues/29972")]
         public void ForEach_16()
         {
             var source =
@@ -37013,7 +37025,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullReferenceReceiver using Enumerable.GetEnumerator. 
+            // https://github.com/dotnet/roslyn/issues/29972: Should report WRN_NullReferenceReceiver using Enumerable.GetEnumerator. 
             comp.VerifyDiagnostics();
         }
 
@@ -38065,12 +38077,6 @@ class Program
         }
 
         [Fact]
-        public void Members_Events()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Field-like and explicit events.
-        }
-
-        [Fact]
         public void Members_AutoPropertyFromConstructor()
         {
             var source =
@@ -38531,6 +38537,7 @@ class C
 
         // Calling a method should reset the state for members.
         [Fact]
+        [WorkItem(29975, "https://github.com/dotnet/roslyn/issues/29975")]
         public void Members_CallMethod()
         {
             var source =
@@ -38561,57 +38568,8 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should report warnings.
+            // https://github.com/dotnet/roslyn/issues/29975: Should report warnings.
             comp.VerifyDiagnostics(/*...*/);
-        }
-
-        [Fact]
-        public void ModifyMembers_Conditional()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Modify
-            // member in one branch of conditional.
-        }
-
-        [Fact]
-        public void ModifyMembers_ByRef()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Invalidate
-            // by passing one of the members by reference.
-        }
-
-        [Fact]
-        public void ModifyMembers_In()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Members should not
-            // be invalidated by passing container to `in` parameter.
-        }
-
-        [Fact]
-        public void Members_Interface()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Test members of interface instance.
-        }
-
-        [Fact]
-        public void Members_GenericType()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Test members of generic and constructed
-            // classes, structs, interfaces. In particular, fields and properties of type T.
-        }
-
-        [Fact]
-        public void Members_Array()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Test if (a != null) F(a.Length);
-        }
-
-        // Note, there are no fields or properties on an unconstrained type
-        // parameter so this tests constrained type parameters only.
-        [Fact]
-        public void Members_TypeParameter()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Test members of type parameter
-            // instance constrained to specific interface, class, or struct.
         }
 
         [Fact]
@@ -38779,8 +38737,9 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.E").WithLocation(9, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Support assignment of derived type instances.
-        [Fact(Skip = "TODO")]
+        // https://github.com/dotnet/roslyn/issues/29977: Support assignment of derived type instances.
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29977")]
+        [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
         public void Members_ObjectInitializer_DerivedType()
         {
             var source =
@@ -38822,8 +38781,9 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(23, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Support assignment of derived type instances.
-        [Fact(Skip = "TODO")]
+        // https://github.com/dotnet/roslyn/issues/29977: Support assignment of derived type instances.
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29977")]
+        [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
         public void Members_Assignment()
         {
             var source =
@@ -38864,47 +38824,6 @@ class Program
                 // (27,9): warning CS8602: Possible dereference of a null reference.
                 //         a.F.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(27, 9));
-        }
-
-        [Fact]
-        public void Members_DynamicInstance()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Test members of dynamic instance.
-        }
-
-        [Fact]
-        public void Members_DynamicMembers()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Test members that have dynamic type.
-        }
-
-        [Fact]
-        public void Members_Tuple()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Test tuple fields, including Rest.
-            // Virtual field should be tracked as actual field. Checking one or assigning
-            // to one should affect both.
-        }
-
-        [Fact]
-        public void Members_AnonymousType()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Test anonymous type fields: classes and structs.
-        }
-
-        [Fact]
-        public void Members_LocalFunction()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Test combinations of
-            // checks and dereferences inside and outside local functions.
-        }
-
-        [Fact]
-        public void Members_ExplicitBackingFields()
-        {
-            // PROTOTYPE(NullableReferenceTypes): Test references within the
-            // class to property and associated backing field. The two should be
-            // tracked independently. Test for classes and structs.
         }
 
         [Fact]
@@ -39091,7 +39010,7 @@ class B
     }
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Various differences from expected warnings.
+            // https://github.com/dotnet/roslyn/issues/29978: Various differences from expected warnings.
             comp.VerifyDiagnostics(
                 // (29,41): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static void F5<T>(T t5) where T : I<T?>
@@ -40013,7 +39932,7 @@ class B : A<int>
                 Assert.Equal("void B.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
 
-                // PROTOTYPE(NullableReferenceTypes): It is probably wrong to have this difference between source symbol
+                // https://github.com/dotnet/roslyn/issues/29979: It is probably wrong to have this difference between source symbol
                 //                                    and emitted-then-imported symbol. What are the rules for inheriting constraints
                 //                                    across different non-null contexts?
                 if (isSource)
@@ -40490,7 +40409,7 @@ class B : IA
                 Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
 
-                // PROTOTYPE(NullableReferenceTypes): It is probably wrong to have this difference between source symbol
+                // https://github.com/dotnet/roslyn/issues/29979: It is probably wrong to have this difference between source symbol
                 //                                    and emitted-then-imported symbol. What are the rules for inheriting constraints
                 //                                    across different non-null contexts?
                 if (isSource)
@@ -42806,7 +42725,7 @@ class A : I1
 }
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): unexpected warning
+            // https://github.com/dotnet/roslyn/issues/29980: unexpected warning
             comp.VerifyDiagnostics(
                 // (21,17): warning CS8633: Nullability in constraints for type parameter 'TF1A' of method 'A.F1<TF1A>()' doesn't match the constraints for type parameter 'TF1' of interface method 'I1.F1<TF1>()'. Consider using an explicit interface implementation instead.
                 //     public void F1<TF1A>() where TF1A : object
@@ -42857,7 +42776,7 @@ class A : I1
 }
 ";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): unexpected warning
+            // https://github.com/dotnet/roslyn/issues/29980: unexpected warning
             comp.VerifyDiagnostics(
                 // (23,17): warning CS8633: Nullability in constraints for type parameter 'TF2A' of method 'A.F2<TF2A>()' doesn't match the constraints for type parameter 'TF2' of interface method 'I1.F2<TF2>()'. Consider using an explicit interface implementation instead.
                 //     public void F2<TF2A>()
@@ -44590,11 +44509,12 @@ public interface IC
             );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should report CS8600 for `T1 t = (T1)NullableObject();`
+        // https://github.com/dotnet/roslyn/issues/29981: Should report CS8600 for `T1 t = (T1)NullableObject();`
         // and `T3 t = (T3)NullableObject();`. (See VisitConversion which skips reporting because the
         // `object?` has an Unboxing conversion. Should report warning on unconverted operand
         // when Unboxing.)
         [Fact]
+        [WorkItem(29981, "https://github.com/dotnet/roslyn/issues/29981")]
         public void UnconstrainedTypeParameter_MayBeNonNullable()
         {
             var source =
@@ -44656,7 +44576,7 @@ class A
 {
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): missing warnings
+            // https://github.com/dotnet/roslyn/issues/29981: missing warnings
             comp.VerifyDiagnostics(
                 // (45,23): warning CS8603: Possible null reference return.
                 //     static T5 F1() => default; // warn: return type T5 may be non-null
@@ -44947,7 +44867,7 @@ class A
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
 
-            // PROTOTYPE(NullableReferenceTypes): There should be a warning for F17
+            // https://github.com/dotnet/roslyn/issues/29981: There should be a warning for F17
 
             comp.VerifyDiagnostics(
                 // (20,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -45001,7 +44921,7 @@ class C
 }
 ";
 
-            // PROTOTYPE(NullableReferenceTypes): there should be a warning for F5
+            // https://github.com/dotnet/roslyn/issues/29981: there should be a warning for F5
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition, NonNullTypesTrue });
             comp.VerifyDiagnostics(
                 // (4,39): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -45067,6 +44987,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29983, "https://github.com/dotnet/roslyn/issues/29983")]
         public void UnconstrainedTypeParameter_TypeInferenceThroughCall()
         {
             var source =
@@ -45105,7 +45026,7 @@ class C
 ";
 
             var comp = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition, NonNullTypesTrue });
-            // PROTOTYPE(NullableReferenceTypes): Should not report warning for `x6.ToString()`.
+            // https://github.com/dotnet/roslyn/issues/29983: Should not report warning for `x6.ToString()`.
             comp.VerifyDiagnostics(
                 // (29,9): error CS0411: The type arguments for method 'C.CopyOutInherit<T1, T2>(T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         CopyOutInherit(u, out var x7);
@@ -45124,9 +45045,8 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x6").WithLocation(27, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Add tests for unconstrained T in foreach and using
-
         [Fact]
+        [WorkItem(29993, "https://github.com/dotnet/roslyn/issues/29993")]
         public void TypeParameter_Return_01()
         {
             var source =
@@ -45141,7 +45061,7 @@ class C
 }";
 
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Errors are different than expected.
+            // https://github.com/dotnet/roslyn/issues/29993: Errors are different than expected.
             comp.VerifyDiagnostics(
                 // (4,34): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //     static U F1<T, U>(T t) => (U)(object)t;
@@ -45160,9 +45080,6 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)t").WithLocation(6, 51)
             );
         }
-
-        // PROTOTYPE(NullableReferenceTypes): Are there interesting cases where nullable and
-        // non-nullable value types are converted to unconstrained type parameters?
 
         [Fact]
         public void TrackUnconstrainedTypeParameter_LocalsAndParameters()
@@ -45262,9 +45179,6 @@ class C
                 Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "t2 != null").WithLocation(14, 13));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Add back-stop in Emit
-        // that catches T? where T is unconstrained.
-
         [Fact]
         public void NullableT_BaseAndInterfaces()
         {
@@ -45327,6 +45241,7 @@ class B
         }
 
         [Fact]
+        [WorkItem(29995, "https://github.com/dotnet/roslyn/issues/29995")]
         public void NullableT_Members()
         {
             var source =
@@ -45349,7 +45264,7 @@ class B<T>
     public static explicit operator A<T?>(B<T> t) => throw null;
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Report error for `const object c = default(T?[]);`.
+            // https://github.com/dotnet/roslyn/issues/29995: Report error for `const object c = default(T?[]);`.
             comp.VerifyDiagnostics(
                 // (5,10): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // delegate T? D<T>();
@@ -45589,6 +45504,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29996, "https://github.com/dotnet/roslyn/issues/29996")]
         public void NullableT_FromMetadata_BaseAndInterfaces()
         {
             var source0 =
@@ -45621,11 +45537,12 @@ class C
     static void G(B<object> b) { }
 }";
             var comp = CreateCompilation(source1, new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Report errors for T? in metadata?
+            // https://github.com/dotnet/roslyn/issues/29996: Report errors for T? in metadata?
             comp.VerifyDiagnostics();
         }
 
         [Fact]
+        [WorkItem(29996, "https://github.com/dotnet/roslyn/issues/29996")]
         public void NullableT_FromMetadata_Methods()
         {
             var source0 =
@@ -45700,7 +45617,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source1, new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Report errors for T? in metadata?
+            // https://github.com/dotnet/roslyn/issues/29996: Report errors for T? in metadata?
             comp.VerifyDiagnostics();
         }
 
@@ -45989,7 +45906,7 @@ class B4<T> : A<T?, T?>, I<T?, T?>
 {
 }";
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
-            // PROTOTYPE(NullableReferenceTypes): Should report warnings that `T?`
+            // https://github.com/dotnet/roslyn/issues/29678: Should report warnings that `T?`
             // does not satisfy `where T : class` constraint or `where U : T` constraint.
             comp.VerifyDiagnostics();
         }
@@ -45998,7 +45915,7 @@ class B4<T> : A<T?, T?>, I<T?, T?>
         [Fact]
         public void NullableTInConstraint_08()
         {
-            // PROTOTYPE(NullableReferenceTypes): `where T : class, T?` is not valid in C#,
+            // https://github.com/dotnet/roslyn/issues/29997: `where T : class, T?` is not valid in C#,
             // so the class needs to be defined in IL. How and where should the custom
             // attribute be declared for the constraint type in the following?
             var source0 =
@@ -46075,9 +45992,11 @@ class B4<T> : A<T?, T?>, I<T?, T?>
             ref0 = comp.EmitToImageReference();
 
             comp = CreateCompilation(new[] { source1, NonNullTypesTrue }, new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): TypeSymbolExtensions.GetTypeRefWithAttributes
-            // drops the top-level nullability when emitting the `T?` constraint. See also
-            // AttributeTests_Nullable.EmitAttribute_Constraint_03.
+
+            var c = comp.GetTypeByMetadataName("C`2");
+            Assert.IsAssignableFrom<PENamedTypeSymbol>(c);
+            Assert.Equal("C<T, U> where T : class where U : T?", c.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
             comp.VerifyDiagnostics(
                 // (6,19): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T, U>'. Nullability of type argument 'object?' doesn't match 'class' constraint.
                 //         o = new C<object?, object?>(); // 1
@@ -47328,6 +47247,7 @@ public class B
         }
 
         [Fact]
+        [WorkItem(29999, "https://github.com/dotnet/roslyn/issues/29999")]
         public void ThisAndBaseMemberInLambda()
         {
             var source =
@@ -47355,7 +47275,7 @@ class B : A
         };
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): Should not report warning for
+            // https://github.com/dotnet/roslyn/issues/29999: Should not report warning for
             // dereference of `this.F` or `base.F` after assignment.
             var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             comp.VerifyDiagnostics(
@@ -47405,6 +47325,7 @@ class Program
 
         [WorkItem(29041, "https://github.com/dotnet/roslyn/issues/29041")]
         [WorkItem(29048, "https://github.com/dotnet/roslyn/issues/29048")]
+        [WorkItem(30001, "https://github.com/dotnet/roslyn/issues/30001")]
         [Fact]
         public void ConstraintCyclesFromMetadata_01()
         {
@@ -47434,15 +47355,18 @@ public class A6<T> where T : IEquatable<int?> { }";
             var comp0 = CreateCompilation(source0);
             var ref0 = comp0.EmitToImageReference();
             var comp = CreateCompilation(source, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A0<string?>().
-            comp.VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         new A0<string?>(); // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
                 // (9,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         new A5<string?>(); // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22)
-                );
+            };
+
+            comp.VerifyDiagnostics(expectedDiagnostics);
             verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A3", "System.IEquatable<T>");
@@ -47454,15 +47378,7 @@ public class A6<T> where T : IEquatable<int?> { }";
             comp0 = CreateCompilation(new[] { source0, NonNullTypesFalse, NonNullTypesAttributesDefinition });
             ref0 = comp0.EmitToImageReference();
             comp = CreateCompilation(source, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report same warnings as other two cases.
-            comp.VerifyDiagnostics(
-                // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A0<string?>(); // 1
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
-                // (9,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         new A5<string?>(); // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22)
-                );
+            comp.VerifyDiagnostics(expectedDiagnostics);
             verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
             verifyTypeParameterConstraint("A3", "System.IEquatable<T>");
@@ -47474,7 +47390,7 @@ public class A6<T> where T : IEquatable<int?> { }";
             comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             ref0 = comp0.EmitToImageReference();
             comp = CreateCompilation(source, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A0<string?>().
+            // https://github.com/dotnet/roslyn/issues/30001: Should report a nullability mismatch warning for A0<string?>().
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         new A0<string?>(); // 1
@@ -47503,6 +47419,7 @@ public class A6<T> where T : IEquatable<int?> { }";
 
         [WorkItem(29041, "https://github.com/dotnet/roslyn/issues/29041")]
         [WorkItem(29048, "https://github.com/dotnet/roslyn/issues/29048")]
+        [WorkItem(30003, "https://github.com/dotnet/roslyn/issues/30003")]
         [Fact]
         public void ConstraintCyclesFromMetadata_02()
         {
@@ -47532,7 +47449,7 @@ public class A2<T> where T : class, IEquatable<T?> { }
 
             MetadataReference ref0 = comp0.ToMetadataReference();
             var comp = CreateCompilation(source, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A2<string>().
+            // https://github.com/dotnet/roslyn/issues/30003: Should report a nullability mismatch warning for A2<string>().
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         new A2<string?>(); // 2
@@ -47552,7 +47469,7 @@ public class A2<T> where T : class, IEquatable<T?> { }
                 );
             ref0 = comp0.ToMetadataReference();
             comp = CreateCompilation(source, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report same warnings as other two cases.
+            // https://github.com/dotnet/roslyn/issues/30003: Should report same warnings as other two cases.
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         new A2<string?>(); // 2
@@ -47564,7 +47481,7 @@ public class A2<T> where T : class, IEquatable<T?> { }
             comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue, NonNullTypesAttributesDefinition });
             ref0 = comp0.EmitToImageReference();
             comp = CreateCompilation(source, references: new[] { ref0 });
-            // PROTOTYPE(NullableReferenceTypes): Should report a nullability mismatch warning for A2<string>().
+            // https://github.com/dotnet/roslyn/issues/30003: Should report a nullability mismatch warning for A2<string>().
             comp.VerifyDiagnostics(
                 // (5,16): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A2<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
                 //         new A2<string?>(); // 2
