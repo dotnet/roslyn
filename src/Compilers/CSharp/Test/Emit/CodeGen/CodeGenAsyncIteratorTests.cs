@@ -22,16 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
         // PROTOTYPE(async-streams) Add more tests:
-        // Test missing remaining types/members once BCL APIs are finalized (MRVTSL, IStrongBox, IValueTaskSource)
-        // test missing AsyncTaskMethodBuilder<T> or missing members Create(), Task, ...
         // Test with yield or await in try/catch/finally
         // More tests with exception thrown
         // There is a case in GetIteratorElementType with IsDirectlyInIterator that relates to speculation, needs testing
         // yield break disallowed in finally and top-level script (see BindYieldBreakStatement); same for yield return (see BindYieldReturnStatement)
         // binding for yield return (BindYieldReturnStatement) validates escape rules, needs testing
         // test yield in async lambda (still error)
-        // test exception handling (should capture and return the exception via the promise)
-        // test IAsyncEnumerable<U> M<U>() ...
         // test with IAsyncEnumerable<dynamic>
         // other tests with dynamic?
         // test should cover both case with AwaitOnCompleted and AwaitUnsafeOnCompleted
@@ -39,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         // Can we avoid making IAsyncEnumerable<T> special from the start? Making mark it with an attribute like we did for task-like?
         // Do some manual validation on debugging scenarios, including with exceptions (thrown after yield and after await).
         // Test with one or both or the threadID APIs missing.
-        // Test with parameters, including `this`
+        // Enable remaining windows/desktop-only to run on Core
 
         private void VerifyMissingMember(WellKnownMember member, params DiagnosticDescription[] expected)
         {
@@ -1837,7 +1833,6 @@ class C
             CompileAndVerify(comp, expectedOutput: "Done");
         }
 
-        // PROTOTYPE(async-streams): Consider moving this common test code to TestSources.cs
         private static readonly string s_common = @"
 namespace System.Collections.Generic
 {

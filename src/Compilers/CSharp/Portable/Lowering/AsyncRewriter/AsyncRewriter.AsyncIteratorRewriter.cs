@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
                 _elementType = stateMachineType.ElementType;
-
-                // PROTOTYPE(async-streams): Why does AsyncRewriter have logic to ignore accessibility?
             }
 
             protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
