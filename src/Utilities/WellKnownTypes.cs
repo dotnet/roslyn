@@ -8,20 +8,33 @@ namespace Analyzer.Utilities
     internal static class WellKnownTypes
     {
         public const string SystemWebHttpRequest = "System.Web.HttpRequest";
+        public const string SystemDataIDataAdapter= "System.Data.IDataAdapter";
+        public const string SystemDataIDbCommand = "System.Data.IDbCommand";
+        public const string SystemException = "System.Exception";
+        public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
+        public const string SystemIDisposable = "System.IDisposable";
+        public const string SystemThreadingMonitor = "System.Threading.Monitor";
+        public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
+        public const string SystemCollectionsICollection = "System.Collections.ICollection";
+        public const string SystemCollectionsGenericICollection = "System.Collections.Generic.ICollection`1";
+        public const string SystemCollectionsGenericIReadOnlyCollection = "System.Collections.Generic.IReadOnlyCollection`1";
+        public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
+        public const string SystemIEquatable1 = "System.IEquatable`1";
+        public const string SystemWebUIWebControlsSqlDataSource = "System.Web.UI.WebControls.SqlDataSource";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.ICollection");
+            return compilation.GetTypeByMetadataName(SystemCollectionsICollection);
         }
 
         public static INamedTypeSymbol GenericICollection(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1");
+            return compilation.GetTypeByMetadataName(SystemCollectionsGenericICollection);
         }
 
         public static INamedTypeSymbol GenericIReadOnlyCollection(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1");
+            return compilation.GetTypeByMetadataName(SystemCollectionsGenericIReadOnlyCollection);
         }
 
         public static INamedTypeSymbol IEnumerable(Compilation compilation)
@@ -136,7 +149,7 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol Monitor(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Threading.Monitor");
+            return compilation.GetTypeByMetadataName(SystemThreadingMonitor);
         }
 
         public static INamedTypeSymbol Thread(Compilation compilation)
@@ -146,7 +159,7 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol Task(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+            return compilation.GetTypeByMetadataName(SystemThreadingTasksTask);
         }
 
         public static INamedTypeSymbol WebMethodAttribute(Compilation compilation)
@@ -176,7 +189,7 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol IDisposable(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.IDisposable");
+            return compilation.GetTypeByMetadataName(SystemIDisposable);
         }
 
         public static INamedTypeSymbol ISerializable(Compilation compilation)
@@ -186,7 +199,7 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol SerializationInfo(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.SerializationInfo");
+            return compilation.GetTypeByMetadataName(SystemRuntimeSerializationSerializationInfo);
         }
 
         public static INamedTypeSymbol StreamingContext(Compilation compilation)
@@ -311,7 +324,7 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol Exception(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Exception");
+            return compilation.GetTypeByMetadataName(SystemException);
         }
 
         public static INamedTypeSymbol InvalidOperationException(Compilation compilation)
@@ -341,7 +354,7 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol GenericIEquatable(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.IEquatable`1");
+            return compilation.GetTypeByMetadataName(SystemIEquatable1);
         }
 
         public static INamedTypeSymbol IHashCodeProvider(Compilation compilation)
@@ -406,7 +419,7 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol IDbCommand(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Data.IDbCommand");
+            return compilation.GetTypeByMetadataName(SystemDataIDbCommand);
         }
 
         public static INamedTypeSymbol IDataAdapter(Compilation compilation)
@@ -583,11 +596,6 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol NunitTheory(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("NUnit.Framework.TheoryAttribute");
-        }
-
-        public static INamedTypeSymbol SystemDiagnosticContractsContract(Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Diagnostics.Contracts.Contract");
         }
 
         public static INamedTypeSymbol XmlWriter(Compilation compilation)

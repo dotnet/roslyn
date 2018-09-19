@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
@@ -18,16 +19,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private WellKnownTypeProvider(Compilation compilation)
         {
             Compilation = compilation;
-            Exception = Analyzer.Utilities.WellKnownTypes.Exception(compilation);
-            Contract = Analyzer.Utilities.WellKnownTypes.SystemDiagnosticContractsContract(compilation);
-            IDisposable = Analyzer.Utilities.WellKnownTypes.IDisposable(compilation);
-            Monitor = Analyzer.Utilities.WellKnownTypes.Monitor(compilation);
-            Task = Analyzer.Utilities.WellKnownTypes.Task(compilation);
+            TypeToFullName = new Dictionary<ISymbol, string>();
+
+            Exception = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemException);
+            Contract = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemDiagnosticContractsContract);
+            IDisposable = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemIDisposable);
+            Monitor = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemThreadingMonitor);
+            Task = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemThreadingTasksTask);
             CollectionTypes = GetWellKnownCollectionTypes(compilation);
-            SerializationInfo = Analyzer.Utilities.WellKnownTypes.SerializationInfo(compilation);
-            GenericIEquatable = Analyzer.Utilities.WellKnownTypes.GenericIEquatable(compilation);
-            HttpRequest = Analyzer.Utilities.WellKnownTypes.HttpRequest(compilation);
-            NameValueCollection = Analyzer.Utilities.WellKnownTypes.NameValueCollection(compilation);
+            SerializationInfo = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemRuntimeSerializationSerializationInfo);
+            GenericIEquatable = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemIEquatable1);
+            HttpRequest = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemWebHttpRequest);
+            IDbCommand = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemDataIDbCommand);
+            WebControlsSqlDataSource = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemWebUIWebControlsSqlDataSource);
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation) => s_providerCache.GetValue(compilation, s_ProviderCacheCallback);
@@ -75,9 +79,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public INamedTypeSymbol HttpRequest { get; }
 
         /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.Specialized.NameValueCollection"/>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Data.IDbCommand"/>
         /// </summary>
-        public INamedTypeSymbol NameValueCollection { get;  }
+        public INamedTypeSymbol IDbCommand { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Web.UI.WebControls.SqlDataSource"/>
+        /// </summary>
+        public INamedTypeSymbol WebControlsSqlDataSource { get; }
 
         /// <summary>
         /// Set containing following named types, if not null:
@@ -88,41 +97,55 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public ImmutableHashSet<INamedTypeSymbol> CollectionTypes { get; }
 
         /// <summary>
+        /// Mapping of ISymbol to full name (e.g. "System.Exception").
+        /// </summary>
+        private Dictionary<ISymbol, string> TypeToFullName { get; }
+
+        /// <summary>
         /// Attempts to get the full type name (namespace + type) of the specifed symbol.
         /// </summary>
         /// <param name="symbol">Symbol.</param>
         /// <param name="fullTypeName">Namespace + type name.</param>
         /// <returns>True if found, false otherwise.</returns>
+        /// <remarks>This only works for types that this <see cref="WellKnownTypeProvider"/> knows about.</remarks>
         public bool TryGetFullTypeName(ISymbol symbol, out string fullTypeName)
         {
-            if (symbol == this.HttpRequest)
-            {
-                fullTypeName = Analyzer.Utilities.WellKnownTypes.SystemWebHttpRequest;
-                return true;
-            }
-            else
-            {
-                fullTypeName = null;
-                return false;
-            }
+            return TypeToFullName.TryGetValue(symbol, out fullTypeName);
         }
 
-        private static ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes(Compilation compilation)
+        /// <summary>
+        /// Gets the INamedTypeSymbol from the compilation and caches a mapping from the INamedTypeSymbol to its canonical name.
+        /// </summary>
+        /// <param name="compilation">Compilation from which to retrieve the INamedTypeSymbol from.</param>
+        /// <param name="metadataName">Metadata name.</param>
+        /// <returns>INamedTypeSymbol, if any.</returns>
+        private INamedTypeSymbol GetTypeByMetadataName(Compilation compilation, string metadataName)
+        {
+            INamedTypeSymbol namedTypeSymbol = compilation.GetTypeByMetadataName(metadataName);
+            if (namedTypeSymbol != null)
+            {
+                this.TypeToFullName.Add(namedTypeSymbol, metadataName);
+            }
+
+            return namedTypeSymbol;
+        }
+
+        private ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes(Compilation compilation)
         {
             var builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
-            var iCollection = Analyzer.Utilities.WellKnownTypes.ICollection(compilation);
+            var iCollection = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemCollectionsICollection);
             if (iCollection != null)
             {
                 builder.Add(iCollection);
             }
 
-            var genericICollection = Analyzer.Utilities.WellKnownTypes.GenericICollection(compilation);
+            var genericICollection = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemCollectionsGenericICollection);
             if (genericICollection != null)
             {
                 builder.Add(genericICollection);
             }
 
-            var genericIReadOnlyCollection = Analyzer.Utilities.WellKnownTypes.GenericIReadOnlyCollection(compilation);
+            var genericIReadOnlyCollection = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemCollectionsGenericIReadOnlyCollection);
             if (genericIReadOnlyCollection != null)
             {
                 builder.Add(genericIReadOnlyCollection);

@@ -1,23 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    using Analyzer.Utilities.Extensions;
-    using Microsoft.CodeAnalysis.FlowAnalysis;
+    using System;
     using TaintedDataAnalysisResult = DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
 
     internal partial class TaintedDataAnalysis
     {
         private sealed class TaintedDataOperationVisitor : AnalysisEntityDataFlowOperationVisitor<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataAbstractValue>
         {
+            /// <summary>
+            /// Mapping of a tainted data source to potential sinks.
+            /// </summary>
+            private Dictionary<SyntaxNode, List<SyntaxNode>> TaintedSinks { get; set; }
+
             public TaintedDataOperationVisitor(TaintedDataAnalysisContext analysisContext)
                 : base(analysisContext)
             {
+                this.TaintedSinks = new Dictionary<SyntaxNode, List<SyntaxNode>>();
             }
 
             protected override TaintedDataAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TaintedDataAbstractValue defaultValue)
@@ -66,7 +75,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override TaintedDataAnalysisData GetClonedAnalysisData(TaintedDataAnalysisData analysisData)
             {
-                return (TaintedDataAnalysisData) analysisData.Clone();
+                return (TaintedDataAnalysisData)analysisData.Clone();
             }
 
             protected override bool HasAbstractValue(AnalysisEntity analysisEntity)
@@ -101,7 +110,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, TaintedDataAbstractValue value)
             {
-                if (value.Kind == TaintedDataAbstractValueKind.Tainted 
+                if (value.Kind == TaintedDataAbstractValueKind.Tainted
                     || this.CurrentAnalysisData.CoreAnalysisData.ContainsKey(analysisEntity))
                 {
                     // Only track tainted data, or sanitized data.
@@ -115,6 +124,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 this.CurrentAnalysisData.RemoveEntries(analysisEntity);
             }
 
+            // So we can hook into constructor calls.
+            public override TaintedDataAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
+            {
+                var value = base.VisitObjectCreation(operation, argument);
+                ProcessRegularInvocationOrCreation(operation.Constructor, operation.Arguments, operation);
+                return value;
+            }
+
             public override TaintedDataAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object argument)
             {
                 TaintedDataAbstractValue leftAbstractValue = Visit(operation.LeftOperand, argument);
@@ -124,15 +141,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
 
             public override TaintedDataAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
-                IMethodSymbol method, 
+                IMethodSymbol method,
                 IOperation visitedInstance,
-                ImmutableArray<IArgumentOperation> visitedArguments, 
+                ImmutableArray<IArgumentOperation> visitedArguments,
                 bool invokedAsDelegate,
-                IOperation originalOperation, 
+                IOperation originalOperation,
                 TaintedDataAbstractValue defaultValue)
             {
                 // Always invoke base visit.
                 TaintedDataAbstractValue baseVisit = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
+
+                ProcessRegularInvocationOrCreation(method, visitedArguments, originalOperation);
+
                 if (visitedInstance != null
                     && (this.GetCachedAbstractValue(visitedInstance).Kind == TaintedDataAbstractValueKind.Tainted
                         || WebInputSources.IsTaintedMethod(this.WellKnownTypeProvider, visitedInstance, method)))
@@ -142,6 +162,47 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 else
                 {
                     return baseVisit;
+                }
+            }
+
+            protected override TaintedDataAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
+            {
+                TaintedDataAbstractValue taintedDataAbstractValue = base.VisitAssignmentOperation(operation, argument);
+                ProcessAssignmentOperation(operation);
+                return taintedDataAbstractValue;
+            }
+
+            /// <summary>
+            /// Determines if tainted data is entering a sink as a method call argument, and if so, flags it.
+            /// </summary>
+            /// <param name="targetMethod">Method being invoked.</param>
+            /// <param name="arguments">Arguments to the method.</param>
+            /// <param name="originalOperation">Original IOperation for the method/constructor invocation.</param>
+            private void ProcessRegularInvocationOrCreation(IMethodSymbol targetMethod, ImmutableArray<IArgumentOperation> arguments, IOperation originalOperation)
+            {
+                IEnumerable<IArgumentOperation> taintedArguments = arguments.Where(
+                    a => this.GetCachedAbstractValue(a).Kind == TaintedDataAbstractValueKind.Tainted
+                         && (a.Parameter.RefKind == RefKind.None
+                             || a.Parameter.RefKind == RefKind.Ref
+                             || a.Parameter.RefKind == RefKind.In));
+                if (SqlSinks.IsMethodArgumentASink(this.WellKnownTypeProvider, targetMethod, taintedArguments))
+                {
+                    this.TaintedSinks.Add(originalOperation.Syntax, new List<SyntaxNode>() { originalOperation.Syntax });
+                }
+            }
+
+            private void ProcessAssignmentOperation(IAssignmentOperation assignmentOperation)
+            {
+                if (assignmentOperation.Target == null
+                    || this.GetCachedAbstractValue(assignmentOperation.Value).Kind != TaintedDataAbstractValueKind.Tainted
+                    || !(assignmentOperation.Target is IPropertyReferenceOperation propertyReferenceOperation))
+                {
+                    return;
+                }
+
+                if (SqlSinks.IsPropertyASink(this.WellKnownTypeProvider, propertyReferenceOperation))
+                {
+                    this.TaintedSinks.Add(propertyReferenceOperation.Syntax, new List<SyntaxNode>() { propertyReferenceOperation.Syntax });
                 }
             }
         }

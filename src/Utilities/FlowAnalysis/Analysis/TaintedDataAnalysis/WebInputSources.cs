@@ -128,5 +128,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && SourceMetadatas.TryGetValue(instanceType, out SourceMetadata sourceMetadata)
                 && sourceMetadata.TaintedMethods.Contains(method.MetadataName);
         }
+
+        public static bool DoesCompilationIncludeSources(Compilation compilation)
+        {
+            foreach (string metadataTypeName in SourceMetadatas.Keys)
+            {
+                if (compilation.GetTypeByMetadataName(metadataTypeName) != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
