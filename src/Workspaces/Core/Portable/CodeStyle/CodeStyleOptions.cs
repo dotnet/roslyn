@@ -216,7 +216,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_readonly_field"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferReadonly") });
 
-
         private static CodeStyleOption<AccessibilityModifiersRequired> ParseAccessibilityModifiersRequired(string optionString)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(optionString,
