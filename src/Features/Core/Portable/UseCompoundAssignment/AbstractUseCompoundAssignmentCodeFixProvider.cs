@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         syntaxFacts.GetPartsOfBinaryExpression(rightOfAssign,
                            out _, out var opToken, out var rightExpr);
 
-                    var assignmentOpKind = _binaryToAssignmentMap[GetSyntaxKind(rightOfAssign.RawKind)];
+                        var assignmentOpKind = _binaryToAssignmentMap[GetSyntaxKind(rightOfAssign.RawKind)];
                         var compoundOperator = Token(_assignmentToTokenMap[assignmentOpKind]);
                         return Assignment(
                             assignmentOpKind,
