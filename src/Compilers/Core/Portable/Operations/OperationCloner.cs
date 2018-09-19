@@ -315,6 +315,11 @@ namespace Microsoft.CodeAnalysis.Operations
                                           operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, object argument)
+        {
+            return new CoalesceAssignmentOperation(Visit(operation.Target), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
         public override IOperation VisitIsType(IIsTypeOperation operation, object argument)
         {
             return new IsTypeExpression(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);

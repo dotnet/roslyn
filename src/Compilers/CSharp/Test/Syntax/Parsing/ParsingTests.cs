@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null) =>
             SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
 
+        internal CompilationUnitSyntax ParseFileExperimental(string text, MessageID feature) =>
+            ParseFile(text, parseOptions: TestOptions.Regular.WithExperimental(feature));
+
         protected virtual CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options) =>
             ParseTree(text, options).GetCompilationUnitRoot();
 
@@ -64,7 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal void UsingExpression(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
-            var node = SyntaxFactory.ParseExpression(text, options: options);
+            // https://github.com/dotnet/roslyn/issues/29819 Revert options coalesce
+            var node = SyntaxFactory.ParseExpression(text, options: options ?? TestOptions.Regular8);
             // we validate the text roundtrips
             Assert.Equal(text, node.ToFullString());
             var actualErrors = node.GetDiagnostics();
