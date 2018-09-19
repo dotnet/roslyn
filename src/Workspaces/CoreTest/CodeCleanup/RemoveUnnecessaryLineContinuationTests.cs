@@ -278,9 +278,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
         Console.WriteLine() _ ' test
-          Console.WriteLine()";
+        Console.WriteLine()";
+            /* PROTOTYPE line below needs to be  LanguageVersion.VisualBasic15_5*/
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected), LanguageVersion.VisualBasic15_3);
+        }
 
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        public async Task ColonToken_LineContinuation_Comment_BeforeColonTokenV16()
+        {
+            var code = @"[|
+         Console.WriteLine() _ ' test
+         : Console.WriteLine()|]";
+
+            var expected = @"
+        Console.WriteLine() _ ' test
+        Console.WriteLine()";
+            /* PROTOTYPE line below needs to be  LanguageVersion.VisualBasic16*/
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected), LanguageVersion.VisualBasic15_5);
         }
 
         [Fact]
@@ -1452,7 +1467,7 @@ End Class";
 
         private async Task VerifyAsync(string codeWithMarker, string expectedResult, LanguageVersion langVersion = LanguageVersion.VisualBasic14)
         {
-            MarkupTestFile.GetSpans(codeWithMarker, 
+            MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic, langVersion);
@@ -1460,7 +1475,8 @@ End Class";
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 
-            Assert.Equal(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
+            var actualResult = (await cleanDocument.GetSyntaxRootAsync()).ToFullString();
+            Assert.Equal(expectedResult, actualResult);
         }
 
         private static Document CreateDocument(string code, string language, LanguageVersion langVersion)

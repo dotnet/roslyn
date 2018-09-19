@@ -49,5 +49,12 @@ End Sub</MethodBody>, "Next")
 <MethodBody>On Error Resume _
 |</MethodBody>, "Next")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>On Error Resume _ ' Test
+|</MethodBody>, "Next")
+        End Function
     End Class
 End Namespace

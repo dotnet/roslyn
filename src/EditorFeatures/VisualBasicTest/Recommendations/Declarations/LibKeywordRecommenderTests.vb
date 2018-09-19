@@ -36,5 +36,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 <ClassDeclaration>Declare Sub goo _
 |</ClassDeclaration>, "Lib")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<ClassDeclaration>Declare Sub goo _ ' Test
+|</ClassDeclaration>, "Lib")
+        End Function
     End Class
 End Namespace
