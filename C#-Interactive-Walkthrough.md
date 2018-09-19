@@ -64,7 +64,7 @@ Then input the following command, which you can do by using ```Alt+UpArrow``` to
 Because the statement is not yet complete, the REPL does not execute it, and the code continues to the next line. Paste in the following code, and then press ```Enter```. This code is a continuation of the previous line.
   
 ```csharp
-"http://www.google.com/finance/historical?q=MSFT&output=csv";
+"https://download.microsoft.com/download/4/C/8/4C830C0C-101F-4BF2-8FCB-32D9A8BA906A/Import_User_Sample_en.csv";
 ```
   
 Because the line is complete, pressing ```Enter``` at the end of the input executes the code.
@@ -110,35 +110,39 @@ Note that we can have asynchronous code inside the REPL. The REPL will wait for 
 > csv.Split('\n').Length
 ```
 
-12. Still a lot of lines, so let's peek at the first couple of hundred characters and see if we can glean something of the string's structure or how long the lines are. Enter the following code:
+12. Only a few lines, so let's peek at the first couple of hundred characters and see if we can glean something of the string's structure or how long the lines are. Enter the following code:
 
 ```csharp
-> Console.Write(csv.Substring(0,200))
+> Console.Write(csv.Substring(0,600))
 ```
   
 You'll see output similar to the following:
   
 ```
-Date,Open,High,Low,Close,Volume
-3-Jul-17,69.33,69.60,68.02,68.17,16165538
-30-Jun-17,68.78,69.38,68.74,68.93,24161068
-29-Jun-17,69.38,69.49,68.09,68.49,28918715
+User Name,First Name,Last Name,Display Name,Job Title,Department,Office Number,Office Phone,Mobile Phone,Fax,Address,City,State or Province,ZIP or Postal Code,Country or Region
+chris@contoso.com,Chris,Green,Chris Green,IT Manager,Information Technology,123451,123-555-1211,123-555-6641,123-555-9821,1 Microsoft way,Redmond,Wa,98052,United States
+ben@contoso.com,Ben,Andrews,Ben Andrews,IT Manager,Information Technology,123452,123-555-1212,123-555-6642,123-555-9822,1 Microsoft way,Redmond,Wa,98052,United States
+david@contoso.com,David,Longmuir,David Longmuir,IT Manager,Information Technology,12
 ```
 
 13. Now we can see what the structure of the data is. Let's build a query to extract the volume from the last column (Skip(1) skips header row). You can use ```Shift+Enter``` at the end of a line to avoid executing the input until you've entered everything; ```Enter``` only evaluates if the expression looks complete:
 
 ```csharp
-var prices = csv.Split('\n').Skip(1)
+var users = csv.Split('\n').Skip(1)
                 .Select(line => line.Split(','))
-                .Where(values => values.Length == 7)
-                .Select(values => new { date = DateTime.Parse(values[0]), price = float.Parse(values[6]) });
+                .Where(values => values.Length == 15)
+                .Select(values => new { 
+                    firstName = values[1], 
+                    lastName = values[2], 
+                    officeNumber = int.Parse(values[6]) 
+                });
 ```
 
-14. Let's print out a bit of the prices from the query. You can use ```Shift+Enter``` after the first to lines to avoid executing them immediately. If you use ```Enter``` inside the 'foreach' loop, the code won't execute until you type the final curly brace and then press ```Enter```.
+14. Let's print out a bit of the users from the query. You can use ```Shift+Enter``` after the first to lines to avoid executing them immediately. If you use ```Enter``` inside the 'foreach' loop, the code won't execute until you type the final curly brace and then press ```Enter```.
 
 ```csharp
-foreach (var p in prices.Take(10))
-    Console.WriteLine(p)
+foreach (var u in users)
+    Console.WriteLine(u)
 ```
 
 Here is what your final session should look like:
@@ -147,7 +151,7 @@ Here is what your final session should look like:
 using System.IO;
 using System.Net;
 
-var url = "http://www.google.com/finance/historical?q=MSFT&output=csv";
+var url = "https://download.microsoft.com/download/4/C/8/4C830C0C-101F-4BF2-8FCB-32D9A8BA906A/Import_User_Sample_en.csv";
 var request = WebRequest.Create(url);
 var response = request.GetResponse();
 var dataStream = response.GetResponseStream();
@@ -156,16 +160,17 @@ var csv = await reader.ReadToEndAsync();
 reader.Close();
 dataStream.Close();
 response.Close();
-var prices = csv.Split('\n').Skip(1)
+var users = csv.Split('\n').Skip(1)
                 .Select(line => line.Split(','))
-                .Where(values => values.Length >= 5)
+                .Where(values => values.Length == 15)
                 .Select(values => new {
-                    date = values[0],
-                    price = float.Parse(values[4])
+                    firstName = values[1],
+                    lastName = values[2],
+                    officeNumber = int.Parse(values[6])
                 });
 
-foreach (var p in prices.Take(10))
-     Console.WriteLine(p);
+foreach (var u in users)
+     Console.WriteLine(u);
 ```
 
 You're done. Enjoy using the REPL and please provide feedback! If you are interested in learning more about the C# Interactive window, watch [this video](https://channel9.msdn.com/Events/Visual-Studio/Connect-event-2015/103) or check out [our documentation](https://github.com/dotnet/roslyn/wiki/Interactive-Window).
