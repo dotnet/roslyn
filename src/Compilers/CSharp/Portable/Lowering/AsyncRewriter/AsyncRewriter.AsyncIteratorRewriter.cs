@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.Field(F.Local(stateMachineVariable), _promiseIsActiveField.AsMember(frameType)),
                         F.Literal(true)));
 
-                // return local.$stateField;
+                // return local;
                 bodyBuilder.Add(F.Return(F.Local(stateMachineVariable)));
 
                 return F.Block(
@@ -506,10 +506,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol IAsyncEnumerableOfElementType_GetEnumerator =
                     F.WellKnownMethod(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator)
                     .AsMember(IAsyncEnumerableOfElementType);
-
-                // PROTOTYPE(async-streams): TODO
-                // result = this;
-                // result.parameter = this.parameterProxy; // copy all of the parameter proxies // PROTOTYPE(async-streams): No sure what this is for
 
                 // The implementation doesn't depend on the method body of the iterator method.
                 // Generates IAsyncEnumerator<elementType> IAsyncEnumerable<elementType>.GetEnumerator()

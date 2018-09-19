@@ -1139,6 +1139,71 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void AsyncIteratorWithParameter()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M(int parameter)
+    {
+        Write($""p:{parameter} "");
+        parameter++;
+        await System.Threading.Tasks.Task.Delay(10);
+        Write($""p:{parameter} "");
+        parameter++;
+        yield return 42;
+        Write($""p:{parameter} "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""Start "");
+        foreach await (var i in M(10))
+        {
+            Write(""Value "");
+        }
+        Write(""End"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Start p:10 p:11 Value p:12 End");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void AsyncIteratorWithThis()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    int field = 10;
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write($""f:{this.field} "");
+        this.field++;
+        await System.Threading.Tasks.Task.Delay(10);
+        Write($""f:{this.field} "");
+        this.field++;
+        yield return 42;
+        Write($""f:{this.field} "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""Start "");
+        foreach await (var i in new C().M())
+        {
+            Write(""Value "");
+        }
+        Write(""End"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "Start f:10 f:11 Value f:12 End");
+        }
+
         [Fact]
         public void AsyncIteratorWithReturn()
         {

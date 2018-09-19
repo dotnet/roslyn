@@ -82,7 +82,7 @@ finally { await e.DisposeAsync(); }
 ### Detailed design for async-iterator methods
 
 The state machine for an async-iterator method primarily implements `IAsyncEnumerable<T>` and `IAsyncEnumerator<T>`.
-It is similar to a state machine produced for an async method. It contains builder and awaiter fields, used to run the state machine in the background (when an `await` is reached in the async-iterator).
+It is similar to a state machine produced for an async method. It contains builder and awaiter fields, used to run the state machine in the background (when an `await` is reached in the async-iterator). It also captures parameter values (if any) or `this` (if needed).
 But it contains additional state:
 - a promise of a value-or-end,
 - a `bool` flag indicating whether the promise is active or not,
