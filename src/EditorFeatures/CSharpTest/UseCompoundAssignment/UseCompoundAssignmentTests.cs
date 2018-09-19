@@ -458,6 +458,19 @@ public class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnUnboundThisAccess()
+        {
+            await TestMissingAsync(
+@"public class C
+{
+    void M()
+    {
+        this.a [||]= this.a + 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestNotWithSideEffects()
         {
             await TestMissingAsync(
