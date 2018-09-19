@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -111,6 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Public Function CreateRenameTrackingTagger(workspace As TestWorkspace, document As TestHostDocument) As ITagger(Of RenameTrackingTag)
             Dim tracker = New RenameTrackingTaggerProvider(
+                workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                 workspace.ExportProvider.GetExport(Of ITextUndoHistoryRegistry)().Value,
                 workspace.ExportProvider.GetExport(Of IWaitIndicator)().Value,
                 workspace.ExportProvider.GetExport(Of IInlineRenameService)().Value,

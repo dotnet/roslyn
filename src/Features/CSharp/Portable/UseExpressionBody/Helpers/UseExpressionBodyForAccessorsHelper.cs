@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override AccessorDeclarationSyntax WithBody(AccessorDeclarationSyntax declaration, BlockSyntax body)
             => declaration.WithBody(body);
 
-        protected override bool CreateReturnStatementForExpression(AccessorDeclarationSyntax declaration)
+        protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, AccessorDeclarationSyntax declaration)
             => declaration.IsKind(SyntaxKind.GetAccessorDeclaration);
     }
 }

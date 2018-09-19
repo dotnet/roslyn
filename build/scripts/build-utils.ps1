@@ -148,6 +148,7 @@ function Ensure-DotnetSdk() {
         Create-Directory $cliDir
         Create-Directory $toolsDir
         $destFile = Join-Path $toolsDir "dotnet-install.ps1"
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $webClient = New-Object -TypeName "System.Net.WebClient"
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
         Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
@@ -353,7 +354,7 @@ function Test-SupportedVisualStudioVersion([string]$version) {
 # meets our minimal requirements for the Roslyn repo.
 function Get-VisualStudioDirAndId() {
     $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\vswhere.exe"
-    $output = Exec-Command $vswhere "-requires Microsoft.Component.MSBuild -format json" | Out-String
+    $output = Exec-Command $vswhere "-prerelease -requires Microsoft.Component.MSBuild -format json" | Out-String
     $j = ConvertFrom-Json $output
     foreach ($obj in $j) { 
 

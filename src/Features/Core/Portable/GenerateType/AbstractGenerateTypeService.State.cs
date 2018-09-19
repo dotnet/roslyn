@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (!semanticFacts.IsTypeContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                     !semanticFacts.IsExpressionContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                     !semanticFacts.IsStatementContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
-                    !semanticFacts.IsNameOfContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
+                    !semanticFacts.IsInsideNameOfExpression(semanticModel, this.NameOrMemberAccessExpression, cancellationToken) &&
                     !semanticFacts.IsNamespaceContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken))
                 {
                     return false;

@@ -6362,6 +6362,13 @@ End Module
         <WorkItem(5664, "https://github.com/dotnet/roslyn/issues/5664")>
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub Bug15538()
+            ' The icacls command fails on our Helix machines And it appears to be related to the use of the $ in 
+            ' the username. 
+            ' https://github.com/dotnet/roslyn/issues/28836
+            If StringComparer.OrdinalIgnoreCase.Equals(Environment.UserDomainName, "WORKGROUP") Then
+                Return
+            End If
+
             Dim folder = Temp.CreateDirectory()
             Dim source As String = folder.CreateFile("src.vb").WriteAllText("").Path
             Dim ref As String = folder.CreateFile("ref.dll").WriteAllText("").Path

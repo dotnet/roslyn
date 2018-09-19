@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
+        private readonly LinkedFileUtilities _linkedFileUtilities;
         private readonly VisualStudioDocumentTrackingService _documentTrackingServiceOpt;
         #endregion
 
@@ -59,7 +60,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public DocumentProvider(
             VisualStudioProjectTracker projectTracker,
             IServiceProvider serviceProvider,
-            VisualStudioDocumentTrackingService documentTrackingService)
+            VisualStudioDocumentTrackingService documentTrackingService,
+            LinkedFileUtilities linkedFileUtilities)
+            : base(projectTracker.ThreadingContext)
         {
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
@@ -68,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             this._runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             this._editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             this._contentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
+            _linkedFileUtilities = linkedFileUtilities;
             _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
 
             _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
@@ -258,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             else
             {
                 var cts = new CancellationTokenSource();
-                var task = InvokeBelowInputPriority(() => NotifyDocumentRegisteredToProjectAndStartToRaiseEvents_Core(document, cts.Token), cts.Token);
+                var task = InvokeBelowInputPriorityAsync(() => NotifyDocumentRegisteredToProjectAndStartToRaiseEvents_Core(document, cts.Token), cts.Token);
                 AddPendingDocumentInitializationTask(document, task, cts);
             }
         }
@@ -660,7 +664,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
             else
             {
-                InvokeBelowInputPriority(() => StopTrackingDocument_Core(document), CancellationToken.None);
+                InvokeBelowInputPriorityAsync(() => StopTrackingDocument_Core(document), CancellationToken.None);
             }
         }
 
@@ -746,7 +750,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
             var document = documentKey.HostProject.GetCurrentDocumentFromPath(documentKey.Moniker);
-            return document != null && LinkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable);
+            return document != null && _linkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable);
         }
 
         public IDisposable ProvideDocumentIdHint(string filePath, DocumentId documentId)

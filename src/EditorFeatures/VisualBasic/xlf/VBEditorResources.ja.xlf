@@ -87,11 +87,6 @@
         <target state="translated">Visual Basic の再フォーマット</target>
         <note />
       </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;複数の種類&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
         <target state="translated">サポートされていません</target>

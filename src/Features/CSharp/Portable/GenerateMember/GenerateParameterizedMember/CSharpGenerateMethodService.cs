@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
 {
     [ExportLanguageService(typeof(IGenerateParameterizedMemberService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpGenerateMethodService :
+    internal sealed class CSharpGenerateMethodService :
         AbstractGenerateMethodService<CSharpGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)

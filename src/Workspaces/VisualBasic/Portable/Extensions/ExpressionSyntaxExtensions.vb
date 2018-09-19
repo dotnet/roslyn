@@ -393,14 +393,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 End If
 
-                If expression.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
+                If expression.IsParentKind(SyntaxKind.NameColonEquals) AndAlso
+                   expression.Parent.IsParentKind(SyntaxKind.SimpleArgument) Then
+
+                    ' <C(Prop:=1)>
+                    ' this is only a write to Prop
                     Return True
                 End If
 
-                Return False
-            End If
+                If expression.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
+                        Return True
+                    End If
 
-            Return False
+                    Return False
+                End If
+
+                Return False
         End Function
 
         <Extension()>
@@ -1032,13 +1040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 End If
 
-                replacementNode = memberAccess.Name
-                replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
-                    .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
-                        memberAccess.Name.Identifier,
-                        semanticModel)) _
-                    .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
-                    .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+                replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
                 issueSpan = memberAccess.Expression.Span
 
                 If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken) Then
@@ -1053,6 +1055,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return False
+        End Function
+
+        <Extension>
+        Public Function GetNameWithTriviaMoved(memberAccess As MemberAccessExpressionSyntax,
+                                               semanticModel As SemanticModel) As SimpleNameSyntax
+            Dim replacementNode = memberAccess.Name
+            replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
+                .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
+                    memberAccess.Name.Identifier,
+                    semanticModel)) _
+                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
+                .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+
+            Return replacementNode
         End Function
 
         <Extension>

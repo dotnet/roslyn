@@ -1,63 +1,80 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Options.OptionServiceFactory;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
     internal partial class FormatCommandHandler : ForegroundThreadAffinitizedObject
     {
-        private bool _infoBarOpen = false;
+        private const string s_experimentName = "CleanupOn";
+
         public VSCommanding.CommandState GetCommandState(FormatDocumentCommandArgs args)
         {
             return GetCommandState(args.SubjectBuffer);
         }
 
-        private void ShowGoldBarForCodeCleanupConfiguration(Document document)
+        private void ShowGoldBarForCodeCleanupConfiguration(Document document, bool performAdditionalCodeCleanupDuringFormatting)
         {
             AssertIsForeground();
+            Logger.Log(FunctionId.CodeCleanupInfobar_BarDisplayed, KeyValueLogMessage.NoProperty);
 
-            // If the gold bar is already open, do not show
-            if (_infoBarOpen)
+            var workspace = document.Project.Solution.Workspace;
+
+            // if info bar was shown already in same VS session, no need to show it again
+            if (workspace.Options.GetOption(CodeCleanupOptions.CodeCleanupInfoBarShown, document.Project.Language))
             {
                 return;
             }
 
-            _infoBarOpen = true;
+            // set as infobar shown so that we never show it again in same VS session. we might show it again
+            // in other VS sessions if it is not explicitly configured yet
+            workspace.Options = workspace.Options.WithChangedOption(
+                CodeCleanupOptions.CodeCleanupInfoBarShown, document.Project.Language, value: true);
 
             var optionPageService = document.GetLanguageService<IOptionPageService>();
             var infoBarService = document.Project.Solution.Workspace.Services.GetRequiredService<IInfoBarService>();
+
+            // wording for the Code Cleanup infobar will be different depending on if the feature is enabled
+            var infoBarMessage = performAdditionalCodeCleanupDuringFormatting
+                ? EditorFeaturesResources.Format_document_performed_additional_cleanup
+                : EditorFeaturesResources.Code_cleanup_is_not_configured;
+
+            var configButtonText = performAdditionalCodeCleanupDuringFormatting
+                ? EditorFeaturesResources.Change_configuration
+                : EditorFeaturesResources.Configure_it_now;
+
             infoBarService.ShowInfoBarInGlobalView(
-                EditorFeaturesResources.Code_cleanup_is_not_configured,
-                new InfoBarUI(EditorFeaturesResources.Configure_it_now,
+                infoBarMessage,
+                new InfoBarUI(configButtonText,
                               kind: InfoBarUI.UIKind.Button,
                               () =>
                               {
+                                  Logger.Log(FunctionId.CodeCleanupInfobar_ConfigureNow, KeyValueLogMessage.NoProperty);
                                   optionPageService.ShowFormattingOptionPage();
-                                  _infoBarOpen = false;
                               }),
                 new InfoBarUI(EditorFeaturesResources.Do_not_show_this_message_again,
                               kind: InfoBarUI.UIKind.Button,
                               () =>
                               {
-                                  var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
-                                  var oldOptions = optionService.GetOptions();
-                                  var newOptions = oldOptions.WithChangedOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain,
-                                      document.Project.Language, true);
-                                  optionService.SetOptions(newOptions);
+                                  Logger.Log(FunctionId.CodeCleanupInfobar_NeverShowCodeCleanupInfoBarAgain, KeyValueLogMessage.NoProperty);
+                                  workspace.Options = workspace.Options.WithChangedOption(
+                                      CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, document.Project.Language, value: true);
                               }));
         }
 
@@ -74,58 +91,109 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
-            {
-                var cancellationToken = context.OperationContext.UserCancellationToken;
+            context.OperationContext.TakeOwnership();
 
-                var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-                using (var transaction = new CaretPreservingEditTransaction(
-                    EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
+            _waitIndicator.Wait(
+                EditorFeaturesResources.Formatting_document,
+                EditorFeaturesResources.Formatting_document,
+                allowCancel: true,
+                showProgress: true,
+                c =>
                 {
-                    var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
-
-                    if (codeCleanupService == null)
+                    var docOptions = document.GetOptionsAsync(c.CancellationToken).WaitAndGetResult(c.CancellationToken);
+                    using (Logger.LogBlock(FunctionId.FormatDocument, CodeCleanupLogMessage.Create(docOptions), c.CancellationToken))
+                    using (var transaction = new CaretPreservingEditTransaction(
+                        EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
-                        Format(args.TextView, document, selectionOpt: null, cancellationToken);
-                    }
-                    else
-                    {
-                        if (docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured))
+                        var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+                        if (codeCleanupService == null)
                         {
-                            // Code cleanup
-                            var oldDoc = document;
-                            var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(document, codeCleanupService, cancellationToken).WaitAndGetResult(cancellationToken);
-
-                            if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
-                            {
-                                ApplyChanges(oldDoc, codeCleanupChanges.ToList(), selectionOpt: null, cancellationToken);
-                            }
+                            Format(args.TextView, document, selectionOpt: null, c.CancellationToken);
                         }
                         else
                         {
-                            Format(args.TextView, document, selectionOpt: null, cancellationToken);
-
-                            if (!docOptions.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain))
-                            {
-                                ShowGoldBarForCodeCleanupConfiguration(document);
-                            }
+                            CodeCleanupOrFormat(args, document, codeCleanupService, c.ProgressTracker, c.CancellationToken);
                         }
 
+                        transaction.Complete();
                     }
-
-                    transaction.Complete();
-                }
-            }
+                });
 
             return true;
         }
 
-        private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChangesAsync(Document document, ICodeCleanupService codeCleanupService, CancellationToken cancellationToken)
+        private void CodeCleanupOrFormat(
+            FormatDocumentCommandArgs args, Document document, ICodeCleanupService codeCleanupService,
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            var newDoc = await codeCleanupService.CleanupAsync(document, cancellationToken).ConfigureAwait(false);
+            var workspace = document.Project.Solution.Workspace;
+            var isFeatureTurnedOnThroughABTest = TurnOnCodeCleanupForGroupBIfInABTest(document, workspace);
+            var performAdditionalCodeCleanupDuringFormatting = workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language);
 
-            return await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            // if feature is turned on through AB test, we need to show the Gold bar even if they set NeverShowCodeCleanupInfoBarAgain == true before
+            if (isFeatureTurnedOnThroughABTest ||
+                !workspace.Options.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain, document.Project.Language))
+            {
+                // Show different gold bar text depends on PerformAdditionalCodeCleanupDuringFormatting value
+                ShowGoldBarForCodeCleanupConfiguration(document, performAdditionalCodeCleanupDuringFormatting);
+            }
+
+            if (performAdditionalCodeCleanupDuringFormatting)
+            {
+                // Start with a single progress item, which is the one to actually apply
+                // the changes.
+                progressTracker.AddItems(1);
+
+                // Code cleanup
+                var oldDoc = document;
+
+                var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(
+                    document, codeCleanupService, progressTracker, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                if (codeCleanupChanges != null && codeCleanupChanges.Length > 0)
+                {
+                    progressTracker.Description = EditorFeaturesResources.Applying_changes;
+                    ApplyChanges(oldDoc, codeCleanupChanges.ToList(), selectionOpt: null, cancellationToken);
+                }
+
+                progressTracker.ItemCompleted();
+            }
+            else
+            {
+                Format(args.TextView, document, selectionOpt: null, cancellationToken);
+            }
+        }
+
+        private static bool TurnOnCodeCleanupForGroupBIfInABTest(Document document, Workspace workspace)
+        {
+            // If the feature is OFF and the feature options have not yet been Enabled to their assigned flight, do so now
+            // Do not reset the options if we already set it for them once, so options won't get reset if user manually disabled it already after it is enabled by the flight
+            if (!workspace.Options.GetOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language)
+                && !workspace.Options.GetOption(CodeCleanupABTestOptions.SettingIsAlreadyUpdatedByExperiment))
+            {
+                var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
+
+                if (experimentationService != null
+                    && experimentationService.IsExperimentEnabled(s_experimentName))
+                {
+                    workspace.Options = workspace.Options.WithChangedOption(CodeCleanupABTestOptions.SettingIsAlreadyUpdatedByExperiment, true)
+                                                         .WithChangedOption(CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, document.Project.Language, true);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private async Task<ImmutableArray<TextChange>> GetCodeCleanupAndFormatChangesAsync(
+            Document document, ICodeCleanupService codeCleanupService,
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            var newDoc = await codeCleanupService.CleanupAsync(
+                document, progressTracker, cancellationToken).ConfigureAwait(false);
+
+            var changes = await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            return changes.ToImmutableArrayOrEmpty();
         }
     }
 }

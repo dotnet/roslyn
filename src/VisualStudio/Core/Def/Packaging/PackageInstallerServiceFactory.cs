@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
@@ -63,11 +64,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             new ConcurrentDictionary<ProjectId, ProjectState>();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PackageInstallerService(
+            IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
             SVsServiceProvider serviceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(workspace, SymbolSearchOptions.Enabled,
+            : base(threadingContext, workspace, SymbolSearchOptions.Enabled,
                               SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                               SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
@@ -142,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             if (!this.IsForeground())
             {
-                this.InvokeBelowInputPriority(() => OnSourceProviderSourcesChanged(sender, e));
+                this.InvokeBelowInputPriorityAsync(() => OnSourceProviderSourcesChanged(sender, e));
                 return;
             }
 
@@ -364,7 +367,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // they've all come in.
                 var cancellationToken = _tokenSource.Token;
                 Task.Delay(TimeSpan.FromSeconds(1), cancellationToken)
-                    .ContinueWith(_ => ProcessBatchedChangesOnForeground(cancellationToken), cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, ForegroundTaskScheduler);
+                    .ContinueWith(
+                        async _ =>
+                        {
+                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                            ProcessBatchedChangesOnForeground(cancellationToken);
+                        },
+                        cancellationToken,
+                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default).Unwrap();
             }
         }
 
@@ -399,8 +410,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // After processing this single project, yield so the foreground thread
             // can do more work.  Then go and loop again so we can process the 
             // rest of the projects.
-            Task.Factory.SafeStartNew(
-                () => ProcessBatchedChangesOnForeground(cancellationToken), cancellationToken, ForegroundTaskScheduler);
+            Task.Factory.SafeStartNewFromAsync(
+                async () =>
+                {
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    ProcessBatchedChangesOnForeground(cancellationToken);
+                },
+                cancellationToken,
+                TaskScheduler.Default);
         }
 
         private ProjectId DequeueNextProject(Solution solution)

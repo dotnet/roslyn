@@ -43,7 +43,7 @@
        A local build emulating an official build can pass /p:SkipApplyOptimizations=true to avoid this error.
        -->
   <Target Name="ApplyOptimizations"
-          Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)')"
+          Condition="'$(OfficialBuild)' == 'true' AND '$(IsShipping)' == 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)')"
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
     <Message Text="Adding optimization data to @(IntermediateAssembly)" />

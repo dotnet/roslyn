@@ -3,15 +3,15 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeFieldReadonly
     Public Class MakeFieldReadonlyTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicMakeFieldReadonlyDiagnosticAnalyzer(),
+            Return (New MakeFieldReadonlyDiagnosticAnalyzer(),
                 New VisualBasicMakeFieldReadonlyCodeFixProvider())
         End Function
 
@@ -62,25 +62,113 @@ End Class",
 End Class")
         End Function
 
-        ' Update this test when https://github.com/dotnet/roslyn/issues/25652 is fixed
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FieldNotAssigned_PartialClass1() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestInRegularAndScriptAsync(
 "Partial Class C
     Private [|_goo|] As Integer
+End Class",
+"Partial Class C
+    Private ReadOnly _goo As Integer
 End Class")
         End Function
 
-        ' Update this test when https://github.com/dotnet/roslyn/issues/25652 is fixed
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FieldNotAssigned_PartialClass2() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_goo|] As Integer
+End Class
+
+Partial Class C
+End Class",
+"Class C
+    Private ReadOnly _goo As Integer
+End Class
+
+Partial Class C
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldNotAssigned_PartialClass3() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Partial Class C
+    Private [|_goo|] As Integer
+End Class
+</Document>
+                        <Document>
+Partial Class C
+End Class
+</Document>
+                    </Project>
+                </Workspace>.ToString()
+            Dim expectedMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Partial Class C
+    Private ReadOnly _goo As Integer
+End Class
+</Document>
+                        <Document>
+Partial Class C
+End Class
+</Document>
+                    </Project>
+                </Workspace>.ToString()
+            Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldAssigned_PartialClass1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Partial Class C
+    Private [|_goo|] As Integer
+
+    Sub M()
+        _goo = 0
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldAssigned_PartialClass2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Private [|_goo|] As Integer
 End Class
 
 Partial Class C
-EndClass")
+    Sub M()
+        _goo = 0
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldAssigned_PartialClass3() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Partial Class C
+    Private [|_goo|] As Integer
+End Class
+</Document>
+                        <Document>
+Partial Class C
+    Sub M()
+        _goo = 0
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>.ToString()
+            Await TestMissingInRegularAndScriptAsync(initialMarkup)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
@@ -484,6 +572,54 @@ End Class",
             Return _goo
         End Get
     End Property
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")>
+        Public Async Function FieldReturnedInMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_s|] As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s
+    End Function
+End Class",
+"Class C
+    Private ReadOnly _s As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")>
+        Public Async Function FieldReadInMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_s|] As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s.ToUpper()
+    End Function
+End Class",
+"Class C
+    Private ReadOnly _s As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s.ToUpper()
+    End Function
 End Class")
         End Function
 

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 }
 
                 var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                Contract.Requires(syntaxFactsService != null);
+                Debug.Assert(syntaxFactsService != null);
 
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
                 var newNodeAndAnnotations = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 }
 
                 var syntaxFactsService = workspace.Services.GetLanguageServices(root.Language).GetService<ISyntaxFactsService>();
-                Contract.Requires(syntaxFactsService != null);
+                Debug.Assert(syntaxFactsService != null);
 
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
                 var newNodeAndAnnotations = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);

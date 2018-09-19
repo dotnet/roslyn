@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit.Sdk;
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var listenerProvider = exportProvider?.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault();
                 if (listenerProvider != null)
                 {
-                    if (ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind != ForegroundThreadDataKind.Unknown)
+                    if (exportProvider.GetExportedValues<IThreadingContext>().SingleOrDefault()?.HasMainThread ?? false)
                     {
                         // Immediately clear items from the foreground notification service for which cancellation is
                         // requested. This service maintains a queue separately from Tasks, and work items scheduled for
@@ -123,6 +122,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                             throw new TimeoutException(messageBuilder.ToString(), ex);
                         }
+                    }
+
+                    // Verify the synchronization context was not used incorrectly
+                    var testExportJoinableTaskContext = exportProvider.GetExportedValues<TestExportJoinableTaskContext>().SingleOrDefault();
+                    if (testExportJoinableTaskContext?.SynchronizationContext is ThreadingContext.DenyExecutionSynchronizationContext synchronizationContext)
+                    {
+                        synchronizationContext.ThrowIfSwitchOccurred();
                     }
                 }
             }
