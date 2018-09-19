@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
-    internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView
+    internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView, ITextView2
     {
         /// <summary>
         /// The actual debugger view of the watch or immediate window that we're wrapping
@@ -291,6 +291,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
         }
 
+        public bool InOuterLayout => throw new NotImplementedException();
+
+        public IMultiSelectionBroker MultiSelectionBroker => throw new NotImplementedException();
+
         public void Close()
         {
             throw new NotSupportedException();
@@ -348,6 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         private event EventHandler ClosedInternal;
+        public event EventHandler MaxTextRightCoordinateChanged;
 
         public event EventHandler Closed
         {
