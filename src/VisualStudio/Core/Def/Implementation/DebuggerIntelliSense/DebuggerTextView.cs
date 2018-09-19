@@ -26,6 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         private readonly IWpfTextView _innerTextView;
         private readonly IVsTextLines _debuggerTextLinesOpt;
 
+        private IMultiSelectionBroker _multiSelectionBroker;
+
         public DebuggerTextView(
             IWpfTextView innerTextView,
             IBufferGraph bufferGraph,
@@ -293,7 +295,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         public bool InOuterLayout => throw new NotImplementedException();
 
-        public IMultiSelectionBroker MultiSelectionBroker => throw new NotImplementedException();
+        public IMultiSelectionBroker MultiSelectionBroker
+        {
+            get
+            {
+                if (_multiSelectionBroker == null)
+                {
+                    _multiSelectionBroker = _innerTextView.GetMultiSelectionBroker();
+                }
+
+                return _multiSelectionBroker;
+            }
+        }
 
         public void Close()
         {
@@ -352,7 +365,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         private event EventHandler ClosedInternal;
+
+#pragma warning disable 67
         public event EventHandler MaxTextRightCoordinateChanged;
+#pragma warning restore 67
 
         public event EventHandler Closed
         {
