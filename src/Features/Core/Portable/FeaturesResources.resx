@@ -1403,6 +1403,9 @@ This version used in: {2}</value>
   <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document</value>
   </data>
+  <data name="Add_member_name" xml:space="preserve">
+    <value>Add member name</value>
+  </data>
   <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
     <value>Use block body for lambda expressions</value>
   </data>
