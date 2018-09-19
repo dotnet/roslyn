@@ -66,9 +66,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             var cancellationToken = context.CancellationToken;
             var assignment = (TAssignmentSyntax)context.Node;
 
-            var options = context.Options;
             var syntaxTree = assignment.SyntaxTree;
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
