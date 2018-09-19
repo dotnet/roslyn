@@ -97,11 +97,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ReadOnlyStruct = 78,
         ReadOnlyReferences = 79,
 
-		// MERGE TODO
-		// -- InternalError added in 15.9 via https://github.com/dotnet/roslyn/commit/6f6910c4d0a4fc60ccfd79efd8d54b2f45596aa1#diff-deefc0664e50cdcdda9fc7afcdd93887
-		// -- InsertMethodWithExplicitInterfaceSpecifier added in master via https://github.com/dotnet/roslyn/commit/0f8d61c2b21422871ebe87e895176849f9a3e119#diff-deefc0664e50cdcdda9fc7afcdd93887
-        InsertMethodWithExplicitInterfaceSpecifier = 80,
         InternalError = 80,
+
+        InsertMethodWithExplicitInterfaceSpecifier = 81,
 
         // TODO: remove values below
         RUDE_EDIT_COMPLEX_QUERY_EXPRESSION = 0x103,
