@@ -207,6 +207,7 @@ namespace A
         }
 
         [Fact]
+        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ImportKinds()
         {
             var source = @"
@@ -226,7 +227,7 @@ namespace B
     }
 }
 ";
-            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
             var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: TestOptions.Regular7).EmitToImageReference(aliases: ImmutableArray.Create("A"));
             var comp = CreateCompilation(source, new[] { aliasedRef });
             WithRuntimeInstance(comp, runtime =>
@@ -299,6 +300,7 @@ namespace B
         }
 
         [Fact]
+        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ForwardToModule()
         {
             var source = @"
@@ -328,7 +330,7 @@ namespace D
     }
 }
 ";
-            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
             var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: TestOptions.Regular7).EmitToImageReference(aliases: ImmutableArray.Create("A"));
             var comp = CreateCompilation(source, new[] { aliasedRef });
 
@@ -635,7 +637,6 @@ class C
     }
 }
 ";
-            // PROTOTYPE(NullableReferenceTypes): NamespaceSymbol.Extent.Kind is set to Compilation rather than Module.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 

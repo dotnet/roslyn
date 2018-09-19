@@ -333,9 +333,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Assert in CustomModifierUtils.CopyMethodCustomModifiers
-        // fails with difference in nullability in D<W>.P1.
-        [Fact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldNoTypeArguments()
         {
             var initial =

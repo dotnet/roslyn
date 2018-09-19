@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.UpgradeProject;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
@@ -344,8 +345,8 @@ class C
                 index: 1);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Enable.
-        [Fact(Skip = "TODO")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30027")]
+        [WorkItem(30027, "https://github.com/dotnet/roslyn/issues/30027")]
         public async Task UpgradeAllProjectsToCSharp8_NullableReferenceType()
         {
             await TestLanguageVersionUpgradedAsync(

@@ -3654,6 +3654,7 @@ class C
         /// Netmodules with same name.
         /// </summary>
         [Fact]
+        [WorkItem(30031, "https://github.com/dotnet/roslyn/issues/30031")]
         public void NetModuleDuplicateReferences()
         {
             // Netmodule 0
@@ -3697,7 +3698,7 @@ class C
     }
 }";
             var assemblyName = ExpressionCompilerUtilities.GenerateUniqueName();
-            // PROTOTYPE(NullableReferenceTypes): error CS0101: The namespace 'System.Runtime.CompilerServices' already contains a definition for 'NullableAttribute'
+            // https://github.com/dotnet/roslyn/issues/30031: error CS0101: The namespace 'System.Runtime.CompilerServices' already contains a definition for 'NullableAttribute'
             var parseOptions = TestOptions.Regular7;
             var compilationN0 = CreateCompilation(
                 sourceN0,
@@ -6441,8 +6442,9 @@ public class Test
             Assert.Contains(AttributeDescription.IsReadOnlyAttribute.FullName + "..ctor()", methodsGenerated);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): EnsureNullableAttributeExists is not called.
-        [Fact(Skip = "TODO")]
+        // https://github.com/dotnet/roslyn/issues/30033: EnsureNullableAttributeExists is not called.
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30033")]
+        [WorkItem(30033, "https://github.com/dotnet/roslyn/issues/30033")]
         public void EmitNullableAttribute_ExpressionType()
         {
             var source =
@@ -6484,11 +6486,12 @@ public class Test
             });
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Expression below currently reports
+        // https://github.com/dotnet/roslyn/issues/30034: Expression below currently reports
         // "CS0453: The type 'object' must be a non-nullable value type ... 'Nullable<T>'"
         // because CSharpCompilationExtensions.IsFeatureEnabled() fails when there
         // the Compilation contains no syntax trees.
-        [Fact(Skip = "TODO")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30034")]
+        [WorkItem(30034, "https://github.com/dotnet/roslyn/issues/30034")]
         public void EmitNullableAttribute_LambdaParameters()
         {
             var source =

@@ -3714,9 +3714,9 @@ $@"
     'a {FeaturesResources.is_} new {{  }}"));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): 
         [WorkItem(543873, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543873")]
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes)"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(30035, "https://github.com/dotnet/roslyn/issues/30035")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30035"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNestedAnonymousType()
         {
             // verify nested anonymous types are listed in the same order for different properties
