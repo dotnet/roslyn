@@ -11,9 +11,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     internal static class WebInputSources
     {
         /// <summary>
-        /// Metadata for tainted data sources.
+        /// Info for tainted data sources.
         /// </summary>
-        private class SourceMetadata
+        private class SourceInfo
         {
             /// <summary>
             /// Constructs.
@@ -21,7 +21,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <param name="fullTypeName">Full type name of the...type (namespace + type).</param>
             /// <param name="taintedProperties">Properties that generate tainted data.</param>
             /// <param name="taintedMethods">Methods that generate tainted data.</param>
-            public SourceMetadata(string fullTypeName, HashSet<string> taintedProperties, HashSet<string> taintedMethods)
+            public SourceInfo(string fullTypeName, HashSet<string> taintedProperties, HashSet<string> taintedMethods)
             {
                 this.FullTypeName = fullTypeName;
                 this.TaintedProperties = taintedProperties;
@@ -48,16 +48,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Metadata for tainted data sources.
         /// </summary>
         /// <remarks>Keys are full type names (namespace + type name), values are the metadatas.</remarks>
-        private static Dictionary<string, SourceMetadata> SourceMetadatas { get; set; }
+        private static Dictionary<string, SourceInfo> SourceInfos { get; set; }
 
         /// <summary>
         /// Statically constructs.
         /// </summary>
         static WebInputSources()
         {
-            SourceMetadatas = new Dictionary<string, SourceMetadata>(StringComparer.Ordinal);
+            SourceInfos = new Dictionary<string, SourceInfo>(StringComparer.Ordinal);
 
-            AddSourceMetadata(
+            AddSourceInfo(
                 "System.Web.HttpRequest",
                 taintedProperties: new string[] {
                     "AcceptTypes",
@@ -87,13 +87,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 });
         }
 
-        private static void AddSourceMetadata(string fullTypeName, IEnumerable<string> taintedProperties, IEnumerable<string> taintedMethods)
+        private static void AddSourceInfo(string fullTypeName, IEnumerable<string> taintedProperties, IEnumerable<string> taintedMethods)
         {
-            SourceMetadata metadata = new SourceMetadata(
+            SourceInfo metadata = new SourceInfo(
                 fullTypeName,
                 new HashSet<string>(taintedProperties, StringComparer.Ordinal),
                 new HashSet<string>(taintedMethods, StringComparer.Ordinal));
-            SourceMetadatas.Add(metadata.FullTypeName, metadata);
+            SourceInfos.Add(metadata.FullTypeName, metadata);
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && propertyReferenceOperation.Instance != null
                 && propertyReferenceOperation.Member != null
                 && wellKnownTypeProvider.TryGetFullTypeName(propertyReferenceOperation.Instance.Type, out string instanceType)
-                && SourceMetadatas.TryGetValue(instanceType, out SourceMetadata sourceMetadata)
+                && SourceInfos.TryGetValue(instanceType, out SourceInfo sourceMetadata)
                 && sourceMetadata.TaintedProperties.Contains(propertyReferenceOperation.Member.MetadataName);
         }
 
@@ -125,13 +125,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && instance.Type != null
                 && method != null
                 && wellKnownTypeProvider.TryGetFullTypeName(instance.Type, out string instanceType)
-                && SourceMetadatas.TryGetValue(instanceType, out SourceMetadata sourceMetadata)
+                && SourceInfos.TryGetValue(instanceType, out SourceInfo sourceMetadata)
                 && sourceMetadata.TaintedMethods.Contains(method.MetadataName);
         }
 
         public static bool DoesCompilationIncludeSources(Compilation compilation)
         {
-            foreach (string metadataTypeName in SourceMetadatas.Keys)
+            foreach (string metadataTypeName in SourceInfos.Keys)
             {
                 if (compilation.GetTypeByMetadataName(metadataTypeName) != null)
                 {

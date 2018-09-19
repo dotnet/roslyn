@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
-    using TaintedDataAnalysisResult = DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>;
 
     internal partial class TaintedDataAnalysis : ForwardDataFlowAnalysis<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>
     {
@@ -53,9 +52,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return analysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
-        internal override TaintedDataAnalysisResult ToResult(TaintedDataAnalysisContext analysisContext, TaintedDataAnalysisResult analysisResult)
+        internal override TaintedDataAnalysisResult ToResult(
+            TaintedDataAnalysisContext analysisContext,
+            DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> dataFlowAnalysisResult)
         {
-            return analysisResult;
+            // Hey Manish, is it fine to look at this.OperationVisitor here to look at its accumulated results?
+            TaintedDataOperationVisitor visitor = (TaintedDataOperationVisitor) this.OperationVisitor;
+            return new TaintedDataAnalysisResult(dataFlowAnalysisResult, visitor.GetTaintedDataSourceSinkEntries());
         }
 
         internal override TaintedDataBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DataFlowAnalysisInfo<TaintedDataAnalysisData> blockAnalysisData)

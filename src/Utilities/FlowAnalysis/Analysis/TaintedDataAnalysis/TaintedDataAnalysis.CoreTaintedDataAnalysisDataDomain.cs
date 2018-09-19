@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+﻿using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {

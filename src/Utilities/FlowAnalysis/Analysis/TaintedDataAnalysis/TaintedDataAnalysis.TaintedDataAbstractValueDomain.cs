@@ -41,6 +41,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return value1;
                 }
 
+                if (value1.Kind == TaintedDataAbstractValueKind.Tainted && value2.Kind == TaintedDataAbstractValueKind.Tainted)
+                {
+                    // If both are tainted, we need to merge their origins.
+                    return TaintedDataAbstractValue.MergeTainted(value1, value2);
+                }
+
                 return this.Compare(value1, value2) >= 0 ? value1 : value2;
             }
         }
