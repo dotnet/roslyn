@@ -1,38 +1,36 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-extern alias core;
-
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using EnvDTE;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
-using VSLangProj;
-using Project = EnvDTE.Project;
-using System.Collections.Immutable;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using System.Linq;
-using core::Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
     internal sealed class VsResetInteractive : ResetInteractive
     {
-        private readonly DTE _dte;
+        private readonly VisualStudioWorkspace _workspace;
+        private readonly EnvDTE.DTE _dte;
         private readonly IComponentModel _componentModel;
         private readonly IVsMonitorSelection _monitorSelection;
         private readonly IVsSolutionBuildManager _buildManager;
 
         internal VsResetInteractive(
-            DTE dte,
+            VisualStudioWorkspace workspace,
+            EnvDTE.DTE dte,
             IComponentModel componentModel,
             IVsMonitorSelection monitorSelection,
             IVsSolutionBuildManager buildManager,
@@ -40,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             Func<string, string> createImport)
             : base(componentModel.GetService<IEditorOptionsFactoryService>(), createReference, createImport)
         {
+            _workspace = workspace;
             _dte = dte;
             _componentModel = componentModel;
             _monitorSelection = monitorSelection;
@@ -54,7 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out ImmutableArray<string> referenceSearchPaths,
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
-            out string projectDirectory)
+            out string projectDirectory,
+            out bool? is64bit)
         {
             var hierarchyPointer = default(IntPtr);
             var selectionContainerPointer = default(IntPtr);
@@ -63,6 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             sourceSearchPaths = ImmutableArray<string>.Empty;
             projectNamespaces = ImmutableArray<string>.Empty;
             projectDirectory = null;
+            is64bit = null;
 
             try
             {
@@ -71,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
                 if (hierarchyPointer != IntPtr.Zero)
                 {
-                    GetProjectProperties(hierarchyPointer, out references, out referenceSearchPaths, out sourceSearchPaths, out projectNamespaces, out projectDirectory);
+                    GetProjectProperties(hierarchyPointer, out references, out referenceSearchPaths, out sourceSearchPaths, out projectNamespaces, out projectDirectory, out is64bit);
                     return true;
                 }
             }
@@ -84,36 +85,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             return false;
         }
 
-        private static void GetProjectProperties(
+        private void GetProjectProperties(
             IntPtr hierarchyPointer,
             out ImmutableArray<string> references,
             out ImmutableArray<string> referenceSearchPaths,
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
-            out string projectDirectory)
+            out string projectDirectory,
+            out bool? is64bit)
         {
             var hierarchy = (IVsHierarchy)Marshal.GetObjectForIUnknown(hierarchyPointer);
             Marshal.ThrowExceptionForHR(
                 hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_ExtObject, out var extensibilityObject));
 
-            // TODO: Revert this back to using dynamic for web projects, since they have copies of these interfaces.
-            var project = (Project)extensibilityObject;
-            var vsProject = (VSProject)project.Object;
+            var dteProject = (EnvDTE.Project)extensibilityObject;
+            var vsProject = (VSLangProj.VSProject)dteProject.Object;
+            var projectOpt = GetProjectFromHierarchy(hierarchy);
 
             var referencesBuilder = ImmutableArray.CreateBuilder<string>();
             var referenceSearchPathsBuilder = ImmutableArray.CreateBuilder<string>();
             var sourceSearchPathsBuilder = ImmutableArray.CreateBuilder<string>();
             var namespacesToImportBuilder = ImmutableArray.CreateBuilder<string>();
 
-            var projectDir = (string)project.Properties.Item("FullPath").Value;
-            var outputFileName = (string)project.Properties.Item("OutputFileName").Value;
-            var defaultNamespace = (string)project.Properties.Item("DefaultNamespace").Value;
-            var relativeOutputPath = (string)project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value;
+            var projectDir = (string)dteProject.Properties.Item("FullPath").Value;
+            var outputFileName = (string)dteProject.Properties.Item("OutputFileName").Value;
+            var defaultNamespace = (string)dteProject.Properties.Item("DefaultNamespace").Value;
+            var relativeOutputPath = (string)dteProject.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value;
 
             Debug.Assert(!string.IsNullOrEmpty(projectDir));
             Debug.Assert(!string.IsNullOrEmpty(outputFileName));
             Debug.Assert(!string.IsNullOrEmpty(relativeOutputPath));
-
+            
             var scriptsDir = Path.Combine(projectDir, "Scripts");
             var outputDir = Path.Combine(projectDir, relativeOutputPath);
 
@@ -122,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             referenceSearchPathsBuilder.Add(outputDir);
             referenceSearchPathsBuilder.Add(RuntimeEnvironment.GetRuntimeDirectory());
 
-            foreach (Reference reference in vsProject.References)
+            foreach (VSLangProj.Reference reference in vsProject.References)
             {
                 var str = GetReferenceString(reference);
                 if (str != null)
@@ -145,9 +147,63 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             referenceSearchPaths = referenceSearchPathsBuilder.ToImmutableArray();
             sourceSearchPaths = sourceSearchPathsBuilder.ToImmutableArray();
             projectNamespaces = namespacesToImportBuilder.ToImmutableArray();
+
+            is64bit = (projectOpt != null) ? Is64Bit(projectOpt.CompilationOptions.Platform) : null;
         }
 
-        private static string GetReferenceString(Reference reference)
+        internal Project GetProjectFromHierarchy(IVsHierarchy hierarchy)
+            => _workspace.CurrentSolution.Projects.FirstOrDefault(proj => ProjectIdMatchesHierarchy(_workspace, proj.Id, hierarchy));
+
+        private static bool ProjectIdMatchesHierarchy(VisualStudioWorkspace workspace, ProjectId projectId, IVsHierarchy hierarchy)
+        {
+            var hierarchyForProject = workspace.GetHierarchy(projectId);
+
+            if (hierarchyForProject == null)
+            {
+                return false;
+            }
+
+            if (hierarchyForProject == hierarchy)
+            {
+                return true;
+            }
+
+            // For CPS, the hierarchy for the Roslyn project isn't the same as the one
+            // we get from Solution Explorer (it's a wrapper implementation), so we'll
+            // have to compare properties.
+
+            hierarchyForProject.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out var rawValue);
+
+            var projectName = rawValue as string;
+            if (projectName != null)
+            {
+                hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out rawValue);
+                return projectName == (rawValue as string);
+            }
+
+            return false;
+        }
+
+        private static bool? Is64Bit(Platform platform)
+        {
+            switch (platform)
+            {
+                case Platform.Arm:
+                case Platform.AnyCpu32BitPreferred:
+                case Platform.X86:
+                    return false;
+
+                case Platform.Itanium:
+                case Platform.X64:
+                case Platform.Arm64:
+                    return true;
+
+                default:
+                    return null;
+            }
+        }
+
+        private static string GetReferenceString(VSLangProj.Reference reference)
         {
             if (!reference.StrongName)
             {

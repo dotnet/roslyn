@@ -47,6 +47,7 @@
     <Rule Id="CA1812" Action="None" /> <!-- disabled as we create many internal types via reflection-based mechanisms -->
     <Rule Id="CA1814" Action="None" /> <!-- prefer jagged arrays to multidimensional: a silly piece of advice -->
     <Rule Id="CA1815" Action="None" />
+    <Rule Id="CA1820" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/29038: Enable CA1820 (Test for empty strings using string length) -->
     <Rule Id="CA1821" Action="Warning" />
     <Rule Id="CA1822" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25132: Enable rule CA1822 (Mark members as static) on Roslyn.sln -->
     <Rule Id="CA1823" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/20404: Enable rule CA1823 (remove unused field) once we have a fixer for it -->
@@ -152,5 +153,16 @@
     <Rule Id="xUnit2017" Action="None" /> <!-- "do not use Contains() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2018" Action="None" /> <!-- "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now -->
 collection.
+  </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.SDK.Analyzers" RuleNamespace="Microsoft.VisualStudio.SDK.Analyzers">
+    <!-- https://github.com/Microsoft/VSSDK-Analyzers/blob/master/doc/index.md -->
+    <Rule Id="VSSDK001" Action="Warning" /> <!-- Derive from AsyncPackage -->
+    <Rule Id="VSSDK003" Action="Warning" /> <!-- Support async tool windows -->
+  </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers">
+    <Rule Id="VSTHRD002" Action="None" /> <!-- Avoid problematic synchronous waits -->
+    <Rule Id="VSTHRD103" Action="None" /> <!-- Call async methods when in an async method -->
+    <Rule Id="VSTHRD110" Action="None" /> <!-- Observe result of async calls -->
+    <Rule Id="VSTHRD200" Action="None" /> <!-- Use "Async" suffix for async methods -->
   </Rules>
 </RuleSet>

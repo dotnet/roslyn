@@ -9,10 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -446,19 +446,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // extension method then it will need one more argument in order for us to
                 // call it.
                 var info = SemanticModel.GetSymbolInfo(invocation, CancellationToken);
-                IEnumerable<IMethodSymbol> methods = null;
+                var methods = info.GetBestOrAllSymbols().OfType<IMethodSymbol>();
 
                 // Overload resolution (see DevDiv 611477) in certain extension method cases
                 // can result in GetSymbolInfo returning nothing. In this case, get the 
                 // method group info, which is what signature help already does.
-                if (info.Symbol == null &&  info.CandidateReason == CandidateReason.None)
+                if (info.Symbol == null)
                 {
-                    methods = SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
-                                                            .OfType<IMethodSymbol>();
-                }
-                else
-                {
-                    methods = info.GetBestOrAllSymbols().OfType<IMethodSymbol>();
+                    var memberGroupMethods = 
+                        SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
+                                     .OfType<IMethodSymbol>();
+
+                    methods = methods.Concat(memberGroupMethods).Distinct();
                 }
 
                 return InferTypeInArgument(index, methods, argumentOpt);
@@ -1176,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInPropertyDeclaration(PropertyDeclarationSyntax propertyDeclaration)
             {
-                Contract.Assert(propertyDeclaration?.Type != null, "Property type should never be null");
+                Debug.Assert(propertyDeclaration?.Type != null, "Property type should never be null");
 
                 var typeInfo = SemanticModel.GetTypeInfo(propertyDeclaration.Type);
                 return typeInfo.Type != null
@@ -2090,9 +2089,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             AddTypeAndName((TupleExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
                         }
-                        else if (expr.IsKind(SyntaxKind.IdentifierName))
+                        else if (expr is IdentifierNameSyntax name)
                         {
-                            elementNamesBuilder.Add(((IdentifierNameSyntax)expr).Identifier.ValueText);
+                            elementNamesBuilder.Add(name.Identifier.ValueText == "" ? null : 
+                                name.Identifier.ValueText);
                             elementTypesBuilder.Add(GetTypes(expr).FirstOrDefault().InferredType ?? this.Compilation.ObjectType);
                         }
                         else

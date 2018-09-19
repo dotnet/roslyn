@@ -1535,7 +1535,7 @@ internal class T
 {
     public T(out DateTime d)
     {
-        d = default;
+        d = default(DateTime);
     }
 }",
 index: 1);
@@ -1654,7 +1654,7 @@ index: 1);
     {
         public T(out X d)
         {
-            d = default;
+            d = default(X);
         }
     }
 }",

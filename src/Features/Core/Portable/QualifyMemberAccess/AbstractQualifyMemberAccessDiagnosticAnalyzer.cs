@@ -90,6 +90,14 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
+            // Initializer lists are IInvocationOperation which if passed to GetApplicableOptionFromSymbolKind
+            // will incorrectly fetch the options for method call.
+            // We still want to handle InstanceReferenceKind.ContainingTypeInstance
+            if ((instanceOperation as IInstanceReferenceOperation)?.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
+            {
+                return;
+            }
+
             // If we can't be qualified (e.g., because we're already qualified with `base.`), we're done.
             if (!CanMemberAccessBeQualified(context.ContainingSymbol, instanceOperation.Syntax))
             {
@@ -121,19 +129,20 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             var optionValue = optionSet.GetOption(applicableOption, context.Operation.Syntax.Language);
 
             var shouldOptionBePresent = optionValue.Value;
-            var isQualificationPresent = IsAlreadyQualifiedMemberAccess(simpleName);
-            if (shouldOptionBePresent && !isQualificationPresent)
+            var severity = optionValue.Notification.Severity;
+            if (!shouldOptionBePresent || severity == ReportDiagnostic.Suppress)
             {
-                var severity = optionValue.Notification.Severity;
-                if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
-                {
-                    context.ReportDiagnostic(DiagnosticHelper.Create(
-                        Descriptor, 
-                        GetLocation(operation),
-                        severity,
-                        additionalLocations: null,
-                        properties: null));
-                }
+                return;
+            }
+
+            if (!IsAlreadyQualifiedMemberAccess(simpleName))
+            {
+                context.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor, 
+                    GetLocation(operation),
+                    severity,
+                    additionalLocations: null,
+                    properties: null));
             }
         }
 

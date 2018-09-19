@@ -12,6 +12,11 @@
         <target state="new">comments after line continuation</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
+        <source>unconstrained type parameters in binary conditional expressions</source>
+        <target state="new">unconstrained type parameters in binary conditional expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trees0">
         <source>trees({0})</source>
         <target state="translated">alberi ({0})</target>
@@ -4863,8 +4868,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
-        <source>First operand in a binary 'If' expression must be nullable or a reference type.</source>
-        <target state="translated">Il primo operando in un'espressione 'If' binaria deve essere nullable o un tipo riferimento.</target>
+        <source>First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.</source>
+        <target state="needs-review-translation">Il primo operando in un'espressione 'If' binaria deve essere nullable o un tipo riferimento.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantCallIIF">

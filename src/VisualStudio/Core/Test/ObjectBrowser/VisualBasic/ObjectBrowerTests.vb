@@ -3,6 +3,7 @@
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 Imports Roslyn.Test.Utilities
@@ -17,8 +18,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Visual
             End Get
         End Property
 
-        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider) As AbstractObjectBrowserLibraryManager
-            Return New ObjectBrowserLibraryManager(serviceProvider)
+        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace) As AbstractObjectBrowserLibraryManager
+            Return New ObjectBrowserLibraryManager(serviceProvider, componentModel, workspace)
         End Function
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
@@ -2105,9 +2106,9 @@ Class C
      ExactSpelling:=True,
      CallingConvention:=CallingConvention.StdCall)&gt;
     Public Shared Function moveFile(ByVal src As String, ByVal dst As String) As Boolean
-        ' This function copies a file from the path src to the path dst. 
-        ' Leave this function empty. The DLLImport attribute forces calls 
-        ' to moveFile to be forwarded to MoveFileW in KERNEL32.DLL. 
+        ' This function copies a file from the path src to the path dst.
+        ' Leave this function empty. The DLLImport attribute forces calls
+        ' to moveFile to be forwarded to MoveFileW in KERNEL32.DLL.
     End Function
 End Class
 </Code>

@@ -1052,6 +1052,9 @@ This version used in: {2}</value>
   <data name="Use_pattern_matching" xml:space="preserve">
     <value>Use pattern matching</value>
   </data>
+  <data name="Use_interpolated_verbatim_string" xml:space="preserve">
+    <value>Use interpolated verbatim string</value>
+  </data>
   <data name="Use_expression_body_for_methods" xml:space="preserve">
     <value>Use expression body for methods</value>
   </data>
@@ -1088,8 +1091,8 @@ This version used in: {2}</value>
   <data name="Use_expression_body_for_properties" xml:space="preserve">
     <value>Use expression body for properties</value>
   </data>
-  <data name="Spell_check_0" xml:space="preserve">
-    <value>Spell check '{0}'</value>
+  <data name="Fix_typo_0" xml:space="preserve">
+    <value>Fix typo '{0}'</value>
   </data>
   <data name="Fully_qualify_0" xml:space="preserve">
     <value>Fully qualify '{0}'</value>
@@ -1375,5 +1378,35 @@ This version used in: {2}</value>
   </data>
   <data name="Convert_to_conditional_expression" xml:space="preserve">
     <value>Convert to conditional expression</value>
+  </data>
+  <data name="Convert_to_linq" xml:space="preserve">
+    <value>Convert to LINQ</value>
+  </data>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
+  </data>
+  <data name="Convert_to_class" xml:space="preserve">
+    <value>Convert to class</value>
+  </data>
+  <data name="Convert_to_struct" xml:space="preserve">
+    <value>Convert to struct</value>
+  </data>
+  <data name="updating_usages_in_containing_member" xml:space="preserve">
+    <value>updating usages in containing member</value>
+  </data>
+  <data name="updating_usages_in_containing_project" xml:space="preserve">
+    <value>updating usages in containing project</value>
+  </data>
+  <data name="updating_usages_in_containing_type" xml:space="preserve">
+    <value>updating usages in containing type</value>
+  </data>
+  <data name="updating_usages_in_dependent_projects" xml:space="preserve">
+    <value>updating usages in dependent projects</value>
+  </data>
+  <data name="Formatting_document" xml:space="preserve">
+    <value>Formatting document</value>
+  </data>
+  <data name="Convert_to_linq_call_form" xml:space="preserve">
+    <value>Convert to LINQ (call form)</value>
   </data>
 </root>
