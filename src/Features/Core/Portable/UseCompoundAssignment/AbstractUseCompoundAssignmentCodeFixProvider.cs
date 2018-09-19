@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 editor.ReplaceNode(assignment,
                     (currentAssignment, generator) =>
                     {
-                        syntaxFacts.GetPartsOfAssignmentStatement(currentAssignment, 
+                        syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(currentAssignment, 
                             out var leftOfAssign, out var equalsToken, out var rightOfAssign);
 
                         syntaxFacts.GetPartsOfBinaryExpression(rightOfAssign,

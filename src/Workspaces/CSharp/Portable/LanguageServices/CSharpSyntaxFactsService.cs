@@ -1542,8 +1542,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void GetPartsOfAssignmentStatement(
             SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
+            GetPartsOfAssignmentExpressionOrStatement(
+                ((ExpressionStatementSyntax)statement).Expression, out left, out operatorToken, out right);
+        }
+
+        public void GetPartsOfAssignmentExpressionOrStatement(
+            SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+        {
             var expression = statement;
-            if (expression is ExpressionStatementSyntax expressionStatement)
+            if (statement is ExpressionStatementSyntax expressionStatement)
             {
                 expression = expressionStatement.Expression;
             }

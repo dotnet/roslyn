@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 return;
             }
 
-            _syntaxFacts.GetPartsOfAssignmentStatement(assignment, 
+            _syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(assignment, 
                 out var assignmentLeft, out var assignmentToken, out var assignmentRight);
 
             // has to be of the form:  a = b op c
