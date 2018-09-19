@@ -37041,7 +37041,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
             comp.VerifyDiagnostics();
         }
 
@@ -38000,7 +38000,7 @@ class C<T>
         if (b.field != null) b.field.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         a.field.ToString();

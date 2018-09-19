@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     internal T F4 = default(T);
 }";
             // https://github.com/dotnet/roslyn/issues/29849 Missing warnings for possible null-assignment to F3 and F4
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue, NonNullTypesAttributesDefinition });
+            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
             comp.VerifyDiagnostics(
                 // (1,16): warning CS8618: Non-nullable field 'F1' is uninitialized.
                 // internal class C<T> where T : new()
