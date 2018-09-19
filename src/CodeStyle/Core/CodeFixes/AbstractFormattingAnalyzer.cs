@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     internal abstract class AbstractFormattingAnalyzer
         : AbstractCodeStyleDiagnosticAnalyzer
     {
-        private const string FormattingDiagnosticId = "IDE0051";
+        internal const string FormattingDiagnosticId = "IDE0051";
 
         static AbstractFormattingAnalyzer()
         {
