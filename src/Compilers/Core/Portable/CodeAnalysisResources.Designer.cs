@@ -406,15 +406,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reported diagnostic has an ID &apos;{0}&apos;, which only a compiler should be reporting..
-        /// </summary>
-        internal static string CompilerDiagnosticIdReported {
-            get {
-                return ResourceManager.GetString("CompilerDiagnosticIdReported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to constructor.
         /// </summary>
         internal static string Constructor {
@@ -601,15 +592,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string FileSizeExceedsMaximumAllowed {
             get {
                 return ResourceManager.GetString("FileSizeExceedsMaximumAllowed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;Flow-Analysis&apos; is disabled..
-        /// </summary>
-        internal static string FlowAnalysisFeatureDisabled {
-            get {
-                return ResourceManager.GetString("FlowAnalysisFeatureDisabled", resourceCulture);
             }
         }
         
@@ -1069,6 +1051,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string OperationHasNullSemanticModel {
             get {
                 return ResourceManager.GetString("OperationHasNullSemanticModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The provided operation must not be part of a Control Flow Graph..
+        /// </summary>
+        internal static string OperationMustNotBeControlFlowGraphPart {
+            get {
+                return ResourceManager.GetString("OperationMustNotBeControlFlowGraphPart", resourceCulture);
             }
         }
         

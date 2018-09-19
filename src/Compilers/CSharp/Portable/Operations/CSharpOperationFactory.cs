@@ -254,7 +254,26 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.DiscardExpression:
                     return CreateDiscardExpressionOperation((BoundDiscardExpression)boundNode);
 
-                default:
+                case BoundKind.Attribute:
+                case BoundKind.ArgList:
+                case BoundKind.ArgListOperator:
+                case BoundKind.ConvertedStackAllocExpression:
+                case BoundKind.FixedLocalCollectionInitializer:
+                case BoundKind.GlobalStatementInitializer:
+                case BoundKind.HostObjectMemberReference:
+                case BoundKind.MakeRefOperator:
+                case BoundKind.MethodGroup:
+                case BoundKind.NamespaceExpression:
+                case BoundKind.PointerElementAccess:
+                case BoundKind.PointerIndirectionOperator:
+                case BoundKind.PreviousSubmissionReference:
+                case BoundKind.RefTypeOperator:
+                case BoundKind.RefValueOperator:
+                case BoundKind.Sequence:
+                case BoundKind.StackAllocArrayCreation:
+                case BoundKind.TypeExpression:
+                case BoundKind.TypeOrValueExpression:
+
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -269,6 +288,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     }
 
                     return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode), isImplicit: isImplicit);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(boundNode.Kind); 
             }
         }
 
@@ -529,6 +551,18 @@ namespace Microsoft.CodeAnalysis.Operations
             if (boundObjectCreationExpression.ResultKind == LookupResultKind.OverloadResolutionFailure || constructor == null || constructor.OriginalDefinition is ErrorMethodSymbol)
             {
                 return CreateInvalidExpressionForHasArgumentsExpression(null, boundObjectCreationExpression.Arguments, boundObjectCreationExpression.InitializerExpressionOpt, syntax, type, constantValue, isImplicit);
+            }
+            else if (boundObjectCreationExpression.Type.IsAnonymousType)
+            {
+                // Workaround for https://github.com/dotnet/roslyn/issues/28157
+                Debug.Assert(isImplicit);
+                var memberInitializers = new Lazy<ImmutableArray<IOperation>>(() => GetAnonymousObjectCreationInitializers(
+                                                                                        boundObjectCreationExpression.Arguments,
+                                                                                        declarations: ImmutableArray<BoundAnonymousPropertyDeclaration>.Empty,
+                                                                                        syntax,
+                                                                                        type,
+                                                                                        isImplicit));
+                return new LazyAnonymousObjectCreationExpression(memberInitializers, _semanticModel, syntax, type, constantValue, isImplicit);
             }
 
             Lazy<IObjectOrCollectionInitializerOperation> initializer = new Lazy<IObjectOrCollectionInitializerOperation>(() => (IObjectOrCollectionInitializerOperation)Create(boundObjectCreationExpression.InitializerExpressionOpt));
@@ -1953,6 +1987,11 @@ namespace Microsoft.CodeAnalysis.Operations
         private IDeclarationPatternOperation CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
         {
             ISymbol variable = boundDeclarationPattern.Variable;
+            if (variable == null && boundDeclarationPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
+            {
+                variable = ((BoundDiscardExpression)boundDeclarationPattern.VariableAccess).ExpressionSymbol;
+            }
+
             SyntaxNode syntax = boundDeclarationPattern.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);

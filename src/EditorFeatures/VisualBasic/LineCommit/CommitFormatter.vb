@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim operations = New List(Of IndentBlockOperation)()
             While node IsNot Nothing
                 operations.AddRange(FormattingOperations.GetIndentBlockOperations(
-                                    Formatter.GetDefaultFormattingRules(document), node, lastToken:=Nothing, optionSet:=documentOptions))
+                                    Formatter.GetDefaultFormattingRules(document), node, optionSet:=documentOptions))
                 node = node.Parent
             End While
 

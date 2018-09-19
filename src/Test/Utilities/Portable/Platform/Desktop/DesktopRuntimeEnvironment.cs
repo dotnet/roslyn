@@ -291,6 +291,12 @@ namespace Roslyn.Test.Utilities.Desktop
 
         public void Verify(Verification verification)
         {
+            // Verification is only done on windows desktop 
+            if (!ExecutionConditionUtil.IsWindowsDesktop)
+            {
+                return;
+            }
+
             if (verification == Verification.Skipped)
             {
                 return;

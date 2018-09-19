@@ -1088,8 +1088,8 @@ This version used in: {2}</value>
   <data name="Use_expression_body_for_properties" xml:space="preserve">
     <value>Use expression body for properties</value>
   </data>
-  <data name="Spell_check_0" xml:space="preserve">
-    <value>Spell check '{0}'</value>
+  <data name="Fix_typo_0" xml:space="preserve">
+    <value>Fix typo '{0}'</value>
   </data>
   <data name="Fully_qualify_0" xml:space="preserve">
     <value>Fully qualify '{0}'</value>
@@ -1375,5 +1375,59 @@ This version used in: {2}</value>
   </data>
   <data name="Convert_to_conditional_expression" xml:space="preserve">
     <value>Convert to conditional expression</value>
+  </data>
+  <data name="Convert_to_linq" xml:space="preserve">
+    <value>Convert to LINQ</value>
+  </data>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
+  </data>
+  <data name="Convert_to_class" xml:space="preserve">
+    <value>Convert to class</value>
+  </data>
+  <data name="Convert_to_struct" xml:space="preserve">
+    <value>Convert to struct</value>
+  </data>
+  <data name="updating_usages_in_containing_member" xml:space="preserve">
+    <value>updating usages in containing member</value>
+  </data>
+  <data name="updating_usages_in_containing_project" xml:space="preserve">
+    <value>updating usages in containing project</value>
+  </data>
+  <data name="updating_usages_in_containing_type" xml:space="preserve">
+    <value>updating usages in containing type</value>
+  </data>
+  <data name="updating_usages_in_dependent_projects" xml:space="preserve">
+    <value>updating usages in dependent projects</value>
+  </data>
+  <data name="Formatting_document" xml:space="preserve">
+    <value>Formatting document</value>
+  </data>
+  <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use block body for lambda expressions</value>
+  </data>
+  <data name="Use_expression_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use expression body for lambda expressions</value>
+  </data>
+  <data name="Convert_to_linq_call_form" xml:space="preserve">
+    <value>Convert to LINQ (call form)</value>
+  </data>
+  <data name="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Remove_unused_member" xml:space="preserve">
+    <value>Remove unused member</value>
+  </data>
+  <data name="Type_0_has_an_unused_private_member_1_which_can_be_removed" xml:space="preserve">
+    <value>Type '{0}' has an unused private member '{1}' which can be removed.</value>
+  </data>
+  <data name="Remove_unused_private_members" xml:space="preserve">
+    <value>Remove unused private members</value>
+  </data>
+  <data name="Remove_unread_private_members" xml:space="preserve">
+    <value>Remove unread private members</value>
+  </data>
+  <data name="Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read" xml:space="preserve">
+    <value>Type '{0}' has a private member '{1}' that can be removed as the value assigned to it is never read.</value>
   </data>
 </root>

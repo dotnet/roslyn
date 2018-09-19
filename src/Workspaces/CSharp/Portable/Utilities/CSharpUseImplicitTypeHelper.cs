@@ -261,8 +261,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // variables declared using var cannot be used further in the same initialization expression.
             if (initializer.DescendantNodesAndSelf()
-                    .Where(n => (n as IdentifierNameSyntax)?.Identifier.ValueText.Equals(identifier.ValueText) == true)
-                    .Any(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol?.IsKind(SymbolKind.Local) == true))
+                .Where(n => n is IdentifierNameSyntax id && id.Identifier.ValueText.Equals(identifier.ValueText))
+                .Any(n => 
+                {
+                    // case of variable direct use: int x = x * 2;
+                    if (semanticModel.GetSymbolInfo(n, cancellationToken).Symbol.IsKind(SymbolKind.Local) == true)
+                    {
+                        return true;
+                    }
+
+                    // case of qualification starting with the variable name: SomeEnum SomeEnum = SomeEnum.EnumVal1;
+                    // note that: SomeEnum SomeEnum = global::SomeEnum.EnumVal1; // is ok and 'var' can be offered
+                    // https://github.com/dotnet/roslyn/issues/26894
+                    if (n.Parent is MemberAccessExpressionSyntax memberAccessParent && memberAccessParent.Expression == n)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }))
             {
                 return false;
             }
