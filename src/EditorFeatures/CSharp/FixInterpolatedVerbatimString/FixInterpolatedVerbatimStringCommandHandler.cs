@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -44,15 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
                             var token = root.FindToken(position - 3);
                             if (token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken))
                             {
-                                var newToken = SyntaxFactory.Token(
-                                    token.LeadingTrivia,
-                                    SyntaxKind.InterpolatedVerbatimStringStartToken,
-                                    "$@\"",
-                                    "$@\"",
-                                    token.TrailingTrivia);
-
-                                var newDocument = document.WithSyntaxRoot(root.ReplaceToken(token, newToken));
-                                document.Project.Solution.Workspace.TryApplyChanges(newDocument.Project.Solution);
+                                args.SubjectBuffer.Replace(new Span(position - 3, 2), "$@");
                             }
                         }
                     }
