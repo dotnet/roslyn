@@ -75,6 +75,7 @@ _Describe warnings reported for declarations in initial binding._
 
 ## Flow analysis
 Flow analysis is used to infer the nullability of variables within executable code. The inferred nullability of a variable is independent of the variable's declared nullability.
+Method calls are analyzed even when they are conditionally omitted. For instance, `Debug.Assert` in release mode.
 
 ### Warnings
 _Describe set of warnings. Differentiate W warnings._

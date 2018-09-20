@@ -72,6 +72,30 @@ partial class C
         }
 
         [Fact]
+        public void OmittedInitializerCall()
+        {
+            var source = @"
+using System.Collections;
+partial class Collection : IEnumerable
+{
+    void M(string? x)
+    {
+        _ = new Collection() { x };
+    }
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    partial void Add(string x);
+}
+";
+
+            var c = CreateCompilation(new[] { source, NonNullTypesTrue });
+            c.VerifyDiagnostics(
+                // (7,32): warning CS8604: Possible null reference argument for parameter 'x' in 'void Collection.Add(string x)'.
+                //         _ = new Collection() { x };
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "void Collection.Add(string x)").WithLocation(7, 32)
+                );
+        }
+
+        [Fact]
         public void UpdateArrayRankSpecifier()
         {
             var source = @"
