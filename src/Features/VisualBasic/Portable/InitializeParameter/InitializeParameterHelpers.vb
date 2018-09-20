@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
                    TypeOf node Is LambdaExpressionSyntax
         End Function
 
-        Public Shared Function CanOfferRefactoring(functionDeclaration As SyntaxNode, operationKind As OperationKind) As Boolean
-            Return operationKind = OperationKind.AnonymousFunction Or operationKind = OperationKind.Block
+        Public Shared Function CanOfferRefactoring(functionDeclaration As SyntaxNode, operation As IOperation) As Boolean
+            Return operation.Kind = OperationKind.AnonymousFunction Or operation.Kind = OperationKind.Block
         End Function
 
         Public Shared Function GetBlockOperation(functionDeclaration As SyntaxNode, semanticModel As SemanticModel, operation As IOperation, cancellationToken As CancellationToken) As IBlockOperation
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
                     Return DirectCast(operation, IBlockOperation)
                 Case Else
                     ' if previously checked with CanOfferRefactoring, this case won't happen
-                    Return Nothing
+                    Throw ExceptionUtilities.Unreachable
             End Select
         End Function
 

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             || node is LocalFunctionStatementSyntax
             || node is AnonymousFunctionExpressionSyntax;
 
-        public static bool CanOfferRefactoring(SyntaxNode functionDeclaration, OperationKind operationKind)
+        public static bool CanOfferRefactoring(SyntaxNode functionDeclaration, IOperation operation)
             => true;
 
         public static IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, IOperation operation, CancellationToken cancellationToken)

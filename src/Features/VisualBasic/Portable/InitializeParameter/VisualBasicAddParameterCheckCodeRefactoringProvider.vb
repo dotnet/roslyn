@@ -26,8 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return DirectCast(node, TypeStatementSyntax).Parent
         End Function
 
-        Protected Overrides Function CanOfferRefactoring(functionDeclaration As SyntaxNode, operationKind As OperationKind) As Boolean
-            Return InitializeParameterHelpers.CanOfferRefactoring(functionDeclaration, operationKind)
+        Protected Overrides Function CanOfferRefactoring(functionDeclaration As SyntaxNode, operation As IOperation) As Boolean
+            Return InitializeParameterHelpers.CanOfferRefactoring(functionDeclaration, operation)
         End Function
 
         Protected Overrides Function GetBlockOperation(functionDeclaration As SyntaxNode, semanticModel As SemanticModel, operation As IOperation, cancellationToken As CancellationToken) As IBlockOperation

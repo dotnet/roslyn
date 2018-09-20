@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
     {
         protected abstract bool IsFunctionDeclaration(SyntaxNode node);
 
-        protected abstract bool CanOfferRefactoring(SyntaxNode functionDeclaration, OperationKind operationKind);
+        protected abstract bool CanOfferRefactoring(SyntaxNode functionDeclaration, IOperation operation);
 
         protected abstract IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, IOperation operation, CancellationToken cancellationToken);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var operation = semanticModel.GetOperation(functionDeclaration, cancellationToken);
 
-            if (!CanOfferRefactoring(functionDeclaration, operation.Kind))
+            if (!CanOfferRefactoring(functionDeclaration, operation))
             {
                 return;
             }
