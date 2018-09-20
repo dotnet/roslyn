@@ -218,8 +218,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                // PROTOTYPE(NullableReferenceTypes): Avoid setting IsNullable in TypeSymbolWithAnnotations.Create
-                // only to undo that in TransformOrEraseNullability. Same comment applies to other uses of TransformOrEraseNullability.
                 type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
 

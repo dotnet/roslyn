@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var ordinal = i - 1;
                 bool isBad;
 
-                // PROTOTYPE(NullableReferenceTypes): handle extra annotations
+                // https://github.com/dotnet/roslyn/issues/29821: handle extra annotations
                 parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, extraAnnotations: default, out isBad);
 
                 if (isBad)

@@ -650,7 +650,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 const WellKnownAttributeFlags assertsTrue = WellKnownAttributeFlags.AssertsTrue;
                 const WellKnownAttributeFlags assertsFalse = WellKnownAttributeFlags.AssertsFalse;
 
-                // PROTOTYPE(NullableReferenceTypes): the flags could be packed more
                 if (!_packedFlags.TryGetWellKnownAttribute(notNullWhenTrue, out bool hasNotNullWhenTrue) ||
                     !_packedFlags.TryGetWellKnownAttribute(notNullWhenFalse, out bool hasNotNullWhenFalse) ||
                     !_packedFlags.TryGetWellKnownAttribute(assertsTrue, out bool hasAssertsTrue) ||

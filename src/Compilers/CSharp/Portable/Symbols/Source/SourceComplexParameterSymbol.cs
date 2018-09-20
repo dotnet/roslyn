@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 FlowAnalysisAnnotations? annotations = TryGetExtraAttributeAnnotations();
                 if (annotations.HasValue)
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Make sure this is covered by test
+                    // https://github.com/dotnet/roslyn/issues/30078: Make sure this is covered by test
                     return annotations.Value;
                 }
 
