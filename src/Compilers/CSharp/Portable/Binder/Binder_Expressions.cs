@@ -1983,7 +1983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundOperand = BindValue(operand, diagnostics, BindValueKind.RValue);
             TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, operand);
 
-            if (boundOperand.Type != null && boundOperand.Type.IsNullableType())
+            if (boundOperand.Type?.IsNullableType() == true)
             {
                 // Used in lowering to construct the nullable
                 GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, operand);

@@ -3304,9 +3304,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FromEndIndexExpression:
                     {
                         var fromEndIndexExpression = (BoundFromEndIndexExpression)boundNode;
-                        if (fromEndIndexExpression.SymbolOpt != null)
+                        if ((object)fromEndIndexExpression.SymbolOpt != null)
                         {
-                            symbols = ImmutableArray.Create((Symbol)fromEndIndexExpression.SymbolOpt);
+                            symbols = ImmutableArray.Create<Symbol>(fromEndIndexExpression.SymbolOpt);
                         }
                         break;
                     }
@@ -3314,9 +3314,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.RangeExpression:
                     {
                         var rangeExpression = (BoundRangeExpression)boundNode;
-                        if (rangeExpression.SymbolOpt != null)
+                        if ((object)rangeExpression.SymbolOpt != null)
                         {
-                            symbols = ImmutableArray.Create((Symbol)rangeExpression.SymbolOpt);
+                            symbols = ImmutableArray.Create<Symbol>(rangeExpression.SymbolOpt);
                         }
                         break;
                     }
