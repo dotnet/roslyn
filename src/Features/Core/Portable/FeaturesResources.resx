@@ -1052,6 +1052,9 @@ This version used in: {2}</value>
   <data name="Use_pattern_matching" xml:space="preserve">
     <value>Use pattern matching</value>
   </data>
+  <data name="Use_interpolated_verbatim_string" xml:space="preserve">
+    <value>Use interpolated verbatim string</value>
+  </data>
   <data name="Use_expression_body_for_methods" xml:space="preserve">
     <value>Use expression body for methods</value>
   </data>
@@ -1432,5 +1435,8 @@ This version used in: {2}</value>
   </data>
   <data name="Code_Quality" xml:space="preserve">
     <value>Code Quality</value>
+  </data>
+  <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
+    <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
   </data>
 </root>

@@ -1139,6 +1139,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.WhenNull, "WhenNull");
         }
 
+        public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
+        {
+            LogString(nameof(ICoalesceAssignmentOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, nameof(operation.Target));
+            Visit(operation.Value, nameof(operation.Value));
+        }
+
         public override void VisitIsType(IIsTypeOperation operation)
         {
             LogString(nameof(IIsTypeOperation));

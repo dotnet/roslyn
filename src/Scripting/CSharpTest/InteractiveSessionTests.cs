@@ -467,6 +467,49 @@ Environment.ProcessorCount
         }
 
         [Fact]
+        public void CompilationChain_Accessibility()
+        {
+            // Submissions have internal and protected access to one another.
+            var state1 = CSharpScript.RunAsync("internal class C1 { }   protected int X;   1");
+            var compilation1 = state1.Result.Script.GetCompilation();
+            compilation1.VerifyDiagnostics(
+                // (1,39): warning CS0628: 'X': new protected member declared in sealed class
+                // internal class C1 { }   protected int X;   1
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "X").WithArguments("X").WithLocation(1, 39)
+                );
+            Assert.Equal(1, state1.Result.ReturnValue);
+
+            var state2 = state1.ContinueWith("internal class C2 : C1 { }   2");
+            var compilation2 = state2.Result.Script.GetCompilation();
+            compilation2.VerifyDiagnostics();
+            Assert.Equal(2, state2.Result.ReturnValue);
+            var c2C2 = (INamedTypeSymbol)lookupMember(compilation2, "Submission#1", "C2");
+            var c2C1 = c2C2.BaseType;
+            var c2X = lookupMember(compilation1, "Submission#0", "X");
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2C1, c2C2));
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2C2, c2C1));
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2X, c2C2));  // access not enforced among submission symbols
+
+            var state3 = state2.ContinueWith("private class C3 : C2 { }   3");
+            var compilation3 = state3.Result.Script.GetCompilation();
+            compilation3.VerifyDiagnostics();
+            Assert.Equal(3, state3.Result.ReturnValue);
+            var c3C3 = (INamedTypeSymbol)lookupMember(compilation3, "Submission#2", "C3");
+            var c3C1 = c3C3.BaseType;
+            Assert.Throws<ArgumentException>(() => compilation2.IsSymbolAccessibleWithin(c3C3, c3C1));
+            Assert.True(compilation3.IsSymbolAccessibleWithin(c3C3, c3C1));
+
+            INamedTypeSymbol lookupType(Compilation c, string name)
+            {
+                return c.GlobalNamespace.GetMembers(name).Single() as INamedTypeSymbol;
+            }
+            ISymbol lookupMember(Compilation c, string typeName, string memberName)
+            {
+                return lookupType(c, typeName).GetMembers(memberName).Single();
+            }
+        }
+
+        [Fact]
         public void CompilationChain_SubmissionSlotResize()
         {
             var state = CSharpScript.RunAsync("");
