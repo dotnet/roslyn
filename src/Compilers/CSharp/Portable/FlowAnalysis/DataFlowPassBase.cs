@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
-                    // PROTOTYPE(NullableReferenceTypes): Not handling `this` or `base` in lambda.
+                    // https://github.com/dotnet/roslyn/issues/29617 Not handling `this` or `base` in lambda.
                     // See NullableReferenceTypesTests.ThisAndBaseMemberInLambda unit test.
                     return (object)MethodThisParameter != null ? GetOrCreateSlot(MethodThisParameter) : -1;
                 case BoundKind.Local:

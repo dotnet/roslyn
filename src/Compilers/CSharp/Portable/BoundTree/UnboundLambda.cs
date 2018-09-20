@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Diagnostics from NullableWalker.Analyze can be dropped here since Analyze
                 // will be called again from NullableWalker.ApplyConversion when the
                 // BoundLambda is converted to an anonymous function.
-                // PROTOTYPE(NullableReferenceTypes): Can we avoid generating extra
+                // https://github.com/dotnet/roslyn/issues/29617 Can we avoid generating extra
                 // diagnostics? And is this exponential when there are nested lambdas?
                 var diagnostics = DiagnosticBag.GetInstance();
                 var delegateType = Type.GetDelegateType();
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // PROTOTYPE(NullableReferenceTypes): Should report best type mismatch if the types
+                // https://github.com/dotnet/roslyn/issues/29617 Should report best type mismatch if the types
                 // differ by nested nullability. In that case, the nested nullability should be null-oblivious
                 // but the top-level nullability should be determined from GetIsNullable(resultTypes).
                 // (Compare with handling of array element type in NullableWalker.VisitArrayInitializer.)

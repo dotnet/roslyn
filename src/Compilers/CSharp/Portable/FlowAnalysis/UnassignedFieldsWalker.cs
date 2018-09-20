@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // PROTOTYPE(NullableReferenceTypes): Should UnassignedFieldsWalker
+    // https://github.com/dotnet/roslyn/issues/30067 Should UnassignedFieldsWalker
     // inherit from DataFlowPassBase<LocalState> directly since it has simpler
     // requirements than DataFlowPass?
     internal sealed class UnassignedFieldsWalker : DataFlowPass
@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (member.Kind != SymbolKind.Field)
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Handle events.
+                    // https://github.com/dotnet/roslyn/issues/30067 Handle events.
                     continue;
                 }
                 var field = (FieldSymbol)member;
-                // PROTOTYPE(NullableReferenceTypes): Can the HasInitializer
+                // https://github.com/dotnet/roslyn/issues/30067 Can the HasInitializer
                 // call be removed, if the body already contains the initializers?
                 if (field.IsStatic || HasInitializer(field))
                 {
