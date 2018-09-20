@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.InvertIf
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 {
     public partial class InvertIfTests
     {

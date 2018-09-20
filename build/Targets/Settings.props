@@ -27,7 +27,7 @@
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
-    <RoslynPortableTargetFrameworks>net46;netcoreapp2.0</RoslynPortableTargetFrameworks>
+    <RoslynPortableTargetFrameworks>net46;netcoreapp2.1</RoslynPortableTargetFrameworks>
     <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
     <RoslynDesktopRuntimeIdentifier>win</RoslynDesktopRuntimeIdentifier>
     <RoslynDesktopRuntimeIdentifierX86>win-x86</RoslynDesktopRuntimeIdentifierX86>
@@ -153,7 +153,7 @@
         <Import Include="System.Collections.Generic" />
         <Import Include="System.Diagnostics" />
       </ItemGroup>
-      <ItemGroup Condition="'$(TargetNetFX20)' != 'true'">
+      <ItemGroup Condition="'$(TargetFramework)' != 'net20'">
         <Import Include="System.Linq" />
       </ItemGroup>
       <PropertyGroup>
