@@ -312,11 +312,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && method.ReturnType.IsIAsyncEnumerableType(compilation);
         }
 
-        public static bool IsBadAsyncReturn(this MethodSymbol method, TypeSymbol returnType)
+        public static bool IsBadAsyncReturn(this MethodSymbol method)
         {
             Debug.Assert(method.IsAsync);
+            TypeSymbol returnType = method.ReturnType;
             CSharpCompilation declaringCompilation = method.DeclaringCompilation;
-
             return returnType.SpecialType != SpecialType.System_Void &&
                 !returnType.IsNonGenericTaskType(declaringCompilation) &&
                 !returnType.IsGenericTaskType(declaringCompilation) &&

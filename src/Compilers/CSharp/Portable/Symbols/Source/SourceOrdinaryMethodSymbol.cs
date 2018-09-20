@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ReportBadRefToken(GetSyntax().ReturnType, diagnostics);
             }
-            else if (this.IsBadAsyncReturn(this.ReturnType))
+            else if (this.IsBadAsyncReturn())
             {
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
             }

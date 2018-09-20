@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     ReportBadRefToken(returnTypeSyntax, diagnostics);
                 }
-                else if (this.IsBadAsyncReturn(returnType))
+                else if (this.IsBadAsyncReturn())
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
                 }
