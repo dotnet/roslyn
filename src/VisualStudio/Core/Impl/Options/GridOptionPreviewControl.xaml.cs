@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
-        ImmutableArray<(string feature, ImmutableArray<IOption> options)> _groupedEditorConfigOptions;
+        private readonly ImmutableArray<(string feature, ImmutableArray<IOption> options)> _groupedEditorConfigOptions;
         private readonly string _language;
 
         public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(UseEditorConfigUrl);
