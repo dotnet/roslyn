@@ -164,12 +164,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
         /// <summary>
-        /// True when "peverify-compat" is set
+        /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
         /// With this flag we will avoid certain patterns known not be compatible with PEVerify.
         /// The code may be less efficient and may deviate from spec in corner cases.
         /// The flag is only to be used if PEVerify pass is extremely important.
         /// </summary>
-        internal bool FeaturePEVerifyCompatEnabled => Feature("peverify-compat") != null;
+        internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null; 
 
         /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
