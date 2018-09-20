@@ -4021,6 +4021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var operandType = node.Operand.Type;
                             if (operandType?.IsValueType == true)
                             {
+                                // We currently don't worry about a pathological case of boxing nullable value known to be not null
                                 isNullable = operandType.IsNullableType();
                             }
                             else
