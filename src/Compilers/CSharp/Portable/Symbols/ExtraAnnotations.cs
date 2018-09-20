@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Append(')');
             return pooledBuilder.ToStringAndFree();
 
-            // PROTOTYPE(NullableReferenceTypes): Many cases are not yet handled
+            // https://github.com/dotnet/roslyn/issues/29821: Many cases are not yet handled
             // generic type args
             // ref kind
             // 'this'
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Append(')');
             return pooledBuilder.ToStringAndFree();
 
-            // PROTOTYPE(NullableReferenceTypes): Many cases are not yet handled
+            // https://github.com/dotnet/roslyn/issues/29821: Many cases are not yet handled
             // generic type args
             // ref kind
             // 'this'

@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Are we in a context where un-annotated types should be interpreted as non-null?
         /// </summary>
-        internal Symbol NonNullTypesContext => ContainingMember();
+        internal Symbol NonNullTypesContext => ContainingMember().OriginalDefinition;
 
         /// <summary>
         /// Is the contained code within a member method body?

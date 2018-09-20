@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst();
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should probably rename this method to have more specific name.
+        // https://github.com/dotnet/roslyn/issues/30056: Should probably rename this method to have more specific name.
         //                                    At the moment it is used only for Nullable Reference Types feature and
         //                                    its implementation is specialized for this feature.
         public static bool IsUnconstrainedTypeParameter(this TypeSymbol type)
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
             var typeParameter = (TypeParameterSymbol)type;
-            // PROTOTYPE(NullableReferenceTypes): Test `where T : unmanaged`. See
+            // https://github.com/dotnet/roslyn/issues/30056: Test `where T : unmanaged`. See
             // UninitializedNonNullableFieldTests.TypeParameterConstraints for instance.
             return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullableIfReferenceType == true);
         }
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// completes without the predicate returning true for any type, this method returns null.
         /// </summary>
         public static TypeSymbol VisitType<T>(
-            // PROTOTYPE(NullableReferenceTypes): If TypeSymbolWithAnnotations
+            // https://github.com/dotnet/roslyn/issues/30059: If TypeSymbolWithAnnotations
             // is a struct, use a single type argument and a single predicate.
             this TypeSymbolWithAnnotations typeWithAnnotationsOpt,
             TypeSymbol typeOpt,
