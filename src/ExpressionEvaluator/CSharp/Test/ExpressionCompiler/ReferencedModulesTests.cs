@@ -1249,6 +1249,7 @@ IL_0030:  ret
         // An assembly with the expected corlib name and with System.Object should
         // be considered the corlib, even with references to external assemblies.
         [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
+        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         [Fact]
         public void CorLibWithAssemblyReferences()
         {
@@ -1314,7 +1315,7 @@ namespace System
     {
     }
 }";
-                // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+                // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
                 var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
                 comp.VerifyDiagnostics();
 

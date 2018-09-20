@@ -52,9 +52,6 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        // PROTOTYPE(NullableReferenceTypes): remove
-        protected const string NonNullTypesAttributesDefinition = @"";
-
         protected const string NotNullWhenTrueAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -556,17 +553,16 @@ namespace System.Runtime.CompilerServices
             var compilation = createCompilationLambda();
             // 'skipUsesIsNullable' may need to be set for some tests, particularly those that want to verify
             // symbols are created lazily, since 'UsesIsNullableVisitor' will eagerly visit all members.
-            // PROTOTYPE(NullableReferenceTypes): Remove skipUsesIsNullable and call VerifyNoNullability
-            // on a separate Compilation instance created with createCompilationLambda.
             if (!skipUsesIsNullable && !IsNullableEnabled(compilation))
             {
-                VerifyUsesOfNullability(compilation.SourceModule.GlobalNamespace, expectedUsesOfNullable: ImmutableArray<string>.Empty);
+                VerifyUsesOfNullability(createCompilationLambda().SourceModule.GlobalNamespace, expectedUsesOfNullable: ImmutableArray<string>.Empty);
             }
             return compilation;
         }
 
         internal static bool IsNullableEnabled(CSharpCompilation compilation)
         {
+            // This method should not cause any binding, including resolving references, etc.
             var trees = compilation.SyntaxTrees;
             if (trees.IsDefaultOrEmpty)
             {

@@ -272,8 +272,9 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): the warning is temporarily disabled in this scenario to avoid cycle")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30026: the warning is temporarily disabled in this scenario to avoid cycle")]
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [WorkItem(30026, "https://github.com/dotnet/roslyn/issues/30026")]
         public async Task FixOptionalParameter()
         {
             await TestInRegularAndScript1Async(

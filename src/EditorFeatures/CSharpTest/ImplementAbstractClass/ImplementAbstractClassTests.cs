@@ -829,7 +829,7 @@ class C : B
         }
 
         [WorkItem(545615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545615")]
-        [Fact(Skip = "PROTOTYPE(NullableReferenceTypes): Needs investigation"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestParamsArray()
         {
             await TestAllOptionsOffAsync(
