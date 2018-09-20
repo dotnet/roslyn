@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
+Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InvertIf), [Shared]>
     Friend NotInheritable Class VisualBasicInvertSingleLineIfCodeRefactoringProvider
         Inherits VisualBasicInvertIfCodeRefactoringProvider(Of SingleLineIfStatementSyntax)

@@ -2,9 +2,10 @@
 
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.VisualBasic.InvertIf
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.InvertIf
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
     Public Class InvertSingleLineIfTests
         Inherits AbstractVisualBasicCodeActionTest
 
