@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public Option(string feature, string name, T defaultValue)
-            : this(feature, name, default, storageLocations: Array.Empty<OptionStorageLocation>())
+            : this(feature, name, defaultValue, storageLocations: Array.Empty<OptionStorageLocation>())
         {
         }
 
