@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
             if (fixCollection == null)
             {
-                return null;
+                return document;
             }
 
             var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();

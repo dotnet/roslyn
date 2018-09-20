@@ -68,8 +68,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 var hierarchyContent = scope as IVsHierarchyCodeCleanupScope;
                 var hierarchy = hierarchyContent.Hierarchy;
-                var itemId = hierarchyContent.ItemId;
+                if (hierarchy == null)
+                {
+                    // solution
+                    return false; 
+                }
 
+                var itemId = hierarchyContent.ItemId;
+                
                 if (hierarchy.GetCanonicalName(itemId, out var path) == 0)
                 {
                     var attr = File.GetAttributes(path);
