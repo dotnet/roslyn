@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
-            // PROTOTYPE(NullableReferenceTypes): Re-enable asserts.
+            // https://github.com/dotnet/roslyn/issues/30081: Re-enable asserts.
             //Debug.Assert(!inProgress.ContainsReference(this));
             //Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
 
