@@ -2947,7 +2947,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected)
+            Await TestAsync(code, expected, parseOptions:=New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic16))
         End Function
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>

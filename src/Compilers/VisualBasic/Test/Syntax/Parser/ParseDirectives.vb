@@ -2356,14 +2356,11 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation2()
-        ' PROTOTYPE LanguageVersion.VisualBasic15_3 should be LanguageVersion.VisualBasic15_5
-        ' PROTOTYPE 37306 must be set to the value of ERRID.ERR_CommentsAfterLineContinuationNotAvailable1
         Assert.Equal(37306, ERRID.ERR_CommentsAfterLineContinuationNotAvailable1)
-        ' PROTOTYPE "37306" must be set to the string value of ERRID.ERR_CommentsAfterLineContinuationNotAvailable1
         Dim tree = ParseAndVerify(code:=<![CDATA[#Enable Warning _ 'Comment]]>,
-                                  options:=New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
+                                  options:=New VisualBasicParseOptions(LanguageVersion.VisualBasic15),
                                     <errors>
-                                        <error id="37306" message="Please use language version 15.5 or greater to use comments after line continuation character." start="24" end="25"/>
+                                        <error id="37306" message="Please use language version 16 or greater to use comments after line continuation character." start="24" end="25"/>
                                     </errors>)
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
@@ -2381,8 +2378,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation2V16()
-        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16
-        Dim tree = ParseAndVerify((<![CDATA[#Enable Warning _  'Comment]]>), New VisualBasicParseOptions(LanguageVersion.Latest))
+        Dim tree = ParseAndVerify((<![CDATA[#Enable Warning _  'Comment]]>), New VisualBasicParseOptions(LanguageVersion.VisualBasic16))
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
@@ -2424,15 +2420,11 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation4()
-        ' PROTOTYPE LanguageVersion.VisualBasic15_3 should be LanguageVersion.VisualBasic15_5
-        ' PROTOTYPE 15.5 should be 16
-        ' PROTOTYPE 37306 should be value of ERRID.ERR_CommentsAfterLineContinuationNotAvailable1
         Assert.Equal(37306, ERRID.ERR_CommentsAfterLineContinuationNotAvailable1)
-        ' PROTOTYPE "37306" must be set to the string value of ERRID.ERR_CommentsAfterLineContinuationNotAvailable1
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc41007 _ 'Comment]]>,
-                                  New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
+                                  New VisualBasicParseOptions(LanguageVersion.VisualBasic15),
             <errors>
-                <error id="37306" message="Please use language version 15.5 or greater to use comments after line continuation character." start="24" end="25"/>
+                <error id="37306" message="Please use language version 16 or greater to use comments after line continuation character." start="24" end="25"/>
             </errors>)
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
@@ -2452,9 +2444,8 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation4V16()
-        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16
         Dim tree = ParseAndVerify((<![CDATA[#Enable Warning bc41007 _ 'Comment]]>),
-                                  New VisualBasicParseOptions(LanguageVersion.Latest))
+                                  New VisualBasicParseOptions(LanguageVersion.VisualBasic16))
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()

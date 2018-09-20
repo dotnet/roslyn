@@ -93,11 +93,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.LeadingDigitSeparator,
                     Feature.NonTrailingNamedArguments,
-                    Feature.PrivateProtected,
-                    Feature.CommentsAfterLineContinuation ' PROTOTYPE(continuation-comments): Move the feature under VB16 once that LanguageVersion is available
+                    Feature.PrivateProtected
                     Return LanguageVersion.VisualBasic15_5
 
-                Case Feature.UnconstrainedTypeParameterInConditional
+                Case Feature.UnconstrainedTypeParameterInConditional,
+                    Feature.CommentsAfterLineContinuation
                     Return LanguageVersion.VisualBasic16
 
                 Case Else

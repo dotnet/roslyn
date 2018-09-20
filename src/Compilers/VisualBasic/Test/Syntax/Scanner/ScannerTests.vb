@@ -517,8 +517,7 @@ Public Class ScannerTests
         Assert.Equal(1, tk.Errors.Count)
         Assert.Equal(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, tk.Errors.First().Code)
 
-        ' PROTOTYPE LanguageVersion.VisualBasic15_5 should be LanguageVersion.VisualBasic16
-        tk = ScanOnce(" _'", LanguageVersion.VisualBasic15_5)
+        tk = ScanOnce(" _'", LanguageVersion.VisualBasic16)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _'", tk.ToFullString())
         Assert.Equal(3, tk.LeadingTrivia.Count)
@@ -540,8 +539,7 @@ Public Class ScannerTests
         Assert.Equal(1, tk.Errors.Count)
         Assert.Equal(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, tk.Errors.First().Code)
 
-        ' PROTOTYPE LanguageVersion.VisualBasic15_5 should be LanguageVersion.VisualBasic16
-        tk = ScanOnce(" _' Comment", LanguageVersion.VisualBasic15_5)
+        tk = ScanOnce(" _' Comment", LanguageVersion.VisualBasic16)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _' Comment", tk.ToFullString())
         Assert.Equal(3, tk.LeadingTrivia.Count)
@@ -550,8 +548,7 @@ Public Class ScannerTests
         Assert.Equal(SyntaxKind.CommentTrivia, tk.LeadingTrivia(2).Kind)
         Assert.Equal(0, tk.Errors.Count)
 
-        ' PROTOTYPE LanguageVersion.VisualBasic15_5 should be LanguageVersion.VisualBasic16
-        tk = ScanOnce(" _  ' Comment" & vbCrLf, LanguageVersion.VisualBasic15_5)
+        tk = ScanOnce(" _  ' Comment" & vbCrLf, LanguageVersion.VisualBasic16)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _  ' Comment" & vbCrLf, tk.ToFullString())
         Assert.Equal(5, tk.LeadingTrivia.Count)
