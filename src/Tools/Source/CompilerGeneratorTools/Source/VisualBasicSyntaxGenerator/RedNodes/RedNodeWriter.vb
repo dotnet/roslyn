@@ -118,10 +118,9 @@ Friend Class RedNodeWriter
         _writer.WriteLine()
     End Sub
 
-
     Private Sub GenerateEnumTypes()
-        For Each enumeration In _parseTree.Enumerations.Values
-            GenerateEnumerationType(enumeration)
+        For Each enumerationType In _parseTree.Enumerations.Values
+            GenerateEnumerationType(enumerationType)
         Next
     End Sub
 

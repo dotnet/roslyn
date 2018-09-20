@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="new">Add member name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
         <target state="translated">Přidat parametr do {0} (a přepsání/implementace)</target>
@@ -79,7 +84,11 @@
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
         <source>Private member '{0}' is unused.</source>
-        <target state="new">Private member '{0}' is unused.</target>
+        <target state="new">Private member '{0}' is unused.</target><note />
+      </trans-unit>
+      <trans-unit id="Invert_conditional">
+        <source>Invert conditional</source>
+        <target state="new">Invert conditional</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
@@ -100,6 +109,11 @@
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="new">Remove unused private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_1">
+        <source>Replace '{0}' with '{1}' </source>
+        <target state="new">Replace '{0}' with '{1}' </target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
