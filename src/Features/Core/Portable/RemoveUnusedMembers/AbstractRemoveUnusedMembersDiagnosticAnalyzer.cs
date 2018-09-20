@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,52 +14,27 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
     internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractCodeQualityDiagnosticAnalyzer
         where TDocumentationCommentTriviaSyntax: SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
-        private static readonly DiagnosticDescriptor s_removeUnusedMembersRule;
-        private static readonly DiagnosticDescriptor s_removeUnusedMembersWithFadingRule;
+        private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
+            IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
+            new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Private_member_0_is_unused), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            isUnneccessary: true);
 
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
-        private static readonly DiagnosticDescriptor s_removeUnreadMembersRule;
-        private static readonly DiagnosticDescriptor s_removeUnreadMembersWithFadingRule;
-
-        static AbstractRemoveUnusedMembersDiagnosticAnalyzer()
-        {
-            var removeUnusedMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            var removeUnusedMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_an_unused_private_member_1_which_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            s_removeUnusedMembersRule = CreateDescriptor(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
-                                                         removeUnusedMembersTitle,
-                                                         removeUnusedMembersMessage,
-                                                         configurable: true,
-                                                         enabledByDefault: true);
-            s_removeUnusedMembersWithFadingRule = CreateUnnecessaryDescriptor(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
-                                                                              removeUnusedMembersTitle,
-                                                                              removeUnusedMembersMessage,
-                                                                              configurable: true,
-                                                                              enabledByDefault: true);
-
-            var removeUnreadMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            var removeUnreadMembersMessage = new LocalizableResourceString(nameof(FeaturesResources.Type_0_has_a_private_member_1_that_can_be_removed_as_the_value_assigned_to_it_is_never_read), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            s_removeUnreadMembersRule = CreateDescriptor(IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
-                                                         removeUnreadMembersTitle,
-                                                         removeUnreadMembersMessage,
-                                                         configurable: true,
-                                                         enabledByDefault: true);
-            s_removeUnreadMembersWithFadingRule = CreateUnnecessaryDescriptor(IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
-                                                                              removeUnreadMembersTitle,
-                                                                              removeUnreadMembersMessage,
-                                                                              configurable: true,
-                                                                              enabledByDefault: true);
-        }
+        private static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
+            IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
+            new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            isUnneccessary: true);
 
         protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
-            : base (ImmutableArray.Create(s_removeUnusedMembersRule,
-                                          s_removeUnusedMembersWithFadingRule,
-                                          s_removeUnreadMembersRule,
-                                          s_removeUnreadMembersWithFadingRule))
+            : base(ImmutableArray.Create(s_removeUnusedMembersRule, s_removeUnreadMembersRule),
+                   GeneratedCodeAnalysisFlags.Analyze) // We want to analyze references in generated code, but not report unused members in generated code.
         {
         }
 
@@ -72,20 +47,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         // Hence, we need to re-analyze the declarations in the whole file for any edits within the document. 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        protected override void InitializeWorker(AnalysisContext context)
-        {
-            // We want to analyze references in generated code, but not report unused members in generated code.
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
-
-            context.RegisterCompilationStartAction(compilationStartContext
+        protected sealed override void InitializeWorker(AnalysisContext context)
+            => context.RegisterCompilationStartAction(compilationStartContext
                 => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext));
-        }
 
         private sealed class CompilationAnalyzer
         {
             private readonly object _gate;
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
-            private readonly INamedTypeSymbol _taskType, _genericTaskType;
+            private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
 
             private CompilationAnalyzer(Compilation compilation)
             {
@@ -96,6 +66,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                 _taskType = compilation.TaskType();
                 _genericTaskType = compilation.TaskOfTType();
+                _debuggerDisplayAttributeType = compilation.DebuggerDisplayAttributeType();
+                _structLayoutAttributeType = compilation.StructLayoutAttributeType();
             }
 
             public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext)
@@ -119,6 +91,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
+                    if (symbolStartContext.Symbol.GetAttributes().Any(a => a.AttributeClass == _structLayoutAttributeType))
+                    {
+                        // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
+                        // and removal of unused members might break semantics.
+                        return;
+                    }
+
                     var hasInvalidOperation = false;
                     symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                     symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
@@ -275,6 +254,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // Report diagnostics for unused candidate members.
                 var first = true;
                 PooledHashSet<ISymbol> symbolsReferencedInDocComments = null;
+                ArrayBuilder<string> debuggerDisplayAttributeArguments = null;
                 try
                 {
                     var namedType = (INamedTypeSymbol)symbolEndContext.Symbol;
@@ -300,25 +280,37 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                 // Compute the set of candidate symbols referenced in all the documentation comments within the named type declarations.
                                 // This set is computed once and used for all the iterations of the loop.
                                 symbolsReferencedInDocComments = GetCandidateSymbolsReferencedInDocComments(namedType, symbolEndContext.Compilation, symbolEndContext.CancellationToken);
+
+                                // Compute the set of string arguments to DebuggerDisplay attributes applied to any symbol within the named type declaration.
+                                // These strings may have an embedded reference to the symbol.
+                                // This set is computed once and used for all the iterations of the loop.
+                                debuggerDisplayAttributeArguments = GetDebuggerDisplayAttributeArguments(namedType);
+
                                 first = false;
+                            }
+
+                            // Simple heuristic for members referenced in DebuggerDisplayAttribute's string argument:
+                            // bail out if any of the DebuggerDisplay string arguments contains the member name.
+                            // In future, we can consider improving this heuristic to parse the embedded expression
+                            // and resolve symbol references.
+                            if (debuggerDisplayAttributeArguments.Any(arg => arg.Contains(member.Name)))
+                            {
+                                continue;
                             }
 
                             // Report IDE0051 or IDE0052 based on whether the underlying member has any Write/WritableRef/NonReadWriteRef references or not.
                             var rule = !valueUsageInfo.ContainsWriteOrWritableRef() && !valueUsageInfo.ContainsNonReadWriteRef() && !symbolsReferencedInDocComments.Contains(member)
-                                ? s_removeUnusedMembersWithFadingRule
-                                : s_removeUnreadMembersWithFadingRule;
-                            var effectiveSeverity = rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options);
+                                ? s_removeUnusedMembersRule
+                                : s_removeUnreadMembersRule;
 
                             // Most of the members should have a single location, except for partial methods.
                             // We report the diagnostic on the first location of the member.
-                            var diagnostic = DiagnosticHelper.Create(
+                            var diagnostic = Diagnostic.Create(
                                 rule,
                                 member.Locations[0],
-                                effectiveSeverity,
                                 additionalLocations: null,
                                 properties: null,
-                                member.ContainingType.Name,
-                                member.Name);
+                                $"{member.ContainingType.Name}.{member.Name}");
                             symbolEndContext.ReportDiagnostic(diagnostic);
                         }
                     }
@@ -326,6 +318,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 finally
                 {
                     symbolsReferencedInDocComments?.Free();
+                    debuggerDisplayAttributeArguments?.Free();
                 }
 
                 return;
@@ -364,6 +357,52 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
 
                 return builder;
+            }
+
+            ArrayBuilder<string> GetDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol)
+            {
+                var builder = ArrayBuilder<string>.GetInstance();
+                AddDebuggerDisplayAttributeArguments(namedTypeSymbol, builder);
+                return builder;
+            }
+
+            void AddDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol, ArrayBuilder<string> builder)
+            {
+                AddDebuggerDisplayAttributeArgumentsCore(namedTypeSymbol, builder);
+
+                foreach (var member in namedTypeSymbol.GetMembers())
+                {
+                    switch (member)
+                    {
+                        case INamedTypeSymbol nestedType:
+                            AddDebuggerDisplayAttributeArguments(nestedType, builder);
+                            break;
+
+                        case IPropertySymbol property:
+                        case IFieldSymbol field:
+                            AddDebuggerDisplayAttributeArgumentsCore(member, builder);
+                            break;
+                    }
+                }
+            }
+
+            void AddDebuggerDisplayAttributeArgumentsCore(ISymbol symbol, ArrayBuilder<string> builder)
+            {
+                foreach (var attribute in symbol.GetAttributes())
+                {
+                    if (attribute.AttributeClass == _debuggerDisplayAttributeType &&
+                        attribute.ConstructorArguments.Length == 1 &&
+                        attribute.ConstructorArguments[0] is var arg &&
+                        arg.Kind == TypedConstantKind.Primitive &&
+                        arg.Type.SpecialType == SpecialType.System_String)
+                    {
+                        var value = arg.Value as string;
+                        if (value != null)
+                        {
+                            builder.Add(value);
+                        }
+                    }
+                }
             }
 
             private bool IsCandidateSymbol(ISymbol memberSymbol)
@@ -407,6 +446,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                         case SymbolKind.Field:
                             return ((IFieldSymbol)memberSymbol).AssociatedSymbol == null;
+
+                        case SymbolKind.Property:
+                            return ((IPropertySymbol)memberSymbol).ExplicitInterfaceImplementations.IsEmpty;
 
                         default:
                             return true;

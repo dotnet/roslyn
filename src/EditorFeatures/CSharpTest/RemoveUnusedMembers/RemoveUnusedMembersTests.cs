@@ -458,6 +458,21 @@ class C : I
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsUnused_ExplicitInterfaceImplementation()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"interface I
+{
+    int P { get; set; }
+}
+
+class C : I
+{
+    int I.[|P|] { get { return 0; } set { } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_Const()
         {
             await TestInRegularAndScriptAsync(
@@ -1704,6 +1719,125 @@ class C2
 {
     // 'ii' is undefined.
     public int M() => ii;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task StructLayoutAttribute_ExplicitLayout()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Explicit)]
+class C
+{
+    [FieldOffset(0)]
+    private int [|i|];
+
+    [FieldOffset(4)]
+    private int i2;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task StructLayoutAttribute_SequentialLayout()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+struct S
+{
+    private int [|i|];
+    private int i2;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnType_ReferencesField()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"[System.Diagnostics.DebuggerDisplayAttribute(""{s}"")]
+class C
+{
+    private string [|s|];
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnType_ReferencesMethod()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"[System.Diagnostics.DebuggerDisplayAttribute(""{GetString()}"")]
+class C
+{
+    private string [|GetString|]() => """";
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnType_ReferencesProperty()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"[System.Diagnostics.DebuggerDisplayAttribute(""{MyString}"")]
+class C
+{
+    private string [|MyString|] => """";
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnField_ReferencesField()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    private string [|s|];
+
+    [System.Diagnostics.DebuggerDisplayAttribute(""{s}"")]
+    public int M;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnProperty_ReferencesMethod()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    private string [|GetString|]() => """";
+
+    [System.Diagnostics.DebuggerDisplayAttribute(""{GetString()}"")]
+    public int M => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnProperty_ReferencesProperty()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    private string [|MyString|] { get { return """"; } }
+
+    [System.Diagnostics.DebuggerDisplayAttribute(""{MyString}"")]
+    public int M { get { return 0; } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnNestedTypeMember_ReferencesField()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    private static string [|s|];
+
+    class Nested
+    {
+        [System.Diagnostics.DebuggerDisplayAttribute(""{C.s}"")]
+        public int M;
+    }
 }");
         }
 
