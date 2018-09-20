@@ -747,8 +747,8 @@
   <data name="Refactoring_Only" xml:space="preserve">
     <value>Refactoring Only</value>
   </data>
-  <data name="Comment_the_line_below_if_you_want_to_inherit_parent_dot_editorconfig_settings" xml:space="preserve">
-    <value>Comment the line below if you want to inherit parent .editorconfig settings</value>
+  <data name="Remove_the_line_below_if_you_want_to_inherit_from_higher_directories_dot_editorconfig_settings" xml:space="preserve">
+    <value>Remove the line below if you want to inherit from higher directories .editorconfig settings</value>
   </data>
   <data name="Core_EditorConfig_Options" xml:space="preserve">
     <value>Core EditorConfig Options</value>
@@ -783,10 +783,10 @@
   <data name="Parentheses_preferences" xml:space="preserve">
     <value>Parentheses preferences</value>
   </data>
-  <data name="this_dot_or_Me_dot_preferences" xml:space="preserve">
-    <value>this. or Me. preferences</value>
+  <data name="this_dot_and_Me_dot_preferences" xml:space="preserve">
+    <value>this. and Me. preferences</value>
   </data>
-  <data name="VB_files" xml:space="preserve">
-    <value>VB files</value>
+  <data name="Visual_Basic_files" xml:space="preserve">
+    <value>Visual Basic files</value>
   </data>
 </root>

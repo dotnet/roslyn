@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
@@ -9,11 +10,6 @@ namespace Microsoft.CodeAnalysis.Formatting
     public static class FormattingOptions
     {
         private static readonly ImmutableArray<IOption>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption>();
-
-        static FormattingOptions()
-        {
-            AllOptions = s_allOptionsBuilder.ToImmutable();
-        }
 
         internal static ImmutableArray<IOption> AllOptions { get; }
 
@@ -58,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static PerLanguageOption<string> NewLine { get; } = CreatePerLanguageOption(
             FormattingOptionGroups.NewLine, nameof(NewLine),
-            defaultValue: "\r\n",
+            defaultValue: Environment.NewLine,
             storageLocations: new EditorConfigStorageLocation<string>(
                 "end_of_line",
                 ParseEditorConfigEndOfLine,
@@ -87,6 +83,13 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static Option<bool> AllowDisjointSpanMerging { get; } = CreateOption(OptionGroup.Default, nameof(AllowDisjointSpanMerging), defaultValue: false);
 
+        static FormattingOptions()
+        {
+            // Note that the static constructor executes after all the static field initializers for the options have executed,
+            // and each field initializer adds the created option to s_allOptionsBuilder.
+            AllOptions = s_allOptionsBuilder.ToImmutable();
+        }
+
         public enum IndentStyle
         {
             None = 0,
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
     internal static class FormattingOptionGroups
     {
-        public static readonly OptionGroup IndentationAndSpacing= new OptionGroup(WorkspacesResources.Indentation_and_spacing, 1);
-        public static readonly OptionGroup NewLine = new OptionGroup(WorkspacesResources.New_line_preferences, 2);
+        public static readonly OptionGroup IndentationAndSpacing= new OptionGroup(WorkspacesResources.Indentation_and_spacing, priority: 1);
+        public static readonly OptionGroup NewLine = new OptionGroup(WorkspacesResources.New_line_preferences, priority: 2);
     }
 }

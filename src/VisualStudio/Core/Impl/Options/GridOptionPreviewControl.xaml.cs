@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 Filter = "All files (*.*)|",
                 FileName = ".editorconfig",
-                Title = "Save .editorconfig file"
+                Title = ServicesVSResources.Save_dot_editorconfig_file
             })
             {
                 if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)

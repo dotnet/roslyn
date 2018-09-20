@@ -67,6 +67,11 @@
         <target state="translated">Visual Studio varsayılan tuş eşlemesine sıfırla</target>
         <note />
       </trans-unit>
+      <trans-unit id="Save_dot_editorconfig_file">
+        <source>Save .editorconfig file</source>
+        <target state="new">Save .editorconfig file</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="new">Use expression body for lambdas</target>

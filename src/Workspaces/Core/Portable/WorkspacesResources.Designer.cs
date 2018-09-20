@@ -549,15 +549,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Comment the line below if you want to inherit parent .editorconfig settings.
-        /// </summary>
-        internal static string Comment_the_line_below_if_you_want_to_inherit_parent_dot_editorconfig_settings {
-            get {
-                return ResourceManager.GetString("Comment_the_line_below_if_you_want_to_inherit_parent_dot_editorconfig_settings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Core EditorConfig Options.
         /// </summary>
         internal static string Core_EditorConfig_Options {
@@ -1368,6 +1359,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove the line below if you want to inherit from higher directories .editorconfig settings.
+        /// </summary>
+        internal static string Remove_the_line_below_if_you_want_to_inherit_from_higher_directories_dot_editorconfig_settings {
+            get {
+                return ResourceManager.GetString("Remove_the_line_below_if_you_want_to_inherit_from_higher_directories_dot_editorco" +
+                        "nfig_settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Removed:.
         /// </summary>
         internal static string Removed_colon {
@@ -1720,11 +1721,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to this. or Me. preferences.
+        ///   Looks up a localized string similar to this. and Me. preferences.
         /// </summary>
-        internal static string this_dot_or_Me_dot_preferences {
+        internal static string this_dot_and_Me_dot_preferences {
             get {
-                return ResourceManager.GetString("this_dot_or_Me_dot_preferences", resourceCulture);
+                return ResourceManager.GetString("this_dot_and_Me_dot_preferences", resourceCulture);
             }
         }
         
@@ -1891,11 +1892,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to VB files.
+        ///   Looks up a localized string similar to Visual Basic files.
         /// </summary>
-        internal static string VB_files {
+        internal static string Visual_Basic_files {
             get {
-                return ResourceManager.GetString("VB_files", resourceCulture);
+                return ResourceManager.GetString("Visual_Basic_files", resourceCulture);
             }
         }
         

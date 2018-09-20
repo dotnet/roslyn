@@ -58,13 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             });
         #endregion
 
-        static CSharpFormattingOptions()
-        {
-            AllOptions = s_allOptionsBuilder.ToImmutable();
-            SpacingWithinParenthesisOptionsMap = s_spacingWithinParenthesisOptionsMapBuilder.ToImmutable();
-            NewLineOptionsMap = s_newLineOptionsMapBuilder.ToImmutable();
-        }
-
         internal static ImmutableArray<IOption> AllOptions { get; }
         private static ImmutableDictionary<Option<bool>, SpacingWithinParenthesesOption> SpacingWithinParenthesisOptionsMap { get; }
         private static ImmutableDictionary<Option<bool>, NewLineOption> NewLineOptionsMap { get; }
@@ -401,6 +394,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolOption("csharp_new_line_between_query_expression_clauses"),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForClausesInQuery")});
+
+        static CSharpFormattingOptions()
+        {
+            // Note that the static constructor executes after all the static field initializers for the options have executed,
+            // and each field initializer adds the created option to the following builders.
+            AllOptions = s_allOptionsBuilder.ToImmutable();
+            SpacingWithinParenthesisOptionsMap = s_spacingWithinParenthesisOptionsMapBuilder.ToImmutable();
+            NewLineOptionsMap = s_newLineOptionsMapBuilder.ToImmutable();
+        }
     }
 
     public enum LabelPositionOptions
@@ -429,9 +431,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
     internal static class CSharpFormattingOptionGroups
     {
-        public static readonly OptionGroup NewLine = new OptionGroup(WorkspacesResources.New_line_preferences, 1);
-        public static readonly OptionGroup Indentation = new OptionGroup(CSharpWorkspaceResources.Indentation_preferences, 2);
-        public static readonly OptionGroup Spacing = new OptionGroup(CSharpWorkspaceResources.Space_preferences, 3);
-        public static readonly OptionGroup Wrapping = new OptionGroup(CSharpWorkspaceResources.Wrapping_preferences, 4);
+        public static readonly OptionGroup NewLine = new OptionGroup(WorkspacesResources.New_line_preferences, priority: 1);
+        public static readonly OptionGroup Indentation = new OptionGroup(CSharpWorkspaceResources.Indentation_preferences, priority: 2);
+        public static readonly OptionGroup Spacing = new OptionGroup(CSharpWorkspaceResources.Space_preferences, priority: 3);
+        public static readonly OptionGroup Wrapping = new OptionGroup(CSharpWorkspaceResources.Wrapping_preferences, priority: 4);
     }
 }

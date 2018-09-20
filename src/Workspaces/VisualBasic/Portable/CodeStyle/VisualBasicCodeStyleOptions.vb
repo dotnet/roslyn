@@ -39,6 +39,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
     End Class
 
     Friend NotInheritable Class VisualBasicCodeStyleOptionGroups
-        Public Shared ReadOnly Modifier As New OptionGroup(WorkspacesResources.Modifier_preferences, 1)
+        Public Shared ReadOnly Modifier As New OptionGroup(WorkspacesResources.Modifier_preferences, priority:=1)
     End Class
 End Namespace

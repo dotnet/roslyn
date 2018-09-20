@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         internal static LabelPositionOptions ParseEditorConfigLabelPositioning(string labelIndentationValue)
             => s_labelPositionOptionsEditorConfigMap.TryGetValue(labelIndentationValue, out var value) ? value : LabelPositionOptions.NoIndent;
+
         private static string GetLabelPositionOptionEditorConfigString(LabelPositionOptions value)
             => s_labelPositionOptionsEditorConfigMap.TryGetKey(value, out string key) ? key : null;
 
@@ -81,33 +82,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static NewLineOption? ConvertToNewLineOption(string value)
             => s_newLineOptionsEditorConfigMap.GetValueOrDefault(value);
+
         private static string GetNewLineOptionEditorConfigString(OptionSet optionSet)
         {
-            List<string> editorConfigStringBuilderOpt = null;
+            var editorConfigStringBuilder = new List<string>(NewLineOptionsMap.Count);
             foreach (var kvp in NewLineOptionsMap)
             {
                 var value = optionSet.GetOption(kvp.Key);
                 if (value)
                 {
-                    editorConfigStringBuilderOpt = editorConfigStringBuilderOpt ?? new List<string>(NewLineOptionsMap.Count);
                     Debug.Assert(s_newLineOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilderOpt.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
+                    editorConfigStringBuilder.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
                 }
             }
 
-            if (editorConfigStringBuilderOpt == null)
+            if (editorConfigStringBuilder.Count == 0)
             {
                 // No NewLine option set.
                 return "none";
             }
-            else if (editorConfigStringBuilderOpt.Count == s_newLineOptionsMapBuilder.Count)
+            else if (editorConfigStringBuilder.Count == s_newLineOptionsMapBuilder.Count)
             {
                 // All NewLine options set.
                 return "all";
             }
             else
             {
-                return string.Join(",", editorConfigStringBuilderOpt.Order());
+                return string.Join(",", editorConfigStringBuilder.Order());
             }
         }
 

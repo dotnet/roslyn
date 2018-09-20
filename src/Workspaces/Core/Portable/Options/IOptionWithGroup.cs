@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// Group/sub-feature associated with an <see cref="IOption"/>.
     /// </summary>
-    internal interface IOptionWithOptionGroup : IOption
+    internal interface IOptionWithGroup : IOption
     {
         /// <summary>
         /// Group/sub-feature for this option.

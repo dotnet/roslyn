@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// An option that can be specified once per language.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class PerLanguageOption<T> : IOptionWithOptionGroup
+    public class PerLanguageOption<T> : IOptionWithGroup
     {
         /// <summary>
         /// Feature this option is associated with.
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         bool IOption.IsPerLanguage => true;
 
-        OptionGroup IOptionWithOptionGroup.Group => this.Group;
+        OptionGroup IOptionWithGroup.Group => this.Group;
 
         public override string ToString()
         {

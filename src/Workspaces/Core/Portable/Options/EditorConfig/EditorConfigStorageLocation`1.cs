@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// Specifies that an option should be read from an .editorconfig file.
     /// </summary>
-    internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation, IEditorConfigStorageLocationWithKey
+    internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation, IEditorConfigStorageLocation2
     {
         public string KeyName { get; }
 
@@ -72,18 +72,17 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         /// <summary>
-        /// Gets the editorconfig string representation for the value corresponding to the <see cref="KeyName"/>.
-        /// Note that for related editor config locations that share the same <see cref="KeyName"/>, the returned string will be identical.
+        /// Gets the editorconfig string representation "key = value" for the given value for this storage location.
         /// </summary>
-        public string GetEditorConfigStringForValue(T value, OptionSet optionSet)
+        public string GetEditorConfigString(T value, OptionSet optionSet)
         {
-            var editorConfigstring = _getEditorConfigStringForValue(value, optionSet);
-            Debug.Assert(!string.IsNullOrEmpty(editorConfigstring));
-            Debug.Assert(editorConfigstring.All(ch => !(char.IsWhiteSpace(ch) || char.IsUpper(ch))));
-            return editorConfigstring;
+            var editorConfigStringForValue = _getEditorConfigStringForValue(value, optionSet);
+            Debug.Assert(!string.IsNullOrEmpty(editorConfigStringForValue));
+            Debug.Assert(editorConfigStringForValue.All(ch => !(char.IsWhiteSpace(ch) || char.IsUpper(ch))));
+            return $"{KeyName} = {editorConfigStringForValue}";
         }
 
-        string IEditorConfigStorageLocationWithKey.GetEditorConfigStringForValue(object value, OptionSet optionSet)
-            => GetEditorConfigStringForValue((T)value, optionSet);
+        string IEditorConfigStorageLocation2.GetEditorConfigString(object value, OptionSet optionSet)
+            => GetEditorConfigString((T)value, optionSet);
     }
 }

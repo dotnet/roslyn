@@ -13,10 +13,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Public Class CSharpEditorConfigGeneratorTests
         Inherits TestBase
 
-        <ConditionalWpfFact(GetType(IsEnglishLocal))>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub TestEditorConfigGeneratorDefault()
             Using workspace = TestWorkspace.CreateCSharp("")
-                Dim expectedText = "# Comment the line below if you want to inherit parent .editorconfig settings
+                Dim expectedText = "# Remove the line below if you want to inherit from higher directories .editorconfig settings
 root = true
 
 # C# files
@@ -35,7 +35,7 @@ insert_final_newline = false
 
 #### .NET Coding Conventions ####
 
-# this. or Me. preferences
+# this. and Me. preferences
 dotnet_style_qualification_for_event = false:silent
 dotnet_style_qualification_for_field = false:silent
 dotnet_style_qualification_for_method = false:silent
@@ -160,12 +160,12 @@ csharp_preserve_single_line_statements = true
             End Using
         End Sub
 
-        <ConditionalWpfFact(GetType(IsEnglishLocal))>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub TestEditorConfigGeneratorToggleOptions()
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim changedOptions = workspace.Options.WithChangedOption(New OptionKey(CodeStyleOptions.PreferExplicitTupleNames, LanguageNames.CSharp),
                                                                          New CodeStyleOption(Of Boolean)(False, NotificationOption.[Error]))
-                Dim expectedText = "# Comment the line below if you want to inherit parent .editorconfig settings
+                Dim expectedText = "# Remove the line below if you want to inherit from higher directories .editorconfig settings
 root = true
 
 # C# files
@@ -184,7 +184,7 @@ insert_final_newline = false
 
 #### .NET Coding Conventions ####
 
-# this. or Me. preferences
+# this. and Me. preferences
 dotnet_style_qualification_for_event = false:silent
 dotnet_style_qualification_for_field = false:silent
 dotnet_style_qualification_for_method = false:silent

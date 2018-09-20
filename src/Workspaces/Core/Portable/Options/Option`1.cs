@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// An global option. An instance of this class can be used to access an option value from an OptionSet.
     /// </summary>
-    public class Option<T> : IOptionWithOptionGroup
+    public class Option<T> : IOptionWithGroup
     {
         /// <summary>
         /// Feature this option is associated with.
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         bool IOption.IsPerLanguage => false;
 
-        OptionGroup IOptionWithOptionGroup.Group => this.Group;
+        OptionGroup IOptionWithGroup.Group => this.Group;
 
         public override string ToString()
         {

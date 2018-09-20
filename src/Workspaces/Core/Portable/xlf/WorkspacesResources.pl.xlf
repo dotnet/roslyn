@@ -12,11 +12,6 @@
         <target state="new">C# files</target>
         <note />
       </trans-unit>
-      <trans-unit id="Comment_the_line_below_if_you_want_to_inherit_parent_dot_editorconfig_settings">
-        <source>Comment the line below if you want to inherit parent .editorconfig settings</source>
-        <target state="new">Comment the line below if you want to inherit parent .editorconfig settings</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="new">Core EditorConfig Options</target>
@@ -65,6 +60,11 @@
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Tylko refaktoryzacja</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_from_higher_directories_dot_editorconfig_settings">
+        <source>Remove the line below if you want to inherit from higher directories .editorconfig settings</source>
+        <target state="new">Remove the line below if you want to inherit from higher directories .editorconfig settings</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -142,9 +142,9 @@
         <target state="translated">Dodawanie projektów nie jest obsługiwane.</target>
         <note />
       </trans-unit>
-      <trans-unit id="VB_files">
-        <source>VB files</source>
-        <target state="new">VB files</target>
+      <trans-unit id="Visual_Basic_files">
+        <source>Visual Basic files</source>
+        <target state="new">Visual Basic files</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
@@ -1017,9 +1017,9 @@
         <target state="new">.NET Coding Conventions</target>
         <note />
       </trans-unit>
-      <trans-unit id="this_dot_or_Me_dot_preferences">
-        <source>this. or Me. preferences</source>
-        <target state="new">this. or Me. preferences</target>
+      <trans-unit id="this_dot_and_Me_dot_preferences">
+        <source>this. and Me. preferences</source>
+        <target state="new">this. and Me. preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
