@@ -157,7 +157,6 @@ class stomAttribute : Attribute
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
-            //AssertEx.SetEqual(renameSpans, tags);
 
             VisualStudio.Editor.SendKeys("Custom");
             VisualStudio.Editor.Verify.TextContains(@"
@@ -169,6 +168,43 @@ class Bar
 }
 
 class CustomAttribute : Attribute
+{
+}
+", true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        public void VerifyAttributeRenameWhileRenameAttributeClass()
+        {
+            var markup = @"
+using System;
+
+[stom]
+class Bar 
+{
+}
+
+class [|$$stom|]Attribute : Attribute
+{
+}
+";
+            SetUpEditor(markup);
+            InlineRenameDialog.Invoke();
+
+            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+
+            VisualStudio.Editor.SendKeys("Custom");
+            VisualStudio.Editor.Verify.TextContains(@"
+using System;
+
+[Custom]
+class Bar 
+{
+}
+
+class Custom$$Attribute : Attribute
 {
 }
 ", true);
