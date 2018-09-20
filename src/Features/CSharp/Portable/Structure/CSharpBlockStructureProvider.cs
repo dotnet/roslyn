@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider, MetadataAsSource.MetadataRegionDirectiveStructureProvider>();
             builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionStructureProvider>();
             builder.Add<StructDeclarationSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider>();
-            builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
+            //builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
+            builder.Add(typeof(SwitchStatementSyntax), ImmutableArray.Create<AbstractSyntaxStructureProvider>(new SwitchStatementStructureProvider(true)));
 
             return builder.ToImmutable();
         }
