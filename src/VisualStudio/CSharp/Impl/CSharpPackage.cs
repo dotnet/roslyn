@@ -2,20 +2,27 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 // NOTE(DustinCa): The EditorFactory registration is in VisualStudioComponents\CSharpPackageRegistration.pkgdef.
@@ -87,10 +94,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 });
 
                 await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
+
+                CreateCodeCleanupFixers();
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
             }
+        }
+
+        private void CreateCodeCleanupFixers()
+        {
+            var codeCleanupFixerProvider = ComponentModel.GetService<ICodeCleanUpFixerProvider>() as CodeCleanupFixerProvider;
+            var contentTypeRegistryService = ComponentModel.GetService<IContentTypeRegistryService>();
+            var contentType = contentTypeRegistryService.GetContentType(ContentTypeNames.CSharpContentType);
+            Debug.Assert(contentType != null);
+
+            var codeFixService = ComponentModel.GetService<ICodeFixService>();
+            var threadingContext = ComponentModel.GetService<IThreadingContext>();
+            var fixer = new CSharpCodeCleanupFixer(codeFixService, threadingContext);
+            codeCleanupFixerProvider.AddFixer(contentType, fixer);
         }
 
         protected override VisualStudioWorkspaceImpl CreateWorkspace()

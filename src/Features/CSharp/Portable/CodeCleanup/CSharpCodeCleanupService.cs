@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 {
@@ -199,33 +198,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
                 {
-                    document = await ApplyCodeFixesForSpecificDiagnosticId(
+                    document = await _codeFixServiceOpt.ApplyCodeFixesForSpecificDiagnosticId(
                         document, diagnosticId, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             return document;
-        }
-
-        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticId(
-            Document document, string diagnosticId, CancellationToken cancellationToken)
-        {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var textSpan = new TextSpan(0, tree.Length);
-
-            var fixCollection = await _codeFixServiceOpt.GetDocumentFixAllForIdInSpan(
-                document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
-            if (fixCollection == null)
-            {
-                return document;
-            }
-
-            var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
-
-            var solution = await fixAllService.GetFixAllChangedSolutionAsync(
-                fixCollection.FixAllState.CreateFixAllContext(new ProgressTracker(), cancellationToken)).ConfigureAwait(false);
-
-            return solution.GetDocument(document.Id);
         }
 
         private ImmutableArray<(string description, ImmutableArray<string> diagnosticIds)> GetEnabledOptions(DocumentOptionSet docOptions)

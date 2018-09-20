@@ -231,6 +231,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return result.ToImmutableAndFree().FirstOrDefault();
         }
 
+        public async Task<Document> ApplyCodeFixesForSpecificDiagnosticId(Document document, string diagnosticId, CancellationToken cancellationToken)
+        {
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var textSpan = new TextSpan(0, tree.Length);
+
+            var fixCollection = await GetDocumentFixAllForIdInSpan(
+                document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
+            if (fixCollection == null)
+            {
+                return null;
+            }
+
+            var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
+
+            var solution = await fixAllService.GetFixAllChangedSolutionAsync(
+                fixCollection.FixAllState.CreateFixAllContext(new ProgressTracker(), cancellationToken)).ConfigureAwait(false);
+
+            return solution.GetDocument(document.Id);
+        }
+
         private async Task AppendFixesAsync(
             Document document,
             TextSpan span,
