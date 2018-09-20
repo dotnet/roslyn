@@ -369,19 +369,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         public bool TryGetTextViewLines(out ITextViewLineCollection textViewLines) => _innerTextView.TryGetTextViewLines(out textViewLines);
 
         public bool TryGetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition, out ITextViewLine textViewLine)
-        {
-            // This implementation confirms with the Editor implementation.
-            try
-            {
-                textViewLine = this.GetTextViewLineContainingBufferPosition(bufferPosition);
-                return textViewLine != null;
-            }
-            catch
-            {
-                textViewLine = null;
-                return false;
-            }
-        }
+            => _innerTextView.TryGetTextViewLineContainingBufferPosition(bufferPosition, out textViewLine);
 
         private event EventHandler ClosedInternal;
 
