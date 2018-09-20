@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <Import Project="$(VersionsPropsPath)" />
+  <Import Project="Version.props"/>
 
   <!-- RepoToolset diff: Default version values omitted -->
 

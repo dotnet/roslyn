@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -3819,6 +3821,23 @@ class Test
         }
 
         [Fact]
+        [WorkItem(28117, "https://github.com/dotnet/roslyn/issues/28117")]
+        public void AssigningRefToParameter()
+        {
+            CreateCompilation(@"
+public class C
+{
+    void M(int a, ref int b)
+    {
+        a = ref b;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         a = ref b;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "a").WithLocation(6, 9));
+        }
+
+        [Fact]
         [WorkItem(26516, "https://github.com/dotnet/roslyn/issues/26516")]
         public void BindingRefVoidAssignment()
         {
@@ -3836,28 +3855,285 @@ public class C
         }
 
         [Fact]
-        [WorkItem(26978, "https://github.com/dotnet/roslyn/issues/26978")]
-        public void BindingRefDynamicObjAssignment()
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_ArrayElement()
         {
-            CompileAndVerify(@"
+            var compilation = CreateCompilation(@"
+public class C
+{
+    public void M(int[] array, ref int value)
+    {
+        array[0] = ref value;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         array[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "array[0]").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((ElementAccessExpressionSyntax)assignment.Left).Expression;
+            Assert.Equal(SpecialType.System_Int32, ((ArrayTypeSymbol)model.GetTypeInfo(left).Type).ElementType.SpecialType);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_PointerIndirectionOperator()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int* ptr, ref int value)
+    {
+        *ptr = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         *ptr = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "*ptr").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((PrefixUnaryExpressionSyntax)assignment.Left).Operand;
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_PointerElementAccess()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int* ptr, ref int value)
+    {
+        ptr[0] = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         ptr[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "ptr[0]").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((ElementAccessExpressionSyntax)assignment.Left).Expression;
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_RefvalueExpression()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int x)
+    {
+        __refvalue(__makeref(x), int) = ref x;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         __refvalue(__makeref(x), int) = ref x;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "__refvalue(__makeref(x), int)").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((MakeRefExpressionSyntax)((RefValueExpressionSyntax)assignment.Left).Expression).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(left).Type.SpecialType);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_DynamicIndexerAccess()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(dynamic d, ref int value)
+    {
+        d[0] = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         d[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "d[0]").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((ElementAccessExpressionSyntax)assignment.Left).Expression;
+            Assert.Equal(SymbolKind.DynamicType, model.GetTypeInfo(left).Type.Kind);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_DynamicMemberAccess()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(dynamic d, ref int value)
+    {
+        d.member = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         d.member = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "d.member").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((MemberAccessExpressionSyntax)assignment.Left).Expression;
+            Assert.Equal(SymbolKind.DynamicType, model.GetTypeInfo(left).Type.Kind);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28238, "https://github.com/dotnet/roslyn/issues/28238")]
+        public void AssigningRef_TypeExpression()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int value)
+    {
+        var temp = new
+        {
+            object = ref value
+        };
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,13): error CS1525: Invalid expression term 'object'
+                //             object = ref value
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "object").WithArguments("object").WithLocation(8, 13),
+                // (8,13): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //             object = ref value
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "object = ref value").WithLocation(8, 13));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = (PredefinedTypeSyntax)assignment.Left;
+            Assert.Equal(SpecialType.System_Object, model.GetTypeInfo(left).Type.SpecialType);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
+        public void RefReturnInvocationOfRefLikeTypeRefResult()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+class C
+{
+    public ref long M(S receiver)
+    {
+        long x = 0;
+        ref long y = ref receiver.M(ref x);
+        return ref y;
+    }
+
+    public ref long M2(S receiver)
+    {
+        long x = 0;
+        {
+            ref long y = ref receiver.M(ref x);
+            return ref y;
+        }
+    }
+}
+ref struct S
+{
+    public ref long M(ref long x) => ref x;
+}").VerifyDiagnostics(
+                // (8,20): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(8, 20),
+                // (16,24): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //             return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(16, 24));
+        }
+
+        [Fact]
+        [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
+        public void RefReturnInvocationOfRefLikeTypeRefResult_Repro()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
-    public int P;
+  static void Main(string[] args)
+  {
+    ref long x = ref M(default); // get a reference to the stack which will be used for the next method
+    M2(ref x); // break things
+    Console.ReadKey();
+  }
 
-    static void Main()
+  public static ref long M(S receiver)
+  {
+    Span<long> ls = stackalloc long[0]; // change the length of this stackalloc to move the resulting pointer and break different things
+    long x = 0;
+    ref var y = ref x;
     {
-        dynamic x = new C();
-        x.P = 5;
-        Console.WriteLine(x.P);
-        
-        dynamic y = new C();
-        y.P = ref x.P;
-        Console.WriteLine(y.P);
+      ref var z = ref receiver.M(ref y);
+      return ref z;
     }
-}", references: new[] { CSharpRef }, expectedOutput: @"
-5
-5");
+  }
+
+  static void M2(ref long q)
+  {
+    Span<long> span = stackalloc long[50];
+    var element = span[0]; // it was ok
+    q = -1; // break things
+    element = span[0]; // and not it's broken:
+                       // System.AccessViolationException: 'Attempted to read or write protected memory. This is often an indication that other memory is corrupt.'
+  }
+}
+
+ref struct S
+{
+  public ref long M(ref long x) => ref x;
+}").VerifyDiagnostics(
+                // (19,18): error CS8157: Cannot return 'z' by reference because it was initialized to a value that cannot be returned by reference
+                //       return ref z;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "z").WithArguments("z").WithLocation(19, 18));
         }
     }
 }

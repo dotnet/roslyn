@@ -132,6 +132,9 @@ Example:
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27882 C# compiler will now produce errors on ref assigning a local to a parameter with a wider escape scope if it was a ref-like type.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/26418 C# compiler will now produce errors on out variable declarations that have "ref" or "ref readonly" ref kinds. Example: M(out ref int x);
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27047 The C# compiler will now produce diagnostics for operators marked as obsolete when they are used as part of a tuple comparison.
-- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27461 The method `LanguaguageVersionFacts.TryParse` is no longer an extension method.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27461 The method `LanguageVersionFacts.TryParse` is no longer an extension method.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27803 pattern matching now will produce errors when trying to return a stack bound value to an invalid escape scope.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/26743 C# will now reject expressions such as `public int* M => &this.Bar[0];` if `Bar` is a fixed field of the containing type.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27772 invocation receivers will be checked for escape scope errors now in nested scope expressions.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/28117 C# will now reject ref assignments to byval parameters.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27049 C# will now reject base.Method() calls inside restricted types, because that requires boxing.

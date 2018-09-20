@@ -266,7 +266,7 @@ class Program
         #endregion C# 7.3
 
         #region C# 8.0
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/29820")]
         public async Task UpgradeProjectFromCSharp7_3ToLatest()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -279,7 +279,7 @@ class Program
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/29820")]
         public async Task UpgradeProjectFromCSharp7_3To8_0()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -289,6 +289,22 @@ class Program
 #error version:[|{LanguageVersion.CSharp8.ToDisplayString()}|]
 }}",
                 LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(),
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForVerbatimInterpolatedString()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void A()
+    {
+        var x = [|@$""hello""|];
+    }
+}",
+                expected: LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
         #endregion
@@ -344,7 +360,8 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
                 });
         }
 

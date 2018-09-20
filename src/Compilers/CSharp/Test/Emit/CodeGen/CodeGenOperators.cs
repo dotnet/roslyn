@@ -419,8 +419,8 @@ class C
     static C GetC() { Console.Write(""GetC""); return c; }
     byte f;
 
-    public static void Main() 
-    { 
+    public static void Main()
+    {
         C.c = new C();
         D d123 = M123;
         D d456 = M456;
@@ -844,7 +844,7 @@ namespace TestAsOperator
         {
             string myStr = ""goo"";
             object o = myStr;
-            object b = o as string;            
+            object b = o as string;
 
             TestType tt = null;
             o = tt;
@@ -853,7 +853,7 @@ namespace TestAsOperator
             tt = new TestType();
             o = tt;
             b = o as AnotherType;
-        
+
             b = o as MyInter;
 
             MyInter mi = new TestType();
@@ -862,13 +862,13 @@ namespace TestAsOperator
 
             MyBase mb = new MyBase();
             o = mb;
-            b = o as MyDerived;      
+            b = o as MyDerived;
 
             MyDerived md = new MyDerived();
             o = md;
             b = o as MyBase;
 
-            b = null as MyBase;            
+            b = null as MyBase;
         }
     }
 }
@@ -1363,27 +1363,146 @@ public class C
 ");
         }
 
-        [WorkItem(541337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541337")]
         [Fact]
-        public void TestNullCoalesce_TypeParameter_Bug8008()
+        public void TestNullCoalesce_TypeParameter()
         {
             var source = @"
+using System;
 static class Program
 {
     static void Main()
     {
+        Goo(default, 1000);
+        Goo(1, 1000);
+        Goo(default, ""String parameter 1"");
+        Goo(""String parameter 2"", ""Should not print"");
+        Goo((int?)null, 4);
+        Goo((int?)5, 1000);
+        Goo2(6, 1000);
+        Goo2<int?, object>(null, 7);
+        Goo2<int?, object>(8, 1000);
+        Goo2<int?, int?>(9, 1000);
+        Goo2<int?, int?>(null, 10);
     }
- 
-    static void Goo<T>(T x)
+
+    static void Goo<T>(T x1, T x2)
     {
-        var y = default(T) ?? x;
+        Console.WriteLine(x1 ?? x2);
+    }
+
+    static void Goo2<T1, T2>(T1 t1, T2 t2, dynamic d = null) where T1 : T2
+    {
+        // Verifying no type errors
+        Console.WriteLine(t1 ?? t2);
+        dynamic d2 = t1 ?? d;
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,17): error CS0019: Operator '??' cannot be applied to operands of type 'T' and 'T'
-                //         var y = default(T) ?? x;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) ?? x").WithArguments("??", "T", "T").WithLocation(10, 17)); ;
+            var comp = CompileAndVerify(source, expectedOutput: @"
+0
+1
+String parameter 1
+String parameter 2
+4
+5
+6
+7
+8
+9
+10
+");
+
+            comp.VerifyIL("Program.Goo<T>(T, T)", expectedIL: @"
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  box        ""T""
+  IL_0008:  brtrue.s   IL_000d
+  IL_000a:  ldarg.1
+  IL_000b:  br.s       IL_000e
+  IL_000d:  ldloc.0
+  IL_000e:  box        ""T""
+  IL_0013:  call       ""void System.Console.WriteLine(object)""
+  IL_0018:  ret
+}
+");
+
+            comp.VerifyIL("Program.Goo2<T1, T2>(T1, T2, dynamic)", expectedIL: @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  1
+  .locals init (T1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  box        ""T1""
+  IL_0008:  brtrue.s   IL_000d
+  IL_000a:  ldarg.1
+  IL_000b:  br.s       IL_0018
+  IL_000d:  ldloc.0
+  IL_000e:  box        ""T1""
+  IL_0013:  unbox.any  ""T2""
+  IL_0018:  box        ""T2""
+  IL_001d:  call       ""void System.Console.WriteLine(object)""
+  IL_0022:  ldarg.0
+  IL_0023:  stloc.0
+  IL_0024:  ldloc.0
+  IL_0025:  box        ""T1""
+  IL_002a:  pop
+  IL_002b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestNullCoalesce_TypeParameter_DefaultLHS()
+        {
+
+            var source = @"
+using System;
+static class Program
+{
+    static void Main()
+    {
+        Goo(10);
+        Goo(""String parameter"");
+        Goo((int?)3);
+    }
+
+    static void Goo<T>(T x)
+    {
+        Console.WriteLine(default(T) ?? x);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"
+0
+String parameter
+3
+");
+
+            comp.VerifyIL("Program.Goo<T>(T)", expectedIL: @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""T""
+  IL_0008:  ldloc.0
+  IL_0009:  box        ""T""
+  IL_000e:  brtrue.s   IL_0013
+  IL_0010:  ldarg.0
+  IL_0011:  br.s       IL_0014
+  IL_0013:  ldloc.0
+  IL_0014:  box        ""T""
+  IL_0019:  call       ""void System.Console.WriteLine(object)""
+  IL_001e:  ret
+}
+");
         }
 
         [Fact]
@@ -3428,7 +3547,7 @@ public class A
 
             // Can't actually see an unchecked cast here since only constant values are emitted.
             comp.VerifyIL("A.Main", @"
-{ 
+{
   // Code size       13 (0xd)
   .maxstack  2
   .locals init (A.E V_0) //e
@@ -5285,7 +5404,7 @@ struct S1
     public static implicit operator bool (S1 x)
     {
         return true;
-    } 
+    }
 }
 ";
 
@@ -5475,7 +5594,7 @@ class Program
         System.Console.WriteLine(CoalesceDifferentTupleNames(null));
     }
 }";
-            var expectedOutput = 
+            var expectedOutput =
  @"(True, 533d4d3b-5013-461e-ae9e-b98eb593d761, value)
 (False, 00000000-0000-0000-0000-000000000000, )";
             var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
@@ -5653,7 +5772,7 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
-            
+
             comp.VerifyEmitDiagnostics(
                 // (6,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //         return x ?? 0;
@@ -5662,6 +5781,25 @@ class Program
                 //         return x ?? 0;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16)
                 );
+        }
+
+        [Fact]
+        public void TestNullCoalesce_UnconstrainedTypeParameter_OldLanguageVersion()
+        {
+            var source = @"
+class C
+{
+    void M<T>(T t1, T t2)
+    {
+        t1 = t1 ?? t2;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8370: Feature 'unconstrained type parameters in null coalescing operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         t1 = t1 ?? t2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator", "8.0").WithLocation(6, 14));
         }
     }
 }

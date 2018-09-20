@@ -370,32 +370,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                // array elements and pointer dereferencing are readwrite variables
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerIndirectionOperator:
-                    // array elements and pointer dereferencing are readwrite variables
-                    return true;
+                // The undocumented __refvalue(tr, T) expression results in a variable of type T.
+                case BoundKind.RefValueOperator:
+                // dynamic expressions are readwrite, and can even be passed by ref (which is implemented via a temp)
+                case BoundKind.DynamicMemberAccess:
+                case BoundKind.DynamicIndexerAccess:
+                    {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
+                        // These are readwrite variables
+                        return true;
+                    }
 
                 case BoundKind.PointerElementAccess:
                     {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
                         var receiver = ((BoundPointerElementAccess)expr).Expression;
                         if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
                         {
                             return CheckValueKind(node, fieldAccess.ReceiverOpt, valueKind, checkingReceiver: true, diagnostics);
                         }
+
+                        return true;
                     }
-
-                    return true;
-
-                case BoundKind.RefValueOperator:
-                    // The undocumented __refvalue(tr, T) expression results in a variable of type T.
-                    // it is a readwrite variable.
-                    return true;
-
-                case BoundKind.DynamicMemberAccess:
-                case BoundKind.DynamicIndexerAccess:
-                    // dynamic expressions can be read and written to
-                    // can even be passed by reference (which is implemented via a temp)
-                    return true;
 
                 case BoundKind.Parameter:
                     var parameter = (BoundParameter)expr;
@@ -577,6 +586,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameterSymbol.RefKind == RefKind.In && RequiresAssignableVariable(valueKind))
             {
                 ReportReadOnlyError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
+                return false;
+            }
+            else if (parameterSymbol.RefKind == RefKind.None && RequiresRefAssignableVariable(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
                 return false;
             }
 
@@ -1116,7 +1130,7 @@ moreArguments:
             // check receiver if ref-like
             if (receiverOpt?.Type?.IsByRefLikeType == true)
             {
-                return GetValEscape(receiverOpt, scopeOfTheContainingExpression);
+                escapeScope = Math.Max(escapeScope, GetValEscape(receiverOpt, scopeOfTheContainingExpression));
             }
 
             return escapeScope;
@@ -1248,7 +1262,6 @@ moreArguments:
             BoundExpression receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
-            ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             uint scopeOfTheContainingExpression,
             DiagnosticBag diagnostics)
@@ -1282,8 +1295,8 @@ moreArguments:
                         break;
                     }
 
-                    var refKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
-                    if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
+                    var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                    if (parameters[paramIndex].RefKind.IsWritableReference() && argument.Type?.IsByRefLikeType == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
@@ -1298,7 +1311,7 @@ moreArguments:
                     {
                         var argument = argListArgs[argIndex];
                         var refKind = argListRefKindsOpt.IsDefault ? RefKind.None : argListRefKindsOpt[argIndex];
-                        if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
+                        if (refKind.IsWritableReference() && argument.Type?.IsByRefLikeType == true)
                         {
                             escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                         }
@@ -1501,6 +1514,11 @@ moreArguments:
 
                 case BindValueKind.RefAssignable:
                     return ErrorCode.ERR_RefLocalOrParamExpected;
+            }
+
+            if (RequiresReferenceToLocation(kind))
+            {
+                return ErrorCode.ERR_RefLvalueExpected;
             }
 
             throw ExceptionUtilities.UnexpectedValue(kind);

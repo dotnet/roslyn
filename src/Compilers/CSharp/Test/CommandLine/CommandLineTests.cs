@@ -1412,12 +1412,15 @@ d.cs
             InlineData(LanguageVersion.CSharp7_1, LanguageVersion.CSharp7_1),
             InlineData(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2),
             InlineData(LanguageVersion.CSharp7_3, LanguageVersion.CSharp7_3),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.Default),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.Latest)]
+            InlineData(LanguageVersion.CSharp8, LanguageVersion.CSharp8),
+            InlineData(LanguageVersion.CSharp7, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp7_3, LanguageVersion.Latest)]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
         {
             Assert.Equal(expectedMappedVersion, input.MapSpecifiedToEffectiveVersion());
             Assert.True(expectedMappedVersion.IsValid());
+
+            // https://github.com/dotnet/roslyn/issues/29819 Once we are ready to remove the beta tag from C# 8.0, we should update Default/Latest accordingly
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary();
@@ -4976,6 +4979,14 @@ public class CS1698_a {}
             using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
             {
                 if (identity.IsSystem)
+                {
+                    return;
+                }
+
+                // The icacls command fails on our Helix machines and it appears to be related to the use of the $ in 
+                // the username. 
+                // https://github.com/dotnet/roslyn/issues/28836
+                if (StringComparer.OrdinalIgnoreCase.Equals(Environment.UserDomainName, "WORKGROUP"))
                 {
                     return;
                 }

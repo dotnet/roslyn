@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var actions = refactoring == null
                 ? ImmutableArray<CodeAction>.Empty
                 : refactoring.Actions;
+            actions = MassageActions(actions);
             return (actions, actions.IsDefaultOrEmpty ? null : actions[parameters.index]);
         }
 

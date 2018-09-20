@@ -416,6 +416,19 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         RemoteHostService_SynchronizeTextAsync,
 
         SymbolFinder_Solution_Pattern_FindSourceDeclarationsAsync,
-        SymbolFinder_Project_Pattern_FindSourceDeclarationsAsync
+        SymbolFinder_Project_Pattern_FindSourceDeclarationsAsync,
+        Intellisense_Completion_Commit,
+
+        CodeCleanupInfobar_BarDisplayed,
+        CodeCleanupInfobar_ConfigureNow,
+        CodeCleanupInfobar_NeverShowCodeCleanupInfoBarAgain,
+
+        FormatDocument,
+        CodeCleanup_ApplyCodeFixesAsync,
+        CodeCleanup_RemoveUnusedImports,
+        CodeCleanup_SortImports,
+        CodeCleanup_Format,
+        CodeCleanupABTest_AssignedToOnByDefault,
+        CodeCleanupABTest_AssignedToOffByDefault
     }
 }

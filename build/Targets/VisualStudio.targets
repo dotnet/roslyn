@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
+    <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(IsShipping)' == 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
 
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
@@ -26,7 +26,7 @@
   </ItemDefinitionGroup>
 
   <ImportGroup Condition="'$(ImportVSSDKTargets)' == 'true'">
-    <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" />
+    <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(MicrosoftVSSDKBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" />
     <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" />
   </ImportGroup>
 
@@ -139,6 +139,8 @@
   </Target>
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Returns="$(VsixVersion)" />
-  
+  <Target Name="GetBuildVersion" Returns="$(VsixVersion)">
+    <Error Text="Invalid format of OfficialBuildId: '$(OfficialBuildId)'"
+           Condition="$(VersionSuffixDateStamp) != '' and ($(VersionSuffixDateStamp.Length) != 5 or $(VersionSuffixBuildOfTheDayPadded.Length) != 2)"/>
+  </Target>
 </Project>

@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int startLocation = firstInRegion.Syntax.SpanStart;
                 int endLocation = lastInRegion.Syntax.Span.End;
                 int length = endLocation - startLocation;
-                Debug.Assert(length > 0, "last comes before first");
+                Debug.Assert(length >= 0, "last comes before first");
                 this.RegionSpan = new TextSpan(startLocation, length);
             }
 
@@ -2766,6 +2766,52 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitMethodBodies(node.BlockBody, node.ExpressionBody);
             return null;
+        }
+
+        public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
+        {
+            LocalState savedState;
+            if (RegularPropertyAccess(node.LeftOperand))
+            {
+                var left = (BoundPropertyAccess)node.LeftOperand;
+                var property = left.PropertySymbol;
+                if (property.RefKind == RefKind.None)
+                {
+                    var readMethod = property.GetOwnOrInheritedGetMethod();
+                    var writeMethod = property.GetOwnOrInheritedSetMethod();
+
+                    Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
+
+                    VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
+                    if (_trackExceptions) NotePossibleException(node);
+                    VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
+
+                    savedState = this.State.Clone();
+
+                    VisitRvalue(node.RightOperand);
+                    PropertySetter(node, left.ReceiverOpt, writeMethod);
+
+                    ConditionallyAssignNullCoalescingOperator(node);
+
+                    IntersectWith(ref this.State, ref savedState);
+                    return null;
+                }
+            }
+
+            VisitRvalue(node.LeftOperand);
+            savedState = this.State.Clone();
+
+            VisitRvalue(node.RightOperand);
+            ConditionallyAssignNullCoalescingOperator(node);
+
+            IntersectWith(ref this.State, ref savedState);
+            return null;
+        }
+
+        protected virtual void ConditionallyAssignNullCoalescingOperator(BoundNullCoalescingAssignmentOperator node)
+        {
+            // No assignments are recorded in the PreciseAbstractFlowPass; this is overridden in implementors that need
+            // to track this
         }
 
         private void VisitMethodBodies(BoundBlock blockBody, BoundBlock expressionBody)
