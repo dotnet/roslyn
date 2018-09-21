@@ -19,9 +19,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 // The newly computed abstract values for each basic block
                 // must be always greater or equal than the previous value
                 // to ensure termination.
-                
+
                 // Unknown < NotTainted < Tainted
-                return oldValue.Kind.CompareTo(newValue.Kind);
+                if (oldValue.Kind == TaintedDataAbstractValueKind.Tainted && newValue.Kind == TaintedDataAbstractValueKind.Tainted)
+                {
+                    return oldValue.SourceOrigins.Count.CompareTo(newValue.SourceOrigins.Count);
+                }
+                else
+                {
+                    return oldValue.Kind.CompareTo(newValue.Kind);
+                }
             }
 
             public override TaintedDataAbstractValue Merge(TaintedDataAbstractValue value1, TaintedDataAbstractValue value2)

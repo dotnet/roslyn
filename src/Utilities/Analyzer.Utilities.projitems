@@ -68,6 +68,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\PointsToBlockAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SinkInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SinkKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SymbolAccess.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SqlSinks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAbstractValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAbstractValueKind.cs" />
@@ -129,6 +130,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\SetAbstractDomain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\StackGuard.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\ThrowBranchWithExceptionType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LocationComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HashUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCategory.cs" />

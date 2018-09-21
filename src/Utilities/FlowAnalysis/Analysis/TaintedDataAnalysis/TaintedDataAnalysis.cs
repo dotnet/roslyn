@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
         }
 
-        internal static DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> GetOrComputeResult(
+        internal static TaintedDataAnalysisResult GetOrComputeResult(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol containingMethod)

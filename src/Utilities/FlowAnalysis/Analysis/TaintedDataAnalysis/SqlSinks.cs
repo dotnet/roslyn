@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.Operations;
@@ -45,9 +44,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "SelectCommand",
                     "UpdateCommand",
                 },
-                sinkMethodParameters: new Dictionary<string, IEnumerable<string>>()
-                {
-                });
+                sinkMethodParameters: null);
         }
 
         private static void AddInterfaceSink(
@@ -96,6 +93,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ConcreteSinks.Add(fullTypeName, sinkInfo);
         }
 
+        /// <summary>
+        /// Determines if tainted data passed as arguments to a method enters a tainted data sink.
+        /// </summary>
+        /// <param name="wellKnownTypeProvider">Well known type provider for the compilation being analyzed.</param>
+        /// <param name="method">Method being invoked.</param>
+        /// <param name="taintedArguments">Arguments passed to the method invocation that are tainted.</param>
+        /// <returns>True if any of the tainted data arguments enters a sink,  false otherwise.</returns>
         public static bool IsMethodArgumentASink(WellKnownTypeProvider wellKnownTypeProvider, IMethodSymbol method, IEnumerable<IArgumentOperation> taintedArguments)
         {
             if (method.ContainingType == null || !taintedArguments.Any())
@@ -122,11 +126,43 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return false;
         }
 
+        /// <summary>
+        /// Determines if a property is a sink.
+        /// </summary>
+        /// <param name="wellKnownTypeProvider">Well known type provider for the compilation being analyzed.</param>
+        /// <param name="propertyReferenceOperation">Property to check if it's a sink.</param>
+        /// <returns>True if the property is a sink, false otherwise.</returns>
         public static bool IsPropertyASink(WellKnownTypeProvider wellKnownTypeProvider, IPropertyReferenceOperation propertyReferenceOperation)
         {
             foreach (SinkInfo sinkInfo in GetSinkInfosForType(wellKnownTypeProvider, propertyReferenceOperation.Member.ContainingType))
             {
                 if (sinkInfo.SinkProperties.Contains(propertyReferenceOperation.Member.MetadataName))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines if a compilation (via its <see cref="WellKnownTypeProvider"/>) references a tainted data sink type.
+        /// </summary>
+        /// <param name="wellKnownTypeProvider">Well known type provider for the compilation to check.</param>
+        /// <returns>True if the compilation references a tainted data sink type, false otherwise.</returns>
+        public static bool DoesCompilationIncludeSinks(WellKnownTypeProvider wellKnownTypeProvider)
+        {
+            foreach (string interfaceTypeName in InterfaceSinks.Keys)
+            {
+                if (wellKnownTypeProvider.TryGetType(interfaceTypeName, out INamedTypeSymbol unused))
+                {
+                    return true;
+                }
+            }
+            
+            foreach (string concreteTypeName in ConcreteSinks.Keys)
+            {
+                if (wellKnownTypeProvider.TryGetType(concreteTypeName, out INamedTypeSymbol unused))
                 {
                     return true;
                 }

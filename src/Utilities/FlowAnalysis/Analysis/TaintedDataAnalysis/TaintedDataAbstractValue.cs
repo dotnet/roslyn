@@ -12,13 +12,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </summary>
     internal class TaintedDataAbstractValue : CacheBasedEquatable<TaintedDataAbstractValue>
     {
-        public static readonly TaintedDataAbstractValue Unknown = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.Unknown, ImmutableHashSet<SyntaxNode>.Empty);
-        public static readonly TaintedDataAbstractValue NotTainted = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.NotTainted, ImmutableHashSet<SyntaxNode>.Empty);
+        public static readonly TaintedDataAbstractValue Unknown = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.Unknown, ImmutableHashSet<SymbolAccess>.Empty);
+        public static readonly TaintedDataAbstractValue NotTainted = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.NotTainted, ImmutableHashSet<SymbolAccess>.Empty);
 
-        private TaintedDataAbstractValue(TaintedDataAbstractValueKind kind, ImmutableHashSet<SyntaxNode> sourceLocations)
+        private TaintedDataAbstractValue(TaintedDataAbstractValueKind kind, ImmutableHashSet<SymbolAccess> sourceOrigins)
         {
             this.Kind = kind;
-            this.SourceOrigins = sourceLocations;
+            this.SourceOrigins = sourceOrigins;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// SyntaxNodes where the tainted data originated from.
         /// </summary>
-        public ImmutableHashSet<SyntaxNode> SourceOrigins { get; }
+        public ImmutableHashSet<SymbolAccess> SourceOrigins { get; }
 
         protected override int ComputeHashCode()
         {
@@ -39,11 +39,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Creates a TaintedDataAbstractValue that's marked as tainted.
         /// </summary>
-        /// <param name="sourceOrigin">Where the tainted data is originally coming from.</param>
+        /// <param name="accessingSyntax">Where the tainted data is originally coming from.</param>
+        /// <param name="taintedSymbol">Symbol that's tainted.</param>
+        /// <param name="accessingMethod">Method that's accessing the tainted data.</param>
         /// <returns>New TaintedDataAbstractValue that's marked as tainted.</returns>
-        internal static TaintedDataAbstractValue CreateTainted(SyntaxNode sourceOrigin)
+        internal static TaintedDataAbstractValue CreateTainted(ISymbol taintedSymbol, SyntaxNode accessingSyntax, ISymbol accessingMethod)
         {
-            return new TaintedDataAbstractValue(TaintedDataAbstractValueKind.Tainted, ImmutableHashSet.Create<SyntaxNode>(sourceOrigin));
+            return new TaintedDataAbstractValue(
+                TaintedDataAbstractValueKind.Tainted, 
+                ImmutableHashSet.Create<SymbolAccess>(
+                    new SymbolAccess(
+                        taintedSymbol,
+                        accessingSyntax,
+                        accessingMethod)));
         }
 
         /// <summary>

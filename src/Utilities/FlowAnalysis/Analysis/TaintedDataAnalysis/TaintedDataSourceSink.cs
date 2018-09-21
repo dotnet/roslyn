@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
-using System.Text;
-using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -11,17 +10,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </summary>
     internal sealed class TaintedDataSourceSink
     {
-        public TaintedDataSourceSink(SyntaxNode sinkSyntax, SinkKind sinkKind, ImmutableArray<SyntaxNode> sourceOrigins)
+        public TaintedDataSourceSink(SymbolAccess sink, SinkKind sinkKind, ImmutableArray<SymbolAccess> sourceOrigins)
         {
-            this.SinkSyntax = sinkSyntax;
-            this.SinkKind = sinkKind;
-            this.SourceOrigins = sourceOrigins;
+            Sink = sink ?? throw new ArgumentNullException(nameof(sink));
+            SinkKind = sinkKind;
+            SourceOrigins = sourceOrigins;
         }
 
         /// <summary>
-        /// <see cref="SyntaxNode"/> of the sink that the tainted data enters.
+        /// <see cref="SymbolAccess"/> of the sink that the tainted data enters.
         /// </summary>
-        public SyntaxNode SinkSyntax { get; }
+        public SymbolAccess Sink { get; }
 
         /// <summary>
         /// Kind of sink (e.g. SQL).
@@ -29,8 +28,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public SinkKind SinkKind { get; }
 
         /// <summary>
-        /// <see cref="SyntaxNode"/>s of the origins of the tainted data.
+        /// <see cref="SymbolAccess"/>s of the origins of the tainted data.
         /// </summary>
-        public ImmutableArray<SyntaxNode> SourceOrigins { get; }
+        public ImmutableArray<SymbolAccess> SourceOrigins { get; }
     }
 }

@@ -57,8 +57,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             SourceInfos = new Dictionary<string, SourceInfo>(StringComparer.Ordinal);
 
-            AddSourceInfo(
-                "System.Web.HttpRequest",
+            AddSourceMetadata(
+                WellKnownTypes.SystemWebHttpRequest,
                 taintedProperties: new string[] {
                     "AcceptTypes",
                     "AnonymousID",
@@ -87,7 +87,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 });
         }
 
-        private static void AddSourceInfo(string fullTypeName, IEnumerable<string> taintedProperties, IEnumerable<string> taintedMethods)
+        private static void AddSourceMetadata(string fullTypeName, IEnumerable<string> taintedProperties, IEnumerable<string> taintedMethods)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
@@ -129,11 +129,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && sourceMetadata.TaintedMethods.Contains(method.MetadataName);
         }
 
-        public static bool DoesCompilationIncludeSources(Compilation compilation)
+        /// <summary>
+        /// Determines if the compilation (via its <see cref="WellKnownTypeProvider"/>) references a tainted data source type.
+        /// </summary>
+        /// <param name="wellKnownTypeProvider">Well known type provider to check.</param>
+        /// <returns>True if the compilation references at least one tainted data source type.</returns>
+        public static bool DoesCompilationIncludeSources(WellKnownTypeProvider wellKnownTypeProvider)
         {
             foreach (string metadataTypeName in SourceInfos.Keys)
             {
-                if (compilation.GetTypeByMetadataName(metadataTypeName) != null)
+                if (wellKnownTypeProvider.TryGetType(metadataTypeName, out INamedTypeSymbol unused))
                 {
                     return true;
                 }

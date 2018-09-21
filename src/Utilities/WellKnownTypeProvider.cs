@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Compilation = compilation;
             TypeToFullName = new Dictionary<ISymbol, string>();
+            FullNameToType = new Dictionary<string, INamedTypeSymbol>();
 
             Exception = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemException);
             Contract = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemDiagnosticContractsContract);
@@ -97,20 +98,37 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public ImmutableHashSet<INamedTypeSymbol> CollectionTypes { get; }
 
         /// <summary>
-        /// Mapping of ISymbol to full name (e.g. "System.Exception").
+        /// Mapping of <see cref="ISymbol"/> to full name (e.g. "System.Exception").
         /// </summary>
         private Dictionary<ISymbol, string> TypeToFullName { get; }
 
         /// <summary>
+        /// Mapping of full name to <see cref="INamedTypeSymbol"/>.
+        /// </summary>
+        private Dictionary<string, INamedTypeSymbol> FullNameToType { get; }
+
+        /// <summary>
         /// Attempts to get the full type name (namespace + type) of the specifed symbol.
         /// </summary>
-        /// <param name="symbol">Symbol.</param>
+        /// <param name="symbol">Symbol, if any.</param>
         /// <param name="fullTypeName">Namespace + type name.</param>
         /// <returns>True if found, false otherwise.</returns>
         /// <remarks>This only works for types that this <see cref="WellKnownTypeProvider"/> knows about.</remarks>
         public bool TryGetFullTypeName(ISymbol symbol, out string fullTypeName)
         {
             return TypeToFullName.TryGetValue(symbol, out fullTypeName);
+        }
+
+        /// <summary>
+        /// Attempts to get the type by the full type name.
+        /// </summary>
+        /// <param name="fullTypeName">>Namespace + type name.</param>
+        /// <param name="namedTypeSymbol">Named type symbol, if any.</param>
+        /// <returns>True if found, false otherwise.</returns>
+        /// <remarks>This only works for types that this <see cref="WellKnownTypeProvider"/> knows about.</remarks>
+        public bool TryGetType(string fullTypeName, out INamedTypeSymbol namedTypeSymbol)
+        {
+            return FullNameToType.TryGetValue(fullTypeName, out namedTypeSymbol);
         }
 
         /// <summary>
@@ -125,6 +143,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (namedTypeSymbol != null)
             {
                 this.TypeToFullName.Add(namedTypeSymbol, metadataName);
+                this.FullNameToType.Add(metadataName, namedTypeSymbol);
             }
 
             return namedTypeSymbol;

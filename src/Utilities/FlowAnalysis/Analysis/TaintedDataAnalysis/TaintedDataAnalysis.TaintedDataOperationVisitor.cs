@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -18,32 +19,32 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <summary>
             /// Mapping of a tainted data sinks to their originating sources.
             /// </summary>
-            /// <remarks>Keys are <see cref="SyntaxNode"/> sinks where the tainted data entered, values are <see cref="SyntaxNode"/>s where the tainted data originated from.</remarks>
-            private Dictionary<SyntaxNode, HashSet<SyntaxNode>> TaintedSourcesBySink { get; set; }
+            /// <remarks>Keys are <see cref="SymbolAccess"/> sinks where the tainted data entered, values are <see cref="SymbolAccess"/>s where the tainted data originated from.</remarks>
+            private Dictionary<SymbolAccess, HashSet<SymbolAccess>> TaintedSourcesBySink { get; set; }
 
             public TaintedDataOperationVisitor(TaintedDataAnalysisContext analysisContext)
                 : base(analysisContext)
             {
-                this.TaintedSourcesBySink = new Dictionary<SyntaxNode, HashSet<SyntaxNode>>();
+                this.TaintedSourcesBySink = new Dictionary<SymbolAccess, HashSet<SymbolAccess>>();
             }
 
             public ImmutableArray<TaintedDataSourceSink> GetTaintedDataSourceSinkEntries()
             {
                 ImmutableArray<TaintedDataSourceSink>.Builder builder = ImmutableArray.CreateBuilder<TaintedDataSourceSink>();
-                foreach (KeyValuePair<SyntaxNode, HashSet<SyntaxNode>> kvp in this.TaintedSourcesBySink)
+                foreach (KeyValuePair<SymbolAccess, HashSet<SymbolAccess>> kvp in this.TaintedSourcesBySink)
                 {
-                    SyntaxNode[] sourceOrigins = kvp.Value.ToArray();
+                    SymbolAccess[] sourceOrigins = kvp.Value.ToArray();
 
-                    // TODO paulming: Sort sourceOrigins in some reasonable manner.
+                    Array.Sort(sourceOrigins);
 
                     builder.Add(
                         new TaintedDataSourceSink(
                             kvp.Key,
                             SinkKind.Sql,
-                            ImmutableArray.Create<SyntaxNode>(sourceOrigins)));
+                            ImmutableArray.Create<SymbolAccess>(sourceOrigins)));
                 }
 
-                // TODO paulming: Sort builder in some reasonable manner.
+                builder.Sort((x, y) => LocationComparer.Instance.Compare(x.Sink.SyntaxNode.GetLocation(), y.Sink.SyntaxNode.GetLocation()));
                  
                 return builder.ToImmutableArray();
             }
@@ -53,7 +54,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 if (operation is IPropertyReferenceOperation propertyReferenceOperation
                     && WebInputSources.IsTaintedProperty(this.WellKnownTypeProvider, propertyReferenceOperation))
                 {
-                    return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Syntax);
+                    return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
                 }
 
                 IOperation referenceeOperation = operation.GetReferenceOperationReferencee();
@@ -174,16 +175,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 ProcessRegularInvocationOrCreation(method, visitedArguments, originalOperation);
 
-                if (visitedInstance != null
-                    && (this.GetCachedAbstractValue(visitedInstance).Kind == TaintedDataAbstractValueKind.Tainted
-                        || WebInputSources.IsTaintedMethod(this.WellKnownTypeProvider, visitedInstance, method)))
+                if (visitedInstance != null)
                 {
-                    return TaintedDataAbstractValue.CreateTainted(originalOperation.Syntax);
+                    TaintedDataAbstractValue instanceAbstractValue = this.GetCachedAbstractValue(visitedInstance);
+                    if (instanceAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
+                    {
+                        return instanceAbstractValue;
+                    }
+
+                    if (WebInputSources.IsTaintedMethod(this.WellKnownTypeProvider, visitedInstance, method))
+                    {
+                        return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
+                    }
                 }
-                else
-                {
-                    return baseVisit;
-                }
+
+                return baseVisit;
             }
 
             protected override TaintedDataAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
@@ -193,26 +199,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return taintedDataAbstractValue;
             }
 
-            private void TrackTaintedDataEnteringSink(SyntaxNode sink, SyntaxNode source)
+            private void TrackTaintedDataEnteringSink(ISymbol sinkSymbol, SyntaxNode sinkSyntax, IEnumerable<SymbolAccess> sources)
             {
-                if (!this.TaintedSourcesBySink.TryGetValue(sink, out HashSet<SyntaxNode> sourceSyntaxNodes))
+                SymbolAccess sink = new SymbolAccess(sinkSymbol, sinkSyntax, this.OwningSymbol);
+                if (!this.TaintedSourcesBySink.TryGetValue(sink, out HashSet<SymbolAccess> sourceOrigins))
                 {
-                    sourceSyntaxNodes = new HashSet<SyntaxNode>();
-                    this.TaintedSourcesBySink.Add(sink, sourceSyntaxNodes);
+                    sourceOrigins = new HashSet<SymbolAccess>();
+                    this.TaintedSourcesBySink.Add(sink, sourceOrigins);
                 }
 
-                sourceSyntaxNodes.Add(source);
-            }
-
-            private void TrackTaintedDataEnteringSink(SyntaxNode sink, IEnumerable<SyntaxNode> sources)
-            {
-                if (!this.TaintedSourcesBySink.TryGetValue(sink, out HashSet<SyntaxNode> sourceSyntaxNodes))
-                {
-                    sourceSyntaxNodes = new HashSet<SyntaxNode>();
-                    this.TaintedSourcesBySink.Add(sink, sourceSyntaxNodes);
-                }
-
-                sourceSyntaxNodes.UnionWith(sources);
+                sourceOrigins.UnionWith(sources);
             }
 
             /// <summary>
@@ -233,7 +229,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     foreach (IArgumentOperation taintedArgument in taintedArguments)
                     {
                         TaintedDataAbstractValue abstractValue = this.GetCachedAbstractValue(taintedArgument);
-                        this.TrackTaintedDataEnteringSink(originalOperation.Syntax, abstractValue.SourceOrigins);
+                        this.TrackTaintedDataEnteringSink(targetMethod, originalOperation.Syntax, abstractValue.SourceOrigins);
                     }
                 }
             }
@@ -246,7 +242,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     && assignmentOperation.Target is IPropertyReferenceOperation propertyReferenceOperation
                     && SqlSinks.IsPropertyASink(this.WellKnownTypeProvider, propertyReferenceOperation))
                 {
-                    this.TrackTaintedDataEnteringSink(propertyReferenceOperation.Syntax, assignmentValueAbstractValue.SourceOrigins);
+                    this.TrackTaintedDataEnteringSink(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, assignmentValueAbstractValue.SourceOrigins);
                 }
             }
         }

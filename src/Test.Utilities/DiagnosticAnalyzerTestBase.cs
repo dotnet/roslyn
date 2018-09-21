@@ -161,6 +161,12 @@ namespace Test.Utilities
             return GetResultAt(CSharpDefaultFilePath, line, column, rule, messageArguments);
         }
 
+        protected static DiagnosticResult GetCSharpResultAt(IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        {
+            return GetResultAt(CSharpDefaultFilePath, lineColumnPairs, rule, messageArguments);
+        }
+
+
         protected static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string additionalFilePath, DiagnosticDescriptor rule, params object[] messageArguments)
         {
             return GetResultAt(additionalFilePath, line, column, rule, messageArguments);
@@ -202,6 +208,18 @@ namespace Test.Utilities
                 Message = string.Format(rule.MessageFormat.ToString(), messageArguments)
             };
         }
+
+        private static DiagnosticResult GetResultAt(string path, IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        {
+            return new DiagnosticResult
+            {
+                Locations = lineColumnPairs.Select(p => new DiagnosticResultLocation(path, p.Item1, p.Item2)).ToArray(),
+                Id = rule.Id,
+                Severity = rule.DefaultSeverity,
+                Message = string.Format(rule.MessageFormat.ToString(), messageArguments)
+            };
+        }
+
 
         private static DiagnosticResultLocation[] ParseResultLocations(string defaultPath, string[] locationStrings)
         {
