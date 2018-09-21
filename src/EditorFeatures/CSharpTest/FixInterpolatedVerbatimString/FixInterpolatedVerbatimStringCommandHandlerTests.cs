@@ -34,7 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         private static (string insertedCharSnapshotText, int insertedCharCaretPosition) TypeChar(TestWorkspace workspace, char ch)
         {
             var view = workspace.Documents.Single().GetTextView();
-            var commandHandler = new FixInterpolatedVerbatimStringCommandHandler();
+            var commandHandler = new FixInterpolatedVerbatimStringCommandHandler(
+                workspace.GetService<ITextUndoHistoryRegistry>(),
+                workspace.GetService<IEditorOperationsFactoryService>());
 
             string insertedCharSnapshotText = default;
             int insertedCharCaretPosition = default;
@@ -72,9 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 
                 // Ensure that after undo, the ordering fix is undone but the typed character remains inserted
                 Assert.Equal(insertedCharSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
-                // TODO: This doesn't work properly in the case of inserting @ before $" (TestBeforeDollarSignQuoteSign)
-                // The cursor remains to the right of these characters after undo
-                //Assert.Equal(insertedCharCaretPosition, view.Caret.Position.BufferPosition.Position);
+                Assert.Equal(insertedCharCaretPosition, view.Caret.Position.BufferPosition.Position);
             }
         }
 
