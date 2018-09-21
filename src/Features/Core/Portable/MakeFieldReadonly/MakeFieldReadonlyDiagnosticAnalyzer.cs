@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
         {
             // Check if the underlying member is being written or a writable reference to the member is taken.
-            var valueUsageInfo = fieldReference.GetValueUsageInfo();
-            if (!valueUsageInfo.ContainsWriteOrWritableRef())
+            var valueUsageInfo = fieldReference.GetValueUsageInfo(out var _);
+            if (!valueUsageInfo.IsWrittenTo())
             {
                 return false;
             }

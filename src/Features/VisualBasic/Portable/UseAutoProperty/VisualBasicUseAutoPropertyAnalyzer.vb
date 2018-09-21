@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             If node.Kind() = SyntaxKind.IdentifierName Then
                 Dim symbolInfo = semanticModel.GetSymbolInfo(node)
                 If field.Equals(symbolInfo.Symbol) Then
-                    If VisualBasicSemanticFactsService.Instance.IsWrittenTo(semanticModel, node, cancellationToken) Then
+                    If node.IsWrittenTo(semanticModel, cancellationToken) Then
                         Return True
                     End If
                 End If

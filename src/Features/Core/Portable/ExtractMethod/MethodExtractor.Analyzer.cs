@@ -497,11 +497,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return writtenInside;
                 }
 
-                // this relies on the fact that our IsWrittenTo only cares about syntax to figure out whether
-                // something is written to or not. but not semantic. 
-                // we probably need to move the API to syntaxFact service not semanticFact.
-                //
-                // if one wants to get result that also considers semantic, he should use data control flow analysis API.
                 var semanticFacts = _semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 return tokens.Any(t => semanticFacts.IsWrittenTo(model, t.Parent, CancellationToken.None));
             }

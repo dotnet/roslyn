@@ -252,11 +252,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 DetermineFieldType(semanticDocument, cancellationToken);
 
                 var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
-                this.IsInRefContext = semanticFacts.IsInRefContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
-                this.IsInInContext = semanticFacts.IsInInContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
-                this.IsInOutContext = semanticFacts.IsInOutContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
-                this.IsWrittenTo = semanticFacts.IsWrittenTo(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
-                this.IsOnlyWrittenTo = semanticFacts.IsOnlyWrittenTo(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
+                var valueUsageInfo = semanticFacts.GetValueUsageInfo(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
+                this.IsInRefContext = valueUsageInfo.IsInRefContext();
+                this.IsInInContext = valueUsageInfo.IsInInContext();
+                this.IsInOutContext = valueUsageInfo.IsInOutContext();
+                this.IsWrittenTo = valueUsageInfo.IsWrittenTo();
+                this.IsOnlyWrittenTo = valueUsageInfo.IsOnlyWrittenTo();
                 this.IsInConstructor = DetermineIsInConstructor(semanticDocument);
                 this.IsInMemberContext = this.SimpleNameOpt != this.SimpleNameOrMemberAccessExpressionOpt ||
                                          syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(this.SimpleNameOrMemberAccessExpressionOpt);

@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
                         identifierName.Identifier.ValueText == symbolName &&
                         asOperand.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol) &&
-                        identifierName.IsWrittenTo())
+                        identifierName.IsWrittenTo(semanticModel, cancellationToken))
                     {
                         return;
                     }

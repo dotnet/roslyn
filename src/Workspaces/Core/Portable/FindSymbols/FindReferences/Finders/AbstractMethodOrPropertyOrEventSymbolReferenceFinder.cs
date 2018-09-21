@@ -71,11 +71,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return ImmutableArray.Create(symbols.CurrentProperty.GetMethod);
             }
 
-            if (semanticFacts.IsWrittenTo(model, node, cancellationToken))
+            var valueUsageInfo = semanticFacts.GetValueUsageInfo(model, node, cancellationToken);
+            if (valueUsageInfo.IsWrittenTo())
             {
                 // if it was only written to, then only the setter was referenced.
                 // if it was written *and* read, then both accessors were referenced.
-                return semanticFacts.IsOnlyWrittenTo(model, node, cancellationToken)
+                return valueUsageInfo.IsOnlyWrittenTo()
                     ? ImmutableArray.Create(property.SetMethod)
                     : ImmutableArray.Create(property.GetMethod, property.SetMethod);
             }
@@ -89,10 +90,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 //
                 // This list is thought to be complete.  However, if new examples are found, they
                 // can be added here.
-                var inNameOf = semanticFacts.IsInsideNameOfExpression(model, node, cancellationToken);
+                var isNonReadWriteRef = valueUsageInfo.IsInNonReadNonWriteContext();
                 var inStructuredTrivia = node.IsPartOfStructuredTrivia();
 
-                return inNameOf || inStructuredTrivia
+                return isNonReadWriteRef || inStructuredTrivia
                     ? ImmutableArray<IMethodSymbol>.Empty
                     : ImmutableArray.Create(property.GetMethod);
             }

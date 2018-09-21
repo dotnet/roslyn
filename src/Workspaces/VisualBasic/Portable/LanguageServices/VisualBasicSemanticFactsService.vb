@@ -106,24 +106,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return tree.IsAttributeNameContext(position, token, cancellationToken)
         End Function
 
-        Public Function IsOnlyWrittenTo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsOnlyWrittenTo
-            Return TryCast(node, ExpressionSyntax).IsOnlyWrittenTo(semanticModel, cancellationToken)
+        Public Function GetValueUsageInfo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ValueUsageInfo Implements ISemanticFactsService.GetValueUsageInfo
+            Return node.GetValueUsageInfo(semanticModel, cancellationToken)
         End Function
 
         Public Function IsWrittenTo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsWrittenTo
-            Return TryCast(node, ExpressionSyntax).IsWrittenTo(semanticModel, cancellationToken)
-        End Function
-
-        Public Function IsInOutContext(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInOutContext
-            Return TryCast(node, ExpressionSyntax).IsInOutContext(semanticModel, cancellationToken)
-        End Function
-
-        Public Function IsInRefContext(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInRefContext
-            Return TryCast(node, ExpressionSyntax).IsInRefContext(semanticModel, cancellationToken)
-        End Function
-
-        Public Function IsInInContext(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInInContext
-            Return TryCast(node, ExpressionSyntax).IsInInContext(semanticModel, cancellationToken)
+            Return node.IsWrittenTo(semanticModel, cancellationToken)
         End Function
 
         Public Function CanReplaceWithRValue(semanticModel As SemanticModel, expression As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.CanReplaceWithRValue

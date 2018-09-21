@@ -1018,5 +1018,138 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Return False
         End Function
+
+        ' Once https://github.com/dotnet/roslyn/issues/30116 is implemented, we can switch this API
+        ' and other extension methods in this file that use this API to be language-agnostic extensions.
+        ' TODO: File a tracking a track bug for this API cleanup.
+        <Extension()>
+        Public Function GetValueUsageInfo(ByVal node As SyntaxNode, ByVal semanticModel As SemanticModel, ByVal cancellationToken As CancellationToken) As ValueUsageInfo
+            If TryCast(node, ExpressionSyntax).IsRightSideOfDot() Then
+                node = node.Parent
+            End If
+
+            Dim operation = semanticModel.GetOperation(node, cancellationToken)
+            If operation IsNot Nothing Then
+                Dim isInErrorContext As Boolean = False
+                Dim valueUsageInfo = operation.GetValueUsageInfo(isInErrorContext)
+
+                ' Workaround for https://github.com/dotnet/roslyn/issues/18722 (lack of IInvalidInvocationOperation).
+                ' If there is an overload resolution failure for the invocation, then the operation tree
+                ' has an IInvalidOperation for the invocation and argument syntax nodes, and
+                ' we cannot correctly determine the RefKind of the argument from the operation tree.
+                ' So we workaround this scenario by performing syntactic checks.
+                If isInErrorContext Then
+                    Dim expression = TryCast(node, ExpressionSyntax)
+                    If expression IsNot Nothing Then
+                        valueUsageInfo = GetValueUsageInfoInErrorContext(expression, semanticModel, valueUsageInfo, cancellationToken)
+                    End If
+                End If
+
+                Return valueUsageInfo
+            End If
+
+            Return ValueUsageInfo.None
+        End Function
+
+        Private Function GetValueUsageInfoInErrorContext(expression As ExpressionSyntax, semanticModel As SemanticModel, defaultValue As ValueUsageInfo, cancellationToken As CancellationToken) As ValueUsageInfo
+            Dim refKindOpt = TryGetAssociatedParameterRefKind(expression, semanticModel, cancellationToken)
+            If refKindOpt.HasValue Then
+                Select Case refKindOpt.Value
+                    Case RefKind.Out
+                        Return ValueUsageInfo.WritableRef
+                    Case RefKind.Ref
+                        Return ValueUsageInfo.ReadableWritableRef
+                    Case RefKind.In
+                        Return ValueUsageInfo.ReadableRef
+                End Select
+            End If
+
+            ' With { .F = ... }
+            If TryCast(expression.Parent, NamedFieldInitializerSyntax)?.Name Is expression Then
+                Return ValueUsageInfo.Write
+            End If
+
+            Return defaultValue
+        End Function
+
+        ' TODO: File a bug to track removing the below function once https://github.com/dotnet/roslyn/issues/18722 is implemented.
+        Private Function TryGetAssociatedParameterRefKind(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As RefKind?
+            Dim simpleArgument = TryCast(expression.Parent, SimpleArgumentSyntax)
+
+            If simpleArgument Is Nothing Then
+                Return Nothing
+            ElseIf simpleArgument.IsNamed Then
+                Dim info = semanticModel.GetSymbolInfo(simpleArgument.NameColonEquals.Name, cancellationToken)
+
+                Dim parameter = TryCast(info.GetAnySymbol(), IParameterSymbol)
+                Return parameter?.RefKind
+
+            Else
+                Dim argumentList = TryCast(simpleArgument.Parent, ArgumentListSyntax)
+
+                If argumentList IsNot Nothing Then
+                    Dim parent = argumentList.Parent
+                    Dim index = argumentList.Arguments.IndexOf(simpleArgument)
+
+                    Dim info = semanticModel.GetSymbolInfo(parent, cancellationToken)
+                    Dim symbol = info.GetAnySymbol()
+
+                    If TypeOf symbol Is IMethodSymbol Then
+                        Dim method = DirectCast(symbol, IMethodSymbol)
+                        If index < method.Parameters.Length Then
+                            Return method.Parameters(index).RefKind
+                        End If
+                    ElseIf TypeOf symbol Is IPropertySymbol Then
+                        Dim prop = DirectCast(symbol, IPropertySymbol)
+                        If index < prop.Parameters.Length Then
+                            Return prop.Parameters(index).RefKind
+                        End If
+                    End If
+                End If
+
+            End If
+
+            Return Nothing
+        End Function
+
+        <Extension()>
+        Public Function IsReadFrom(ByVal node As SyntaxNode, ByVal semanticModel As SemanticModel, ByVal cancellationToken As CancellationToken) As Boolean
+            Return node.GetValueUsageInfo(semanticModel, cancellationToken).IsReadFrom()
+        End Function
+
+        <Extension()>
+        Public Function IsOnlyReadFrom(ByVal node As SyntaxNode, ByVal semanticModel As SemanticModel, ByVal cancellationToken As CancellationToken) As Boolean
+            Return node.GetValueUsageInfo(semanticModel, cancellationToken).IsOnlyReadFrom()
+        End Function
+
+        <Extension()>
+        Public Function IsWrittenTo(ByVal node As SyntaxNode, ByVal semanticModel As SemanticModel, ByVal cancellationToken As CancellationToken) As Boolean
+            Return node.GetValueUsageInfo(semanticModel, cancellationToken).IsWrittenTo()
+        End Function
+
+        <Extension()>
+        Public Function IsOnlyWrittenTo(ByVal node As SyntaxNode, ByVal semanticModel As SemanticModel, ByVal cancellationToken As CancellationToken) As Boolean
+            Return node.GetValueUsageInfo(semanticModel, cancellationToken).IsOnlyWrittenTo()
+        End Function
+
+        <Extension()>
+        Public Function IsInOutContext(ByVal node As SyntaxNode, ByVal semanticModel As SemanticModel, ByVal cancellationToken As CancellationToken) As Boolean
+            Return node.GetValueUsageInfo(semanticModel, cancellationToken).IsInOutContext()
+        End Function
+
+        <Extension()>
+        Public Function IsInRefContext(ByVal node As SyntaxNode, ByVal semanticModel As SemanticModel, ByVal cancellationToken As CancellationToken) As Boolean
+            Return node.GetValueUsageInfo(semanticModel, cancellationToken).IsInRefContext()
+        End Function
+
+        <Extension()>
+        Public Function IsInRefOrOutContext(ByVal node As SyntaxNode, ByVal semanticModel As SemanticModel, ByVal cancellationToken As CancellationToken) As Boolean
+            Return node.GetValueUsageInfo(semanticModel, cancellationToken).IsInRefOrOutContext()
+        End Function
+
+        <Extension()>
+        Public Function IsInInContext(ByVal node As SyntaxNode, ByVal semanticModel As SemanticModel, ByVal cancellationToken As CancellationToken) As Boolean
+            Return node.GetValueUsageInfo(semanticModel, cancellationToken).IsInInContext()
+        End Function
     End Module
 End Namespace

@@ -1050,5 +1050,123 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => node
             .WithTrailingTrivia(node.GetTrailingTrivia().FilterComments(addElasticMarker: true))
             .WithLeadingTrivia(node.GetLeadingTrivia().FilterComments(addElasticMarker: true));
+
+        // Once https://github.com/dotnet/roslyn/issues/30116 is implemented, we can switch this API
+        // and other extension methods in this file that use this API to be language-agnostic extensions.
+        // TODO: File a tracking a track bug for this API cleanup.
+        public static ValueUsageInfo GetValueUsageInfo(this SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (node is ExpressionSyntax expression)
+            {
+                if (expression.IsRightSideOfDotOrArrow())
+                {
+                    expression = expression.Parent as ExpressionSyntax;
+                }
+
+                node = expression.WalkDownParentheses();
+            }
+
+            var operation = semanticModel.GetOperation(node, cancellationToken);
+            if (operation != null)
+            {
+                var valueUsageInfo = operation.GetValueUsageInfo(out var isInErrorContext);
+
+                // Workaround for https://github.com/dotnet/roslyn/issues/18722 (lack of IInvalidInvocationOperation).
+                // If there is an overload resolution failure for the invocation, then the operation tree
+                // has an IInvalidOperation for the invocation and argument syntax nodes, and
+                // we cannot correctly determine the RefKind of the argument from the operation tree.
+                // So we workaround this scenario by performing syntactic checks.
+                if (isInErrorContext && node is ExpressionSyntax expressionNode)
+                {
+                    valueUsageInfo = GetValueUsageInfoInErrorContext(expressionNode, valueUsageInfo);
+                }
+
+                return valueUsageInfo;
+            }
+
+            return ValueUsageInfo.None;
+
+            // Local functions.
+            // TODO: File a bug to track removing the below local functions once https://github.com/dotnet/roslyn/issues/18722 is implemented.
+            ValueUsageInfo GetValueUsageInfoInErrorContext(ExpressionSyntax expressionNode, ValueUsageInfo defaultValue)
+            {
+                if (IsInOutContext(expressionNode))
+                {
+                    return ValueUsageInfo.WritableRef;
+                }
+                else if (IsInRefContext(expressionNode))
+                {
+                    return ValueUsageInfo.ReadableWritableRef;
+                }
+                else if (IsInInContext(expressionNode))
+                {
+                    return ValueUsageInfo.ReadableRef;
+                }
+                else
+                {
+                    return defaultValue;
+                }
+            }
+
+            bool IsInOutContext(ExpressionSyntax expressionNode)
+            {
+                var argument = expressionNode.Parent as ArgumentSyntax;
+                return
+                    argument != null &&
+                    argument.Expression == expressionNode &&
+                    argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
+            }
+
+            bool IsInRefContext(ExpressionSyntax expressionNode)
+                => expressionNode.IsParentKind(SyntaxKind.RefExpression) ||
+                   (expressionNode?.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword;
+
+            bool IsInInContext(ExpressionSyntax expressionNode)
+                => (expressionNode?.Parent as ArgumentSyntax)?.RefKindKeyword.Kind() == SyntaxKind.InKeyword;
+        }
+
+        /// <summary>
+        /// True if a read is performed from the given expression.  Note: writes may also be performed
+        /// to the expression as well.  For example, "++a".  In this expression 'a' is both read from
+        /// and written to.
+        /// </summary>gi
+        public static bool IsReadFrom(this SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => node.GetValueUsageInfo(semanticModel, cancellationToken).IsReadFrom();
+
+        /// <summary>
+        /// True if a read is performed to the given expression.  Note: unlike <see cref="IsReadFrom(SyntaxNode, SemanticModel, CancellationToken)"/>, this
+        /// will not return true if writes are performed on the expression as well.  For example,
+        /// "++a" will return 'false'.  However, 'a' in "in a" or "x = a" will return true.
+        /// </summary>
+        public static bool IsOnlyReadFrom(this SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => node.GetValueUsageInfo(semanticModel, cancellationToken).IsOnlyReadFrom();
+
+        /// <summary>
+        /// True if a write is performed to the given expression.  Note: reads may also be performed
+        /// to the expression as well.  For example, "++a".  In this expression 'a' is both read from
+        /// and written to.
+        /// </summary>
+        public static bool IsWrittenTo(this SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => node.GetValueUsageInfo(semanticModel, cancellationToken).IsWrittenTo();
+
+        /// <summary>
+        /// True if a write is performed to the given expression.  Note: unlike <see cref="IsWrittenTo(SyntaxNode, SemanticModel, CancellationToken)"/>, this
+        /// will not return true if reads are performed on the expression as well.  For example,
+        /// "++a" will return 'false'.  However, 'a' in "out a" or "a = 1" will return true.
+        /// </summary>
+        public static bool IsOnlyWrittenTo(this SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => node.GetValueUsageInfo(semanticModel, cancellationToken).IsOnlyWrittenTo();
+
+        public static bool IsInOutContext(this SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => node.GetValueUsageInfo(semanticModel, cancellationToken).IsInOutContext();
+
+        public static bool IsInRefContext(this SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => node.GetValueUsageInfo(semanticModel, cancellationToken).IsInRefContext();
+
+        public static bool IsInRefOrOutContext(this SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => node.GetValueUsageInfo(semanticModel, cancellationToken).IsInRefOrOutContext();
+
+        public static bool IsInInContext(this SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => node.GetValueUsageInfo(semanticModel, cancellationToken).IsInInContext();
     }
 }

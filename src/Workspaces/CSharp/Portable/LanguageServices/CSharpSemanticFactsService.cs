@@ -95,20 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return semanticModel.SyntaxTree.IsAttributeNameContext(position, cancellationToken);
         }
 
+        public ValueUsageInfo GetValueUsageInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => node.GetValueUsageInfo(semanticModel, cancellationToken);
+
         public bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-            => (node as ExpressionSyntax).IsWrittenTo();
-
-        public bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-            => (node as ExpressionSyntax).IsOnlyWrittenTo();
-
-        public bool IsInOutContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-            => (node as ExpressionSyntax).IsInOutContext();
-
-        public bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-            => (node as ExpressionSyntax).IsInRefContext();
-
-        public bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-            => (node as ExpressionSyntax).IsInInContext();
+            => node.IsWrittenTo(semanticModel, cancellationToken);
 
         public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
         {

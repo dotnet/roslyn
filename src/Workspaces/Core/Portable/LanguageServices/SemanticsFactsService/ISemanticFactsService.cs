@@ -52,22 +52,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
 
+        // Once https://github.com/dotnet/roslyn/issues/30116 is implemented, we can remove this API
+        // and use the language-agnostic GetValueUsageInfo extension method on SyntaxNode.
+        ValueUsageInfo GetValueUsageInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+
         /// <summary>
         /// True if a write is performed to the given expression.  Note: reads may also be performed
         /// to the expression as well.  For example, "++a".  In this expression 'a' is both read from
         /// and written to.
         /// </summary>
+        /// <remarks>
+        /// Once https://github.com/dotnet/roslyn/issues/30116 is implemented, we can remove this API
+        /// and use the language-agnostic IsWrittenTo extension method on SyntaxNode.
+        /// </remarks>
         bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// True if a write is performed to the given expression.  Note: unlike IsWrittenTo, this
-        /// will not return true if reads are performed on the expression as well.  For example,
-        /// "++a" will return 'false'.  However, 'a' in "out a" or "a = 1" will return true.
-        /// </summary>
-        bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        bool IsInOutContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
 
         bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
 

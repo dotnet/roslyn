@@ -326,174 +326,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static bool IsInOutContext(this ExpressionSyntax expression)
-        {
-            var argument = expression.Parent as ArgumentSyntax;
-            return
-                argument != null &&
-                argument.Expression == expression &&
-                argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
-        }
-
-        public static bool IsInRefContext(this ExpressionSyntax expression)
-            => expression.IsParentKind(SyntaxKind.RefExpression) ||
-               (expression?.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword;
-
-        public static bool IsInInContext(this ExpressionSyntax expression)
-            => (expression?.Parent as ArgumentSyntax)?.RefKindKeyword.Kind() == SyntaxKind.InKeyword;
-
-        private static ExpressionSyntax GetExpressionToAnalyzeForWrites(ExpressionSyntax expression)
-        {
-            if (expression.IsRightSideOfDotOrArrow())
-            {
-                expression = expression.Parent as ExpressionSyntax;
-            }
-
-            expression = expression.WalkUpParentheses();
-
-            return expression;
-        }
-
-        public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
-        {
-            expression = GetExpressionToAnalyzeForWrites(expression);
-
-            if (expression != null)
-            {
-                if (expression.IsInOutContext())
-                {
-                    return true;
-                }
-
-                if (expression.Parent != null)
-                {
-                    if (expression.IsLeftSideOfAssignExpression())
-                    {
-                        return true;
-                    }
-
-                    if (expression.IsAttributeNamedArgumentIdentifier())
-                    {
-                        return true;
-                    }
-                }
-
-                if (IsExpressionOfArgumentInDeconstruction(expression))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// If this declaration or identifier is part of a deconstruction, find the deconstruction.
-        /// If found, returns either an assignment expression or a foreach variable statement.
-        /// Returns null otherwise.
-        /// 
-        /// copied from SyntaxExtensions.GetContainingDeconstruction
-        /// </summary>
-        private static bool IsExpressionOfArgumentInDeconstruction(ExpressionSyntax expr)
-        {
-            if (!expr.IsParentKind(SyntaxKind.Argument))
-            {
-                return false;
-            }
-
-            while (true)
-            {
-                var parent = expr.Parent;
-                if (parent == null)
-                {
-                    return false;
-                }
-
-                switch (parent.Kind())
-                {
-                    case SyntaxKind.Argument:
-                        if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
-                        {
-                            expr = (TupleExpressionSyntax)parent.Parent;
-                            continue;
-                        }
-
-                        return false;
-                    case SyntaxKind.SimpleAssignmentExpression:
-                        if (((AssignmentExpressionSyntax)parent).Left == expr)
-                        {
-                            return true;
-                        }
-
-                        return false;
-                    case SyntaxKind.ForEachVariableStatement:
-                        if (((ForEachVariableStatementSyntax)parent).Variable == expr)
-                        {
-                            return true;
-                        }
-
-                        return false;
-
-                    default:
-                        return false;
-                }
-            }
-        }
-
-        public static bool IsWrittenTo(this ExpressionSyntax expression)
-        {
-            expression = GetExpressionToAnalyzeForWrites(expression);
-
-            if (expression.IsOnlyWrittenTo())
-            {
-                return true;
-            }
-
-            if (expression.IsInRefContext())
-            {
-                return true;
-            }
-
-            // We're written if we're used in a ++, or -- expression.
-            if (expression.IsOperandOfIncrementOrDecrementExpression())
-            {
-                return true;
-            }
-
-            if (expression.IsLeftSideOfAnyAssignExpression())
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public static bool IsAttributeNamedArgumentIdentifier(this ExpressionSyntax expression)
         {
             var nameEquals = expression?.Parent as NameEqualsSyntax;
             return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
-        }
-
-        public static bool IsOperandOfIncrementOrDecrementExpression(this ExpressionSyntax expression)
-        {
-            if (expression != null)
-            {
-                switch (expression.Parent.Kind())
-                {
-                    case SyntaxKind.PostIncrementExpression:
-                    case SyntaxKind.PreIncrementExpression:
-                    case SyntaxKind.PostDecrementExpression:
-                    case SyntaxKind.PreDecrementExpression:
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static bool IsNamedArgumentIdentifier(this ExpressionSyntax expression)
-        {
-            return expression is IdentifierNameSyntax && expression.Parent is NameColonSyntax;
         }
 
         public static bool IsInsideNameOfExpression(
@@ -532,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // i.e. you can't replace "a" in "a = b" with "Goo() = b".
             return
                 expression != null &&
-                !expression.IsWrittenTo() &&
+                !expression.IsWrittenTo(semanticModel, cancellationToken) &&
                 CanReplaceWithLValue(expression, semanticModel, cancellationToken);
         }
 

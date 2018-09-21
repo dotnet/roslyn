@@ -197,8 +197,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     // otherwise to the setter.
                     _editor.ReplaceNode(_cref, GetCrefReference(_cref));
                 }
-                else if (_semanticFacts.IsInOutContext(_semanticModel, _expression, _cancellationToken) ||
-                    _semanticFacts.IsInRefContext(_semanticModel, _expression, _cancellationToken))
+                else if (_semanticFacts.GetValueUsageInfo(_semanticModel, _expression, _cancellationToken).IsInRefOrOutContext())
                 {
                     // Code wasn't legal (you can't reference a property in an out/ref position in C#).
                     // Just replace this with a simple GetCall, but mark it so it's clear there's an error.
