@@ -201,6 +201,38 @@ class C {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void DoubleQuote_FixedInterpolatedVerbatimString()
+        {
+            SetUpEditor(@"
+class C
+{
+    void M()
+    {
+        $$
+    }
+}");
+
+            VisualStudio.Editor.SendKeys("var v = @$\"");
+            VisualStudio.Editor.Verify.CurrentLineText("var v = $@\"$$\"", assertCaretPosition: true);
+
+            // Backspace removes quotes
+            VisualStudio.Editor.SendKeys(VirtualKey.Backspace);
+            VisualStudio.Editor.Verify.CurrentLineText("var v = $@$$", assertCaretPosition: true);
+
+            // Undo puts them back
+            VisualStudio.Editor.Undo();
+            VisualStudio.Editor.Verify.CurrentLineText("var v = $@\"$$\"", assertCaretPosition: true);
+
+            // First, the FixInterpolatedVerbatimString action is undone (@$ reordering)
+            VisualStudio.Editor.Undo();
+            VisualStudio.Editor.Verify.CurrentLineText("var v = @$\"$$\"", assertCaretPosition: true);
+
+            // Then the automatic quote completion is undone
+            VisualStudio.Editor.Undo();
+            VisualStudio.Editor.Verify.CurrentLineText("var v = @$\"$$", assertCaretPosition: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void AngleBracket_PossibleGenerics_InsertionAndCompletion()
         {
             SetUpEditor(@"
