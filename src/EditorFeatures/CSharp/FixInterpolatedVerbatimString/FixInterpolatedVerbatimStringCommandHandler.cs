@@ -20,32 +20,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
     {
         public string DisplayName => CSharpEditorResources.Fix_interpolated_verbatim_string;
 
+        private static int GetCharOffset(char ch)
+        {
+            switch (ch)
+            {
+                case '@': return 0;
+                case '$': return 1;
+                case '"': return 2;
+                default: return -1;
+            }
+        }
+
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
-            // We need to check for the token *after* the opening quote is typed, so defer to the editor first
+            // We need to check for the token *after* the last character (@, $ or ") is typed, so defer to the editor first
             nextCommandHandler();
 
-            if (args.TypedChar == '"')
+            var charOffset = GetCharOffset(args.TypedChar);
+            if (charOffset != -1)
             {
                 var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
                 if (caret != null)
                 {
-                    var position = caret.Value.Position;
+                    var startPosition = caret.Value.Position - charOffset - 1;
                     var snapshot = caret.Value.Snapshot;
 
-                    if (position >= 3 &&
-                        snapshot[position - 1] == '"' &&
-                        snapshot[position - 2] == '$' &&
-                        snapshot[position - 3] == '@')
+                    if (startPosition >= 0 &&
+                        snapshot[startPosition + 0] == '@' &&
+                        snapshot[startPosition + 1] == '$' &&
+                        snapshot[startPosition + 2] == '"')
                     {
                         var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                         if (document != null)
                         {
                             var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
-                            var token = root.FindToken(position - 3);
+                            var token = root.FindToken(startPosition);
                             if (token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken))
                             {
-                                args.SubjectBuffer.Replace(new Span(position - 3, 2), "$@");
+                                args.SubjectBuffer.Replace(new Span(startPosition, 2), "$@");
                             }
                         }
                     }
