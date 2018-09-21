@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax> where TSimpleNameSyntax : SyntaxNode
     {
-        private class AssemblyReferenceCodeAction : AddImportCodeAction
+            private class AssemblyReferenceCodeAction : AddImportCodeAction
             {
                 private readonly Lazy<string> _lazyResolvedPath;
 

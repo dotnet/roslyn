@@ -20,17 +20,17 @@ namespace Microsoft.CodeAnalysis.PasteTracking
     [Name(PredefinedCommandHandlerNames.PasteTrackingPaste)]
     [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
-    internal partial class PasteTrackingPasteCommandHandler : IChainedCommandHandler<PasteCommandArgs>
+    internal class PasteTrackingPasteCommandHandler : IChainedCommandHandler<PasteCommandArgs>
     {
         public string DisplayName => EditorFeaturesResources.Paste_Tracking;
 
-        private readonly IPasteTrackingService _pasteTrackingService;
+        private readonly PasteTrackingService _pasteTrackingService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         internal PasteTrackingPasteCommandHandler(IPasteTrackingService pasteTrackingService)
         {
-            _pasteTrackingService = pasteTrackingService;
+            _pasteTrackingService = (PasteTrackingService)pasteTrackingService;
         }
 
         public VSCommanding.CommandState GetCommandState(PasteCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler)
@@ -40,8 +40,10 @@ namespace Microsoft.CodeAnalysis.PasteTracking
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
+            // Capture the pre-paste caret position
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
 
+            // Allow the pasted text to be inserted.
             nextCommandHandler();
 
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
@@ -49,14 +51,16 @@ namespace Microsoft.CodeAnalysis.PasteTracking
                 return;
             }
 
-            var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
-
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return;
             }
 
+            // Create a tracking span from the pre-post caret position that will grow as text is inserted.
+            var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
+
+            // Applying the post-paste snapshot to the tracking span gives us the span of pasted text.
             var snapshotSpan = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot);
             var textSpan = TextSpan.FromBounds(snapshotSpan.Start, snapshotSpan.End);
 

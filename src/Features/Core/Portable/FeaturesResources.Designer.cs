@@ -189,11 +189,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add missing imports for pasted code.
+        ///   Looks up a localized string similar to Add missing imports.
         /// </summary>
-        internal static string Add_missing_imports_for_pasted_code {
+        internal static string Add_missing_imports {
             get {
-                return ResourceManager.GetString("Add_missing_imports_for_pasted_code", resourceCulture);
+                return ResourceManager.GetString("Add_missing_imports", resourceCulture);
             }
         }
         

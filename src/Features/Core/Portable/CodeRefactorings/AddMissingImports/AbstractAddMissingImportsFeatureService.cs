@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
-    internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImportsFeatureService, IEqualityComparer<AddImportFixData>
+    internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImportsFeatureService
     {
         private IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
@@ -165,8 +165,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 }
             }
 
-            return fixes.ToImmutableAndFree()
-                .Distinct(this);
+            return fixes.ToImmutableAndFree();
         }
 
         private async Task<Document> ApplyFixesAsync(Document document, ImmutableArray<AddImportFixData> fixes, CancellationToken cancellationToken)
@@ -195,10 +194,10 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 allAddedMetaDataReferences = allAddedMetaDataReferences.Concat(projectChanges.GetAddedMetadataReferences());
             }
 
-            var newProject = document.Project.AddMetadataReferences(allAddedMetaDataReferences);
-            newProject = newProject.AddProjectReferences(allAddedProjectReferences);
+            var newProject = document.Project.AddMetadataReferences(allAddedMetaDataReferences.Distinct());
+            newProject = newProject.AddProjectReferences(allAddedProjectReferences.Distinct());
 
-            var newText = text.WithChanges(allTextChanges);
+            var newText = text.WithChanges(allTextChanges.Distinct());
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
 
             return newDocument;
@@ -211,10 +210,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             foreach (var fix in fixes)
             {
-                if (addImportService.TryCreateCodeAction(document, fix, out var codeAction))
-                {
-                    codeActions.Add(codeAction);
-                }
+                var codeAction = addImportService.TryCreateCodeAction(document, fix);
+                codeActions.AddIfNotNull(codeAction);
             }
 
             return codeActions.ToImmutableAndFree();
@@ -229,55 +226,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var projectChanges = newDocument.Project.GetChanges(document.Project);
 
             return (projectChanges, textChanges);
-        }
-
-        public bool Equals(AddImportFixData x, AddImportFixData y)
-        {
-            if (ReferenceEquals(x, y))
-            {
-                return true;
-            }
-
-            if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
-            {
-                return false;
-            }
-
-            return (x.AssemblyReferenceAssemblyName == y.AssemblyReferenceAssemblyName
-                && x.AssemblyReferenceFullyQualifiedTypeName == y.AssemblyReferenceFullyQualifiedTypeName
-                && x.Kind == y.Kind
-                && x.PackageName == y.PackageName
-                && x.PackageSource == y.PackageSource
-                && x.PackageVersionOpt == y.PackageVersionOpt
-                && x.PortableExecutableReferenceFilePathToAdd == y.PortableExecutableReferenceFilePathToAdd
-                && x.PortableExecutableReferenceProjectId == y.PortableExecutableReferenceProjectId
-                && x.Priority == y.Priority
-                && x.ProjectReferenceToAdd == y.ProjectReferenceToAdd
-                && x.Tags.SequenceEqual(y.Tags)
-                && x.Title == y.Title
-                && x.TextChanges.SequenceEqual(y.TextChanges));
-        }
-
-        public int GetHashCode(AddImportFixData obj)
-        {
-            if (ReferenceEquals(obj, null))
-            {
-                return 0;
-            }
-
-            return Hash.Combine(obj.AssemblyReferenceAssemblyName?.GetHashCode() ?? 0,
-                Hash.Combine(obj.AssemblyReferenceFullyQualifiedTypeName?.GetHashCode() ?? 0,
-                Hash.Combine(obj.Kind.GetHashCode(),
-                Hash.Combine(obj.PackageName?.GetHashCode() ?? 0,
-                Hash.Combine(obj.PackageSource?.GetHashCode() ?? 0,
-                Hash.Combine(obj.PackageVersionOpt?.GetHashCode() ?? 0,
-                Hash.Combine(obj.PortableExecutableReferenceFilePathToAdd?.GetHashCode() ?? 0,
-                Hash.Combine(obj.PortableExecutableReferenceProjectId?.GetHashCode() ?? 0,
-                Hash.Combine(obj.Priority.GetHashCode(),
-                Hash.Combine(obj.ProjectReferenceToAdd?.GetHashCode() ?? 0,
-                Hash.Combine(Hash.CombineValues(obj.Tags),
-                Hash.Combine(obj.Title?.GetHashCode() ?? 0,
-                Hash.CombineValues(obj.TextChanges)))))))))))));
         }
     }
 }

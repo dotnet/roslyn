@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             var cancellationToken = context.CancellationToken;
             var diagnostics = context.Diagnostics;
 
+            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+
             var solution = document.Project.Solution;
             var options = solution.Options;
-
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
             var searchReferenceAssemblies = options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, document.Project.Language);
             var searchNuGetPackages = options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);

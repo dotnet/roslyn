@@ -6,10 +6,6 @@ namespace Microsoft.CodeAnalysis.PasteTracking
 {
     internal interface IPasteTrackingService
     {
-        bool TryGetPasteTrackingInformation(Document document, out PasteTrackingInformation trackingInformation);
-
-        void RegisterPastedTextSpan(Document document, TextSpan textSpan);
-
-        bool ClearPasteTrackingInformation(Document document);
+        bool TryGetPastedTextSpan(Document document, out TextSpan textSpan);
     }
 }

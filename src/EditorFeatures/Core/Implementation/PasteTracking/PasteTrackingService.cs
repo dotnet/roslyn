@@ -1,56 +1,80 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
+using System.Linq;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PasteTracking
 {
     [Export(typeof(IPasteTrackingService)), Shared]
     internal class PasteTrackingService : IPasteTrackingService
     {
-        public bool TryGetPasteTrackingInformation(Document document, out PasteTrackingInformation trackingInformation)
-        {
-            if (TryGetTextBuffer(document, out var textBuffer) &&
-                textBuffer.Properties.ContainsProperty(typeof(PasteTrackingInformation)))
-            {
-                trackingInformation = textBuffer.Properties.GetProperty<PasteTrackingInformation>(typeof(PasteTrackingInformation));
-                return true;
-            }
+        private readonly IThreadingContext _threadingContext;
+        private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
 
-            trackingInformation = null;
-            return false;
+        [ImportingConstructor]
+        public PasteTrackingService(IThreadingContext threadingContext, ITextBufferAssociatedViewService textBufferAssociatedViewService)
+        {
+            _threadingContext = threadingContext;
+            _textBufferAssociatedViewService = textBufferAssociatedViewService;
         }
 
-        public bool ClearPasteTrackingInformation(Document document)
+        public bool TryGetPastedTextSpan(Document document, out TextSpan textSpan)
         {
-            if (!TryGetTextBuffer(document, out var textBuffer) ||
-                !textBuffer.Properties.ContainsProperty(typeof(PasteTrackingInformation)))
+            if (!TryGetTextBuffer(document, out var textBuffer))
             {
+                textSpan = default;
                 return false;
             }
 
-            textBuffer.Properties.RemoveProperty(typeof(PasteTrackingInformation));
-
-            return true;
+            // `PropertiesCollection` is thread-safe
+            return textBuffer.Properties.TryGetProperty(this, out textSpan);
         }
 
-        public void RegisterPastedTextSpan(Document document, TextSpan textSpan)
+        internal void RegisterPastedTextSpan(Document document, TextSpan textSpan)
         {
+            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+
             if (!TryGetTextBuffer(document, out var textBuffer))
             {
                 return;
             }
 
-            textBuffer.Changed += TextBuffer_Changed;
-            textBuffer.Properties.GetOrCreateSingletonProperty(() => new PasteTrackingInformation(textSpan));
+            var textView = _textBufferAssociatedViewService
+                .GetAssociatedTextViews(textBuffer)
+                .FirstOrDefault(view => view.HasAggregateFocus);
+
+            if (textView is null)
+            {
+                return;
+            }
+
+            textView.Closed += ClearTracking;
+            textBuffer.Changed += ClearTracking;
+
+            textBuffer.Properties.AddProperty(this, textSpan);
 
             return;
 
-            void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+            void ClearTracking(object sender, EventArgs e)
             {
-                textBuffer.Changed -= TextBuffer_Changed;
-                ClearPasteTrackingInformation(document);
+                textView.Closed -= ClearTracking;
+                textBuffer.Changed -= ClearTracking;
+
+                ClearPastedTextSpan(document);
+            }
+        }
+
+        private void ClearPastedTextSpan(Document document)
+        {
+            if (TryGetTextBuffer(document, out var textBuffer))
+            {
+                textBuffer.Properties.RemoveProperty(this);
             }
         }
 

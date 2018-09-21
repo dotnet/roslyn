@@ -521,54 +521,45 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             foreach (var fix in fixes)
             {
-                if (TryCreateCodeAction(document, fix, out var codeAction, installerService))
-                {
-                    codeActionsBuilder.AddIfNotNull(codeAction);
+                var codeAction = TryCreateCodeAction(document, fix, installerService);
 
-                    if (codeActionsBuilder.Count >= MaxResults)
-                    {
-                        break;
-                    }
+                codeActionsBuilder.AddIfNotNull(codeAction);
+
+                if (codeActionsBuilder.Count >= MaxResults)
+                {
+                    break;
                 }
             }
 
             return codeActionsBuilder.ToImmutableAndFree();
         }
 
-        public bool TryCreateCodeAction(Document document, AddImportFixData fixData, out CodeAction codeAction, IPackageInstallerService installerService = null)
+        public CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService = null)
         {
             if (fixData == null)
             {
-                codeAction = null;
-                return false;
+                return null;
             }
 
             switch (fixData.Kind)
             {
                 case AddImportFixKind.ProjectSymbol:
-                    codeAction = new ProjectSymbolReferenceCodeAction(document, fixData);
-                    break;
+                    return new ProjectSymbolReferenceCodeAction(document, fixData);
 
                 case AddImportFixKind.MetadataSymbol:
-                    codeAction = new MetadataSymbolReferenceCodeAction(document, fixData);
-                    break;
+                    return new MetadataSymbolReferenceCodeAction(document, fixData);
 
                 case AddImportFixKind.ReferenceAssemblySymbol:
-                    codeAction = new AssemblyReferenceCodeAction(document, fixData);
-                    break;
+                    return new AssemblyReferenceCodeAction(document, fixData);
 
                 case AddImportFixKind.PackageSymbol:
                     var packageInstaller = installerService ?? GetPackageInstallerService(document);
-                    codeAction = !packageInstaller.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
+                    return !packageInstaller.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
                         ? new ParentInstallPackageCodeAction(document, fixData, packageInstaller)
                         : null;
-                    break;
-
-                default:
-                    throw ExceptionUtilities.Unreachable;
             }
 
-            return !(codeAction is null);
+            throw ExceptionUtilities.Unreachable;
         }
 
         private IPackageInstallerService GetPackageInstallerService(Document document)

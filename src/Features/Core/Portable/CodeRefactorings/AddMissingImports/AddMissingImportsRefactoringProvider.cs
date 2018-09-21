@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
@@ -23,26 +23,33 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
+            var textSpan = TryGetPasteTrackingSpan(document);
 
-            if (!_pasteTrackingService.TryGetPasteTrackingInformation(document, out var trackingInformation)
-                || !context.Span.IntersectsWith(trackingInformation.TextSpan))
+            if (textSpan.IsEmpty)
             {
                 return;
             }
 
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
 
-            var isMissingImports = await addMissingImportsService.IsMissingImportsAsync(document, trackingInformation.TextSpan, context.CancellationToken).ConfigureAwait(false);
+            var isMissingImports = await addMissingImportsService.IsMissingImportsAsync(document, textSpan, context.CancellationToken).ConfigureAwait(false);
             if (!isMissingImports)
             {
                 return;
             }
 
-            context.RegisterRefactoring(new SolutionChangeAction(FeaturesResources.Add_missing_imports_for_pasted_code, async (cancellationToken) =>
+            context.RegisterRefactoring(new AddMissingImportsCodeAction(async (cancellationToken) =>
             {
-                var newProject = await addMissingImportsService.AddMissingImportsAsync(document, trackingInformation.TextSpan, context.CancellationToken).ConfigureAwait(false);
+                var newProject = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 return newProject.Solution;
             }));
+        }
+
+        private TextSpan TryGetPasteTrackingSpan(Document document)
+        {
+            return _pasteTrackingService.TryGetPastedTextSpan(document, out var textSpan)
+                ? textSpan
+                : default;
         }
     }
 }

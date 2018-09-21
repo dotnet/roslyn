@@ -29,6 +29,6 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         ImmutableArray<CodeAction> GetCodeActionsForFixes(Document document, ImmutableArray<AddImportFixData> fixes, IPackageInstallerService installerService = null);
 
-        bool TryCreateCodeAction(Document document, AddImportFixData fixData, out CodeAction codeAction, IPackageInstallerService installerService = null);
+        CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService = null);
     }
 }
