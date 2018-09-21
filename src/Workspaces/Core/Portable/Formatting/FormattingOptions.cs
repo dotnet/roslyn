@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
     internal static class FormattingOptionGroups
     {
-        public static readonly OptionGroup IndentationAndSpacing= new OptionGroup(WorkspacesResources.Indentation_and_spacing, priority: 1);
+        public static readonly OptionGroup IndentationAndSpacing = new OptionGroup(WorkspacesResources.Indentation_and_spacing, priority: 1);
         public static readonly OptionGroup NewLine = new OptionGroup(WorkspacesResources.New_line_preferences, priority: 2);
     }
 }

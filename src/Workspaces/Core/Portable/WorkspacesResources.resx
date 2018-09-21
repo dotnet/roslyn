@@ -747,8 +747,8 @@
   <data name="Refactoring_Only" xml:space="preserve">
     <value>Refactoring Only</value>
   </data>
-  <data name="Remove_the_line_below_if_you_want_to_inherit_from_higher_directories_dot_editorconfig_settings" xml:space="preserve">
-    <value>Remove the line below if you want to inherit from higher directories .editorconfig settings</value>
+  <data name="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories" xml:space="preserve">
+    <value>Remove the line below if you want to inherit .editorconfig settings from higher directories</value>
   </data>
   <data name="Core_EditorConfig_Options" xml:space="preserve">
     <value>Core EditorConfig Options</value>

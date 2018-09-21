@@ -24,26 +24,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static string GetSpacingWithParenthesesEditorConfigString(OptionSet optionSet)
         {
-            List<string> editorConfigStringBuilderOpt = null;
+            var editorConfigStringBuilder = new List<string>();
             foreach (var kvp in SpacingWithinParenthesisOptionsMap)
             {
                 var value = optionSet.GetOption(kvp.Key);
                 if (value)
                 {
-                    editorConfigStringBuilderOpt = editorConfigStringBuilderOpt ?? new List<string>(SpacingWithinParenthesisOptionsMap.Count);
                     Debug.Assert(s_spacingWithinParenthesisOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilderOpt.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
+                    editorConfigStringBuilder.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
                 }
             }
 
-            if (editorConfigStringBuilderOpt == null)
+            if (editorConfigStringBuilder.Count == 0)
             {
                 // No spacing within parenthesis option set.
                 return "false";
             }
             else
             {
-                return string.Join(",", editorConfigStringBuilderOpt.Order());
+                return string.Join(",", editorConfigStringBuilder.Order());
             }
         }
 
@@ -82,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static NewLineOption? ConvertToNewLineOption(string value)
             => s_newLineOptionsEditorConfigMap.TryGetValue(value, out var option)
-               ? option :
-               (NewLineOption?)null;
+               ? option
+               : (NewLineOption?)null;
 
         private static string GetNewLineOptionEditorConfigString(OptionSet optionSet)
         {

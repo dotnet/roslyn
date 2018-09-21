@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             var editorconfig = new StringBuilder();
 
-            editorconfig.AppendLine($"# {WorkspacesResources.Remove_the_line_below_if_you_want_to_inherit_from_higher_directories_dot_editorconfig_settings}");
+            editorconfig.AppendLine($"# {WorkspacesResources.Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories}");
             editorconfig.AppendLine("root = true");
             editorconfig.AppendLine();
 

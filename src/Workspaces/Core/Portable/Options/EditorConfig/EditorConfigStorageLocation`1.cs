@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         /// <summary>
-        /// Gets the editorconfig string representation "key = value" for the given value for this storage location.
+        /// Gets the editorconfig string representation for this storage location.
         /// </summary>
         public string GetEditorConfigString(T value, OptionSet optionSet)
         {

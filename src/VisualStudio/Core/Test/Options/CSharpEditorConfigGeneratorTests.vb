@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub TestEditorConfigGeneratorDefault()
             Using workspace = TestWorkspace.CreateCSharp("")
-                Dim expectedText = "# Remove the line below if you want to inherit from higher directories .editorconfig settings
+                Dim expectedText = "# Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
 # C# files
@@ -165,7 +165,7 @@ csharp_preserve_single_line_statements = true
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim changedOptions = workspace.Options.WithChangedOption(New OptionKey(CodeStyleOptions.PreferExplicitTupleNames, LanguageNames.CSharp),
                                                                          New CodeStyleOption(Of Boolean)(False, NotificationOption.[Error]))
-                Dim expectedText = "# Remove the line below if you want to inherit from higher directories .editorconfig settings
+                Dim expectedText = "# Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
 # C# files

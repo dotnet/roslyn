@@ -1359,12 +1359,12 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove the line below if you want to inherit from higher directories .editorconfig settings.
+        ///   Looks up a localized string similar to Remove the line below if you want to inherit .editorconfig settings from higher directories.
         /// </summary>
-        internal static string Remove_the_line_below_if_you_want_to_inherit_from_higher_directories_dot_editorconfig_settings {
+        internal static string Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories {
             get {
-                return ResourceManager.GetString("Remove_the_line_below_if_you_want_to_inherit_from_higher_directories_dot_editorco" +
-                        "nfig_settings", resourceCulture);
+                return ResourceManager.GetString("Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_highe" +
+                        "r_directories", resourceCulture);
             }
         }
         

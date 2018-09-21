@@ -62,9 +62,9 @@
         <target state="translated">Somente Refatoração</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_from_higher_directories_dot_editorconfig_settings">
-        <source>Remove the line below if you want to inherit from higher directories .editorconfig settings</source>
-        <target state="new">Remove the line below if you want to inherit from higher directories .editorconfig settings</target>
+      <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
+        <source>Remove the line below if you want to inherit .editorconfig settings from higher directories</source>
+        <target state="new">Remove the line below if you want to inherit .editorconfig settings from higher directories</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
