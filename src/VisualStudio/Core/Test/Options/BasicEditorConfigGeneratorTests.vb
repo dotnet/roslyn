@@ -79,7 +79,7 @@ dotnet_style_readonly_field = true:suggestion
 visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator
 
 "
-                Dim editorConfigOptions = VisualBasic.Options.Formatting.CodeStylePage.GetEditorConfigOptions()
+                Dim editorConfigOptions = VisualBasic.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
                 Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, workspace.Options, LanguageNames.VisualBasic)
                 Assert.Equal(expectedText, actualText)
             End Using
@@ -153,7 +153,7 @@ dotnet_style_readonly_field = true:suggestion
 visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator
 
 "
-                Dim editorConfigOptions = VisualBasic.Options.Formatting.CodeStylePage.GetEditorConfigOptions()
+                Dim editorConfigOptions = VisualBasic.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
                 Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, changedOptions, LanguageNames.VisualBasic)
                 Assert.Equal(expectedText, actualText)
             End Using

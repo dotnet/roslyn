@@ -154,7 +154,7 @@ csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
 "
-                Dim editorConfigOptions = CSharp.Options.Formatting.CodeStylePage.GetEditorConfigOptions()
+                Dim editorConfigOptions = CSharp.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
                 Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, workspace.Options, LanguageNames.CSharp)
                 Assert.Equal(expectedText, actualText)
             End Using
@@ -303,7 +303,7 @@ csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
 "
-                Dim editorConfigOptions = CSharp.Options.Formatting.CodeStylePage.GetEditorConfigOptions()
+                Dim editorConfigOptions = CSharp.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
                 Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, changedOptions, LanguageNames.CSharp)
                 Assert.Equal(expectedText, actualText)
             End Using

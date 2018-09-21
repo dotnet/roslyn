@@ -20,12 +20,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
                                                 LanguageNames.VisualBasic)
         End Function
 
-        ' Friend for testing purposes.
-        Friend Shared Function GetEditorConfigOptions() As ImmutableArray(Of (String, ImmutableArray(Of IOption)))
+        Private Shared Function GetEditorConfigOptions() As ImmutableArray(Of (String, ImmutableArray(Of IOption)))
             Dim builder = ArrayBuilder(Of (String, ImmutableArray(Of IOption))).GetInstance()
             builder.AddRange(GridOptionPreviewControl.GetLanguageAgnosticEditorConfigOptions())
             builder.Add((BasicVSResources.VB_Coding_Conventions, VisualBasicCodeStyleOptions.AllOptions))
             Return builder.ToImmutableAndFree()
         End Function
+
+        Friend Structure TestAccessor
+            Friend Shared Function GetEditorConfigOptions() As ImmutableArray(Of (String, ImmutableArray(Of IOption)))
+                Return CodeStylePage.GetEditorConfigOptions()
+            End Function
+        End Structure
     End Class
 End Namespace
