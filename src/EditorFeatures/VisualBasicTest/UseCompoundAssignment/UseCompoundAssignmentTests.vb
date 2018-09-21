@@ -266,14 +266,39 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
-        Public Async Function TestNotOnProp() As Task
-            Await TestMissingAsync(
+        Public Async Function TestOnTopLevelProp() As Task
+            Await TestInRegularAndScript1Async(
 "public class C
     public property a as integer
     end property
 
     sub M()
         a [||]= a + 10
+    end sub
+end class",
+"public class C
+    public property a as integer
+    end property
+
+    sub M()
+        a += 10
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        Public Async Function TestNotOnNestedProp1() As Task
+            Await TestMissingAsync(
+"
+public class A
+    public x as integer
+end class
+public class C
+    public property a as A
+    end property
+
+    sub M()
+        a.x [||]= a.x + 10
     end sub
 end class")
         End Function

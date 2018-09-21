@@ -430,9 +430,9 @@ public class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
-        public async Task TestNotOnProp()
+        public async Task TestOnTopLevelProp1()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     int a { get; set; }
@@ -440,6 +440,126 @@ public class D
     void M()
     {
         a [||]= a + 10;
+    }
+}",
+@"public class C
+{
+    int a { get; set; }
+
+    void M()
+    {
+        a += 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestOnTopLevelProp2()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    int a { get; set; }
+
+    void M()
+    {
+        this.a [||]= this.a + 10;
+    }
+}",
+@"public class C
+{
+    int a { get; set; }
+
+    void M()
+    {
+        this.a += 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestOnTopLevelProp3()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    int a { get; set; }
+
+    void M()
+    {
+        (this.a) [||]= (this.a) + 10;
+    }
+}",
+@"public class C
+{
+    int a { get; set; }
+
+    void M()
+    {
+        (this.a) += 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnNestedProp1()
+        {
+            await TestMissingAsync(
+@"
+public class A
+{
+    public int x;
+}
+
+public class C
+{
+    A a { get; }
+
+    void M()
+    {
+        a.x [||]= a.x + 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnNestedProp2()
+        {
+            await TestMissingAsync(
+@"
+public class A
+{
+    public int x;
+}
+
+public class C
+{
+    A a { get; }
+
+    void M()
+    {
+        this.a.x [||]= this.a.x + 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnNestedProp3()
+        {
+            await TestMissingAsync(
+@"
+public class A
+{
+    public int x;
+}
+
+public class C
+{
+    A a { get; }
+
+    void M()
+    {
+        (a.x) [||]= (a.x) + 10;
     }
 }");
         }
