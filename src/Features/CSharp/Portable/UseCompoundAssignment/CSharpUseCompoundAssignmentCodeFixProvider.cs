@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
         : AbstractUseCompoundAssignmentCodeFixProvider<SyntaxKind, AssignmentExpressionSyntax, ExpressionSyntax>
     {
         public CSharpUseCompoundAssignmentCodeFixProvider()
-            : base(Maps.BinaryToAssignmentMap,
-                   Maps.AssignmentToTokenMap)
+            : base(Utilities.Kinds)
         {
         }
 

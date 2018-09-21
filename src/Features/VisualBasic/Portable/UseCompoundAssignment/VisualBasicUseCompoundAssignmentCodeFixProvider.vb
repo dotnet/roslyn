@@ -12,8 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
         Inherits AbstractUseCompoundAssignmentCodeFixProvider(Of SyntaxKind, AssignmentStatementSyntax, ExpressionSyntax)
 
         Public Sub New()
-            MyBase.New(Maps.BinaryToAssignmentMap,
-                       Maps.AssignmentToTokenMap)
+            MyBase.New(Kinds)
         End Sub
 
         Protected Overrides Function GetSyntaxKind(rawKind As Integer) As SyntaxKind

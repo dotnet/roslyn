@@ -29,11 +29,9 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _assignmentToTokenMap;
 
         protected AbstractUseCompoundAssignmentCodeFixProvider(
-            ImmutableDictionary<TSyntaxKind, TSyntaxKind> binaryToAssignmentMap,
-            ImmutableDictionary<TSyntaxKind, TSyntaxKind> assignmentToTokenMap)
+            ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
         {
-            _binaryToAssignmentMap = binaryToAssignmentMap;
-            _assignmentToTokenMap = assignmentToTokenMap;
+            Utilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
         }
 
         protected abstract TSyntaxKind GetSyntaxKind(int rawKind);

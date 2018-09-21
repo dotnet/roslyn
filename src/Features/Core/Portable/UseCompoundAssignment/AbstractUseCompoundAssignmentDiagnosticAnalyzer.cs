@@ -35,18 +35,13 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
         protected AbstractUseCompoundAssignmentDiagnosticAnalyzer(
             ISyntaxFactsService syntaxFacts,
-            ImmutableDictionary<TSyntaxKind, TSyntaxKind> binaryToAssignmentMap,
-            ImmutableDictionary<TSyntaxKind, TSyntaxKind> assignmentToTokenMap)
+            ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
             : base(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_compound_assignment), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _syntaxFacts = syntaxFacts;
-            _binaryToAssignmentMap = binaryToAssignmentMap;
-            _assignmentToTokenMap = assignmentToTokenMap;
-
-            Debug.Assert(_binaryToAssignmentMap.Count == _assignmentToTokenMap.Count);
-            Debug.Assert(_binaryToAssignmentMap.Values.All(_assignmentToTokenMap.ContainsKey));
+            Utilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
         }
 
         protected abstract TSyntaxKind GetKind(int rawKind);

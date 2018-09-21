@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
         : AbstractUseCompoundAssignmentDiagnosticAnalyzer<SyntaxKind, AssignmentExpressionSyntax, BinaryExpressionSyntax>
     {
         public CSharpUseCompoundAssignmentDiagnosticAnalyzer()
-            : base(CSharpSyntaxFactsService.Instance,
-                   Maps.BinaryToAssignmentMap,
-                   Maps.AssignmentToTokenMap)
+            : base(CSharpSyntaxFactsService.Instance, Utilities.Kinds)
         {
         }
 

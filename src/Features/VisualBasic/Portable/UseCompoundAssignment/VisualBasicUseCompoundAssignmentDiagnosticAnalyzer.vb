@@ -10,9 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
         Inherits AbstractUseCompoundAssignmentDiagnosticAnalyzer(Of SyntaxKind, AssignmentStatementSyntax, BinaryExpressionSyntax)
 
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance,
-                       Maps.BinaryToAssignmentMap,
-                       Maps.AssignmentToTokenMap)
+            MyBase.New(VisualBasicSyntaxFactsService.Instance, Kinds)
         End Sub
 
         Protected Overrides Function GetKind(rawKind As Integer) As SyntaxKind
