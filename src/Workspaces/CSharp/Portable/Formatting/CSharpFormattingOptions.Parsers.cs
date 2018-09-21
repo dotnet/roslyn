@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -20,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 .Any();
 
         private static SpacingWithinParenthesesOption? ConvertToSpacingOption(string value)
-            => s_spacingWithinParenthesisOptionsEditorConfigMap.GetValueOrDefault(value);
+            => s_spacingWithinParenthesisOptionsEditorConfigMap.TryGetValue(value, out var option)
+               ? option
+               : (SpacingWithinParenthesesOption?)null;
 
         private static string GetSpacingWithParenthesesEditorConfigString(OptionSet optionSet)
         {
@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         internal static bool DetermineIfNewLineOptionIsSet(string value, NewLineOption optionName)
         {
-            var values = value.Split(',');
+            var values = value.Split(',').Select(v => v.Trim());
 
-            if (values.Any(s => s.Trim() == "all"))
+            if (values.Any(s => s == "all"))
             {
                 return true;
             }
 
-            if (values.Any(s => s.Trim() == "none"))
+            if (values.Any(s => s == "none"))
             {
                 return false;
             }
@@ -81,7 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static NewLineOption? ConvertToNewLineOption(string value)
-            => s_newLineOptionsEditorConfigMap.GetValueOrDefault(value);
+            => s_newLineOptionsEditorConfigMap.TryGetValue(value, out var option)
+               ? option :
+               (NewLineOption?)null;
 
         private static string GetNewLineOptionEditorConfigString(OptionSet optionSet)
         {
