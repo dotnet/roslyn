@@ -13,6 +13,10 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
 {
+    /// <summary>
+    /// Replaces <c>@$"</c> with <c>$@"</c>, which is the preferred and until C# 8.0 the only supported form
+    /// of an interpolated verbatim string start token
+    /// </summary>
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(FixInterpolatedVerbatimStringCommandHandler))]
