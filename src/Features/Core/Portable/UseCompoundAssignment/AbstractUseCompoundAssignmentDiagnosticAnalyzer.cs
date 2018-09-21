@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             return false;
         }
 
-        private bool IsSideEffectFreeSymbol(
+        private static bool IsSideEffectFreeSymbol(
             SyntaxNode expr, SemanticModel semanticModel, bool isTopLevel, CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(expr, cancellationToken);
