@@ -666,6 +666,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Introduce &apos;using&apos; statement.
+        /// </summary>
+        internal static string Introduce_using_statement {
+            get {
+                return ResourceManager.GetString("Introduce_using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid selection..
         /// </summary>
         internal static string Invalid_selection {

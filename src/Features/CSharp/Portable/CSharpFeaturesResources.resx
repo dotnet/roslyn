@@ -576,4 +576,8 @@
     <value>Add missing usings</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Introduce_using_statement" xml:space="preserve">
+    <value>Introduce 'using' statement</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>
