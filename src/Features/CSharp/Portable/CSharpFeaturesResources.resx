@@ -444,7 +444,7 @@
     <value>Hide base member</value>
   </data>
   <data name="Add_NonNullTypes_attribute" xml:space="preserve">
-    <value>Add NonnNullTypes attribute</value>
+    <value>Add NonNullTypes attribute</value>
   </data>
   <data name="Delegate_invocation_can_be_simplified" xml:space="preserve">
     <value>Delegate invocation can be simplified.</value>
