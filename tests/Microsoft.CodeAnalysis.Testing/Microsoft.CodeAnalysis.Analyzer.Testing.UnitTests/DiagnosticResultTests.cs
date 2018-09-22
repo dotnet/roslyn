@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -100,6 +103,36 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(
                 "error CS1002: ; expected",
                 DiagnosticResult.CompilerError("CS1002").WithMessageFormat("{0} expected").WithArguments(";").ToString());
+        }
+
+        [Fact]
+        [WorkItem(226, "https://github.com/dotnet/roslyn-sdk/issues/226")]
+        public void TestConstructionThroughVerifierActionableError1()
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => AnalyzerVerifier<TwoDescriptorAnalyzer, CSharpAnalyzerTest<TwoDescriptorAnalyzer>, DefaultVerifier>.Diagnostic());
+            Assert.Equal("'Diagnostic()' can only be used when the analyzer has a single supported diagnostic. Use the 'Diagnostic(DiagnosticDescriptor)' overload to specify the descriptor from which to create the expected result.", error.Message);
+        }
+
+        [Fact]
+        [WorkItem(226, "https://github.com/dotnet/roslyn-sdk/issues/226")]
+        public void TestConstructionThroughVerifierActionableError2()
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => AnalyzerVerifier<TwoDescriptorAnalyzer, CSharpAnalyzerTest<TwoDescriptorAnalyzer>, DefaultVerifier>.Diagnostic("ID"));
+            Assert.Equal("'Diagnostic(string)' can only be used when the analyzer has a single supported diagnostic with the specified ID. Use the 'Diagnostic(DiagnosticDescriptor)' overload to specify the descriptor from which to create the expected result.", error.Message);
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private class TwoDescriptorAnalyzer : DiagnosticAnalyzer
+        {
+            internal static readonly DiagnosticDescriptor Descriptor1 = new DiagnosticDescriptor("ID", "title", "first message format", "category", DiagnosticSeverity.Info, isEnabledByDefault: true);
+            internal static readonly DiagnosticDescriptor Descriptor2 = new DiagnosticDescriptor("ID", "title", "second message format", "category", DiagnosticSeverity.Info, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+                = ImmutableArray.Create(Descriptor1, Descriptor2);
+
+            public override void Initialize(AnalysisContext context)
+            {
+            }
         }
     }
 }
