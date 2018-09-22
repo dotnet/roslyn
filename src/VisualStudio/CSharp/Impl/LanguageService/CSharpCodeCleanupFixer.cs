@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -9,8 +10,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -18,10 +19,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.CodeCleanup;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
-    internal class CSharpCodeCleanupFixer : ForegroundThreadAffinitizedObject, ICodeCleanUpFixer
+    [Export(typeof(CodeCleanUpFixer))]
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
+    internal class CSharpCodeCleanUpFixer : CodeCleanUpFixer
     {
         public const string RemoveUnusedImports = nameof(RemoveUnusedImports);
         public const string SortImports = nameof(SortImports);
@@ -30,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         /// <summary>
         /// TODO: hardcoded list need to be replace by inclusion/exclusion list from .editorconfig
         /// </summary>
-        private ImmutableArray<string> _errorCodes = ImmutableArray.Create(RemoveUnusedImports, 
+        private ImmutableArray<string> _errorCodes = ImmutableArray.Create(RemoveUnusedImports,
                                                                            SortImports,
                                                                            IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
                                                                            IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
@@ -54,14 +58,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                                                                            CSharpRemoveUnusedVariableCodeFixProvider.CS0219,
                                                                            IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
                                                                            IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
-        
-        public CSharpCodeCleanupFixer(ICodeFixService codeFixService, IThreadingContext threadingContext, bool assertIsForeground = false)
-            : base(threadingContext, assertIsForeground)
+
+        [ImportingConstructor]
+        public CSharpCodeCleanUpFixer(ICodeFixService codeFixService)
         {
             _codeFixServiceOpt = codeFixService;
         }
 
-        public async Task<bool> FixAsync(ICodeCleanUpScope scope, FixIdContainer enabledFixIds, CancellationToken cancellationToken)
+        public override async Task<bool> FixAsync(ICodeCleanUpScope scope, FixIdContainer enabledFixIds, CancellationToken cancellationToken)
         {
             var textBufferScope = scope as TextBufferCodeCleanUpScope;
             if (textBufferScope == null)
@@ -71,11 +75,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 if (hierarchy == null)
                 {
                     // solution
-                    return false; 
+                    return false;
                 }
 
                 var itemId = hierarchyContent.ItemId;
-                
+
                 if (hierarchy.GetCanonicalName(itemId, out var path) == 0)
                 {
                     var attr = File.GetAttributes(path);
@@ -84,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                         // directory
                     }
                     else
-                    {   
+                    {
                         // document
                     }
                 }
@@ -105,18 +109,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private async Task<bool> CleanupDocument(Document document, CancellationToken cancellationToken)
         {
             var oldDoc = document;
-            
+
             foreach (var errorCode in _errorCodes)
             {
-                var changedDoc = await _codeFixServiceOpt.ApplyCodeFixesForSpecificDiagnosticId(document, errorCode, cancellationToken).ConfigureAwait(true);
-                if (changedDoc != null)
-                {
-                    document = changedDoc;                    
-                }
+                document = await _codeFixServiceOpt.ApplyCodeFixesForSpecificDiagnosticId(document, errorCode, cancellationToken).ConfigureAwait(true);
             }
 
             document = await RemoveAndSortUsingsAsync(document, cancellationToken).ConfigureAwait(true);
-            
+
             var codeCleanupChanges = await document.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
             if (codeCleanupChanges != null && codeCleanupChanges.Any())
             {
@@ -131,7 +131,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             return false;
         }
-
 
         private async Task<Document> RemoveAndSortUsingsAsync(Document document, CancellationToken cancellationToken)
         {
