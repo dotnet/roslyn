@@ -1,0 +1,113 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+
+namespace Microsoft.CodeAnalysis
+{
+    internal static class CodeRefactoringHelpers
+    {
+        public static Task<bool> RefactoringSelectionIsValidAsync(
+            Document document, TextSpan selection, SyntaxNode node, CancellationToken cancellation)
+        {
+            return RefactoringSelectionIsValidAsync(document, selection, node, ImmutableArray<SyntaxNode>.Empty, cancellation);
+        }
+
+        public static async Task<bool> RefactoringSelectionIsValidAsync(
+            Document document, TextSpan selection, SyntaxNode node,
+            ImmutableArray<SyntaxNode> holes, CancellationToken cancellationToken)
+        {
+            if (selection.Length == 0)
+            {
+                return await RefactoringPositionIsValidAsync(
+                    document, selection.Start, node, holes, cancellationToken).ConfigureAwait(false);
+            }
+
+            // If we have selection, it needs to be selecting at least the full node. We are lenient
+            // with the selection starting somewhere between the full node-line span, and the start
+            // of the node as well as ending after the end of the node and the end of the line the
+            // node ends on.
+            var expandedSpan = await GetExpandedNodeSpan(document, node, cancellationToken).ConfigureAwait(false);
+            if ((selection.Start >= expandedSpan.Start && selection.Start <= node.SpanStart) &&
+                (selection.End >= node.Span.End && selection.End <= expandedSpan.End))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines if a refactoring should be offered for a given node given the specified
+        /// position in a document. The refactoring is offered if the position is somewhere on the
+        /// span containing the node, and not in any of the specified <paramref name="holes"/>
+        /// to avoid.
+        ///
+        /// Note: this function considers the span containing the node to start at the earliest
+        /// preceding whitespace before the node's <see cref="SyntaxNode.SpanStart"/> and up through
+        /// the last whitespace following the <see cref="SyntaxNode.Span"/>’s <see cref="TextSpan.End"/>.
+        /// In other words, if the position is within the <see cref="SyntaxNode.FullSpan"/>
+        /// of the node but on a line preceding <see cref="SyntaxNode.SpanStart"/> then it is not a
+        /// valid position. This prevents refactorings from showing up on comments or whitespace on
+        /// preceding lines.
+        ///
+        /// For the <paramref name="holes"/>, the position is considered invalid if it is *within*
+        /// the hole, not if it is touching the hole edges.
+        /// </summary>
+        public static async Task<bool> RefactoringPositionIsValidAsync(
+            Document document,
+            int position,
+            SyntaxNode node,
+            ImmutableArray<SyntaxNode> holes,
+            CancellationToken cancellationToken)
+        {
+            var expandedSpan = await GetExpandedNodeSpan(document, node, cancellationToken).ConfigureAwait(false);
+            if (!expandedSpan.IntersectsWith(position))
+            {
+                // Position isn’t within the node’s widened span. Definitely not valid here.
+                return false;
+            }
+
+            foreach (var hole in holes)
+            {
+                if (position > hole.Span.Start && position < hole.Span.End)
+                {
+                    // Position was in one of the holes. Not valid here.
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static async Task<TextSpan> GetExpandedNodeSpan(
+            Document document,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
+        {
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var nodeStartLine = sourceText.Lines.GetLineFromPosition(node.SpanStart);
+            var nodeEndLine = sourceText.Lines.GetLineFromPosition(node.Span.End);
+
+            var start = node.SpanStart;
+            var end = node.Span.End;
+
+            while (start > nodeStartLine.Start && char.IsWhiteSpace(sourceText[start - 1]))
+            {
+                start--;
+            }
+
+            while (end < nodeEndLine.End && char.IsWhiteSpace(sourceText[end]))
+            {
+                end++;
+            }
+
+            return TextSpan.FromBounds(start, end);
+        }
+    }
+}
