@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -18,9 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddNonNullTypes
     /// offer to add a type-level NonNullTypes attribute.
     /// </summary>
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddNonNullTypes), Shared]
-#pragma warning disable RS1016 // This provider intentionally does not provide a FixAll
-    internal class CSharpAddNonNullTypesCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016
+    internal class CSharpAddNonNullTypesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         // warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
         private const string CS8632 = nameof(CS8632);
@@ -32,13 +32,25 @@ namespace Microsoft.CodeAnalysis.CSharp.AddNonNullTypes
             = ImmutableArray.Create(CS8632, CS8629);
 
         public CSharpAddNonNullTypesCodeFixProvider()
+            : base(supportsFixAll: false)
         {
         }
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var diagnosticSpan = context.Diagnostics.First().Location.SourceSpan;
+            context.RegisterCodeFix(new MyCodeAction(
+                c => FixAsync(context.Document, context.Diagnostics[0], c)),
+                context.Diagnostics);
+            return Task.CompletedTask;
+        }
+
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        {
+            Debug.Assert(diagnostics.Length == 1);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var generator = SyntaxGenerator.GetGenerator(document);
+
+            var diagnosticSpan = diagnostics[0].Location.SourceSpan;
             var token = root.FindToken(diagnosticSpan.Start);
             var containingType = token.GetAncestor<TypeDeclarationSyntax>();
             if (containingType == null)
@@ -46,36 +58,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AddNonNullTypes
                 return;
             }
 
-            context.RegisterCodeFix(new MyCodeAction(context.Document, containingType), context.Diagnostics);
+            var newNode = generator.AddAttributes(containingType, generator.Attribute("System.Runtime.CompilerServices.NonNullTypes"));
+            editor.ReplaceNode(containingType, newNode);
         }
 
-        private class MyCodeAction : CodeAction
+        private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            private Document _document;
-            private TypeDeclarationSyntax _containingType;
-
-            public override string Title => CSharpFeaturesResources.Add_NonNullTypes_attribute;
-
-            public MyCodeAction(Document document, TypeDeclarationSyntax node)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Add_NonNullTypes_attribute, createChangedDocument)
             {
-                _document = document;
-                _containingType = node;
-            }
-
-            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                var newNode = GetNewNode(_document, _containingType, cancellationToken);
-                var newRoot = root.ReplaceNode(_containingType, newNode);
-
-                return _document.WithSyntaxRoot(newRoot);
-            }
-
-            private SyntaxNode GetNewNode(Document document, TypeDeclarationSyntax node, CancellationToken cancellationToken)
-            {
-                var generator = SyntaxGenerator.GetGenerator(_document);
-                return generator.AddAttributes(_containingType, generator.Attribute("System.Runtime.CompilerServices.NonNullTypes"));
             }
         }
     }
