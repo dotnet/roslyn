@@ -17,6 +17,11 @@
         <target state="new">To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AsyncForEachMissingMemberWrongAsync">
+        <source>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'. Did you mean 'foreach' rather than 'foreach await'?</source>
+        <target state="new">Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'. Did you mean 'foreach' rather than 'foreach await'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
@@ -45,6 +50,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach await'?</source>
+        <target state="new">foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach await'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -5974,8 +5984,8 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
-        <source>The return type of an async method must be void, Task or Task&lt;T&gt;</source>
-        <target state="translated">Der Rückgabetyp einer Async-Methode muss "void", "Task" oder "Task&lt;T&gt;" sein</target>
+        <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;</source>
+        <target state="needs-review-translation">Der Rückgabetyp einer Async-Methode muss "void", "Task" oder "Task&lt;T&gt;" sein</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantReturnVoid">

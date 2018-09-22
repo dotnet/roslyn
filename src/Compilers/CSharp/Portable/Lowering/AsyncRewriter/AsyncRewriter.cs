@@ -85,8 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DiagnosticBag bag = DiagnosticBag.GetInstance();
 
-            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
-            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
+            VerifyPresenceOfRequiredAPIs(bag);
 
             bool hasErrors = bag.HasAnyErrors();
             if (hasErrors)
@@ -96,6 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bag.Free();
             return !hasErrors && _constructedSuccessfully;
+        }
+
+        protected virtual void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
+        {
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
         }
 
         private Symbol EnsureWellKnownMember(WellKnownMember member, DiagnosticBag bag)

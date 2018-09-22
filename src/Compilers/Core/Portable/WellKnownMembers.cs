@@ -3580,7 +3580,6 @@ namespace Microsoft.CodeAnalysis
                 "WaitForNextAsync",                         // System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync
                 "TryGetNext",                               // System_Collections_Generic_IAsyncEnumerator_T__TryGetNext
 
-                // PROTOTYPE(async-streams): Verify that all the well-known members ended up used
                 ".ctor",                                    // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor
                 "GetResult",                                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult
                 "GetStatus",                                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus

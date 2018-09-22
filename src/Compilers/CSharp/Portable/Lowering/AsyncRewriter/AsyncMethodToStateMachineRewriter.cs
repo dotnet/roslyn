@@ -147,17 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // [body]
                         rewrittenBody
                     ),
-                    F.CatchBlocks(
-                        new BoundCatchBlock(
-                            F.Syntax,
-                            ImmutableArray.Create(exceptionLocal),
-                            F.Local(exceptionLocal),
-                            exceptionLocal.Type,
-                            exceptionFilterOpt: null,
-                            body: GenerateExceptionHandling(exceptionLocal),
-                            isSynthesizedAsyncCatchAll: true)
-                        )
-                    )
+                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal)))
                 );
 
             // ReturnLabel (for the rewritten return expressions in the user's method body)
@@ -231,61 +221,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CloseMethod(newBody);
         }
 
-        // PROTOTYPE(async-streams): use an exception filter instead, to avoid re-throwing:
-        // catch (Exception ex) where { this.state = finishedState; value = promiseIsActive } // pseudo-code for a BoundSequence
-        // {
-        //     this.promiseOfValueOrEnd.SetException(ex);
-        //     return;
-        // }
-        private BoundBlock GenerateExceptionHandling(LocalSymbol exceptionLocal)
+        private BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal)
         {
+            // For regular async method, produce:
+            // catch (Exception ex)
+            // {
+            //     this.state = finishedState
+            //     builder.SetException(ex)
+            // }
+
+            // For an async-iterator method, produce:
+            // catch (Exception ex) when { this.state = finishedState; promiseIsActive }
+            // {
+            //     this.promiseOfValueOrEnd.SetException(ex);
+            //     return;
+            // }
+
             // this.state = finishedState
-            BoundExpressionStatement assignFinishedState =
-                F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine));
+            BoundExpression assignFinishedState =
+                F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine));
 
             if (_asyncIteratorInfo == null)
             {
-                return F.Block(
-                    // this.state = finishedState
-                    assignFinishedState,
-                    // builder.SetException(ex)
-                    F.ExpressionStatement(
-                        F.Call(
-                            F.Field(F.This(), _asyncMethodBuilderField),
-                            _asyncMethodBuilderMemberCollection.SetException,
-                            F.Local(exceptionLocal))),
-                    GenerateReturn(false));
+                return new BoundCatchBlock(
+                    F.Syntax,
+                    ImmutableArray.Create(exceptionLocal),
+                    F.Local(exceptionLocal),
+                    exceptionLocal.Type,
+                    exceptionFilterOpt: null,
+                    body: F.Block(
+                        // this.state = finishedState
+                        F.ExpressionStatement(assignFinishedState),
+                        // builder.SetException(ex)
+                        F.ExpressionStatement(
+                            F.Call(
+                                F.Field(F.This(), _asyncMethodBuilderField),
+                                _asyncMethodBuilderMemberCollection.SetException,
+                                F.Local(exceptionLocal))),
+                        GenerateReturn(false)),
+                    isSynthesizedAsyncCatchAll: true);
             }
             else
             {
-                // this.state = finishedState
-                // if (promiseIsActive)
-                // {
-                //     this.promiseOfValueOrEnd.SetException(ex);
-                //     return;
-                // }
-                // else
-                // {
-                //     throw;
-                // }
-
                 // this.promiseOfValueOrEnd.SetException(ex);
                 var callSetException = F.ExpressionStatement(F.Call(
                     F.Field(F.This(), _asyncIteratorInfo.PromiseOfValueOrEndField),
                     _asyncIteratorInfo.SetExceptionMethod,
                     F.Local(exceptionLocal)));
 
-                return F.Block(
-                    // this.state = finishedState
-                    assignFinishedState,
-                    F.If(
-                        // if (promiseIsActive)
-                        F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField),
-                        // this.promiseOfValueOrEnd.SetException(ex); return;
-                        thenClause: F.Block(callSetException, GenerateReturn(true)),
-                        // throw;
-                        elseClauseOpt: F.Throw()),
-                    GenerateReturn(false));
+                return new BoundCatchBlock(
+                    F.Syntax,
+                    ImmutableArray.Create(exceptionLocal),
+                    F.Local(exceptionLocal),
+                    exceptionLocal.Type,
+                    // when { this.state = finishedState; promiseIsActive }
+                    exceptionFilterOpt: F.Sequence(new BoundExpression[] { assignFinishedState }, F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField)),
+                    // this.promiseOfValueOrEnd.SetException(ex); return;
+                    body: F.Block(callSetException, GenerateReturn(true)),
+                    isSynthesizedAsyncCatchAll: true);
             }
         }
 

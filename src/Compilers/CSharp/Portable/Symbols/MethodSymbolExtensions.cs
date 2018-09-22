@@ -304,9 +304,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns an async-enumerable.
+        /// Returns whether this method is async and returns an IAsyncEnumerable`1.
         /// </summary>
-        public static bool IsEnumerableReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsIAsyncEnumerableReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
                 && method.ReturnType.IsIAsyncEnumerableType(compilation);

@@ -2635,6 +2635,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_AsyncForEachMissingMember" xml:space="preserve">
     <value>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</value>
   </data>
+  <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach await'?</value>
+  </data>
+  <data name="ERR_AsyncForEachMissingMemberWrongAsync" xml:space="preserve">
+    <value>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'. Did you mean 'foreach' rather than 'foreach await'?</value>
+  </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
   </data>
@@ -3618,7 +3624,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</value>
   </data>
   <data name="ERR_BadAsyncReturn" xml:space="preserve">
-    <value>The return type of an async method must be void, Task or Task&lt;T&gt;</value>
+    <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;</value>
   </data>
   <data name="ERR_CantReturnVoid" xml:space="preserve">
     <value>Cannot return an expression of type 'void'</value>

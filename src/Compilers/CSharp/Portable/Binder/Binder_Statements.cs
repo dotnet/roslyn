@@ -2459,6 +2459,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsGenericTaskReturningAsync(this.Compilation);
         }
 
+        protected bool IsIAsyncEnumerableReturningAsyncMethod()
+        {
+            var symbol = this.ContainingMemberOrLambda;
+            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsIAsyncEnumerableReturningAsync(this.Compilation);
+        }
+
         protected virtual TypeSymbol GetCurrentReturnType(out RefKind refKind)
         {
             var symbol = this.ContainingMemberOrLambda as MethodSymbol;
@@ -2502,11 +2508,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
                 hasErrors = true;
             }
-            else if (IsInAsyncMethod() && refKind != RefKind.None)
+            else if (IsInAsyncMethod())
             {
-                // This can happen if we are binding an async anonymous method to a delegate type.
-                diagnostics.Add(ErrorCode.ERR_MustNotHaveRefReturn, syntax.ReturnKeyword.GetLocation());
-                hasErrors = true;
+                if (refKind != RefKind.None)
+                {
+                    // This can happen if we are binding an async anonymous method to a delegate type.
+                    diagnostics.Add(ErrorCode.ERR_MustNotHaveRefReturn, syntax.ReturnKeyword.GetLocation());
+                    hasErrors = true;
+                }
+                else if (IsIAsyncEnumerableReturningAsyncMethod())
+                {
+                    diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
+                    hasErrors = true;
+                }
             }
             else if ((object)retType != null && (refKind != RefKind.None) != (sigRefKind != RefKind.None))
             {

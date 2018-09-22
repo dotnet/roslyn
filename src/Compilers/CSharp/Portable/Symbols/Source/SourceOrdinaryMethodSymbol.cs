@@ -408,18 +408,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.RefKind != RefKind.None)
             {
-                var returnTypeSyntax = GetSyntax().ReturnType;
-                if (!returnTypeSyntax.HasErrors)
-                {
-                    var refKeyword = returnTypeSyntax.GetFirstToken();
-                    diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
-                }
+                ReportBadRefToken(GetSyntax().ReturnType, diagnostics);
             }
-            else if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation)
-                && !this.IsVoidReturningAsync() && !this.IsEnumerableReturningAsync(this.DeclaringCompilation))
+            else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
             {
-                // PROTOTYPE(async-streams): Update diagnostic message
-                // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
             }
 

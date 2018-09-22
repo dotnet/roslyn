@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            return SyntaxFactory.ParseSyntaxTree(text, options: (options ?? TestOptions.Regular).WithLanguageVersion(LanguageVersion.CSharp7_2)); // PROTOTYPE(async-streams) Finalize LangVersion
+            return SyntaxFactory.ParseSyntaxTree(text, options: (options ?? TestOptions.Regular).WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         protected override CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options = null)
         {
-            return SyntaxFactory.ParseExpression(text, options: (options ?? TestOptions.Regular).WithLanguageVersion(LanguageVersion.CSharp7_2)); // PROTOTYPE(async-streams) Finalize LangVersion
+            return SyntaxFactory.ParseExpression(text, options: (options ?? TestOptions.Regular).WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         [Fact]
-        public void UsingAwaitDeclaration_WithCSharp71()
+        public void UsingAwaitDeclaration_WithCSharp73()
         {
             string source = @"
 class C
@@ -36,11 +36,11 @@ class C
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)); // PROTOTYPE(async-streams) Finalize LangVersion
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             tree.GetDiagnostics().Verify(
-                // (6,15): error CS8302: Feature 'async streams' is not available in C# 7.1. Please use language version 7.2 or greater.
+                // (6,15): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         using await (var x = this)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "await").WithArguments("async streams", "7.2").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 15)
                 );
 
             UsingTree(source);
@@ -250,7 +250,7 @@ class C
         }
 
         [Fact]
-        public void ForeachAwait_WithCSharp71()
+        public void ForeachAwait_WithCSharp73()
         {
             string source = @"
 class C
@@ -263,11 +263,11 @@ class C
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)); // PROTOTYPE(async-streams) Finalize LangVersion
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             tree.GetDiagnostics().Verify(
-                // (6,17): error CS8302: Feature 'async streams' is not available in C# 7.1. Please use language version 7.2 or greater.
+                // (6,17): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         foreach await (var i in collection)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "await").WithArguments("async streams", "7.2").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 17)
                 );
 
             UsingTree(source);
@@ -396,7 +396,7 @@ class C
         }
 
         [Fact]
-        public void DeconstructionForeachAwait_WithCSharp71()
+        public void DeconstructionForeachAwait_WithCSharp73()
         {
             string source = @"
 class C
@@ -409,11 +409,11 @@ class C
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)); // PROTOTYPE(async-streams) Finalize LangVersion
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             tree.GetDiagnostics().Verify(
-                // (6,17): error CS8302: Feature 'async streams' is not available in C# 7.1. Please use language version 7.2 or greater.
+                // (6,17): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         foreach await (var (i, j) in collection)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "await").WithArguments("async streams", "7.2").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 17)
                 );
 
             UsingTree(source);

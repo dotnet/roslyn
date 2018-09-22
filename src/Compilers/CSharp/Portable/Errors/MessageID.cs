@@ -220,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
+                case MessageID.IDS_FeatureAsyncStreams:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.
@@ -239,7 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return LanguageVersion.CSharp7_3;
 
                 // C# 7.2 features.
-                case MessageID.IDS_FeatureAsyncStreams: // PROTOTYPE(async-streams) Finalize LangVersion
                 case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
                 case MessageID.IDS_FeatureLeadingDigitSeparator:
                 case MessageID.IDS_FeaturePrivateProtected:

@@ -905,11 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 _builder.OpenLocalScope(ScopeType.Catch, exceptionType);
 
-                if (catchBlock.IsSynthesizedAsyncCatchAll)
-                {
-                    Debug.Assert(_asyncCatchHandlerOffset < 0); // only one expected
-                    _asyncCatchHandlerOffset = _builder.AllocateILMarker();
-                }
+                RecordAsyncCatchHandlerOffset(catchBlock);
 
                 // Dev12 inserts the sequence point on catch clause without a filter, just before 
                 // the exception object is assigned to the variable.
@@ -941,6 +937,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 _builder.OpenLocalScope(ScopeType.Filter);
+
+                RecordAsyncCatchHandlerOffset(catchBlock);
 
                 // Filtering starts with simulating regular catch through a 
                 // type check. If this is not our type then we are done.
@@ -1063,6 +1061,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitBlock(catchBlock.Body);
 
             _builder.CloseLocalScope();
+        }
+
+        private void RecordAsyncCatchHandlerOffset(BoundCatchBlock catchBlock)
+        {
+            if (catchBlock.IsSynthesizedAsyncCatchAll)
+            {
+                Debug.Assert(_asyncCatchHandlerOffset < 0); // only one expected
+                _asyncCatchHandlerOffset = _builder.AllocateILMarker();
+            }
         }
 
         private void EmitSwitchStatement(BoundSwitchStatement switchStatement)

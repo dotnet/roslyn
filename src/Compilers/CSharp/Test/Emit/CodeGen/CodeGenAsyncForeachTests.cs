@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -62,8 +60,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(async-streams): Regressed in merge
-        [Fact(Skip = "Interaction with improved candidate resolution")]
+        [Fact]
         public void TestWithStaticGetEnumerator()
         {
             string source = @"
@@ -85,9 +82,6 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): warning CS0279: 'C' does not implement the 'async streams' pattern. 'C.GetAsyncEnumerator()' is either static or not public.
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new C()").WithArguments("C", "async streams", "C.GetAsyncEnumerator()").WithLocation(6, 33),
                 // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
@@ -1041,9 +1035,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetEnumerator'
+                // (6,27): error CS9004: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
                 //         foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetEnumerator").WithLocation(6, 27)
                 );
         }
 
@@ -1063,9 +1057,9 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,27): error CS1579: foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public definition for 'GetEnumerator'
+                // (7,27): error CS9004: foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
                 //         foreach (var i in collection)
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetEnumerator").WithLocation(7, 27)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetEnumerator").WithLocation(7, 27)
                 );
         }
 
@@ -1085,12 +1079,71 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,33): error CS9001: Async foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public definition for 'GetAsyncEnumerator'
+                // (7,33): error CS9005: Async foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
                 //         foreach await (var i in collection)
-                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "collection").WithArguments("System.Collections.Generic.IEnumerable<int>", "GetAsyncEnumerator").WithLocation(7, 33),
+                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMemberWrongAsync, "collection").WithArguments("System.Collections.Generic.IEnumerable<int>", "GetAsyncEnumerator").WithLocation(7, 33),
                 // (7,17): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
                 //         foreach await (var i in collection)
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
+        public void TestPatternBasedAsyncEnumerableWithRegularForeach()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        foreach (var i in new C())
+        {
+        }
+    }
+    public Enumerator GetAsyncEnumerator()
+        => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        public int TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS9004: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
+                //         foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetEnumerator").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        public void TestPatternBasedEnumerableWithAsyncForeach()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (var i in new C())
+        {
+        }
+    }
+    public Enumerator<int> GetEnumerator()
+        => throw null;
+    public class Enumerator<T>
+    {
+        public T Current { get; }
+        public bool MoveNext()
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS9005: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
+                //         foreach await (var i in new C())
+                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -1147,7 +1200,7 @@ class C
         }
 
         [Fact]
-        public void TestWithPattern_WithStruct_SimpleImplementation()
+        public void TestWithPattern_WithStruct_WaitForNextAsyncReturnsTask()
         {
             string source = @"
 using static System.Console;
@@ -1197,6 +1250,67 @@ class C
             // Note: NextAsync(3) is followed by Next(3) as NextAsync incremented a copy of the enumerator struct
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) "+
                 "Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Done", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void TestWithPattern_WaitForNextAsyncReturnsValueTask()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        foreach await (var i in new C())
+        {
+            Write($""Got({i}) "");
+        }
+        Write($""Done"");
+    }
+    public AsyncEnumerator GetAsyncEnumerator()
+    {
+        return new AsyncEnumerator(0);
+    }
+    public struct AsyncEnumerator
+    {
+        int i;
+        internal AsyncEnumerator(int start) { i = start; }
+        public int TryGetNext(out bool success)
+        {
+            i++;
+            success = (i % 10 % 3 != 0);
+            return i;
+        }
+        public async ValueTask<bool> WaitForNextAsync()
+        {
+            i = i + 11;
+            bool more = await Task.FromResult(i < 20);
+            return more;
+        }
+        public async ValueTask DisposeAsync()
+        {
+            Write($""Dispose({i}) "");
+            await new ValueTask(Task.Delay(10));
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Got(1) Got(2) Got(4) Got(5) Got(7) Got(8) Done", verify: Verification.Skipped);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> C.AsyncEnumerator.WaitForNextAsync()", info.WaitForNextAsyncMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var memberModel = model.GetMemberModel(foreachSyntax);
+            var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
+            ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
+            Assert.False(internalInfo.NeedsDisposeMethod);
         }
 
         [Fact]
@@ -2877,11 +2991,10 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetEnumerator'
+                // (7,27): error CS9004: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
                 //         foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
                 );
-            // PROTOTYPE(async-streams) We should offer a better error message, to guide users towards async-foreach? Maybe code fixer?
         }
 
         [Fact]
@@ -3322,7 +3435,6 @@ class C
         // Also, if ref iteration variables are allowed, check readonliness mismatches. I.E. if method returns a readonly ref, but iterator var is an ordinary ref nd the other way around.
 
         // Misc other test ideas:
-        // WaitForMoveNext with task-like type (see IsCustomTaskType). Would that provide any benefits?
         // Verify that async-dispose doesn't have a similar bug with struct resource
         // cleanup: use statement lists for async-using, instead of blocks
         // IAsyncEnumerable has an 'out' type parameter, any tests I need to do related to that?

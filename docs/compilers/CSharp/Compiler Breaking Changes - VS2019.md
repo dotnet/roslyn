@@ -21,3 +21,6 @@
     2. get_Property
     3. GetInt()
     4. set_Property
+
+- https://github.com/dotnet/roslyn/issues/29656 Previously, ref-returning async local functions would compile, by ignoring the `ref` modifier of the return type.
+    In Visual Studio 2019, this now produces an error, just like ref-returning async methods do.

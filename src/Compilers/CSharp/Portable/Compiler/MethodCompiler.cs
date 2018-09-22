@@ -1410,7 +1410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This is a heuristic since it's possible that there is no user code awaiting the task.
                     moveNextBodyDebugInfoOpt = new AsyncMoveNextBodyDebugInfo(
                         kickoffMethod,
-                        kickoffMethod.ReturnsVoid ? asyncCatchHandlerOffset : -1,
+                        catchHandlerOffset: kickoffMethod.ReturnsVoid ? asyncCatchHandlerOffset : -1,
                         asyncYieldPoints,
                         asyncResumePoints);
                 }
