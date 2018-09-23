@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -114,8 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    Hash.Combine(ElementType,
                    Hash.Combine(ElementConversion.GetHashCode(),
                    Hash.Combine(CurrentConversion.GetHashCode(),
-                   Hash.Combine(WaitForNextAsyncMethod.GetHashCode(),
-                                TryGetNextMethod.GetHashCode()))))))));
+                   Hash.Combine(WaitForNextAsyncMethod,
+                                TryGetNextMethod?.GetHashCode() ?? 0))))))));
         }
     }
 }
