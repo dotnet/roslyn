@@ -486,8 +486,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                             if (_referenceSpanToLinkedRenameSpanMap.ContainsKey(replacement.OriginalSpan) && kind != RenameSpanKind.Complexified)
                             {
+                                var syntax =  document.GetLanguageService<LanguageServices.ISyntaxFactsService>();
                                 var linkedRenameSpan = _session._renameInfo.GetConflictEditSpan(
-                                    new InlineRenameLocation(newDocument, replacement.NewSpan), GetWithoutAttributeSuffix(_session.ReplacementText, document), cancellationToken);
+                                    new InlineRenameLocation(newDocument, replacement.NewSpan), GetWithoutAttributeSuffix(_session.ReplacementText, syntax.IsCaseSensitive), cancellationToken);
                                 if (linkedRenameSpan.HasValue)
                                 {
                                     if (!mergeConflictComments.Any(s => replacement.NewSpan.IntersectsWith(s)))
@@ -538,13 +539,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            private string GetWithoutAttributeSuffix(string text, Document document)
+            private static string GetWithoutAttributeSuffix(string text, bool isCaseSensitive)
             {
-                bool isCaseSensitive = document.GetLanguageService<LanguageServices.ISyntaxFactsService>().IsCaseSensitive;
-
-                if (!_session.ReplacementText.TryGetWithoutAttributeSuffix(isCaseSensitive, out string replaceText))
+                if (!text.TryGetWithoutAttributeSuffix(isCaseSensitive, out string replaceText))
                 {
-                    replaceText = _session.ReplacementText;
+                    replaceText = text;
                 }
 
                 return replaceText;
