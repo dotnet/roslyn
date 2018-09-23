@@ -59,6 +59,9 @@ async IAsyncEnumerable<int> GetValuesFromServer()
 ### Detailed design for async `foreach` statement
 PROTOTYPE(async-streams): TODO
 
+Async foreach is disallowed on collections of type dynamic, as there is no async equivalent of the non-generic `IEnumerable` interface.
+
+
 ```C#
 E e = ((C)(x)).GetAsyncEnumerator()
 try

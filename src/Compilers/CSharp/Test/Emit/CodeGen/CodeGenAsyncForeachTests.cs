@@ -702,6 +702,26 @@ class Element
         }
 
         [Fact]
+        public void TestWithDynamicCollection()
+        {
+            string source = @"
+class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (var i in (dynamic)new C())
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            comp.VerifyDiagnostics(
+                // (6,33): error CS9006: Cannot use a collection of dynamic type in an asynchronous foreach
+                //         foreach await (var i in (dynamic)new C())
+                Diagnostic(ErrorCode.ERR_BadDynamicAsyncForEach, "(dynamic)new C()").WithLocation(6, 33));
+        }
+
+        [Fact]
         public void TestWithIncompleteInterface()
         {
             string source = @"
@@ -3719,7 +3739,6 @@ class C
         }
 
         // PROTOTYPE(async-streams) More test ideas
-        // block dynamic
 
         // test with captures:
         //        int[] values = { 7, 9, 13 };
@@ -3740,6 +3759,7 @@ class C
         // IOperation
         // IDE
         // scripting?
+        // expression trees
 
         // Misc other test ideas:
         // Verify that async-dispose doesn't have a similar bug with struct resource

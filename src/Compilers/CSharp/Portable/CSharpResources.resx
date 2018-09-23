@@ -5390,4 +5390,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator" xml:space="preserve">
     <value>unconstrained type parameters in null coalescing operator</value>
   </data>
+  <data name="ERR_BadDynamicAsyncForEach" xml:space="preserve">
+    <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
+  </data>
 </root>

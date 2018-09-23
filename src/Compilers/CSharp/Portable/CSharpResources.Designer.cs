@@ -1421,6 +1421,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use a collection of dynamic type in an asynchronous foreach.
+        /// </summary>
+        internal static string ERR_BadDynamicAsyncForEach {
+            get {
+                return ResourceManager.GetString("ERR_BadDynamicAsyncForEach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from the dynamic type are not allowed.
         /// </summary>
         internal static string ERR_BadDynamicConversion {

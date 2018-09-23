@@ -685,6 +685,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return EnumeratorResult.FailedAndReported;
             }
 
+            if (collectionExprType.Kind == SymbolKind.DynamicType && IsAsync)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadDynamicAsyncForEach, _syntax.Expression.Location);
+                return EnumeratorResult.FailedAndReported;
+            }
+
             // The spec specifically lists the collection, enumerator, and element types for arrays and dynamic.
             if (collectionExprType.Kind == SymbolKind.ArrayType || collectionExprType.Kind == SymbolKind.DynamicType)
             {
