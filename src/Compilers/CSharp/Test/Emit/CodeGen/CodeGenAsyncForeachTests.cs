@@ -1388,6 +1388,108 @@ class D
         }
 
         [Fact]
+        public void TestWithPattern_RefStruct()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+public class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (var s in new C())
+        {
+            Write($""{s.ToString()} "");
+        }
+        Write(""Done"");
+    }
+    public Enumerator GetAsyncEnumerator() => new Enumerator();
+    public sealed class Enumerator
+    {
+        int i = -1;
+        public S TryGetNext(out bool success)
+        {
+            i++;
+            success = (i % 10 % 3 != 0);
+            return new S(i);
+        }
+        public async Task<bool> WaitForNextAsync()
+        {
+            i = i + 11;
+            bool more = await Task.FromResult(i < 20);
+            return more;
+        }
+    }
+}
+public ref struct S
+{
+    int i;
+    public S(int i)
+    {
+        this.i = i;
+    }
+    public override string ToString()
+        => i.ToString();
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "11 12 Done");
+        }
+
+        [Fact]
+        public void TestWithPattern_RefReturningTryGetNext()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+public class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (var s in new C())
+        {
+            Write($""{s.ToString()} "");
+        }
+        Write(""Done"");
+    }
+    public Enumerator GetAsyncEnumerator() => new Enumerator();
+    public sealed class Enumerator
+    {
+        int i = -1;
+        S current;
+        public ref S TryGetNext(out bool success)
+        {
+            i++;
+            success = (i % 10 % 3 != 0);
+            current = new S(i);
+            return ref current;
+        }
+        public async Task<bool> WaitForNextAsync()
+        {
+            i = i + 11;
+            bool more = await Task.FromResult(i < 20);
+            return more;
+        }
+    }
+}
+public struct S
+{
+    int i;
+    public S(int i)
+    {
+        this.i = i;
+    }
+    public override string ToString()
+        => i.ToString();
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "11 12 Done", verify: Verification.Fails);
+        }
+
+        [Fact]
         public void TestWithPattern_IterationVariableIsReadOnly()
         {
             string source = @"
@@ -1410,7 +1512,7 @@ class C
             => throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
             comp.VerifyDiagnostics(
                 // (8,13): error CS1656: Cannot assign to 'i' because it is a 'foreach iteration variable'
                 //             i = 1;
@@ -3629,7 +3731,6 @@ class C
         //    f();
 
         // nested deconstruction or tuple
-        // pattern with inaccessible methods
         // review instrumentation
         // test various things that could go wrong with binding the await for DisposeAsync
         // throwing exception from enumerator, or from inside the async-foreach
@@ -3639,10 +3740,6 @@ class C
         // IOperation
         // IDE
         // scripting?
-        // foreach on restricted type (like ref struct) in async or iterator method
-        // foreach on restricted type in a regular method
-
-        // Also try with ref-returning TryGetNext. Not sure what spec says here, but technically either could work. Especially the ordinary byval case - it could even do implicit conversions. Ref-returning methods can work as rvalues too.
 
         // Misc other test ideas:
         // Verify that async-dispose doesn't have a similar bug with struct resource

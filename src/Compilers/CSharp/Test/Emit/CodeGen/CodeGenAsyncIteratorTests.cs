@@ -72,6 +72,35 @@ class C
             comp.VerifyEmitDiagnostics(expected);
         }
 
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void RefStructElementType()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<S> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return new S();
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (var s in M())
+        {
+        }
+    }
+}
+ref struct S
+{
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (4,65): error CS0306: The type 'S' may not be used as a type argument
+                //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("S").WithLocation(4, 65)
+                );
+        }
+
         [Fact]
         public void AttributesSynthesized()
         {
