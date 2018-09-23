@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             /// </summary>
             private readonly bool _shortenedTriggerSpan;
             private readonly bool _isRenamingAttributePrefix;
-            private readonly bool _isLanguageCaseSensitive;
 
             public bool CanRename { get; }
             public string LocalizedErrorMessage { get; }
@@ -70,7 +69,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);
 
                 _shortenedTriggerSpan = this.TriggerSpan != triggerSpan;
-                _isLanguageCaseSensitive = document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive;
             }
 
             private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
@@ -149,8 +147,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new TextSpan(location.TextSpan.Start + position, replacementText.Length);
             }
 
-            private string GetWithoutAttributeSuffix(string value) => value.GetWithoutAttributeSuffix(isCaseSensitive: _isLanguageCaseSensitive);
-            private bool HasAttributeSuffix(string value) => value.TryGetWithoutAttributeSuffix(isCaseSensitive: _isLanguageCaseSensitive, result: out var _);
+            private string GetWithoutAttributeSuffix(string value) 
+                => value.GetWithoutAttributeSuffix(isCaseSensitive: _document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive);
+
+            private bool HasAttributeSuffix(string value) 
+                => value.TryGetWithoutAttributeSuffix(isCaseSensitive: _document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive, result: out var _);
 
             private static string GetSpanText(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
             {
