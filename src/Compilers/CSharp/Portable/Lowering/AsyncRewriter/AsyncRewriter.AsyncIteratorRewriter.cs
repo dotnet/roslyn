@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Produce the implementation for `T TryGetNext(out bool success)`:
                 // if (this._promiseIsActive)
                 // {
-                //     if (_valueOrEndPromise.GetStatus(_valueOrEndPromise.Version) == ValueTaskSourceStatus.Pending) throw new Exception(); // PROTOTYPE(NullableReferenceTypes): Add this safeguard code
+                //     if (_valueOrEndPromise.GetStatus(_valueOrEndPromise.Version) == ValueTaskSourceStatus.Pending) throw new Exception(); // https://github.com/dotnet/roslyn/issues/30109 Add this safeguard code
                 //     _promiseIsActive = false;
                 // }
                 // else
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if (this._promiseIsActive)
                 // {
                 //     if (_valueOrEndPromise.GetStatus(_valueOrEndPromise.Version) == ValueTaskSourceStatus.Pending) throw new Exception();
-                //     if (State == StateMachineStates.NotStartedStateMachine) throw new Exception("You should call WaitForNextAsync first"); // PROTOTYPE(NullableReferenceTypes): Add this safeguard code
+                //     if (State == StateMachineStates.NotStartedStateMachine) throw new Exception("You should call WaitForNextAsync first"); // https://github.com/dotnet/roslyn/issues/30109 Add this safeguard code
                 //     _promiseIsActive = false;
                 // }
                 // else

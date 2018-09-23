@@ -1758,7 +1758,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            // PROTOTYPE(async-streams): need to implement the exception
+            // https://github.com/dotnet/roslyn/issues/30109 need to implement the guard/exception
             //CompileAndVerify(comp, expectedOutput: "Done");
         }
 
