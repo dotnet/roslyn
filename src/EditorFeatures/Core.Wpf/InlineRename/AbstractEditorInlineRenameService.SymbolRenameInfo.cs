@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -54,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 TextSpan triggerSpan,
                 SymbolAndProjectId renameSymbolAndProjectId,
                 bool forceRenameOverloads,
-                bool isLanguageCaseSensitive,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);
 
                 _shortenedTriggerSpan = this.TriggerSpan != triggerSpan;
-                _isLanguageCaseSensitive = isLanguageCaseSensitive;
+                _isLanguageCaseSensitive = document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive;
             }
 
             private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
