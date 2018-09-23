@@ -262,10 +262,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (IsDirectlyInIterator)
                             {
                                 diagnostics.Add(ErrorCode.ERR_BadIteratorLocalType, local.IdentifierToken.GetLocation());
+                                hasErrors = true;
                             }
                             else if (IsInAsyncMethod())
                             {
                                 diagnostics.Add(ErrorCode.ERR_BadAsyncLocalType, local.IdentifierToken.GetLocation());
+                                hasErrors = true;
                             }
                         }
 
@@ -369,8 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundForEachStatement(
                     _syntax,
-                    null, // can't be sure that it's complete
-                    default(Conversion),
+                    enumeratorInfoOpt: null, // can't be sure that it's complete
+                    elementConversion: default,
                     boundIterationVariableType,
                     iterationVariables,
                     iterationErrorExpression,

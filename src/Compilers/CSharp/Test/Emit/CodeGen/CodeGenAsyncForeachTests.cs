@@ -1200,6 +1200,40 @@ class C
         }
 
         [Fact]
+        public void TestWithPattern_Ref()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (ref var i in new C())
+        {
+        }
+    }
+    public Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        public int TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,32): error CS8177: Async methods cannot have by-reference locals
+                //         foreach await (ref var i in new C())
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i").WithLocation(6, 32));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
+        }
+
+        [Fact]
         public void TestWithPattern_WithStruct_WaitForNextAsyncReturnsTask()
         {
             string source = @"
@@ -3397,12 +3431,6 @@ class C
 ", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
         }
 
-        [Fact]
-        public void TestFoEachStatementInfo_IEquatable()
-        {
-            // PROTOTYPE(async-streams) test ForEachStatementInfo equality and such
-        }
-
         // PROTOTYPE(async-streams) More test ideas
         // block dynamic
 
@@ -3431,12 +3459,10 @@ class C
         // foreach on restricted type (like ref struct) in async or iterator method
         // foreach on restricted type in a regular method
 
-        // Also try with ref-returning TryGetNext. With both ref iteration variable and ordinary one. Not sure what spec says here, but technically either could work. Especially the ordinary byval case - it could even do implicit conversions. Ref-returning methods can work as rvalues too.
-        // Also, if ref iteration variables are allowed, check readonliness mismatches. I.E. if method returns a readonly ref, but iterator var is an ordinary ref nd the other way around.
+        // Also try with ref-returning TryGetNext. Not sure what spec says here, but technically either could work. Especially the ordinary byval case - it could even do implicit conversions. Ref-returning methods can work as rvalues too.
 
         // Misc other test ideas:
         // Verify that async-dispose doesn't have a similar bug with struct resource
-        // cleanup: use statement lists for async-using, instead of blocks
         // IAsyncEnumerable has an 'out' type parameter, any tests I need to do related to that?
         // spec: struct case should be blocked?
         // spec: extension methods don't contribute
