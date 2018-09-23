@@ -502,6 +502,22 @@ public class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnTopLevelRefProp()
+        {
+            await TestMissingAsync(
+@"public class C
+{
+    int x;
+    ref int a { get { return ref x; } }
+
+    void M()
+    {
+        a [||]= a + 10;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestNotOnNestedProp1()
         {
             await TestMissingAsync(

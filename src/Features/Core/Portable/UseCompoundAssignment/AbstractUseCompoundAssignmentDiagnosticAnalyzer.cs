@@ -198,7 +198,15 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 // single read/write).  However, if we had `this.prop.x = this.prop.x * 2`, then
                 // that's multiple reads of `this.prop`, and it's not safe to convert that to
                 // `this.prop.x *= 2` in the case where calling 'prop' may have side effects.
-                return true;
+                //
+                // Note, this doesn't apply if the property is a ref-property.  In that case, we'd
+                // go from a read and a write to to just a read (and a write to it's returned ref
+                // value).
+                var property = (IPropertySymbol)symbol;
+                if (property.RefKind == RefKind.None)
+                {
+                    return true;
+                }
             }
 
             return false;
