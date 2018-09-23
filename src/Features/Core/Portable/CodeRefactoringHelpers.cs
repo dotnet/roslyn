@@ -92,6 +92,13 @@ namespace Microsoft.CodeAnalysis
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var nodeStartLine = sourceText.Lines.GetLineFromPosition(node.SpanStart);
+
+            // Enable vertical selections that catch the previous line break and perhaps some whitespace.
+            if (nodeStartLine.LineNumber != 0)
+            {
+                nodeStartLine = sourceText.Lines[nodeStartLine.LineNumber - 1];
+            }
+
             var nodeEndLine = sourceText.Lines.GetLineFromPosition(node.Span.End);
 
             var start = node.SpanStart;

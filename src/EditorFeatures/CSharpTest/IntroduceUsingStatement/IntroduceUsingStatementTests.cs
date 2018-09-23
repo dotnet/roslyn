@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
             => new CSharpIntroduceUsingStatementCodeRefactoringProvider();
 
         [Theory]
-        [InlineData("[|\r\n        var name = disposable; |]")]
         [InlineData("v[||]ar name = disposable;")]
         [InlineData("var[||] name = disposable;")]
         [InlineData("var [||]name = disposable;")]
@@ -46,6 +45,76 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         using (var name = disposable)
         {
         }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task RefactoringIsAvailableForVerticalSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {                             [|    
+        var name = disposable;    |]
+    }
+}",
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        using (var name = disposable)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task RefactoringIsAvailableForSelectionAtStartOfLineWithPrecedingDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        var ignore = disposable;
+        [||]var name = disposable;
+    }
+}",
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        var ignore = disposable;
+        using (var name = disposable)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task RefactoringIsAvailableForSelectionAtEndOfLineWithFollowingDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        var name = disposable;[||]
+        var ignore = disposable;
+    }
+}",
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        using (var name = disposable)
+        {
+        }
+        var ignore = disposable;
     }
 }");
         }
@@ -98,6 +167,130 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
     void M(T disposable)
     {
         var x = disposable;[||]
+    }
+}");
+        }
+
+        [Fact]
+        public async Task LeadingCommentTriviaIsPlacedOnUsingStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        // Comment
+        var x = disposable;[||]
+    }
+}",
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        // Comment
+        using (var x = disposable)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task CommentOnTheSameLineStaysOnTheSameLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        var x = disposable;[||] // Comment
+    }
+}",
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        using (var x = disposable) // Comment
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TrailingCommentTriviaOnNextLineGoesAfterBlock()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        var x = disposable;[||]
+        // Comment
+    }
+}",
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        using (var x = disposable)
+        {
+        }
+        // Comment
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ValidPreprocessorStaysValid()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+#if true
+        var x = disposable;[||]
+#endif
+    }
+}",
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+#if true
+        using (var x = disposable)
+        {
+        }
+#endif
+    }
+}");
+        }
+
+        [Fact]
+        public async Task InvalidPreprocessorStaysInvalid()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+#if true
+        var x = disposable;[||]
+#endif
+        _ = x;
+    }
+}",
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+#if true
+        using (var x = disposable)
+        {
+#endif
+            _ = x;
+        }
     }
 }");
         }
