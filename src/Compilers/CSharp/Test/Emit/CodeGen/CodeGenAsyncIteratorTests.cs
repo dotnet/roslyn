@@ -7,6 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    using Microsoft.CodeAnalysis.CSharp.Symbols;
     using Roslyn.Test.Utilities;
     using static Instruction;
     internal enum Instruction
@@ -69,6 +70,31 @@ class C
             var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib_ref });
             comp.MakeTypeMissing(type);
             comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void AttributesSynthesized()
+        {
+            string source = @"
+public class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 4;
+    }
+}";
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(OptimizationLevel.Debug);
+
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: options);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute", "IteratorStateMachineAttribute" },
+                    GetAttributeNames(method.GetAttributes()));
+            });
         }
 
         [Fact]
