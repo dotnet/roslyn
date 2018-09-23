@@ -1234,6 +1234,191 @@ class C
         }
 
         [Fact]
+        public void TestWithPattern_PointerType()
+        {
+            string source = @"
+unsafe class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (var i in new C())
+        {
+        }
+    }
+    public Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        public int* TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS4004: Cannot await in an unsafe context
+                //         foreach await (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await").WithLocation(6, 17));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
+        }
+
+        [Fact]
+        public void TestWithPattern_InaccessibleGetAsyncEnumerator()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (var i in new D())
+        {
+        }
+    }
+}
+class D
+{
+    private Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        public int TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'D' because 'D' does not contain a public definition for 'GetAsyncEnumerator'
+                //         foreach await (var i in new D())
+                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new D()").WithArguments("D", "GetAsyncEnumerator").WithLocation(6, 33)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
+        }
+
+        [Fact]
+        public void TestWithPattern_InaccessibleWaitForNextAsync()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (var i in new D())
+        {
+        }
+    }
+}
+class D
+{
+    public Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        private System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        public int TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS0122: 'D.Enumerator.WaitForNextAsync()' is inaccessible due to its protection level
+                //         foreach await (var i in new D())
+                Diagnostic(ErrorCode.ERR_BadAccess, "new D()").WithArguments("D.Enumerator.WaitForNextAsync()").WithLocation(6, 33),
+                // (6,33): error CS9002: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have suitable public WaitForNextAsync and TryGetNext methods
+                //         foreach await (var i in new D())
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
+        }
+
+        [Fact]
+        public void TestWithPattern_InaccessibleTryGetNext()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (var i in new D())
+        {
+        }
+    }
+}
+class D
+{
+    public Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        private int TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS0122: 'D.Enumerator.TryGetNext(out bool)' is inaccessible due to its protection level
+                //         foreach await (var i in new D())
+                Diagnostic(ErrorCode.ERR_BadAccess, "new D()").WithArguments("D.Enumerator.TryGetNext(out bool)").WithLocation(6, 33),
+                // (6,33): error CS9002: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have suitable public WaitForNextAsync and TryGetNext methods
+                //         foreach await (var i in new D())
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
+        }
+
+        [Fact]
+        public void TestWithPattern_IterationVariableIsReadOnly()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (var i in new C())
+        {
+            i = 1;
+        }
+    }
+    public Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        public int TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS1656: Cannot assign to 'i' because it is a 'foreach iteration variable'
+                //             i = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "i").WithArguments("i", "foreach iteration variable").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
         public void TestWithPattern_WithStruct_WaitForNextAsyncReturnsTask()
         {
             string source = @"
@@ -3443,8 +3628,6 @@ class C
         //}
         //    f();
 
-        // pointer element type
-        // verify that the foreach variables are readonly
         // nested deconstruction or tuple
         // pattern with inaccessible methods
         // review instrumentation
