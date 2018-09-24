@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
@@ -31,7 +32,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
         }
 
         public override Task<IList<(Checksum, object)>> RequestAssetsAsync(
-            int serviceId, ISet<Checksum> checksums, CancellationToken cancellationToken)
+            int serviceId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             var list = new List<(Checksum, object)>();
 

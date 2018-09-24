@@ -2710,7 +2710,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication">
     <file name="a.vb">
 Module Program
@@ -2723,7 +2723,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -2732,7 +2732,7 @@ End Module
 1 bBxyy
 ]]>)
 
-            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -2751,7 +2751,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation3,
 <expected>
@@ -2784,7 +2784,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -2798,7 +2798,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation4, expectedOutput:=
             <![CDATA[
@@ -2808,7 +2808,7 @@ End Module
 1 bBxyy
 ]]>)
 
-            Dim vbCompilationToRef = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim vbCompilationToRef = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="VBLibrary">
     <file name="a.vb">
 Namespace BBxxx
@@ -2930,7 +2930,7 @@ End Namespace
             Dim vbCompilationRef = New VisualBasicCompilationReference(vbCompilationToRef)
 
             If True Then
-                Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication">
         <file name="a.vb">
 Module Program
@@ -2952,7 +2952,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation5,
     <expected>
@@ -2994,7 +2994,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-                Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication">
         <file name="a.vb">
 Module Program
@@ -3007,7 +3007,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation6, expectedOutput:=
                 <![CDATA[
@@ -3016,7 +3016,7 @@ End Module
 2 BBxyy.Test1
     ]]>)
 
-                Dim compilation7 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation7 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication1">
         <file name="a.vb">
 Module Program
@@ -3039,7 +3039,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation7,
     <expected>
@@ -3084,7 +3084,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-                Dim compilation8 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation8 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication1">
         <file name="a.vb">
 Module Program
@@ -3096,7 +3096,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation8, expectedOutput:=
                 <![CDATA[
@@ -3106,7 +3106,7 @@ End Module
             End If
 
             If True Then
-                Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication">
         <file name="a.vb">
 Module Program
@@ -3128,7 +3128,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation5,
     <expected>
@@ -3170,7 +3170,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-                Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication">
         <file name="a.vb">
 Module Program
@@ -3183,7 +3183,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation6, expectedOutput:=
                 <![CDATA[
@@ -3192,7 +3192,7 @@ End Module
 2 BBxyy.Test1
     ]]>)
 
-                Dim compilation7 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation7 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication1">
         <file name="a.vb">
 Module Program
@@ -3215,7 +3215,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation7,
     <expected>
@@ -3260,7 +3260,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-                Dim compilation8 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation8 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication1">
         <file name="a.vb">
 Module Program
@@ -3272,7 +3272,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation8, expectedOutput:=
                 <![CDATA[
@@ -3354,7 +3354,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-            Dim compilation10 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation10 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3377,7 +3377,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef2, vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef2, vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation10,
 <expected>
@@ -3422,7 +3422,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-            Dim compilation11 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation11 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3445,7 +3445,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef2, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={vbCompilationRef, ilAssemblyRef2, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation11,
 <expected>
@@ -3490,7 +3490,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-            Dim compilation12 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation12 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3502,7 +3502,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={vbCompilationRef, ilAssemblyRef1, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation12, expectedOutput:=
             <![CDATA[
@@ -3510,7 +3510,7 @@ End Module
 2 BBxyy.Test1
     ]]>)
 
-            Dim compilation13 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation13 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3522,7 +3522,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation13, expectedOutput:=
             <![CDATA[
@@ -3530,7 +3530,7 @@ End Module
 2 BBxyy.Test1
     ]]>)
 
-            Dim compilation14 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation14 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3542,7 +3542,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, ilAssemblyRef2, vbCompilationRef}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1, ilAssemblyRef2, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation14, expectedOutput:=
             <![CDATA[
@@ -3550,7 +3550,7 @@ End Module
 2 BBxyy.Test1
     ]]>)
 
-            Dim compilation15 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation15 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3678,7 +3678,7 @@ Namespace BByyx
 End Namespace
 
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation15, expectedOutput:=
             <![CDATA[
@@ -3697,7 +3697,7 @@ End Namespace
 3 BByyx.Test
     ]]>)
 
-            Dim compilation16 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation16 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3825,7 +3825,7 @@ Class BByyx
 End Class
 
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation16, expectedOutput:=
             <![CDATA[

@@ -1,8 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
+Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' rename. The position given with the $$ mark in the tests is just the symbol that is renamed;
     ''' there is no fancy logic applied to it.
     ''' </summary>
+    <[UseExportProvider]>
     Partial Public Class RenameEngineTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -6158,6 +6159,31 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, renameTo:="New2")
+            End Using
+        End Sub
+
+        <WorkItem(25655, "https://github.com/dotnet/roslyn/issues/25655")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameClassWithNoCompilationProjectReferencingProject()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="NoCompilation" CommonReferences="false">
+                        <ProjectReference>CSharpProject</ProjectReference>
+                        <Document>
+                            // a no-compilation document
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
+                        <Document>
+                            public class [|$$A|]
+                            {
+                                public [|A|]()
+                                {
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="B")
             End Using
         End Sub
 

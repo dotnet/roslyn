@@ -16,14 +16,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Editor), Shared]
     internal class EditorTextFactoryService : ITextFactoryService
     {
+        private readonly ITextBufferCloneService _textBufferCloneService;
         private readonly ITextBufferFactoryService _textBufferFactory;
         private readonly IContentType _unknownContentType;
 
         [ImportingConstructor]
         public EditorTextFactoryService(
-                ITextBufferFactoryService textBufferFactoryService,
-                IContentTypeRegistryService contentTypeRegistryService)
+            ITextBufferCloneService textBufferCloneService,
+            ITextBufferFactoryService textBufferFactoryService,
+            IContentTypeRegistryService contentTypeRegistryService)
         {
+            _textBufferCloneService = textBufferCloneService;
             _textBufferFactory = textBufferFactoryService;
             _unknownContentType = contentTypeRegistryService.UnknownContentType;
         }
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             var buffer = CreateTextBuffer(reader, cancellationToken);
 
             // use the given encoding as it is.
-            return buffer.CurrentSnapshot.AsRoslynText(encoding);
+            return buffer.CurrentSnapshot.AsRoslynText(_textBufferCloneService, encoding);
         }
 
         private ITextBuffer CreateTextBuffer(TextReader reader, CancellationToken cancellationToken = default)
@@ -84,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
             {
                 var buffer = CreateTextBuffer(reader, cancellationToken);
-                return buffer.CurrentSnapshot.AsRoslynText(reader.CurrentEncoding ?? Encoding.UTF8);
+                return buffer.CurrentSnapshot.AsRoslynText(_textBufferCloneService, reader.CurrentEncoding ?? Encoding.UTF8);
             }
         }
     }

@@ -11,5 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (self & other) == other;
         }
+
+        public static bool IncludesAny(this BinderFlags self, BinderFlags other)
+        {
+            return (self & other) != 0;
+        }
     }
 }

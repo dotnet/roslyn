@@ -418,7 +418,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             Dim module1 = compilation.GlobalNamespace.GetTypeMembers("Module1").Single()
             Dim TestGeneric2 = module1.GetMembers("TestGeneric2").OfType(Of MethodSymbol)().Single()

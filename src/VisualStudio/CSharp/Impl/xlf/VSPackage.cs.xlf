@@ -38,8 +38,8 @@
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
-        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</source>
-        <target state="translated">Automaticky formátovat příkaz při středníku;Automaticky formátovat blok při složené závorce;Automaticky formátovat při vložení</target>
+        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
+        <target state="translated">Automaticky formátovat příkaz při středníku;Automaticky formátovat blok při složené závorce;Automaticky formátovat při vložení;vyčištění kódu;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">

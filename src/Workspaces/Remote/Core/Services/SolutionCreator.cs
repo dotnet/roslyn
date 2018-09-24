@@ -260,6 +260,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = project.Solution.WithProjectOutputFilePath(project.Id, newProjectInfo.OutputFilePath).GetProject(project.Id);
             }
 
+            if (project.State.ProjectInfo.Attributes.OutputRefFilePath != newProjectInfo.OutputRefFilePath)
+            {
+                project = project.Solution.WithProjectOutputRefFilePath(project.Id, newProjectInfo.OutputRefFilePath).GetProject(project.Id);
+            }
+
             if (project.State.ProjectInfo.Attributes.HasAllInformation != newProjectInfo.HasAllInformation)
             {
                 project = project.Solution.WithHasAllInformation(project.Id, newProjectInfo.HasAllInformation).GetProject(project.Id);
@@ -615,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task ValidateChecksumAsync(Checksum givenSolutionChecksum, Solution solution)
         {
             // have this to avoid error on async
-            await SpecializedTasks.EmptyTask.ConfigureAwait(false);
+            await Task.CompletedTask.ConfigureAwait(false);
 
 #if DEBUG
             var currentSolutionChecksum = await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false);

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     </file>
 </compilation>
 
-            Dim localConsumer = CompilationUtils.CreateCompilationWithMscorlib(localConsumerCompilationDef)
+            Dim localConsumer = CompilationUtils.CreateCompilationWithMscorlib40(localConsumerCompilationDef)
             localConsumer = localConsumer.AddReferences(TestReferences.SymbolsTests.NoPia.Pia1, TestReferences.SymbolsTests.NoPia.LocalTypes1)
 
             Dim localConsumerRefsAsm = localConsumer.[Assembly].GetNoPiaResolutionAssemblies()
@@ -55,7 +55,7 @@ End Module
     </file>
 </compilation>
 
-            Dim localConsumer = CompilationUtils.CreateCompilationWithReferences(
+            Dim localConsumer = CompilationUtils.CreateEmptyCompilationWithReferences(
                                     compilationDef,
                                     {TestReferences.SymbolsTests.NoPia.GeneralPia,
                                      TestReferences.SymbolsTests.NoPia.ExternalAsm1})
@@ -117,7 +117,7 @@ End Module
     </file>
 </compilation>
 
-            Dim localConsumer = CompilationUtils.CreateCompilationWithReferences(compilationDef,
+            Dim localConsumer = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef,
                                                                                  {TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                                   TestReferences.SymbolsTests.NoPia.ExternalAsm1})
 
@@ -154,7 +154,7 @@ End Module
 </compilation>
 
 
-            Dim localConsumer = CompilationUtils.CreateCompilationWithReferences(compilationDef,
+            Dim localConsumer = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef,
                                                                                  {TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                                   TestReferences.SymbolsTests.NoPia.ExternalAsm1})
 
@@ -184,7 +184,7 @@ class TypeSubstitution
     Dim myLocalType As ISubFuncProp = ExternalAsm1.Scen4
 End Class
 </file></compilation>
-            Dim localConsumer = CreateCompilationWithReferences(localTypeSource, references:={TestReferences.SymbolsTests.NoPia.GeneralPia, TestReferences.SymbolsTests.NoPia.ExternalAsm1})
+            Dim localConsumer = CreateEmptyCompilationWithReferences(localTypeSource, references:={TestReferences.SymbolsTests.NoPia.GeneralPia, TestReferences.SymbolsTests.NoPia.ExternalAsm1})
             Dim localConsumerRefsAsm = localConsumer.[Assembly].GetNoPiaResolutionAssemblies()
             Dim canonicalType = localConsumerRefsAsm.First(Function(arg) arg.Name = "GeneralPia").GlobalNamespace.GetTypeMembers("ISubFuncProp").[Single]()
             Dim classLocalType As NamedTypeSymbol = localConsumer.GlobalNamespace.GetTypeMembers("TypeSubstitution").[Single]()
@@ -207,7 +207,7 @@ class TypeSubstitution
     Dim myLocalType As GeneralEventScenario.EventHandler = ExternalAsm1.Scen5
 End Class 
 </file></compilation>
-            Dim localConsumer = CreateCompilationWithReferences(localTypeSource, references:={TestReferences.SymbolsTests.NoPia.GeneralPia, TestReferences.SymbolsTests.NoPia.ExternalAsm1})
+            Dim localConsumer = CreateEmptyCompilationWithReferences(localTypeSource, references:={TestReferences.SymbolsTests.NoPia.GeneralPia, TestReferences.SymbolsTests.NoPia.ExternalAsm1})
             Dim localConsumerRefsAsm = localConsumer.[Assembly].GetNoPiaResolutionAssemblies()
             Dim canonicalType = localConsumerRefsAsm(0).GlobalNamespace.ChildNamespace("GeneralEventScenario")
             Dim canonicalTypeInter = canonicalType.GetTypeMembers("EventHandler").[Single]()
@@ -233,7 +233,7 @@ End Class
     </file>
 </compilation>
 
-            Dim localConsumer = CompilationUtils.CreateCompilationWithReferences(compilationDef,
+            Dim localConsumer = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef,
                 {TestReferences.SymbolsTests.NoPia.GeneralPia, TestReferences.SymbolsTests.NoPia.ExternalAsm1})
 
             Dim localConsumerRefsAsm = localConsumer.[Assembly].GetNoPiaResolutionAssemblies()
@@ -267,7 +267,7 @@ End Interface
 </compilation>
 
 
-            Dim localType = CreateCompilationWithMscorlib(compilationDef1)
+            Dim localType = CreateCompilationWithMscorlib40(compilationDef1)
 
             Dim compilationDef2 =
 <compilation name="Dummy2">
@@ -275,7 +275,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim localConsumer = CompilationUtils.CreateCompilationWithReferences(compilationDef2,
+            Dim localConsumer = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef2,
                 {TestReferences.SymbolsTests.NoPia.Pia1, New VisualBasicCompilationReference(localType)})
 
             Dim localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies()

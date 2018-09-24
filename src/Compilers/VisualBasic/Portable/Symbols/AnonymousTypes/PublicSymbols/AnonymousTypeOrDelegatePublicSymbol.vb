@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
+            Public NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
                 Get
                     Return False
                 End Get

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
@@ -90,14 +91,28 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement);
 
+        IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node);
+
         ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node);
 
         ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node);
 
-        bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation);
-
         bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
 
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
+
+        ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
+
+        SyntaxToken GenerateUniqueName(
+            SemanticModel semanticModel, SyntaxNode location, 
+            SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
+
+        SyntaxToken GenerateUniqueName(
+            SemanticModel semanticModel, SyntaxNode location,
+            SyntaxNode containerOpt, string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken);
+
+        SyntaxToken GenerateUniqueLocalName(
+            SemanticModel semanticModel, SyntaxNode location,
+            SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
     }
 }

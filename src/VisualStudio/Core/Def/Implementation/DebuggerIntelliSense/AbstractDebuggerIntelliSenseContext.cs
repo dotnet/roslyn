@@ -64,7 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         // Constructor for testing
-        protected AbstractDebuggerIntelliSenseContext(IWpfTextView wpfTextView,
+        protected AbstractDebuggerIntelliSenseContext(
+            IWpfTextView wpfTextView,
             ITextBuffer contextBuffer,
             Microsoft.VisualStudio.TextManager.Interop.TextSpan[] currentStatementSpan,
             IComponentModel componentModel,
@@ -195,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
             var bufferGraph = _bufferGraphFactoryService.CreateBufferGraph(_projectionBuffer);
 
-            _debuggerTextView = new DebuggerTextView(_textView, bufferGraph, this.InImmediateWindow);
+            _debuggerTextView = new DebuggerTextView(_textView, bufferGraph, _debuggerTextLines, InImmediateWindow);
             return true;
         }
 

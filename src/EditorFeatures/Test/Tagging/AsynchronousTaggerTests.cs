@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -21,6 +22,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 {
+    [UseExportProvider]
     public class AsynchronousTaggerTests : TestBase
     {
         /// <summary>
@@ -53,9 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 {
                     return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
                 }
-                var asyncListener = new TaggerOperationListener();
 
-                WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
+                var asyncListener = new AsynchronousOperationListener();
+
+                WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
 
                 var notificationService = workspace.GetService<IForegroundNotificationService>();
 
@@ -93,14 +96,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         {
             using (var workspace = TestWorkspace.CreateCSharp("class Program {\r\n\r\n}"))
             {
-                WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
+                WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
 
                 var tagProvider = new VisualStudio14StructureTaggerProvider(
                     workspace.GetService<IForegroundNotificationService>(),
                     workspace.GetService<ITextEditorFactoryService>(),
                     workspace.GetService<IEditorOptionsFactoryService>(),
                     workspace.GetService<IProjectionBufferFactoryService>(),
-                    workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
+                    workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
                 var document = workspace.Documents.First();
                 var textBuffer = document.TextBuffer;
@@ -118,10 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         private static TestTaggerEventSource CreateEventSource()
         {
             return new TestTaggerEventSource();
-        }
-
-        private sealed class TaggerOperationListener : AsynchronousOperationListener
-        {
         }
 
         private sealed class TestTag : TextMarkerTag
@@ -172,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                     }
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 

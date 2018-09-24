@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal interface IGoToDefinitionSymbolService : ILanguageService
     {
-        Task<(ISymbol, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<(ISymbol, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, bool includeType, CancellationToken cancellationToken);
     }
 }

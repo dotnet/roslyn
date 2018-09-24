@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -26,12 +27,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 {
+    [UseExportProvider]
     public abstract class AbstractNavigateToTests
     {
-        protected static ExportProvider s_exportProvider =
-            MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic());
-
         protected INavigateToItemProvider _provider;
         protected NavigateToTestAggregator _aggregator;
 
@@ -78,26 +76,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         protected TestWorkspace SetupWorkspace(XElement workspaceElement)
         {
-            var workspace = TestWorkspace.Create(workspaceElement, exportProvider: s_exportProvider);
+            var workspace = TestWorkspace.Create(workspaceElement, exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
             InitializeWorkspace(workspace);
             return workspace;
         }
 
         protected TestWorkspace SetupWorkspace(string content)
         {
-            var workspace = CreateWorkspace(content, s_exportProvider);
+            var workspace = CreateWorkspace(content, TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
             InitializeWorkspace(workspace);
             return workspace;
         }
 
         internal void InitializeWorkspace(TestWorkspace workspace)
         {
-            var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
-
-            _provider = new NavigateToItemProvider(workspace, aggregateListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
+#pragma warning disable CS0618 // MatchKind is obsolete
         protected void VerifyNavigateToResultItems(
             List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
@@ -182,5 +179,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             result = a.SecondarySort.CompareTo(b.SecondarySort);
             return result;
         }
+#pragma warning restore CS0618 // MatchKind is obsolete
     }
 }

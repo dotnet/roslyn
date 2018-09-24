@@ -1,14 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.Test.Utilities;
-using System.Threading.Tasks;
-using Xunit;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Options;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 {
+    [UseExportProvider]
     public class EventHookupCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -963,10 +965,10 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public async Task EventHookupWithQualifiedMethodAccessAndNotificationOptionNone()
+        public async Task EventHookupWithQualifiedMethodAccessAndNotificationOptionSilent()
         {
             // This validates the scenario where the user has stated that they prefer `this.` qualification but the
-            // notification level is `None`, which means existing violations of the rule won't be flagged but newly
+            // notification level is `Silent`, which means existing violations of the rule won't be flagged but newly
             // generated code will conform appropriately.
             var markup = @"
 class C
@@ -977,7 +979,7 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.None)))
+            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.Silent)))
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();

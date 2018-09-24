@@ -19,8 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class VisualStudioTaskSchedulerFactory : EditorTaskSchedulerFactory
     {
         [ImportingConstructor]
-        public VisualStudioTaskSchedulerFactory([ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(asyncListeners)
+        public VisualStudioTaskSchedulerFactory(IAsynchronousOperationListenerProvider listenerProvider)
+            : base(listenerProvider)
         {
         }
 

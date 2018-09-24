@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
-                var projectId = ReadProperty<ProjectId>(serializer, reader);
+                var projectId = ReadProperty<ProjectId>(reader, serializer);
 
                 var (id, debugName) = ReadIdAndName(reader);
 

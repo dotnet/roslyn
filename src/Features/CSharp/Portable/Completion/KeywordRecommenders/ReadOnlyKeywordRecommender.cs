@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsGlobalStatementContext ||
-                IsRefReadOnlyContext(position, context) ||
+                IsRefReadOnlyContext(context) ||
+                IsValidContextForType(context, cancellationToken) ||
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validMemberModifiers,
@@ -38,17 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     cancellationToken: cancellationToken);
         }
 
-        private bool IsRefReadOnlyContext(int position, CSharpSyntaxContext context)
-        {
-            var previousToken = context.LeftToken.GetPreviousTokenIfTouchingWord(position);
+        private static bool IsRefReadOnlyContext(CSharpSyntaxContext context)
+            => context.TargetToken.IsKind(SyntaxKind.RefKeyword) &&
+               context.TargetToken.Parent.IsKind(SyntaxKind.RefType);
 
-            return previousToken.IsKind(SyntaxKind.RefKeyword) &&
-                previousToken.Parent.IsKind(SyntaxKind.RefType) &&
-                previousToken.Parent.Parent.IsKind(
-                    SyntaxKind.PropertyDeclaration,
-                    SyntaxKind.MethodDeclaration,
-                    SyntaxKind.DelegateDeclaration,
-                    SyntaxKind.IncompleteMember);
+        private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers,
+                validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations, canBePartial: true, cancellationToken);
         }
     }
 }

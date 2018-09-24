@@ -50,6 +50,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundPassByCopy
+    {
+        public override ConstantValue ConstantValue
+        {
+            get
+            {
+                Debug.Assert(Expression.ConstantValue == null);
+                return null;
+            }
+        }
+
+        public override Symbol ExpressionSymbol
+        {
+            get
+            {
+                return Expression.ExpressionSymbol;
+            }
+        }
+    }
+
     internal partial class BoundCall
     {
         public override Symbol ExpressionSymbol
@@ -441,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundObjectCreationExpression UpdateArgumentsAndInitializer(
             ImmutableArray<BoundExpression> newArguments,
             ImmutableArray<RefKind> newRefKinds,
-            BoundExpression newInitializerExpression,
+            BoundObjectInitializerExpressionBase newInitializerExpression,
             TypeSymbol changeTypeOpt = null)
         {
             return Update(

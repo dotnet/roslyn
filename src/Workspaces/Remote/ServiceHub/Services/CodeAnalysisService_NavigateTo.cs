@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService : IRemoteNavigateToSearchService
     {
-        public async Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(
-            DocumentId documentId, string searchPattern, CancellationToken cancellationToken)
+        public Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(
+            DocumentId documentId, string searchPattern, string[] kinds, CancellationToken cancellationToken)
         {
-            return await RunServiceAsync(async token =>
+            return RunServiceAsync(async token =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -21,17 +21,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var project = solution.GetDocument(documentId);
                     var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                        project, searchPattern, token).ConfigureAwait(false);
+                        project, searchPattern, kinds.ToImmutableHashSet(), token).ConfigureAwait(false);
 
                     return Convert(result);
                 }
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
-        public async Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(
-            ProjectId projectId, string searchPattern, CancellationToken cancellationToken)
+        public Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(
+            ProjectId projectId, string searchPattern, string[] kinds, CancellationToken cancellationToken)
         {
-            return await RunServiceAsync(async token =>
+            return RunServiceAsync(async token =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -39,14 +39,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var project = solution.GetProject(projectId);
                     var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                        project, searchPattern, token).ConfigureAwait(false);
+                        project, searchPattern, kinds.ToImmutableHashSet(), token).ConfigureAwait(false);
 
                     return Convert(result);
                 }
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
-        private ImmutableArray<SerializableNavigateToSearchResult> Convert(
+        private IList<SerializableNavigateToSearchResult> Convert(
             ImmutableArray<INavigateToSearchResult> result)
         {
             return result.SelectAsArray(SerializableNavigateToSearchResult.Dehydrate);

@@ -82,6 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return base.GetDisplayAndInsertionText(symbol, context);
         }
 
+        private static readonly CompletionItemRules s_arrayRules =
+            CompletionItemRules.Create(
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')),
+                matchPriority: MatchPriority.Default,
+                selectionBehavior: CompletionItemSelectionBehavior.SoftSelection);
+
         private static readonly CompletionItemRules s_objectRules =
             CompletionItemRules.Create(
                 commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')),
@@ -94,8 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols)
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, bool preselect)
         {
+            if (!preselect)
+            {
+                return s_arrayRules;
+            }
+
             // SPECIAL: If the preselected symbol is System.Object, don't commit on '{'.
             // Otherwise, it is cumbersome to type an anonymous object when the target type is object.
             // The user would get 'new object {' rather than 'new {'. Since object doesn't have any

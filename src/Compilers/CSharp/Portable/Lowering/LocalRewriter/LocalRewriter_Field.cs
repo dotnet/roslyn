@@ -64,6 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.BadExpression(tupleField.Type);
             }
 
+            if (rewrittenReceiver.Kind == BoundKind.DefaultExpression)
+            {
+                // Optimization: `default((int, string)).Item2` is simply `default(string)`
+                return new BoundDefaultExpression(syntax, tupleField.Type);
+            }
+
             if (underlyingField.ContainingType != currentLinkType)
             {
                 WellKnownMember wellKnownTupleRest = TupleTypeSymbol.GetTupleTypeMember(TupleTypeSymbol.RestPosition, TupleTypeSymbol.RestPosition);

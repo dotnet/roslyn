@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override CharSet MarshallingCharSet => DefaultMarshallingCharSet;
 
-        internal override bool IsSerializable => false;
+        public override bool IsSerializable => false;
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {

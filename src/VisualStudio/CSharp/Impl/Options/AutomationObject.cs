@@ -719,6 +719,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferBraces, value); }
         }
 
+        public string Style_PreferReadonly
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferReadonly); }
+            set { SetXmlOption(CodeStyleOptions.PreferReadonly, value); }
+        }
+
         public int Wrapping_IgnoreSpacesAroundBinaryOperators
         {
             get

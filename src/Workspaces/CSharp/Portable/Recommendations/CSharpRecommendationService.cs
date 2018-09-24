@@ -356,20 +356,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 var usingDirective = name.GetAncestorOrThis<UsingDirectiveSyntax>();
                 if (usingDirective != null && usingDirective.Alias == null)
                 {
-                    if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
-                    {
-                        return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
-                    }
-                    else
-                    {
-                        symbols = symbols.WhereAsArray(s => s.IsNamespace());
-                    }
+                    return usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
+                        ? symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType())
+                        : symbols.WhereAsArray(s => s.IsNamespace());
                 }
 
-                if (symbols.Any())
-                {
-                    return symbols;
-                }
+                return symbols;
             }
 
             return ImmutableArray<ISymbol>.Empty;

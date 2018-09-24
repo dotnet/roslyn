@@ -522,11 +522,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: For each of the method arguments Ei:
             for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
-                var argument = _arguments[arg];
-
-                bool isExactInference = GetRefKind(arg) != RefKind.None;
-
+                BoundExpression argument = _arguments[arg];
                 TypeSymbol target = _formalParameterTypes[arg];
+                bool isExactInference = GetRefKind(arg).IsManagedReference() || target.IsPointerType();
+
                 MakeExplicitParameterTypeInferences(binder, argument, target, isExactInference, ref useSiteDiagnostics);
             }
         }
@@ -1320,10 +1319,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // this part of the code is only called if the targetType has an unfixed type argument in the output 
             // type, which is not the case for invalid delegate invoke methods.
-            Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
+            var delegateInvokeMethod = delegateType.DelegateInvokeMethod;
+            Debug.Assert((object)delegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types");
 
-            TypeSymbol delegateReturnType = delegateType.DelegateInvokeMethod.ReturnType;
+            TypeSymbol delegateReturnType = delegateInvokeMethod.ReturnType;
             if ((object)delegateReturnType == null || delegateReturnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
@@ -1337,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, ref useSiteDiagnostics);
+            var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, delegateInvokeMethod.RefKind, ref useSiteDiagnostics);
             if ((object)returnType == null || returnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
@@ -1348,12 +1348,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static TypeSymbol MethodGroupReturnType(Binder binder, BoundMethodGroup source, ImmutableArray<ParameterSymbol> delegateParameters, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static TypeSymbol MethodGroupReturnType(
+            Binder binder, BoundMethodGroup source,
+            ImmutableArray<ParameterSymbol> delegateParameters,
+            RefKind delegateRefKind,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
             Conversions.GetDelegateArguments(source.Syntax, analyzedArguments, delegateParameters, binder.Compilation);
 
-            var resolution = binder.ResolveMethodGroup(source, analyzedArguments, isMethodGroupConversion: true, useSiteDiagnostics: ref useSiteDiagnostics);
+            var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+                isMethodGroupConversion: true, returnRefKind: delegateRefKind,
+                // Since we are trying to infer the return type, it is not an input to resolving the method group
+                returnType: null);
 
             TypeSymbol type = null;
 
@@ -1478,6 +1485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            // This can be valid via (where T : unmanaged) constraints
+            if (ExactPointerInference(source, target, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
             // SPEC: * Otherwise no inferences are made.
         }
 
@@ -1588,6 +1601,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ExactTypeArgumentInference(namedSource, namedTarget, ref useSiteDiagnostics);
             return true;
+        }
+
+        private bool ExactPointerInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (source.TypeKind == TypeKind.Pointer && target.TypeKind == TypeKind.Pointer)
+            {
+                ExactInference(((PointerTypeSymbol)source).PointedAtType, ((PointerTypeSymbol)target).PointedAtType, ref useSiteDiagnostics);
+                return true;
+            }
+
+            return false;
         }
 
         private void ExactTypeArgumentInference(NamedTypeSymbol source, NamedTypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2627,7 +2651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int p = 0; p < anonymousFunction.ParameterCount; ++p)
                 {
-                    if (anonymousFunction.ParameterType(p) != fixedDelegateParameters[p].Type)
+                    if (!anonymousFunction.ParameterType(p).Equals(fixedDelegateParameters[p].Type, TypeCompareKind.IgnoreDynamicAndTupleNames))
                     {
                         return null;
                     }

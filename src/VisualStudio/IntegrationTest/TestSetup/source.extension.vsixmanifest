@@ -11,7 +11,7 @@
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,]" />
   </Installation>
   <Dependencies>
-    <Dependency Id="|VisualStudioSetup;VSIXIdentifierProjectOutputGroup|" DisplayName="|VisualStudioSetup;VSIXNameProjectOutputGroup|" d:Source="Project" Version="[|VisualStudioSetup;GetBuildVersion|,]" d:ProjectName="VisualStudioSetup" />
+    <Dependency Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" DisplayName="Roslyn Language Services" d:Source="Project" Version="[|VisualStudioSetup;GetBuildVersion|,]" d:ProjectName="VisualStudioSetup" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />

@@ -101,6 +101,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static ImmutableArray<T> ExplicitOrImplicitInterfaceImplementations<T>(this T symbol) where T : ISymbol
+        {
+            var containingType = symbol.ContainingType;
+            var allMembersInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers(symbol.Name));
+            var membersImplementingAnInterfaceMember = allMembersInAllInterfaces.Where(
+                memberInInterface => symbol.Equals(containingType.FindImplementationForInterfaceMember(memberInInterface)));
+            return membersImplementingAnInterfaceMember.Cast<T>().ToImmutableArrayOrEmpty();
+        }
+
         public static bool IsOverridable(this ISymbol symbol)
         {
             // Members can only have overrides if they are virtual, abstract or override and is not
@@ -488,58 +497,31 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return type;
             }
 
-            if (symbol is IMethodSymbol method && !method.Parameters.Any(p => p.RefKind != RefKind.None))
+            if (symbol is IMethodSymbol method && method.Parameters.All(p => p.RefKind == RefKind.None))
             {
+                var count = extensionUsedAsInstance ? Math.Max(0, method.Parameters.Length - 1) : method.Parameters.Length;
+                var skip = extensionUsedAsInstance ? 1 : 0;
+
+                string WithArity(string typeName, int arity) => arity > 0 ? typeName + '`' + arity : typeName;
+
                 // Convert the symbol to Func<...> or Action<...>
-                if (method.ReturnsVoid)
-                {
-                    var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
-                    var skip = extensionUsedAsInstance ? 1 : 0;
-                    count = Math.Max(0, count);
-                    if (count == 0)
-                    {
-                        // Action
-                        return compilation.ActionType();
-                    }
-                    else
-                    {
-                        // Action<TArg1, ..., TArgN>
-                        var actionName = "System.Action`" + count;
-                        var actionType = compilation.GetTypeByMetadataName(actionName);
+                var delegateType = compilation.GetTypeByMetadataName(method.ReturnsVoid
+                    ? WithArity("System.Action", count)
+                    : WithArity("System.Func", count + 1));
 
-                        if (actionType != null)
-                        {
-                            var types = method.Parameters
-                                .Skip(skip)
-                                .Select(p =>
-                                    p.Type == null ?
-                                    compilation.GetSpecialType(SpecialType.System_Object) :
-                                    p.Type)
-                                .ToArray();
-                            return actionType.Construct(types);
-                        }
-                    }
-                }
-                else
+                if (delegateType != null)
                 {
-                    // Func<TArg1,...,TArgN,TReturn>
-                    //
-                    // +1 for the return type.
-                    var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
-                    var skip = extensionUsedAsInstance ? 1 : 0;
-                    var functionName = "System.Func`" + (count + 1);
-                    var functionType = compilation.GetTypeByMetadataName(functionName);
+                    var types = method.Parameters
+                        .Skip(skip)
+                        .Select(p => p.Type ?? compilation.GetSpecialType(SpecialType.System_Object));
 
-                    if (functionType != null)
+                    if (!method.ReturnsVoid)
                     {
-                        var types = method.Parameters
-                            .Skip(skip)
-                            .Select(p => p.Type)
-                            .Concat(method.ReturnType)
-                            .Select(t => t ?? compilation.GetSpecialType(SpecialType.System_Object))
-                            .ToArray();
-                        return functionType.Construct(types);
+                        // +1 for the return type.
+                        types = types.Concat(method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object));
                     }
+
+                    return delegateType.TryConstruct(types.ToArray());
                 }
             }
 
@@ -557,28 +539,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.Kind == SymbolKind.Namespace;
         }
 
-        public static bool IsOrContainsAccessibleAttribute(this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly)
+        public static bool IsOrContainsAccessibleAttribute(
+            this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly, CancellationToken cancellationToken)
         {
-            if (symbol is IAliasSymbol alias)
-            {
-                symbol = alias.Target;
-            }
-
-            var namespaceOrType = symbol as INamespaceOrTypeSymbol;
+            var namespaceOrType = symbol is IAliasSymbol alias ? alias.Target : symbol as INamespaceOrTypeSymbol;
             if (namespaceOrType == null)
             {
                 return false;
             }
 
-            if (namespaceOrType.IsAttribute() && namespaceOrType.IsAccessibleWithin(withinType ?? withinAssembly))
+            // PERF: Avoid allocating a lambda capture
+            foreach (var type in namespaceOrType.GetAllTypes(cancellationToken))
             {
-                return true;
-            }
-
-            // PERF: Avoid allocating a lambda capture as this method is recursive
-            foreach (var namedType in namespaceOrType.GetTypeMembers())
-            {
-                if (namedType.IsOrContainsAccessibleAttribute(withinType, withinAssembly))
+                if (type.IsAttribute() && type.IsAccessibleWithin(withinType ?? withinAssembly))
                 {
                     return true;
                 }

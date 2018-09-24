@@ -8,24 +8,17 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var bit = x64 ? "64" : "";
 
-            SnapshotService = "snapshotService" + bit;
-            CodeAnalysisService = "codeAnalysisService" + bit;
-            RemoteSymbolSearchUpdateEngine = "remoteSymbolSearchUpdateEngine" + bit;
+            SnapshotService = "roslynSnapshot" + bit;
+            CodeAnalysisService = "roslynCodeAnalysis" + bit;
+            RemoteSymbolSearchUpdateEngine = "roslynRemoteSymbolSearchUpdateEngine" + bit;
         }
 
-        public static string SnapshotService { get; private set; } = "snapshotService";
-        public static string CodeAnalysisService { get; private set; } = "codeAnalysisService";
-        public static string RemoteSymbolSearchUpdateEngine { get; private set; } = "remoteSymbolSearchUpdateEngine";
+        public static string SnapshotService { get; private set; } = "roslynSnapshot";
+        public static string CodeAnalysisService { get; private set; } = "roslynCodeAnalysis";
+        public static string RemoteSymbolSearchUpdateEngine { get; private set; } = "roslynRemoteSymbolSearchUpdateEngine";
 
-        // CodeLens methods.
-        public const string CodeAnalysisService_GetReferenceCountAsync = "GetReferenceCountAsync";
-        public const string CodeAnalysisService_FindReferenceLocationsAsync = "FindReferenceLocationsAsync";
-        public const string CodeAnalysisService_FindReferenceMethodsAsync = "FindReferenceMethodsAsync";
-        public const string CodeAnalysisService_GetFullyQualifiedName = "GetFullyQualifiedName";
-
+        // these are OOP implementation itself should care. not features that consume OOP care
         public const string ServiceHubServiceBase_Initialize = "Initialize";
         public const string AssetService_RequestAssetAsync = "RequestAssetAsync";
-
-        public const string CodeAnalysisService_CalculateDiagnosticsAsync = "CalculateDiagnosticsAsync";
     }
 }

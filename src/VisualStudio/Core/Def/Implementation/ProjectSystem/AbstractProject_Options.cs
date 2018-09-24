@@ -121,14 +121,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            this.UpdateRuleSetError(this.RuleSetFile);
+            this.UpdateRuleSetError(this.RuleSetFile?.Target);
 
             // Set options.
             this.SetOptionsCore(newCompilationOptions, newParseOptions);
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(Id, newCompilationOptions, newParseOptions));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnCompilationOptionsChanged(Id, newCompilationOptions));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnParseOptionsChanged(Id, newParseOptions));
             }
         }
 

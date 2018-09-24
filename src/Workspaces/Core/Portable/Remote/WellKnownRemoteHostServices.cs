@@ -6,9 +6,9 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static void Set64bit(bool x64)
         {
-            RemoteHostService = "remoteHostService" + (x64 ? "64" : "");
+            RemoteHostService = "roslynRemoteHost" + (x64 ? "64" : "");
         }
 
-        public static string RemoteHostService { get; private set; } = "remoteHostService";
+        public static string RemoteHostService { get; private set; } = "roslynRemoteHost";
     }
 }

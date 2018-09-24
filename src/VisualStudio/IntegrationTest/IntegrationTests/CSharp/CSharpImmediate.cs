@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -14,15 +16,22 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpImmediate(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
+        public CSharpImmediate(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
+
             VisualStudio.SolutionExplorer.CreateSolution(nameof(CSharpInteractive));
             var testProj = new ProjectUtils.Project("TestProj");
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
         }
 
-        [Fact]
-        public void DumpLocalVaribleValue()
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/25814")]
+        public void DumpLocalVariableValue()
         {
             VisualStudio.Editor.SetText(@"
 class Program

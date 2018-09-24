@@ -1,15 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
+using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -28,6 +25,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
 
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
+
+        public ObjectBrowserWindow_OutOfProc ObjectBrowserWindow { get; }
 
         public Debugger_OutOfProc Debugger { get; }
 
@@ -103,6 +102,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);
             Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
@@ -144,8 +144,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void ActivateMainWindow(bool skipAttachingThreads = false)
             => _inProc.ActivateMainWindow(skipAttachingThreads);
 
-        public void WaitForApplicationIdle()
-            => _inProc.WaitForApplicationIdle();
+        public void WaitForApplicationIdle(CancellationToken cancellationToken)
+        {
+            var task = Task.Factory.StartNew(() => _inProc.WaitForApplicationIdle(), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            task.Wait(cancellationToken);
+        }
 
         public void ExecuteCommand(string commandName, string argument = "")
             => _inProc.ExecuteCommand(commandName, argument);
@@ -169,7 +172,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Workspace.CleanUpWaitingService();
             Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
+
+            // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
+            ObjectBrowserWindow.CloseWindow();
+            ChangeSignatureDialog.CloseWindow();
+            GenerateTypeDialog.CloseWindow();
+            ExtractInterfaceDialog.CloseWindow();
         }
 
         public void Close(bool exitHostProcess = true)
@@ -203,7 +212,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
             finally
             {
-                if (_integrationServiceChannel != null)
+                if (_integrationServiceChannel != null
+                    && ChannelServices.RegisteredChannels.Contains(_integrationServiceChannel))
                 {
                     ChannelServices.UnregisterChannel(_integrationServiceChannel);
                 }
@@ -214,9 +224,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
 
-            if (RetryRpcCall(() => dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable))
+            if (dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable)
             {
-                RetryRpcCall(() => dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start));
+                dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start);
             }
         }
 
@@ -226,36 +236,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 _inProc.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Stop);
             }
-        }
-
-        private static void RetryRpcCall(Action action)
-        {
-            do
-            {
-                try
-                {
-                    action();
-                    return;
-                }
-                catch (COMException exception) when ((exception.HResult == VSConstants.RPC_E_CALL_REJECTED) ||
-                                                     (exception.HResult == VSConstants.RPC_E_SERVERCALL_RETRYLATER))
-                {
-                    // We'll just try again in this case
-                }
-            }
-            while (true);
-        }
-
-        private static T RetryRpcCall<T>(Func<T> action)
-        {
-            var result = default(T);
-
-            RetryRpcCall(() =>
-            {
-                result = action();
-            });
-
-            return result;
         }
 
         public TelemetryVerifier EnableTestTelemetryChannel()

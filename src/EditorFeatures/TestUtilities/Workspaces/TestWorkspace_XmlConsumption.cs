@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             else if (language == LanguageNames.VisualBasic)
             {
                 return new VisualBasicParseOptions(preprocessorSymbols: preprocessorSymbolsAttribute.Value
-                    .Split(',').Select(v => KeyValuePair.Create(v.Split('=').ElementAt(0), (object)v.Split('=').ElementAt(1))).ToImmutableArray());
+                    .Split(',').Select(v => KeyValuePairUtil.Create(v.Split('=').ElementAt(0), (object)v.Split('=').ElementAt(1))).ToImmutableArray());
             }
             else
             {
@@ -465,6 +465,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var cryptoKeyFile = default(string);
             var strongNameProvider = default(StrongNameProvider);
             var delaySign = default(bool?);
+            var checkOverflow = false;
+            var outputKind = OutputKind.DynamicallyLinkedLibrary;
 
             if (compilationOptionsElement != null)
             {
@@ -474,6 +476,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 if (rootNamespaceAttribute != null)
                 {
                     rootNamespace = rootNamespaceAttribute.Value;
+                }
+
+                var outputKindAttribute = compilationOptionsElement.Attribute(OutputKindName);
+                if (outputKindAttribute != null)
+                {
+                    outputKind = (OutputKind)Enum.Parse(typeof(OutputKind), (string)outputKindAttribute.Value);
+                }
+
+                var checkOverflowAttribute = compilationOptionsElement.Attribute(CheckOverflowAttributeName);
+                if (checkOverflowAttribute != null)
+                {
+                    checkOverflow = (bool)checkOverflowAttribute;
                 }
 
                 var reportDiagnosticAttribute = compilationOptionsElement.Attribute(ReportDiagnosticAttributeName);
@@ -539,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var languageServices = workspace.Services.GetLanguageServices(language);
             var metadataService = workspace.Services.GetService<IMetadataService>();
             var compilationOptions = languageServices.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions();
-            compilationOptions = compilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
+            compilationOptions = compilationOptions.WithOutputKind(outputKind)
                                                    .WithGeneralDiagnosticOption(reportDiagnostic)
                                                    .WithSourceReferenceResolver(SourceFileResolver.Default)
                                                    .WithXmlReferenceResolver(XmlFileResolver.Default)
@@ -547,7 +561,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                                                    .WithCryptoKeyFile(cryptoKeyFile)
                                                    .WithStrongNameProvider(strongNameProvider)
-                                                   .WithDelaySign(delaySign);
+                                                   .WithDelaySign(delaySign)
+                                                   .WithOverflowChecks(checkOverflow);
 
             if (language == LanguageNames.VisualBasic)
             {

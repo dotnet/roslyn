@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+    <[UseExportProvider]>
     Public Class TryFindSourceDefinitionTests
         Private ReadOnly _outputHelper As ITestOutputHelper
 

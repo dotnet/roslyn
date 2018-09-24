@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();

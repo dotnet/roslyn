@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -30,10 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public AbstractCommandHandlerTestState(
             XElement workspaceElement,
+            IList<Type> excludedTypes = null,
             ComposableCatalog extraParts = null,
             bool useMinimumCatalog = false,
             string workspaceKind = null)
-            : this(workspaceElement, GetExportProvider(useMinimumCatalog, extraParts), workspaceKind)
+            : this(workspaceElement, GetExportProvider(useMinimumCatalog, excludedTypes, extraParts), workspaceKind)
         {
         }
 
@@ -129,18 +131,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return Workspace.GetService<T>();
         }
 
-        private static ExportProvider GetExportProvider(bool useMinimumCatalog, ComposableCatalog extraParts)
+        private static ExportProvider GetExportProvider(bool useMinimumCatalog, IList<Type> excludedTypes, ComposableCatalog extraParts)
         {
+            excludedTypes = excludedTypes ?? Type.EmptyTypes;
+
+            if (excludedTypes.Count == 0 && (extraParts == null || extraParts.Parts.Count == 0))
+            {
+                return useMinimumCatalog
+                    ? TestExportProvider.MinimumExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider()
+                    : TestExportProvider.ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
+            }
+
             var baseCatalog = useMinimumCatalog
                 ? TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
                 : TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
 
-            if (extraParts == null)
-            {
-                return MinimalTestExportProvider.CreateExportProvider(baseCatalog);
-            }
+            var filteredCatalog = baseCatalog.WithoutPartsOfTypes(excludedTypes);
 
-            return MinimalTestExportProvider.CreateExportProvider(baseCatalog.WithParts(extraParts));
+            return ExportProviderCache.GetOrCreateExportProviderFactory(filteredCatalog.WithParts(extraParts)).CreateExportProvider();
         }
 
         public virtual ITextView TextView
@@ -295,14 +303,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         /// </summary>
         public void AssertNoAsynchronousOperationsRunning()
         {
-            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            Assert.False(waiters.Any(x => x.HasPendingWork), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
+            var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            Assert.False(provider.HasPendingWaiter(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
         }
 
         public async Task WaitForAsynchronousOperationsAsync()
         {
-            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            await waiters.WaitAllAsync();
+            var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp);
         }
 
         public void AssertMatchesTextStartingAtLine(int line, string text)

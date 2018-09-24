@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -93,33 +92,6 @@ namespace Microsoft.CodeAnalysis.SQLite
         private const string DataIdColumnName = "DataId";
         private const string DataColumnName = "Data";
 
-        static SQLitePersistentStorage()
-        {
-            // Attempt to load the correct version of e_sqlite.dll.  That way when we call
-            // into SQLitePCL.Batteries_V2.Init it will be able to find it.
-            //
-            // Only do this on Windows when we can safely do the LoadLibrary call to this
-            // direct dll.  On other platforms, it is the responsibility of the host to ensure
-            // that the necessary sqlite library has already been loaded such that SQLitePCL.Batteries_V2
-            // will be able to call into it.
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                var myFolder = Path.GetDirectoryName(
-                    typeof(SQLitePersistentStorage).Assembly.Location);
-
-                var is64 = IntPtr.Size == 8;
-                var subfolder = is64 ? "x64" : "x86";
-
-                LoadLibrary(Path.Combine(myFolder, subfolder, "e_sqlite3.dll"));
-            }
-
-            // Necessary to initialize SQLitePCL.
-            SQLitePCL.Batteries_V2.Init();
-        }
-
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr LoadLibrary(string dllToLoad);
-
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
         private readonly IDisposable _dbOwnershipLock;
@@ -142,14 +114,12 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly Stack<SqlConnection> _connectionsPool = new Stack<SqlConnection>();
 
         public SQLitePersistentStorage(
-            IOptionService optionService,
             string workingFolderPath,
             string solutionFilePath,
             string databaseFile,
-            Action<AbstractPersistentStorage> disposer,
             IDisposable dbOwnershipLock,
             IPersistentStorageFaultInjector faultInjectorOpt)
-            : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
+            : base(workingFolderPath, solutionFilePath, databaseFile)
         {
             _dbOwnershipLock = dbOwnershipLock;
             _faultInjectorOpt = faultInjectorOpt;
@@ -190,7 +160,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        public override void Close()
+        public override void Dispose()
         {
             // Flush all pending writes so that all data our features wanted written
             // are definitely persisted to the DB.
@@ -234,7 +204,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         /// <summary>
-        /// Gets an <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
+        /// Gets a <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
         /// </summary>
         /// <remarks>
         /// Database connections have a large amount of overhead, and should be returned to the pool when they are no
@@ -244,7 +214,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         private PooledConnection GetPooledConnection()
             => new PooledConnection(this, GetConnection());
 
-        public override void Initialize(Solution solution)
+        public void Initialize(Solution solution)
         {
             // Create a connection to the DB and ensure it has tables for the types we care about. 
             using (var pooledConnection = GetPooledConnection())

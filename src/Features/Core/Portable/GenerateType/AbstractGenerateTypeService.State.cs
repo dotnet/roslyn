@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private async Task<bool> TryInitializeAsync(
                 TService service,
-                SemanticDocument document,
+                SemanticDocument semanticDocument,
                 SyntaxNode node,
                 CancellationToken cancellationToken)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
 
                 this.SimpleName = (TSimpleNameSyntax)node;
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
                 syntaxFacts.GetNameAndArityOfSimpleName(this.SimpleName, out var name, out var arity);
 
                 this.Name = name;
@@ -103,12 +103,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
                 // We only support simple names or dotted names.  i.e. "(some + expr).Goo" is not a
                 // valid place to generate a type for Goo.
-                if (!service.TryInitializeState(document, this.SimpleName, cancellationToken, out var generateTypeServiceStateOptions))
+                if (!service.TryInitializeState(semanticDocument, this.SimpleName, cancellationToken, out var generateTypeServiceStateOptions))
                 {
                     return false;
                 }
 
-                if (char.IsLower(name[0]) && !document.SemanticModel.Compilation.IsCaseSensitive)
+                if (char.IsLower(name[0]) && !semanticDocument.SemanticModel.Compilation.IsCaseSensitive)
                 {
                     // It's near universal in .Net that types start with a capital letter.  As such,
                     // if this name starts with a lowercase letter, don't even bother to offer 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 this.NameOrMemberAccessExpression = generateTypeServiceStateOptions.NameOrMemberAccessExpression;
                 this.ObjectCreationExpressionOpt = generateTypeServiceStateOptions.ObjectCreationExpressionOpt;
 
-                var semanticModel = document.SemanticModel;
+                var semanticModel = semanticDocument.SemanticModel;
                 var info = semanticModel.GetSymbolInfo(this.SimpleName, cancellationToken);
                 if (info.Symbol != null)
                 {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 if (!semanticFacts.IsTypeContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                     !semanticFacts.IsExpressionContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                     !semanticFacts.IsStatementContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
@@ -165,10 +165,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                await DetermineNamespaceOrTypeToGenerateInAsync(service, document, cancellationToken).ConfigureAwait(false);
+                await DetermineNamespaceOrTypeToGenerateInAsync(service, semanticDocument, cancellationToken).ConfigureAwait(false);
 
                 // Now, try to infer a possible base type for this new class/interface.
-                this.InferBaseType(service, document, cancellationToken);
+                this.InferBaseType(service, semanticDocument, cancellationToken);
                 this.IsInterface = GenerateInterface(service, cancellationToken);
                 this.IsStruct = GenerateStruct(service, semanticModel, cancellationToken);
                 this.IsAttribute = this.BaseTypeOrInterfaceOpt != null && this.BaseTypeOrInterfaceOpt.Equals(semanticModel.Compilation.AttributeType());
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // then we don't really want to infer a base type for 'Goo'.
 
                 // However, there are a few other cases were we can infer a base type.
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
                 if (service.IsInCatchDeclaration(this.NameOrMemberAccessExpression))
                 {
                     this.BaseTypeOrInterfaceOpt = document.SemanticModel.Compilation.ExceptionType();
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     this.ObjectCreationExpressionOpt != null)
                 {
                     var expr = this.ObjectCreationExpressionOpt ?? this.NameOrMemberAccessExpression;
-                    var typeInference = document.Project.LanguageServices.GetService<ITypeInferenceService>();
+                    var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
                     var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
                     SetBaseType(baseType);
                 }

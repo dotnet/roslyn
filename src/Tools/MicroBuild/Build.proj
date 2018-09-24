@@ -20,6 +20,8 @@
 
   <Target Name="Build">
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)microbuild.ps1 -restore -official $(ScriptArgs) " />
+
+    <MSBuild Projects="PublishBlobAssets.proj" Condition="'$(PB_PublishType)' == 'blob'" />
   </Target>
 
 </Project>

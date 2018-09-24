@@ -11,7 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
     Friend Class NameSyntaxClassifier
         Inherits AbstractSyntaxClassifier
 
-        Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(GetType(NameSyntax), GetType(ModifiedIdentifierSyntax))
+        Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(
+            GetType(NameSyntax),
+            GetType(ModifiedIdentifierSyntax),
+            GetType(MethodStatementSyntax))
 
         Public Overrides Sub AddClassifications(
                 syntax As SyntaxNode,
@@ -28,6 +31,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Dim modifiedIdentifier = TryCast(syntax, ModifiedIdentifierSyntax)
             If modifiedIdentifier IsNot Nothing Then
                 ClassifyModifiedIdentifier(modifiedIdentifier, semanticModel, result, cancellationToken)
+                Return
+            End If
+
+            Dim methodStatement = TryCast(syntax, MethodStatementSyntax)
+            If methodStatement IsNot Nothing Then
+                ClassifyMethodStatement(methodStatement, semanticModel, result, cancellationToken)
                 Return
             End If
         End Sub
@@ -71,23 +80,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End If
 
             If symbol IsNot Nothing Then
-                If symbol.Kind = SymbolKind.Method Then
-                    Dim method = DirectCast(symbol, IMethodSymbol)
-                    If method.MethodKind = MethodKind.Constructor Then
-                        ' If node is member access or qualified name with explicit New on the right side, we should classify New as a keyword.
-                        If node.IsNewOnRightSideOfDotOrBang() Then
-                            Dim token = GetNameToken(node)
-                            result.Add(New ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword))
-                            Return
-                        Else
-                            ' We bound to a constructor, but we weren't something like the 'New' in 'X.New'.
-                            ' This can happen when we're actually just binding the full node 'X.New'.  In this
-                            ' case, don't return anything for this full node.  We'll end up hitting the 
-                            ' 'New' node as the worker walks down, and we'll classify it then.
+                Select Case symbol.Kind
+                    Case SymbolKind.Method
+                        Dim classification = GetClassificationForMethod(node, DirectCast(symbol, IMethodSymbol))
+                        If classification IsNot Nothing Then
+                            result.Add(New ClassifiedSpan(GetNameToken(node).Span, classification))
                             Return
                         End If
-                    End If
-                End If
+                    Case SymbolKind.Event
+                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.EventName))
+                        Return
+                    Case SymbolKind.Property
+                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.PropertyName))
+                        Return
+                    Case SymbolKind.Field
+                        Dim classification = GetClassificationForField(DirectCast(symbol, IFieldSymbol))
+                        If classification IsNot Nothing Then
+                            result.Add(New ClassifiedSpan(GetNameToken(node).Span, classification))
+                            Return
+                        End If
+                    Case SymbolKind.Parameter
+                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.ParameterName))
+                        Return
+                    Case SymbolKind.Local
+                        Dim classification = GetClassificationForLocal(DirectCast(symbol, ILocalSymbol))
+                        If classification IsNot Nothing Then
+                            result.Add(New ClassifiedSpan(GetNameToken(node).Span, classification))
+                            Return
+                        End If
+                End Select
 
                 Dim type = TryCast(symbol, ITypeSymbol)
                 If type IsNot Nothing Then
@@ -128,6 +149,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End If
         End Sub
 
+        Private Function GetClassificationForField(fieldSymbol As IFieldSymbol) As String
+            If fieldSymbol.IsConst Then
+                Return If(fieldSymbol.ContainingType.IsEnumType(), ClassificationTypeNames.EnumMemberName, ClassificationTypeNames.ConstantName)
+            End If
+
+            Return ClassificationTypeNames.FieldName
+        End Function
+
+        Private Function GetClassificationForLocal(localSymbol As ILocalSymbol) As String
+            Return If(localSymbol.IsConst,
+                      ClassificationTypeNames.ConstantName,
+                      ClassificationTypeNames.LocalName)
+        End Function
+
+        Private Function GetClassificationForMethod(node As NameSyntax, methodSymbol As IMethodSymbol) As String
+            Select Case methodSymbol.MethodKind
+                Case MethodKind.Constructor
+                    ' If node is member access or qualified name with explicit New on the right side, we should classify New as a keyword.
+                    If node.IsNewOnRightSideOfDotOrBang() Then
+                        Return ClassificationTypeNames.Keyword
+                    Else
+                        ' We bound to a constructor, but we weren't something like the 'New' in 'X.New'.
+                        ' This can happen when we're actually just binding the full node 'X.New'.  In this
+                        ' case, don't return anything for this full node.  We'll end up hitting the 
+                        ' 'New' node as the worker walks down, and we'll classify it then.
+                        Return Nothing
+                    End If
+
+                Case MethodKind.BuiltinOperator,
+                     MethodKind.UserDefinedOperator
+                    ' Operators are already classified syntactically.
+                    Return Nothing
+            End Select
+
+            Return If(methodSymbol.IsReducedExtension(),
+                      ClassificationTypeNames.ExtensionMethodName,
+                      ClassificationTypeNames.MethodName)
+        End Function
+
         Private Sub ClassifyModifiedIdentifier(
                 modifiedIdentifier As ModifiedIdentifierSyntax,
                 semanticModel As SemanticModel,
@@ -149,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
                     Dim token = modifiedIdentifier.Identifier
                     If token.HasMatchingText(SyntaxKind.AsyncKeyword) OrElse
-                   token.HasMatchingText(SyntaxKind.IteratorKeyword) Then
+                       token.HasMatchingText(SyntaxKind.IteratorKeyword) Then
 
                         ' Optimistically classify "Async" or "Iterator" as a keyword
                         result.Add(New ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword))
@@ -171,5 +231,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                     Throw New NotSupportedException()
             End Select
         End Function
+
+        Private Sub ClassifyMethodStatement(methodStatement As MethodStatementSyntax, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            ' Ensure that extension method declarations are classified properly.
+            ' Note that the method statement name is likely already classified as a method name
+            ' by the syntactic classifier. However, there isn't away to determine whether a VB
+            ' method declaration is an extension method syntactically.
+            Dim methodSymbol = semanticModel.GetDeclaredSymbol(methodStatement)
+            If methodSymbol IsNot Nothing AndAlso methodSymbol.IsExtensionMethod Then
+                result.Add(New ClassifiedSpan(methodStatement.Identifier.Span, ClassificationTypeNames.ExtensionMethodName))
+            End If
+        End Sub
+
     End Class
 End Namespace

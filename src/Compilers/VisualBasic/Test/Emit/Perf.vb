@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
                                  <file name="VBPerfTest.vb">
                                      <%= TestResources.PerfTests.VBPerfTest %>
                                  </file>
-                             </compilation>, additionalRefs:={SystemCoreRef}).VerifyDiagnostics()
+                             </compilation>, references:={SystemCoreRef}).VerifyDiagnostics()
         End Sub
     End Class
 End Namespace

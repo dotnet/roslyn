@@ -74,7 +74,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        private async ValueTask<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
@@ -82,7 +83,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return await GetSessionAnalysisScopeCoreAsync(analyzer, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
-        private async Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeCoreAsync(
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        private async ValueTask<HostSessionStartAnalysisScope> GetSessionAnalysisScopeCoreAsync(
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor,
             AnalyzerExecutionContext analyzerExecutionContext)
@@ -108,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// The returned actions include the actions registered during <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> method as well as
         /// the actions registered during <see cref="CompilationStartAnalyzerAction"/> for the given compilation.
         /// </summary>
-        public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public async ValueTask<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
             if (sessionScope.CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
@@ -168,11 +171,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            if (IsCompilerReservedDiagnostic(diagnostic.Id))
-            {
-                throw new ArgumentException(string.Format(CodeAnalysisResources.CompilerDiagnosticIdReported, diagnostic.Id), nameof(diagnostic));
-            }
-
             // Get all the supported diagnostics and scan them linearly to see if the reported diagnostic is supported by the analyzer.
             // The linear scan is okay, given that this runs only if a diagnostic is being reported and a given analyzer is quite unlikely to have hundreds of thousands of supported diagnostics.
             var supportedDescriptors = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
@@ -182,18 +180,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return true;
                 }
-            }
-
-            return false;
-        }
-
-        private static bool IsCompilerReservedDiagnostic(string id)
-        {
-            // Only the compiler analyzer should produce diagnostics with CS or BC prefixes (followed by digit)
-            if (id.Length >= 3 && (id.StartsWith("CS", StringComparison.Ordinal) || id.StartsWith("BC", StringComparison.Ordinal)))
-            {
-                char thirdChar = id[2];
-                return thirdChar >= '0' && thirdChar <= '9';
             }
 
             return false;

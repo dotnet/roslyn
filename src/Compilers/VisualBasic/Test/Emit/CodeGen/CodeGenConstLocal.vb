@@ -726,7 +726,7 @@ End Module
         <Fact()>
         Public Sub TestLocalConstCycleDetection()
 
-            Dim verifier = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim verifier = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -783,7 +783,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TruncatePrecisionFloat()
 
             Dim verifier = CompileAndVerify(

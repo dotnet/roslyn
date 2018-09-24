@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -55,7 +56,7 @@ Module Module1
 End Module");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
         public void ValidateLocalsWindow()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -83,7 +84,7 @@ End Module");
             VisualStudio.LocalsWindow.Verify.CheckEntry("myMulticastDelegate", "System.MulticastDelegate", "Nothing");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
         public void EvaluatePrimitiveValues()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -96,7 +97,7 @@ End Module");
             VisualStudio.Debugger.CheckExpression("myString", "String", "\"\"");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19526")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19526")]
         public void EvaluateLambdaExpressions()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -104,14 +105,14 @@ End Module");
             VisualStudio.Debugger.CheckExpression("(Function(val)(val+val))(1)", "Integer", "2");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
         public void EvaluateInvalidExpressions()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.Debugger.CheckExpression("myNonsense", "", "error BC30451: 'myNonsense' is not declared. It may be inaccessible due to its protection level.");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
         public void StateMachineTypeParameters()
         {
             VisualStudio.Editor.SetText(@"

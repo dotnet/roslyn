@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField
         [ImportingConstructor]
         public EncapsulateFieldCommandHandler(
             ITextBufferUndoManagerProvider undoManager,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(undoManager, asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(undoManager, listenerProvider)
         {
         }
     }

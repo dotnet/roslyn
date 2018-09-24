@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -42,6 +43,10 @@ namespace Microsoft.CodeAnalysis.Scripting
         private readonly string _assemblyNamePrefix;
 
         private readonly InteractiveAssemblyLoader _assemblyLoader;
+
+        private static EmitOptions s_EmitOptionsWithDebuggingInformation = new EmitOptions(
+            debugInformationFormat: PdbHelpers.GetPlatformSpecificDebugInformationFormat(),
+            pdbChecksumAlgorithm: default(HashAlgorithmName));
 
         static ScriptBuilder()
         {
@@ -124,22 +129,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             using (var peStream = new MemoryStream())
             using (var pdbStreamOpt = emitDebugInformation ? new MemoryStream() : null)
             {
-                var emitOptions = EmitOptions.Default;
-
-                if (emitDebugInformation)
-                {
-                    emitOptions = emitOptions.WithDebugInformationFormat(PdbHelpers.GetPlatformSpecificDebugInformationFormat());
-                }
-
-                var emitResult = compilation.Emit(
-                    peStream: peStream,
-                    pdbStream: pdbStreamOpt,
-                    xmlDocumentationStream: null,
-                    win32Resources: null,
-                    manifestResources: null,
-                    options: emitOptions,
-                    cancellationToken: cancellationToken);
-
+                var emitResult = Emit(peStream, pdbStreamOpt, compilation, GetEmitOptions(emitDebugInformation), cancellationToken);
                 diagnostics.AddRange(emitResult.Diagnostics);
 
                 if (!emitResult.Success)
@@ -171,6 +161,28 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                 return runtimeEntryPoint.CreateDelegate<Func<object[], Task<T>>>();
             }
+        }
+
+        // internal for testing
+        internal static EmitOptions GetEmitOptions(bool emitDebugInformation)
+            => emitDebugInformation ? s_EmitOptionsWithDebuggingInformation : EmitOptions.Default;
+
+        // internal for testing
+        internal static EmitResult Emit(
+            Stream peStream, 
+            Stream pdbStreamOpt, 
+            Compilation compilation,
+            EmitOptions options,
+            CancellationToken cancellationToken)
+        {
+            return compilation.Emit(
+                peStream: peStream,
+                pdbStream: pdbStreamOpt,
+                xmlDocumentationStream: null,
+                win32Resources: null,
+                manifestResources: null,
+                options: options,
+                cancellationToken: cancellationToken);
         }
 
         internal static MethodInfo GetEntryPointRuntimeMethod(IMethodSymbol entryPoint, Assembly assembly, CancellationToken cancellationToken)

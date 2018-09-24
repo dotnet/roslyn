@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
+    internal partial class AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
         private partial class GenerateEqualsAndGetHashCodeAction : CodeAction
         {

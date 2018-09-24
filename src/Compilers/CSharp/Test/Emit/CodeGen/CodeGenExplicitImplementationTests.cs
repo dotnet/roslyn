@@ -117,9 +117,9 @@ class Test
 }
 ";
 
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "OHI_ExplicitImplProp1");
+            var comp1 = CreateCompilation(text1, assemblyName: "OHI_ExplicitImplProp1");
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 text2,
                 references: new[] { comp1.EmitToImageReference() },
                 options: TestOptions.ReleaseExe,
@@ -204,13 +204,13 @@ class Test
     }
 }
 ";
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
                 text1,
                 references: new[] { TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01 },
                 assemblyName: "OHI_ExpImpImpl001",
                 options: TestOptions.ReleaseDll);
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 text2,
                 references: new MetadataReference[]
                 {
@@ -247,7 +247,7 @@ class Test
             var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 text,
                 references: new[] { asm01, asm02 },
                 assemblyName: "OHI_ExpImpVBImpl001",
@@ -363,13 +363,13 @@ class Test
 
             var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
 
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
                 text1,
                 references: new[] { asm01 },
                 assemblyName: "OHI_ExpImpPropImpl001",
                 options: TestOptions.ReleaseDll);
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 text2,
                 references: new MetadataReference[] { asm01, new CSharpCompilationReference(comp1) },
                 assemblyName: "OHI_ExpImpPropImpl002",
@@ -378,7 +378,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: @"WriteReadOnly NormProp 123456");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestExplicitImplSignatureMismatches_ParamsAndOptionals()
         {
             // Tests:
@@ -986,10 +986,10 @@ class C : Q::I
 }
 ";
 
-            var libComp = CreateStandardCompilation(libSource);
+            var libComp = CreateCompilation(libSource);
             libComp.VerifyDiagnostics();
 
-            var comp = CreateStandardCompilation(source, new[] { new CSharpCompilationReference(libComp, aliases: ImmutableArray.Create("Q")) });
+            var comp = CreateCompilation(source, new[] { new CSharpCompilationReference(libComp, aliases: ImmutableArray.Create("Q")) });
             comp.VerifyDiagnostics();
 
             var classC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -1031,21 +1031,21 @@ class C : A::I, B::I
 }
 ";
 
-            var libComp1 = CreateStandardCompilation(libSource, assemblyName: "lib1");
+            var libComp1 = CreateCompilation(libSource, assemblyName: "lib1");
             libComp1.VerifyDiagnostics();
 
-            var libComp2 = CreateStandardCompilation(libSource, assemblyName: "lib2");
+            var libComp2 = CreateCompilation(libSource, assemblyName: "lib2");
             libComp2.VerifyDiagnostics();
 
             // Same reference, two aliases.
-            var comp1 = CreateStandardCompilation(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("B")) });
+            var comp1 = CreateCompilation(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("B")) });
             comp1.VerifyDiagnostics(
                 // (5,17): error CS0528: 'I' is already listed in interface list
                 // class C : A::I, B::I
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "B::I").WithArguments("I"));
 
             // Two assemblies with the same content, two aliases.
-            var comp2 = CreateStandardCompilation(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp2, aliases: ImmutableArray.Create("B")) });
+            var comp2 = CreateCompilation(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp2, aliases: ImmutableArray.Create("B")) });
             var verifier2 = CompileAndVerify(comp2, expectedSignatures: new[]
             {
                 Signature("C", "A::I.M", ".method private hidebysig newslot virtual final instance System.Void A::I.M() cil managed"),

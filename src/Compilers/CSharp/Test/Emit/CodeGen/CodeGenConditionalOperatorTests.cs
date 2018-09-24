@@ -124,7 +124,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
         }
@@ -1468,7 +1468,7 @@ class Program
             string expectedOutput = @"aaa
 bbb
 ccc";
-            CompileAndVerify(source, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1537,7 +1537,7 @@ class Goo
 ";
             string expectedOutput = @"10
 -10";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1557,7 +1557,7 @@ class Program
 }
 ";
             string expectedOutput = @"100";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1588,7 +1588,7 @@ public struct TestStruct
 }
 ";
             string expectedOutput = @"10";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1641,11 +1641,9 @@ class Program
   IL_000a:  call       ""void System.Console.WriteLine(object)""
   IL_000f:  ret       
 }";
-            MetadataReference[] metadataRef = new[] { LinqAssemblyRef };
-
             // Dev11 compiler reports WRN_UnreachableExpr, but reachability is defined for statements not for expressions.
             // We don't report the warning.
-            CompileAndVerify(source, additionalRefs: metadataRef, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1693,7 +1691,7 @@ class Program
   IL_0036:  call       ""void System.Console.WriteLine(decimal)""
   IL_003b:  ret
 }";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }).VerifyIL("Program.Main", expectedIL);
+            CompileAndVerify(source).VerifyIL("Program.Main", expectedIL);
         }
 
         [Fact, WorkItem(530071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530071")]
@@ -1718,7 +1716,7 @@ class Program
 3";
             // Dev11 compiler reports WRN_UnreachableExpr, but reachability is defined for statements not for expressions.
             // We don't report the warning.
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput).
+            CompileAndVerify(source, expectedOutput: expectedOutput).
                 VerifyDiagnostics();
         }
 

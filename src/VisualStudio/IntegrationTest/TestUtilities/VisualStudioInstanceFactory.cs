@@ -5,18 +5,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using EnvDTE;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Setup.Configuration;
-using Process = System.Diagnostics.Process;
 using RunTests;
+using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -105,14 +101,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// Returns a <see cref="VisualStudioInstanceContext"/>, starting a new instance of Visual Studio if necessary.
         /// </summary>
-        public VisualStudioInstanceContext GetNewOrUsedInstance(ImmutableHashSet<string> requiredPackageIds)
+        public async Task<VisualStudioInstanceContext> GetNewOrUsedInstanceAsync(ImmutableHashSet<string> requiredPackageIds)
         {
             ThrowExceptionIfAlreadyHasActiveContext();
 
-            bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
-            UpdateCurrentlyRunningInstance(requiredPackageIds, shouldStartNewInstance);
+            try
+            {
+                bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
+                await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
 
-            return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
+                return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
+            }
+            catch
+            {
+                // Make sure the next test doesn't try to reuse the same instance
+                NotifyCurrentInstanceContextDisposed(canReuse: false);
+                throw;
+            }
         }
 
         internal void NotifyCurrentInstanceContextDisposed(bool canReuse)
@@ -151,7 +156,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// Starts up a new <see cref="VisualStudioInstance"/>, shutting down any instances that are already running.
         /// </summary>
-        private void UpdateCurrentlyRunningInstance(ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
+        private async Task UpdateCurrentlyRunningInstanceAsync(ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
         {
             Process hostProcess;
             DTE dte;
@@ -176,18 +181,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 }
 
                 // We wait until the DTE instance is up before we're good
-                dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).Result;
+                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(false);
             }
             else
             {
-                // We are going to reuse the currently running instance, so ensure that we grab the host Process and Dte
+                // We are going to reuse the currently running instance, so ensure that we grab the host Process and DTE
                 // before cleaning up any hooks or remoting services created by the previous instance. We will then
                 // create a new VisualStudioInstance from the previous to ensure that everything is in a 'clean' state.
+                //
+                // We create a new DTE instance in the current context since the COM object could have been separated
+                // from its RCW during the previous test.
 
                 Debug.Assert(_currentlyRunningInstance != null);
 
                 hostProcess = _currentlyRunningInstance.HostProcess;
-                dte = _currentlyRunningInstance.Dte;
+                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(false);
                 supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
                 installationPath = _currentlyRunningInstance.InstallationPath;
 
@@ -225,14 +233,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static ISetupInstance LocateVisualStudioInstance(ImmutableHashSet<string> requiredPackageIds)
         {
-            var vsInstallDir = Environment.GetEnvironmentVariable("VSInstallDir");
+            var vsInstallDir = Environment.GetEnvironmentVariable("__UNITTESTEXPLORER_VSINSTALLPATH__")
+                ?? Environment.GetEnvironmentVariable("VSAPPIDDIR");
+            if (vsInstallDir != null)
+            {
+                vsInstallDir = Path.GetFullPath(Path.Combine(vsInstallDir, @"..\.."));
+            }
+            else
+            {
+                vsInstallDir = Environment.GetEnvironmentVariable("VSInstallDir");
+            }
+
             var haveVsInstallDir = !string.IsNullOrEmpty(vsInstallDir);
 
             if (haveVsInstallDir)
             {
                 vsInstallDir = Path.GetFullPath(vsInstallDir);
                 vsInstallDir = vsInstallDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                Debug.WriteLine($"An environment variable named 'VSInstallDir' was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
+                Debug.WriteLine($"An environment variable named 'VSInstallDir' (or equivalent) was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
             }
 
             var instances = EnumerateVisualStudioInstances().Where((instance) => {

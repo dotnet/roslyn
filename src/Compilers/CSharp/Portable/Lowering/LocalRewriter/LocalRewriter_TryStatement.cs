@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (statement.Kind)
             {
                 case BoundKind.NoOpStatement:
-                    return true;
+                    return false;
                 case BoundKind.Block:
                     {
                         var block = (BoundBlock)statement;

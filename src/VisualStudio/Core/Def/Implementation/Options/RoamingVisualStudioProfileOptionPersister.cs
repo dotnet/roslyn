@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -77,7 +78,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
             }
 
-            return SpecializedTasks.EmptyTask;
+            return System.Threading.Tasks.Task.CompletedTask;
+        }
+
+        private object GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<RoamingProfileStorageLocation> roamingSerializations)
+        {
+            // There can be more than 1 roaming location in the order of their priority.
+            // When fetching a value, we iterate all of them until we find the first one that exists.
+            // When persisting a value, we always use the first location.
+            // This functionality exists for breaking changes to persistence of some options. In such a case, there
+            // will be a new location added to the beginning with a new name. When fetching a value, we might find the old
+            // location (and can upgrade the value accordingly) but we only write to the new location so that
+            // we don't interfere with older versions. This will essentially "fork" the user's options at the time of upgrade.
+
+            foreach (var roamingSerialization in roamingSerializations)
+            {
+                var storageKey = roamingSerialization.GetKeyNameForLanguage(optionKey.Language);
+
+                RecordObservedValueToWatchForChanges(optionKey, storageKey);
+
+                if (_settingManager.TryGetValue(storageKey, out object value) == GetValueResult.Success)
+                {
+                    return value;
+                }
+            }
+
+            return optionKey.Option.DefaultValue;
         }
 
         public bool TryFetch(OptionKey optionKey, out object value)
@@ -90,19 +116,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             // Do we roam this at all?
-            var roamingSerialization = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>().SingleOrDefault();
+            var roamingSerializations = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>();
 
-            if (roamingSerialization == null)
+            if (!roamingSerializations.Any())
             {
                 value = null;
                 return false;
             }
 
-            var storageKey = roamingSerialization.GetKeyNameForLanguage(optionKey.Language);
-
-            RecordObservedValueToWatchForChanges(optionKey, storageKey);
-
-            value = _settingManager.GetValueOrDefault(storageKey, optionKey.Option.DefaultValue);
+            value = GetFirstOrDefaultValue(optionKey, roamingSerializations);
 
             // VS's ISettingsManager has some quirks around storing enums.  Specifically,
             // it *can* persist and retrieve enums, but only if you properly call 
@@ -120,13 +142,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     value = Enum.ToObject(optionKey.Option.Type, value);
                 }
             }
-            else if (optionKey.Option.Type == typeof(CodeStyleOption<bool>))
+            else if (typeof(ICodeStyleOption).IsAssignableFrom (optionKey.Option.Type))
             {
-                return DeserializeCodeStyleOption<bool>(ref value);
-            }
-            else if (optionKey.Option.Type == typeof(CodeStyleOption<ExpressionBodyPreference>))
-            {
-                return DeserializeCodeStyleOption<ExpressionBodyPreference>(ref value);
+                return DeserializeCodeStyleOption(ref value, optionKey.Option.Type);
             }
             else if (optionKey.Option.Type == typeof(NamingStylePreferences))
             {
@@ -177,13 +195,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return true;
         }
 
-        private bool DeserializeCodeStyleOption<T>(ref object value)
+        private bool DeserializeCodeStyleOption(ref object value, Type type)
         {
             if (value is string serializedValue)
             {
                 try
                 {
-                    value = CodeStyleOption<T>.FromXElement(XElement.Parse(serializedValue));
+                    var fromXElement = type.GetMethod(nameof(CodeStyleOption<object>.FromXElement), BindingFlags.Public | BindingFlags.Static);
+
+                    value = fromXElement.Invoke(null, new object[] { XElement.Parse(serializedValue) });
                     return true;
                 }
                 catch (Exception)
@@ -218,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             // Do we roam this at all?
-            var roamingSerialization = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>().SingleOrDefault();
+            var roamingSerialization = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>().FirstOrDefault();
 
             if (roamingSerialization == null)
             {

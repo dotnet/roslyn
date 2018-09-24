@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -48,17 +49,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected virtual int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
         {
+            var subjectBuffer = WpfTextView.GetBufferContainingCaret();
+            if (subjectBuffer == null)
+            {
+                pbstrText = null;
+                return VSConstants.E_FAIL;
+            }
+
+            return GetDataTipTextImpl(subjectBuffer, pSpan, out pbstrText);
+        }
+ 
+        protected int GetDataTipTextImpl(ITextBuffer subjectBuffer, TextSpan[] pSpan, out string pbstrText)
+        {
             pbstrText = null;
 
             var debugInfo = LanguageService.LanguageDebugInfo;
             if (debugInfo != null)
             {
-                var subjectBuffer = WpfTextView.GetBufferContainingCaret();
-                if (subjectBuffer == null)
-                {
-                    return VSConstants.E_FAIL;
-                }
-
                 var vsBuffer = EditorAdaptersFactory.GetBufferAdapter(subjectBuffer);
 
                 // TODO: broken in REPL

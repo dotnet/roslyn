@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -228,8 +229,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                             ISymbol owningSymbol,
                                                             Compilation compilation,
                                                             AnalyzerOptions options,
+                                                            Func<IOperation, ControlFlowGraph> getControlFlowGraph,
                                                             CancellationToken cancellationToken)
-            : base(operationBlocks, owningSymbol, compilation, options, cancellationToken)
+            : base(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;
@@ -281,6 +283,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void EnableConcurrentExecution(DiagnosticAnalyzer analyzer)
         {
             _concurrentAnalyzers = _concurrentAnalyzers.Add(analyzer);
+            GetOrCreateAnalyzerActions(analyzer).EnableConcurrentExecution();
         }
 
         public void ConfigureGeneratedCodeAnalysis(DiagnosticAnalyzer analyzer, GeneratedCodeAnalysisFlags mode)
@@ -707,6 +710,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
         private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
         private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
+        private bool _concurrent;
 
         internal AnalyzerActions()
         {
@@ -726,6 +730,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public int CodeBlockStartActionsCount { get { return _codeBlockStartActions.Length; } }
         public int CodeBlockEndActionsCount { get { return _codeBlockEndActions.Length; } }
         public int CodeBlockActionsCount { get { return _codeBlockActions.Length; } }
+        public bool Concurrent => _concurrent;
 
         internal ImmutableArray<CompilationStartAnalyzerAction> CompilationStartActions
         {
@@ -867,6 +872,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _operationActions = _operationActions.Add(action);
         }
 
+        internal void EnableConcurrentExecution()
+        {
+            _concurrent = true;
+        }
+
         /// <summary>
         /// Append analyzer actions from <paramref name="otherActions"/> to actions from this instance.
         /// </summary>
@@ -893,6 +903,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             actions._operationBlockStartActions = _operationBlockStartActions.AddRange(otherActions._operationBlockStartActions);
             actions._operationBlockEndActions = _operationBlockEndActions.AddRange(otherActions._operationBlockEndActions);
             actions._operationBlockActions = _operationBlockActions.AddRange(otherActions._operationBlockActions);
+            actions._concurrent = actions._concurrent || otherActions.Concurrent;
 
             return actions;
         }

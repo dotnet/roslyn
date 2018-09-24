@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override MethodSymbol CurrentMethod
         {
-            get { return F.CurrentMethod; }
+            get { return F.CurrentFunction; }
         }
 
         protected override NamedTypeSymbol ContainingType
