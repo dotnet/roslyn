@@ -7,7 +7,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
-namespace Roslyn.VisualStudio.IntegrationTests.Other
+namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpUpdateProjectToAllowUnsafe : AbstractUpdateProjectTest
