@@ -254,21 +254,7 @@ function Build-Artifacts() {
     }
 
     if ($build -and $pack -and (-not $buildCoreClr)) {
-        Build-InsertionItems
         Build-Installer
-    }
-}
-
-function Build-InsertionItems() {
-
-    $setupDir = Join-Path $repoDir "src\Setup"
-    Push-Location $setupDir
-    try {
-        Write-Host "Building VS Insertion artifacts"
-        Exec-Console (Join-Path $configDir "Exes\Roslyn.BuildDevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $(Get-PackagesDir)"
-    }
-    finally {
-        Pop-Location
     }
 }
 
