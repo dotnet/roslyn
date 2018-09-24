@@ -1498,7 +1498,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             right = assignment.Right
         End Sub
 
-
         Public Function GetNameOfMemberAccessExpression(memberAccessExpression As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetNameOfMemberAccessExpression
             Return DirectCast(memberAccessExpression, MemberAccessExpressionSyntax).Name
         End Function
