@@ -54,9 +54,6 @@
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Setup\DevDivPackages\Debugger\DevDivPackagesDebugger_DoNotUse.csproj" />
-  </ItemGroup>
 
   <!--
     Workaround to make Roslyn work on Dev15. Deploys System.ValueTuple 4.0.3.0 and binding redirects to override System.ValueTuple 4.0.1.0 in PrivateAssemblies.
