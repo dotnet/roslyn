@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
-                var locations = ImmutableArray.Create<Location>(location);
+                var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
                 var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
 
                 builder.Add(parameter);

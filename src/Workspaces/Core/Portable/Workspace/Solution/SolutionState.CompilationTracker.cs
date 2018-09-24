@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         inProgressCompilation = inProgressCompilation.AddSyntaxTrees(tree);
                         Debug.Assert(!inProgressProject.DocumentIds.Contains(docState.Id));
-                        inProgressProject = inProgressProject.AddDocument(docState);
+                        inProgressProject = inProgressProject.AddDocuments(ImmutableArray.Create(docState));
                     }
                 }
 
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    Contract.Requires(inProgressCompilation != null);
+                    Debug.Assert(inProgressCompilation != null);
                     var intermediateProjects = state.IntermediateProjects;
 
                     while (intermediateProjects.Length > 0)
@@ -784,18 +784,28 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
+            /// check whether the compilation contains any declaration symbol from syntax trees with
+            /// given name
+            /// </summary>
+            public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(string name, SymbolFilter filter, CancellationToken cancellationToken)
+            {
+                // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
+                var state = this.ReadState();
+                return state.DeclarationOnlyCompilation == null
+                    ? default(bool?)
+                    : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(name, filter, cancellationToken);
+            }
+
+            /// <summary>
             /// check whether the compilation contains any declaration symbol from syntax trees with given name
             /// </summary>
             public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
             {
-                var state = this.ReadState();
-                if (state.DeclarationOnlyCompilation == null)
-                {
-                    return null;
-                }
-
                 // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
-                return state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
+                var state = this.ReadState();
+                return state.DeclarationOnlyCompilation == null
+                    ? default(bool?)
+                    : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
             }
 
             /// <summary>

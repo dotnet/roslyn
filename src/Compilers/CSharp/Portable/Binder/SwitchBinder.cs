@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // bind the pattern, to cause its pattern variables to be inferred if necessary
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
                         var pattern = sectionBinder.BindPattern(
-                            matchLabel.Pattern, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag);
+                            SwitchGoverningExpression, matchLabel.Pattern, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag);
                         break;
 
                     default:
@@ -545,6 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundSwitchSection BindSwitchSection(SwitchSectionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             var sectionBinder = originalBinder.GetBinder(node);
+            var locals = sectionBinder.GetDeclaredLocalsForScope(node);
 
             // Bind switch section labels
             var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
@@ -567,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatementsBuilder.Add(boundStatement);
             }
 
-            return new BoundSwitchSection(node, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
+            return new BoundSwitchSection(node, locals, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
         }
 
         internal static bool ContainsUsingVariable(BoundStatement boundStatement)

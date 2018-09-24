@@ -2760,7 +2760,7 @@ End Class
 </compilation>, expectedOutput:="Success=a").VerifyDiagnostics()
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub TestWith_MyBase()
             Dim c = CompileAndVerify(
 <compilation>

@@ -31,14 +31,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         [ImportingConstructor]
         public DiagnosticProgressReporter(
-            SVsServiceProvider serviceProvider,
+            SVsTaskStatusCenterService taskStatusCenterService,
             IDiagnosticService diagnosticService,
             VisualStudioWorkspace workspace)
         {
             _lastTimeReported = DateTimeOffset.UtcNow;
 
-            _taskCenterService = (IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService));
+            _taskCenterService = (IVsTaskStatusCenterService)taskStatusCenterService;
             _diagnosticService = diagnosticService;
+
+            _options = new TaskHandlerOptions()
+            {
+                Title = ServicesVSResources.Live_code_analysis,
+                ActionsAfterCompletion = CompletionActions.None
+            };
 
             var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(workspace);
@@ -48,12 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // no event unsubscription since it will remain alive until VS shutdown
             reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
-
-            _options = new TaskHandlerOptions()
-            {
-                Title = ServicesVSResources.Live_code_analysis,
-                ActionsAfterCompletion = CompletionActions.None
-            };
         }
 
         private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)

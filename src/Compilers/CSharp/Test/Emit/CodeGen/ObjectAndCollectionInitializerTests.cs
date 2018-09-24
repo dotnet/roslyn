@@ -1347,7 +1347,7 @@ struct A
 2
 3";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      194 (0xc2)
@@ -1485,7 +1485,7 @@ get
 get
 3";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      222 (0xde)
@@ -1871,7 +1871,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]

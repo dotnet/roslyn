@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,9 +29,9 @@ namespace Microsoft.CodeAnalysis
                 return new ProjectParseOptionsAction(state);
             }
 
-            public static CompilationTranslationAction AddDocument(DocumentState state)
+            public static CompilationTranslationAction AddDocuments(ImmutableArray<DocumentState> state)
             {
-                return new AddDocumentAction(state);
+                return new AddDocumentsAction(state);
             }
 
             public static CompilationTranslationAction RemoveDocument(DocumentState state)

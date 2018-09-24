@@ -35,12 +35,12 @@
     <!-- Do not use generic CodeAction.Create to create CodeAction - not useful for tests -->
     <Rule Id="RS0005" Action="None" />
   </Rules>
-  
+
   <Rules AnalyzerId="Microsoft.CodeQuality.Analyzers.Exp" RuleNamespace="Microsoft.CodeQuality.Analyzers.Exp">
     <!-- Dispose rules turned off for non-shipping projects due to large number of violation count -->
     <!-- https://github.com/dotnet/roslyn/issues/25129 tracks fixing/suppressing these violations and removing the below entries -->
     <Rule Id="CA2000" Action="None" />
     <Rule Id="CA2213" Action="None" />
     <Rule Id="CA1063" Action="None" />
-  </Rules>  
+  </Rules>
 </RuleSet>

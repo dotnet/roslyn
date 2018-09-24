@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                     c => FixAsync(context.Document, firstDiagnostic, c),
                     firstDiagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey]),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                         current, includeElasticTrivia: false, addSimplifierAnnotation: false));
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

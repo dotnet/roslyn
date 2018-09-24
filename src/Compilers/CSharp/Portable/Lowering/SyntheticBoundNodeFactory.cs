@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var label = GenerateLabel("case+" + value);
             var literal = Literal(value);
             var switchLabel = new BoundSwitchLabel(Syntax, label, literal, literal.ConstantValue) { WasCompilerGenerated = true };
-            return new BoundSwitchSection(Syntax, ImmutableArray.Create<BoundSwitchLabel>(switchLabel), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
+            return new BoundSwitchSection(Syntax, locals: ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundSwitchLabel>(switchLabel), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
         }
 
         public BoundSwitchSection SwitchSection(List<int> values, params BoundStatement[] statements)
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(new BoundSwitchLabel(Syntax, label, expression, expression.ConstantValue) { WasCompilerGenerated = true });
             }
 
-            return new BoundSwitchSection(Syntax, builder.ToImmutableAndFree(), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
+            return new BoundSwitchSection(Syntax, locals: ImmutableArray<LocalSymbol>.Empty, builder.ToImmutableAndFree(), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
         }
 
         public BoundGotoStatement Goto(LabelSymbol label)
@@ -1275,12 +1275,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            if (refKind == RefKind.Out)
+            MethodSymbol containingMethod = this.CurrentFunction;
+
+            switch (refKind)
             {
-                refKind = RefKind.Ref;
+                case RefKind.Out:
+                    refKind = RefKind.Ref;
+                    break;
+
+                case RefKind.In:
+                    if (!Binder.HasHome(argument,
+                                        Binder.AddressKind.ReadOnly,
+                                        containingMethod,
+                                        Compilation.IsPeVerifyCompatEnabled,
+                                        stackLocalsOpt: null))
+                    {
+                        // If there was an explicit 'in' on the argument then we should have verified
+                        // earlier that we always have a home.
+                        Debug.Assert(argument.GetRefKind() != RefKind.In);
+                        refKind = RefKind.None;
+                    }
+                    break;
+
+                case RefKind.None:
+                case RefKind.Ref:
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
             }
 
-            MethodSymbol containingMethod = this.CurrentFunction;
             var syntax = argument.Syntax;
             var type = argument.Type;
 

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -190,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (diagnostic == null)
                 {
                     // guard us from wrong provider that gives null diagnostic
-                    Contract.Requires(false, "Let's see who does this");
+                    Debug.Assert(false, "Let's see who does this");
                     return false;
                 }
 

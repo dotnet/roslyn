@@ -48,10 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             public event Action<ITrackingSpan> TrackingSessionCleared = delegate { };
 
             public StateMachine(
+                IThreadingContext threadingContext,
                 ITextBuffer buffer,
                 IInlineRenameService inlineRenameService,
                 IAsynchronousOperationListener asyncListener,
                 IDiagnosticAnalyzerService diagnosticAnalyzerService)
+                : base(threadingContext)
             {
                 _buffer = buffer;
                 _buffer.Changed += Buffer_Changed;

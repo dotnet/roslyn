@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2658,7 +2658,7 @@ class Program
     // (10,17): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
     //                 return 2;
     Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(10, 17),
-    // (13,20): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (13,20): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         int Bar => 2;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "2").WithLocation(13, 20),
     // (13,9): warning CS0162: Unreachable code detected
@@ -3751,7 +3751,7 @@ class C<T>
             public int SomeGlobal => 42;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CanAccessScriptGlobalsFromInsideMethod()
         {
             var source = @"
@@ -3767,7 +3767,7 @@ void Method()
                 .VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CanAccessScriptGlobalsFromInsideLambda()
         {
             var source = @"

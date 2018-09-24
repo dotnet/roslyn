@@ -1101,6 +1101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                     return;
 
+                case SyntaxKind.DiscardDesignation:
+                    return;
+
                 default: throw ExceptionUtilities.UnexpectedValue(designation.Kind());
             }
         }

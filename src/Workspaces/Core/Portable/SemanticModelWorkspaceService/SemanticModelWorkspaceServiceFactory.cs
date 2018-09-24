@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         var documentId = project.GetDocumentId(tree);
                         if (documentId != null)
                         {
-                            yield return KeyValuePair.Create(documentId, tree);
+                            yield return KeyValuePairUtil.Create(documentId, tree);
                         }
                     }
                 }
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 private static void ValidateTreeMap(ImmutableDictionary<DocumentId, SyntaxTree> actual, Project project, Compilation compilation)
                 {
                     var expected = ImmutableDictionary.CreateRange(GetNewTreeMap(project, compilation));
-                    Contract.Requires(actual.SetEquals(expected));
+                    Debug.Assert(actual.SetEquals(expected));
                 }
             }
         }

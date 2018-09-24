@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(

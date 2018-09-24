@@ -518,7 +518,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             private bool TryOptimizeBranchToEquivalent(BasicBlock next, ref int delta)
             {
                 var curBranchCode = this.BranchCode;
-                if (curBranchCode.IsConditionalBranch())
+                if (curBranchCode.IsConditionalBranch() &&
+                    next.EnclosingHandler == this.EnclosingHandler)
                 {
                     // check for branch to next, 
                     // or if both blocks are identical

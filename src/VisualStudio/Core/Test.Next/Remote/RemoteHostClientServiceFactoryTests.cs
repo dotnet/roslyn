@@ -9,7 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -218,7 +220,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
 
-            var factory = new RemoteHostClientServiceFactory(listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider, analyzerService);
+            var threadingContext = ((IMefHostExportProvider)workspace.Services.HostServices).GetExports<IThreadingContext>().Single().Value;
+            var factory = new RemoteHostClientServiceFactory(threadingContext, listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider, analyzerService);
             return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
         }
 
@@ -245,7 +248,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 Event.WaitOne();
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 
@@ -264,13 +267,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
         {
-            public Task LogExceptionAsync(string exception, string text) => SpecializedTasks.EmptyTask;
-            public Task LogInfoAsync(string text) => SpecializedTasks.EmptyTask;
+            public Task LogExceptionAsync(string exception, string text) => Task.CompletedTask;
+            public Task LogInfoAsync(string text) => Task.CompletedTask;
 
-            public Task OnDownloadFullDatabaseStartedAsync(string title) => SpecializedTasks.EmptyTask;
-            public Task OnDownloadFullDatabaseSucceededAsync() => SpecializedTasks.EmptyTask;
-            public Task OnDownloadFullDatabaseCanceledAsync() => SpecializedTasks.EmptyTask;
-            public Task OnDownloadFullDatabaseFailedAsync(string message) => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseStartedAsync(string title) => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseSucceededAsync() => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseCanceledAsync() => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseFailedAsync(string message) => Task.CompletedTask;
         }
     }
 }

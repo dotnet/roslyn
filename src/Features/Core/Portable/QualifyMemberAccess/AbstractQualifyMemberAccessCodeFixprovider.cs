@@ -12,9 +12,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 {
-    internal abstract class AbstractQualifyMemberAccessCodeFixprovider<TSimpleNameSyntax> 
+    internal abstract class AbstractQualifyMemberAccessCodeFixprovider<TSimpleNameSyntax, TInvocationSyntax> 
         : SyntaxEditorBasedCodeFixProvider 
         where TSimpleNameSyntax : SyntaxNode
+        where TInvocationSyntax : SyntaxNode
     {
         protected abstract string GetTitle();
 
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
             foreach (var diagnostic in diagnostics)
             {
-                var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as TSimpleNameSyntax;
+                var node = GetNode(diagnostic, cancellationToken);
                 if (node != null)
                 {
                     var qualifiedAccess =
@@ -53,6 +54,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 }
             }
         }
+
+        protected abstract TSimpleNameSyntax GetNode(Diagnostic diagnostic, CancellationToken cancellationToken);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

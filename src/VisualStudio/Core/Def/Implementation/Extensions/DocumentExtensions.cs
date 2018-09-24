@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
             var codeBlocks = new List<Tuple<TextSpan, uint>>();
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = document.GetTextSynchronously(cancellationToken);
 
             int start = 0;
             uint cookie = 0;

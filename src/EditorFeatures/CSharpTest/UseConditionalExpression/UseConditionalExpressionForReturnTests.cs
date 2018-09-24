@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression
@@ -549,6 +550,276 @@ class C
     ref int M(ref int i, ref int j)
     {
         return ref true ? ref i : ref j;
+    }
+}");
+        }
+
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnYieldReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int M()
+    {
+        [||]if (true)
+        {
+            yield return 0;
+        }
+        else
+        {
+            yield return 1;
+        }
+    }
+}",
+@"
+class C
+{
+    int M()
+    {
+        yield return true ? 0 : 1;
+    }
+}");
+        }
+
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnYieldReturn_IEnumerableReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        [||]if (true)
+        {
+            yield return 0;
+        }
+        else
+        {
+            yield return 1;
+        }
+    }
+}",
+@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        yield return true ? 0 : 1;
+    }
+}");
+        }
+
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotOnMixedYields()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int M()
+    {
+        [||]if (true)
+        {
+            yield break;
+        }
+        else
+        {
+            yield return 1;
+        }
+    }
+}");
+        }
+
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotOnMixedYields_IEnumerableReturnType()
+        {
+            await TestMissingAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        [||]if (true)
+        {
+            yield break;
+        }
+        else
+        {
+            yield return 1;
+        }
+    }
+}");
+        }
+
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotWithNoElseBlockButFollowingYieldReturn()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M()
+    {
+        [||]if (true)
+        {
+            yield return 0;
+        }
+
+        yield return 1;
+    }
+}");
+        }
+
+        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotWithNoElseBlockButFollowingYieldReturn_IEnumerableReturnType()
+        {
+            await TestMissingAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        [||]if (true)
+        {
+            yield return 0;
+        }
+
+        yield return 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestReturnTrueFalse1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    bool M(int a)
+    {
+        [||]if (a == 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+}",
+@"
+class C
+{
+    bool M(int a)
+    {
+        return a == 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestReturnTrueFalse2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    bool M(int a)
+    {
+        [||]if (a == 0)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+}",
+@"
+class C
+{
+    bool M(int a)
+    {
+        return a != 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestReturnTrueFalse3()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    bool M(int a)
+    {
+        [||]if (a == 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+}",
+@"
+class C
+{
+    bool M(int a)
+    {
+        return a != 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestReturnTrueFalse4()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<bool> M(int a)
+    {
+        [||]if (a == 0)
+        {
+            yield return false;
+        }
+        else
+        {
+            yield return true;
+        }
+    }
+}",
+@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<bool> M(int a)
+    {
+        yield return a != 0;
     }
 }");
         }
