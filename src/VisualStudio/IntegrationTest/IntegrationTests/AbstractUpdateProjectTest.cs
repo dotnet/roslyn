@@ -20,7 +20,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             // Save the project file.
             VisualStudio.SolutionExplorer.SaveAll();
-            VisualStudio.WaitForApplicationIdle(cancellationToken: default);
 
             var projectFileContent = VisualStudio.SolutionExplorer.GetFileContents(project, Path.GetFileName(project.RelativePath));
             return XElement.Parse(projectFileContent);
