@@ -21,6 +21,23 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemIEquatable1 = "System.IEquatable`1";
         public const string SystemWebUIWebControlsSqlDataSource = "System.Web.UI.WebControls.SqlDataSource";
+        public const string SystemDataSqlClientSqlParameter = "System.Data.SqlClient.SqlParameter";
+        public const string SystemDataOleDbOleDbParameter = "System.Data.OleDb.OleDbParameter";
+        public const string SystemDataOdbcOdbcParameter = "System.Data.Odbc.OdbcParameter";
+        public const string SystemBoolean = "System.Boolean";
+        public const string SystemByte = "System.Byte";
+        public const string SystemChar = "System.Char";
+        public const string SystemDateTime = "System.DateTime";
+        public const string SystemDecimal = "System.Decimal";
+        public const string SystemDouble = "System.Double";
+        public const string SystemGlobalizationTimeSpanParse = "System.Globalization.TimeSpanParse";
+        public const string SystemGuid = "System.Guid";
+        public const string SystemInt16 = "System.Int16";
+        public const string SystemInt32 = "System.Int32";
+        public const string SystemInt64 = "System.Int64";
+        public const string SystemNumber = "System.Number";
+        public const string SystemSingle = "System.Single";
+        public const string SystemTimeSpan = "System.TimeSpan";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {

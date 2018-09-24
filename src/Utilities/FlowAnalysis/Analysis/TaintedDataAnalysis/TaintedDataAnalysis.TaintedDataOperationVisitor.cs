@@ -171,9 +171,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 TaintedDataAbstractValue defaultValue)
             {
                 // Always invoke base visit.
-                TaintedDataAbstractValue baseVisit = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
+                TaintedDataAbstractValue baseVisit = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
+                    method, 
+                    visitedInstance,
+                    visitedArguments, 
+                    invokedAsDelegate, 
+                    originalOperation, 
+                    defaultValue);
 
                 ProcessRegularInvocationOrCreation(method, visitedArguments, originalOperation);
+
+                if (PrimitiveTypeConverterSanitizers.IsSanitizingMethod(this.WellKnownTypeProvider, method))
+                {
+                    return TaintedDataAbstractValue.NotTainted;
+                }
 
                 if (visitedInstance != null)
                 {

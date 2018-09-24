@@ -33,6 +33,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             HttpRequest = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemWebHttpRequest);
             IDbCommand = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemDataIDbCommand);
             WebControlsSqlDataSource = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemWebUIWebControlsSqlDataSource);
+            Boolean = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemBoolean);
+            Byte = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemByte);
+            Char = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemChar);
+            DateTime = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemDateTime);
+            Decimal = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemDecimal);
+            Double = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemDouble);
+            TimeSpanParse = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemGlobalizationTimeSpanParse);
+            Guid = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemGuid);
+            Int16 = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemInt16);
+            Int32 = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemInt32);
+            Int64 = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemInt64);
+            Number = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemNumber);
+            Single = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemSingle);
+            TimeSpan = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemTimeSpan);
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation) => s_providerCache.GetValue(compilation, s_ProviderCacheCallback);
@@ -89,6 +103,76 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         public INamedTypeSymbol WebControlsSqlDataSource { get; }
 
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Boolean"/>
+        /// </summary>
+        public INamedTypeSymbol Boolean { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Byte"/>
+        /// </summary>
+        public INamedTypeSymbol Byte { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Char"/>
+        /// </summary>
+        public INamedTypeSymbol Char { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.DateTime"/>
+        /// </summary>
+        public INamedTypeSymbol DateTime { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Decimal"/>
+        /// </summary>
+        public INamedTypeSymbol Decimal { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Double"/>
+        /// </summary>
+        public INamedTypeSymbol Double { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Globalization.TimeSpanParse"/>
+        /// </summary>
+        public INamedTypeSymbol TimeSpanParse { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Guid"/>
+        /// </summary>
+        public INamedTypeSymbol Guid { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Int16"/>
+        /// </summary>
+        public INamedTypeSymbol Int16 { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Int32"/>
+        /// </summary>
+        public INamedTypeSymbol Int32 { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Int64"/>
+        /// </summary>
+        public INamedTypeSymbol Int64 { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Number"/>
+        /// </summary>
+        public INamedTypeSymbol Number { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.Single"/>
+        /// </summary>
+        public INamedTypeSymbol Single { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"> for <see cref="System.TimeSpan"/>
+        /// </summary>
+        public INamedTypeSymbol TimeSpan { get; }
+        
         /// <summary>
         /// Set containing following named types, if not null:
         /// 1. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.ICollection"/>
