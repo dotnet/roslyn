@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -189,8 +188,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             Document document, ICodeCleanupService codeCleanupService,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
+            var docOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var organizeUsingsSet = new OrganizeUsingsSet(docOptions);
+            var enabledDiagnostics = codeCleanupService.GetEnabledDiagnostics(docOptions);
+
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, progressTracker, cancellationToken).ConfigureAwait(false);
+                document, organizeUsingsSet, enabledDiagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
 
             var changes = await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
             return changes.ToImmutableArrayOrEmpty();

@@ -196,8 +196,13 @@ class Program
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
                 var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+
+                var docOptions = await document.GetOptionsAsync(CancellationToken.None).ConfigureAwait(false);
+                var organizeUsingsSet = new OrganizeUsingsSet(docOptions);
+                var enabledDiagnostics = codeCleanupService.GetEnabledDiagnostics(docOptions);
+
                 var newDoc = await codeCleanupService.CleanupAsync(
-                    document, new ProgressTracker(), CancellationToken.None);
+                    document, organizeUsingsSet, enabledDiagnostics, new ProgressTracker(), CancellationToken.None);
 
                 var actual = await newDoc.GetTextAsync();
 

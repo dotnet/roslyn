@@ -7,15 +7,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.OrganizeImports;
-using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.CodeCleanup;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
@@ -99,64 +99,30 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 var buffer = textBufferScope.SubjectBuffer;
                 if (buffer != null)
                 {
+                    var progressTracker = new ProgressTracker();
                     var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    await CleanupDocument(document, cancellationToken).ConfigureAwait(false);
-                }
-            }
-            return false;
-        }
+                    var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
-        private async Task<bool> CleanupDocument(Document document, CancellationToken cancellationToken)
-        {
-            var oldDoc = document;
+                    var organizeUsingsSet = new OrganizeUsingsSet(true, true);
+                    var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
-            foreach (var errorCode in _errorCodes)
-            {
-                document = await _codeFixServiceOpt.ApplyCodeFixesForSpecificDiagnosticId(document, errorCode, cancellationToken).ConfigureAwait(true);
-            }
+                    var newDoc = await codeCleanupService.CleanupAsync(
+                        document, organizeUsingsSet, enabledDiagnostics, progressTracker, cancellationToken);
 
-            document = await RemoveAndSortUsingsAsync(document, cancellationToken).ConfigureAwait(true);
-
-            var codeCleanupChanges = await document.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
-            if (codeCleanupChanges != null && codeCleanupChanges.Any())
-            {
-                //progressTracker.Description = EditorFeaturesResources.Applying_changes; 
-                using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-                {
-                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, codeCleanupChanges, cancellationToken);
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        private async Task<Document> RemoveAndSortUsingsAsync(Document document, CancellationToken cancellationToken)
-        {
-            // removing unused usings:
-            if (_errorCodes.Contains(RemoveUnusedImports))
-            {
-                var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
-                if (removeUsingsService != null)
-                {
-                    using (Logger.LogBlock(FunctionId.CodeCleanup_RemoveUnusedImports, cancellationToken))
+                    var codeCleanupChanges = await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+                    if (codeCleanupChanges != null && codeCleanupChanges.Any())
                     {
-                        document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                        progressTracker.Description = EditorFeaturesResources.Applying_changes; 
+                        using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
+                        {
+                            newDoc.Project.Solution.Workspace.ApplyTextChanges(newDoc.Id, codeCleanupChanges, cancellationToken);
+                        }
+
+                        return true;
                     }
                 }
             }
-
-            // sort usings:
-            if (_errorCodes.Contains(SortImports))
-            {
-                using (Logger.LogBlock(FunctionId.CodeCleanup_SortImports, cancellationToken))
-                {
-                    document = await OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            return document;
+            return false;
         }
     }
 }
