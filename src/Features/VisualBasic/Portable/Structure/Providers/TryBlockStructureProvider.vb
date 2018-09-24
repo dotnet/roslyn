@@ -42,12 +42,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Function
 
         Friend Overrides Function GetEpilogueBlockOutlining(block As TryBlockSyntax, cancellationToken As Threading.CancellationToken) As BlockSpan?
-            If (block Is Nothing) OrElse
-               (block.FinallyBlock Is Nothing OrElse block.FinallyBlock.IsMissing) OrElse
-               (block.EndTryStatement Is Nothing OrElse block.EndTryStatement.IsMissing) Then
-                Return Nothing
-            End If
-            Return GetBlockSpan(block.FinallyBlock, block.FinallyBlock.FinallyStatement, block.EndTryStatement, block.FinallyBlock.FinallyStatement.FinallyKeyword.Text, IgnoreHeader:=False)
+            With block
+                If (block Is Nothing) OrElse
+                   (.FinallyBlock Is Nothing OrElse .FinallyBlock.IsMissing) OrElse
+                   (.EndTryStatement Is Nothing OrElse .EndTryStatement.IsMissing) Then
+                    Return Nothing
+                End If
+                Return GetBlockSpan(.FinallyBlock, .FinallyBlock.FinallyStatement, .EndTryStatement, .FinallyBlock.FinallyStatement.FinallyKeyword.Text, IgnoreHeader:=False)
+            End With
         End Function
 
         Friend Overrides Function GetEpilogueBlock(block As TryBlockSyntax) As FinallyBlockSyntax

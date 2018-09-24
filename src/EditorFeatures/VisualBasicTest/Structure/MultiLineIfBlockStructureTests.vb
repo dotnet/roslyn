@@ -27,7 +27,7 @@ End Class
                 Region("FullSpan", "If (True) ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
         Public Async Function TestIfBlock1a() As Task
             Const code = "
 Class C
@@ -45,7 +45,8 @@ End Class
                 Region("FullSpan", "If (True) ...", autoCollapse:=False),
                 Region("PreBlock", "...", autoCollapse:=False))
         End Function
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
         Public Async Function TestIfBlock2() As Task
             Const code = "
 Class C
@@ -69,7 +70,7 @@ End Class
                 Region("PostBlock", "Else", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
         Public Async Function TestIfBlock3() As Task
             Const code = "
 Class C
@@ -94,7 +95,7 @@ End Class
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
         Public Async Function TestIfBlock4() As Task
             Const code = "
 Class C

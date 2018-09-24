@@ -40,12 +40,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Function
 
         Friend Overrides Function GetEpilogueBlockOutlining(block As MultiLineIfBlockSyntax, cancellationToken As CancellationToken) As BlockSpan?
-            If (block Is Nothing) OrElse
-               (block.ElseBlock Is Nothing OrElse block.ElseBlock.IsMissing) OrElse
-               (block.EndIfStatement Is Nothing OrElse block.EndIfStatement.IsMissing) Then
-                Return Nothing
-            End If
-            Return GetBlockSpan(block.ElseBlock, block.ElseBlock.ElseStatement, block.EndIfStatement, block.ElseBlock.ElseStatement.ElseKeyword.Text, IgnoreHeader:=False)
+            With block
+                If (block Is Nothing) OrElse
+                   (.ElseBlock Is Nothing OrElse .ElseBlock.IsMissing) OrElse
+                   (.EndIfStatement Is Nothing OrElse .EndIfStatement.IsMissing) Then
+                    Return Nothing
+                End If
+                Return GetBlockSpan(.ElseBlock, .ElseBlock.ElseStatement, .EndIfStatement, .ElseBlock.ElseStatement.ElseKeyword.Text, IgnoreHeader:=False)
+            End With
         End Function
 
         Friend Overrides Function GetEpilogueBlock(block As MultiLineIfBlockSyntax) As ElseBlockSyntax

@@ -55,10 +55,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' </summary>
         Friend Function GetInternalStructuralOutlings(block As TBlock, cancellationToken As Threading.CancellationToken) As ImmutableArray(Of BlockSpan)
             Dim InternalSpans = ArrayBuilder(Of BlockSpan).GetInstance
-            InternalSpans.AddIfNotNull(GetPreambleOutlining(block, cancellationToken))
-            InternalSpans.AddRange(GetInternalStructuralOutlinings(block, cancellationToken))
-            InternalSpans.AddIfNotNull(GetEpilogueBlockOutlining(block, cancellationToken))
-            Return InternalSpans.ToImmutableOrEmptyAndFree
+            With InternalSpans
+                .AddIfNotNull(GetPreambleOutlining(block, cancellationToken))
+                .AddRange(GetInternalStructuralOutlinings(block, cancellationToken))
+                .AddIfNotNull(GetEpilogueBlockOutlining(block, cancellationToken))
+                Return .ToImmutableOrEmptyAndFree
+            End With
         End Function
 
         ''' <summary>
@@ -84,6 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         '''   Console.WriteLine("Hello World!")
         '''   ' Comment 2
         ''' </code>
+        ''' 
+        ''' If it does not have a preamle then return nothing.
         ''' </summary>
         Friend Overridable Function GetPreambleOutlining(block As TBlock, cancellationToken As Threading.CancellationToken) As BlockSpan?
             Return Nothing
