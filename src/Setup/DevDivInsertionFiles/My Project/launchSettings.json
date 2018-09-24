@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "DevDivInsertionFiles": {
-      "commandName": "Project",
-      "commandLineArgs": "E:\\code\\roslyn\\Binaries\\Debug E:\\code\\roslyn e:\\nuget"
-    }
-  }
-}
