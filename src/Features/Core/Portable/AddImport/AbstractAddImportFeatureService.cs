@@ -471,29 +471,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             return reference.SymbolResult.Symbol != null;
         }
 
-        public Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
-            Document document, Text.TextSpan span, ImmutableArray<Diagnostic> diagnostics,
-            bool searchReferenceAssemblies, bool searchNuGetPackages, CancellationToken cancellationToken)
-        {
-            var solution = document.Project.Solution;
-            var symbolSearchService = searchReferenceAssemblies || searchNuGetPackages
-                ? solution.Workspace.Services.GetService<ISymbolSearchService>()
-                : null;
-
-            var packageSources = symbolSearchService != null && searchNuGetPackages
-                ? GetPackageSources(document)
-                : ImmutableArray<PackageSource>.Empty;
-
-            return GetFixesForDiagnosticsAsync(document, span, diagnostics, symbolSearchService, searchNuGetPackages, packageSources, cancellationToken);
-        }
-
         public async Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
-            Document document, Text.TextSpan span, ImmutableArray<Diagnostic> diagnostics,
+            Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics,
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies, 
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
-
             // We might have multiple different diagnostics covering the same span.  Have to
             // process them all as we might produce different fixes for each diagnostic.
 
@@ -504,7 +486,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             foreach (var diagnostic in diagnostics)
             {
-                var fixes = await addImportService.GetFixesAsync(
+                var fixes = await GetFixesAsync(
                     document, span, diagnostic.Id, placeSystemNamespaceFirst,
                     symbolSearchService, searchReferenceAssemblies,
                     packageSources, cancellationToken).ConfigureAwait(false);
@@ -515,7 +497,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             return fixesForDiagnosticBuilder.ToImmutableAndFree();
         }
 
-        public ImmutableArray<CodeAction> GetCodeActionsForFixes(Document document, ImmutableArray<AddImportFixData> fixes, IPackageInstallerService installerService = null)
+        public ImmutableArray<CodeAction> GetCodeActionsForFixes(Document document, ImmutableArray<AddImportFixData> fixes, IPackageInstallerService installerService, bool limitResults)
         {
             var codeActionsBuilder = ArrayBuilder<CodeAction>.GetInstance();
 
@@ -525,7 +507,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 codeActionsBuilder.AddIfNotNull(codeAction);
 
-                if (codeActionsBuilder.Count >= MaxResults)
+                if (limitResults && codeActionsBuilder.Count >= MaxResults)
                 {
                     break;
                 }
@@ -534,13 +516,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             return codeActionsBuilder.ToImmutableAndFree();
         }
 
-        public CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService = null)
+        private CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService)
         {
-            if (fixData == null)
-            {
-                return null;
-            }
-
             switch (fixData.Kind)
             {
                 case AddImportFixKind.ProjectSymbol:
@@ -553,19 +530,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return new AssemblyReferenceCodeAction(document, fixData);
 
                 case AddImportFixKind.PackageSymbol:
-                    var packageInstaller = installerService ?? GetPackageInstallerService(document);
-                    return !packageInstaller.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
-                        ? new ParentInstallPackageCodeAction(document, fixData, packageInstaller)
+                    return !installerService.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
+                        ? new ParentInstallPackageCodeAction(document, fixData, installerService)
                         : null;
             }
 
             throw ExceptionUtilities.Unreachable;
         }
-
-        private IPackageInstallerService GetPackageInstallerService(Document document)
-            => document.Project.Solution.Workspace.Services.GetService<IPackageInstallerService>();
-
-        private ImmutableArray<PackageSource> GetPackageSources(Document document)
-            => GetPackageInstallerService(document)?.PackageSources ?? ImmutableArray<PackageSource>.Empty;
     }
 }

@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 {
     internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImportsFeatureService
     {
-        private IDiagnosticAnalyzerService _diagnosticAnalyzerService;
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         public AbstractAddMissingImportsFeatureService(IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
@@ -27,75 +29,26 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
         protected abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        public async Task<Solution> AddMissingImportsAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            var newSolution = solution;
-
-            foreach (var projectId in solution.ProjectIds)
-            {
-                var project = newSolution.GetProject(projectId);
-                var newProject = await AddMissingImportsAsync(project, cancellationToken).ConfigureAwait(false);
-                newSolution = newProject.Solution;
-            }
-
-            return newSolution;
-        }
-
-        public async Task<Project> AddMissingImportsAsync(Project project, CancellationToken cancellationToken)
-        {
-            var newProject = project;
-
-            foreach (var documentId in project.DocumentIds)
-            {
-                var document = newProject.GetDocument(documentId);
-                newProject = await AddMissingImportsAsync(document, cancellationToken).ConfigureAwait(false);
-            }
-
-            return newProject;
-        }
-
-        public async Task<Project> AddMissingImportsAsync(Document document, CancellationToken cancellationToken)
-        {
-            var diagnostics = await GetDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
-            return await FixDocument(document, diagnostics, cancellationToken).ConfigureAwait(false);
-        }
-
         public async Task<Project> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var diagnostics = await GetDiagnosticsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return await FixDocument(document, diagnostics, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<bool> IsMissingImportsAsync(Document document, CancellationToken cancellationToken)
-        {
-            var diagnostics = await GetDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
-            return !diagnostics.IsEmpty;
-        }
-
-        public async Task<bool> IsMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            var diagnostics = await GetDiagnosticsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return !diagnostics.IsEmpty;
-        }
-
-        private Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
-        {
-            if (!document.TryGetText(out var text))
+            if (diagnostics.IsEmpty)
             {
-                return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+                return document.Project;
             }
 
-            var textSpan = new TextSpan(0, text.Length);
-            return GetDiagnosticsAsync(document, textSpan, cancellationToken);
+            var usableFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+            if (usableFixes.IsEmpty)
+            {
+                return document.Project;
+            }
+
+            var newDocument = await ApplyFixesAsync(document, usableFixes, cancellationToken).ConfigureAwait(false);
+            return newDocument.Project;
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            if (!document.SupportsSemanticModel)
-            {
-                return ImmutableArray<Diagnostic>.Empty;
-            }
-
             var project = document.Project;
 
             var diagnosticData = await _diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, textSpan, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -116,36 +69,18 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
         }
 
-        private async Task<Project> FixDocument(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        {
-            if (diagnostics.IsEmpty)
-            {
-                return document.Project;
-            }
-
-            var usableFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken);
-            if (usableFixes.IsEmpty)
-            {
-                return document.Project;
-            }
-
-            var newDocument = await ApplyFixesAsync(document, usableFixes, cancellationToken).ConfigureAwait(false);
-            return newDocument.Project;
-        }
-
         private async Task<ImmutableArray<AddImportFixData>> GetUnambiguousFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            if (diagnostics.IsEmpty)
-            {
-                return ImmutableArray<AddImportFixData>.Empty;
-            }
-
+            var solution = document.Project.Solution;
+            var symbolSearchService = solution.Workspace.Services.GetService<ISymbolSearchService>();
+            // Since we are not currently considering NuGet packages, pass an empty array
+            var packageSources = ImmutableArray<PackageSource>.Empty;
             var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
             var getFixesForSpanTasks = diagnostics
                 .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
                 .Select(diagnosticsForSourceSpan => addImportService
-                    .GetFixesForDiagnosticsAsync(document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(), true, false, cancellationToken)
+                    .GetFixesForDiagnosticsAsync(document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(), symbolSearchService, true, packageSources, cancellationToken)
                 );
 
             await Task.WhenAll(getFixesForSpanTasks).ConfigureAwait(false);
@@ -176,7 +111,12 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 return document;
             }
 
-            var codeActions = GetCodeActionsForFixes(document, fixes);
+            var solution = document.Project.Solution;
+            var packageInstallerService = solution.Workspace.Services.GetService<IPackageInstallerService>();
+            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+
+            // Do not limit the results since we plan to fix all the reported issues.
+            var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, packageInstallerService, limitResults: false);
             var getChangesTasks = codeActions.Select(action => GetChangesForCodeActionAsync(document, action, cancellationToken));
 
             await Task.WhenAll(getChangesTasks).ConfigureAwait(false);
@@ -201,20 +141,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
 
             return newDocument;
-        }
-
-        private ImmutableArray<CodeAction> GetCodeActionsForFixes(Document document, ImmutableArray<AddImportFixData> fixes)
-        {
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
-            var codeActions = ArrayBuilder<CodeAction>.GetInstance();
-
-            foreach (var fix in fixes)
-            {
-                var codeAction = addImportService.TryCreateCodeAction(document, fix);
-                codeActions.AddIfNotNull(codeAction);
-            }
-
-            return codeActions.ToImmutableAndFree();
         }
 
         private async Task<(ProjectChanges projectChanges, IEnumerable<TextChange> textChanges)> GetChangesForCodeActionAsync(Document document, CodeAction codeAction, CancellationToken cancellationToken)

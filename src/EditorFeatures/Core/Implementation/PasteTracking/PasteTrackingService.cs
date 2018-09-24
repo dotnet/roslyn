@@ -7,11 +7,13 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PasteTracking
 {
     [Export(typeof(IPasteTrackingService)), Shared]
+    [Export(typeof(PasteTrackingService))]
     internal class PasteTrackingService : IPasteTrackingService
     {
         private readonly IThreadingContext _threadingContext;
@@ -36,23 +38,9 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             return textBuffer.Properties.TryGetProperty(this, out textSpan);
         }
 
-        internal void RegisterPastedTextSpan(Document document, TextSpan textSpan)
+        internal void RegisterPastedTextSpan(ITextView textView, ITextBuffer textBuffer, TextSpan textSpan)
         {
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
-
-            if (!TryGetTextBuffer(document, out var textBuffer))
-            {
-                return;
-            }
-
-            var textView = _textBufferAssociatedViewService
-                .GetAssociatedTextViews(textBuffer)
-                .FirstOrDefault(view => view.HasAggregateFocus);
-
-            if (textView is null)
-            {
-                return;
-            }
 
             textView.Closed += ClearTracking;
             textBuffer.Changed += ClearTracking;
@@ -66,14 +54,6 @@ namespace Microsoft.CodeAnalysis.PasteTracking
                 textView.Closed -= ClearTracking;
                 textBuffer.Changed -= ClearTracking;
 
-                ClearPastedTextSpan(document);
-            }
-        }
-
-        private void ClearPastedTextSpan(Document document)
-        {
-            if (TryGetTextBuffer(document, out var textBuffer))
-            {
                 textBuffer.Properties.RemoveProperty(this);
             }
         }

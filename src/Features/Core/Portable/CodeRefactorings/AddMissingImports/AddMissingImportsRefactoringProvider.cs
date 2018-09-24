@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
@@ -23,33 +22,21 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
-            var textSpan = TryGetPasteTrackingSpan(document);
 
-            if (textSpan.IsEmpty)
+            if (!_pasteTrackingService.TryGetPastedTextSpan(document, out var textSpan))
             {
                 return;
             }
 
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
+            var newProject = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, context.CancellationToken).ConfigureAwait(false);
 
-            var isMissingImports = await addMissingImportsService.IsMissingImportsAsync(document, textSpan, context.CancellationToken).ConfigureAwait(false);
-            if (!isMissingImports)
+            if (document.Project == newProject)
             {
                 return;
             }
 
-            context.RegisterRefactoring(new AddMissingImportsCodeAction(async (cancellationToken) =>
-            {
-                var newProject = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-                return newProject.Solution;
-            }));
-        }
-
-        private TextSpan TryGetPasteTrackingSpan(Document document)
-        {
-            return _pasteTrackingService.TryGetPastedTextSpan(document, out var textSpan)
-                ? textSpan
-                : default;
+            context.RegisterRefactoring(new AddMissingImportsCodeAction(_ => Task.FromResult(newProject.Solution)));
         }
     }
 }

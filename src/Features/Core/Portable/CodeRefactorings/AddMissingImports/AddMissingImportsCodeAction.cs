@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 {
     internal class AddMissingImportsCodeAction : SolutionChangeAction
     {
-        public AddMissingImportsCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
-            : base(FeaturesResources.Add_missing_imports, createChangedSolution, equivalenceKey)
+        public AddMissingImportsCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution)
+            : base(FeaturesResources.Add_missing_imports, createChangedSolution)
         {
         }
     }

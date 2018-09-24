@@ -46,8 +46,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ? _symbolSearchService ?? solution.Workspace.Services.GetService<ISymbolSearchService>()
                 : null;
 
-            var packageSources = symbolSearchService != null && searchNuGetPackages
-                ? GetPackageSources(document)
+            var installerService = GetPackageInstallerService(document);
+            var packageSources = searchNuGetPackages && symbolSearchService != null && installerService != null
+                ? installerService.PackageSources
                 : ImmutableArray<PackageSource>.Empty;
 
             var fixesForDiagnostic = await addImportService
@@ -55,15 +56,13 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             foreach (var (diagnostic, fixes) in fixesForDiagnostic)
             {
-                var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, GetPackageInstallerService(document));
+                // Limit the results returned since this will be displayed to the user
+                var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, installerService, limitResults: true);
                 context.RegisterFixes(codeActions, diagnostic);
             }
         }
 
         private IPackageInstallerService GetPackageInstallerService(Document document)
             => _packageInstallerService ?? document.Project.Solution.Workspace.Services.GetService<IPackageInstallerService>();
-
-        private ImmutableArray<PackageSource> GetPackageSources(Document document)
-            => GetPackageInstallerService(document)?.PackageSources ?? ImmutableArray<PackageSource>.Empty;
     }
 }

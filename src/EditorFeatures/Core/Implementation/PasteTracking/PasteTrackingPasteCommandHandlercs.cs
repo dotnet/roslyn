@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.PasteTracking
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal PasteTrackingPasteCommandHandler(IPasteTrackingService pasteTrackingService)
+        internal PasteTrackingPasteCommandHandler(PasteTrackingService pasteTrackingService)
         {
-            _pasteTrackingService = (PasteTrackingService)pasteTrackingService;
+            _pasteTrackingService = pasteTrackingService;
         }
 
         public VSCommanding.CommandState GetCommandState(PasteCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler)
@@ -51,12 +51,6 @@ namespace Microsoft.CodeAnalysis.PasteTracking
                 return;
             }
 
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return;
-            }
-
             // Create a tracking span from the pre-post caret position that will grow as text is inserted.
             var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
 
@@ -64,7 +58,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             var snapshotSpan = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot);
             var textSpan = TextSpan.FromBounds(snapshotSpan.Start, snapshotSpan.End);
 
-            _pasteTrackingService.RegisterPastedTextSpan(document, textSpan);
+            _pasteTrackingService.RegisterPastedTextSpan(args.TextView, args.SubjectBuffer, textSpan);
         }
     }
 }
