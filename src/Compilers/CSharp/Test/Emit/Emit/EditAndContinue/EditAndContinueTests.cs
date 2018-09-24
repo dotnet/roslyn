@@ -1,6 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET46
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1835,7 +1833,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ArrayInitializer()
         {
             var source0 = @"
@@ -3603,7 +3601,7 @@ class B : A<B>
         /// <summary>
         /// Preserve locals for method added after initial compilation.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void PreserveLocalSlots_NewMethod()
         {
             var source0 =
@@ -4351,7 +4349,7 @@ namespace M
         /// Anonymous type names with module ids
         /// and gaps in indices.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AnonymousTypes_OtherTypeNames()
         {
             var ilSource =
@@ -7046,7 +7044,8 @@ class C
             }
         }
 
-        [Fact, WorkItem(923492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923492")]
+        [WorkItem(923492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923492")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SymWriterErrors()
         {
             var source0 =
@@ -9872,5 +9871,3 @@ public class Program
         }
     }
 }
-
-#endif

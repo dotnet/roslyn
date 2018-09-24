@@ -2504,7 +2504,7 @@ class B8 : A<dynamic>
     internal override void M<U>() { }
 }
 // U as error type.
-class B9 : A<Unknown>
+o
 {
     internal override void M<U>() { }
 }";

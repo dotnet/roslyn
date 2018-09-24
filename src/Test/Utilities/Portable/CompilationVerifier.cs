@@ -208,6 +208,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (sequencePoints != null)
             {
+                if (EmittedAssemblyPdb == null)
+                {
+                    throw new InvalidOperationException($"{nameof(EmittedAssemblyPdb)} is not set");
+                }
+
+                if (EmittedAssemblyData == null)
+                {
+                    throw new InvalidOperationException($"{nameof(EmittedAssemblyData)} is not set");
+                }
+
                 var actualPdbXml = PdbToXmlConverter.ToXml(
                     pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
                     peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
@@ -232,7 +242,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _lazyModuleSymbol = GetSymbolFromMetadata(targetReference, MetadataImportOptions.All);
             }
 
-            return _lazyModuleSymbol != null ? _visualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
+            if (_lazyModuleSymbol != null)
+            {
+                if (_visualizeRealIL == null)
+                {
+                    throw new InvalidOperationException("IL visaalization function is not set");
+                }
+
+
+                return _visualizeRealIL(_lazyModuleSymbol, methodData, markers);
+            }
+
+            return null;
         }
 
         public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)

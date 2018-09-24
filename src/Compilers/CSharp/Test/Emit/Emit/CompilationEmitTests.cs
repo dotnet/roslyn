@@ -1,6 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET46
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -1523,7 +1521,7 @@ comp => comp.VerifyDiagnostics(
             VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void RefAssembly_StrongNameProvider()
         {
             var signedDllOptions = TestOptions.ReleaseDll.
@@ -1542,7 +1540,7 @@ comp => comp.VerifyDiagnostics(
             VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void RefAssembly_StrongNameProvider_Arm64()
         {
             var signedDllOptions = TestOptions.ReleaseDll.
@@ -1563,7 +1561,7 @@ comp => comp.VerifyDiagnostics(
             VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void RefAssembly_StrongNameProviderAndDelaySign()
         {
             var signedDllOptions = TestOptions.ReleaseDll
@@ -4116,7 +4114,7 @@ public class Test
             CompileAndVerify(source2, references: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(530879, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530879")]
         public void TestCompilationEmitUsesDifferentStreamsForBinaryAndPdb()
         {
@@ -4130,11 +4128,11 @@ public class Test
 
             var result = c1.Emit(dllPath, pdbPath);
 
-            Assert.True(result.Success);
+            Assert.True(result.Success, "Compilation failed");
             Assert.Empty(result.Diagnostics);
 
-            Assert.True(File.Exists(dllPath));
-            Assert.True(File.Exists(pdbPath));
+            Assert.True(File.Exists(dllPath), "DLL does not exist");
+            Assert.True(File.Exists(pdbPath), "PDB does not exist");
         }
 
         [Fact, WorkItem(540777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540777"), WorkItem(546354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546354")]
@@ -4683,7 +4681,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void BrokenPDBStream()
         {
             string source = @"class Goo {}";
@@ -4713,7 +4711,7 @@ class C
             Assert.Equal(ioExceptionMessage, (string)err.Arguments[0]);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
         public void MultipleNetmodulesWithPrivateImplementationDetails()
         {
             var s1 = @"
@@ -4760,7 +4758,7 @@ public class Program
             CompileAndVerify(comp3, expectedOutput: "Hello, world!");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
         public void MultipleNetmodulesWithAnonymousTypes()
         {
             var s1 = @"
@@ -5048,5 +5046,3 @@ public class DerivingClass<T> : BaseClass<T>
         }
     }
 }
-
-#endif
