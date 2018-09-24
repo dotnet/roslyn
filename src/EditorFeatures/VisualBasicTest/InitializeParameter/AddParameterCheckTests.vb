@@ -492,20 +492,13 @@ end class")
         <WorkItem(29333, "https://github.com/dotnet/roslyn/issues/29333")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestLambdaWithIncorrectNumberOfParameters() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Class C
     Sub M(a As Action(Of Integer, Integer))
         M(Sub(x[||]
     End Sub
-End Class",
-"
-Class C
-    Sub M(a As Action(Of Integer, Integer))
-        M(Sub(x
-    End Sub
-End Class"
-)
+End Class")
         End Function
     End Class
 End Namespace
