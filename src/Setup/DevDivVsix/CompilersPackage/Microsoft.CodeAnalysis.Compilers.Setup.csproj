@@ -17,8 +17,6 @@
     <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="All"/>
   </ItemGroup>
 
-  <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers\CompilerArtifacts.props"/>
-
   <Target Name="_SetSwrFilePath">
     <PropertyGroup>
       <_SwrFilePath>$(IntermediateOutputPath)Microsoft.CodeAnalysis.Compilers.swr</_SwrFilePath>
@@ -28,7 +26,7 @@
   <Target Name="_GenerateSwrFile" 
           AfterTargets="Build"
           BeforeTargets="SwixBuild"
-          DependsOnTargets="_SetSwrFilePath"
+          DependsOnTargets="_SetSwrFilePath;InitializeCompilerArtifacts"
           Outputs="$(_SwrFilePath)">
 
     <ItemGroup>
@@ -72,4 +70,6 @@ folder InstallDir:\Common7\Tools\vsdevcmd\ext
       <SwrFile Include="$(_SwrFilePath)"/>
     </ItemGroup>
   </Target>
+
+  <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers\CompilerArtifacts.targets"/>
 </Project>
