@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 {
     public class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTests<SwitchStatementSyntax>
     {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchStatementStructureProvider(includeInternalStructures: false);
+        internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchStatementStructureProvider(includeInternalStructures: true);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSwitchStatement1()
@@ -30,13 +30,9 @@ class C
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
-    }
 
-    public class SwitchStatementStructureWithAdditionalInternalStructuresTests : AbstractCSharpSyntaxNodeStructureTests<SwitchStatementSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchStatementStructureProvider(includeInternalStructures: true);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)]
         public async Task TestSwitchStatement2()
         {
             const string code = @"
@@ -58,10 +54,8 @@ class C
                 code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
                 Region("case0", "casetext", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("default", "defaulttext", CSharpStructureHelpers.Ellipsis, autoCollapse: false)
-                );
+                Region("default", "defaulttext", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
         }
-
     }
 }

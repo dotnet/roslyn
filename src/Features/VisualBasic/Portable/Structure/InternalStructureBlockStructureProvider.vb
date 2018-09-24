@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
-
     Friend MustInherit Class InternalStructureBlockStructureProvider(Of TBlock As SyntaxNode, THeaderStatement As SyntaxNode, TInnerBlock As SyntaxNode, TPreEndBlock As SyntaxNode, TEndOfBlockStatement As SyntaxNode)
         Inherits AbstractSyntaxNodeStructureProvider(Of TBlock)
 
@@ -20,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Sub
 
 #Region "Block Provider Specific Methods"
+
         ''' <summary>
         ''' The <see cref="BlockSpan"/> of the complete structure.
         ''' <code>
@@ -141,6 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' Eg End Select
         ''' </summary>
         Friend MustOverride Function GetEnd_XXX_Statement(block As TBlock) As TEndOfBlockStatement
+
 #End Region
 
         Protected Overrides Sub CollectBlockSpans(node As TBlock, spans As ArrayBuilder(Of BlockSpan), options As OptionSet, cancellationToken As CancellationToken)
@@ -230,6 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Function
 
 #Region "MakeIfHasLineDeltaGreaterThanX Overloads"
+
         Private Function MakeIfHasLineDeltaGreaterThanX(X As Integer, StartingAt As SyntaxTrivia, FinishingAt As SyntaxTrivia, BannerText As String) As BlockSpan?
             Return If(LineDelta(StartingAt, FinishingAt) > X, MakeBlockSpan(StartingAt.SpanStart, FinishingAt.SpanStart, BannerText), Nothing)
         End Function
@@ -245,17 +247,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Private Function MakeIfHasAtLeastOneLineDelta(X As Integer, StartingAt As SyntaxNode, FinishingAt As SyntaxNode, BannerText As String) As BlockSpan?
             Return If(LineDelta(StartingAt, FinishingAt) > X, MakeBlockSpan(StartingAt.SpanStart, FinishingAt.SpanStart, BannerText), Nothing)
         End Function
+
 #End Region
 
         Friend Function FirstTriviaAfterFirstEndOfLine(Trivias As SyntaxTriviaList) As SyntaxTrivia?
-            Dim IsFirstOne = True
-            Dim edx = Trivias.Count - 1
-            For idx = 0 To edx
-                If Trivias(idx).IsEndOfLine Then
-                    If IsFirstOne Then
-                        IsFirstOne = False
+            Dim isFirstOne = True
+            Dim endIndex = Trivias.Count - 1
+            For index = 0 To endIndex
+                If Trivias(index).IsEndOfLine Then
+                    If isFirstOne Then
+                        isFirstOne = False
                     Else
-                        Return If(idx < edx, Trivias(idx + 1), Nothing)
+                        Return If(index < endIndex, Trivias(index + 1), Nothing)
                     End If
                 End If
             Next

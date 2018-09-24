@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class SwitchStatementStructureProvider : AbstractSyntaxNodeStructureProvider<SwitchStatementSyntax>
     {
         private readonly bool includeInternalStructures;
-      internal  SwitchStatementStructureProvider(bool includeInternalStructures) : base()
+        internal SwitchStatementStructureProvider(bool includeInternalStructures)
         {
             this.includeInternalStructures = includeInternalStructures;
         }
@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                hintSpan: node.Span,
                type: BlockTypes.Conditional));
             if (includeInternalStructures)
-            { 
+            {
                 foreach (SwitchSectionSyntax switchcase in node.Sections.AsImmutable())
                 {
-                    var s = new BlockSpan(isCollapsible: true,
-                        textSpan: TextSpan.FromBounds(switchcase.SpanStart, switchcase.Span.End),
-                        hintSpan: switchcase.Span,
-                        type: BlockTypes.Conditional);
+                    var s = new BlockSpan(
+                                          isCollapsible: true,
+                                          textSpan: TextSpan.FromBounds(switchcase.SpanStart, switchcase.Span.End),
+                                          hintSpan: switchcase.Span,
+                                          type: BlockTypes.Conditional);
                     spans.Add(s);
                 }
-        }
+            }
         }
     }
-  
 }

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New TryBlockStructureProvider(IncludeAdditionalInternalSpans:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
         Public Async Function TestTryBlock1() As Task
             Const code = "
 Class C
@@ -30,7 +30,7 @@ End Class
             Await VerifyBlockSpansAsync(code, regions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
         Public Async Function TestTryBlock1a() As Task
             Const code = "
 Class C
@@ -48,7 +48,7 @@ End Class
                           }
             Await VerifyBlockSpansAsync(code, regions)
         End Function
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
         Public Async Function TestTryBlock1b() As Task
             Const code = "
 Class C
@@ -70,7 +70,7 @@ End Class
             Await VerifyBlockSpansAsync(code, regions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
         Public Async Function TestTryBlock2() As Task
             Const code = "
 Class C
@@ -85,10 +85,9 @@ End Class
                             Region("span0", "Try ...", autoCollapse:=False)
                           }
             Await VerifyBlockSpansAsync(code, regions)
-
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
         Public Async Function TestTryBlock2a() As Task
             Const code = "
 Class C
@@ -107,10 +106,9 @@ End Class
                             Region("span1", "Finally", autoCollapse:=False)
                           }
             Await VerifyBlockSpansAsync(code, regions)
-
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
         Public Async Function TestTryBlock3() As Task
             Const code = "
 Class C
@@ -138,7 +136,6 @@ End Class
                             Region("span3", "Finally", autoCollapse:=False)
                           }
             Await VerifyBlockSpansAsync(code, regions)
-
         End Function
     End Class
 End Namespace

@@ -19,6 +19,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 VisualBasicOutliningHelpers.CollectCommentsRegions(trivia.Token.TrailingTrivia, spans)
             End If
         End Sub
-
     End Class
 End Namespace

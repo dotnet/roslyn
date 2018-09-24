@@ -21,7 +21,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSimpleComment1() As Task
             Const code = "
-{|span:' $$Hello|}
+{|span:' $$Hello	
+' VB!|}
 Class C1
 End Class
 "
@@ -72,6 +73,5 @@ End Class
             Await VerifyBlockSpansAsync(code,
                 Region("span", "' Hello ...", autoCollapse:=True))
         End Function
-
     End Class
 End Namespace

@@ -27,7 +27,7 @@ End Class
                 Region("FullSpan", "If (True) ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
         Public Async Function TestIfBlock1a() As Task
             Const code = "
 Class C
@@ -46,7 +46,7 @@ End Class
                 Region("PreBlock", "...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
         Public Async Function TestIfBlock2() As Task
             Const code = "
 Class C
@@ -70,7 +70,7 @@ End Class
                 Region("PostBlock", "Else", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
         Public Async Function TestIfBlock3() As Task
             Const code = "
 Class C
@@ -92,10 +92,9 @@ End Class
                 Region("FullSpan", "If (True) ...", autoCollapse:=False),
                 Region("PreBlock", "...", autoCollapse:=False),
                 Region("InnerBlock0", "Else If", autoCollapse:=False))
-
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
         Public Async Function TestIfBlock4() As Task
             Const code = "
 Class C

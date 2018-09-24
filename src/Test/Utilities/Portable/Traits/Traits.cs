@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public const string Feature = nameof(Feature);
         public static class Features
         {
-            public const string AdditionalInternalStructureOutlings = nameof(AdditionalInternalStructureOutlings);
+            public const string AdditionalInternalStructureOutlinings = nameof(AdditionalInternalStructureOutlinings);
             public const string AddMissingTokens = nameof(AddMissingTokens);
             public const string AddMissingReference = nameof(AddMissingReference);
             public const string Adornments = nameof(Adornments);

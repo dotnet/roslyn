@@ -38,13 +38,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             ' As to prevent issues if the clauses are over multiple lines, which messed up the collapsed banner.
             Select Case InnerBlock.CaseStatement.Cases.Count
                 Case 1
-                    banner = InnerBlock.CaseStatement.ToString
+                    banner = InnerBlock.CaseStatement.ToString()
                 Case Is > 1
                     banner = $"Case {InnerBlock.CaseStatement.Cases(0).ToString},{SpaceEllipsis}"
             End Select
+
             Return banner
         End Function
-
     End Class
 
 End Namespace

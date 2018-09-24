@@ -59,6 +59,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Friend Overrides Function GetEnd_XXX_Statement(block As TryBlockSyntax) As EndBlockStatementSyntax
             Return block.EndTryStatement
         End Function
-
     End Class
 End Namespace
