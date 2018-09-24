@@ -150,7 +150,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             public override TaintedDataAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
             {
                 var value = base.VisitObjectCreation(operation, argument);
-                ProcessRegularInvocationOrCreation(operation.Constructor, operation.Arguments, operation);
+                IEnumerable<IArgumentOperation> taintedArguments = operation.Arguments.Where(
+                    a => this.GetCachedAbstractValue(a).Kind == TaintedDataAbstractValueKind.Tainted
+                         && (a.Parameter.RefKind == RefKind.None
+                             || a.Parameter.RefKind == RefKind.Ref
+                             || a.Parameter.RefKind == RefKind.In));
+                if (taintedArguments.Any())
+                {
+                    ProcessRegularInvocationOrCreation(operation.Constructor, taintedArguments, operation);
+
+                    IEnumerable<TaintedDataAbstractValue> allTaintedValues = taintedArguments.Select(a => this.GetCachedAbstractValue(a));
+                    if (value.Kind == TaintedDataAbstractValueKind.Tainted)
+                    {
+                        allTaintedValues = allTaintedValues.Concat(value);
+                    }
+
+                    return TaintedDataAbstractValue.MergeTainted(allTaintedValues);
+                }
+
                 return value;
             }
 
@@ -179,28 +196,58 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     originalOperation, 
                     defaultValue);
 
-                ProcessRegularInvocationOrCreation(method, visitedArguments, originalOperation);
+                IEnumerable<IArgumentOperation> taintedArguments = visitedArguments.Where(
+                    a => this.GetCachedAbstractValue(a).Kind == TaintedDataAbstractValueKind.Tainted
+                         && (a.Parameter.RefKind == RefKind.None
+                             || a.Parameter.RefKind == RefKind.Ref
+                             || a.Parameter.RefKind == RefKind.In));
+
+                if (taintedArguments.Any())
+                {
+                    ProcessRegularInvocationOrCreation(method, visitedArguments, originalOperation);
+                }
 
                 if (PrimitiveTypeConverterSanitizers.IsSanitizingMethod(this.WellKnownTypeProvider, method))
                 {
                     return TaintedDataAbstractValue.NotTainted;
                 }
 
+                TaintedDataAbstractValue returnValue = baseVisit;
                 if (visitedInstance != null)
                 {
                     TaintedDataAbstractValue instanceAbstractValue = this.GetCachedAbstractValue(visitedInstance);
                     if (instanceAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
                     {
-                        return instanceAbstractValue;
+                        returnValue = instanceAbstractValue;
                     }
-
-                    if (WebInputSources.IsTaintedMethod(this.WellKnownTypeProvider, visitedInstance, method))
+                    else if (WebInputSources.IsTaintedMethod(this.WellKnownTypeProvider, visitedInstance, method))
                     {
-                        return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
+                        returnValue = TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                     }
                 }
 
-                return baseVisit;
+                // TODO paulming: This is too conservative, and should only apply for non-interprocedural analysis.
+                // E.g. tainted arguments are passed to a method that sanitizes the data.
+                if (taintedArguments.Any())
+                {
+                    IEnumerable<TaintedDataAbstractValue> allTaintedValues =
+                        taintedArguments.Select(a => this.GetCachedAbstractValue(a));
+                    if (returnValue.Kind == TaintedDataAbstractValueKind.Tainted)
+                    {
+                        allTaintedValues = allTaintedValues.Concat(returnValue);
+                    }
+
+                    return TaintedDataAbstractValue.MergeTainted(allTaintedValues);
+                }
+                else
+                {
+                    return returnValue;
+                }
+            }
+
+            protected override void SetAbstractValueForArrayElementInitializer(IArrayCreationOperation arrayCreation, ImmutableArray<AbstractIndex> indices, ITypeSymbol elementType, IOperation initializer, TaintedDataAbstractValue value)
+            {
+                base.SetAbstractValueForArrayElementInitializer(arrayCreation, indices, elementType, initializer, value);
             }
 
             protected override TaintedDataAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
@@ -226,15 +273,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// Determines if tainted data is entering a sink as a method call argument, and if so, flags it.
             /// </summary>
             /// <param name="targetMethod">Method being invoked.</param>
-            /// <param name="arguments">Arguments to the method.</param>
+            /// <param name="taintedArguments">Arguments with tainted data to the method.</param>
             /// <param name="originalOperation">Original IOperation for the method/constructor invocation.</param>
-            private void ProcessRegularInvocationOrCreation(IMethodSymbol targetMethod, ImmutableArray<IArgumentOperation> arguments, IOperation originalOperation)
+            private void ProcessRegularInvocationOrCreation(IMethodSymbol targetMethod, IEnumerable<IArgumentOperation> taintedArguments, IOperation originalOperation)
             {
-                IEnumerable<IArgumentOperation> taintedArguments = arguments.Where(
-                    a => this.GetCachedAbstractValue(a).Kind == TaintedDataAbstractValueKind.Tainted
-                         && (a.Parameter.RefKind == RefKind.None
-                             || a.Parameter.RefKind == RefKind.Ref
-                             || a.Parameter.RefKind == RefKind.In));
                 if (SqlSinks.IsMethodArgumentASink(this.WellKnownTypeProvider, targetMethod, taintedArguments))
                 {
                     foreach (IArgumentOperation taintedArgument in taintedArguments)
@@ -254,6 +296,23 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     && SqlSinks.IsPropertyASink(this.WellKnownTypeProvider, propertyReferenceOperation))
                 {
                     this.TrackTaintedDataEnteringSink(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, assignmentValueAbstractValue.SourceOrigins);
+                }
+            }
+
+            private IEnumerable<TaintedDataAbstractValue> GetTaintedValuesFromInputArguments(IEnumerable<IArgumentOperation> arguments)
+            {
+                foreach (IArgumentOperation argument in arguments)
+                {
+                    if (argument.Parameter.RefKind == RefKind.None
+                        || argument.Parameter.RefKind == RefKind.Ref
+                        || argument.Parameter.RefKind == RefKind.In)
+                    {
+                        TaintedDataAbstractValue value = this.GetCachedAbstractValue(argument);
+                        if (value.Kind == TaintedDataAbstractValueKind.Tainted)
+                        {
+                            yield return value;
+                        }
+                    }
                 }
             }
         }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
@@ -70,6 +71,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return new TaintedDataAbstractValue(
                 TaintedDataAbstractValueKind.Tainted,
                 value1.SourceOrigins.Union(value2.SourceOrigins));
+        }
+
+        internal static TaintedDataAbstractValue MergeTainted(IEnumerable<TaintedDataAbstractValue> taintedValues)
+        {
+            ImmutableHashSet<SymbolAccess>.Builder sourceOriginsBuilder = ImmutableHashSet.CreateBuilder<SymbolAccess>();
+            foreach (TaintedDataAbstractValue value in taintedValues)
+            {
+                Debug.Assert(value.Kind == TaintedDataAbstractValueKind.Tainted);
+
+                sourceOriginsBuilder.UnionWith(value.SourceOrigins);
+            }
+
+            return new TaintedDataAbstractValue(
+                TaintedDataAbstractValueKind.Tainted,
+                sourceOriginsBuilder.ToImmutable());
         }
     }
 }
