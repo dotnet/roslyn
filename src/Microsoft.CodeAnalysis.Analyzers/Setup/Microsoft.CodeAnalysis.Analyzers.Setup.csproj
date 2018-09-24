@@ -14,7 +14,7 @@
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <PublishOutputToSymStore>false</PublishOutputToSymStore>
+    <PublishWindowsPdb>false</PublishWindowsPdb>
   </PropertyGroup>
   
   <ItemGroup>
