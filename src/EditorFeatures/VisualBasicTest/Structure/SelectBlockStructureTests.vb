@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of SelectBlockSyntax)
 
         Friend Overrides Function CreateProvider() As AbstractSyntaxStructureProvider
-            Return New SelectBlockStructureProvider(IncludeAdditionalInternalSpans:=True)
+            Return New SelectBlockStructureProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>

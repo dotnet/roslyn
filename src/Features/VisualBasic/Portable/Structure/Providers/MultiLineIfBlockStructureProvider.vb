@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class MultiLineIfBlockStructureProvider
         Inherits InternalStructureBlockStructureProvider(Of MultiLineIfBlockSyntax, IfStatementSyntax, ElseIfBlockSyntax, ElseBlockSyntax, EndBlockStatementSyntax)
 
-        Friend Sub New(IncludeAdditionalInternalSpans As Boolean)
-            MyBase.New(IncludeAdditionalInternalSpans)
+        Sub New()
+            MyBase.New()
         End Sub
 
         Friend Overrides Function FullStructuralBlockOutlining(block As MultiLineIfBlockSyntax) As BlockSpan?

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of TryBlockSyntax)
 
         Friend Overrides Function CreateProvider() As AbstractSyntaxStructureProvider
-            Return New TryBlockStructureProvider(IncludeAdditionalInternalSpans:=True)
+            Return New TryBlockStructureProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>

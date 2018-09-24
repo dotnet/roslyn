@@ -12,14 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
     internal class SwitchStatementStructureProvider : AbstractSyntaxNodeStructureProvider<SwitchStatementSyntax>
     {
-        private readonly bool includeInternalStructures;
-        internal SwitchStatementStructureProvider(bool includeInternalStructures)
-        {
-            this.includeInternalStructures = includeInternalStructures;
-        }
-
         protected override void CollectBlockSpans(SwitchStatementSyntax node, ArrayBuilder<BlockSpan> spans, OptionSet options, CancellationToken cancellationToken)
         {
+            const bool includeInternalStructures = true;
             spans.Add(new BlockSpan(
                isCollapsible: true,
                textSpan: TextSpan.FromBounds(node.CloseParenToken.Span.End, node.CloseBraceToken.Span.End),
@@ -27,13 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                type: BlockTypes.Conditional));
             if (includeInternalStructures)
             {
-                foreach (SwitchSectionSyntax switchcase in node.Sections.AsImmutable())
+                foreach (var switchcase in node.Sections.AsImmutable())
                 {
                     var s = new BlockSpan(
                                           isCollapsible: true,
                                           textSpan: TextSpan.FromBounds(switchcase.SpanStart, switchcase.Span.End),
                                           hintSpan: switchcase.Span,
-                                          type: BlockTypes.Conditional);
+                                          type: BlockTypes.Conditional,
+                                          isDefaultCollapsed: false);
                     spans.Add(s);
                 }
             }

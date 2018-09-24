@@ -11,11 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend MustInherit Class InternalStructureBlockStructureProvider(Of TBlock As SyntaxNode, THeaderStatement As SyntaxNode, TInnerBlock As SyntaxNode, TPreEndBlock As SyntaxNode, TEndOfBlockStatement As SyntaxNode)
         Inherits AbstractSyntaxNodeStructureProvider(Of TBlock)
 
-        Public ReadOnly IncludeAdditionalInternalStructuralOutlinings As Boolean
-
-        Friend Sub New(IncludeAdditionalInternalStructuralOutlinings As Boolean)
+        Friend Sub New()
             MyBase.New()
-            Me.IncludeAdditionalInternalStructuralOutlinings = IncludeAdditionalInternalStructuralOutlinings
         End Sub
 
 #Region "Block Provider Specific Methods"
@@ -53,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' <summary>
         ''' Return the internal <see cref="BlockSpan"/>s of the strucure. 
         ''' </summary>
-        Friend Function GetInternalStructuralOutlings(block As TBlock, cancellationToken As Threading.CancellationToken) As ImmutableArray(Of BlockSpan)
+        Friend Function GetBlockInternalStructuralOutlinings(block As TBlock, cancellationToken As Threading.CancellationToken) As ImmutableArray(Of BlockSpan)
             Dim InternalSpans = ArrayBuilder(Of BlockSpan).GetInstance
             With InternalSpans
                 .AddIfNotNull(GetPreambleOutlining(block, cancellationToken))
@@ -145,10 +142,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 #End Region
 
         Protected Overrides Sub CollectBlockSpans(node As TBlock, spans As ArrayBuilder(Of BlockSpan), options As OptionSet, cancellationToken As CancellationToken)
+            Dim IncludeAdditionalInternalStructuralOutlinings = True
             Dim FullBlock = FullStructuralBlockOutlining(node)
             spans.AddIfNotNull(FullBlock)
             If IncludeAdditionalInternalStructuralOutlinings Then
-                Dim internalSpans = GetInternalStructuralOutlings(node, cancellationToken)
+                Dim internalSpans = GetBlockInternalStructuralOutlinings(node, cancellationToken)
                 spans.AddRange(internalSpans)
             End If
         End Sub
@@ -158,19 +156,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             If block IsNot Nothing Then
                 Dim InnerBlocks = GetInternalStructuralBlocks(block)
                 If InnerBlocks.Count > 0 Then
-                    Dim edx = InnerBlocks.Count - 1
-                    For idx = 0 To edx
+                    Dim endIndex = InnerBlocks.Count - 1
+                    For index = 0 To endIndex
                         If cancellationToken.IsCancellationRequested Then
                             Exit For
                         End If
                         Dim NextBlock As SyntaxNode = Nothing
-                        If idx < edx Then
-                            NextBlock = InnerBlocks(idx + 1)
+                        If index < endIndex Then
+                            NextBlock = InnerBlocks(index + 1)
                         Else
                             NextBlock = If(DirectCast(GetEpilogueBlock(block), SyntaxNode), GetEnd_XXX_Statement(block))
                         End If
                         If NextBlock IsNot Nothing Then
-                            Dim InnerBlock = InnerBlocks(idx)
+                            Dim InnerBlock = InnerBlocks(index)
                             Dim ThisBlockSpan = GetBlockSpan(InnerBlock, InnerBlock, NextBlock, GetBannerTextOfInternalStructuralBlock(InnerBlock), False)
                             InnerBlocksBlockSpans.AddIfNotNull(ThisBlockSpan)
                         End If

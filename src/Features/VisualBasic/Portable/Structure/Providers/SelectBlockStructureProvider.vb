@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class SelectBlockStructureProvider
         Inherits InternalStructureBlockStructureProvider(Of SelectBlockSyntax, SelectStatementSyntax, CaseBlockSyntax, CaseBlockSyntax, EndBlockStatementSyntax)
 
-        Friend Sub New(IncludeAdditionalInternalSpans As Boolean)
-            MyBase.New(IncludeAdditionalInternalSpans)
+        Sub New()
+            MyBase.New()
         End Sub
 
         Friend Overrides Function FullStructuralBlockOutlining(block As SelectBlockSyntax) As BlockSpan?

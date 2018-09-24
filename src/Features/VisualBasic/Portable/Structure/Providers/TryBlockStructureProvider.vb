@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class TryBlockStructureProvider
         Inherits InternalStructureBlockStructureProvider(Of TryBlockSyntax, TryStatementSyntax, CatchBlockSyntax, FinallyBlockSyntax, EndBlockStatementSyntax)
 
-        Friend Sub New(IncludeAdditionalInternalSpans As Boolean)
-            MyBase.New(IncludeAdditionalInternalSpans)
+        Sub New()
+            MyBase.New()
         End Sub
 
         Friend Overrides Function FullStructuralBlockOutlining(block As TryBlockSyntax) As BlockSpan?
