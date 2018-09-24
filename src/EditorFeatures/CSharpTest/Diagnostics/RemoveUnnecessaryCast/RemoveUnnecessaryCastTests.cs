@@ -4490,5 +4490,47 @@ class C
     }
 }", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
+
+        [WorkItem(27239, "https://github.com/dotnet/roslyn/issues/27239")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastWhereNoConversionExists()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                @"
+using System;
+
+class C
+{
+    void M()
+    {
+        object o = null;
+        TypedReference r2 = [|(TypedReference)o|];
+    }
+}");
+        }
+
+        [WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastWhenAccessingHiddenProperty()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System.Collections.Generic;
+class Fruit
+{
+    public IDictionary<string, object> Properties { get; set; }
+}
+class Apple : Fruit
+{
+    public new IDictionary<string, object> Properties { get; }
+}
+class Tester
+{
+    public void Test()
+    {
+        var a = new Apple();
+        ([|(Fruit)a|]).Properties[""Color""] = ""Red"";
+    }
+}");
+        }
     }
 }

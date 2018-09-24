@@ -31,11 +31,13 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
-        private async Task FixWithEditorAsync(
-            Document document, SyntaxEditor editor, ImmutableArray<Diagnostic> diagnostics,
+        protected override async Task FixAllAsync(
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
             var declarators = new List<TSymbolSyntax>();
@@ -88,15 +90,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     editor.RemoveNode(fieldDeclarators.Key);
                 }
             }
-        }
-
-        protected override Task FixAllAsync(
-            Document document,
-            ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor,
-            CancellationToken cancellationToken)
-        {
-            return FixWithEditorAsync(document, editor, diagnostics, cancellationToken);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

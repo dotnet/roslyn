@@ -794,12 +794,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Get the symbol for the predefined type member from the COR Library referenced by this compilation.
+        /// </summary>
+        internal abstract ISymbol CommonGetSpecialTypeMember(SpecialMember specialMember);
+
+        /// <summary>
         /// Returns true if the type is System.Type.
         /// </summary>
         internal abstract bool IsSystemTypeReference(ITypeSymbol type);
 
         protected abstract INamedTypeSymbol CommonGetSpecialType(SpecialType specialType);
 
+        /// <summary>
+        /// Lookup member declaration in well known type used by this Compilation.
+        /// </summary>
         internal abstract ISymbol CommonGetWellKnownTypeMember(WellKnownMember member);
 
         /// <summary>
@@ -894,6 +902,15 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
 
+        // PERF: ETW Traces show that analyzers may use this method frequently, often requesting
+        // the same symbol over and over again. XUnit analyzers, in particular, were consuming almost
+        // 1% of CPU time when building Roslyn itself. This is an extremely simple cache that evicts on
+        // hash code conflicts, but seems to do the trick. The size is mostly arbitrary. My guess
+        // is that there are maybe a couple dozen analyzers in the solution and each one has
+        // ~0-2 unique well-known types, and the chance of hash collision is very low.
+        private ConcurrentCache<string, INamedTypeSymbol> _getTypeCache =
+            new ConcurrentCache<string, INamedTypeSymbol>(50, ReferenceEqualityComparer.Instance);
+
         /// <summary>
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
         /// those that can only be referenced via an extern alias) using its canonical CLR metadata name.
@@ -904,7 +921,13 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public INamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
+            if (!_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var val))
+            {
+                val = CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
+                // Ignore if someone added the same value before us
+                _ = _getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
+            }
+            return val;
         }
 
         protected abstract INamedTypeSymbol CommonGetTypeByMetadataName(string metadataName);
@@ -1111,6 +1134,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool HasImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType)
             => fromType != null && toType != null && this.ClassifyCommonConversion(fromType, toType).IsImplicit;
+
+        internal abstract IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue);
 
         #endregion
 
@@ -1564,7 +1589,7 @@ namespace Microsoft.CodeAnalysis
             switch (platform)
             {
                 case Platform.Arm64:
-                    machine = (Machine)0xAA64; //Machine.Arm64; https://github.com/dotnet/roslyn/issues/25185 
+                    machine = Machine.Arm64;
                     break;
 
                 case Platform.Arm:
@@ -2927,19 +2952,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Return true if there is a source declaration symbol name that matches the provided name.
-        /// This may be faster than <see cref="ContainsSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
-        /// when predicate is just a simple string check.
+        /// This may be faster than <see cref="ContainsSymbolsWithName(Func{string, bool},
+        /// SymbolFilter, CancellationToken)"/> when predicate is just a simple string check.
+        /// <paramref name="name"/> is case sensitive or not depending on the target language.
         /// </summary>
-        internal abstract bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Return source declaration symbols whose name matches the provided name.  This may be
-        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
-        /// when predicate is just a simple string check.
+        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter,
+        /// CancellationToken)"/> when predicate is just a simple string check.  <paramref
+        /// name="name"/> is case sensitive or not depending on the target language.
         /// </summary>
-        internal abstract IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         #endregion
 

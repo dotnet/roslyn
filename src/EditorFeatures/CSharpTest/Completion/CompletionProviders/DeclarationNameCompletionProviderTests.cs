@@ -1,14 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
@@ -32,8 +40,8 @@ public class MyClass
     MyClass $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic);
             await VerifyItemExistsAsync(markup, "myClass", glyph: (int)Glyph.FieldPublic);
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
             await VerifyItemExistsAsync(markup, "GetMyClass", glyph: (int)Glyph.MethodPublic);
         }
 
@@ -544,7 +552,7 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestDescription()
+        public async Task TestCorrectOrder()
         {
             var markup = @"
 public class MyClass
@@ -552,7 +560,41 @@ public class MyClass
     MyClass $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            var items = await GetCompletionItemsAsync(markup, SourceCodeKind.Regular);
+            Assert.Equal(
+                new[] { "myClass", "my", "@class", "MyClass", "My", "Class", "GetMyClass", "GetMy", "GetClass" },
+                items.Select(item => item.DisplayText));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestDescriptionInsideClass()
+        {
+            var markup = @"
+public class MyClass
+{
+    MyClass $$
+}
+";
+            await VerifyItemExistsAsync(markup, "myClass", glyph: (int)Glyph.FieldPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemExistsAsync(markup, "GetMyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestDescriptionInsideMethod()
+        {
+            var markup = @"
+public class MyClass
+{
+    void M()
+    {
+        MyClass $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "myClass", glyph: (int)Glyph.Local, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemIsAbsentAsync(markup, "MyClass");
+            await VerifyItemIsAbsentAsync(markup, "GetMyClass");
         }
 
         [WorkItem(20273, "https://github.com/dotnet/roslyn/issues/20273")]
@@ -1410,6 +1452,123 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "nullables");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CustomNamingStyleInsideClass()
+        {
+            var workspace = WorkspaceFixture.GetWorkspace();
+            var originalOptions = workspace.Options;
+
+            try
+            {
+                workspace.Options = workspace.Options.WithChangedOption(
+                    new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
+                    NamesEndWithSuffixPreferences());
+
+                var markup = @"
+class Configuration
+{
+    Configuration $$
+}
+";
+                await VerifyItemExistsAsync(markup, "ConfigurationField", glyph: (int)Glyph.FieldPublic,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+                await VerifyItemExistsAsync(markup, "ConfigurationProperty", glyph: (int)Glyph.PropertyPublic,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+                await VerifyItemExistsAsync(markup, "ConfigurationMethod", glyph: (int)Glyph.MethodPublic,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+                await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal");
+                await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction");
+            }
+            finally
+            {
+                workspace.Options = originalOptions;
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CustomNamingStyleInsideMethod()
+        {
+            var workspace = WorkspaceFixture.GetWorkspace();
+            var originalOptions = workspace.Options;
+
+            try
+            {
+                workspace.Options = workspace.Options.WithChangedOption(
+                    new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
+                    NamesEndWithSuffixPreferences());
+
+                var markup = @"
+class Configuration
+{
+    void M()
+    {
+        Configuration $$
+    }
+}
+";
+                await VerifyItemExistsAsync(markup, "ConfigurationLocal", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+                await VerifyItemExistsAsync(markup, "ConfigurationLocalFunction", glyph: (int)Glyph.MethodPublic,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+                await VerifyItemIsAbsentAsync(markup, "ConfigurationField");
+                await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod");
+                await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty");
+            }
+            finally
+            {
+                workspace.Options = originalOptions;
+            }
+        }
+
+        private static NamingStylePreferences NamesEndWithSuffixPreferences()
+        {
+            var specificationStyles = new[]
+            {
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Field), "Field"),
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Property), "Property"),
+                SpecificationStyle(new SymbolKindOrTypeKind(MethodKind.Ordinary), "Method"),
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Local), "Local"),
+                SpecificationStyle(new SymbolKindOrTypeKind(MethodKind.LocalFunction), "LocalFunction"),
+            };
+
+            return new NamingStylePreferences(
+                specificationStyles.Select(t => t.specification).ToImmutableArray(),
+                specificationStyles.Select(t => t.style).ToImmutableArray(),
+                specificationStyles.Select(t => CreateRule(t.specification, t.style)).ToImmutableArray());
+
+            // Local functions
+
+            (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string suffix)
+            {
+                var symbolSpecification = new SymbolSpecification(
+                    id: null,
+                    symbolSpecName: suffix,
+                    ImmutableArray.Create(kind),
+                    accessibilityList: default,
+                    modifiers: default);
+
+                var namingStyle = new NamingStyle(
+                    Guid.NewGuid(),
+                    name: suffix,
+                    capitalizationScheme: Capitalization.PascalCase,
+                    prefix: "",
+                    suffix: suffix,
+                    wordSeparator: "");
+
+                return (symbolSpecification, namingStyle);
+            }
+
+            SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
+            {
+                return new SerializableNamingRule()
+                {
+                    SymbolSpecificationID = specification.ID,
+                    NamingStyleID = style.ID,
+                    EnforcementLevel = ReportDiagnostic.Error
+                };
+            }
         }
     }
 }

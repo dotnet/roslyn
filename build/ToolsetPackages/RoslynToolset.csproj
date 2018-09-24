@@ -2,21 +2,22 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
-    <NonShipping>true</NonShipping>
-    <OutputType>Library</OutputType>
+    <TargetFrameworks>net46;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Net.Sdk" Version="$(MicrosoftNetSdkVersion)" ExcludeAssets="all" />
-    <PackageReference Include="Microsoft.Build.Logging.StructuredLogger" Version="$(MicrosoftBuildLoggingStructuredLoggerVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="$(MicrosoftNETCorePlatformsVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.DotNet.Build.Tasks.Feed" Version="$(MicrosoftDotNetBuildTasksFeedVersion)" ExcludeAssets="all" />
-    <PackageReference Include="Microsoft.Net.RoslynDiagnostics" Version="$(MicrosoftNetRoslynDiagnosticsVersion)" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.DotNet.SignTool" Version="$(MicrosoftDotNetSignToolVersion)" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.SymbolUploader.Build.Task" Version="$(MicrosoftSymbolUploaderBuildTaskVersion)" ExcludeAssets="all" />
+    <PackageReference Include="MSBuild.StructuredLogger" Version="$(MSBuildStructuredLoggerVersion)" ExcludeAssets="all" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" ExcludeAssets="all" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" ExcludeAssets="all" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynTools.ReferenceAssemblies" Version="$(RoslynToolsReferenceAssembliesVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.DiaSymReader.Pdb2Pdb" Version="$(MicrosoftDiaSymReaderPdb2PdbVersion)" ExcludeAssets="all" />
+    <PackageReference Include="RoslynTools.BuildTasks" Version="$(RoslynToolsBuildTasksVersion)" ExcludeAssets="all" />
+    <PackageReference Include="RoslynTools.NuGetRepack.BuildTasks" Version="$(RoslynToolsNuGetRepackVersion)" ExcludeAssets="all" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
     <PackageReference Include="FakeSign" Version="$(FakeSignVersion)" ExcludeAssets="all" />
@@ -29,15 +30,13 @@
     <PackageReference Include="Roslyn.Build.Util" Version="$(RoslynBuildUtilVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynDependencies.OptimizationData" Version="$(RoslynDependenciesOptimizationDataVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynTools.Microsoft.LocateVS" Version="$(RoslynToolsMicrosoftLocateVSVersion)" ExcludeAssets="all" />
-    <PackageReference Include="RoslynTools.Microsoft.VSIXExpInstaller" Version="$(RoslynToolsMicrosoftVSIXExpInstallerVersion)" ExcludeAssets="all" />
+    <PackageReference Include="RoslynTools.VSIXExpInstaller" Version="$(RoslynToolsVSIXExpInstallerVersion)" ExcludeAssets="all" />
+    <PackageReference Include="RoslynTools.ModifyVsixManifest" Version="$(RoslynToolsModifyVsixManifestVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynTools.MSBuild" Version="$(RoslynToolsMSBuildVersion)" ExcludeAssets="all" />
-    <PackageReference Include="RoslynTools.SignTool" Version="$(RoslynToolsSignToolVersion)" ExcludeAssets="all" />
     <PackageReference Include="xunit.runner.wpf" Version="$(xunitrunnerwpfVersion)" ExcludeAssets="all" />
     <PackageReference Include="vswhere" Version="$(vswhereVersion)" ExcludeAssets="all" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <PackageReference Include="dotnet-xunit" Version="$(dotnetxunitVersion)" ExcludeAssets="all" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
     <PackageReference Include="Microsoft.NETCore.Compilers" Version="$(MicrosoftNETCoreCompilersVersion)" ExcludeAssets="all" />
-    <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" ExcludeAssets="all" />
   </ItemGroup>
 </Project>

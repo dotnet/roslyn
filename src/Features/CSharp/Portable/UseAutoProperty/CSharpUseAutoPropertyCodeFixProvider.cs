@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             var project = propertyDocument.Project;
             var sourceText = await propertyDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
+            var trailingTrivia = propertyDeclaration.GetTrailingTrivia();
+
             var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList))
                                                      .WithExpressionBody(null)
                                                      .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
 
-            return updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
+            return updatedProperty.WithTrailingTrivia(trailingTrivia).WithAdditionalAnnotations(SpecializedFormattingAnnotation);
         }
 
         protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)

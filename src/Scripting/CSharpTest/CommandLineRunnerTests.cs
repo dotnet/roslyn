@@ -526,7 +526,7 @@ $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/29908")]
         public void Script_NoHostNamespaces()
         {
             var runner = CreateRunner(input: "nameof(Microsoft.CodeAnalysis)");

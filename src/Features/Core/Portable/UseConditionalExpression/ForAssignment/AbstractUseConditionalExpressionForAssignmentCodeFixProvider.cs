@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -164,6 +164,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             localDeclaration = parentBlock.Operations[ifIndex - 1] as IVariableDeclarationGroupOperation;
             if (localDeclaration == null)
+            {
+                return false;
+            }
+
+            if (localDeclaration.IsImplicit)
             {
                 return false;
             }

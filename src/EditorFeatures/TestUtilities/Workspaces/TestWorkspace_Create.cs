@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -125,6 +126,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return Create(language, compilationOptions, parseOptions, files, exportProvider: null, workspaceKind: workspaceKind);
         }
 
+        internal static string GetDefaultTestSourceDocumentName(int index, string extension)
+           => "test" + (index + 1) + extension;
+
         internal static TestWorkspace Create(
             string language,
             CompilationOptions compilationOptions,
@@ -138,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool openDocuments = true)
         {
             var documentElements = new List<XElement>();
-            var index = 1;
+            var index = 0;
 
             if (extension == null)
             {
@@ -149,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             foreach (var file in files)
             {
-                documentElements.Add(CreateDocumentElement(file, "test" + index++ + extension, parseOptions));
+                documentElements.Add(CreateDocumentElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
             }
 
             metadataReferences = metadataReferences ?? Array.Empty<string>();
@@ -171,10 +175,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string[] files,
             ExportProvider exportProvider)
         {
-            Contract.Requires(parseOptions == null || (files.Length == parseOptions.Length), "Please specify a parse option for each file.");
+            Debug.Assert(parseOptions == null || (files.Length == parseOptions.Length), "Please specify a parse option for each file.");
 
             var documentElements = new List<XElement>();
-            var index = 1;
+            var index = 0;
             var extension = "";
 
             for (int i = 0; i < files.Length; i++)
@@ -196,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     extension = language;
                 }
 
-                documentElements.Add(CreateDocumentElement(files[i], "test" + index++ + extension, parseOptions == null ? null : parseOptions[i]));
+                documentElements.Add(CreateDocumentElement(files[i], GetDefaultTestSourceDocumentName(index++, extension), parseOptions == null ? null : parseOptions[i]));
             }
 
             var workspaceElement = CreateWorkspaceElement(
@@ -229,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences, openDocuments: openDocuments);
         }
 
-        public static TestWorkspace CreateCSharp(
+        public static TestWorkspace CreateCSharp2(
             string[] files,
             ParseOptions[] parseOptions = null,
             CompilationOptions compilationOptions = null,

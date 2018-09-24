@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public string DisplayName => CSharpEditorResources.Split_String_Literal_Command_Handler;
+        public string DisplayName => CSharpEditorResources.Split_string;
 
         public VSCommanding.CommandState GetCommandState(ReturnKeyCommandArgs args)
         {

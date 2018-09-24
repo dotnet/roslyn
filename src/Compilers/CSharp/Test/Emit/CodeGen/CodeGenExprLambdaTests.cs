@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
         /// </summary>
-        protected new static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
+        protected static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
 
 
         #region A string containing expression-tree dumping utilities
@@ -5112,7 +5112,7 @@ Convert(Not(Convert(Parameter(x Type:Test+Color) Type:System.Int32) Type:System.
         }
 
         [WorkItem(531382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531382")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void IndexerIsIndexedProperty()
         {
             var source1 =

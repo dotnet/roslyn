@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 // check whether we can use the data as it is (can happen when re-using persisted data from previous VS session)
                 if (CheckVersions(document, textVersion, syntaxVersion, existingData))
                 {
-                    Contract.Requires(_workspace == document.Project.Solution.Workspace);
+                    Debug.Assert(_workspace == document.Project.Solution.Workspace);
                     RaiseTaskListUpdated(_workspace, document.Project.Solution, document.Id, existingData.Items);
                     return;
                 }
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             // * NOTE * cancellation can't throw after this point.
             if (existingData == null || existingData.Items.Length > 0 || data.Items.Length > 0)
             {
-                Contract.Requires(_workspace == document.Project.Solution.Workspace);
+                Debug.Assert(_workspace == document.Project.Solution.Workspace);
                 RaiseTaskListUpdated(_workspace, document.Project.Solution, document.Id, data.Items);
             }
         }
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             // TODO let's think about what to do here. for now, let call it synchronously. also, there is no actual async-ness for the
             // TryGetExistingDataAsync, API just happen to be async since our persistent API is async API. but both caller and implementor are
             // actually not async.
-            var existingData = _state.TryGetExistingDataAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var existingData = _state.TryGetExistingDataAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             if (existingData == null)
             {
                 return ImmutableArray<TodoItem>.Empty;
@@ -216,27 +217,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         #region not used
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public void RemoveProject(ProjectId projectId)

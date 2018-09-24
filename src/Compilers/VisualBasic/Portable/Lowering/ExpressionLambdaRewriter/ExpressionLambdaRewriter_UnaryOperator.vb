@@ -148,6 +148,7 @@ lNotAndMinus:
                                                              ImmutableArray.Create(Of BoundExpression)(
                                                                  CreateCoalesceLambdaParameter(lambdaParameter)),
                                                              Nothing,
+                                                             Nothing,
                                                              [call].IsLValue,
                                                              suppressObjectClone:=True,
                                                              type:=[call].Type),

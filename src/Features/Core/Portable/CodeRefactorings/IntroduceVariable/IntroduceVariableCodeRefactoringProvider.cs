@@ -7,6 +7,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
 {
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ConvertTupleToStruct)]
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass)]
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InvertConditional)]
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InvertLogical)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.IntroduceVariable), Shared]
     internal class IntroduceVariableCodeRefactoringProvider : CodeRefactoringProvider

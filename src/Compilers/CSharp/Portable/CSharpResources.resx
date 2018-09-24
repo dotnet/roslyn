@@ -898,7 +898,7 @@
     <value>Property or indexer '{0}' cannot be assigned to -- it is read only</value>
   </data>
   <data name="ERR_IllegalStatement" xml:space="preserve">
-    <value>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</value>
+    <value>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</value>
   </data>
   <data name="ERR_BadGetEnumerator" xml:space="preserve">
     <value>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</value>
@@ -1123,7 +1123,7 @@
     <value>Type does not implement the collection pattern; member has the wrong signature</value>
   </data>
   <data name="ERR_FriendRefNotEqualToThis" xml:space="preserve">
-    <value>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</value>
+    <value>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</value>
   </data>
   <data name="ERR_FriendRefSigningMismatch" xml:space="preserve">
     <value>Friend access was granted by '{0}', but the strong name signing state of the output assembly does not match that of the granting assembly.</value>
@@ -4944,10 +4944,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use ref local '{0}' inside an anonymous method, lambda expression, or query expression</value>
   </data>
   <data name="ERR_BadIteratorLocalType" xml:space="preserve">
-    <value>Iterators cannot have by reference locals</value>
+    <value>Iterators cannot have by-reference locals</value>
   </data>
   <data name="ERR_BadAsyncLocalType" xml:space="preserve">
-    <value>Async methods cannot have by reference locals</value>
+    <value>Async methods cannot have by-reference locals</value>
   </data>
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
@@ -5338,5 +5338,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
     <value>An out variable cannot be declared as a ref local</value>
+  </data>
+  <data name="CannotCreateConstructedFromConstructed" xml:space="preserve">
+    <value>Cannot create constructed generic type from another constructed generic type.</value>
+  </data>
+  <data name="CannotCreateConstructedFromNongeneric" xml:space="preserve">
+    <value>Cannot create constructed generic type from non-generic type.</value>
   </data>
 </root>

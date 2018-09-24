@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             TypeSyntax typeName, SemanticModel semanticModel, 
             OptionSet optionSet, CancellationToken cancellationToken)
         {
-            if (typeName.IsVar)
+            if (typeName.StripRefIfNeeded().IsVar)
             {
                 return default;
             }
@@ -47,9 +47,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (variableDeclaration.Type.IsVar)
+            var type = variableDeclaration.Type.StripRefIfNeeded();
+            if (type.IsVar)
             {
-                // If the type is already 'var', this analyze has no work to do
+                // If the type is already 'var' or 'ref var', this analyzer has no work to do
                 return false;
             }
 
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             TypeSyntax typeName, SemanticModel semanticModel,
             OptionSet optionSet, CancellationToken cancellationToken)
         {
-            Debug.Assert(!typeName.IsVar, "'var' special case should have prevented analysis of this variable.");
+            Debug.Assert(!typeName.StripRefIfNeeded().IsVar, "'var' special case should have prevented analysis of this variable.");
 
             var candidateReplacementNode = SyntaxFactory.IdentifierName("var");
 
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // cannot use implicit typing on method group or on dynamic
-            var declaredType = semanticModel.GetTypeInfo(typeName, cancellationToken).Type;
+            var declaredType = semanticModel.GetTypeInfo(typeName.StripRefIfNeeded(), cancellationToken).Type;
             if (declaredType != null && declaredType.TypeKind == TypeKind.Dynamic)
             {
                 return false;
@@ -260,8 +261,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // variables declared using var cannot be used further in the same initialization expression.
             if (initializer.DescendantNodesAndSelf()
-                    .Where(n => (n as IdentifierNameSyntax)?.Identifier.ValueText.Equals(identifier.ValueText) == true)
-                    .Any(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol?.IsKind(SymbolKind.Local) == true))
+                .Where(n => n is IdentifierNameSyntax id && id.Identifier.ValueText.Equals(identifier.ValueText))
+                .Any(n => 
+                {
+                    // case of variable direct use: int x = x * 2;
+                    if (semanticModel.GetSymbolInfo(n, cancellationToken).Symbol.IsKind(SymbolKind.Local) == true)
+                    {
+                        return true;
+                    }
+
+                    // case of qualification starting with the variable name: SomeEnum SomeEnum = SomeEnum.EnumVal1;
+                    // note that: SomeEnum SomeEnum = global::SomeEnum.EnumVal1; // is ok and 'var' can be offered
+                    // https://github.com/dotnet/roslyn/issues/26894
+                    if (n.Parent is MemberAccessExpressionSyntax memberAccessParent && memberAccessParent.Expression == n)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }))
             {
                 return false;
             }

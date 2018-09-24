@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET46
+#if !NETCOREAPP2_1
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -683,7 +683,7 @@ public class C {}",
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
             public class C { internal void Goo() {} }";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
+            var other = CreateCompilation(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "Paul");
 
             var c = CreateCompilation(
     @"public class A
@@ -701,7 +701,12 @@ public class C {}",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
 
             //compilation should not succeed, and internals should not be imported.
-            c.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadAccess, "Goo").WithArguments("C.Goo()"));
+            c.VerifyDiagnostics(
+
+                // (7,15): error CS0122: 'C.Goo()' is inaccessible due to its protection level
+                //             o.Goo();
+                Diagnostic(ErrorCode.ERR_BadAccess, "Goo").WithArguments("C.Goo()").WithLocation(7, 15)
+                );
 
             var c2 = CreateCompilation(
     @"public class A
@@ -830,6 +835,88 @@ public class C {}",
         }
 
         [Fact]
+        public void CS0281Method()
+        {
+            var friendClass = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+[ assembly: InternalsVisibleTo(""cs0281, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"") ]
+public class PublicClass
+{
+
+    internal static void InternalMethod() { }
+    protected static void ProtectedMethod() { }
+    private static void PrivateMethod() { }
+    internal protected static void InternalProtectedMethod() { }
+    private protected static void PrivateProtectedMethod() { }
+}", assemblyName: "Paul");
+
+            string cs0281 = @"
+
+public class Test
+{
+	static void Main ()
+	{
+		PublicClass.InternalMethod();
+        PublicClass.ProtectedMethod();
+        PublicClass.PrivateMethod();
+        PublicClass.InternalProtectedMethod();
+        PublicClass.PrivateProtectedMethod();
+	}
+}";
+            var other = CreateCompilation(cs0281, references: new[] { friendClass.EmitToImageReference() }, assemblyName: "cs0281", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
+            other.VerifyDiagnostics(
+                    // (7,15): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                    // 		PublicClass.InternalMethod();
+                    Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "InternalMethod").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(7, 15),
+                    // (8,21): error CS0122: 'PublicClass.ProtectedMethod()' is inaccessible due to its protection level
+                    //         PublicClass.ProtectedMethod();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedMethod").WithArguments("PublicClass.ProtectedMethod()").WithLocation(8, 21),
+                    // (9,21): error CS0117: 'PublicClass' does not contain a definition for 'PrivateMethod'
+                    //         PublicClass.PrivateMethod();
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "PrivateMethod").WithArguments("PublicClass", "PrivateMethod").WithLocation(9, 21),
+                    // (10,21): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                    //         PublicClass.InternalProtectedMethod();
+                    Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "InternalProtectedMethod").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(10, 21),
+                    // (11,21): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                    //         PublicClass.PrivateProtectedMethod();
+                    Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PrivateProtectedMethod").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(11, 21)
+                    );
+        }
+
+        [Fact]
+        public void CS0281Class()
+        {
+            var friendClass = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+[ assembly: InternalsVisibleTo(""cs0281, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"") ]
+internal class FriendClass
+{
+
+    public static void MyMethod() 
+    {
+    }
+}", assemblyName: "Paul");
+
+            string cs0281 = @"
+
+public class Test
+{
+	static void Main ()
+	{
+		FriendClass.MyMethod ();
+	}
+}";
+            var other = CreateCompilation(cs0281, references: new[] { friendClass.EmitToImageReference() }, assemblyName: "cs0281", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
+
+            // (7, 3): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('')
+            // does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+            // 		FriendClass.MyMethod ();
+            other.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "FriendClass").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(7, 3)
+            );
+        }
+        
+        [Fact]
         public void IVTNotBothSigned_VBtoCS()
         {
             string s = @"<assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")>
@@ -943,12 +1030,19 @@ public class A
 public class A
 {
 }",
-              new MetadataReference[] { new CSharpCompilationReference(other) },
-              assemblyName: "John",
-              options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
+            new MetadataReference[] { new CSharpCompilationReference(other) },
+            assemblyName: "John",
+             options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
-            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
+            requestor.VerifyDiagnostics(
+                // error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2',
+                // but the public key of the output assembly ('John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2')
+                // does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis)
+                .WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+                .WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -1004,7 +1098,14 @@ public class A
                 assemblyName: "John");
 
             Assert.False(((IAssemblySymbol)other.Assembly).GivesAccessTo(requestor.Assembly));
-            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
+            requestor.VerifyDiagnostics(
+                // error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2',
+                // but the public key of the output assembly ('John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2')
+                // does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis)
+                .WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+                .WithLocation(1, 1)
+                );
         }
 
         [WorkItem(820450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820450")]
@@ -1658,7 +1759,6 @@ public class C
 {
   static void Goo() {}
 }",
-                    new MetadataReference[] { MscorlibRef_v4_0_30316_17626 },
                     options: options);
 
                 using (var metadata = ModuleMetadata.CreateFromImage(other.EmitToArray()))
@@ -1708,10 +1808,10 @@ class Derived : Base
             var comp = CreateCompilation(csharp, new[] { ilRef }, assemblyName: "asm2", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
             comp.VerifyDiagnostics(
                 // NOTE: dev10 reports WRN_InvalidAssemblyName, but Roslyn won't (DevDiv #15099).
-
                 // (2,17): error CS0122: 'Base' is inaccessible due to its protection level
                 // class Derived : Base
-                Diagnostic(ErrorCode.ERR_BadAccess, "Base").WithArguments("Base"));
+                Diagnostic(ErrorCode.ERR_BadAccess, "Base").WithArguments("Base").WithLocation(2, 17)
+                );
         }
 
         [WorkItem(546331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]

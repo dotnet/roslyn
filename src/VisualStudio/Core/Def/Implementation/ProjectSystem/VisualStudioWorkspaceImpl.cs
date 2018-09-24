@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
@@ -42,19 +40,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly IntPtr s_docDataExisting_Unknown = new IntPtr(-1);
         private const string AppCodeFolderName = "App_Code";
 
+        private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly ITextBufferCloneService _textBufferCloneService;
+        private readonly LinkedFileUtilities _linkedFileUtilities;
 
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
 
         /// <summary>
         /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
-        /// This is Lazy because it might be created on a background thread when nothing is initialized yet.
         /// </summary>
-        private readonly Lazy<ForegroundThreadAffinitizedObject> _foregroundObject
-            = new Lazy<ForegroundThreadAffinitizedObject>(() => new ForegroundThreadAffinitizedObject());
+        private readonly ForegroundThreadAffinitizedObject _foregroundObject;
 
         private readonly Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>> _hierarchyEventSinks = new Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>>();
 
@@ -68,9 +66,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             : base(
                 MefV1HostServices.Create(exportProvider))
         {
+            _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
+            _linkedFileUtilities = exportProvider.GetExportedValue<LinkedFileUtilities>();
+
+            _foregroundObject = new ForegroundThreadAffinitizedObject(_threadingContext);
+
             _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
             exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
@@ -84,8 +87,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (DeferredState == null)
             {
-                _foregroundObject.Value.AssertIsForeground();
-                DeferredState = new DeferredInitializationState(this, serviceProvider);
+                ThreadHelper.ThrowIfNotOnUIThread();
+                DeferredState = new DeferredInitializationState(_threadingContext, this, serviceProvider, _linkedFileUtilities);
             }
 
             return DeferredState.ProjectTracker;
@@ -134,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
-            if (_foregroundObject.IsValueCreated && !_foregroundObject.Value.IsForeground())
+            if (!ThreadHelper.JoinableTaskContext.IsOnMainThread)
             {
                 throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
             }
@@ -198,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal bool IsCPSProject(CodeAnalysis.Project project)
         {
-            _foregroundObject.Value.AssertIsForeground();
+            ThreadHelper.ThrowIfNotOnUIThread();
 
             if (this.TryGetHierarchy(project.Id, out var hierarchy))
             {
@@ -215,13 +218,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
         {
-            if (!(oldOptions is CSharpCompilationOptions oldCSharpOptions))
+            var compilationOptionsService = project.LanguageServices.GetService<ICompilationOptionsService>();
+            if (compilationOptionsService == null || !compilationOptionsService.SupportsUnsafe)
             {
                 return false;
             }
 
-            // Currently, only changes to AllowUnsafe of C# compilation options are supported.
-            return oldCSharpOptions.WithAllowUnsafe(((CSharpCompilationOptions)newOptions).AllowUnsafe) == newOptions;
+            // Currently, only changes to AllowUnsafe of compilation options are supported.
+            var newAllowUnsafe = compilationOptionsService.GetAllowUnsafe(newOptions);
+            var updated = compilationOptionsService.WithAllowUnsafe(oldOptions, newAllowUnsafe);
+
+            return newOptions == updated;
         }
 
         protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
@@ -334,15 +341,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
+            var compilationOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<ICompilationOptionsService>();
+            Contract.ThrowIfNull(compilationOptionsService, nameof(compilationOptionsService));
+
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), DeferredState.ServiceProvider);
 
-            switch (options)
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
+            switch (hostProject.Language)
             {
-                case CSharpCompilationOptions csharpOptions:
+                case LanguageNames.CSharp:
                     storage.SetProperty("AllowUnsafeBlocks", nameof(ProjectConfigurationProperties3.AllowUnsafeBlocks),
-                        csharpOptions.AllowUnsafe.ToString().ToLowerInvariant());
+                        compilationOptionsService.GetAllowUnsafe(options).ToString().ToLowerInvariant());
                     break;
-                case VisualBasicCompilationOptions _:
+                case LanguageNames.VisualBasic:
                     throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_compilation_options);
             }
         }
@@ -359,15 +370,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
+            var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
+            Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
+
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), DeferredState.ServiceProvider);
 
-            switch (options)
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
+            switch (hostProject.Language)
             {
-                case CSharpParseOptions csharpOptions:
+                case LanguageNames.CSharp:
                     storage.SetProperty("LangVersion", nameof(CSharpProjectConfigurationProperties3.LanguageVersion),
-                        csharpOptions.SpecifiedLanguageVersion.ToDisplayString());
+                        parseOptionsService.GetLanguageVersion(options));
                     break;
-                case VisualBasicParseOptions _:
+                case LanguageNames.VisualBasic:
                     throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
             }
         }
@@ -581,15 +596,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (IsWebsite(project))
             {
-                AddDocumentToFolder(hostProject, project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument);
+                AddDocumentToFolder(hostProject, project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
             }
             else if (folders.Any())
             {
-                AddDocumentToFolder(hostProject, project, info.Id, folders, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument);
+                AddDocumentToFolder(hostProject, project, info.Id, folders, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
             }
             else
             {
-                AddDocumentToProject(hostProject, project, info.Id, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument);
+                AddDocumentToProject(hostProject, project, info.Id, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
             }
 
             var undoManager = TryGetUndoManager();
@@ -671,7 +686,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filePath = null,
             bool isAdditionalDocument = false)
         {
-            if (!project.TryGetFullPath(out var folderPath))
+            string folderPath = null;
+            if (filePath == null && !project.TryGetFullPath(out folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
@@ -692,7 +708,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             bool isAdditionalDocument = false)
         {
             var folder = project.FindOrCreateFolder(folders);
-            if (!folder.TryGetFullPath(out var folderPath))
+
+            string folderPath = null;
+            if (filePath == null && !folder.TryGetFullPath(out folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
@@ -810,7 +828,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            if (!_foregroundObject.Value.IsForeground())
+            if (!ThreadHelper.JoinableTaskContext.IsOnMainThread)
             {
                 throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
             }
@@ -952,7 +970,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var hierarchy = hostDocument.Project.Hierarchy;
-            var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
+            var sharedHierarchy = _linkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
             if (sharedHierarchy != null)
             {
                 if (sharedHierarchy.SetProperty(
@@ -994,7 +1012,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Note that if there is a single head project and it's in the process of being unloaded
             // there might not be a host project.
-            var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, DeferredState.ProjectTracker);
+            var hostProject = _linkedFileUtilities.GetContextHostProject(sharedHierarchy, DeferredState.ProjectTracker);
             if (hostProject?.Hierarchy == sharedHierarchy)
             {
                 return;
@@ -1022,7 +1040,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (itemId != (uint)VSConstants.VSITEMID.Nil)
             {
-                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
+                var sharedHierarchy = _linkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
 
                 if (sharedHierarchy != null)
                 {
@@ -1087,14 +1105,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // If this is a regular document or a closed linked (non-shared) document, then use the
             // default logic for determining current context.
-            var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId);
+            var sharedHierarchy = _linkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId);
             if (sharedHierarchy == null)
             {
                 return base.GetDocumentIdInCurrentContext(documentId);
             }
 
             // This is a closed shared document, so we must determine the correct context.
-            var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, DeferredState.ProjectTracker);
+            var hostProject = _linkedFileUtilities.GetContextHostProject(sharedHierarchy, DeferredState.ProjectTracker);
             var matchingProject = CurrentSolution.GetProject(hostProject.Id);
             if (matchingProject == null || hostProject.Hierarchy == sharedHierarchy)
             {
@@ -1218,7 +1236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
-            _foregroundObject.Value.AssertIsForeground();
+            ThreadHelper.ThrowIfNotOnUIThread();
             if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
                 !TryGetHierarchy(referencedProject, out var referencedHierarchy))
             {

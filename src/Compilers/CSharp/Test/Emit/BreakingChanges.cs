@@ -1348,7 +1348,7 @@ static int Main()
 }
 ";
             // Native compiler throw
-            CompileAndVerify(source, references: new[] { SystemCoreRef }, expectedOutput: "3");
+            CompileAndVerify(source, expectedOutput: "3");
         }
 
         [Fact, WorkItem(530696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530696")]

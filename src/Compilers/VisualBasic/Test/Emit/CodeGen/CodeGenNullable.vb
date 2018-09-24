@@ -2180,7 +2180,8 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(544946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544946")>
+        <WorkItem(544946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544946")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub LiftedBinaryConcatLikeWithNothingLiteral()
             Dim source =
                 <compilation>
@@ -2446,38 +2447,38 @@ Module Module1
         Dim c As S1?
         Dim d As T1?
         d = c
-        Console.WriteLine("Lifted UD conversion: null check skips conversion call. d.HasValue= {0}" &amp; vbCrLf, d.HasValue) 'expect 7
+        Console.WriteLine("Lifted UD conversion: null check skips conversion call. d.HasValue= {0}" &amp; Environment.NewLine, d.HasValue) 'expect 7
 
         c = 1
-        Console.WriteLine("widening to nullable UD conversion: c=1;  c.value= {0}" &amp; vbCrLf, c.Value.i) 'expect 7
+        Console.WriteLine("widening to nullable UD conversion: c=1;  c.value= {0}" &amp; Environment.NewLine, c.Value.i) 'expect 7
 
         c = Nothing
-        Console.WriteLine("widening to nullable UD conversion: c=Nothing;  c.HasValue= {0}" &amp; vbCrLf, c.HasValue) 'expect 7
+        Console.WriteLine("widening to nullable UD conversion: c=Nothing;  c.HasValue= {0}" &amp; Environment.NewLine, c.HasValue) 'expect 7
 
         av.i = 7
         Dim a2 As New S1?(av)
         Dim b2 As T1
         b2 = a2
-        Console.WriteLine("regular UD conversion+PDconversion:  S1?->S1 -->T1, value passed:{0}" &amp; vbCrLf, b2.i) 'expect 7
+        Console.WriteLine("regular UD conversion+PDconversion:  S1?->S1 -->T1, value passed:{0}" &amp; Environment.NewLine, b2.i) 'expect 7
 
         Dim a21 As New S1
         a21.i = 8
         Dim b21 As T1?
         b21 = a21
-        Console.WriteLine("regular UD conversion+PD conversion: S1-->T1->T1?, value passed:{0}" &amp; vbCrLf, b21.Value.i) 'expect 8
+        Console.WriteLine("regular UD conversion+PD conversion: S1-->T1->T1?, value passed:{0}" &amp; Environment.NewLine, b21.Value.i) 'expect 8
 
         Dim val As New S1
         val.i = 3
         c = New S1?(val)
         d = c
-        Console.WriteLine("lifted UD conversion, value passed:{0}" &amp; vbCrLf, d.Value.i) 'expect 3
+        Console.WriteLine("lifted UD conversion, value passed:{0}" &amp; Environment.NewLine, d.Value.i) 'expect 3
 
         Dim k As New S2
         k.i = 2
         Dim c2 As New S2?(k)
         Dim d2 As T2?
         d2 = c2 'UD conversion on nullable preferred over lifting
-        Console.WriteLine(" UD nullable conversion, preferred over lifted value passed: {0}" &amp; vbCrLf, d2.Value.i) 'expect 2
+        Console.WriteLine(" UD nullable conversion, preferred over lifted value passed: {0}" &amp; Environment.NewLine, d2.Value.i) 'expect 2
 
 
         av.i = 5
@@ -2485,26 +2486,26 @@ Module Module1
         'a.i = 2
         Dim b As T1?
         b = a
-        Console.WriteLine("lifted UD conversion, value passed:{0}" &amp; vbCrLf, b.Value.i) 'expect 5
+        Console.WriteLine("lifted UD conversion, value passed:{0}" &amp; Environment.NewLine, b.Value.i) 'expect 5
 
         Dim a1 As S1
         a1.i = 6
         Dim b1 As T1
         b1 = a1
-        Console.WriteLine("regular UD conversion, value passed:{0}" &amp; vbCrLf, b1.i) 'expect 6
+        Console.WriteLine("regular UD conversion, value passed:{0}" &amp; Environment.NewLine, b1.i) 'expect 6
 
         Dim a3 As S1
         a3.i = 8
         Dim b3 As T1?
         b3 = a3
-        Console.WriteLine("regular UD conversion+PD conversion, value passed:{0}" &amp; vbCrLf, b3.Value.i) 'expect 8
+        Console.WriteLine("regular UD conversion+PD conversion, value passed:{0}" &amp; Environment.NewLine, b3.Value.i) 'expect 8
 
         Dim atv = New st(Of Integer)
         atv.i = 9
         Dim at As New st(Of Integer)?(atv)
         Dim bt As Integer?
         bt = at
-        Console.WriteLine("generic UD, value passed bt.value = :{0}" &amp; vbCrLf, bt.Value) 'expect 8
+        Console.WriteLine("generic UD, value passed bt.value = :{0}" &amp; Environment.NewLine, bt.Value) 'expect 8
     End Sub
 
     Structure S1

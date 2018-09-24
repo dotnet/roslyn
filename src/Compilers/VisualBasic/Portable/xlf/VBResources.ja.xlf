@@ -8390,7 +8390,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic コンパイラのオプション
+        <target state="translated">                  Visual Basic コンパイラのオプション
 
                                   - 出力ファイル -
 /out:&lt;file&gt;                       出力ファイル名を指定します。
@@ -8534,7 +8534,7 @@
                                   コンパイラが出力するソース パス名のマッピングを
                                   指定します。
 /platform:&lt;string&gt;                このコードを実行できるプラットフォームは 
-                                  x86、x64、Itanium、arm、
+                                  x86、x64、Itanium、arm、arm64、
                                   AnyCPU32BitPreferred、anycpu (既定) でなければなりません。
 /preferreduilang                  出力用の言語名を指定します。
 /sdkpath:&lt;path&gt;                   .NET Framework SDK ディレクトリ (mscorlib.dll)
@@ -9083,7 +9083,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">ファイル名 '{0}' は、空である、無効な文字を含んでいる、絶対パスが指定されていないドライブ指定がある、または長すぎるかのいずれかです。</target>
         <note />
       </trans-unit>
     </body>

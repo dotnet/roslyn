@@ -1,0 +1,37 @@
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <!--
+    Required variables:
+      OfficialBuild                   True for official builds.
+      ComponentName                   Name of the component (VSIX)
+      SetupOutputPath                 Directory to drop Willow manifests to.
+      ComponentIntermediateOutputPath Intermediate directory where the component is being built.
+      SwixBuildPath                   SwixBuild package path.
+  -->
+
+  <PropertyGroup>
+    <ResolveNuGetPackages>false</ResolveNuGetPackages>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
+  </PropertyGroup>
+
+  <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.props" />
+
+  <PropertyGroup>
+    <FinalizeManifest>false</FinalizeManifest>
+    <FinalizeManifest Condition="'$(OfficialBuild)' == 'true'">true</FinalizeManifest>
+    
+    <FinalizeSkipLayout>true</FinalizeSkipLayout>
+    <IsPackage>true</IsPackage>
+    <TargetName>$(ComponentName)</TargetName>
+    <OutputPath>$(SetupOutputPath)</OutputPath>
+    <IntermediateOutputPath>$(ComponentIntermediateOutputPath)</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <_PackageStubFiles Include="$(ComponentIntermediateOutputPath)*.stub"/>
+    <MergeManifest Include="@(_PackageStubFiles->'$(SetupOutputPath)%(Filename).json')"/>
+  </ItemGroup>
+
+  <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
+</Project>

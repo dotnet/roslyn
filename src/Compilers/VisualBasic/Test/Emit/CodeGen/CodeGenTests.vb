@@ -3312,7 +3312,7 @@ Module M1
 End Module
     </file>
 </compilation>,
-            expectedOutput:="ThenPart" & vbCrLf & "After" & vbCrLf).
+            expectedOutput:="ThenPart" & Environment.NewLine & "After" & Environment.NewLine).
             VerifyIL("M1.Main",
             <![CDATA[
 {
@@ -4493,7 +4493,7 @@ hi
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub ParameterByRefVal()
             CompileAndVerify(
            <compilation>
@@ -5200,10 +5200,10 @@ Char: v
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.ConversionsILGenTestSource %>
+        <%= EmitResourceUtil.ConversionsILGenTestSource %>
     </file>
 </compilation>,
-            expectedOutput:=My.Resources.Resource.ConversionsILGenTestBaseline)
+            expectedOutput:=EmitResourceUtil.ConversionsILGenTestBaseline)
 
         End Sub
 
@@ -5213,10 +5213,10 @@ Char: v
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.ConversionsILGenTestSource1 %>
+        <%= EmitResourceUtil.ConversionsILGenTestSource1 %>
     </file>
 </compilation>,
-            expectedOutput:=My.Resources.Resource.ConversionsILGenTestBaseline1)
+            expectedOutput:=EmitResourceUtil.ConversionsILGenTestBaseline1)
 
         End Sub
 
@@ -5226,7 +5226,7 @@ Char: v
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.ConversionsILGenTestSource2 %>
+        <%= EmitResourceUtil.ConversionsILGenTestSource2 %>
     </file>
 </compilation>,
             expectedOutput:=<![CDATA[
@@ -10797,7 +10797,8 @@ True
 ]]>)
         End Sub
 
-        <Fact, WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
+        <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestMSVBTypeNameAPI()
             Dim vbCompilation = CreateVisualBasicCompilation("TestMSVBTypeNameAPI",
             <![CDATA[Public Module Program
@@ -11275,7 +11276,7 @@ End Class
             CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=Verification.Passes)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub ComImportMethods()
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub([module])
                                                                  Dim expectedMethodImplAttributes As System.Reflection.MethodImplAttributes = MethodImplAttributes.Managed Or
@@ -11505,7 +11506,7 @@ Class Program
     End Property
 End Class
     ]]></file>
-</compilation>, TestOptions.ReleaseExe)
+</compilation>, options:=TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 In get
 1
@@ -12142,7 +12143,7 @@ End Module
         End Sub
 
         <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug529162()
             Dim source =
 <compilation>
@@ -13310,12 +13311,13 @@ End Class
         <NoIOperationValidationFact>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
+            Dim size = 8192
             Dim source =
 $"
 Class Test
     Shared Sub Main()
-        Dim f = new Single?(4096-1) {{}}
-        for i As Integer = 0 To 4095
+        Dim f = new Single?({size}-1) {{}}
+        for i As Integer = 0 To ({size} - 1)
             f(i) = 4096 - i
         Next
 
@@ -13323,7 +13325,7 @@ Class Test
     End Sub
 
     Shared Function Calculate(f As Single?()) As Double?
-        Return {BuildSequenceOfBinaryExpressions_01()}
+        Return {BuildSequenceOfBinaryExpressions_01(size)}
     End Function
 End Class
 "
@@ -13380,7 +13382,7 @@ End Class
 5180801")
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =

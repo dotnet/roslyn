@@ -62,6 +62,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot create constructed generic type from another constructed generic type..
+        /// </summary>
+        internal static string CannotCreateConstructedFromConstructed {
+            get {
+                return ResourceManager.GetString("CannotCreateConstructedFromConstructed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot create constructed generic type from non-generic type..
+        /// </summary>
+        internal static string CannotCreateConstructedFromNongeneric {
+            get {
+                return ResourceManager.GetString("CannotCreateConstructedFromNongeneric", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t reference compilation of type &apos;{0}&apos; from {1} compilation..
         /// </summary>
         internal static string CantReferenceCompilationOf {
@@ -953,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async methods cannot have by reference locals.
+        ///   Looks up a localized string similar to Async methods cannot have by-reference locals.
         /// </summary>
         internal static string ERR_BadAsyncLocalType {
             get {
@@ -1637,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Iterators cannot have by reference locals.
+        ///   Looks up a localized string similar to Iterators cannot have by-reference locals.
         /// </summary>
         internal static string ERR_BadIteratorLocalType {
             get {
@@ -4931,7 +4949,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Friend access was granted by &apos;{0}&apos;, but the public key of the output assembly does not match that specified by the attribute in the granting assembly..
+        ///   Looks up a localized string similar to Friend access was granted by &apos;{0}&apos;, but the public key of the output assembly (&apos;{1}&apos;) does not match that specified by the InternalsVisibleTo attribute in the granting assembly..
         /// </summary>
         internal static string ERR_FriendRefNotEqualToThis {
             get {
@@ -5201,7 +5219,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only assignment, call, increment, decrement, and new object expressions can be used as a statement.
+        ///   Looks up a localized string similar to Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement.
         /// </summary>
         internal static string ERR_IllegalStatement {
             get {

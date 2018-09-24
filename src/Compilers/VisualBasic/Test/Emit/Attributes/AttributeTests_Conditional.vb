@@ -302,12 +302,12 @@ Imports System.Diagnostics
             Dim parseOpts2 = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbolsSrcFile2)
 
             ' Different source files, same compilation
-            Dim comp = CreateCompilationWithMscorlib40({Parse(source1, parseOpts1), Parse(source2, parseOpts2)})
+            Dim comp = CreateCompilationWithMscorlib40({Parse(source1, parseOpts1), Parse(source2, parseOpts2)}, options:=TestOptions.ReleaseExe)
             CompileAndVerify(comp, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
 
             ' Different source files, different compilation
             Dim comp1 = CreateCompilationWithMscorlib40({Parse(source1, parseOpts1)}, options:=TestOptions.ReleaseDll)
-            Dim comp2 = VisualBasicCompilation.Create("comp2", {Parse(source2, parseOpts2)}, {MscorlibRef, New VisualBasicCompilationReference(comp1)})
+            Dim comp2 = VisualBasicCompilation.Create("comp2", {Parse(source2, parseOpts2)}, {MscorlibRef, New VisualBasicCompilationReference(comp1)}, options:=TestOptions.ReleaseExe)
             CompileAndVerify(comp2, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
         End Sub
 #End Region
@@ -546,15 +546,15 @@ End Class
     End Module
     ]]>.Value
 
-        Private Const s_commonExpectedOutput_ConditionalMethodsTest As String =
-            "Z.PreservedCalls_AppliedConditional_Method" & vbCrLf &
-            "Z.PreservedCalls_InheritedConditional_Method" & vbCrLf &
-            "Z.PreservedCalls_MultipleConditional_Method" & vbCrLf &
-            "Z.PartiallyPreservedCalls_Interface_Method" & vbCrLf &
-            "Z.PreservedCalls_Function" & vbCrLf &
-            "0" & vbCrLf &
-            "Z.PartiallyPreservedCalls_PartiallyPreservedAppliedAttribute_Method2" & vbCrLf &
-            "Z.PartiallyPreservedCalls_PartiallyPreservedAppliedAttribute_Method4" & vbCrLf
+        Private Shared ReadOnly s_commonExpectedOutput_ConditionalMethodsTest As String =
+            "Z.PreservedCalls_AppliedConditional_Method" & Environment.NewLine &
+            "Z.PreservedCalls_InheritedConditional_Method" & Environment.NewLine &
+            "Z.PreservedCalls_MultipleConditional_Method" & Environment.NewLine &
+            "Z.PartiallyPreservedCalls_Interface_Method" & Environment.NewLine &
+            "Z.PreservedCalls_Function" & Environment.NewLine &
+            "0" & Environment.NewLine &
+            "Z.PartiallyPreservedCalls_PartiallyPreservedAppliedAttribute_Method2" & Environment.NewLine &
+            "Z.PartiallyPreservedCalls_PartiallyPreservedAppliedAttribute_Method4" & Environment.NewLine
 
         Private Sub TestConditionalMethod_SameSource(condDefs As String)
             TestConditionalMethod_SameSource(condDefs, ImmutableArray.Create(Of KeyValuePair(Of String, Object))())

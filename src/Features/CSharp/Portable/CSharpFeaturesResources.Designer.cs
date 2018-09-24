@@ -71,11 +71,47 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add accessibility modifiers.
+        /// </summary>
+        internal static string Add_accessibility_modifiers {
+            get {
+                return ResourceManager.GetString("Add_accessibility_modifiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add await.
+        /// </summary>
+        internal static string Add_await {
+            get {
+                return ResourceManager.GetString("Add_await", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add await and ConfigureAwait(false).
+        /// </summary>
+        internal static string Add_Await_and_ConfigureAwaitFalse {
+            get {
+                return ResourceManager.GetString("Add_Await_and_ConfigureAwaitFalse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add parentheses.
         /// </summary>
         internal static string Add_parentheses_around_conditional_expression_in_interpolated_string {
             get {
                 return ResourceManager.GetString("Add_parentheses_around_conditional_expression_in_interpolated_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add/remove braces for single-line control statements.
+        /// </summary>
+        internal static string Add_remove_braces_for_single_line_control_statements {
+            get {
+                return ResourceManager.GetString("Add_remove_braces_for_single_line_control_statements", resourceCulture);
             }
         }
         
@@ -103,6 +139,60 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string anonymous_method {
             get {
                 return ResourceManager.GetString("anonymous_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply expression/block body preferences.
+        /// </summary>
+        internal static string Apply_expression_block_body_preferences {
+            get {
+                return ResourceManager.GetString("Apply_expression_block_body_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply implicit/explicit type preferences.
+        /// </summary>
+        internal static string Apply_implicit_explicit_type_preferences {
+            get {
+                return ResourceManager.GetString("Apply_implicit_explicit_type_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply inline &apos;out&apos; variables preferences.
+        /// </summary>
+        internal static string Apply_inline_out_variable_preferences {
+            get {
+                return ResourceManager.GetString("Apply_inline_out_variable_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply language/framework type preferences.
+        /// </summary>
+        internal static string Apply_language_framework_type_preferences {
+            get {
+                return ResourceManager.GetString("Apply_language_framework_type_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply object/collection initialization preferences.
+        /// </summary>
+        internal static string Apply_object_collection_initialization_preferences {
+            get {
+                return ResourceManager.GetString("Apply_object_collection_initialization_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply &apos;this.&apos; qualification preferences.
+        /// </summary>
+        internal static string Apply_this_qualification_preferences {
+            get {
+                return ResourceManager.GetString("Apply_this_qualification_preferences", resourceCulture);
             }
         }
         
@@ -302,6 +392,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Convert_to_foreach {
             get {
                 return ResourceManager.GetString("Convert_to_foreach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to method.
+        /// </summary>
+        internal static string Convert_to_method {
+            get {
+                return ResourceManager.GetString("Convert_to_method", resourceCulture);
             }
         }
         
@@ -666,6 +765,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make private fields readonly when possible.
+        /// </summary>
+        internal static string Make_private_field_readonly_when_possible {
+            get {
+                return ResourceManager.GetString("Make_private_field_readonly_when_possible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;member name&gt; = .
         /// </summary>
         internal static string member_name {
@@ -837,6 +945,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary casts.
+        /// </summary>
+        internal static string Remove_unnecessary_casts {
+            get {
+                return ResourceManager.GetString("Remove_unnecessary_casts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Unnecessary Usings.
         /// </summary>
         internal static string Remove_Unnecessary_Usings {
@@ -851,6 +968,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Remove_unused_function {
             get {
                 return ResourceManager.GetString("Remove_unused_function", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused variables.
+        /// </summary>
+        internal static string Remove_unused_variables {
+            get {
+                return ResourceManager.GetString("Remove_unused_variables", resourceCulture);
             }
         }
         
@@ -968,6 +1094,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Simplify_name_0 {
             get {
                 return ResourceManager.GetString("Simplify_name_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sort accessibility modifiers.
+        /// </summary>
+        internal static string Sort_accessibility_modifiers {
+            get {
+                return ResourceManager.GetString("Sort_accessibility_modifiers", resourceCulture);
             }
         }
         

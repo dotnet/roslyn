@@ -1,4 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#If NOT NETCOREAPP2_1
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -132,7 +133,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
 
         other.VerifyDiagnostics()
         Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey))
@@ -285,7 +286,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
 
         other.VerifyDiagnostics()
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
@@ -303,7 +304,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
 
         other.VerifyDiagnostics()
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
@@ -603,7 +604,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
 
         'shouldn't have an error. The attribute's contents are checked when the module is added.
         Dim reference = c1.EmitToImageReference()
@@ -640,7 +641,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
+</compilation>, options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
 
         'shouldn't have an error. The attribute's contents are checked when the module is added.
         Dim reference = c1.EmitToImageReference()
@@ -1034,13 +1035,13 @@ BC31535: Friend assembly reference 'WantsIVTAccess' is invalid. Strong-name sign
 
 #Region "Signing"
 
-    <Fact>
+    <ConditionalFact(GetType(WindowsDesktopOnly))>
     Public Sub MaxSizeKey()
         Dim pubKey = TestResources.General.snMaxSizePublicKeyString
         Const pubKeyToken = "1540923db30520b2"
         Dim pubKeyTokenBytes As Byte() = {&H15, &H40, &H92, &H3D, &HB3, &H5, &H20, &HB2}
 
-        Dim comp = CreateCompilationWithMscorlib40(
+        Dim comp = CreateCompilation(
 <compilation>
     <file name="c.vb">
 Imports System
@@ -1075,14 +1076,14 @@ End Class
     </file>
 </compilation>
 
-        Dim comp2 = CreateCompilationWithMscorlib40(src, references:={comp.ToMetadataReference()},
+        Dim comp2 = CreateCompilation(src, references:={comp.ToMetadataReference()},
 options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         CompileAndVerify(comp2, expectedOutput:="Called M")
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey)
         Assert.Equal(Of Byte)(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken)
 
-        Dim comp3 = CreateCompilationWithMscorlib40(src, references:={comp.EmitToImageReference()},
+        Dim comp3 = CreateCompilation(src, references:={comp.EmitToImageReference()},
 options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         CompileAndVerify(comp3, expectedOutput:="Called M")
@@ -1405,7 +1406,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1428,7 +1429,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1455,7 +1456,7 @@ End Class
 
         Dim other = CreateCompilationWithMscorlib40(
             source,
-            TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
+            options:=TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1504,7 +1505,7 @@ End Class
     ]]></file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider))
 
         AssertTheseDiagnostics(other,
 <expected>
@@ -1630,7 +1631,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider))
+        Dim other = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         AssertTheseDiagnostics(other,
 <expected>
@@ -2293,3 +2294,4 @@ BC37254: Public sign was specified and requires a public key, but no public key 
     End Sub
 
 End Class
+#End If

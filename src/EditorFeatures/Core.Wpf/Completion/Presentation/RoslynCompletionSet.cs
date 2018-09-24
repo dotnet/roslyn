@@ -7,12 +7,11 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
@@ -20,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     internal class RoslynCompletionSet : CompletionSet2
     {
         private readonly ITextView _textView;
-        private readonly ForegroundThreadAffinitizedObject _foregroundThread = new ForegroundThreadAffinitizedObject();
 
         private readonly bool _highlightMatchingPortions;
         private readonly bool _showFilters;
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             ImmutableArray<CompletionItemFilter> completionItemFilters,
             string filterText)
         {
-            _foregroundThread.AssertIsForeground();
+            CompletionPresenterSession.AssertIsForeground();
 
             foreach (var item in completionItems)
             {
@@ -208,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private CompletionHelper GetCompletionHelper()
         {
-            _foregroundThread.AssertIsForeground();
+            CompletionPresenterSession.AssertIsForeground();
             if (_completionHelper == null)
             {
                 var document = GetDocument();

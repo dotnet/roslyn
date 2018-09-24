@@ -4,7 +4,17 @@
     <body>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
-        <target state="new">Always for clarity</target>
+        <target state="translated">Toujours pour plus de clarté</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_0_keymapping_scheme">
+        <source>Apply '{0}' keymapping scheme</source>
+        <target state="translated">Appliquer le modèle de configuration du clavier '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Colorize_regular_expressions">
+        <source>Colorize regular expressions</source>
+        <target state="new">Colorize regular expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -12,29 +22,54 @@
         <target state="translated">L'élément n'est pas valide.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Ignore">
-        <source>Ignore</source>
-        <target state="new">Ignore</target>
+      <trans-unit id="Highlight_related_components_under_cursor">
+        <source>Highlight related components under cursor</source>
+        <target state="new">Highlight related components under cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
-        <target state="new">In other operators</target>
+        <target state="translated">Dans les autres opérateurs</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
-        <target state="new">Keep all parentheses in:</target>
+        <target state="translated">Conserver toutes les parenthèses dans :</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
-        <target state="new">Never if unnecessary</target>
+        <target state="translated">Jamais si ce n'est pas nécessaire</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
-        <target state="new">Parentheses preferences:</target>
+        <target state="translated">Préférences relatives aux parenthèses :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular_Expressions">
+        <source>Regular Expressions</source>
+        <target state="new">Regular Expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_regular_expressions">
+        <source>Report invalid regular expressions</source>
+        <target state="new">Report invalid regular expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_Visual_Studio_default_keymapping">
+        <source>Reset Visual Studio default keymapping</source>
+        <target state="translated">Réinitialiser la configuration du clavier par défaut de Visual Studio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambdas">
+        <source>Use expression body for lambdas</source>
+        <target state="new">Use expression body for lambdas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
+        <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
+        <target state="translated">Nous avons remarqué que vous avez interrompu '{0}'. Réinitialisez la configuration du clavier pour continuer à naviguer et à refactoriser.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
@@ -225,11 +260,6 @@
       <trans-unit id="Could_not_find_location_of_folder_on_disk">
         <source>Could not find location of folder on disk</source>
         <target state="translated">Emplacement introuvable du dossier sur le disque</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">Erreur de lecture de '{0}' : {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Assembly">
@@ -1463,8 +1493,8 @@ Informations supplémentaires : {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">Erreur durant la lecture d'un fichier</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="translated">Erreur durant la lecture du fichier '{0}' : {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1475,16 +1505,6 @@ Informations supplémentaires : {1}</target>
       <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
         <source>Can't apply changes -- module '{0}' has been unloaded.</source>
         <target state="translated">Impossible d'appliquer les changements -- Le module '{0}' a été déchargé.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Restore_Visual_Studio_keybindings">
-        <source>Restore Visual Studio keybindings</source>
-        <target state="translated">Restaurer les combinaisons de touches Visual Studio</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Keybindings_for_extensions">
-        <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
-        <target state="translated">Utiliser des combinaisons de touches pour ReSharper/IntelliJ/Vim/etc.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1518,59 +1538,54 @@ Je suis d'accord avec tout ce qui précède :</target>
         <target state="translated">Décompileur - Mention légale</target>
         <note />
       </trans-unit>
-      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
-        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
-        <target state="translated">La désactivation de l'extension '{0}' a annulé la liaison de vos combinaisons de touches.</target>
-        <note>0 is an extension name</note>
-      </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
         <target state="translated">Les paramètres configurés ici s'appliquent uniquement à votre machine. Pour configurer ces paramètres afin qu'ils soient liés à votre solution, utilisez les fichiers .editorconfig.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Snippet_Command_Handler">
-        <source>Snippet Command Handler</source>
-        <target state="new">Snippet Command Handler</target>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="translated">Synchroniser l'affichage de classes</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sync_Class_View_Command_Handler">
-        <source>Sync Class View Command Handler</source>
-        <target state="new">Sync Class View Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Manage_naming_styles">
-        <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">Impossible d'appliquer les changements -- Erreur inattendue : '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences_colon">
         <source>Field preferences:</source>
-        <target state="new">Field preferences:</target>
+        <target state="translated">Préférences de champ :</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly">
         <source>Prefer readonly</source>
-        <target state="new">Prefer readonly</target>
+        <target state="translated">Préférer readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
         <source>Analyzing '{0}'</source>
-        <target state="new">Analyzing '{0}'</target>
+        <target state="translated">Analyse de '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="translated">Gérer les styles de nommage</target>
         <note />
       </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">Analyse de code en temps réel</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
         <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <target state="translated">Préférer une expression conditionnelle à 'if' avec des affectations</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
         <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="new">Prefer conditional expression over 'if' with returns</target>
+        <target state="translated">Préférer une expression conditionnelle à 'if' avec des retours</target>
         <note />
       </trans-unit>
     </body>

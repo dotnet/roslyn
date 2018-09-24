@@ -2,14 +2,44 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../CSharpVSResources.resx">
     <body>
+      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
+        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
+        <target state="translated">Zastosuj wszystkie reguły formatowania kodu C# (wcięcia, zawijanie, odstępy)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_document_settings">
+        <source>Format Document Settings (Experiment) </source>
+        <target state="translated">Ustawienia dokumentu formatu (eksperyment) </target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="new">In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <target state="translated">W operatorach relacyjnych:   &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
+        <source>Perform additional code cleanup during formatting</source>
+        <target state="translated">Wykonaj dodatkowe czyszczenie kodu podczas formatowania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">Preferuj wyrażenie „is null” w przypadku sprawdzeń odwołań pod kątem równości</target>
+        <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">Usuń niepotrzebne użycia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="translated">Sortuj użycia</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -677,11 +707,6 @@
         <target state="translated">Zanikanie nieużywanych dyrektyw using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_over_ReferenceEquals">
-        <source>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</source>
-        <target state="translated">Preferuj „is null” zamiast „object.ReferenceEquals(..., null)”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'string.Format' calls</source>
         <target state="translated">Zgłaszaj nieprawidłowe symbole zastępcze w wywołaniach metody „string.Format”</target>
@@ -697,19 +722,19 @@
         <target state="translated">Pokaż s_ugestie dotyczące nazwy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Event_Hookup_Command_Handler">
-        <source>Generate Event Subscription Command Handler</source>
-        <target state="new">Generate Event Subscription Command Handler</target>
+      <trans-unit id="Generate Event Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">Generuj subskrypcję zdarzenia</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
-        <target state="new">In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
+        <target state="translated">W operatorach arytmetycznych:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="new">In other binary operators:  &amp;&amp;   ||   ??</target>
+        <target state="translated">W innych operatorach binarnych:  &amp;&amp;   ||   ??</target>
         <note />
       </trans-unit>
     </body>
