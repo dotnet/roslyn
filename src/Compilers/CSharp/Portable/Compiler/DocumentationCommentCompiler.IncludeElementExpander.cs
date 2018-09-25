@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 BindName(attribute, originatingSyntax, isParameter: false, isTypeParameterRef: false);
                             }
-                            else if(ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterReferenceElementName))
+                            else if (ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterReferenceElementName))
                             {
                                 BindName(attribute, originatingSyntax, isParameter: false, isTypeParameterRef: true);
                             }
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var currentSymbol = memberSymbol;
+                    Symbol currentSymbol = memberSymbol;
                     do
                     {
                         switch (currentSymbol.Kind)
