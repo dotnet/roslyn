@@ -220,15 +220,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (ElementNameIs(element, DocumentationCommentXmlNames.ParameterElementName) ||
                                 ElementNameIs(element, DocumentationCommentXmlNames.ParameterReferenceElementName))
                             {
-                                BindName(attribute, originatingSyntax, isParameter: true, isTypeRef: false);
+                                BindName(attribute, originatingSyntax, isParameter: true, isTypeParameterRef: false);
                             }
                             else if (ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterElementName))
                             {
-                                BindName(attribute, originatingSyntax, isParameter: false, isTypeRef: false);
+                                BindName(attribute, originatingSyntax, isParameter: false, isTypeParameterRef: false);
                             }
                             else if(ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterReferenceElementName))
                             {
-                                BindName(attribute, originatingSyntax, isParameter: false, isTypeRef: true);
+                                BindName(attribute, originatingSyntax, isParameter: false, isTypeParameterRef: true);
                             }
                         }
                     }
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 crefDiagnostics.Free();
             }
 
-            private void BindName(XAttribute attribute, CSharpSyntaxNode originatingSyntax, bool isParameter, bool isTypeRef)
+            private void BindName(XAttribute attribute, CSharpSyntaxNode originatingSyntax, bool isParameter, bool isTypeParameterRef)
             {
                 XmlNameAttributeSyntax attrSyntax = ParseNameAttribute(attribute.ToString(), attribute.Parent.Name.LocalName);
 
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     "Why are we processing a documentation comment that is not attached to a member declaration?");
 
                 DiagnosticBag nameDiagnostics = DiagnosticBag.GetInstance();
-                Binder binder = MakeNameBinder(isParameter, isTypeRef, _memberSymbol, _compilation);
+                Binder binder = MakeNameBinder(isParameter, isTypeParameterRef, _memberSymbol, _compilation);
                 DocumentationCommentCompiler.BindName(attrSyntax, binder, _memberSymbol, ref _documentedParameters, ref _documentedTypeParameters, nameDiagnostics);
                 RecordBindingDiagnostics(nameDiagnostics, sourceLocation); // Respects DocumentationMode.
                 nameDiagnostics.Free();
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: We're not sharing code with the BinderFactory visitor, because we already have the
             // member symbol in hand, which makes things much easier.
-            private static Binder MakeNameBinder(bool isParameter, bool isTypeRef, Symbol memberSymbol, CSharpCompilation compilation)
+            private static Binder MakeNameBinder(bool isParameter, bool isTypeParameterRef, Symbol memberSymbol, CSharpCompilation compilation)
             {
                 Binder binder = new BuckStopsHereBinder(compilation);
 
@@ -579,8 +579,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    bool continueSearch = true;
-                    for (var currentSymbol = memberSymbol; currentSymbol != null && continueSearch; currentSymbol = currentSymbol.ContainingSymbol, continueSearch = isTypeRef)
+                    var currentSymbol = memberSymbol;
+                    do
                     {
                         switch (currentSymbol.Kind)
                         {
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 break;
                         }
-                    }
+                    } while (isTypeParameterRef && (currentSymbol = currentSymbol.ContainingSymbol) != null);
                 }
 
                 return binder;
