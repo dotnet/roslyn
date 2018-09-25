@@ -1403,6 +1403,9 @@ This version used in: {2}</value>
   <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document</value>
   </data>
+  <data name="Add_member_name" xml:space="preserve">
+    <value>Add member name</value>
+  </data>
   <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
     <value>Use block body for lambda expressions</value>
   </data>
@@ -1432,5 +1435,14 @@ This version used in: {2}</value>
   </data>
   <data name="Code_Quality" xml:space="preserve">
     <value>Code Quality</value>
+  </data>
+  <data name="Use_compound_assignment" xml:space="preserve">
+    <value>Use compound assignment</value>
+  </data>
+  <data name="Invert_conditional" xml:space="preserve">
+    <value>Invert conditional</value>
+  </data>
+  <data name="Replace_0_with_1" xml:space="preserve">
+    <value>Replace '{0}' with '{1}' </value>
   </data>
 </root>
