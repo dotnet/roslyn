@@ -847,12 +847,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// which delays its evaluation using <see cref="INonNullTypesContext"/>.
         /// </summary>
         public virtual bool? NonNullTypes
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
+            => throw ExceptionUtilities.Unreachable;
+
+        /// <summary>
+        /// Indicates whether the `Warnings` named argument was passed in the `[NonNullTypes]` attribute.
+        /// This value is only relevant if `NonNullTypes` is true.
+        /// It is also only relevant on source symbols.
+        /// </summary>
+        public virtual bool NullableWarnings
+            => throw ExceptionUtilities.Unreachable;
 
         internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()
         {

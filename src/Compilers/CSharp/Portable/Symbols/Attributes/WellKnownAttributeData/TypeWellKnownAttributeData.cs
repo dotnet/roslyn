@@ -50,6 +50,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SetDataStored();
             }
         }
+
+        private bool? _nullableWarnings;
+        public bool? NullableWarnings
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _nullableWarnings;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(value.HasValue);
+                _nullableWarnings = value;
+                SetDataStored();
+            }
+        }
         #endregion
     }
 }

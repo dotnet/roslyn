@@ -166,6 +166,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool NullableWarnings
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+                return (AssociatedSymbol ?? ContainingType)?.NullableWarnings ?? true;
+            }
+        }
+
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>

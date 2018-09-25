@@ -962,12 +962,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
 
         public override bool? NonNullTypes
-        {
-            get
-            {
-                return (AssociatedSymbol ?? ContainingSymbol)?.NonNullTypes;
-            }
-        }
+            => (AssociatedSymbol ?? ContainingSymbol)?.NonNullTypes;
+
+        public override bool NullableWarnings
+            => (AssociatedSymbol ?? ContainingSymbol)?.NullableWarnings ?? true;
 
         #region IMethodSymbol Members
 

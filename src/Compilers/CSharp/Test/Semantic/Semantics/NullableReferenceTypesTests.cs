@@ -50,6 +50,192 @@ class C
         }
 
         [Fact]
+        public void NonNullTypesTrue_DisabledWarnings_Method()
+        {
+            var source = @"
+public class C
+{
+    [System.Runtime.CompilerServices.NonNullTypes(Warnings = false)]
+    string M(string x = null) { string x2 = default; return x2; }
+}
+";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: expect no warning
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     string M(string x = null) { string x2 = default; return x2; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 25)
+                );
+
+            var method = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.NonNullTypes);
+            Assert.False(method.NullableWarnings);
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            Assert.Null(c.NonNullTypes);
+            Assert.True(c.NullableWarnings);
+        }
+
+        [Fact]
+        public void NonNullTypesTrue_EnableWarnings_Method()
+        {
+            var source = @"
+public class C
+{
+    [System.Runtime.CompilerServices.NonNullTypes(true, Warnings = true)]
+    string M(string x = null)
+    {
+        string x2 = default;
+        return x2;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     string M(string x = null)
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 25),
+                // (7,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         string x2 = default;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(7, 21),
+                // (8,16): warning CS8603: Possible null reference return.
+                //         return x2;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x2").WithLocation(8, 16)
+                );
+
+            var method = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.NonNullTypes);
+            Assert.True(method.NullableWarnings);
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            Assert.Null(c.NonNullTypes);
+            Assert.True(c.NullableWarnings);
+        }
+
+        [Fact]
+        public void NonNullTypesTrue_DisabledWarnings_Method_ViaContainingType()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.NonNullTypes(Warnings = false)]
+public class C
+{
+    string M(string x = null) { string x2 = default; return x2; }
+}
+";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: should be no warning
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     string M(string x = null) { string x2 = default; return x2; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 25)
+                );
+
+            // PROTOTYPE: Test lazy diagnostics and various other warnings (outside of NullableWalker) honor the new flag
+            var method = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.NonNullTypes);
+            Assert.False(method.NullableWarnings);
+        }
+
+        [Fact]
+        public void NonNullTypesTrue_DisabledWarnings_InnerType()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.NonNullTypes(Warnings = false)]
+public class C
+{
+    public string x = null;
+    public class Inner
+    {
+        public string x2 = null;
+        void M() { }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            Assert.True(c.NonNullTypes);
+            Assert.False(c.NullableWarnings);
+
+            var inner = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("Inner");
+            Assert.True(inner.NonNullTypes);
+            Assert.False(inner.NullableWarnings);
+
+            var method = comp.GlobalNamespace.GetMember<MethodSymbol>("C.Inner.M");
+            Assert.True(method.NonNullTypes);
+            Assert.False(method.NullableWarnings);
+        }
+
+        [Fact]
+        public void NonNullTypesTrue_EnableWarnings_InnerType()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.NonNullTypes(Warnings = true)]
+public class C
+{
+    public string x = null;
+
+    [System.Runtime.CompilerServices.NonNullTypes(Warnings = false)]
+    public class Inner
+    {
+        public string x2 = null;
+        void M() { }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: expect warning on field?
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            Assert.True(c.NonNullTypes);
+            Assert.True(c.NullableWarnings);
+
+            var inner = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("Inner");
+            Assert.True(inner.NonNullTypes);
+            Assert.False(inner.NullableWarnings);
+
+            var method = comp.GlobalNamespace.GetMember<MethodSymbol>("C.Inner.M");
+            Assert.True(method.NonNullTypes);
+            Assert.False(method.NullableWarnings);
+        }
+
+        [Fact]
+        public void NonNullTypesTrue_DisableWarnings_Field()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.NonNullTypes(Warnings = true)]
+public class C
+{
+    public string x = null;
+
+    [System.Runtime.CompilerServices.NonNullTypes(Warnings = false)]
+    public class Inner
+    {
+        public string x2 = null;
+        void M() { }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: expect warning on field
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            Assert.True(c.NonNullTypes);
+            Assert.True(c.NullableWarnings);
+
+            var inner = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("Inner");
+            Assert.True(inner.NonNullTypes);
+            Assert.False(inner.NullableWarnings);
+
+            var method = comp.GlobalNamespace.GetMember<MethodSymbol>("C.Inner.M");
+            Assert.True(method.NonNullTypes);
+            Assert.False(method.NullableWarnings);
+        }
+
+        [Fact]
         public void OmittedCall()
         {
             var source = @"

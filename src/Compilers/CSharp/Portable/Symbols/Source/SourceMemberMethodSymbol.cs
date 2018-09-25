@@ -190,6 +190,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool NullableWarnings
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data?.NullableWarnings ?? base.NullableWarnings;
+            }
+        }
+
         internal ImmutableArray<Diagnostic> SetDiagnostics(ImmutableArray<Diagnostic> newSet, out bool diagsWritten)
         {
             //return the diagnostics that were actually saved in the event that there were two threads racing. 
@@ -1210,7 +1219,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
             {
                 bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
-                arguments.GetOrCreateData<MethodWellKnownAttributeData>().NonNullTypes = value;
+                var data = arguments.GetOrCreateData<MethodWellKnownAttributeData>();
+                data.NonNullTypes = value;
+                bool warnings = attribute.DecodeNamedArgument(InjectedNonNullTypesAttributeSymbol.Warnings, SpecialType.System_Boolean, defaultValue: true);
+                data.NullableWarnings = warnings;
             }
             else
             {

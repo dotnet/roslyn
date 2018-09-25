@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class InjectedNonNullTypesAttributeSymbol : InjectedAttributeSymbol
     {
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+        private FieldSymbol _warningsField;
+        public const string Warnings = "Warnings";
 
         private InjectedNonNullTypesAttributeSymbol(
             AttributeDescription description,
@@ -23,6 +25,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors)
             : base(description, containingNamespace, compilation, getConstructors)
         {
+            _warningsField = new SynthesizedFieldSymbol(this, compilation.GetSpecialType(SpecialType.System_Boolean), Warnings, isPublic: true);
+            // PROTOTYPE: check use-site diagnostics for bool type
+
+        }
+
+        public override ImmutableArray<Symbol> GetMembers()
+        {
+            return base.GetMembers().Add(_warningsField);
+        }
+
+        public override ImmutableArray<Symbol> GetMembers(string name)
+        {
+            if (name == Warnings)
+            {
+                return ImmutableArray.Create<Symbol>(_warningsField);
+            }
+            return base.GetMembers(name);
         }
 
         public static InjectedNonNullTypesAttributeSymbol Create(NamespaceSymbol containingNamespace)
