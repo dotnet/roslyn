@@ -1020,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFromEndIndexExpression : BoundExpression
     {
-        public BoundFromEndIndexExpression(SyntaxNode syntax, BoundExpression operand, MethodSymbol symbolOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundFromEndIndexExpression(SyntaxNode syntax, BoundExpression operand, MethodSymbol methodOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.FromEndIndexExpression, syntax, type, hasErrors || operand.HasErrors())
         {
 
@@ -1028,24 +1028,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Operand = operand;
-            this.SymbolOpt = symbolOpt;
+            this.MethodOpt = methodOpt;
         }
 
 
         public BoundExpression Operand { get; }
 
-        public MethodSymbol SymbolOpt { get; }
+        public MethodSymbol MethodOpt { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitFromEndIndexExpression(this);
         }
 
-        public BoundFromEndIndexExpression Update(BoundExpression operand, MethodSymbol symbolOpt, TypeSymbol type)
+        public BoundFromEndIndexExpression Update(BoundExpression operand, MethodSymbol methodOpt, TypeSymbol type)
         {
-            if (operand != this.Operand || symbolOpt != this.SymbolOpt || type != this.Type)
+            if (operand != this.Operand || methodOpt != this.MethodOpt || type != this.Type)
             {
-                var result = new BoundFromEndIndexExpression(this.Syntax, operand, symbolOpt, type, this.HasErrors);
+                var result = new BoundFromEndIndexExpression(this.Syntax, operand, methodOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -1055,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRangeExpression : BoundExpression
     {
-        public BoundRangeExpression(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, MethodSymbol symbolOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundRangeExpression(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, MethodSymbol methodOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.RangeExpression, syntax, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors())
         {
 
@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.LeftOperand = leftOperand;
             this.RightOperand = rightOperand;
-            this.SymbolOpt = symbolOpt;
+            this.MethodOpt = methodOpt;
         }
 
 
@@ -1071,18 +1071,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression RightOperand { get; }
 
-        public MethodSymbol SymbolOpt { get; }
+        public MethodSymbol MethodOpt { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitRangeExpression(this);
         }
 
-        public BoundRangeExpression Update(BoundExpression leftOperand, BoundExpression rightOperand, MethodSymbol symbolOpt, TypeSymbol type)
+        public BoundRangeExpression Update(BoundExpression leftOperand, BoundExpression rightOperand, MethodSymbol methodOpt, TypeSymbol type)
         {
-            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || symbolOpt != this.SymbolOpt || type != this.Type)
+            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || methodOpt != this.MethodOpt || type != this.Type)
             {
-                var result = new BoundRangeExpression(this.Syntax, leftOperand, rightOperand, symbolOpt, type, this.HasErrors);
+                var result = new BoundRangeExpression(this.Syntax, leftOperand, rightOperand, methodOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8958,14 +8958,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(operand, node.SymbolOpt, type);
+            return node.Update(operand, node.MethodOpt, type);
         }
         public override BoundNode VisitRangeExpression(BoundRangeExpression node)
         {
             BoundExpression leftOperand = (BoundExpression)this.Visit(node.LeftOperand);
             BoundExpression rightOperand = (BoundExpression)this.Visit(node.RightOperand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(leftOperand, rightOperand, node.SymbolOpt, type);
+            return node.Update(leftOperand, rightOperand, node.MethodOpt, type);
         }
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
@@ -9989,7 +9989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("fromEndIndexExpression", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
-                new TreeDumperNode("symbolOpt", node.SymbolOpt, null),
+                new TreeDumperNode("methodOpt", node.MethodOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -10000,7 +10000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("leftOperand", null, new TreeDumperNode[] { Visit(node.LeftOperand, null) }),
                 new TreeDumperNode("rightOperand", null, new TreeDumperNode[] { Visit(node.RightOperand, null) }),
-                new TreeDumperNode("symbolOpt", node.SymbolOpt, null),
+                new TreeDumperNode("methodOpt", node.MethodOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

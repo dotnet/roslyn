@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Operations
         bool IsLifted { get; }
 
         /// <summary>
-        /// Factory method symbol that's called to create this Range value.
-        /// Can be null if appropriate symbol was not found.
+        /// Factory method used to create this Range value. Can be null if appropriate
+        /// symbol was not found.
         /// </summary>
-        IMethodSymbol Symbol { get; }
+        IMethodSymbol Method { get; }
     }
 }

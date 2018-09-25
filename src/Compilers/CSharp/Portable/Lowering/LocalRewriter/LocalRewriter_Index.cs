@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
         {
-            Debug.Assert(node.SymbolOpt != null);
+            Debug.Assert(node.MethodOpt != null);
 
             NamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             BoundExpression fromEnd = MakeLiteral(node.Syntax, ConstantValue.Create(true), booleanType);
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.Type.IsNullableType())
             {
-                return new BoundObjectCreationExpression(node.Syntax, node.SymbolOpt, binderOpt: null, operand, fromEnd);
+                return new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, binderOpt: null, operand, fromEnd);
             }
 
             ArrayBuilder<BoundExpression> sideeffects = ArrayBuilder<BoundExpression>.GetInstance();
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // new Index(operand, fromEnd: true)
             BoundExpression boundOperandGetValueOrDefault = MakeOptimizedGetValueOrDefault(operand.Syntax, operand);
-            BoundExpression indexCreation = new BoundObjectCreationExpression(node.Syntax, node.SymbolOpt, binderOpt: null, boundOperandGetValueOrDefault, fromEnd);
+            BoundExpression indexCreation = new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, binderOpt: null, boundOperandGetValueOrDefault, fromEnd);
 
             if (!TryGetNullableMethod(node.Syntax, node.Type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
             {

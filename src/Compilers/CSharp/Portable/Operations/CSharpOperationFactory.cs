@@ -2067,7 +2067,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundIndex.Syntax,
                 boundIndex.Type,
                 operand: new Lazy<IOperation>(() => Create(boundIndex.Operand)),
-                symbol: boundIndex.SymbolOpt);
+                symbol: boundIndex.MethodOpt);
         }
 
         private IOperation CreateRangeExpressionOperation(BoundRangeExpression boundRange)
@@ -2080,7 +2080,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundRange.Type,
                 leftOperand: new Lazy<IOperation>(() => Create(boundRange.LeftOperand)),
                 rightOperand: new Lazy<IOperation>(() => Create(boundRange.RightOperand)),
-                symbol: boundRange.SymbolOpt);
+                symbol: boundRange.MethodOpt);
         }
     }
 }

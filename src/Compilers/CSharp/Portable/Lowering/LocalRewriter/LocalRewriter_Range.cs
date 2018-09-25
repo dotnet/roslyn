@@ -12,36 +12,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitRangeExpression(BoundRangeExpression node)
         {
-            Debug.Assert(node != null && node.SymbolOpt != null);
+            Debug.Assert(node != null && node.MethodOpt != null);
 
             bool needLifting = false;
-            ArrayBuilder<BoundExpression> operandsBuilder = new ArrayBuilder<BoundExpression>();
+            var operandsBuilder = new ArrayBuilder<BoundExpression>();
 
-            TryOptimizeOperand(node.LeftOperand);
-            TryOptimizeOperand(node.RightOperand);
-
-            void TryOptimizeOperand(BoundExpression operand)
+            var left = node.LeftOperand;
+            if (left != null)
             {
-                if (operand != null)
-                {
-                    operand = VisitExpression(operand);
+                operandsBuilder.Add(tryOptimizeOperand(left));
+            }
 
-                    if (NullableNeverHasValue(operand))
-                    {
-                        operand = new BoundDefaultExpression(operand.Syntax, operand.Type.GetNullableUnderlyingType());
-                    }
-                    else
-                    {
-                        operand = NullableAlwaysHasValue(operand) ?? operand;
-
-                        if (operand.Type.IsNullableType())
-                        {
-                            needLifting = true;
-                        }
-                    }
-
-                    operandsBuilder.Add(operand);
-                }
+            var right = node.RightOperand;
+            if (right != null)
+            {
+                operandsBuilder.Add(tryOptimizeOperand(right));
             }
 
             ImmutableArray<BoundExpression> operands = operandsBuilder.ToImmutable();
@@ -52,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundExpression rangeCreation = MakeCall(node.Syntax, rewrittenReceiver: null, node.SymbolOpt, operands, node.SymbolOpt.ReturnType);
+                BoundExpression rangeCreation = MakeCall(node.Syntax, rewrittenReceiver: null, node.MethodOpt, operands, node.MethodOpt.ReturnType);
 
                 if (node.Type.IsNullableType())
                 {
@@ -65,6 +50,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return rangeCreation;
+            }
+
+            BoundExpression tryOptimizeOperand(BoundExpression operand)
+            {
+                Debug.Assert(operand != null);
+                operand = VisitExpression(operand);
+
+                if (NullableNeverHasValue(operand))
+                {
+                    operand = new BoundDefaultExpression(operand.Syntax, operand.Type.GetNullableUnderlyingType());
+                }
+                else
+                {
+                    operand = NullableAlwaysHasValue(operand) ?? operand;
+
+                    if (operand.Type.IsNullableType())
+                    {
+                        needLifting = true;
+                    }
+                }
+
+                return operand;
             }
         }
 
@@ -109,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(condition != null);
 
             // method(left.GetValueOrDefault(), right.GetValueOrDefault())
-            BoundExpression rangeCall = MakeCall(node.Syntax, rewrittenReceiver: null, node.SymbolOpt, arguments.ToImmutableArray(), node.SymbolOpt.ReturnType);
+            BoundExpression rangeCall = MakeCall(node.Syntax, rewrittenReceiver: null, node.MethodOpt, arguments.ToImmutableArray(), node.MethodOpt.ReturnType);
 
             if (!TryGetNullableMethod(node.Syntax, node.Type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
             {

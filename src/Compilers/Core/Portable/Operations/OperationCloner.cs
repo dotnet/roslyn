@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, object argument)
         {
-            return new RangeOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.Symbol);
+            return new RangeOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.Method);
         }
     }
 }

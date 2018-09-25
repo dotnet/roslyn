@@ -6994,7 +6994,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract class BaseFromEndIndexOperation : Operation, IFromEndIndexOperation
     {
         protected BaseFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-                    base(OperationKind.FromEndIndex, semanticModel, syntax, type, constantValue: null, isImplicit: isImplicit)
+                    base(OperationKind.FromEndIndex, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
         {
             IsLifted = isLifted;
             Symbol = symbol;
@@ -7054,16 +7054,16 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract class BaseRangeOperation : Operation, IRangeOperation
     {
         protected BaseRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-                    base(OperationKind.Range, semanticModel, syntax, type, constantValue: null, isImplicit: isImplicit)
+                    base(OperationKind.Range, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
         {
             IsLifted = isLifted;
-            Symbol = symbol;
+            Method = symbol;
         }
 
         public abstract IOperation LeftOperand { get; }
         public abstract IOperation RightOperand { get; }
         public bool IsLifted { get; }
-        public IMethodSymbol Symbol { get; }
+        public IMethodSymbol Method { get; }
 
         public sealed override IEnumerable<IOperation> Children
         {
