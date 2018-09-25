@@ -558,7 +558,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function HandledEvents(methodSymbol As IMethodSymbol) As ImmutableArray(Of HandledEvent)
             Dim vbmethod = TryCast(methodSymbol, MethodSymbol)
-            Return vbmethod.HandledEvents
+            If vbmethod IsNot Nothing Then
+                Return vbmethod.HandledEvents
+            Else
+                Return ImmutableArray(Of HandledEvent).Empty
+            End If
         End Function
 
         <Extension>

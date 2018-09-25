@@ -122,6 +122,11 @@
         <target state="new">Use block body for lambda expressions</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_compound_assignment">
+        <source>Use compound assignment</source>
+        <target state="new">Use compound assignment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="new">Use expression body for lambda expressions</target>

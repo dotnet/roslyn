@@ -47,6 +47,11 @@
         <target state="translated">Preferencje dotyczące nawiasów:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="new">Prefer compound assignments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="new">Regular Expressions</target>

@@ -1786,6 +1786,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer compound assignments.
+        /// </summary>
+        internal static string Prefer_compound_assignments {
+            get {
+                return ResourceManager.GetString("Prefer_compound_assignments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer conditional expression over &apos;if&apos; with assignments.
         /// </summary>
         internal static string Prefer_conditional_expression_over_if_with_assignments {
