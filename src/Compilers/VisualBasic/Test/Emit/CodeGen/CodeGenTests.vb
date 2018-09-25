@@ -3633,7 +3633,7 @@ Module M1
 End Module
     </file>
 </compilation>,
-            expectedOutput:="ThenPart" & vbCrLf & "After" & vbCrLf).
+            expectedOutput:="ThenPart" & Environment.NewLine & "After" & Environment.NewLine).
             VerifyIL("M1.Main",
             <![CDATA[
 {
@@ -11597,7 +11597,7 @@ End Class
             CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=Verification.Passes)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub ComImportMethods()
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub([module])
                                                                  Dim expectedMethodImplAttributes As System.Reflection.MethodImplAttributes = MethodImplAttributes.Managed Or
@@ -13632,12 +13632,13 @@ End Class
         <NoIOperationValidationFact>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
+            Dim size = 8192
             Dim source =
 $"
 Class Test
     Shared Sub Main()
-        Dim f = new Single?(4096-1) {{}}
-        for i As Integer = 0 To 4095
+        Dim f = new Single?({size}-1) {{}}
+        for i As Integer = 0 To ({size} - 1)
             f(i) = 4096 - i
         Next
 
@@ -13645,7 +13646,7 @@ Class Test
     End Sub
 
     Shared Function Calculate(f As Single?()) As Double?
-        Return {BuildSequenceOfBinaryExpressions_01()}
+        Return {BuildSequenceOfBinaryExpressions_01(size)}
     End Function
 End Class
 "
@@ -13702,7 +13703,7 @@ End Class
 5180801")
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =

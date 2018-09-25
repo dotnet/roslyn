@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
 #if NET46
             return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
-#elif NETCOREAPP2_0
+#elif NETCOREAPP2_1
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
 #elif NETSTANDARD1_3
             throw new PlatformNotSupportedException();
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         internal static string GetAssemblyLocation(Type type)
         {
-#if NET46 || NETCOREAPP2_0
+#if NET46 || NETCOREAPP2_1
             return type.GetTypeInfo().Assembly.Location;
 #elif NETSTANDARD1_3
             throw new PlatformNotSupportedException();

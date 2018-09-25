@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var request = new BuildRequest(
                 BuildProtocolConstants.ProtocolVersion,
                 RequestLanguage.VisualBasicCompile,
+                "HashValue",
                 ImmutableArray.Create(
                     new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CurrentDirectory, argumentIndex: 0, value: "directory"),
                     new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CommandLineArgument, argumentIndex: 1, value: "file")));
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var read = await BuildRequest.ReadAsync(memoryStream, default(CancellationToken));
             Assert.Equal(BuildProtocolConstants.ProtocolVersion, read.ProtocolVersion);
             Assert.Equal(RequestLanguage.VisualBasicCompile, read.Language);
+            Assert.Equal("HashValue", read.CompilerHash);
             Assert.Equal(2, read.Arguments.Count);
             Assert.Equal(BuildProtocolConstants.ArgumentId.CurrentDirectory, read.Arguments[0].ArgumentId);
             Assert.Equal(0, read.Arguments[0].ArgumentIndex);

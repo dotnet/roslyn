@@ -150,5 +150,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             syntaxFacts.GetPartsOfElementAccessExpression(node, out _, out var argumentList);
             return argumentList;
         }
+
+        public static SyntaxNode GetExpressionOfConditionalAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfConditionalAccessExpression(node, out var expression, out _);
+            return expression;
+        }
     }
 }
