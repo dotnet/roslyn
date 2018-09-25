@@ -39,27 +39,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private sealed class BuildPropertyStorage : ProjectPropertyStorage
             {
-                private readonly IVsBuildPropertyStorage propertyStorage;
+                private readonly IVsBuildPropertyStorage _propertyStorage;
 
                 public BuildPropertyStorage(IVsBuildPropertyStorage propertyStorage)
-                    => this.propertyStorage = propertyStorage;
+                    => this._propertyStorage = propertyStorage;
 
                 public override void SetProperty(string buildPropertyName, string configurationPropertyName, string value)
                 {
-                    propertyStorage.SetPropertyValue(buildPropertyName, null, (uint)_PersistStorageType.PST_PROJECT_FILE, value);
+                    _propertyStorage.SetPropertyValue(buildPropertyName, null, (uint)_PersistStorageType.PST_PROJECT_FILE, value);
                 }
             }
 
             private sealed class PerConfigurationPropertyStorage : ProjectPropertyStorage
             {
-                private readonly ConfigurationManager configurationManager;
+                private readonly ConfigurationManager _configurationManager;
 
                 public PerConfigurationPropertyStorage(ConfigurationManager configurationManager)
-                    => this.configurationManager = configurationManager;
+                    => this._configurationManager = configurationManager;
 
                 public override void SetProperty(string buildPropertyName, string configurationPropertyName, string value)
                 {
-                    foreach (Configuration configuration in configurationManager)
+                    foreach (Configuration configuration in _configurationManager)
                     {
                         configuration.Properties.Item(configurationPropertyName).Value = value;
                     }
