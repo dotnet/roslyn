@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return result.ToImmutableAndFree().FirstOrDefault();
         }
 
-        public async Task<Document> ApplyCodeFixesForSpecificDiagnosticId(Document document, string diagnosticId, CancellationToken cancellationToken)
+        public async Task<Document> ApplyCodeFixesForSpecificDiagnosticId(Document document, string diagnosticId, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = new TextSpan(0, tree.Length);
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
-                fixCollection.FixAllState.CreateFixAllContext(new ProgressTracker(), cancellationToken)).ConfigureAwait(false);
+                fixCollection.FixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
 
             return solution.GetDocument(document.Id);
         }

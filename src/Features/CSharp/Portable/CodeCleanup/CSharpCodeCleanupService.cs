@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             [Import(AllowDefault = true)] ICodeFixService codeFixService)
         {
             _codeFixServiceOpt = codeFixService;
-        }        
+        }
 
         /// <summary>
         /// Maps format document code cleanup options to DiagnosticId[]
         /// </summary>
         private static ImmutableArray<(DiagnosticSet diagnosticSet, PerLanguageOption<bool> option)> _optionDiagnosticsMappings =
-            ImmutableArray.Create(                
-                (new DiagnosticSet(CSharpFeaturesResources.Apply_implicit_explicit_type_preferences,                 
+            ImmutableArray.Create(
+                (new DiagnosticSet(CSharpFeaturesResources.Apply_implicit_explicit_type_preferences,
                     new[] { IDEDiagnosticIds.UseImplicitTypeDiagnosticId, IDEDiagnosticIds.UseExplicitTypeDiagnosticId }),
                  CodeCleanupOptions.ApplyImplicitExplicitTypePreferences),
 
@@ -49,31 +49,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                     new[] { IDEDiagnosticIds.AddQualificationDiagnosticId, IDEDiagnosticIds.RemoveQualificationDiagnosticId }),
                 CodeCleanupOptions.ApplyThisQualificationPreferences),
 
-                (new DiagnosticSet(CSharpFeaturesResources.Apply_language_framework_type_preferences,                 
+                (new DiagnosticSet(CSharpFeaturesResources.Apply_language_framework_type_preferences,
                     new[] { IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId }),
                 CodeCleanupOptions.ApplyLanguageFrameworkTypePreferences),
 
-                (new DiagnosticSet(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements,                 
+                (new DiagnosticSet(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements,
                     new[] { IDEDiagnosticIds.AddBracesDiagnosticId }),
                 CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements),
 
                 (new DiagnosticSet(CSharpFeaturesResources.Add_accessibility_modifiers,
-                    new[] { IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId}),
+                    new[] { IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId }),
                 CodeCleanupOptions.AddAccessibilityModifiers),
 
-                (new DiagnosticSet(CSharpFeaturesResources.Sort_accessibility_modifiers,                 
+                (new DiagnosticSet(CSharpFeaturesResources.Sort_accessibility_modifiers,
                     new[] { IDEDiagnosticIds.OrderModifiersDiagnosticId }),
                 CodeCleanupOptions.SortAccessibilityModifiers),
 
-                (new DiagnosticSet(CSharpFeaturesResources.Make_private_field_readonly_when_possible,                 
+                (new DiagnosticSet(CSharpFeaturesResources.Make_private_field_readonly_when_possible,
                     new[] { IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId }),
                 CodeCleanupOptions.MakePrivateFieldReadonlyWhenPossible),
 
-                (new DiagnosticSet(CSharpFeaturesResources.Remove_unnecessary_casts,                 
+                (new DiagnosticSet(CSharpFeaturesResources.Remove_unnecessary_casts,
                     new[] { IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId }),
                 CodeCleanupOptions.RemoveUnnecessaryCasts),
 
-                (new DiagnosticSet(CSharpFeaturesResources.Apply_expression_block_body_preferences,                 
+                (new DiagnosticSet(CSharpFeaturesResources.Apply_expression_block_body_preferences,
                     new[] {IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
                             IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
                             IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
@@ -83,24 +83,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                             IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId}),
                 CodeCleanupOptions.ApplyExpressionBlockBodyPreferences),
 
-                (new DiagnosticSet(CSharpFeaturesResources.Apply_inline_out_variable_preferences,                 
+                (new DiagnosticSet(CSharpFeaturesResources.Apply_inline_out_variable_preferences,
                     new[] { IDEDiagnosticIds.InlineDeclarationDiagnosticId }),
                 CodeCleanupOptions.ApplyInlineOutVariablePreferences),
 
-                (new DiagnosticSet(CSharpFeaturesResources.Remove_unused_variables,                 
+                (new DiagnosticSet(CSharpFeaturesResources.Remove_unused_variables,
                     new[] { CSharpRemoveUnusedVariableCodeFixProvider.CS0168, CSharpRemoveUnusedVariableCodeFixProvider.CS0219 }),
                 CodeCleanupOptions.RemoveUnusedVariables),
 
-                (new DiagnosticSet(CSharpFeaturesResources.Apply_object_collection_initialization_preferences,                 
+                (new DiagnosticSet(CSharpFeaturesResources.Apply_object_collection_initialization_preferences,
                     new[] { IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId }),
                 CodeCleanupOptions.ApplyObjectCollectionInitializationPreferences)
             );
 
         public async Task<Document> CleanupAsync(
-            Document document, 
-            OrganizeUsingsSet organizeUsingsSet, 
-            ImmutableArray<DiagnosticSet> enabledDiagnostics, 
-            IProgressTracker progressTracker, 
+            Document document,
+            OrganizeUsingsSet organizeUsingsSet,
+            ImmutableArray<DiagnosticSet> enabledDiagnostics,
+            IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
             // add one item for the 'format' action we'll do last
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
                 progressTracker.Description = diagnosticSet.Description;
                 document = await ApplyCodeFixesForSpecificDiagnosticIds(
-                    document, diagnosticSet.DiagnosticIds, cancellationToken).ConfigureAwait(false);
+                    document, diagnosticSet.DiagnosticIds, progressTracker, cancellationToken).ConfigureAwait(false);
 
                 // Mark this option as being completed.
                 progressTracker.ItemCompleted();
@@ -185,14 +185,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIds(
-            Document document, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
+            Document document, ImmutableArray<string> diagnosticIds, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             foreach (var diagnosticId in diagnosticIds)
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
                 {
                     document = await _codeFixServiceOpt.ApplyCodeFixesForSpecificDiagnosticId(
-                        document, diagnosticId, cancellationToken).ConfigureAwait(false);
+                        document, diagnosticId, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -217,6 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             }
 
             return result.ToImmutableAndFree();
-        }        
+        }
     }
 }
