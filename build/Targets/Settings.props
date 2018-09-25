@@ -23,29 +23,10 @@
   <Import Project="Tools.props" />
 
   <PropertyGroup>
-    <Company>Microsoft Corporation</Company>
-    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
-    <Authors>Microsoft</Authors>
-
-    <JenkinsBuild>false</JenkinsBuild>
-    <JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</JenkinsBuild>
-    <VstsBuild>false</VstsBuild>
-    <VstsBuild Condition="'$(BUILD_REPOSITORY_ID)' != ''">true</VstsBuild>
-    <DeveloperBuild>false</DeveloperBuild>
-    <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(JenkinsBuild)' != 'true' AND '$(VstsBuild)' != 'true'">true</DeveloperBuild>
-    <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
-    <ContinuousIntegrationBuild Condition="!$(DeveloperBuild)">true</ContinuousIntegrationBuild>
-
-    <NuGetToolPath>$(RepoRoot)nuget.exe</NuGetToolPath>
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
-    <VSIXExpInstallerPackageName>RoslynTools.VSIXExpInstaller</VSIXExpInstallerPackageName>
-    <VSIXExpInstallerPackageVersion>1.0.0-beta2-63222-01</VSIXExpInstallerPackageVersion>
-    <RoslynDiagnosticsNugetPackageVersion>$(MicrosoftNetRoslynDiagnosticsVersion)</RoslynDiagnosticsNugetPackageVersion>
-    <!-- Disable analyzers if NuGet deviated from the expected restore location (e.g. by changing case on a case-sensitive file system) -->
-    <UseRoslynAnalyzers Condition="!Exists('$(NuGetPackageRoot)\Microsoft.CodeQuality.Analyzers\$(RoslynDiagnosticsNugetPackageVersion)\analyzers\dotnet\cs\Microsoft.CodeQuality.Analyzers.dll')">False</UseRoslynAnalyzers>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/build/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+
     <RoslynPortableTargetFrameworks>net46;netcoreapp2.0</RoslynPortableTargetFrameworks>
     <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
     <RoslynDesktopRuntimeIdentifier>win</RoslynDesktopRuntimeIdentifier>

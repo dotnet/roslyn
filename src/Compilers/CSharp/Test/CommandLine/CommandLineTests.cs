@@ -1454,8 +1454,6 @@ d.cs
             InlineData("8", true, LanguageVersion.CSharp8),
             InlineData("8.0", true, LanguageVersion.CSharp8),
             InlineData("07.1", false, LanguageVersion.Default),
-            InlineData("8", true, LanguageVersion.CSharp8),
-            InlineData("8.0", true, LanguageVersion.CSharp8),
             InlineData("default", true, LanguageVersion.Default),
             InlineData("latest", true, LanguageVersion.Latest),
             InlineData(null, true, LanguageVersion.Default),

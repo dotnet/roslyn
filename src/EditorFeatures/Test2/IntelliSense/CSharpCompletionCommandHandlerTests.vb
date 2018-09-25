@@ -1580,9 +1580,7 @@ class Goo
     {
     }
 }
-                         </Document>
-                     </Project>
-                 </Workspace>)
+                         </Document>)
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()

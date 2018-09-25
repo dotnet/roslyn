@@ -530,14 +530,13 @@ class C
         [Fact]
         public async Task OnlyOfferFixAllProjectsFromCSharp6ToDefaultWhenApplicable()
         {
-            string defaultEffectiveVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
-$@"<Workspace>
+@"<Workspace>
     <Project Language=""C#"" LanguageVersion=""6"">
         <Document>
 class C
-{{
+{
     void A()
     {
         var x = [|(1, 2)|];
@@ -582,6 +581,7 @@ class C
         [Fact]
         public async Task OnlyOfferFixAllProjectsToDefaultWhenApplicable()
         {
+            string defaultEffectiveVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
 @"<Workspace>

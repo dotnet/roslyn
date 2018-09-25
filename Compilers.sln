@@ -22,10 +22,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Emit.UnitTests", "src\Compilers\CSharp\Test\Emit\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.csproj", "{4462B57A-7245-4146-B504-D46FDE762948}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests", "src\Compilers\CSharp\Test\Semantic\Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.csproj", "{B2C33A93-DB30-4099-903E-77D75C4C3F45}"
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCompilerIOperationTest", "src\Compilers\CSharp\Test\IOperation\CSharpCompilerIOperationTest.csproj", "{1AF3672A-C5F1-4604-B6AB-D98C4DE9C3B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests", "src\Compilers\CSharp\Test\IOperation\Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests.csproj", "{1AF3672A-C5F1-4604-B6AB-D98C4DE9C3B1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCompilerSemanticTest", "src\Compilers\CSharp\Test\Semantic\CSharpCompilerSemanticTest.csproj", "{B2C33A93-DB30-4099-903E-77D75C4C3F45}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests", "src\Compilers\CSharp\Test\Semantic\Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.csproj", "{B2C33A93-DB30-4099-903E-77D75C4C3F45}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests", "src\Compilers\CSharp\Test\Symbol\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.csproj", "{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC}"
 EndProject
