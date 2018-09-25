@@ -32,7 +32,9 @@ using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsT
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal sealed class ContainedDocument : ForegroundThreadAffinitizedObject
+#pragma warning disable CS0618 // Type or member is obsolete
+    internal sealed class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
+#pragma warning restore CS0618 // Type or member is obsolete
     {
         private const string ReturnReplacementString = @"{|r|}";
         private const string NewLineReplacementString = @"{|n|}";
@@ -110,6 +112,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             _hostType = GetHostType();
             s_containedDocuments.TryAdd(documentId, this);
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        internal AbstractProject Project
+        {
+            get
+            {
+                return _componentModel.GetService<VisualStudioWorkspaceImpl>().GetProjectTrackerAndInitializeIfNecessary().GetProject(_project.Id);
+            }
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        internal AbstractContainedLanguage ContainedLanguage
+        {
+            get
+            {
+                return new AbstractContainedLanguage(ContainedLanguageHost);
+            }
         }
 
         private HostType GetHostType()

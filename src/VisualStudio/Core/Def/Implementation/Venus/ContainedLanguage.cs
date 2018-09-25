@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Concurrent;
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -69,8 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         // flickering.
         private ITagAggregator<ITag> _bufferTagAggregator;
 
-        // <Previous release> BACKCOMPAT OVERLOAD -- DO NOT TOUCH
-        // This is required for the Typescript Language Service
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         public ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
@@ -79,10 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             uint itemid,
             TLanguageService languageService,
             SourceCodeKind sourceCodeKind,
-            IFormattingRule vbHelperFormattingRule)
+            IFormattingRule vbHelperFormattingRule,
+            Workspace workspace)
             : this(bufferCoordinator,
                    componentModel,
-                   null,
+                   project.VisualStudioProject,
                    hierarchy,
                    itemid,
                    languageService,

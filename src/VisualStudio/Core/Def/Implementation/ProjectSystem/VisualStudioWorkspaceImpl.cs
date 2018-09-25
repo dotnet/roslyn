@@ -45,6 +45,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        private readonly Lazy<VisualStudioProjectFactory> _projectFactory;
+
         private readonly ITextBufferCloneService _textBufferCloneService;
 
         // document worker coordinator
@@ -82,6 +86,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
+
+            // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
+            // exists right now as a compat shim, we'll just do this.
+#pragma warning disable CS0618 // Type or member is obsolete
+            _projectFactory = exportProvider.GetExport<VisualStudioProjectFactory>();
+#pragma warning restore CS0618 // Type or member is obsolete
 
             _foregroundObject = new ForegroundThreadAffinitizedObject(_threadingContext);
 
@@ -152,13 +162,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Ensures the workspace is fully hooked up to the host by subscribing to all sorts of VS
         /// UI thread affinitized events.
         /// </summary>
-        [Obsolete]
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal VisualStudioProjectTracker GetProjectTrackerAndInitializeIfNecessary()
         {
             if (DeferredState == null)
             {
                 ThreadHelper.ThrowIfNotOnUIThread();
-                DeferredState = new DeferredInitializationState(_threadingContext, this);
+                DeferredState = new DeferredInitializationState(this, _projectFactory.Value, _threadingContext);
             }
 
             return DeferredState.ProjectTracker;
@@ -192,6 +202,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal AbstractProject GetHostProject(ProjectId projectId)
         {
             throw new NotImplementedException();
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        internal IVisualStudioHostDocument GetHostDocument(DocumentId documentId)
+        {
+            // TypeScript only calls this to immediately check if the document is a ContainedDocument. Because of that we can just check for
+            // ContainedDocuments
+            return ContainedDocument.TryGetContainedDocument(documentId);
         }
 
         internal override bool TryApplyChanges(

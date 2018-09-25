@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]
+    [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
     internal interface IVisualStudioHostProject
     {
         ProjectId Id { get; }

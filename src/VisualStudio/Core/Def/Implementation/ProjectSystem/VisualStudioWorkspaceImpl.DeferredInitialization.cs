@@ -24,10 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             public VisualStudioProjectTracker ProjectTracker { get; }
 
-            public DeferredInitializationState(IThreadingContext threadingContext, VisualStudioWorkspaceImpl workspace)
+            public DeferredInitializationState(VisualStudioWorkspaceImpl workspace, VisualStudioProjectFactory projectFactory, IThreadingContext threadingContext)
                 : base(threadingContext, assertIsForeground: false)
             {
-                ProjectTracker = new VisualStudioProjectTracker(workspace, threadingContext);
+                ProjectTracker = new VisualStudioProjectTracker(workspace, projectFactory, threadingContext);
 
                 // TODO: fix this up
                 /*

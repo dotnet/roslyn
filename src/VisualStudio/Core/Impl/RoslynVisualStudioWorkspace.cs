@@ -102,12 +102,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             return new InvisibleEditor(ServiceProvider.GlobalProvider, document.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
         }
 
-        [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]
-        internal override IInvisibleEditor OpenInvisibleEditor(IVisualStudioHostDocument document)
-        {
-            return OpenInvisibleEditor(document.Id);
-        }
-
         private static bool TryResolveSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, out ISymbol resolvedSymbol, out Project resolvedProject)
         {
             resolvedSymbol = null;

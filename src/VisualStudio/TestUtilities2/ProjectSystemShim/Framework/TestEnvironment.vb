@@ -102,10 +102,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End Function
 
-            Friend Overrides Function OpenInvisibleEditor(document As IVisualStudioHostDocument) As IInvisibleEditor
-                Throw New NotImplementedException()
-            End Function
-
             Friend Overrides Function GetBrowseObject(symbolListItem As SymbolListItem) As Object
                 Throw New NotImplementedException()
             End Function

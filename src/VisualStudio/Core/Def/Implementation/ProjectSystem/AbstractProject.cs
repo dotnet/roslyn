@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -12,9 +13,11 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -32,6 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal static object RuleSetErrorId = new object();
 
+        private string _displayName;
+        private readonly VisualStudioWorkspace _visualStudioWorkspace;
+
         private readonly DiagnosticDescriptor _errorReadingRulesetRule = new DiagnosticDescriptor(
             id: IDEDiagnosticIds.ErrorReadingRulesetId,
             title: ServicesVSResources.ErrorReadingRuleset,
@@ -42,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
 
         public AbstractProject(
+            VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
             string projectSystemName,
             string projectFilePath,
@@ -49,16 +56,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string language,
             Guid projectGuid,
             IServiceProvider serviceProviderNotUsed, // not used, but left for compat with TypeScript
-            IThreadingContext threadingContext,
+            VisualStudioWorkspaceImpl workspace,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
             ICommandLineParserService commandLineParserServiceOpt = null)
-            : base(threadingContext)
+            : base(projectTracker.ThreadingContext)
         {
             Hierarchy = hierarchy;
             Guid = projectGuid;
+            Language = language;
+            _visualStudioWorkspace = workspace;
 
-            var displayName = hierarchy != null && hierarchy.TryGetName(out var name) ? name : projectSystemName;
-            this.DisplayName = displayName;
+            this.DisplayName = hierarchy != null && hierarchy.TryGetName(out var name) ? name : projectSystemName;
 
             ProjectSystemName = projectSystemName;
             HostDiagnosticUpdateSource = hostDiagnosticUpdateSourceOpt;
@@ -82,19 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
-        /// Indicates whether this project is a website type.
-        /// </summary>
-        public bool IsWebSite { get; protected set; }
-
-        /// <summary>
-        /// A full path to the project obj output binary, or null if the project doesn't have an obj output binary.
-        /// </summary>
-        internal string ObjOutputPath { get; private set; }
-
-        /// <summary>
         /// A full path to the project bin output binary, or null if the project doesn't have an bin output binary.
         /// </summary>
-        internal string BinOutputPath { get; private set; }
+        internal string BinOutputPath => VisualStudioProject.OutputFilePath;
 
         public IReferenceCountedDisposable<IRuleSetFile> RuleSetFile { get; private set; }
 
@@ -102,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
 
-        public ProjectId Id { get; set; }
+        public ProjectId Id => VisualStudioProject.Id;
 
         public string Language { get; }
 
@@ -155,7 +153,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// between multiple projects, especially in cases like Venus where the intellisense
         /// projects will match the name of their logical parent project.
         /// </summary>
-        public string DisplayName { get; private set; }
+        public string DisplayName
+        {
+            get => _displayName;
+            set
+            {
+                _displayName = value;
+
+                UpdateVisualStudioProjectProperties();
+            }
+        }
 
         internal string AssemblyName { get; private set; }
 
@@ -173,5 +180,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <remarks>Default value is true.</remarks>
         protected bool LastDesignTimeBuildSucceeded { get; private set; }
+
+        public VisualStudioProject VisualStudioProject { get; internal set; }
+
+        internal void UpdateVisualStudioProjectProperties()
+        {
+            if (VisualStudioProject != null)
+            {
+                VisualStudioProject.DisplayName = this.DisplayName;
+            }
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        protected void UpdateProjectDisplayName(string displayName)
+        {
+            this.DisplayName = displayName;
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        internal void AddDocument(IVisualStudioHostDocument document, bool isCurrentContext, bool hookupHandlers)
+        {
+            var shimDocument = (DocumentProvider.ShimDocument)document;
+
+            VisualStudioProject.AddSourceFile(shimDocument.FilePath, shimDocument.SourceCodeKind);
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        internal void RemoveDocument(IVisualStudioHostDocument document)
+        {
+            var shimDocument = (DocumentProvider.ShimDocument)document;
+
+            var containedDocument = ContainedDocument.TryGetContainedDocument(document.Id);
+            if (containedDocument != null)
+            {
+                VisualStudioProject.RemoveSourceTextContainer(containedDocument.SubjectBuffer.AsTextContainer());
+                containedDocument.Dispose();
+            }
+            else
+            {
+                VisualStudioProject.RemoveSourceFile(shimDocument.FilePath);
+            }
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        internal IVisualStudioHostDocument GetCurrentDocumentFromPath(string filePath)
+        {
+            var id = _visualStudioWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(d => d.ProjectId == Id);
+
+            if (id != null)
+            { 
+                return new DocumentProvider.ShimDocument(this, id, filePath);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        internal ImmutableArray<IVisualStudioHostDocument> GetCurrentDocuments()
+        {
+            return _visualStudioWorkspace.CurrentSolution.GetProject(Id).Documents.SelectAsArray(
+                d => (IVisualStudioHostDocument)new DocumentProvider.ShimDocument(this, d.Id, d.FilePath, d.SourceCodeKind));
+        }
     }
 }

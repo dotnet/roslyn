@@ -94,9 +94,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <returns>A unique instance of IInvisibleEditor that must be disposed by the caller.</returns>
         internal abstract IInvisibleEditor OpenInvisibleEditor(DocumentId documentId);
 
-        [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]
-        internal abstract IInvisibleEditor OpenInvisibleEditor(IVisualStudioHostDocument document);
-
         /// <summary>
         /// Returns the <see cref="EnvDTE.FileCodeModel"/> for a given document.
         /// </summary>

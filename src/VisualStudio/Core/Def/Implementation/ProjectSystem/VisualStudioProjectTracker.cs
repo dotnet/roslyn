@@ -12,17 +12,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal sealed partial class VisualStudioProjectTracker
     {
         private readonly Workspace _workspace;
-        private readonly IThreadingContext _threadingContext;
+        private readonly VisualStudioProjectFactory _projectFactory;
+        internal IThreadingContext ThreadingContext { get; }
 
         internal ImmutableArray<AbstractProject> ImmutableProjects => ImmutableArray<AbstractProject>.Empty;
 
         internal HostWorkspaceServices WorkspaceServices => _workspace.Services;
 
-        public VisualStudioProjectTracker(Workspace workspace, IThreadingContext threadingContext)
+        public VisualStudioProjectTracker(Workspace workspace, VisualStudioProjectFactory projectFactory, IThreadingContext threadingContext)
         {
             _workspace = workspace;
-            _threadingContext = threadingContext;
+            _projectFactory = projectFactory;
+            ThreadingContext = threadingContext;
         }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        public DocumentProvider DocumentProvider => new DocumentProvider();
 
         /*
           
@@ -57,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (project != null)
             {
-                return new StubProject(project, _threadingContext);
+                return new StubProject(this, project);
             }
             else
             {
@@ -67,10 +72,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private sealed class StubProject : AbstractProject
         {
-            public StubProject(Project project, IThreadingContext threadingContext)
-                : base(_ => null, project.Name + "_Stub", project.FilePath, null, project.Language, Guid.Empty, null, threadingContext, null)
+            public StubProject(VisualStudioProjectTracker projectTracker, Project project)
+                : base(projectTracker, null, project.Name + "_Stub", project.FilePath, null, project.Language, Guid.Empty, null, null, null, null)
             {
             }
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        public void AddProject(AbstractProject project)
+        {
+            project.VisualStudioProject = _projectFactory.CreateAndAddToWorkspace(project.ProjectSystemName, project.Language);
+            project.UpdateVisualStudioProjectProperties();
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        public bool ContainsProject(AbstractProject project)
+        {
+            // This will be set as long as the project has been added and not since removed
+            return project.VisualStudioProject != null;
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        public void RemoveProject(AbstractProject project)
+        {
+            project.VisualStudioProject.RemoveFromWorkspace();
+            project.VisualStudioProject = null;
         }
     }
 }

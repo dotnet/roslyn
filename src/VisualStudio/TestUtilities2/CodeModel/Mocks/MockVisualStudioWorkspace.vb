@@ -58,10 +58,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             Return New MockInvisibleEditor(documentId, _workspace)
         End Function
 
-        Friend Overrides Function OpenInvisibleEditor(document As IVisualStudioHostDocument) As IInvisibleEditor
-            Return New MockInvisibleEditor(document.Id, _workspace)
-        End Function
-
         Public Overrides Function GetFileCodeModel(documentId As DocumentId) As EnvDTE.FileCodeModel
             Return _fileCodeModels(documentId).Handle
         End Function
