@@ -19,14 +19,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         private void InvokeFixFromNewFile(ProjectUtils.Project project)
         {
             VisualStudio.SolutionExplorer.AddFile(project, "C.cs", @"
-class C
-{
-    int i = default;
-}", open: true);
+#error version:latest
+", open: true);
 
-            VisualStudio.Editor.PlaceCaret("default");
+            VisualStudio.Editor.PlaceCaret("version:latest");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Upgrade this project to C# language version '7.1'", applyFix: true);
+            VisualStudio.Editor.Verify.CodeAction("Upgrade this project to C# language version 'latest'", applyFix: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
@@ -38,7 +36,7 @@ class C
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
 
             InvokeFixFromNewFile(project);
-            VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "LangVersion", "7.1");
+            VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "LangVersion", "latest");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
@@ -50,7 +48,7 @@ class C
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
 
             InvokeFixFromNewFile(project);
-            VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "LangVersion", "7.1");
+            VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "LangVersion", "latest");
         }
 
         [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
@@ -59,7 +57,6 @@ class C
         {
             var project = new ProjectUtils.Project(ProjectName);
 
-            // Be explicit about 7.0 in Debug|x64 so that this doesn't break when a new major version is released.
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddCustomProject(project, ".csproj", $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
@@ -97,7 +94,7 @@ class C
 </Project>");
 
             InvokeFixFromNewFile(project);
-            VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "LangVersion", "7.1");
+            VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "LangVersion", "latest");
         }
     }
 }
