@@ -6660,5 +6660,53 @@ class Test
             var parameterSymbol = ((MethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
             Assert.Equal(RefKind.In, parameterSymbol.RefKind);
         }
+
+        [Fact]
+        public void Cref_TupleType()
+        {
+            var source = @"
+using System;
+/// <summary>
+/// See <see cref=""ValueTuple{T,T}""/>.
+/// </summary>
+class C
+{
+}
+";
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default);
+            var compilation = CreateCompilation(source, parseOptions: parseOptions, options: options, targetFramework: TargetFramework.StandardAndCSharp);
+            var cMember = compilation.GetMember<NamedTypeSymbol>("C");
+            var xmlDocumentationString = cMember.GetDocumentationCommentXml();
+
+            var xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString);
+            var cref = xml.Descendants("see").Single().Attribute("cref").Value;
+
+            Assert.Equal("T:System.ValueTuple`2", cref);
+        }
+
+        [Fact]
+        public void Cref_TupleTypeField()
+        {
+            var source = @"
+using System;
+/// <summary>
+/// See <see cref=""ValueTuple{Int32,Int32}.Item1""/>.
+/// </summary>
+class C
+{
+}
+";
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default);
+            var compilation = CreateCompilation(source, parseOptions: parseOptions, options: options, targetFramework: TargetFramework.StandardAndCSharp);
+            var cMember = compilation.GetMember<NamedTypeSymbol>("C");
+            var xmlDocumentationString = cMember.GetDocumentationCommentXml();
+
+            var xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString);
+            var cref = xml.Descendants("see").Single().Attribute("cref").Value;
+
+            Assert.Equal("F:System.ValueTuple`2.Item1", cref);
+        }
     }
 }

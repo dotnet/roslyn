@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8370", // error CS8370: Feature is not available in C# 7.3. Please use language version X or greater.
                 "CS8371", // warning CS8371: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
                 "CS8400", // error CS8400: Feature is not available in C# 8.0. Please use language version X or greater.
+                "CS8401", // error CS8401: To use '@$' instead of '$@" for a verbatim interpolated string, please use language version 8.0 or greater.
             });
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;

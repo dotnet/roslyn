@@ -23,7 +23,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
@@ -61,7 +61,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (7,9): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
@@ -120,7 +120,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -155,7 +155,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (8,9): warning CS0162: Unreachable code detected
@@ -221,7 +221,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (6,13): error CS8115: A throw expression is not allowed in this context.
@@ -295,7 +295,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (6,14): error CS8115: A throw expression is not allowed in this context.
@@ -366,7 +366,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS1525: Invalid expression term 'throw'
@@ -441,7 +441,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (6,18): error CS8115: A throw expression is not allowed in this context.
@@ -516,7 +516,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -588,7 +588,7 @@ class C
     static void M(object x, object y, object z){}
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -678,7 +678,7 @@ class C
     static void M(object x, object y, object z){}
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -743,7 +743,7 @@ class C
     static void M(object x, object y, object z){}
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (14,13): warning CS0162: Unreachable code detected
@@ -832,7 +832,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (12,29): error CS1525: Invalid expression term ')'
@@ -959,7 +959,7 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
             
@@ -1014,7 +1014,7 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
             
@@ -1078,7 +1078,7 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
             
@@ -1127,7 +1127,7 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
             
@@ -1190,7 +1190,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1254,7 +1254,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1334,7 +1334,7 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (14,13): warning CS0162: Unreachable code detected
@@ -1415,7 +1415,7 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (14,13): warning CS0162: Unreachable code detected
@@ -1491,7 +1491,7 @@ label2:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
             
@@ -1542,7 +1542,7 @@ label2:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1608,7 +1608,7 @@ label2:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1686,7 +1686,7 @@ label2:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1765,7 +1765,7 @@ label2:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1838,7 +1838,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (12,13): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
@@ -1904,7 +1904,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -1960,7 +1960,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -2036,7 +2036,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -2100,7 +2100,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -2164,7 +2164,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (6,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<throw expression>' and '<throw expression>'
@@ -2257,7 +2257,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -2359,7 +2359,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 

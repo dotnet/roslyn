@@ -10,7 +10,7 @@ def branchName = GithubBranchName
 // Folder that the project jobs reside in (project/branch)
 def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
-def windowsUnitTestMachine = 'win2016-base'
+def windowsUnitTestMachine = 'Windows.10.Amd64.ClientRS3.DevEx.Open'
 
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
   def archiveSettings = new ArchivalSettings()
@@ -73,7 +73,7 @@ commitPullList.each { isPr ->
 
         def triggerPhraseOnly = false
         def triggerPhraseExtra = ""
-        Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+        Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
         Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
         addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
@@ -110,7 +110,7 @@ commitPullList.each { isPr ->
 
     def triggerPhraseOnly = false
     def triggerPhraseExtra = ""
-    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
     Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
     addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
@@ -179,7 +179,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "determinism"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -195,7 +195,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = ""
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -211,7 +211,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "microbuild"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -223,13 +223,13 @@ commitPullList.each { isPr ->
       def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
         steps {
-          batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -procdump -testVsi""")
+          batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -testVsi""")
         }
       }
 
       def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.DevEx.Open')
+      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.DevEx.15.8.Open')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
@@ -253,7 +253,29 @@ commitPullList.each { isPr ->
     // Run it automatically on CI builds but only when requested on PR builds.
     def triggerPhraseOnly = isPr
     def triggerPhraseExtra = "loc"
-    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+  }
+}
+
+// Loc change check
+commitPullList.each { isPr ->
+  // This job blocks PRs with loc changes, so only activate it for PR builds of
+  // release branches after a loc freeze.
+  if (isPr
+      && (branchName == "dev15.8.x"
+          || branchName == "dev15.8.x-vs-deps")) {
+    def jobName = Utilities.getFullJobName(projectName, "windows_loc_changes", isPr)
+    def myJob = job(jobName) {
+        description('Validate that a PR contains no localization changes')
+        steps {
+            batchFile(""".\\build\\scripts\\check-for-loc-changes.cmd -base origin/${branchName} -head %GIT_COMMIT%""")
+        }
+    }
+
+    def triggerPhraseOnly = false
+    def triggerPhraseExtra = "loc changes"
+    Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
     addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
 }

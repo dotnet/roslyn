@@ -672,5 +672,28 @@ class C
 
             Await VerifyHighlightsAsync(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestRegexReference1() As Task
+
+            Dim input =
+           <Workspace>
+               <Project Language="C#" CommonReferences="true">
+                   <Document>
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@"{|Reference:(a)|}\0{|Reference:\$$1|}");
+    }
+}
+                    </Document>
+               </Project>
+           </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
     End Class
 End Namespace

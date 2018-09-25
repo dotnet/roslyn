@@ -346,7 +346,55 @@ class A
     {
         Bar(x => [||]Goo(x));
     }
-}", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
+}", parameters: new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestOnAmbiguity()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class A
+{
+    static void Goo<T>(T x) where T : class
+    {
+    }
+
+    static void Bar(Action<int> x)
+    {
+    }
+
+    static void Bar(Action<string> x)
+    {
+    }
+
+    static void Main()
+    {
+        Bar(x => [||]Goo(x));
+    }
+}",
+@"using System;
+
+class A
+{
+    static void Goo<T>(T x) where T : class
+    {
+    }
+
+    static void Bar(Action<int> x)
+    {
+    }
+
+    static void Bar(Action<string> x)
+    {
+    }
+
+    static void Main()
+    {
+        Bar(Goo);
+    }
+}");
         }
 
         [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]

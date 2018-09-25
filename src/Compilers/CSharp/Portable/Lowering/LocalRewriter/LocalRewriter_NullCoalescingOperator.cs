@@ -45,21 +45,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, rewrittenConversion, resultKind, rewrittenResultType);
             }
 
+            var isUnconstrainedTypeParameter = rewrittenLeft.Type != null && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
+
             // first we can make a small optimization:
-            // If left is a constant then we already know whether it is null or not. If it is null then we 
+            // If left is a constant then we already know whether it is null or not. If it is null then we
             // can simply generate "right". If it is not null then we can simply generate
-            // MakeConversion(left).
-
-            if (rewrittenLeft.IsDefaultValue())
+            // MakeConversion(left). This does not hold when the left is an unconstrained type parameter: at runtime,
+            // it can be either left or right depending on the runtime type of T
+            if (!isUnconstrainedTypeParameter)
             {
-                return rewrittenRight;
-            }
+                if (rewrittenLeft.IsDefaultValue())
+                {
+                    return rewrittenRight;
+                }
 
-            if (rewrittenLeft.ConstantValue != null)
-            {
-                Debug.Assert(!rewrittenLeft.ConstantValue.IsNull);
+                if (rewrittenLeft.ConstantValue != null)
+                {
+                    Debug.Assert(!rewrittenLeft.ConstantValue.IsNull);
 
-                return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftConversion, rewrittenResultType);
+                    return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftConversion, rewrittenResultType);
+                }
             }
 
             // string concatenation is never null.
@@ -115,7 +120,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // We lower left ?? right to 
+            // Optimize left ?? right to left.GetValueOrDefault() when left is T? and right is the default value of T
+            if (rewrittenLeft.Type.IsNullableType()
+                && RemoveIdentityConversions(rewrittenRight).IsDefaultValue()
+                && rewrittenRight.Type.Equals(rewrittenLeft.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions)
+                && TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol getValueOrDefault))
+            {
+                return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, getValueOrDefault);
+            }
+
+            // We lower left ?? right to
             //
             // var temp = left;
             // (temp != null) ? MakeConversion(temp) : right
@@ -181,6 +195,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private static BoundExpression RemoveIdentityConversions(BoundExpression expression)
+        {
+            while (expression.Kind == BoundKind.Conversion)
+            {
+                var boundConversion = (BoundConversion)expression;
+                if (boundConversion.ConversionKind != ConversionKind.Identity)
+                {
+                    return expression;
+                }
+
+                expression = boundConversion.Operand;
+            }
+
+            return expression;
+        }
+
         private BoundExpression GetConvertedLeftForNullCoalescingOperator(BoundExpression rewrittenLeft, Conversion leftConversion, TypeSymbol rewrittenResultType)
         {
             Debug.Assert(rewrittenLeft != null);
@@ -189,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(leftConversion.IsValid);
 
             TypeSymbol rewrittenLeftType = rewrittenLeft.Type;
-            Debug.Assert(rewrittenLeftType.IsNullableType() || rewrittenLeftType.IsReferenceType);
+            Debug.Assert(rewrittenLeftType.IsNullableType() || !rewrittenLeftType.IsValueType);
 
             // Native compiler violates the specification for the case where result type is right operand type and left operand is nullable.
             // For this case, we need to insert an extra explicit nullable conversion from the left operand to its underlying nullable type

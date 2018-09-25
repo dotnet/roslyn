@@ -208,6 +208,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="ISuppressNullableWarningOperation"/>.</summary>
         SuppressNullableWarning = 0x61,
 
+        /// <summary>Indicates an <see cref="ICoalesceAssignmentOperation"/>.</summary>
+        CoalesceAssignment = 0x61,
+
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281
         //Fixed = <TBD>,

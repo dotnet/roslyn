@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             PrimaryWorkspace primaryWorkspace,
             [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
             [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
-            : this(diagnosticAnalyzerProviderService != null ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() : SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(),
+            : this(new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => GetHostDiagnosticAnalyzerPackage(diagnosticAnalyzerProviderService), isThreadSafe: true),
                 diagnosticAnalyzerProviderService?.GetAnalyzerAssemblyLoader(),
                 hostDiagnosticUpdateSource,
                 primaryWorkspace,
@@ -39,11 +39,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // never be null
         }
 
-        public IAsynchronousOperationListener Listener => _listener;
-
         // protected for testing purposes.
         protected DiagnosticAnalyzerService(
-            IEnumerable<HostDiagnosticAnalyzerPackage> workspaceAnalyzerPackages,
+            Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> workspaceAnalyzerPackages,
             IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             PrimaryWorkspace primaryWorkspace,
@@ -52,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             : this(new HostAnalyzerManager(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace), hostDiagnosticUpdateSource, registrationService, listener)
         {
         }
+
+        public IAsynchronousOperationListener Listener => _listener;
 
         // protected for testing purposes.
         protected DiagnosticAnalyzerService(
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.False;
         }
 
-        public Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, string diagnosticIdOpt = null, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
@@ -254,6 +254,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
             };
+        }
+
+        private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService)
+        {
+            return (diagnosticAnalyzerProviderService?.GetHostDiagnosticAnalyzerPackages()).ToImmutableArrayOrEmpty();
         }
     }
 }

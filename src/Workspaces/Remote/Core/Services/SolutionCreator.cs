@@ -9,10 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -370,19 +372,19 @@ namespace Microsoft.CodeAnalysis.Remote
             var newDocumentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(infoChecksum, _cancellationToken).ConfigureAwait(false);
 
             // there is no api to change these once document is created
-            Contract.ThrowIfFalse(document.State.Info.Attributes.Id == newDocumentInfo.Id);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.Name == newDocumentInfo.Name);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.FilePath == newDocumentInfo.FilePath);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.IsGenerated == newDocumentInfo.IsGenerated);
+            Contract.ThrowIfFalse(document.State.Attributes.Id == newDocumentInfo.Id);
+            Contract.ThrowIfFalse(document.State.Attributes.Name == newDocumentInfo.Name);
+            Contract.ThrowIfFalse(document.State.Attributes.FilePath == newDocumentInfo.FilePath);
+            Contract.ThrowIfFalse(document.State.Attributes.IsGenerated == newDocumentInfo.IsGenerated);
 
-            if (document.State.Info.Attributes.Folders != newDocumentInfo.Folders)
+            if (document.State.Attributes.Folders != newDocumentInfo.Folders)
             {
                 // additional document can't change folder once created
                 Contract.ThrowIfTrue(additionalText);
                 document = document.Project.Solution.WithDocumentFolders(document.Id, newDocumentInfo.Folders).GetDocument(document.Id);
             }
 
-            if (document.State.Info.Attributes.SourceCodeKind != newDocumentInfo.SourceCodeKind)
+            if (document.State.Attributes.SourceCodeKind != newDocumentInfo.SourceCodeKind)
             {
                 // additional document can't change sourcecode kind once created
                 Contract.ThrowIfTrue(additionalText);
@@ -630,9 +632,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            Contract.Requires(false, "checksum not same");
+            Debug.Assert(false, "checksum not same");
 
-            var map = solution.GetAssetMap();
+            var map = await solution.GetAssetMapAsync(_cancellationToken).ConfigureAwait(false);
             await RemoveDuplicateChecksumsAsync(givenSolutionChecksum, map).ConfigureAwait(false);
 
             foreach (var kv in map.Where(kv => kv.Value is ChecksumWithChildren).ToList())

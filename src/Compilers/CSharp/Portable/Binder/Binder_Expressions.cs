@@ -507,6 +507,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SubtractAssignmentExpression:
                     return BindCompoundAssignment((AssignmentExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.CoalesceAssignmentExpression:
+                    return BindNullCoalescingAssignmentOperator((AssignmentExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.AliasQualifiedName:
                 case SyntaxKind.PredefinedType:
                     return this.BindNamespaceOrType(node, diagnostics);
@@ -6074,17 +6077,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnType: returnType);
                 diagnostics.Add(expression, useSiteDiagnostics);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
-                var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, actualArguments, methodGroup.ResultKind, sealedDiagnostics);
 
-                // If the search in the current scope resulted in any applicable method (regardless of whether a best 
+                // Note: the MethodGroupResolution instance is responsible for freeing its copy of actual arguments
+                var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance(actualArguments), methodGroup.ResultKind, sealedDiagnostics);
+
+                // If the search in the current scope resulted in any applicable method (regardless of whether a best
                 // applicable method could be determined) then our search is complete. Otherwise, store aside the
                 // first non-applicable result and continue searching for an applicable result.
                 if (result.HasAnyApplicableMethod)
                 {
                     if (!firstResult.IsEmpty)
                     {
-                        // Free parts of the previous result but do not free AnalyzedArguments
-                        // since we're using the same arguments for the returned result.
                         firstResult.MethodGroup.Free();
                         firstResult.OverloadResolutionResult.Free();
                     }
@@ -6103,6 +6106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert((actualArguments == null) || !firstResult.IsEmpty);
+            actualArguments?.Free();
             return firstResult;
         }
 
@@ -6174,6 +6178,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!hasError && fieldSymbol.IsFixed && !IsInsideNameof)
             {
+                // SPEC: In a member access of the form E.I, if E is of a struct type and a member lookup of I in
+                // that struct type identifies a fixed size member, then E.I is evaluated an classified as follows:
+                // * If the expression E.I does not occur in an unsafe context, a compile-time error occurs.
+                // * If E is classified as a value, a compile-time error occurs.
+                // * Otherwise, if E is a moveable variable and the expression E.I is not a fixed_pointer_initializer,
+                //   a compile-time error occurs.
+                // * Otherwise, E references a fixed variable and the result of the expression is a pointer to the
+                //   first element of the fixed size buffer member I in E. The result is of type S*, where S is
+                //   the element type of I, and is classified as a value.
+
                 TypeSymbol receiverType = receiver.Type;
 
                 // Reflect errors that have been reported elsewhere...
@@ -6182,11 +6196,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasError)
                 {
                     var isFixedStatementExpression = SyntaxFacts.IsFixedStatementExpression(node);
-                    Symbol accessedLocalOrParameterOpt;
-                    if (ExpressionRequiresFixing(receiver, out accessedLocalOrParameterOpt) != isFixedStatementExpression)
+
+                    if (IsMoveableVariable(receiver, out Symbol accessedLocalOrParameterOpt) != isFixedStatementExpression)
                     {
                         if (indexed)
                         {
+                            // SPEC C# 7.3: If the fixed size buffer access is the receiver of an element_access_expression,
+                            // E may be either fixed or moveable
                             CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexingMovableFixedBuffers, diagnostics);
                         }
                         else
@@ -7118,6 +7134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnostics = DiagnosticBag.GetInstance();
                 diagnostics.AddRange(methodResolution.Diagnostics); // Could still have use site warnings.
                 BindMemberAccessReportError(node, diagnostics);
+
+                // Note: no need to free `methodResolution`, we're transferring the pooled objects it owned
                 return new MethodGroupResolution(methodResolution.MethodGroup, methodResolution.OtherSymbol, methodResolution.OverloadResolutionResult, methodResolution.AnalyzedArguments, methodResolution.ResultKind, diagnostics.ToReadOnlyAndFree());
             }
             return methodResolution;
@@ -7261,7 +7279,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowUnexpandedForm: allowUnexpandedForm,
                     returnRefKind: returnRefKind,
                     returnType: returnType);
-                return new MethodGroupResolution(methodGroup, null, result, analyzedArguments, methodGroup.ResultKind, sealedDiagnostics);
+
+                // Note: the MethodGroupResolution instance is responsible for freeing its copy of analyzed arguments
+                return new MethodGroupResolution(methodGroup, null, result, AnalyzedArguments.GetInstance(analyzedArguments), methodGroup.ResultKind, sealedDiagnostics);
             }
         }
 

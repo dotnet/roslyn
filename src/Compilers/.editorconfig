@@ -1,4 +1,8 @@
 # Project-specific settings:
+[*.{cs,vb}]
+# Local functions are camelCase
+dotnet_naming_style.local_function_style.capitalization = camel_case
+
 # CSharp code style settings:
 [*.cs]
 csharp_style_var_for_built_in_types = false:none

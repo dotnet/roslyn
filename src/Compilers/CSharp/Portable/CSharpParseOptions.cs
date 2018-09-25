@@ -202,6 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsFeatureEnabled(MessageID feature)
         {
+            string featureFlag = feature.RequiredFeature();
+            if (featureFlag != null)
+            {
+                return Features.ContainsKey(featureFlag);
+            }
             LanguageVersion availableVersion = LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
             return availableVersion >= requiredVersion;

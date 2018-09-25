@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 If token.Span.End = lastNonWhitespacePosition + 1 Then
                     Return GetIndentationBasedOnToken(token)
                 Else
-                    Contract.Assert(token.FullSpan.Contains(lastNonWhitespacePosition))
+                    Debug.Assert(token.FullSpan.Contains(lastNonWhitespacePosition))
 
                     Dim trivia = Tree.GetRoot(CancellationToken).FindTrivia(lastNonWhitespacePosition)
 

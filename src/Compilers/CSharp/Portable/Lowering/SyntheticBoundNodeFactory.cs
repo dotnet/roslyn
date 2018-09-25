@@ -1276,17 +1276,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
+            MethodSymbol containingMethod = this.CurrentFunction;
+
             switch (refKind)
             {
                 case RefKind.Out:
                     refKind = RefKind.Ref;
                     break;
+
                 case RefKind.In:
-                    if (argument.GetRefKind() == RefKind.None)
+                    if (!Binder.HasHome(argument,
+                                        Binder.AddressKind.ReadOnly,
+                                        containingMethod,
+                                        Compilation.IsPeVerifyCompatEnabled,
+                                        stackLocalsOpt: null))
                     {
+                        // If there was an explicit 'in' on the argument then we should have verified
+                        // earlier that we always have a home.
+                        Debug.Assert(argument.GetRefKind() != RefKind.In);
                         refKind = RefKind.None;
                     }
                     break;
+
                 case RefKind.None:
                 case RefKind.Ref:
                     break;
@@ -1294,7 +1305,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(refKind);
             }
 
-            MethodSymbol containingMethod = this.CurrentFunction;
             var syntax = argument.Syntax;
             var type = argument.Type;
 

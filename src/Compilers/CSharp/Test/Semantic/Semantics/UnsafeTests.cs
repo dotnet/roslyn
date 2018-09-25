@@ -2308,7 +2308,7 @@ No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
                     {
                         text = SymbolDisplay.FormatLiteral(text, quote: false);
 
-                        if (_binder.ExpressionRequiresFixing(expr, out Symbol accessedLocalOrParameterOpt))
+                        if (_binder.IsMoveableVariable(expr, out Symbol accessedLocalOrParameterOpt))
                         {
                             _builder.Add($"Yes, {expr.Kind} '{text}' requires fixing.");
                         }
@@ -4680,6 +4680,69 @@ unsafe struct S
                 // (6,9): error CS0242: The operation in question is undefined on void pointers
                 //         p[0] = null;
                 Diagnostic(ErrorCode.ERR_VoidError, "p"));
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Static()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    static int* x;
+
+    static void Main()
+    {
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Instance()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    int* x;
+
+    void Calculate()
+    {
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Local()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    static void Main()
+    {
+        int* x;
+
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         #endregion PointerElementAccess diagnostics
@@ -8690,5 +8753,123 @@ public class Test
         }
 
         #endregion
+
+        [Fact]
+        public void AddressOfFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        fixed (int* a = &s.Buf) {}
+        fixed (int* b = &s_f.Buf) {}
+        int* c = &s.Buf;
+        int* d = &s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (12,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* a = &s.Buf) {}
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&s.Buf").WithLocation(12, 25),
+                // (13,26): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         fixed (int* b = &s_f.Buf) {}
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(13, 26),
+                // (14,18): error CS0266: Cannot implicitly convert type 'int**' to 'int*'. An explicit conversion exists (are you missing a cast?)
+                //         int* c = &s.Buf;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "&s.Buf").WithArguments("int**", "int*").WithLocation(14, 18),
+                // (15,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int* d = &s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(15, 19));
+        }
+
+        [Fact]
+        public void FixedFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        fixed (int* a = s.Buf) {}
+        fixed (int* b = s_f.Buf) {}
+        int* c = s.Buf;
+        int* d = s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (12,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* a = s.Buf) {}
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "s.Buf").WithLocation(12, 25),
+                // (15,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int* d = s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(15, 18));
+        }
+
+        [Fact]
+        public void NoPointerDerefMoveableFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        int x = *s.Buf;
+        int y = *s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (13,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int y = *s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(13, 18));
+        }
+
+        [Fact]
+        public void AddressOfElementAccessFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        fixed (int* a = &s.Buf[0]) { }
+        fixed (int* b = &s_f.Buf[0]) { }
+        int* c = &s.Buf[0];
+        int* d = &s_f.Buf[0];
+        int* e = &(s.Buf[0]);
+        int* f = &(s_f.Buf[0]);
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (12,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* a = &s.Buf[0]) { }
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&s.Buf[0]").WithLocation(12, 25),
+                // (15,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* d = &s_f.Buf[0];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s_f.Buf[0]").WithLocation(15, 18),
+                // (17,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* f = &(s_f.Buf[0]);
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&(s_f.Buf[0])").WithLocation(17, 18));
+        }
     }
 }
