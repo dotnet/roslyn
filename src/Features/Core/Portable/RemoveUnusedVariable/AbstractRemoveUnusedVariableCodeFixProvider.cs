@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            Diagnostic diagnostic = context.Diagnostics.First();
+            Diagnostic diagnostic = context.Diagnostics.Single();
             context.RegisterCodeFix(new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)), diagnostic);
             return Task.CompletedTask;
         }
