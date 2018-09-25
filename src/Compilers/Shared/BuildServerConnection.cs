@@ -118,6 +118,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return new RejectedBuildResponse();
             }
 
+            // early check for the build hash. If we can't find it something is wrong; no point even trying to go to the server
+            if (string.IsNullOrWhiteSpace(BuildProtocolConstants.GetCommitHash()))
+            {
+                return new IncorrectHashBuildResponse();
+            }
+
             var clientDir = buildPaths.ClientDirectory;
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
@@ -188,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     var request = BuildRequest.Create(language,
                                                       buildPaths.WorkingDirectory,
                                                       buildPaths.TempDirectory,
+                                                      BuildProtocolConstants.GetCommitHash(),
                                                       arguments,
                                                       keepAlive,
                                                       libEnvVariable);

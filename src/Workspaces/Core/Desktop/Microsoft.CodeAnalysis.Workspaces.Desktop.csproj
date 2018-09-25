@@ -39,6 +39,7 @@
   </PropertyGroup>
   <ItemGroup>
     <NuspecProperty Include="ThirdPartyNoticesFilePath=$(ThirdPartyNoticesFilePath)" />
+    <NuspecProperty Include="SQLitePCLRawbundle_greenVersion=$(SQLitePCLRawbundle_greenVersion)" />
     <NuspecProperty Include="SystemCompositionVersion=$(SystemCompositionVersion)" />
     <NuspecProperty Include="SystemDiagnosticsContractsVersion=$(SystemDiagnosticsContractsVersion)" />
     <NuspecProperty Include="SystemLinqParallelVersion=$(SystemLinqParallelVersion)" />

@@ -201,6 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsGenericName(SyntaxNode node)
             => node is GenericNameSyntax;
 
+        public bool IsQualifiedName(SyntaxNode node)
+            => node.IsKind(SyntaxKind.QualifiedName);
+
         public bool IsNamedParameter(SyntaxNode node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
 
@@ -629,8 +632,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsSimpleMemberAccessExpression(SyntaxNode node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.SimpleMemberAccessExpression;
 
-        public bool IsConditionalMemberAccessExpression(SyntaxNode node)
+        public bool IsConditionalAccessExpression(SyntaxNode node)
             => node is ConditionalAccessExpressionSyntax;
+
+        public void GetPartsOfConditionalAccessExpression(
+            SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull)
+        {
+            var conditionalAccess = (ConditionalAccessExpressionSyntax)node;
+            expression = conditionalAccess.Expression;
+            whenNotNull = conditionalAccess.WhenNotNull;
+        }
 
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
@@ -656,9 +667,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
             => (node as MemberAccessExpressionSyntax)?.Expression;
-
-        public SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node)
-            => (node as ConditionalAccessExpressionSyntax)?.Expression;
 
         public void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
         {
@@ -689,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (node as ArgumentSyntax).GetRefKind();
 
         public bool IsArgument(SyntaxNode node)
-            => node.Kind() == SyntaxKind.Argument;
+            => node.IsKind(SyntaxKind.Argument);
 
         public bool IsSimpleArgument(SyntaxNode node)
         {
@@ -1534,7 +1542,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void GetPartsOfAssignmentStatement(
             SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
-            var assignment = (AssignmentExpressionSyntax)((ExpressionStatementSyntax)statement).Expression;
+            GetPartsOfAssignmentExpressionOrStatement(
+                ((ExpressionStatementSyntax)statement).Expression, out left, out operatorToken, out right);
+        }
+
+        public void GetPartsOfAssignmentExpressionOrStatement(
+            SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+        {
+            var expression = statement;
+            if (statement is ExpressionStatementSyntax expressionStatement)
+            {
+                expression = expressionStatement.Expression;
+            }
+
+            var assignment = (AssignmentExpressionSyntax)expression;
             left = assignment.Left;
             operatorToken = assignment.OperatorToken;
             right = assignment.Right;
@@ -1855,6 +1876,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsLiteralExpression(SyntaxNode node)
             => node is LiteralExpressionSyntax;
+
+        public bool IsThisExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.ThisExpression);
+
+        public bool IsBaseExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.BaseExpression);
 
         public bool IsFalseLiteralExpression(SyntaxNode expression)
             => expression.IsKind(SyntaxKind.FalseLiteralExpression);

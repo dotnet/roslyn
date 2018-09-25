@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 Assert.Equal("CSharpProject.dll", Path.GetFileName(p1.OutputFilePath));
                 Assert.False(File.Exists(p1.OutputFilePath));
 
-                // prove that vb project refers to csharp project via generated metadata (skeleton) assembly. 
+                // prove that vb project refers to csharp project via generated metadata (skeleton) assembly.
                 // it should be a MetadataImageReference
                 var c2 = await p2.GetCompilationAsync();
                 var pref = c2.References.OfType<PortableExecutableReference>().FirstOrDefault(r => r.Display == "CSharpProject");
@@ -2465,7 +2465,7 @@ class C1
                 csdoc1Text = await csdoc1.GetTextAsync();
                 var csdoc5 = AssertSemanticVersionChanged(csdoc1, csdoc1Text.Replace(new TextSpan(startOfClassInterior, 0), "\r\npublic int X = 20;\r\n"));
 
-                // change initializer value 
+                // change initializer value
                 var csdoc5Root = await csdoc5.GetSyntaxRootAsync();
                 var literal = csdoc5Root.DescendantNodes().OfType<CS.Syntax.LiteralExpressionSyntax>().First(x => x.Token.ValueText == "20");
                 var csdoc5Text = await csdoc5.GetTextAsync();

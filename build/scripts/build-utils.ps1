@@ -354,7 +354,7 @@ function Test-SupportedVisualStudioVersion([string]$version) {
 # meets our minimal requirements for the Roslyn repo.
 function Get-VisualStudioDirAndId() {
     $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\vswhere.exe"
-    $output = Exec-Command $vswhere "-requires Microsoft.Component.MSBuild -format json" | Out-String
+    $output = Exec-Command $vswhere "-prerelease -requires Microsoft.Component.MSBuild -format json" | Out-String
     $j = ConvertFrom-Json $output
     foreach ($obj in $j) { 
 

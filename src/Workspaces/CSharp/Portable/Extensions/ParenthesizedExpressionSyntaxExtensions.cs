@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -23,6 +24,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var parentExpression = node.IsParentKind(SyntaxKind.ConstantPattern)
                 ? node.Parent.Parent as ExpressionSyntax
                 : node.Parent as ExpressionSyntax;
+
+            // Have to be careful if we would remove parens and cause a + and a + to become a ++.
+            // (same with - as well).
+            var tokenBeforeParen = node.GetFirstToken().GetPreviousToken();
+            var tokenAfterParen = node.Expression.GetFirstToken();
+            var previousChar = tokenBeforeParen.Text.LastOrDefault();
+            var nextChar = tokenAfterParen.Text.FirstOrDefault();
+
+            if ((previousChar == '+' && nextChar == '+') ||
+                (previousChar == '-' && nextChar == '-'))
+            {
+                return false;
+            }
 
             // Simplest cases:
             //   ((x)) -> (x)
@@ -222,6 +236,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (node.Parent is DirectiveTriviaSyntax)
             {
                 return true;
+            }
+
+            // If we have: (X)(++x) or (X)(--x), we don't want to remove the parens. doing so can
+            // make the ++/-- now associate with the previous part of the cast expression.
+            if (parentExpression.IsKind(SyntaxKind.CastExpression))
+            {
+                if (expression.IsKind(SyntaxKind.PreIncrementExpression) ||
+                    expression.IsKind(SyntaxKind.PreDecrementExpression))
+                {
+                    return false;
+                }
             }
 
             // Operator precedence cases:

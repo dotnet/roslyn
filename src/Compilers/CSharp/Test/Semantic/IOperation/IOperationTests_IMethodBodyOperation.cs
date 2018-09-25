@@ -44,7 +44,7 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -90,7 +90,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -139,7 +139,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -205,7 +205,7 @@ class C
     { j = i; }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -247,7 +247,7 @@ class C
     => j = i;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -290,7 +290,7 @@ class C
     => i2 = j2;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -357,7 +357,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -404,7 +404,7 @@ class C
     void M2(out int x) => x = 0;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
@@ -461,7 +461,7 @@ class C
     void M2(out int x) => x = 0;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.

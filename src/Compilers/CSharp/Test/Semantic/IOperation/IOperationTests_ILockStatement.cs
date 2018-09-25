@@ -852,7 +852,7 @@ class P
     }/*</bind>*/
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
 
@@ -941,7 +941,7 @@ class P
     }/*</bind>*/
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
 
             string expectedGraph = @"
