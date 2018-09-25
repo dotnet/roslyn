@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)receiverType != null && receiverType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)receiverType).IsComImport;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Remove this method. Initial binding should not infer nullability.
+        // https://github.com/dotnet/roslyn/issues/29618 Remove this method. Initial binding should not infer nullability.
         internal static TypeSymbolWithAnnotations GetTypeAndNullability(this BoundExpression expr)
         {
             var type = expr.Type;
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TypeSymbolWithAnnotations.Create(type, isNullable);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Remove this method. Initial binding should not infer nullability.
+        // https://github.com/dotnet/roslyn/issues/29618 Remove this method. Initial binding should not infer nullability.
         /// <summary>
         /// Returns the top-level nullability of the expression if the nullability can be determined statically,
         /// and returns null otherwise. (May return null even in cases where the nullability is explicit,
