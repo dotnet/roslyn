@@ -245,6 +245,58 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
             }
 
+            /// <summary>
+            /// Computes abstract value for out or ref arguments when not performing interprocedural analysis.
+            /// </summary>
+            /// <param name="analysisEntity">Analysis entity.</param>
+            /// <param name="operation">IArgumentOperation.</param>
+            /// <param name="defaultValue">Default TaintedDataAbstractValue if we don't need to override.</param>
+            /// <returns></returns>
+            protected override TaintedDataAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(
+                AnalysisEntity analysisEntity, 
+                IArgumentOperation operation,
+                TaintedDataAbstractValue defaultValue)
+            {
+                if (operation.Parent is IInvocationOperation invocationOperation)
+                {
+                    // Treat ref or out arguments as the same as the invocation operation.
+                    TaintedDataAbstractValue returnValueAbstractValue = this.GetCachedAbstractValue(invocationOperation);
+                    return returnValueAbstractValue;
+                }
+                else
+                {
+                    return defaultValue;
+                }
+            }
+
+            public override TaintedDataAbstractValue VisitArrayInitializer(IArrayInitializerOperation operation, object argument)
+            {
+                HashSet<SymbolAccess> sourceOrigins = null;
+                TaintedDataAbstractValue baseAbstractValue = base.VisitArrayInitializer(operation, argument);
+                if (baseAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
+                {
+                    sourceOrigins = new HashSet<SymbolAccess>(baseAbstractValue.SourceOrigins);
+                }
+
+                IEnumerable<TaintedDataAbstractValue> taintedAbstractValues =
+                    operation.ElementValues
+                        .Select<IOperation, TaintedDataAbstractValue>(e => this.GetCachedAbstractValue(e))
+                        .Where(v => v.Kind == TaintedDataAbstractValueKind.Tainted);
+                if (baseAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
+                {
+                    taintedAbstractValues = taintedAbstractValues.Concat(baseAbstractValue);
+                }
+
+                if (taintedAbstractValues.Any())
+                {
+                    return TaintedDataAbstractValue.MergeTainted(taintedAbstractValues);
+                }
+                else
+                {
+                    return baseAbstractValue;
+                }
+            }
+
             protected override void SetAbstractValueForArrayElementInitializer(IArrayCreationOperation arrayCreation, ImmutableArray<AbstractIndex> indices, ITypeSymbol elementType, IOperation initializer, TaintedDataAbstractValue value)
             {
                 base.SetAbstractValueForArrayElementInitializer(arrayCreation, indices, elementType, initializer, value);

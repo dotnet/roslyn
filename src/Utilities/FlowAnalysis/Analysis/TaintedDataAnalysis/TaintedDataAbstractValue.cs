@@ -11,6 +11,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// <summary>
     /// Abstract tainted data value shared by a set of one of more <see cref="AnalysisEntity"/> instances tracked by <see cref="TaintedDataAnalysis"/>.
     /// </summary>
+    [DebuggerDisplay("{Kind} ({SourceOrigins.Count} source origins)")]
     internal class TaintedDataAbstractValue : CacheBasedEquatable<TaintedDataAbstractValue>
     {
         public static readonly TaintedDataAbstractValue Unknown = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.Unknown, ImmutableHashSet<SymbolAccess>.Empty);

@@ -13,7 +13,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             public override TaintedDataAbstractValue Bottom => TaintedDataAbstractValue.Unknown;
 
-
             public override int Compare(TaintedDataAbstractValue oldValue, TaintedDataAbstractValue newValue)
             {
                 // The newly computed abstract values for each basic block
@@ -54,7 +53,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return TaintedDataAbstractValue.MergeTainted(value1, value2);
                 }
 
-                return this.Compare(value1, value2) >= 0 ? value1 : value2;
+                return value1.Kind > value2.Kind ? value1 : value2;
             }
         }
     }

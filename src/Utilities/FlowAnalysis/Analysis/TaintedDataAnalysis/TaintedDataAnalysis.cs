@@ -38,7 +38,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 cfg,
                 containingMethod,
                 InterproceduralAnalysisKind.ContextSensitive,
-                true /* pessimisticAnalysis */,
+                false /* pessimisticAnalysis */,
                 pointsToAnalysisResult,
                 GetOrComputeResultForAnalysisContext);
 
