@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
 @"class C
 {
     void M(System.IDisposable disposable)
-    {                             [|    
+    {                             [|    " + @"
         var name = disposable;    |]
     }
 }",
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         }
 
         [Fact]
-        public async Task RefactoringIsAvailableForSelectionAtStartOfLineWithPrecedingDeclaration()
+        public async Task RefactoringIsAvailableForSelectionAtStartOfStatementWithPrecedingDeclaration()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -96,7 +96,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         }
 
         [Fact]
-        public async Task RefactoringIsAvailableForSelectionAtEndOfLineWithFollowingDeclaration()
+        public async Task RefactoringIsAvailableForSelectionAtStartOfLineWithPrecedingDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        var ignore = disposable;
+[||]        var name = disposable;
+    }
+}",
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        var ignore = disposable;
+        using (var name = disposable)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task RefactoringIsAvailableForSelectionAtEndOfStatementWithFollowingDeclaration()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -119,12 +143,80 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
 }");
         }
 
+        [Fact]
+        public async Task RefactoringIsAvailableForSelectionAtEndOfLineWithFollowingDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        var name = disposable;    [||]
+        var ignore = disposable;
+    }
+}",
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        using (var name = disposable)
+        {
+        }
+        var ignore = disposable;
+    }
+}");
+        }
+
         [Theory]
         [InlineData("var name = d[||]isposable;")]
         [InlineData("var name = disposabl[||]e;")]
         [InlineData("var name=[|disposable|];")]
-        [InlineData("System.IDisposable name =[||]")]
         public async Task RefactoringIsNotAvailableForSelection(string declaration)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        " + declaration + @"
+    }
+}");
+        }
+
+        [Fact]
+        public async Task RefactoringIsNotAvailableForDeclarationMissingInitializerExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        System.IDisposable name =[||]
+    }
+}");
+        }
+
+        [Fact]
+        public async Task RefactoringIsNotAvailableForUsingStatementDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        using ([||]var name = disposable)
+        {
+        }
+    }
+}");
+        }
+
+        [Theory]
+        [InlineData("[||]System.IDisposable x = disposable, y = disposable;")]
+        [InlineData("System.IDisposable [||]x = disposable, y = disposable;")]
+        [InlineData("System.IDisposable x = disposable, [||]y = disposable;")]
+        [InlineData("System.IDisposable x = disposable, y = disposable;[||]")]
+        public async Task RefactoringIsNotAvailableForMultiVariableDeclaration(string declaration)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -291,6 +383,64 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
 #endif
             _ = x;
         }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task StatementsAreSurroundedByMinimalScope()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        M(null);
+        var x = disposable;[||]
+        M(null);
+        M(x);
+        M(null);
+    }
+}",
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        M(null);
+        using (var x = disposable)
+        {
+            M(null);
+            M(x);
+        }
+        M(null);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task CommentsAreSurroundedExceptLinesFollowingLastUsage()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        var x = disposable;[||]
+        // A
+        M(x); // B
+        // C
+    }
+}",
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        using (var x = disposable)
+        {
+            // A
+            M(x); // B
+        }
+        // C
     }
 }");
         }
