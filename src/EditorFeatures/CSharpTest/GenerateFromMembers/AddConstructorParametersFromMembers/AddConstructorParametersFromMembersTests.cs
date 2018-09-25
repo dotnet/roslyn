@@ -326,7 +326,7 @@ index: 1, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
     (int, string) i;
     (string, int) s;
 
-    public Program((int, string) i, (string, int) s = default)
+    public Program((int, string) i, (string, int) s = default((string, int)))
     {
         this.i = i;
         this.s = s;
@@ -382,7 +382,7 @@ index: 1, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
     (int a, string b) i;
     (string c, int d) s;
 
-    public Program((int a, string b) i, (string c, int d) s = default)
+    public Program((int a, string b) i, (string c, int d) s = default((string c, int d)))
     {
         this.i = i;
         this.s = s;

@@ -550,7 +550,8 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
                     });
         }
 
@@ -584,13 +585,16 @@ class C
             string defaultEffectiveVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
-@"<Workspace>
+$@"<Workspace>
     <Project Language=""C#"" LanguageVersion=""6"">
         <Document>
 class C
-{
-    object F = [|null!|];
-}
+{{
+    void A()
+    {{
+#error version:[|{defaultEffectiveVersion}|]
+    }}
+}}
         </Document>
     </Project>
     <Project Language=""C#"" LanguageVersion=""Default"">

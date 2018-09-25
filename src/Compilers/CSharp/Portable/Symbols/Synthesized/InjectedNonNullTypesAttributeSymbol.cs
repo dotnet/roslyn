@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Binder.ReportUseSiteDiagnostics(boolType, diagnostics, Location.None);
 
                 var boolWithAnnotations = TypeSymbolWithAnnotations.Create(boolType);
-                // PROTOTYPE constructor should save the parameter into a field (for users of reflection)
+                // PROTOTYPE(NullableReferenceTypes): Constructor should save the parameter into a field (for users of reflection)
                 return ImmutableArray.Create<MethodSymbol>(
                     new NonNullTypesAttributeConstructorSymbol(
                         containingType,
