@@ -1334,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool? returnIsNullable = null; // PROTOTYPE(NullableReferenceTypes)
+            bool? returnIsNullable = null; // https://github.com/dotnet/roslyn/issues/27961 Review this
             LowerBoundInference(TypeSymbolWithAnnotations.Create(returnType, returnIsNullable), delegateReturnType, ref useSiteDiagnostics);
 
             return true;
@@ -2370,9 +2370,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var upper = _upperBounds[iParam];
 
             // Fix considering nullability, if possible, otherwise fix ignoring nullability.
-            // PROTOTYPE(NullableReferenceTypes): Avoid calling Fix ignoring nullability if the nullability call succeeds.
+            // https://github.com/dotnet/roslyn/issues/27961 Avoid calling Fix ignoring nullability if the nullability call succeeds.
 
-            // PROTOTYPE(NullableReferenceTypes): Avoid comparing with and without nullability here.
+            // https://github.com/dotnet/roslyn/issues/27961 Avoid comparing with and without nullability here.
             // Initial binding should use includeNullability: false, and NullableWalker should use
             // includeNullability: true, and NullableWalker should compare the two.
             HashSet<DiagnosticInfo> ignoredDiagnostics = null;
@@ -2389,7 +2389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the first attempt succeeded, the result should be the same as
                 // the second attempt, although perhaps with different nullability.
 
-                // PROTOTYPE(NullableReferenceTypes): Results may differ by tuple names or dynamic.
+                // https://github.com/dotnet/roslyn/issues/27961 Results may differ by tuple names or dynamic.
                 // See NullableReferenceTypesTests.TypeInference_TupleNameDifferences_01 for example.
                 if (!withNullability.TypeSymbol.Equals(withoutNullability.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
@@ -2599,7 +2599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<bool> mergedFlags = flags1.ZipAsArray(flags2, (f1, f2) => f1 | f2);
 
             var result = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(first, corLibrary, RefKind.None, mergedFlags);
-            return TypeSymbolWithAnnotations.Create(result); // PROTOTYPE(NullableReferenceTypes): Handle nullability.
+            return TypeSymbolWithAnnotations.Create(result); // https://github.com/dotnet/roslyn/issues/27961 Handle nullability.
         }
 
         /// <summary>
@@ -2624,7 +2624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> mergedNames;
             if (names1.IsDefault || names2.IsDefault)
             {
-                mergedNames = default(ImmutableArray<string>);
+                mergedNames = default;
             }
             else
             {
@@ -2633,12 +2633,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (mergedNames.All(n => n == null))
                 {
-                    mergedNames = default(ImmutableArray<string>);
+                    mergedNames = default;
                 }
             }
 
             var result = TupleTypeDecoder.DecodeTupleTypesIfApplicable(first, mergedNames);
-            return TypeSymbolWithAnnotations.Create(result); // PROTOTYPE(NullableReferenceTypes): Handle nullability.
+            return TypeSymbolWithAnnotations.Create(result); // https://github.com/dotnet/roslyn/issues/27961 Handle nullability.
         }
 
         /// <summary>

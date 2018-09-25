@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    typeMap = typeMap.WithAlphaRename(methodBeingWrapped, this, nonNullTypesContext: methodBeingWrapped, out typeParameters);
+                    typeMap = typeMap.WithAlphaRename(methodBeingWrapped, this, nonNullTypesContext: NonNullTypesTrueContext.Instance, out typeParameters);
                 }
 
                 AssignTypeMapAndTypeParameters(typeMap, typeParameters);

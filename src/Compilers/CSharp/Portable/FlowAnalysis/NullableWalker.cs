@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                     {
-                        // PROTOTYPE(NullableReferenceTypes): State of containing struct should not be important.
+                        // https://github.com/dotnet/roslyn/issues/30065 State of containing struct should not be important.
                         // And if it is important, what about fields of structs that are fields of other structs, etc.?
                         int containingSlot = variable.ContainingSlot;
                         if (containingSlot > 0 &&
@@ -3368,7 +3368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbolWithAnnotations rightType = VisitOptionalImplicitConversion(right, leftType, UseLegacyWarnings(left), AssignmentKind.Assignment);
                 TrackNullableStateForAssignment(right, leftType, MakeSlot(left), rightType, MakeSlot(right));
-                // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
+                // https://github.com/dotnet/roslyn/issues/30066 Check node.Type.IsErrorType() instead?
                 _resultType = node.HasErrors ? TypeSymbolWithAnnotations.Create(node.Type) : rightType;
             }
 

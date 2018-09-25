@@ -1544,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
-            // PROTOTYPE(NullableReferenceTypes): Should not be optional.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
             return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
         }
 

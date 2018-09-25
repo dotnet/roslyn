@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(params TypeSymbol[] typeArguments)
         {
-            // PROTOTYPE(NullableReferenceTypes): We should fix the callers to pass an explicit context.
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
             return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesFalseContext.Instance);
         }
 
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments, INonNullTypesContext nonNullTypesContext = null)
         {
-            // PROTOTYPE(NullableReferenceTypes): We should fix the callers to pass an explicit context.
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
             return ConstructWithoutModifiers(typeArguments, false, nonNullTypesContext ?? NonNullTypesFalseContext.Instance);
         }
 
@@ -875,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="typeArguments"></param>
         public NamedTypeSymbol Construct(IEnumerable<TypeSymbol> typeArguments)
         {
-            // PROTOTYPE(NullableReferenceTypes): We should fix the callers to pass an explicit context.
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
             return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesFalseContext.Instance);
         }
 
@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments()
         {
-            // PROTOTYPE(NullableReferenceTypes): Set IsNullable=null always, even in C#8,
+            // https://github.com/dotnet/roslyn/issues/30068: Set IsNullable=null always, even in C#8,
             // and set TypeSymbolWithAnnotations.WithCustomModifiers.Is() => false.
             return this.TypeParameters.SelectAsArray((typeParameter, module) => TypeSymbolWithAnnotations.Create(nonNullTypesContext: module, typeParameter), ContainingModule);
         }
