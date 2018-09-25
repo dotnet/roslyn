@@ -148,8 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static TypeSymbolWithAnnotations Create(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, bool isAnnotated = false, ImmutableArray<CustomModifier> customModifiers = default)
         {
             Debug.Assert(nonNullTypesContext != null);
-            // PROTOTYPE(NullableReferenceTypes): Enable the assert below.
-            //Debug.Assert((nonNullTypesContext as Symbol)?.IsDefinition != false);
+            Debug.Assert((nonNullTypesContext as Symbol)?.IsDefinition != false);
 
             if (typeSymbol is null)
             {
@@ -164,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                      customModifiers.NullToEmpty());
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
+        // https://github.com/dotnet/roslyn/issues/30050: Check we are not using this method on type references in
         // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
 
         /// <summary>
@@ -269,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeSymbol TypeSymbol => _extensions?.GetResolvedType(_defaultType);
         public TypeSymbol NullableUnderlyingTypeOrSelf => _extensions.GetNullableUnderlyingTypeOrSelf(_defaultType);
 
-        // PROTOTYPE(NullableReferenceTypes): IsNullable depends on IsValueType which
+        // https://github.com/dotnet/roslyn/issues/30051: IsNullable depends on IsValueType which
         // can lead to cycles when IsNullable is queried early. Replace this property with
         // the Annotation property that depends on IsAnnotated and NonNullTypes only.
         // Should review all the usages of IsNullable outside of NullableWalker.
@@ -472,13 +471,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var newTypeWithModifiers = typeMap.SubstituteType(this.TypeSymbol, withTupleUnification);
             bool newIsAnnotated = this.IsAnnotated || newTypeWithModifiers.IsAnnotated;
 
-            // PROTOTYPE(NullableReferenceTypes): Can we use Equals instead?
+            // https://github.com/dotnet/roslyn/issues/30052: Can we use Equals instead?
             if (this.TypeSymbolEquals(newTypeWithModifiers, TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
                 newTypeWithModifiers.CustomModifiers.IsEmpty &&
                 newIsAnnotated == this.IsAnnotated &&
                 newCustomModifiers == this.CustomModifiers)
             {
-                // PROTOTYPE(NullableReferenceTypes): We're dropping newTypeWithModifiers.NonNullTypes!
+                // https://github.com/dotnet/roslyn/issues/30052: We're dropping newTypeWithModifiers.NonNullTypes!
                 return this; // substitution had no effect on the type or modifiers
             }
 
@@ -809,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override TypeSymbol AsTypeSymbolOnly(TypeSymbol typeSymbol) => typeSymbol;
 
-            // PROTOTYPE(NullableReferenceTypes): Use WithCustomModifiers.Is() => false
+            // https://github.com/dotnet/roslyn/issues/30054: Use WithCustomModifiers.Is() => false
             // and set IsNullable=null always for GetTypeParametersAsTypeArguments.
             internal override bool Is(TypeSymbol typeSymbol, TypeParameterSymbol other) =>
                 typeSymbol.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes) && _customModifiers.IsEmpty;
@@ -929,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return resolvedType;
             }
 
-            // PROTOTYPE(NullableReferenceTypes): This implementation looks
+            // https://github.com/dotnet/roslyn/issues/30054: This implementation looks
             // incorrect since a type parameter cannot be Nullable<T>.
             internal override bool Is(TypeSymbol typeSymbol, TypeParameterSymbol other)
             {

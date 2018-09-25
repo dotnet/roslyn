@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            // PROTOTYPE(NullableReferenceTypes): we're dropping annotation and context
+            // https://github.com/dotnet/roslyn/issues/30072: we're dropping annotation and context
             return TypeSymbolWithAnnotations.Create(result);
         }
 

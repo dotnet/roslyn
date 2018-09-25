@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
-            // PROTOTYPE(NullableReferenceTypes): Consider moving to leaf types
+            // https://github.com/dotnet/roslyn/issues/30073: Consider moving to leaf types
             get { return _underlyingParameter.FlowAnalysisAnnotations; }
         }
 

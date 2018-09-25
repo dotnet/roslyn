@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             int position = 0;
             TypeSymbolWithAnnotations result;
-            // PROTOTYPE(NullableReferenceTypes): handle NonNullTypesContext from metadata
             if (metadataType.ApplyNullableTransforms(nullableTransformFlags, metadataType.NonNullTypesContext, ref position, out result) &&
                 (nullableTransformFlags.IsDefault || position == nullableTransformFlags.Length))
             {
