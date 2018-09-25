@@ -2,15 +2,18 @@
 # Copyright (c) .NET Foundation and contributors. All rights reserved.
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-# USAGE:
-# build/scripts/tests.sh (Debug|Release) (dotnet|mono|mono-debug) [test assembly name] [xunit args]
-# If specified, the test assembly name must be a substring match for one or more test assemblies.
-# Note that it's a substring match so '.dll' would match all unit test DLLs and run them all.
-# Any xunit args specified after the assembly name will be passed directly to the test runner
-#  so you can run individual tests, i.e. -method "*.Query_01"
-
 set -e
 set -u
+
+if [[ "${1}" =~ ^(-h|-help|--help|-\?|/\?)$ ]]; then
+    echo "USAGE:"
+    echo "build/scripts/tests.sh (Debug|Release) (dotnet|mono|mono-debug) [test assembly name] [xunit args]"
+    echo "If specified, the test assembly name must be a substring match for one or more test assemblies."
+    echo "Note that it's a substring match so '.dll' would match all unit test DLLs and run them all."
+    echo "Any xunit args specified after the assembly name will be passed directly to the test runner so you can run individual tests, i.e. -method \"*.Query_01\""
+
+    exit 1
+fi
 
 build_configuration=${1:-Debug}
 runtime=${2:-dotnet}
