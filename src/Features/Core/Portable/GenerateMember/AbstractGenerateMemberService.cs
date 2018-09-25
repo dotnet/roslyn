@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 return;
             }
 
-            if (syntaxFacts.IsConditionalMemberAccessExpression(expression))
+            if (syntaxFacts.IsConditionalAccessExpression(expression))
             {
                 var beforeDotExpression = syntaxFacts.GetExpressionOfConditionalAccessExpression(expression);
 

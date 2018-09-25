@@ -9,14 +9,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnusedMembersDiagnosticAnalyzer
         Inherits AbstractRemoveUnusedMembersDiagnosticAnalyzer(Of DocumentationCommentTriviaSyntax, IdentifierNameSyntax)
-
-        Public Sub New()
-            MyBase.New(forceEnableRules:=False)
-        End Sub
-
-        ' For testing purposes only.
-        Friend Sub New(forceEnableRules As Boolean)
-            MyBase.New(forceEnableRules)
-        End Sub
     End Class
 End Namespace

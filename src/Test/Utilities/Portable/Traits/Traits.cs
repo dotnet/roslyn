@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddRequiredParentheses = "CodeActions.AddRequiredParentheses";
             public const string CodeActionsUpgradeProject = "CodeActions.UpgradeProject";
             public const string CodeActionsAddAccessibilityModifiers = "CodeActions.AddAccessibilityModifiers";
+            public const string CodeActionsAddAnonymousTypeMemberName = "CodeActions.AddAnonymousTypeMemberName";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
             public const string CodeActionsAddFileBanner = "CodeActions.AddFileBanner";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
@@ -89,7 +90,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInsertMissingCast = "CodeActions.InsertMissingCast";
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
             public const string CodeActionsIntroduceVariable = "CodeActions.IntroduceVariable";
+            public const string CodeActionsInvertConditional = "CodeActions.InvertConditional";
             public const string CodeActionsInvertIf = "CodeActions.InvertIf";
+            public const string CodeActionsInvertLogical = "CodeActions.InvertLogical";
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
@@ -122,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
             public const string CodeActionsUseCollectionInitializer = "CodeActions.UseCollectionInitializer";
+            public const string CodeActionsUseCompoundAssignment = "CodeActions.UseCompoundAssignment";
             public const string CodeActionsUseConditionalExpression = "CodeActions.UseConditionalExpression";
             public const string CodeActionsUseDeconstruction = "CodeActions.UseDeconstruction";
             public const string CodeActionsUseDefaultLiteral = "CodeActions.UseDefaultLiteral";
@@ -163,6 +167,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ErrorSquiggles = nameof(ErrorSquiggles);
             public const string EventHookup = nameof(EventHookup);
             public const string Expansion = nameof(Expansion);
+            public const string AddAwait = "Refactoring.AddAwait";
             public const string ExtractInterface = "Refactoring.ExtractInterface";
             public const string ExtractMethod = "Refactoring.ExtractMethod";
             public const string F1Help = nameof(F1Help);

@@ -344,10 +344,11 @@ function Test-XUnitCoreClr() {
     Exec-Console $dotnet "publish src\Tools\ILAsm --no-restore --runtime win-x64 --self-contained -o $ilasmDir"
 
     $unitDir = Join-Path $configDir "UnitTests"
-    $tf = "netcoreapp2.0"
+    $tf = "netcoreapp2.1"
     $xunitResultDir = Join-Path $unitDir "xUnitResults"
     Create-Directory $xunitResultDir
-    $xunitConsole = Join-Path (Get-PackageDir "xunit.runner.console") "tools\$tf\xunit.console.dll"
+    $xunitConsole = Join-Path (Get-PackageDir "xunit.runner.console") "tools\netcoreapp2.0\xunit.console.dll"
+    $runtimeVersion = Get-ToolVersion "dotnetRuntime"
 
     $dlls = @()
     $allGood = $true
@@ -358,6 +359,7 @@ function Test-XUnitCoreClr() {
             $dllPath = Join-Path $testDir $dllName
 
             $args = "exec"
+            $args += " --fx-version $runtimeVersion"
             $args += " --depsfile " + [IO.Path]::ChangeExtension($dllPath, ".deps.json")
             $args += " --runtimeconfig " + [IO.Path]::ChangeExtension($dllPath, ".runtimeconfig.json")
             $args += " $xunitConsole"

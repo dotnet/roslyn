@@ -47,6 +47,11 @@
         <target state="translated">Voreinstellungen für Klammern:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="new">Prefer compound assignments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="new">Regular Expressions</target>
@@ -60,6 +65,11 @@
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
         <target state="translated">Visual Studio-Standardtastenzuordnung zurücksetzen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambdas">
+        <source>Use expression body for lambdas</source>
+        <target state="new">Use expression body for lambdas</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
