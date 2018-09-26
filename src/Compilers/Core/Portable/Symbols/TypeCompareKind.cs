@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     [Flags]
     internal enum TypeCompareKind
     {
-        ConsiderEverything = 0, // PROTOTYPE(NullableReferenceTypes): Perhaps rename since this does not consider nullable modifiers.
+        ConsiderEverything = 0, // Perhaps rename since this does not consider nullable modifiers.
         IgnoreCustomModifiersAndArraySizesAndLowerBounds = 1,
         IgnoreDynamic = 2,
         IgnoreTupleNames = 4,

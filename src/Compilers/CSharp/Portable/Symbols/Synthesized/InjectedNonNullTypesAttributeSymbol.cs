@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Binder.ReportUseSiteDiagnostics(boolType, diagnostics, Location.None);
 
                 var boolWithAnnotations = TypeSymbolWithAnnotations.Create(boolType);
-                // PROTOTYPE(NullableReferenceTypes): Constructor should save the parameter into a field (for users of reflection)
+                // https://github.com/dotnet/roslyn/issues/30143: Constructor should save the parameter into a field (for users of reflection)
                 return ImmutableArray.Create<MethodSymbol>(
                     new NonNullTypesAttributeConstructorSymbol(
                         containingType,
