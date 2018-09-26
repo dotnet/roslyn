@@ -20,6 +20,9 @@ runtime=${2:-dotnet}
 single_test_assembly=${3:-}
 xunit_args=(${@:4})
 
+was_argv_specified=0
+[[ "${single_test_assembly}" != "" ]] && was_argv_specified=1
+
 this_dir="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${this_dir}"/build-utils.sh
 
@@ -33,12 +36,45 @@ dotnet_runtime_version="$(get_tool_version dotnetRuntime)"
 
 if [[ "${runtime}" == "dotnet" ]]; then
     file_list=( "${unittest_dir}"/*/netcoreapp2.1/*.UnitTests.dll )
+    file_blacklist=(
+        # Disable the VB Semantic tests while we investigate the core dump issue
+        # https://github.com/dotnet/roslyn/issues/29660
+        "Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll"
+    )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/netcoreapp2.0/xunit.console.dll
 elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
-    file_list=(
-        "${unittest_dir}/Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests/net46/Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.dll"
-        "${unittest_dir}/Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests/net46/Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests.dll"
-        )
+    file_list=( "${unittest_dir}"/*/net46/*.UnitTests.dll )
+    file_blacklist=(
+        'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll'
+        # Missing mscoree.dll, other problems
+        'Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll'
+        # Omitted because we appear to be missing things necessary to compile vb.net.
+        # See https://github.com/mono/mono/issues/10679
+        'Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests.dll'
+        'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll'
+        # PortablePdb and lots of other problems
+        'Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests.dll'
+        # GetSystemInfo is missing, and other problems
+        # See https://github.com/mono/mono/issues/10678
+        'Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests.dll'
+        # Many test failures
+        'Microsoft.CodeAnalysis.UnitTests.dll'
+        # Multiple test failures
+        'Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.dll'
+        # Multiple test failures
+        'Microsoft.Build.Tasks.CodeAnalysis.UnitTests.dll'
+        # Various failures related to PDBs, along with a runtime crash
+        'Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll'
+        # Deadlocks or hangs for some reason
+        # FIXME: This is probably the new name for CompilerServer?
+        'VBCSCompiler.UnitTests.dll'
+        # Disabling on assumption
+        'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll'
+        # A zillion test failures + crash
+        # See https://github.com/mono/mono/issues/10756
+        'Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests.dll'
+
+    )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
     echo "Unknown runtime: ${runtime}"
@@ -66,26 +102,31 @@ mkdir -p "${log_dir}"
 exit_code=0
 for file_name in "${file_list[@]}"
 do
-    file_base_name=$(basename file_name)
+    file_base_name=$(basename "${file_name}")
     log_file="${log_dir}/${file_base_name%.*}.xml"
     deps_json="${file_name%.*}".deps.json
     runtimeconfig_json="${file_name%.*}".runtimeconfig.json
 
-    if [[ ("${single_test_assembly}" != "") && (! "${file_name}" =~ "${single_test_assembly}") ]]
+    is_argv_match=0
+    [[ "${file_name}" =~ "${single_test_assembly}" ]] && is_argv_match=1
+
+    is_blacklist_match=0
+    [[ "${file_blacklist[@]}" =~ "${file_base_name}" ]] && is_blacklist_match=1
+
+    if (( is_blacklist_match && ! (is_argv_match && was_argv_specified) ))
     then
-        echo "Skipping ${file_name}"
+        echo "Skipping blacklisted ${file_base_name}"
+        continue
+    fi
+
+    if (( was_argv_specified && ! is_argv_match ))
+    then
+        echo "Skipping ${file_base_name} to run single test"
         continue
     fi
 
     echo Running "${runtime} ${file_name}"
     if [[ "${runtime}" == "dotnet" ]]; then
-        # Disable the VB Semantic tests while we investigate the core dump issue
-        # https://github.com/dotnet/roslyn/issues/29660
-        if [[ "${file_name}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] 
-        then
-            echo "Skipping ${file_name}"
-            continue
-        fi
         runner="dotnet exec --fx-version ${dotnet_runtime_version} --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono
