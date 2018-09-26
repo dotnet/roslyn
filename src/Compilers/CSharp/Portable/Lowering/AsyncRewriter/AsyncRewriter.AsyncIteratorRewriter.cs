@@ -444,8 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.ExpressionStatement(
                         F.Call(
                             F.Field(F.This(), _builderField),
-                            _asyncMethodBuilderMemberCollection.SetResult,
-                            args: ImmutableArray<BoundExpression>.Empty)));
+                            _asyncMethodBuilderMemberCollection.SetResult)));
 
                 bodyBuilder.Add(
                     // this._valueOrEndPromise.Reset();

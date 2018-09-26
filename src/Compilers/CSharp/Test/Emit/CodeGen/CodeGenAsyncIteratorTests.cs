@@ -588,7 +588,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 6");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AsyncIteratorWithAwaitCompletedAndYield()
         {
             string source = @"
