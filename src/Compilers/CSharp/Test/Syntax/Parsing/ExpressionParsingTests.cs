@@ -38,6 +38,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInterpolatedVerbatimString()
+        {
+            UsingExpression(@"$@""hello""");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestAltInterpolatedVerbatimString_CSharp73()
+        {
+            UsingExpression(@"@$""hello""", TestOptions.Regular7_3,
+                // (1,1): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version 8.0 or greater.
+                // @$"hello"
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestAltInterpolatedVerbatimString_CSharp8()
+        {
+            UsingExpression(@"@$""hello""", TestOptions.Regular8);
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestName()
         {
             var text = "goo";
@@ -277,10 +330,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestBinary(SyntaxKind.QuestionQuestionToken);
         }
 
-        private void TestAssignment(SyntaxKind kind)
+        private void TestAssignment(SyntaxKind kind, ParseOptions options = null)
         {
             var text = "(a) " + SyntaxFacts.GetText(kind) + " b";
-            var expr = this.ParseExpression(text);
+            var expr = this.ParseExpression(text, options);
 
             Assert.NotNull(expr);
             var opKind = SyntaxFacts.GetAssignmentExpression(kind);
@@ -310,6 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestAssignment(SyntaxKind.AmpersandEqualsToken);
             TestAssignment(SyntaxKind.BarEqualsToken);
             TestAssignment(SyntaxKind.CaretEqualsToken);
+            TestAssignment(SyntaxKind.QuestionQuestionEqualsToken, options: TestOptions.Regular8);
         }
 
         private void TestMemberAccess(SyntaxKind kind)
@@ -3783,6 +3837,191 @@ select t";
                     N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalesingAssigmentExpression()
+        {
+            UsingExpression("a ??= b");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalesingAssigmentExpressionParenthesized()
+        {
+            UsingExpression("(a) ??= b");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalesingAssigmentExpressionInvocation()
+        {
+            UsingExpression("M(a) ??= b");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "M");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalesingAssigmentExpressionAndCoalescingOperator()
+        {
+            UsingExpression("a ?? b ??= c");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.CoalesceExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.QuestionQuestionToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignmentExpressionNested()
+        {
+            UsingExpression("a ??= b ??= c");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.CoalesceAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.QuestionQuestionEqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignmentParenthesizedNested()
+        {
+            UsingExpression("(a ??= b) ??= c");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CoalesceAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionQuestionEqualsToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignmentCSharp7_3()
+        {
+            UsingExpression("a ??= b", TestOptions.Regular7_3,
+                // (1,3): error CS8370: Feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // a ??= b
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 3));
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
             }
             EOF();
         }

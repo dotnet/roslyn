@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VBResources.resx">
     <body>
+      <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
+        <source>unconstrained type parameters in binary conditional expressions</source>
+        <target state="new">unconstrained type parameters in binary conditional expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trees0">
         <source>trees({0})</source>
         <target state="translated">树({0})</target>
@@ -4853,8 +4858,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
-        <source>First operand in a binary 'If' expression must be nullable or a reference type.</source>
-        <target state="translated">二进制“If”表达式中的第一个操作数必须是可以为 null 的类型或引用类型。</target>
+        <source>First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.</source>
+        <target state="needs-review-translation">二进制“If”表达式中的第一个操作数必须是可以为 null 的类型或引用类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantCallIIF">
@@ -8390,7 +8395,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic 编译器选项
+        <target state="translated">                  Visual Basic 编译器选项
 
                                   - 输出文件 -
 /out:&lt;file&gt;                       指定输出文件名称。
@@ -9083,7 +9088,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">文件名“{0}”为空、包含无效字符、未使用绝对路径指定驱动器或太长</target>
         <note />
       </trans-unit>
     </body>

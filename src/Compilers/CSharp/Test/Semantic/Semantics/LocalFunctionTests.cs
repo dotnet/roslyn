@@ -3752,7 +3752,7 @@ class C<T>
             public int SomeGlobal => 42;
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28001")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CanAccessScriptGlobalsFromInsideMethod()
         {
             var source = @"
@@ -3768,7 +3768,7 @@ void Method()
                 .VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28001")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CanAccessScriptGlobalsFromInsideLambda()
         {
             var source = @"

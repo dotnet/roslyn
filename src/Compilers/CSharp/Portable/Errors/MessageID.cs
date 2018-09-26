@@ -162,8 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExtensibleFixedStatement = MessageBase + 12743,
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
 
-        IDS_InjectedDeclaration = MessageBase + 12745,
-        IDS_FeatureObjectGenericTypeConstraint = MessageBase + 12746,
+        IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
+        IDS_FeatureCoalesceAssignmentExpression = MessageBase + 12746,
+        IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator = MessageBase + 12747,
+        IDS_InjectedDeclaration = MessageBase + 12748,
+        IDS_FeatureObjectGenericTypeConstraint = MessageBase + 12749,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -197,13 +200,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalizableErrorArgument(id);
         }
 
+        // Returns the string to be used in the /features flag switch to enable the MessageID feature.
+        // Always call this before RequiredVersion:
+        //   If this method returns null, call RequiredVersion and use that.
+        //   If this method returns non-null, use that.
+        // Features should be mutually exclusive between RequiredFeature and RequiredVersion.
+        //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
+        internal static string RequiredFeature(this MessageID feature)
+        {
+            // Check for current experimental features, if any, in the current branch.
+            switch (feature)
+            {
+                default:
+                    return null;
+            }
+        }
+
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
-                // C# 8 features.
+                // C# 8.0 features.
+                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
+                case MessageID.IDS_FeatureCoalesceAssignmentExpression:
+                case MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator:
                 case MessageID.IDS_FeatureStaticNullChecking: // syntax and semantic check
                 case MessageID.IDS_FeatureObjectGenericTypeConstraint:   // semantic check
                     return LanguageVersion.CSharp8;
@@ -312,7 +334,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Special C# 2 feature: only a warning in C# 1.
                 case MessageID.IDS_FeatureModuleAttrLoc:
-                    Debug.Assert(false, "Should be handled specially");
                     return LanguageVersion.CSharp1;
 
                 default:

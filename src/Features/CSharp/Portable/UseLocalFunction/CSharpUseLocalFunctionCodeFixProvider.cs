@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             => ImmutableArray.Create(IDEDiagnosticIds.UseLocalFunctionDiagnosticId);
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => diagnostic.Severity != DiagnosticSeverity.Hidden && !diagnostic.IsSuppressed;
+            => !diagnostic.IsSuppressed;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

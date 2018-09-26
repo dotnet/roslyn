@@ -929,9 +929,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal NamedTypeSymbol Construct(ImmutableArray<TypeSymbolWithAnnotations> typeArguments, bool unbound)
         {
-            if (!ReferenceEquals(this, ConstructedFrom) || this.Arity == 0)
+            if (!ReferenceEquals(this, ConstructedFrom))
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(CSharpResources.CannotCreateConstructedFromConstructed);
+            }
+
+            if (this.Arity == 0)
+            {
+                throw new InvalidOperationException(CSharpResources.CannotCreateConstructedFromNongeneric);
             }
 
             if (typeArguments.IsDefault)

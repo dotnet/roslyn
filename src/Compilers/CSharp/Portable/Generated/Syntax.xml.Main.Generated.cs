@@ -5046,6 +5046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.OrAssignmentExpression:
         case SyntaxKind.LeftShiftAssignmentExpression:
         case SyntaxKind.RightShiftAssignmentExpression:
+        case SyntaxKind.CoalesceAssignmentExpression:
           break;
         default:
           throw new ArgumentException("kind");
@@ -5065,6 +5066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.BarEqualsToken:
         case SyntaxKind.LessThanLessThanEqualsToken:
         case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+        case SyntaxKind.QuestionQuestionEqualsToken:
           break;
         default:
           throw new ArgumentException("operatorToken");
@@ -5107,6 +5109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
           return SyntaxKind.LessThanLessThanEqualsToken;
         case SyntaxKind.RightShiftAssignmentExpression:
           return SyntaxKind.GreaterThanGreaterThanEqualsToken;
+        case SyntaxKind.CoalesceAssignmentExpression:
+          return SyntaxKind.QuestionQuestionEqualsToken;
         default:
           throw new ArgumentOutOfRangeException();
       }

@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _synchronizedOutput = new SynchronizedStringWriter();
             _synchronizedErrorOutput = new SynchronizedStringWriter();
             ClearOutput();
-            _host.Output = _synchronizedOutput;
-            _host.ErrorOutput = _synchronizedErrorOutput;
+            _host.SetOutput(_synchronizedOutput);
+            _host.SetErrorOutput(_synchronizedErrorOutput);
         }
 
         private static ImmutableArray<string> SplitLines(string text)
@@ -497,7 +497,7 @@ WriteLine(5);
             Assert.True(Execute("new System.Data.DataSet()"));
         }
 
-        [ConditionalFact(typeof(Framework35Installed), Skip = "https://github.com/dotnet/roslyn/issues/5167")]
+        [ConditionalFact(typeof(Framework35Installed), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/5167")]
         public void AddReference_VersionUnification1()
         {
             // V3.5 unifies with the current Framework version:

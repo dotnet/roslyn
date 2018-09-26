@@ -4718,7 +4718,7 @@ public class C6 {}
         }
 
         [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void TestUnicodeAttributeArgument_Bug16353()
         {
             var source =
@@ -8107,7 +8107,7 @@ class Program
         }
 
         [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void Repro728865()
         {
             var source = @"

@@ -3991,7 +3991,7 @@ index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
 {
     void goo()
     {
-        sfoo xyz = default;
+        sfoo xyz = default(sfoo);
         bar(xyz);
     }
 

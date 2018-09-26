@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Wpf;
+using Microsoft.CodeAnalysis.Tags;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Utilities;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             // extra allocation is avoided.
             _completionPresenterSession = completionPresenterSession;
             this.CompletionItem = completionItem;
-            _imageMoniker = ImageMonikers.GetImageMoniker(CompletionItem.Tags);
+            _imageMoniker = ImageMonikers.GetFirstImageMoniker(CompletionItem.Tags);
         }
 
         public void Commit()
@@ -57,7 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public Task<CompletionDescription> GetDescriptionAsync(CancellationToken cancellationToken)
         {
             var service = CompletionService.GetService(this.CompletionItem.Document);
-            return service?.GetDescriptionAsync(this.CompletionItem.Document, this.CompletionItem, cancellationToken);
+            return service == null ?
+                Task.FromResult(CompletionDescription.Empty) :
+                service.GetDescriptionAsync(this.CompletionItem.Document, this.CompletionItem, cancellationToken);
         }
 
         public string GetDescription_TestingOnly()
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             get
             {
-                if (this.CompletionItem.Tags.Contains(CompletionTags.Warning))
+                if (this.CompletionItem.Tags.Contains(WellKnownTags.Warning))
                 {
                     return new[] { new CompletionIcon2(Glyph.CompletionWarning.GetImageMoniker(), s_glyphCompletionWarning, s_glyphCompletionWarning) };
                 }

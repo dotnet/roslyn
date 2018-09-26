@@ -739,7 +739,7 @@ Public Class Goo
 End Class
                         </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>, exportProvider:=Nothing, createTrackingService:=Nothing)
 
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("G")).Single()
                 Dim itemDisplay As INavigateToItemDisplay = item.DisplayFactory.CreateItemDisplay(item)

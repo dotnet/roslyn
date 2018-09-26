@@ -2160,7 +2160,7 @@ class C
 {
     string Name
     {
-        get => default;
+        get => default(string);
         set
         {
         }
@@ -2188,7 +2188,7 @@ class C
     {
         get
         {
-            return default;
+            return default(string);
         }
 
         set
@@ -2220,7 +2220,7 @@ class C$$
 <Code>
 class C
 {
-    string Name => default;
+    string Name => default(string);
 }
 </Code>
 
@@ -2244,7 +2244,7 @@ class C
     {
         get
         {
-            return default;
+            return default(string);
         }
     }
 }

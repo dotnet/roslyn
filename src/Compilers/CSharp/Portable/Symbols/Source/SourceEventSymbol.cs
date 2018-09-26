@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly DeclarationModifiers _modifiers;
         internal readonly SourceMemberContainerTypeSymbol containingType;
 
-        protected SymbolCompletionState state;
+        private SymbolCompletionState _state;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private string _lazyDocComment;
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasComplete(CompletionPart part)
         {
-            return state.HasComplete(part);
+            return _state.HasComplete(part);
         }
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            state.DefaultForceComplete(this);
+            _state.DefaultForceComplete(this, cancellationToken);
         }
 
         public override abstract string Name { get; }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
             {
                 DeclaringCompilation.SymbolDeclaredEvent(this);
-                var wasCompletedThisThread = state.NotePartComplete(CompletionPart.Attributes);
+                var wasCompletedThisThread = _state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(wasCompletedThisThread);
             }
 

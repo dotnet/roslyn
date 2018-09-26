@@ -1000,8 +1000,8 @@ namespace NotMicrosoft.CodeAnalysis { }
                 ((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("Microsoft.CodeAnalysis")).GetMembers().Single().ToTestDisplayString());
         }
 
-        // PROTOTYPE Test emitting netmodule (we'll won't inject NNT)
-        // PROTOTYPE test script
+        // PROTOTYPE(NullableReferenceTypes): Test emitting netmodule (we won't inject NNT)
+        // PROTOTYPE(NullableReferenceTypes): Test script
 
         [Theory]
         [InlineData(NonNullTypesTrue)]
@@ -7359,7 +7359,7 @@ partial class C1
     { }
 }";
             var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
-            // PROTOTYPE(NullReferenceTypes): What nullability is getting emitted?
+            // PROTOTYPE(NullableReferenceTypes): What nullability is getting emitted?
             compilation.VerifyDiagnostics(
                  // (16,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
                  //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
@@ -7492,7 +7492,7 @@ partial class C1
     { }
 }";
             var compilation = CreateCompilation(new[] { source });
-            // PROTOTYPE(NullReferenceTypes): Missing WRN_MissingNonNullTypesContextForAnnotation for '?' in 
+            // PROTOTYPE(NullableReferenceTypes): Missing WRN_MissingNonNullTypesContextForAnnotation for '?' in 
             // (17,18): 
             //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
             compilation.VerifyDiagnostics(
@@ -8187,7 +8187,7 @@ class CL1
 {
 }
 ", NonNullTypesTrue });
-            // PROTOTYPE(NullReferenceTypes): Should report WRN_NullReferenceAssignment for `ref x3`
+            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullReferenceAssignment for `ref x3`
             // even though the local is unassigned. (The local should be treated as an l-value for assignment.)
             c.VerifyDiagnostics(
                 // (12,12): warning CS8604: Possible null reference argument for parameter 'p' in 'void C.M1(CL1 p)'.
@@ -25276,7 +25276,7 @@ class CL1
     }
 }
 ", NonNullTypesTrue });
-            // PROTOTYPE(NullReferenceTypes): Should report WRN_NullReferenceAssignment for `x7--`
+            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullReferenceAssignment for `x7--`
             // even though the local is unassigned. (The local should be treated as an l-value for assignment.)
             c.VerifyDiagnostics(
                 // (10,21): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.

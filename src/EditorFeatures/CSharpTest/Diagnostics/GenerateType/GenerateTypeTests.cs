@@ -1536,7 +1536,7 @@ internal class T
 {
     public T(out DateTime d)
     {
-        d = default;
+        d = default(DateTime);
     }
 }",
 index: 1);
@@ -1684,7 +1684,7 @@ index: 2, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
     {
         public T(out X d)
         {
-            d = default;
+            d = default(X);
         }
     }
 }",

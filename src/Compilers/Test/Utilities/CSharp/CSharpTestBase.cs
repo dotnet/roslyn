@@ -180,6 +180,46 @@ namespace System.Runtime.CompilerServices
                 TargetFramework.Mscorlib46,
                 verify);
 
+        internal CompilationVerifier CompileAndVerifyExperimental(
+            CSharpTestSource source,
+            MessageID feature,
+            IEnumerable<MetadataReference> references = null,
+            IEnumerable<ResourceDescription> manifestResources = null,
+            IEnumerable<ModuleData> dependencies = null,
+            Action<ModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly> assemblyValidator = null,
+            Action<ModuleSymbol> symbolValidator = null,
+            SignatureDescription[] expectedSignatures = null,
+            string expectedOutput = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
+            Verification verify = Verification.Passes)
+        {
+            options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
+            var compilation = CreateExperimentalCompilationWithMscorlib45(source, feature, references, options, parseOptions, assemblyName: GetUniqueName());
+
+            return CompileAndVerify(
+                source,
+                references,
+                manifestResources,
+                dependencies,
+                sourceSymbolValidator,
+                assemblyValidator,
+                symbolValidator,
+                expectedSignatures,
+                expectedOutput,
+                expectedReturnCode,
+                args,
+                options,
+                parseOptions,
+                emitOptions,
+                TargetFramework.Mscorlib46,
+                verify);
+        }
+
         internal CompilationVerifier CompileAndVerifyWithWinRt(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
@@ -453,13 +493,15 @@ namespace System.Runtime.CompilerServices
             string assemblyName = "",
             string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib46, assemblyName, sourceFileName);
 
-        public static CSharpCompilation CreateCompilationWithMscorlib46(
-            string[] source,
+        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
+            CSharpTestSource source,
+            MessageID feature,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
-            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib46, assemblyName, sourceFileName);
+            string sourceFileName = "",
+            bool skipUsesIsNullable = false) => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib45, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: feature);
 
         public static CSharpCompilation CreateCompilationWithWinRT(
             CSharpTestSource source,
@@ -531,7 +573,17 @@ namespace System.Runtime.CompilerServices
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false)
+            bool skipUsesIsNullable = false) => CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null);
+
+        private static CSharpCompilation CreateCompilationCore(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references,
+            CSharpCompilationOptions options,
+            CSharpParseOptions parseOptions,
+            string assemblyName,
+            string sourceFileName,
+            bool skipUsesIsNullable,
+            MessageID? experimentalFeature)
         {
             if (options == null)
             {
@@ -542,6 +594,11 @@ namespace System.Runtime.CompilerServices
             if (Debugger.IsAttached)
             {
                 options = options.WithConcurrentBuild(false);
+            }
+
+            if (experimentalFeature.HasValue)
+            {
+                parseOptions = (parseOptions ?? TestOptions.Regular).WithExperimental(experimentalFeature.Value);
             }
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
@@ -1310,7 +1367,6 @@ namespace System.Runtime.CompilerServices
             MetadataReference[] references = null)
             where TSyntaxNode : SyntaxNode
         {
-            parseOptions = parseOptions?.WithFlowAnalysisFeature() ?? TestOptions.RegularWithFlowAnalysisFeature;
             var compilation = CreateCompilation(
                 new[] { Parse(testSrc, filename: "file.cs", options: parseOptions) },
                 references,

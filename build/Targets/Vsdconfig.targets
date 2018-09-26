@@ -13,7 +13,7 @@
           Outputs="$(OutDir)\$(AssemblyName).vsdconfig"
           Condition="'$(BuildingProject)' == 'true' AND '@(VsdConfigXml)' != '' AND '$(IsWpfTempProject)' != 'true'">
     <PropertyGroup>
-      <_VsdConfigTool>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\tools\VSSDK\bin\vsdconfigtool.exe</_VsdConfigTool>
+      <_VsdConfigTool>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(MicrosoftVSSDKBuildToolsVersion)\tools\VSSDK\bin\vsdconfigtool.exe</_VsdConfigTool>
     </PropertyGroup>
 
     <Exec Command="&quot;$(_VsdConfigTool)&quot; @(VsdConfigXml -> '&quot;%(RelativeDir)%(FileName)%(Extension)&quot;', ' ') &quot;$(IntermediateOutputPath)\$(AssemblyName).dll&quot; &quot;$(OutDir)\$(AssemblyName).vsdconfig&quot;" />

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private readonly ImmutableArray<IIncrementalAnalyzer> _incrementalAnalyzers;
         private readonly SolutionCrawlerRegistrationService _solutionCrawlerService;
         public readonly DiagnosticService DiagnosticService;
+        private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         private ITaggerProvider _taggerProvider;
@@ -57,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             IDiagnosticUpdateSource updateSource,
             bool createTaggerProvider)
         {
-            _listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            _threadingContext = workspace.GetService<IThreadingContext>();
+            _listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
 
             if (analyzerMap != null || updateSource == null)
             {
@@ -100,11 +103,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider))
                     {
                         _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
+                            _threadingContext,
                             DiagnosticService, _workspace.GetService<IForegroundNotificationService>(), _listenerProvider);
                     }
                     else if (typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider))
                     {
                         _taggerProvider = new DiagnosticsSuggestionTaggerProvider(
+                            _threadingContext,
                             DiagnosticService,
                             _workspace.GetService<IForegroundNotificationService>(), _listenerProvider);
                     }

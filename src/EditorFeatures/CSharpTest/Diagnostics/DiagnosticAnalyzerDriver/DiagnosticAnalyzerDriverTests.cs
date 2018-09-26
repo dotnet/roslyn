@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
-            var syntaxKindsMissing = new HashSet<SyntaxKind>();
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular))
@@ -40,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length));
                 analyzer.VerifyAllAnalyzerMembersWereCalled();
                 analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKindsMissing);
+                var missingSyntaxNodes = new HashSet<SyntaxKind>();
+                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxNodes);
                 analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
             }
         }

@@ -358,7 +358,7 @@ End Module
     ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub LateIndexRValue()
             CompileAndVerify(
     <compilation>
@@ -2801,7 +2801,7 @@ End Module
                     Diagnostic(ERRID.ERR_NameNotMember2, "I4.GoHome").WithArguments("GoHome", "Module1.II4"))
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub Regress14722()
             CompileAndVerify(
 <compilation>
@@ -3203,7 +3203,7 @@ hello
         End Sub
 
         <WorkItem(531547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531547")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub Bug18274()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -3222,7 +3222,7 @@ End Module
         End Sub
 
         <WorkItem(531547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531547")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub Bug18274_1()
             Dim verifier = CompileAndVerify(
 <compilation>

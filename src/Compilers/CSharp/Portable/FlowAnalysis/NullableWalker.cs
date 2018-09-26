@@ -1596,6 +1596,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return possiblyConversion;
         }
 
+        // https://github.com/dotnet/roslyn/issues/30140: Track nullable state from ??=.
+        public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
+        {
+            var result = base.VisitNullCoalescingAssignmentOperator(node);
+            SetResult(node);
+            return result;
+        }
+
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
             Debug.Assert(!IsConditionalState);

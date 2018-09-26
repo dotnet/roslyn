@@ -103,8 +103,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsConditionalAnd(SyntaxNode node);
         bool IsConditionalOr(SyntaxNode node);
 
+        bool IsTupleExpression(SyntaxNode node);
+        void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
+            out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
+
+        bool IsTupleType(SyntaxNode node);
+
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
         SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);
+
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);
@@ -147,6 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPointerMemberAccessExpression(SyntaxNode node);
 
         bool IsNamedParameter(SyntaxNode node);
+        SyntaxToken? GetNameOfParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode GetParameterList(SyntaxNode node);
 
@@ -158,8 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
 
-        SyntaxNode GetExpressionOfElementAccessExpression(SyntaxNode node);
-        SyntaxNode GetArgumentListOfElementAccessExpression(SyntaxNode node);
+        void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
@@ -196,6 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsUsingDirectiveName(SyntaxNode node);
         bool IsIdentifierName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
+        bool IsQualifiedName(SyntaxNode node);
 
         bool IsAttribute(SyntaxNode node);
         bool IsAttributeName(SyntaxNode node);

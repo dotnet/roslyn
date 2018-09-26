@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsElementAccessExpression,
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
-                bool containsAwait) :
+                bool containsAwait,
+                bool containsTupleExpressionOrTupleType) :
                 this(predefinedTypes, predefinedOperators,
                      ConvertToContainingNodeFlag(
                          containsForEachStatement,
@@ -38,7 +39,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsElementAccessExpression,
                          containsIndexerMemberCref,
                          containsDeconstruction,
-                         containsAwait))
+                         containsAwait,
+                         containsTupleExpressionOrTupleType))
             {
             }
 
@@ -59,20 +61,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsElementAccessExpression,
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
-                bool containsAwait)
+                bool containsAwait,
+                bool containsTupleExpressionOrTupleType)
             {
                 var containingNodes = ContainingNodes.None;
 
-                containingNodes = containsForEachStatement ? (containingNodes | ContainingNodes.ContainsForEachStatement) : containingNodes;
-                containingNodes = containsLockStatement ? (containingNodes | ContainingNodes.ContainsLockStatement) : containingNodes;
-                containingNodes = containsUsingStatement ? (containingNodes | ContainingNodes.ContainsUsingStatement) : containingNodes;
-                containingNodes = containsQueryExpression ? (containingNodes | ContainingNodes.ContainsQueryExpression) : containingNodes;
-                containingNodes = containsThisConstructorInitializer ? (containingNodes | ContainingNodes.ContainsThisConstructorInitializer) : containingNodes;
-                containingNodes = containsBaseConstructorInitializer ? (containingNodes | ContainingNodes.ContainsBaseConstructorInitializer) : containingNodes;
-                containingNodes = containsElementAccessExpression ? (containingNodes | ContainingNodes.ContainsElementAccessExpression) : containingNodes;
-                containingNodes = containsIndexerMemberCref ? (containingNodes | ContainingNodes.ContainsIndexerMemberCref) : containingNodes;
-                containingNodes = containsDeconstruction ? (containingNodes | ContainingNodes.ContainsDeconstruction) : containingNodes;
-                containingNodes = containsAwait ? (containingNodes | ContainingNodes.ContainsAwait) : containingNodes;
+                containingNodes |= containsForEachStatement ? ContainingNodes.ContainsForEachStatement : 0;
+                containingNodes |= containsLockStatement ? ContainingNodes.ContainsLockStatement : 0;
+                containingNodes |= containsUsingStatement ? ContainingNodes.ContainsUsingStatement : 0;
+                containingNodes |= containsQueryExpression ? ContainingNodes.ContainsQueryExpression : 0;
+                containingNodes |= containsThisConstructorInitializer ? ContainingNodes.ContainsThisConstructorInitializer : 0;
+                containingNodes |= containsBaseConstructorInitializer ? ContainingNodes.ContainsBaseConstructorInitializer : 0;
+                containingNodes |= containsElementAccessExpression ? ContainingNodes.ContainsElementAccessExpression : 0;
+                containingNodes |= containsIndexerMemberCref ? ContainingNodes.ContainsIndexerMemberCref : 0;
+                containingNodes |= containsDeconstruction ? ContainingNodes.ContainsDeconstruction : 0;
+                containingNodes |= containsAwait ? ContainingNodes.ContainsAwait : 0;
+                containingNodes |= containsTupleExpressionOrTupleType ? ContainingNodes.ContainsTupleExpressionOrTupleType : 0;
 
                 return containingNodes;
             }
@@ -113,6 +117,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool ContainsIndexerMemberCref
                 => (_containingNodes & ContainingNodes.ContainsIndexerMemberCref) == ContainingNodes.ContainsIndexerMemberCref;
 
+            public bool ContainsTupleExpressionOrTupleType
+                => (_containingNodes & ContainingNodes.ContainsTupleExpressionOrTupleType) == ContainingNodes.ContainsTupleExpressionOrTupleType;
+
             public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteInt32(_predefinedTypes);
@@ -151,6 +158,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsIndexerMemberCref = 1 << 7,
                 ContainsDeconstruction = 1 << 8,
                 ContainsAwait = 1 << 9,
+                ContainsTupleExpressionOrTupleType = 1 << 10,
             }
         }
     }

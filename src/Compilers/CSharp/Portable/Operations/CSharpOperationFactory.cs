@@ -253,8 +253,30 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateMethodBodyOperation((BoundNonConstructorMethodBody)boundNode);
                 case BoundKind.DiscardExpression:
                     return CreateDiscardExpressionOperation((BoundDiscardExpression)boundNode);
+                case BoundKind.NullCoalescingAssignmentOperator:
+                    return CreateBoundNullCoalescingAssignmentOperatorOperation((BoundNullCoalescingAssignmentOperator)boundNode);
 
-                default:
+                case BoundKind.Attribute:
+                case BoundKind.ArgList:
+                case BoundKind.ArgListOperator:
+                case BoundKind.ConvertedStackAllocExpression:
+                case BoundKind.FixedLocalCollectionInitializer:
+                case BoundKind.GlobalStatementInitializer:
+                case BoundKind.HostObjectMemberReference:
+                case BoundKind.MakeRefOperator:
+                case BoundKind.MethodGroup:
+                case BoundKind.NamespaceExpression:
+                case BoundKind.PointerElementAccess:
+                case BoundKind.PointerIndirectionOperator:
+                case BoundKind.PreviousSubmissionReference:
+                case BoundKind.RefTypeOperator:
+                case BoundKind.RefValueOperator:
+                case BoundKind.Sequence:
+                case BoundKind.StackAllocArrayCreation:
+                case BoundKind.SuppressNullableWarningExpression:
+                case BoundKind.TypeExpression:
+                case BoundKind.TypeOrValueExpression:
+
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -269,6 +291,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     }
 
                     return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode), isImplicit: isImplicit);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(boundNode.Kind); 
             }
         }
 
@@ -1292,6 +1317,18 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LazyCoalesceExpression(expression, whenNull, valueConversion, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+        private IOperation CreateBoundNullCoalescingAssignmentOperatorOperation(BoundNullCoalescingAssignmentOperator boundNode)
+        {
+            Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundNode.LeftOperand));
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundNode.RightOperand));
+            SyntaxNode syntax = boundNode.Syntax;
+            ITypeSymbol type = boundNode.Type;
+            Optional<object> constantValue = ConvertToOptional(boundNode.ConstantValue);
+            bool isImplicit = boundNode.WasCompilerGenerated;
+
+            return new LazyCoalesceAssignmentOperation(target, value, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
         private IAwaitOperation CreateBoundAwaitExpressionOperation(BoundAwaitExpression boundAwaitExpression)
         {
             Lazy<IOperation> awaitedValue = new Lazy<IOperation>(() => Create(boundAwaitExpression.Expression));
@@ -1965,6 +2002,11 @@ namespace Microsoft.CodeAnalysis.Operations
         private IDeclarationPatternOperation CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
         {
             ISymbol variable = boundDeclarationPattern.Variable;
+            if (variable == null && boundDeclarationPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
+            {
+                variable = ((BoundDiscardExpression)boundDeclarationPattern.VariableAccess).ExpressionSymbol;
+            }
+
             SyntaxNode syntax = boundDeclarationPattern.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);

@@ -6233,6 +6233,51 @@ M1
         End Sub
 
         <Fact()>
+        Public Sub InlineBinaryConditional_Default()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Class C1
+        Public Property x As Integer
+    End Class
+
+    Public Sub Main()
+        Dim c = New C1() With { .x = 42 }
+        System.Console.WriteLine(Test(c))
+        System.Console.WriteLine(Test(Nothing))
+    End Sub
+
+    Public Function Test(c As C1) As Integer
+        Return If(c?.x, 0)
+    End Function
+End Module</file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+42
+0
+]]>)
+            verifier.VerifyIL("Program.Test(Program.C1)",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       "Function Program.C1.get_x() As Integer"
+  IL_000b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
         Public Sub InlineConversion_01()
 
             Dim compilationDef =
@@ -9571,7 +9616,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef)
 
             compilation.AssertTheseDiagnostics(<expected>
 BC32022: 'Public Event TestEvent As Action' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.

@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp7_3 = 703,
 
         /// <summary>
-        /// C# language version 8.
+        /// C# language version 8.0
         /// </summary>
         CSharp8 = 800,
 
@@ -332,9 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (version)
             {
                 case LanguageVersion.Latest:
-                    return LanguageVersion.CSharp8;
+                    return LanguageVersion.CSharp7_3;
                 case LanguageVersion.Default:
-                    return LanguageVersion.CSharp8;
+                    return LanguageVersion.CSharp7;
                 default:
                     return version;
             }
