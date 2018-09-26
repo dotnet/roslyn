@@ -1770,7 +1770,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseCompilationUnit();
-                // if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (CompilationUnitSyntax)node.CreateRed();
             }
         }

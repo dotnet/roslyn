@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
         public void TrashAfterDeclaration()
         {
-            UsingDeclaration("public int x; public int y", 0, null, true,
+            UsingDeclaration("public int x; public int y", offset: 0, options: null, consumeFullText: true,
                 // (1,1): error CS1073: Unexpected token 'public'
                 // public int x; public int y
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "public int x;").WithArguments("public").WithLocation(1, 1)
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
 
-            UsingDeclaration("public int x; public int y", 0, null, false);
+            UsingDeclaration("public int x; public int y", offset: 0, options: null, consumeFullText: false);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.PublicKeyword);
