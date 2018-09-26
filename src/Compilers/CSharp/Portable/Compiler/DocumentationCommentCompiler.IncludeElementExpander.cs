@@ -600,7 +600,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 break;
                         }
-                    } while (isTypeParameterRef && (currentSymbol = currentSymbol.ContainingSymbol) != null);
+                        currentSymbol = currentSymbol.ContainingSymbol;
+                    } while (isTypeParameterRef && !(currentSymbol is null));
                 }
 
                 return binder;
