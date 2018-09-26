@@ -1601,7 +1601,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "a").WithLocation(7, 24));
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArgListMayHaveARefArgument()
         {
             CompileAndVerify(@"

@@ -180,6 +180,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add member name.
+        /// </summary>
+        internal static string Add_member_name {
+            get {
+                return ResourceManager.GetString("Add_member_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add missing cases.
         /// </summary>
         internal static string Add_missing_cases {
@@ -2018,6 +2027,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invert conditional.
+        /// </summary>
+        internal static string Invert_conditional {
+            get {
+                return ResourceManager.GetString("Invert_conditional", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to is.
         /// </summary>
         internal static string is_ {
@@ -2927,6 +2945,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with &apos;{1}&apos; .
+        /// </summary>
+        internal static string Replace_0_with_1 {
+            get {
+                return ResourceManager.GetString("Replace_0_with_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Replace &apos;{0}&apos; with method.
         /// </summary>
         internal static string Replace_0_with_method {
@@ -3749,6 +3776,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_coalesce_expression {
             get {
                 return ResourceManager.GetString("Use_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use compound assignment.
+        /// </summary>
+        internal static string Use_compound_assignment {
+            get {
+                return ResourceManager.GetString("Use_compound_assignment", resourceCulture);
             }
         }
         

@@ -186,9 +186,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return vbNode IsNot Nothing AndAlso vbNode.IsMemberAccessExpressionName()
         End Function
 
-        Public Function IsConditionalMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalMemberAccessExpression
+        Public Function IsConditionalAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalAccessExpression
             Return TypeOf node Is ConditionalAccessExpressionSyntax
         End Function
+
+        Public Sub GetPartsOfConditionalAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef whenNotNull As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfConditionalAccessExpression
+            Dim conditionalAccess = DirectCast(node, ConditionalAccessExpressionSyntax)
+            expression = conditionalAccess.Expression
+            whenNotNull = conditionalAccess.WhenNotNull
+        End Sub
 
         Public Function IsInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInvocationExpression
             Return TypeOf node Is InvocationExpressionSyntax
@@ -603,10 +609,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetTargetOfMemberBinding(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetTargetOfMemberBinding
             ' Member bindings are a C# concept.
             Return Nothing
-        End Function
-
-        Public Function GetExpressionOfConditionalAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfConditionalAccessExpression
-            Return TryCast(node, ConditionalAccessExpressionSyntax)?.Expression
         End Function
 
         Public Sub GetPartsOfElementAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfElementAccessExpression
@@ -1485,6 +1487,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentStatement
+            ' VB only has assignment statements, so this can just delegate to that helper
+            GetPartsOfAssignmentExpressionOrStatement(statement, left, operatorToken, right)
+        End Sub
+
+        Public Sub GetPartsOfAssignmentExpressionOrStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentExpressionOrStatement
             Dim assignment = DirectCast(statement, AssignmentStatementSyntax)
             left = assignment.Left
             operatorToken = assignment.OperatorToken
@@ -1790,6 +1797,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLiteralExpression
             Return TypeOf node Is LiteralExpressionSyntax
+        End Function
+
+        Public Function IsThisExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsThisExpression
+            Return node.IsKind(SyntaxKind.MeExpression)
+        End Function
+
+        Public Function IsBaseExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBaseExpression
+            Return node.IsKind(SyntaxKind.MyBaseExpression)
         End Function
 
         Public Function IsFalseLiteralExpression(expression As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsFalseLiteralExpression
