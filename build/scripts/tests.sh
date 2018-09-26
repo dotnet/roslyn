@@ -73,7 +73,8 @@ elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
         # A zillion test failures + crash
         # See https://github.com/mono/mono/issues/10756
         'Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests.dll'
-
+        # Deadlocks. 
+        'Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.dll'
     )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
