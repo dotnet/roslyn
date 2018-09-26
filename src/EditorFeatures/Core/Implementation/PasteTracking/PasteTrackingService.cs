@@ -2,8 +2,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -17,13 +15,11 @@ namespace Microsoft.CodeAnalysis.PasteTracking
     internal class PasteTrackingService : IPasteTrackingService
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
 
         [ImportingConstructor]
-        public PasteTrackingService(IThreadingContext threadingContext, ITextBufferAssociatedViewService textBufferAssociatedViewService)
+        public PasteTrackingService(IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
-            _textBufferAssociatedViewService = textBufferAssociatedViewService;
         }
 
         public bool TryGetPastedTextSpan(Document document, out TextSpan textSpan)
