@@ -16,11 +16,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        private void InvokeFixFromNewFile(ProjectUtils.Project project)
+        private void InvokeFix()
         {
-            VisualStudio.SolutionExplorer.AddFile(project, "C.cs", @"
+            VisualStudio.Editor.SetText(@"
 #error version:latest
-", open: true);
+");
+            VisualStudio.Editor.Activate();
 
             VisualStudio.Editor.PlaceCaret("version:latest");
             VisualStudio.Editor.InvokeCodeActionList();
@@ -35,7 +36,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
 
-            InvokeFixFromNewFile(project);
+            InvokeFix();
             VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "LangVersion", "latest");
         }
 
@@ -47,7 +48,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
 
-            InvokeFixFromNewFile(project);
+            InvokeFix();
             VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "LangVersion", "latest");
         }
 
@@ -93,7 +94,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>");
 
-            InvokeFixFromNewFile(project);
+            VisualStudio.SolutionExplorer.AddFile(project, "C.cs", open: true);
+
+            InvokeFix();
             VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "LangVersion", "latest");
         }
     }
