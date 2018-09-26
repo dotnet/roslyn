@@ -269,7 +269,6 @@
   <ItemGroup>
     <PrivateVisualStudioPackage Include="EnvDTE"/>
     <PrivateVisualStudioPackage Include="EnvDTE80"/>
-    <PrivateVisualStudioPackage Include="Microsoft.CodeAnalysis.Elfie" />
     <PrivateVisualStudioPackage Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.MSXML"/>
