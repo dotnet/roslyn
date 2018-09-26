@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var data = GetDecodedWellKnownAttributeData();
-                return data?.NullableWarnings ?? ((Symbol)ContainingType ?? base.ContainingModule).NullableWarnings;
+                return data?.NullableWarnings ?? base.NullableWarnings;
             }
         }
 

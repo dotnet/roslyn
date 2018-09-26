@@ -100,6 +100,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool NullableWarnings
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+                return ContainingType?.NullableWarnings ?? true;
+            }
+        }
+
         /// <summary>
         /// Gets the attributes on event's associated field, if any.
         /// Returns an empty <see cref="ImmutableArray&lt;AttributeData&gt;"/> if

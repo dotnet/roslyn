@@ -237,6 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (parameterType.IsReferenceType &&
                 convertedExpression.ConstantValue?.IsNull == true &&
                 !suppressNullableWarning(convertedExpression) &&
+                NullableWarnings &&
                 DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureStaticNullChecking.RequiredVersion())
             {
                 // Note: Eagerly calling IsNullable causes a cycle, so we delay the check

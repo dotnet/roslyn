@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _warningsField = new SynthesizedFieldSymbol(this, compilation.GetSpecialType(SpecialType.System_Boolean), Warnings, isPublic: true);
             // PROTOTYPE: check use-site diagnostics for bool type
-
         }
 
         public override ImmutableArray<Symbol> GetMembers()

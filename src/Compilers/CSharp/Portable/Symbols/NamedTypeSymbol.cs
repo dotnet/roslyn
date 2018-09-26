@@ -1293,6 +1293,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool NullableWarnings
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+                return ((Symbol)ContainingType ?? base.ContainingModule)?.NullableWarnings ?? true;
+            }
+        }
+
         /// <summary>
         /// Marshalling charset of string data fields within the type (string formatting flags in metadata).
         /// </summary>

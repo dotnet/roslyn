@@ -1315,8 +1315,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
             {
+                var data = arguments.GetOrCreateData<PropertyWellKnownAttributeData>();
                 bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().NonNullTypes = value;
+                data.NonNullTypes = value;
+                bool warnings = attribute.DecodeNamedArgument(InjectedNonNullTypesAttributeSymbol.Warnings, SpecialType.System_Boolean, defaultValue: true);
+                data.NullableWarnings = warnings;
             }
         }
 
@@ -1536,6 +1539,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data?.NonNullTypes ?? base.NonNullTypes;
+            }
+        }
+
+        public override bool NullableWarnings
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data?.NullableWarnings ?? base.NullableWarnings;
             }
         }
     }

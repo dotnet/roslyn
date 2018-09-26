@@ -178,6 +178,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool NullableWarnings
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+                return ContainingType?.NullableWarnings ?? true;
+            }
+        }
+
         /// <summary>
         /// The 'get' accessor of the property, or null if the property is write-only.
         /// </summary>
