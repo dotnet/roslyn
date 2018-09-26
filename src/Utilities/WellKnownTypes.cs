@@ -6,6 +6,8 @@ namespace Analyzer.Utilities
 {
     internal static class WellKnownTypes
     {
+        public const string SystemRuntimeSerializationFormattersBinaryBinaryFormatter = "System.Runtime.Serialization.Formatters.Binary.BinaryFormatter";
+
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.ICollection");
