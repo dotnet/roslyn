@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             _codeCleanUpFixers = codeCleanUpFixers.ToList();
         }
 
-        public IReadOnlyCollection<ICodeCleanUpFixer> CreateFixers()
+        public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers()
         {
             var fixers = new List<CodeCleanUpFixer>();
             foreach (var fixerLazy in _codeCleanUpFixers)
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             return fixers;
         }
 
-        public IReadOnlyCollection<ICodeCleanUpFixer> CreateFixers(IContentType contentType)
+        public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers(IContentType contentType)
         {
             var fixers = _codeCleanUpFixers
                .Where(handler => handler.Metadata.ContentTypes.Contains(contentType.TypeName)).ToList();

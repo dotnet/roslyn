@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.CodeCleanup;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
@@ -24,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
     internal class CSharpCodeCleanUpFixer : CodeCleanUpFixer
     {
-        public override Task<bool> FixAsync(ICodeCleanUpScope scope, FixIdContainer enabledFixIds, CancellationToken cancellationToken)
+        public override Task<bool> FixAsync(ICodeCleanUpScope scope, IUIThreadOperationContext operationContext, FixIdContainer enabledFixIds, CancellationToken cancellationToken)
         {
             switch(scope)
             {
