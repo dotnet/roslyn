@@ -304,10 +304,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // If the light bulb is only asking for code fixes, then we don't include suppressions.
                     var includeSuppressionFixes = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Any);
 
-                    var fixes = Task.Run(
-                        () => _owner._codeFixService.GetFixesAsync(
-                                document, range.Span.ToTextSpan(), includeSuppressionFixes, cancellationToken),
-                        cancellationToken).WaitAndGetResult(cancellationToken);
+                    var fixes = ThreadingContext.JoinableTaskFactory.Run(
+                        async () => await _owner._codeFixService.GetFixesAsync(
+                                document, range.Span.ToTextSpan(), includeSuppressionFixes, cancellationToken));
 
                     var filteredFixes = FilterOnUIThread(fixes, workspace);
 
@@ -615,14 +614,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     supportsFeatureService.SupportsRefactorings(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                 {
-                    // It may seem strange that we kick off a task, but then immediately 'Wait' on 
-                    // it. However, it's deliberate.  We want to make sure that the code runs on 
-                    // the background so that no one takes an accidentally dependency on running on 
-                    // the UI thread.
-                    var refactorings = Task.Run(
-                        () => _owner._codeRefactoringService.GetRefactoringsAsync(
-                            document, selection, cancellationToken),
-                        cancellationToken).WaitAndGetResult(cancellationToken);
+                    // Note that the refactorings are now allowed to run on UI thread.
+                    var refactorings = ThreadingContext.JoinableTaskFactory.Run(
+                        async () => await _owner._codeRefactoringService.GetRefactoringsAsync(
+                            document, selection, cancellationToken));
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
 
