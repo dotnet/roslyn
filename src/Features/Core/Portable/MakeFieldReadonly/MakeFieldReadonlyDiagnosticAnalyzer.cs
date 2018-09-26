@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         {
             // Check if the underlying member is being written or a writable reference to the member is taken.
             var valueUsageInfo = fieldReference.GetValueUsageInfo();
-            if (!valueUsageInfo.ContainsWriteOrWritableRef())
+            if (!valueUsageInfo.ContainsWriteOrWritableReference())
             {
                 return false;
             }

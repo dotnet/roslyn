@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -28,19 +29,19 @@ namespace Microsoft.CodeAnalysis
         /// Represents a readable reference being taken to the value.
         /// For example, passing an argument to an "in" or "ref readonly" parameter.
         /// </summary>
-        ReadableRef = 0x00100,
+        ReadableReference = 0x00100,
 
         /// <summary>
         /// Represents a readable reference being taken to the value.
         /// For example, passing an argument to an "out" parameter.
         /// </summary>
-        WritableRef = 0x01000,
+        WritableReference = 0x01000,
 
         /// <summary>
         /// Represents a symbol reference that neither reads nor writes the underlying value.
         /// For example, 'nameof(x)' does not read or write the underlying value stored in 'x'.
         /// </summary>
-        NonReadWriteRef = 0x10000,
+        NonReadWriteReference = 0x10000,
 
         /// <summary>
         /// Represents a value read and/or write.
@@ -52,18 +53,38 @@ namespace Microsoft.CodeAnalysis
         /// Represents a value read or write.
         /// For example, passing an argument to a "ref" parameter.
         /// </summary>
-        ReadableWritableRef = ReadableRef | WritableRef
+        ReadableWritableReference = ReadableReference | WritableReference
     }
 
     internal static class ValueUsageInfoExtensions
     {
-        public static bool ContainsReadOrReadableRef(this ValueUsageInfo valueUsageInfo)
-            => (valueUsageInfo & (ValueUsageInfo.Read | ValueUsageInfo.ReadableRef)) != 0;
+        public static bool ContainsReadOrReadableReference(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & (ValueUsageInfo.Read | ValueUsageInfo.ReadableReference)) != 0;
 
-        public static bool ContainsWriteOrWritableRef(this ValueUsageInfo valueUsageInfo)
-            => (valueUsageInfo & (ValueUsageInfo.Write | ValueUsageInfo.WritableRef)) != 0;
+        public static bool ContainsWriteOrWritableReference(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & (ValueUsageInfo.Write | ValueUsageInfo.WritableReference)) != 0;
 
-        public static bool ContainsNonReadWriteRef(this ValueUsageInfo valueUsageInfo)
-            => (valueUsageInfo & ValueUsageInfo.NonReadWriteRef) != 0;
+        public static bool ContainsNonReadWriteReference(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & ValueUsageInfo.NonReadWriteReference) != 0;
+
+        public static ImmutableArray<string> ToValues(this ValueUsageInfo valueUsageInfo)
+        {
+            if (valueUsageInfo == ValueUsageInfo.None)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            var builder = ImmutableArray.CreateBuilder<string>();
+            foreach (ValueUsageInfo value in Enum.GetValues(typeof(ValueUsageInfo)))
+            {
+                bool singleBitIsSet = (value & (value - 1)) == 0;
+                if (singleBitIsSet && (valueUsageInfo & value) != 0)
+                {
+                    builder.Add(value.ToString());
+                }
+            }
+
+            return builder.ToImmutable();
+        }
     }
 }
