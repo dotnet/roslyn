@@ -105,6 +105,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return token.IsKeyword()
         End Function
 
+        Public Function IsKeyword(text As String) As Boolean Implements ISyntaxFactsService.IsKeyword
+            Return GetKeywordKind(text) <> SyntaxKind.None
+        End Function
+
         Public Function IsPreprocessorKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsPreprocessorKeyword
             Return token.IsPreprocessorKeyword()
         End Function
@@ -1871,6 +1875,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFactsService.SpansPreprocessorDirective
             Return nodes.SpansPreprocessorDirective()
+        End Function
+
+        Public Function IsOnNamespaceDeclaration(root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsOnNamespaceDeclaration
+            Dim statement = root.FindToken(position).GetAncestor(Of NamespaceStatementSyntax)
+            If statement Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim start = statement.SpanStart
+            Dim _end = If(statement.Name?.GetLastToken().FullSpan.End,
+                          statement.NamespaceKeyword.FullSpan.End)
+
+            Return position >= start AndAlso position <= _end
         End Function
     End Class
 End Namespace

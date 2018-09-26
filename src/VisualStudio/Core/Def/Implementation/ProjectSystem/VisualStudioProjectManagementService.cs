@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
+using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
@@ -53,6 +56,15 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
             }
 
             return defaultNamespace;
+        }
+
+        public async Task<string> GetDefaultNamespaceAsync(Microsoft.CodeAnalysis.Project project, Workspace workspace, CancellationToken cancellationToken = default)
+        {
+            return await ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                return GetDefaultNamespace(project, workspace);
+            });
         }
 
         public IList<string> GetFolders(ProjectId projectId, Workspace workspace)

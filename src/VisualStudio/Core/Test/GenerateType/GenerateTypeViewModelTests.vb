@@ -895,6 +895,10 @@ namespace A
             Return ""
         End Function
 
+        Public Function GetDefaultNamespaceAsync(project As Project, workspace As Workspace) As Task(Of String) Implements IProjectManagementService.GetDefaultNamespaceAsync
+            Return Task.FromResult("")
+        End Function
+
         Public Function GetFolders(projectId As ProjectId, workspace As Microsoft.CodeAnalysis.Workspace) As IList(Of String) Implements IProjectManagementService.GetFolders
             Return Me._projectFolders
         End Function

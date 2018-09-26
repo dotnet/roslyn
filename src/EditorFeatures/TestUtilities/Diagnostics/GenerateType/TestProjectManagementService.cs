@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ProjectManagement;
 
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
     [ExportWorkspaceService(typeof(IProjectManagementService), ServiceLayer.Default), Shared]
     internal class TestProjectManagementService : IProjectManagementService
     {
-        private string _defaultNamespace;
+        private string _defaultNamespace = string.Empty;
 
         public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
         {
@@ -20,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         public string GetDefaultNamespace(Project project, Workspace workspace)
         {
             return _defaultNamespace;
+        }
+
+        public Task<string> GetDefaultNamespaceAsync(Project project, Workspace workspace)
+        {
+            return Task.FromResult(_defaultNamespace);
         }
 
         public void SetDefaultNamespace(string defaultNamespace)
