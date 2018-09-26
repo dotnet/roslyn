@@ -32,6 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public VisualStudioProject CreateAndAddToWorkspace(string projectUniqueName, string language, VisualStudioProjectCreationInfo creationInfo)
         {
+            // HACK: Fetch this service to ensure it's still created on the UI thread; once this is moved off we'll need to fix up it's constructor to be free-threaded.
+            _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
+
             var id = ProjectId.CreateNewId(projectUniqueName);
             var directoryNameOpt = creationInfo.FilePath != null ? Path.GetDirectoryName(creationInfo.FilePath) : null;
             var project = new VisualStudioProject(_visualStudioWorkspaceImpl, _hostDiagnosticUpdateSource, id, projectUniqueName, language, directoryNameOpt);
