@@ -3,7 +3,7 @@ This guide is meant to help developers setup an environment for debugging / cont
 Particularly for developers who aren't experienced with .NET Core development on Linux. 
 
 ## Working with the code
-1. Install the [.NET Core SDK](https://www.microsoft.com/net/download/core)
+1. Ensure the commands `git` and `curl` are available
 1. Clone git@github.com:dotnet/roslyn.git
 1. Run `./build.sh --restore`
 1. Run `./build.sh --build`
