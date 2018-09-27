@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             if (_referenceSpanToLinkedRenameSpanMap.ContainsKey(replacement.OriginalSpan) && kind != RenameSpanKind.Complexified)
                             {
                                 var linkedRenameSpan = _session._renameInfo.GetConflictEditSpan(
-                                    new InlineRenameLocation(newDocument, replacement.NewSpan), _session.ReplacementText, cancellationToken);
+                                    new InlineRenameLocation(newDocument, replacement.NewSpan), GetWithoutAttributeSuffix(_session.ReplacementText, document.GetLanguageService<LanguageServices.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
                                 if (linkedRenameSpan.HasValue)
                                 {
                                     if (!mergeConflictComments.Any(s => replacement.NewSpan.IntersectsWith(s)))
@@ -538,6 +538,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     this.ApplyReplacementText(updateSelection: false);
                     RaiseSpansChanged();
                 }
+            }
+
+            private static string GetWithoutAttributeSuffix(string text, bool isCaseSensitive)
+            {
+                if (!text.TryGetWithoutAttributeSuffix(isCaseSensitive, out string replaceText))
+                {
+                    replaceText = text;
+                }
+
+                return replaceText;
             }
 
             private static async Task<IEnumerable<TextChange>> GetTextChangesFromTextDifferencingServiceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken = default)

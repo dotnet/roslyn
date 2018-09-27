@@ -1538,10 +1538,15 @@ partial class A { static void Main5() { Log(); } }
                 new[] { SystemRef },
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\A\B")));
 
-            CompileAndVerify(compilation, expectedOutput: @"
+            // On CoreClr the '*' is a legal path character
+            // https://github.com/dotnet/docs/issues/4483
+            var expectedStarPath = ExecutionConditionUtil.IsCoreClr
+                ? @"C:\A\B\*"
+                : "*";
+            CompileAndVerify(compilation, expectedOutput: $@"
 1: 'C:\filename'
 2: 'C:\A\B\a\c\d.cs'
-3: '*'
+3: '{expectedStarPath}'
 4: 'C:\abc'
 5: '     '
 ");
