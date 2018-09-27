@@ -209,6 +209,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="ICoalesceAssignmentOperation"/>.</summary>
         CoalesceAssignment = 0x61,
 
+        /// <summary>Indicates an <see cref="IReDimOperation"/>.</summary>
+        ReDim = 0x62,
+        /// <summary>Indicates an <see cref="IReDimClauseOperation"/>.</summary>
+        ReDimClause = 0x63,
+
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281
         //Fixed = <TBD>,

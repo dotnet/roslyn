@@ -6500,6 +6500,41 @@ oneMoreTime:
             }
         }
 
+        public override IOperation VisitReDim(IReDimOperation operation, int? argument)
+        {
+            // We visit and rewrite the ReDim clauses in two phases:
+            //  1. Visit all the clause operands and indices and push them onto the eval stack.
+            //  2. Traverse the parts in reverse order, popping the indices and the operands from the eval stack for producing visited clauses.
+            EvalStackFrame frame = PushStackFrame();
+            foreach (var clause in operation.Clauses)
+            {
+                PushOperand(Visit(clause.Operand));
+                VisitAndPushArray(clause.Indices);
+            }
+
+            var clausesBuilder = ArrayBuilder<IReDimClauseOperation>.GetInstance(operation.Clauses.Length);
+            for (int i = operation.Clauses.Length - 1; i >= 0; i--)
+            {
+                IReDimClauseOperation clause = operation.Clauses[i];
+                var visitedIndices = PopArray(clause.Indices);
+                var visitedOperand = PopOperand();
+                var rewrittenClause = new ReDimClauseOperation(visitedOperand, visitedIndices, semanticModel: null,
+                    clause.Syntax, clause.Type, clause.ConstantValue, IsImplicit(clause));
+                clausesBuilder.Add(rewrittenClause);
+            }
+
+            clausesBuilder.ReverseContents();
+            PopStackFrame(frame);
+
+            return new ReDimOperation(clausesBuilder.ToImmutableAndFree(), operation.Preserve,
+                semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitReDimClause(IReDimClauseOperation operation, int? argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
         {
             return new TranslatedQueryExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));

@@ -294,6 +294,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Return Create(DirectCast(boundNode, BoundBadVariable).Expression)
                 Case BoundKind.NullableIsTrueOperator
                     Return CreateBoundNullableIsTrueOperator(DirectCast(boundNode, BoundNullableIsTrueOperator))
+                Case BoundKind.RedimStatement
+                    Return CreateBoundReDimOperation(DirectCast(boundNode, BoundRedimStatement))
 
                 Case BoundKind.AddressOfOperator,
                      BoundKind.ArrayLiteral,
@@ -309,8 +311,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                      BoundKind.OnErrorStatement,
                      BoundKind.PropertyGroup,
                      BoundKind.RangeVariable,
-                     BoundKind.RedimClause,
-                     BoundKind.RedimStatement,
                      BoundKind.ResumeStatement,
                      BoundKind.TypeAsValueExpression,
                      BoundKind.TypeExpression,
@@ -1764,6 +1764,32 @@ Namespace Microsoft.CodeAnalysis.Operations
                         End Function)
                 Return New LazyInvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
+        End Function
+
+        Private Function CreateBoundReDimOperation(boundRedimStatement As BoundRedimStatement) As IReDimOperation
+            Dim preserve As Boolean = boundRedimStatement.Syntax.Kind = SyntaxKind.ReDimPreserveStatement
+            Dim clauses As Lazy(Of ImmutableArray(Of IReDimClauseOperation)) = New Lazy(Of ImmutableArray(Of IReDimClauseOperation))(
+                Function()
+                    Return boundRedimStatement.Clauses.SelectAsArray(Function(n)
+                                                                         Debug.Assert(preserve = n.Preserve)
+                                                                         Return CreateBoundReDimClauseOperation(n)
+                                                                     End Function)
+                End Function)
+            Dim syntax As SyntaxNode = boundRedimStatement.Syntax
+            Dim type As ITypeSymbol = Nothing
+            Dim constantValue As [Optional](Of Object) = Nothing
+            Dim isImplicit As Boolean = boundRedimStatement.WasCompilerGenerated
+            Return New LazyReDimOperation(clauses, preserve, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundReDimClauseOperation(boundRedimClause As BoundRedimClause) As IReDimClauseOperation
+            Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundRedimClause.Operand))
+            Dim indices As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundRedimClause.Indices.SelectAsArray(Function(n) Create(n)))
+            Dim syntax As SyntaxNode = boundRedimClause.Syntax
+            Dim type As ITypeSymbol = Nothing
+            Dim constantValue As [Optional](Of Object) = Nothing
+            Dim isImplicit As Boolean = boundRedimClause.WasCompilerGenerated
+            Return New LazyReDimClauseOperation(operand, indices, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
     End Class
 End Namespace

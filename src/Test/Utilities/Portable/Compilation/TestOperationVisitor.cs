@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -1294,6 +1295,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.Children);
             Assert.NotNull(operation.Local);
             Assert.True(operation.Local.IsStatic);
+        }
+
+        public override void VisitReDim(IReDimOperation operation)
+        {
+            Assert.Equal(OperationKind.ReDim, operation.Kind);
+            AssertEx.Equal(operation.Clauses, operation.Children);
+            var preserve = operation.Preserve;
+        }
+
+        public override void VisitReDimClause(IReDimClauseOperation operation)
+        {
+            Assert.Equal(OperationKind.ReDimClause, operation.Kind);
+            Assert.NotNull(operation.Operand);
+            foreach (var index in operation.Indices)
+            {
+                Assert.NotNull(index);
+            }
+
+            AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.Indices), operation.Children);
         }
     }
 }

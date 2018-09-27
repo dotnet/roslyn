@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis
                         return ValueUsageInfo.Read;
                 }
             }
+            else if (operation.Parent is IReDimClauseOperation reDimClauseOperation &&
+                reDimClauseOperation.Operand == operation)
+            {
+                return ValueUsageInfo.Write;
+            }
             else if (IsInLeftOfDeconstructionAssignment(operation))
             {
                 return ValueUsageInfo.Write;
