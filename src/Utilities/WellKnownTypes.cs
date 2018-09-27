@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
@@ -41,6 +42,11 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol GenericIEnumerator(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerator`1");
+        }
+
+        internal static INamedTypeSymbol BinaryFormatter(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(SystemRuntimeSerializationFormattersBinaryBinaryFormatter);
         }
 
         public static INamedTypeSymbol IList(Compilation compilation)

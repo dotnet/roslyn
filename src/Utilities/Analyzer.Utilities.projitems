@@ -28,6 +28,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowGraphExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAbstractValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAnalysis.BinaryFormatterAbstractValueDomain.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAnalysis.BinaryFormatterAnalysisDomain.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAnalysis.BinaryFormatterDataFlowOperationVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAnalysis.CoreBinaryFormatterAnalysisDataDomain.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAnalysis.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAnalysisContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAnalysisData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterBlockAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\CopyAbstractValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\CopyAbstractValueKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\CopyAnalysis.CopyAbstractValueDomain.cs" />

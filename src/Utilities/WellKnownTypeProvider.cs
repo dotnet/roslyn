@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             CollectionTypes = GetWellKnownCollectionTypes(compilation);
             SerializationInfo = Analyzer.Utilities.WellKnownTypes.SerializationInfo(compilation);
             GenericIEquatable = Analyzer.Utilities.WellKnownTypes.GenericIEquatable(compilation);
+            BinaryFormatter = Analyzer.Utilities.WellKnownTypes.BinaryFormatter(compilation);
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation) => s_providerCache.GetValue(compilation, s_ProviderCacheCallback);
@@ -66,6 +67,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.IEquatable{T}"/>
         /// </summary>
         public INamedTypeSymbol GenericIEquatable { get; }
+
+        public INamedTypeSymbol BinaryFormatter { get; }
 
         /// <summary>
         /// Set containing following named types, if not null:
