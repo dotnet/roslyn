@@ -1063,4 +1063,13 @@ I agree to all of the foregoing:</value>
   <data name="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor" xml:space="preserve">
     <value>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</value>
   </data>
+  <data name="Use_expression_body_for_lambdas" xml:space="preserve">
+    <value>Use expression body for lambdas</value>
+  </data>
+  <data name="Generate_dot_editorconfig_file_from_settings" xml:space="preserve">
+    <value>Generate .editorconfig file from settings</value>
+  </data>
+  <data name="Save_dot_editorconfig_file" xml:space="preserve">
+    <value>Save .editorconfig file</value>
+  </data>
 </root>

@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         RefConditionalOperator,
         TupleEquality,
         StackAllocInitializer,
+        NullCoalescingAssignment,
         AsyncStreams,
     }
 }

@@ -162,6 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
 
         IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
+        IDS_FeatureCoalesceAssignmentExpression = MessageBase + 12746,
+        IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator = MessageBase + 12747,
         IDS_FeatureAsyncStreams = MessageBase + 12777, // PROTOTYPE(async-streams) Compact IDs
     }
 
@@ -220,6 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
+                case MessageID.IDS_FeatureCoalesceAssignmentExpression:
+                case MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator:
                 case MessageID.IDS_FeatureAsyncStreams:
                     return LanguageVersion.CSharp8;
 

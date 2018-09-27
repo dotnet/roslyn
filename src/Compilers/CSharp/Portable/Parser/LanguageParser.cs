@@ -8734,6 +8734,7 @@ tryAgain:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
                 case SyntaxKind.CoalesceExpression:
                     return true;
                 default:
@@ -8780,6 +8781,7 @@ tryAgain:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
                     return Precedence.Assignment;
                 case SyntaxKind.CoalesceExpression:
                     return Precedence.Coalescing;
@@ -9070,6 +9072,12 @@ tryAgain:
                         ExpressionSyntax rhs = opKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword
                             ? rhs = CheckFeatureAvailability(ParsePossibleRefExpression(), MessageID.IDS_FeatureRefReassignment)
                             : rhs = this.ParseSubExpression(newPrecedence);
+
+                        if (opKind == SyntaxKind.CoalesceAssignmentExpression)
+                        {
+                            opToken = CheckFeatureAvailability(opToken, MessageID.IDS_FeatureCoalesceAssignmentExpression);
+                        }
+
                         leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, rhs);
                     }
                     else
@@ -10186,6 +10194,7 @@ tryAgain:
                 case SyntaxKind.LessThanEqualsToken:
                 case SyntaxKind.GreaterThanToken:
                 case SyntaxKind.GreaterThanEqualsToken:
+                case SyntaxKind.QuestionQuestionEqualsToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
                 case SyntaxKind.PlusToken:
