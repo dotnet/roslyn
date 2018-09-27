@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Friend Shared ReadOnly s_BackstopBinder As Binder = BackstopBinder.Instance
+        'Friend Shared ReadOnly s_BackstopBinder As Binder = BackstopBinder.Instance
 
         Friend ReadOnly Compilation As VisualBasicCompilation
         Friend ReadOnly NamespaceBinder As Binder ' Internal for test purposes.
@@ -560,7 +560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             [namespace] As NamespaceSymbol,
             importRecordGroups As ImmutableArray(Of ImmutableArray(Of ImportRecord))) As Binder
 
-            Dim binder = s_BackstopBinder
+            Dim binder = BackstopBinder.Instance
             binder = New SuppressDiagnosticsBinder(binder)
             binder = New IgnoreAccessibilityBinder(binder)
             binder = New SourceModuleBinder(binder, DirectCast(compilation.Assembly.Modules(0), SourceModuleSymbol))
