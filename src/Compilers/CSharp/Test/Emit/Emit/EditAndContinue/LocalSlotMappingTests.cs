@@ -2965,7 +2965,6 @@ class C
         [Fact]
         public void For()
         {
-            try {
             var source0 = @"
 class C
 {
@@ -3061,12 +3060,6 @@ class C
   IL_0020:  ret
 }
 ");
-            }catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);
-                throw;
-            }
         }
 
         [Fact]

@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 if (_visualizeRealIL == null)
                 {
-                    throw new InvalidOperationException("IL visaalization function is not set");
+                    throw new InvalidOperationException("IL visualization function is not set");
                 }
 
 

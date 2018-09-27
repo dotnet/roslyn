@@ -1110,7 +1110,7 @@ class Test
             var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "Test of execution of expilicitly ambiguous IL")]
+        [ConditionalFact(typeof(ClrOnly), Reason = "Test of execution of explicitly ambiguous IL")]
         private void TestAmbiguousOverridesWarningCase()
         {
             // Tests:
