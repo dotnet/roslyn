@@ -51,9 +51,10 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         {
             faultInjector?.OnNewConnection();
 
-            // Enable shared cache so that multiple connections inside of same process share cache
+            // Use SQLITE_OPEN_NOMUTEX to enable multi-thread mode, where multiple connections can be used provided each
+            // one is only used from a single thread at a time.
             // see https://sqlite.org/threadsafe.html for more detail
-            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_NOMUTEX | OpenFlags.SQLITE_OPEN_SHAREDCACHE;
+            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_NOMUTEX;
             var result = (Result)raw.sqlite3_open_v2(databasePath, out var handle, (int)flags, vfs: null);
 
             if (result != Result.OK)

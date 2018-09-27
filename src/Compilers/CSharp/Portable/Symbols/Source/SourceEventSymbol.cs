@@ -67,30 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            if (!_state.HasComplete(CompletionPart.Attributes))
-            {
-                _ = GetAttributes();
-
-                // Consider the following items:
-                //  1. It is possible for parallel calls to GetAttributes to exist
-                //  2. GetAttributes will return when the attributes are available, not when the part is noted
-                //     as complete.
-                //  3. The thread which actually completes the attributes is the one which must set the CompletionParts.Attributes
-                //     value.
-                //  4. This call cannot correctly return until this part is set. 
-                //
-                // That is why it is necessary to check this value again. 
-                //
-                // Note: #2 above is common practice amongst all of the symbols.
-                //
-                // Note: #3 above is an invariant that has existed in the code for some time. It's not clear if this invariant
-                // is 100% correct. After inspection though it seems likely to be correct as the code is asserting that 
-                // SymbolDeclaredEvent is raised before CompletionPart.Attributes is noted as completed. Also this is a common
-                // pattern amongst the GetAttributes implementations.
-                _state.SpinWaitComplete(CompletionPart.Attributes, cancellationToken);
-            }
-
-            _state.NotePartComplete(CompletionPart.All);
+            _state.DefaultForceComplete(this, cancellationToken);
         }
 
         public override abstract string Name { get; }

@@ -3951,7 +3951,7 @@ class Program
 {
     void goo()
     {
-        sfoo xyz = default;
+        sfoo xyz = default(sfoo);
         bar(xyz);
     }
 

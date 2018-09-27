@@ -1045,6 +1045,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate .editorconfig file from settings.
+        /// </summary>
+        internal static string Generate_dot_editorconfig_file_from_settings {
+            get {
+                return ResourceManager.GetString("Generate_dot_editorconfig_file_from_settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate Type.
         /// </summary>
         internal static string Generate_Type {
@@ -2242,6 +2251,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Save .editorconfig file.
+        /// </summary>
+        internal static string Save_dot_editorconfig_file {
+            get {
+                return ResourceManager.GetString("Save_dot_editorconfig_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search found no results.
         /// </summary>
         internal static string Search_found_no_results {
@@ -2703,6 +2721,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Use_expression_body_for_indexers {
             get {
                 return ResourceManager.GetString("Use_expression_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for lambdas.
+        /// </summary>
+        internal static string Use_expression_body_for_lambdas {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_lambdas", resourceCulture);
             }
         }
         

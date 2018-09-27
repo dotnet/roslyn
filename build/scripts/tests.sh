@@ -70,10 +70,9 @@ do
     if [[ "${runtime}" == "dotnet" ]]; then
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
 
-        # Disable the VB Emit + Semantic tests while we investigate the core dump issue
+        # Disable the VB Semantic tests while we investigate the core dump issue
         # https://github.com/dotnet/roslyn/issues/29660
-        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] || \
-           [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll' ]]
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] 
         then
             echo "Skipping ${file_name[@]}"
             continue
