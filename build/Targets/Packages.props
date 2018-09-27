@@ -156,7 +156,7 @@
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
-    <RoslynDependenciesOptimizationDataVersion>2.11.0-beta1-63312-03</RoslynDependenciesOptimizationDataVersion>
+    <RoslynDependenciesOptimizationDataVersion>2.11.0-beta1-63312-04</RoslynDependenciesOptimizationDataVersion>
     <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.0.0-beta2-63222-01</RoslynToolsVSIXExpInstallerVersion>
