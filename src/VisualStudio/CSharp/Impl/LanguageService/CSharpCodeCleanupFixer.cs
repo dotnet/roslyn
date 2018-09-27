@@ -25,20 +25,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
     internal class CSharpCodeCleanUpFixer : CodeCleanUpFixer
     {
-        public override Task<bool> FixAsync(ICodeCleanUpScope scope, IUIThreadOperationContext operationContext, FixIdContainer enabledFixIds, CancellationToken cancellationToken)
+        public override Task<bool> FixAsync(ICodeCleanUpScope scope, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
         {
             switch(scope)
             {
                 case TextBufferCodeCleanUpScope textBufferScope:
-                    return FixTextBufferAsync(textBufferScope, cancellationToken);
+                    return FixTextBufferAsync(textBufferScope, context, cancellationToken);
                 case IVsHierarchyCodeCleanupScope hierarchyContentScope:
-                    return FixHierarchyContentAsync(hierarchyContentScope, cancellationToken);
+                    return FixHierarchyContentAsync(hierarchyContentScope, context, cancellationToken);
                 default:
                     return Task.FromResult(false);
             }            
         }
 
-        private Task<bool> FixHierarchyContentAsync(IVsHierarchyCodeCleanupScope hierarchyContent, CancellationToken cancellationToken)
+        private Task<bool> FixHierarchyContentAsync(IVsHierarchyCodeCleanupScope hierarchyContent, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
         {            
             // TODO: this one will be implemented later
             var hierarchy = hierarchyContent.Hierarchy;
@@ -66,32 +66,45 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return Task.FromResult(false);
         }
 
-        private async Task<bool> FixTextBufferAsync(TextBufferCodeCleanUpScope textBufferScope, CancellationToken cancellationToken)
+        private async Task<bool> FixTextBufferAsync(TextBufferCodeCleanUpScope textBufferScope, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
         {
+            cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(context.OperationContext.UserCancellationToken, cancellationToken).Token;
+
             var buffer = textBufferScope.SubjectBuffer;
             if (buffer != null)
             {
-                var progressTracker = new ProgressTracker();
-                var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
-
-                // TODO: enable all diagnostics for now, need to be replace by inclusion/ exclusion list from .editorconfig
-                var organizeUsingsSet = new OrganizeUsingsSet(true, true);
-                var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
-
-                var newDoc = await codeCleanupService.CleanupAsync(
-                    document, organizeUsingsSet, enabledDiagnostics, progressTracker, cancellationToken);
-
-                var codeCleanupChanges = await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-                if (codeCleanupChanges != null && codeCleanupChanges.Any())
+                using (var scope = context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Applying_changes))
                 {
-                    progressTracker.Description = EditorFeaturesResources.Applying_changes;
-                    using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
+                    var progressTracker = new ProgressTracker((description, completed, total) =>
                     {
-                        newDoc.Project.Solution.Workspace.ApplyTextChanges(newDoc.Id, codeCleanupChanges, cancellationToken);
-                    }
+                        if (scope != null)
+                        {
+                            scope.Description = description;
+                            scope?.Progress.Report(new ProgressInfo(completed, total));
+                        }
+                    });
 
-                    return true;
+                    var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+
+                    // TODO: enable all diagnostics for now, need to be replace by inclusion/ exclusion list from .editorconfig
+                    var organizeUsingsSet = new OrganizeUsingsSet(true, true);
+                    var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
+
+                    var newDoc = await codeCleanupService.CleanupAsync(
+                        document, organizeUsingsSet, enabledDiagnostics, progressTracker, cancellationToken);
+
+                    var codeCleanupChanges = await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+                    if (codeCleanupChanges != null && codeCleanupChanges.Any())
+                    {
+                        progressTracker.Description = EditorFeaturesResources.Applying_changes;
+                        using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
+                        {
+                            newDoc.Project.Solution.Workspace.ApplyTextChanges(newDoc.Id, codeCleanupChanges, cancellationToken);
+                        }
+
+                        return true;
+                    }
                 }
             }
 

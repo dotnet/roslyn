@@ -9,6 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 {
     internal abstract class CodeCleanUpFixer : ICodeCleanUpFixer
     {
-        public abstract Task<bool> FixAsync(ICodeCleanUpScope scope, IUIThreadOperationContext operationContext, FixIdContainer enabledFixIds, CancellationToken cancellationToken);
+        public abstract Task<bool> FixAsync(ICodeCleanUpScope scope, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken);
     }
 }
