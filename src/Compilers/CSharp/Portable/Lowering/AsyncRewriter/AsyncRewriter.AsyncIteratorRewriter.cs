@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class AsyncIteratorRewriter : AsyncRewriter
         {
-            private readonly TypeSymbol _elementType;
-
             private FieldSymbol _promiseOfValueOrEndField; // this struct implements the IValueTaskSource logic
             private FieldSymbol _promiseIsActiveField;
             private FieldSymbol _currentField; // stores the current/yielded value
@@ -32,9 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
             {
                 Debug.Assert(method.IteratorElementType != null);
-
-                // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
-                _elementType = stateMachineType.ElementType;
             }
 
             protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
@@ -104,8 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boolType,
                     GeneratedNames.MakeAsyncIteratorPromiseIsActiveFieldName(), isPublic: true);
 
+                // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
+                TypeSymbol elementType = ((AsyncStateMachine)stateMachineType).ElementType;
+
                 // Add a field: T current
-                _currentField = F.StateMachineField(_elementType, GeneratedNames.MakeIteratorCurrentFieldName());
+                _currentField = F.StateMachineField(elementType, GeneratedNames.MakeIteratorCurrentFieldName());
             }
 
             /// <summary>

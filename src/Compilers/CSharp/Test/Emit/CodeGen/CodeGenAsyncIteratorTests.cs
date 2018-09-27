@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    using Microsoft.CodeAnalysis.CSharp.Symbols;
-    using Roslyn.Test.Utilities;
     using static Instruction;
     internal enum Instruction
     {
@@ -113,10 +113,7 @@ public class C
         yield return 4;
     }
 }";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(OptimizationLevel.Debug);
-
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: options);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -1179,6 +1176,39 @@ class C
     {
         Write(""0 "");
         foreach await (var i in M(3))
+        {
+            Write(i);
+        }
+        Write(""5"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void AsyncIteratorWithGenericReturnFromContainingType()
+        {
+            string source = @"
+using static System.Console;
+public class C<T>
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<T> M(T value)
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return value;
+        Write("" 4 "");
+    }
+}
+class D
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        foreach await (var i in C<int>.M(3))
         {
             Write(i);
         }

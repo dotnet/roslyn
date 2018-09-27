@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public definition for &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_AsyncForEachMissingMember {
             get {
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public definition for &apos;{1}&apos;. Did you mean &apos;foreach&apos; rather than &apos;foreach await&apos;?.
+        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;foreach&apos; rather than &apos;foreach await&apos;?.
         /// </summary>
         internal static string ERR_AsyncForEachMissingMemberWrongAsync {
             get {
