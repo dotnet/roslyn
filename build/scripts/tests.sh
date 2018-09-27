@@ -131,7 +131,7 @@ do
     fi
 
     # https://github.com/dotnet/roslyn/issues/29380
-    if ${runner} "${xunit_console}" "${file_name}" -xml "${log_file}" -parallel none "${xunit_args[@]:-}"
+    if ${runner} "${xunit_console}" "${file_name}" -xml "${log_file}" -parallel none ${xunit_args[@]+"${xunit_args[@]}"}
     then
         echo "Assembly ${file_name} passed"
     else
