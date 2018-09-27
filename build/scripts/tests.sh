@@ -36,7 +36,7 @@ dotnet_runtime_version="$(get_tool_version dotnetRuntime)"
 
 if [[ "${runtime}" == "dotnet" ]]; then
     file_list=( "${unittest_dir}"/*/netcoreapp2.1/*.UnitTests.dll )
-    file_blacklist=(
+    file_skiplist=(
         # Disable the VB Semantic tests while we investigate the core dump issue
         # https://github.com/dotnet/roslyn/issues/29660
         "Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll"
@@ -44,7 +44,7 @@ if [[ "${runtime}" == "dotnet" ]]; then
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/netcoreapp2.0/xunit.console.dll
 elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
     file_list=( "${unittest_dir}"/*/net46/*.UnitTests.dll )
-    file_blacklist=(
+    file_skiplist=(
         'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll'
         # Missing mscoree.dll, other problems
         'Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll'
@@ -65,16 +65,11 @@ elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
         'Microsoft.Build.Tasks.CodeAnalysis.UnitTests.dll'
         # Various failures related to PDBs, along with a runtime crash
         'Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll'
-        # Deadlocks or hangs for some reason
-        # FIXME: This is probably the new name for CompilerServer?
-        'VBCSCompiler.UnitTests.dll'
         # Disabling on assumption
         'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll'
         # A zillion test failures + crash
         # See https://github.com/mono/mono/issues/10756
         'Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests.dll'
-        # Deadlocks. 
-        'Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.dll'
     )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
@@ -111,12 +106,12 @@ do
     is_argv_match=0
     [[ "${file_name}" =~ "${single_test_assembly}" ]] && is_argv_match=1
 
-    is_blacklist_match=0
-    [[ "${file_blacklist[@]}" =~ "${file_base_name}" ]] && is_blacklist_match=1
+    is_skiplist_match=0
+    [[ "${file_skiplist[@]}" =~ "${file_base_name}" ]] && is_skiplist_match=1
 
-    if (( is_blacklist_match && ! (is_argv_match && was_argv_specified) ))
+    if (( is_skiplist_match && ! (is_argv_match && was_argv_specified) ))
     then
-        echo "Skipping blacklisted ${file_base_name}"
+        echo "Skipping listed ${file_base_name}"
         continue
     fi
 
@@ -136,7 +131,7 @@ do
     fi
 
     # https://github.com/dotnet/roslyn/issues/29380
-    if ${runner} "${xunit_console}" "${file_name}" -xml "${log_file}" -parallel none ${xunit_args[@]:-}
+    if ${runner} "${xunit_console}" "${file_name}" -xml "${log_file}" -parallel none "${xunit_args[@]:-}"
     then
         echo "Assembly ${file_name} passed"
     else
