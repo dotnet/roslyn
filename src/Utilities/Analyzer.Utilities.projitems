@@ -36,6 +36,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAnalysisContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAnalysisData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\BinaryFormatterAnalysis\BinaryFormatterBlockAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\CopyAbstractValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\CopyAbstractValueKind.cs" />

@@ -12,19 +12,33 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
 {
-    using BinaryFormatterAnalysisResult = DataFlowAnalysisResult<BinaryFormatterBlockAnalysisResult, BinaryFormatterAbstractValue>;
-
     internal partial class BinaryFormatterAnalysis
     {
         private sealed class BinaryFormatterOperationVisitor : AnalysisEntityDataFlowOperationVisitor<BinaryFormatterAnalysisData, BinaryFormatterAnalysisContext, BinaryFormatterAnalysisResult, BinaryFormatterAbstractValue>
         {
+            private Dictionary<IOperation, BinaryFormatterAbstractValue> HazardousUsages;
+
             public BinaryFormatterOperationVisitor(BinaryFormatterAnalysisContext analysisContext)
                 : base(analysisContext)
             {
                 this.DeserializerTypeSymbol = this.WellKnownTypeProvider.BinaryFormatter;
+                if (analysisContext.TrackHazardousUsages)
+                {
+                    this.HazardousUsages = new Dictionary<IOperation, BinaryFormatterAbstractValue>();
+                }
             }
 
             private INamedTypeSymbol DeserializerTypeSymbol { get; }
+
+            public ImmutableDictionary<IOperation, BinaryFormatterAbstractValue> GetHazardousUsages()
+            {
+                if (this.HazardousUsages == null)
+                {
+                    throw new InvalidOperationException($"{nameof(BinaryFormatterAnalysisContext)}.{nameof(BinaryFormatterAnalysisContext.TrackHazardousUsages)} was not specified");
+                }
+
+                return this.HazardousUsages.ToImmutableDictionary();
+            }
 
             protected override void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder)
             {
@@ -135,6 +149,27 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
                     {
                         // Perhaps we could be smarter with ValueContentAnalysis.
                         this.SetAbstractValue(analysisEntity, BinaryFormatterAbstractValue.Unflagged);
+                    }
+                }
+
+                return baseValue;
+            }
+
+            public override BinaryFormatterAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, BinaryFormatterAbstractValue defaultValue)
+            {
+                BinaryFormatterAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
+                if (this.HazardousUsages != null
+                    && visitedInstance != null
+                    && visitedInstance.Type != null
+                    && visitedInstance.Type == this.DeserializerTypeSymbol
+                    && method.MetadataName == "Deserialize"
+                    && this.AnalysisEntityFactory.TryCreate(visitedInstance, out AnalysisEntity instanceAnalysisEntity))
+                {
+                    BinaryFormatterAbstractValue instanceAbstractValue = this.GetAbstractValue(instanceAnalysisEntity);
+                    if (instanceAbstractValue == BinaryFormatterAbstractValue.Flagged
+                        || instanceAbstractValue == BinaryFormatterAbstractValue.MaybeFlagged)
+                    {
+                        this.HazardousUsages[originalOperation] = instanceAbstractValue;
                     }
                 }
 

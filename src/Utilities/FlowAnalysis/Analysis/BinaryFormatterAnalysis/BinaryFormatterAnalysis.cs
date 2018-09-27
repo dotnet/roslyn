@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
 {
-    using BinaryFormatterAnalysisResult = DataFlowAnalysisResult<BinaryFormatterBlockAnalysisResult, BinaryFormatterAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
 
     internal partial class BinaryFormatterAnalysis : ForwardDataFlowAnalysis<BinaryFormatterAnalysisData, BinaryFormatterAnalysisContext, BinaryFormatterAnalysisResult, BinaryFormatterBlockAnalysisResult, BinaryFormatterAbstractValue>
@@ -57,8 +56,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
             BinaryFormatterAnalysisContext analysisContext,
             DataFlowAnalysisResult<BinaryFormatterBlockAnalysisResult, BinaryFormatterAbstractValue> dataFlowAnalysisResult)
         {
-            return dataFlowAnalysisResult;
+            analysisContext = analysisContext.WithTrackHazardousUsages();
+            BinaryFormatterOperationVisitor newOperationVisitor = new BinaryFormatterOperationVisitor(analysisContext);
+            foreach (var block in analysisContext.ControlFlowGraph.Blocks)
+            {
+                var data = BinaryFormatterAnalysisDomainInstance.Clone(dataFlowAnalysisResult[block].InputData);
+                data = Flow(newOperationVisitor, block, data);
+            }
+
+            return new BinaryFormatterAnalysisResult(dataFlowAnalysisResult, newOperationVisitor.GetHazardousUsages());
         }
+
 
         internal override BinaryFormatterBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DataFlowAnalysisInfo<BinaryFormatterAnalysisData> blockAnalysisData)
         {
