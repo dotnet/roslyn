@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 {
@@ -40,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             var fixers = _codeCleanUpFixers
                .Where(handler => handler.Metadata.ContentTypes.Contains(contentType.TypeName)).ToList();
 
-            return fixers.Any() ? fixers.ConvertAll(l => l.Value) : new List<CodeCleanUpFixer>();
+            return fixers.Any() ? fixers.ConvertAll(l => l.Value) : SpecializedCollections.EmptyReadOnlyList<ICodeCleanUpFixer>();
         }
     }
 }

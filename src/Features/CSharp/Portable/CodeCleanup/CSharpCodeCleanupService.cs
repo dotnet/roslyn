@@ -98,8 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
         public async Task<Document> CleanupAsync(
             Document document,
-            OrganizeUsingsSet organizeUsingsSet,
-            ImmutableArray<DiagnosticSet> enabledDiagnostics,
+            EnabledDiagnosticOptions enabledDiagnostics,
             IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             progressTracker.AddItems(1);
 
             // and one for 'remove/sort usings' if we're going to run that.
-            if (organizeUsingsSet.IsEnabled)
+            if (enabledDiagnostics.OrganizeUsings.IsEnabled)
             {
                 progressTracker.AddItems(1);
             }
@@ -115,15 +114,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             if (_codeFixServiceOpt != null)
             {
                 document = await ApplyCodeFixesAsync(
-                    document, enabledDiagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
+                    document, enabledDiagnostics.Diagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
             }
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
-            if (organizeUsingsSet.IsEnabled)
+            if (enabledDiagnostics.OrganizeUsings.IsEnabled)                
             {
                 progressTracker.Description = CSharpFeaturesResources.Organize_Usings;
                 document = await RemoveSortUsingsAsync(
-                    document, organizeUsingsSet, cancellationToken).ConfigureAwait(false);
+                    document, enabledDiagnostics.OrganizeUsings, cancellationToken).ConfigureAwait(false);
                 progressTracker.ItemCompleted();
             }
 
@@ -199,24 +198,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             return document;
         }
 
-        public ImmutableArray<DiagnosticSet> GetAllDiagnostics()
+        public EnabledDiagnosticOptions GetAllDiagnostics()
         {
-            return _optionDiagnosticsMappings.SelectAsArray(i => i.diagnosticSet);
+            var diagnosticSets = _optionDiagnosticsMappings.SelectAsArray(i => i.diagnosticSet);
+            return new EnabledDiagnosticOptions(diagnosticSets, new OrganizeUsingsSet(true, true));
         }
 
-        public ImmutableArray<DiagnosticSet> GetEnabledDiagnostics(DocumentOptionSet docOptions)
+        public EnabledDiagnosticOptions GetEnabledDiagnostics(DocumentOptionSet docOptions)
         {
-            var result = ArrayBuilder<DiagnosticSet>.GetInstance();
+            var diagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
 
             foreach (var (diagnosticSet, option) in _optionDiagnosticsMappings)
             {
                 if (docOptions.GetOption(option))
                 {
-                    result.AddRange(diagnosticSet);
+                    diagnosticSets.AddRange(diagnosticSet);
                 }
             }
 
-            return result.ToImmutableAndFree();
+            var desc = CSharpFeaturesResources.Organize_Usings;
+
+            return new EnabledDiagnosticOptions(diagnosticSets.ToImmutableArray(), new OrganizeUsingsSet(docOptions));
         }
     }
 }

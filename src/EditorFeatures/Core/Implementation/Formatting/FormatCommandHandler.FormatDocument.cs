@@ -189,11 +189,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var docOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var organizeUsingsSet = new OrganizeUsingsSet(docOptions);
             var enabledDiagnostics = codeCleanupService.GetEnabledDiagnostics(docOptions);
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, organizeUsingsSet, enabledDiagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
+                document, enabledDiagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
 
             var changes = await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
             return changes.ToImmutableArrayOrEmpty();

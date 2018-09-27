@@ -88,11 +88,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
                     // TODO: enable all diagnostics for now, need to be replace by inclusion/ exclusion list from .editorconfig
-                    var organizeUsingsSet = new OrganizeUsingsSet(true, true);
                     var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
                     var newDoc = await codeCleanupService.CleanupAsync(
-                        document, organizeUsingsSet, enabledDiagnostics, progressTracker, cancellationToken);
+                        document, enabledDiagnostics, progressTracker, cancellationToken);
 
                     var codeCleanupChanges = await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
                     if (codeCleanupChanges != null && codeCleanupChanges.Any())
