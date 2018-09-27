@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void Start()
         {
+            Thread.CurrentThread.Name = "Roslyn Diagnostics";
             while (true)
             {
                 var task = _tasks.Take();
