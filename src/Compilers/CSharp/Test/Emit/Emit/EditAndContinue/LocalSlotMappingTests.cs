@@ -98,7 +98,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void OutOfOrderUserLocals()
         {
             var source = @"
@@ -317,7 +317,7 @@ public class C
         /// <summary>
         /// Enc debug info is only present in debug builds.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DebugOnly()
         {
             var source =
@@ -499,7 +499,7 @@ public class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Lock()
         {
             var source =
@@ -1581,7 +1581,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AddAndDelete()
         {
             var source0 =
@@ -2133,7 +2133,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Switch_String()
         {
             var source0 =
@@ -2246,7 +2246,7 @@ class C
 }", methodToken: diff1.UpdatedMethods.Single());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Switch_Integer()
         {
             var source0 =
@@ -2381,7 +2381,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Switch_Patterns()
         {
             var source = @"
@@ -2589,7 +2589,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void If()
         {
             var source0 = @"
@@ -2696,7 +2696,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void While()
         {
             var source0 = @"
@@ -2806,7 +2806,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Do1()
         {
             var source0 = @"
@@ -3506,7 +3506,7 @@ class C
 #endif
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void OutVar()
         {
             var source = @"
@@ -3837,7 +3837,7 @@ class C
 }", methodToken: diff1.UpdatedMethods.Single());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ForEachStatement_Deconstruction()
         {
             var source = @"

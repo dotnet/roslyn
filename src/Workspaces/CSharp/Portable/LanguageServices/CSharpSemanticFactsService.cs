@@ -9,7 +9,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -145,13 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public bool SupportsParameterizedProperties
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool SupportsParameterizedProperties => false;
 
         public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
         {
@@ -281,11 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsNameOfContext(position, semanticModel, cancellationToken);
-        }
-
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
@@ -304,6 +292,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SpecializedCollections.SingletonEnumerable(
                 semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
+
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+            => ((ArgumentSyntax)argumentNode).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
 
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
@@ -377,5 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return semanticModel.GetSymbolInfo(node, cancellationToken);
         }
+
+        public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => (node as ExpressionSyntax).IsInsideNameOfExpression(semanticModel, cancellationToken);
     }
 }

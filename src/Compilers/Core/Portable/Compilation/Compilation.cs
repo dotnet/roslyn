@@ -1736,7 +1736,7 @@ namespace Microsoft.CodeAnalysis
             switch (platform)
             {
                 case Platform.Arm64:
-                    machine = (Machine)0xAA64; //Machine.Arm64; https://github.com/dotnet/roslyn/issues/25185 
+                    machine = Machine.Arm64;
                     break;
 
                 case Platform.Arm:

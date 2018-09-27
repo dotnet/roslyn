@@ -4,21 +4,17 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <TargetFramework>net46</TargetFramework>
+    <RoslynProjectType>Vsix</RoslynProjectType>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.DiagnosticsWindow</RootNamespace>
-    <UseCodebase>true</UseCodebase>
+
+    <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
-    <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-    <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <TargetVsixContainerName>Roslyn.VisualStudio.DiagnosticsWindow.vsix</TargetVsixContainerName>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <RoslynProjectType>Vsix</RoslynProjectType>
+    <UseCodebase>true</UseCodebase>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="RemoteHost\**" />
@@ -76,6 +72,8 @@
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">

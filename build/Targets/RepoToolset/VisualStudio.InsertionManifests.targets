@@ -1,0 +1,39 @@
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <_StubFiles Include="$(VisualStudioSetupIntermediateOutputPath)**\*.stub"/>
+    <_StubDirs Include="@(_StubFiles->'%(RecursiveDir)')"/>
+  </ItemGroup>
+
+  <!---
+    This target is invoked in a separate phase after all input VSIX files are signed.
+    This is important since the manifest contain hashes of the VSIX files.
+  -->
+  <Target Name="GenerateVisualStudioInsertionManifests"
+          AfterTargets="Pack"
+          Outputs="%(_StubDirs.Identity)"
+          Condition="'@(_StubDirs)' != ''">
+    <PropertyGroup>
+      <_ComponentDir>%(_StubDirs.Identity)</_ComponentDir>
+      <_ComponentName>$(_ComponentDir.TrimEnd('\'))</_ComponentName>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_Args Include="OfficialBuild=$(OfficialBuild)" />
+      <_Args Include="ComponentName=$(_ComponentName)"/>
+      <_Args Include="SetupOutputPath=$(VisualStudioSetupInsertionPath)"/>
+      <_Args Include="ComponentIntermediateOutputPath=$(VisualStudioSetupIntermediateOutputPath)$(_ComponentName)\"/>
+      <_Args Include="SwixBuildPath=$(NuGetPackageRoot)microbuild.plugins.swixbuild\$(MicroBuildPluginsSwixBuildVersion)\"/>
+      <_Args Include="ManifestBuildVersion=$(VsixVersion)" />
+    </ItemGroup>
+
+    <Message Text="Generating manifest for VS component '$(_ComponentName)'" Importance="high"/>
+
+    <MSBuild Projects="VisualStudio.SetupPackage.vsmanproj" Properties="@(_Args)"/>
+  </Target>
+
+</Project>

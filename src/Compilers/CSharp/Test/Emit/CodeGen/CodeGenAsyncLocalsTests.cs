@@ -258,7 +258,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SynthesizedVariables1()
         {
             var source =

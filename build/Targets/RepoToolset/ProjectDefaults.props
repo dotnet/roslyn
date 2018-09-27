@@ -41,9 +41,9 @@
        - TODO: https://github.com/dotnet/roslyn/issues/25184
          Use embedded PDBs once .NET Framework 4.7.2 is released and xUnit runner includes configuration switch to enable Portable PDBs
     -->
-    <DebugType Condition="'$(RoslynDebugType)' == ''">full</DebugType>
+    <DebugType>full</DebugType>
     <DebugType Condition="'$(OfficialBuild)' == 'true'">portable</DebugType>
-    <DebugType Condition="'$(JenkinsBuild)' == 'true'">embedded</DebugType>
+    <DebugType Condition="'$(OfficialBuild)' != 'true' and '$(ContinuousIntegrationBuild)' == 'true'">embedded</DebugType>
 
     <!-- 
       This controls the places MSBuild will consult to resolve assembly references.  This is 
@@ -57,7 +57,7 @@
     </AssemblySearchPaths>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Language)' == ''">
+  <PropertyGroup>
     <Language Condition="'$(MSBuildProjectExtension)' == '.csproj'">C#</Language>
     <Language Condition="'$(MSBuildProjectExtension)' == '.vbproj'">VB</Language>
     <Language Condition="'$(MSBuildProjectExtension)' == '.fsproj'">F#</Language>
@@ -144,4 +144,11 @@
       </PropertyGroup>
     </When>
   </Choose>
+
+  <!-- 
+    Implements proposal https://github.com/dotnet/designs/pull/33.
+  -->
+  <ItemGroup Condition="'$(UsingToolNetFrameworkReferenceAssemblies)' == 'true'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNetFrameworkReferenceAssembliesVersion)" PrivateAssets="all" IsImplicitlyDefined="true" />
+  </ItemGroup>
 </Project>

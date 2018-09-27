@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.OLE.Interop
@@ -40,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
             ' start debugging
             encService.StartDebuggingSession(workspace.CurrentSolution)
-            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), encService, mockEditorAdaptersFactoryService)
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(1, mockVsBuffer._oldFlags) ' Read-Only
@@ -88,7 +89,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
             ' start debugging
             encService.StartDebuggingSession(workspace.CurrentSolution)
-            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), encService, mockEditorAdaptersFactoryService)
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
@@ -131,7 +132,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
             ' start debugging & readOnlyDocumentTracker
             encService.StartDebuggingSession(workspace.CurrentSolution)
-            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), encService, mockEditorAdaptersFactoryService)
 
             ' valid document
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), False)
@@ -158,7 +159,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
             ' start debugging & readOnlyDocumentTracker
             encService.StartDebuggingSession(workspace.CurrentSolution)
-            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), encService, mockEditorAdaptersFactoryService)
 
             ' valid document
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), False)

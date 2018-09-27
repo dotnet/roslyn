@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -36,10 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 
         [ImportingConstructor]
         public HighlighterViewTaggerProvider(
+            IThreadingContext threadingContext,
             IHighlightingService highlightingService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting), notificationService)
         {
             _highlightingService = highlightingService;
         }
@@ -76,12 +77,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             var position = caretPosition.Value;
             var snapshot = snapshotSpan.Snapshot;
 
-            var existingTags = context.GetExistingTags(new SnapshotSpan(snapshot, position, 0));
+            // See if the user is just moving their caret around in an existing tag.  If so, we don't
+            // want to actually go recompute things.  Note: this only works for containment.  If the
+            // user moves their caret to the end of a highlighted reference, we do want to recompute
+            // as they may now be at the start of some other reference that should be highlighted instead.
+            var existingTags = context.GetExistingContainingTags(new SnapshotPoint(snapshot, position));
             if (!existingTags.IsEmpty())
             {
-                // We already have a tag at this position.  So the user is moving from one highlight
-                // tag to another.  In this case we don't want to recompute anything.  Let our caller
-                // know that we should preserve all tags.
                 context.SetSpansTagged(SpecializedCollections.EmptyEnumerable<DocumentSnapshotSpan>());
                 return;
             }

@@ -41,7 +41,7 @@
   <!-- 
     Append short commit SHA to PackageVersion.
   -->
-  <Target Name="_InitializePackageVersion" 
+  <Target Name="GetPackageVersion" 
           BeforeTargets="GenerateNuSpec" 
           DependsOnTargets="InitializeSourceControlInformation"
           Condition="'$(DotNetFinalVersionKind)' != 'release'">

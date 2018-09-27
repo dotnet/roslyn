@@ -8,10 +8,17 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <ServiceablePackage>true</ServiceablePackage>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <NoStdLib>true</NoStdLib>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Common</PackageId>
+    <PackageDescription>
+      A shared package used by the Microsoft .NET Compiler Platform ("Roslyn").
+      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+    </PackageDescription>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <LangVersion>7.2</LangVersion>
@@ -23,10 +30,12 @@
     <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
+      <Pack>false</Pack>
     </Content>
     <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.amd64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
+      <Pack>false</Pack>
     </Content>
   </ItemGroup>
   <ItemGroup>
@@ -41,7 +50,16 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" />
+    <!--
+      Analyzers that will be used to analyze projects that references 
+      Microsoft.CodeAnalysis project or Microsoft.CodeAnalysis.Common package.
+      
+      Note: PrivateAssets="ContentFiles" ensures that projects referencing Microsoft.CodeAnalysis.Common package 
+      will import everything but content files from Microsoft.CodeAnalysis.Analyzers, specifically, analyzers.
+    -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="ContentFiles" />
+
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" PrivateAssets="all" />
     <PackageReference Include="System.Diagnostics.FileVersionInfo" Version="$(SystemDiagnosticsFileVersionInfoVersion)" />
     <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
     <PackageReference Include="System.Xml.XPath.XDocument" Version="$(SystemXmlXPathXDocumentVersion)" />
@@ -107,6 +125,7 @@
     <InternalsVisibleTo Include="Roslyn.Test.PdbUtilities" />
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
+    <InternalsVisibleTo Include="CompilerBenchmarks" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CodeAnalysisResources.resx">

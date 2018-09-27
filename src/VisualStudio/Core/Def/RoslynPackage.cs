@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -26,6 +27,8 @@ using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TaskStatusCenter;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
@@ -72,14 +75,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             RoslynTelemetrySetup.Initialize(this);
 
             // set workspace output pane
-            _outputPane = new WorkspaceFailureOutputPane(this, _workspace);
+            _outputPane = new WorkspaceFailureOutputPane(_componentModel.GetService<IThreadingContext>(), this, _workspace);
 
             InitializeColors();
 
             // load some services that have to be loaded in UI thread
-            LoadComponentsInUIContextOnceSolutionFullyLoaded(cancellationToken);
+            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
 
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
+
+            TrackBulkFileOperations();
         }
 
         private void InitializeColors()
@@ -93,8 +98,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
         }
 
-        protected override void LoadComponentsInUIContext(CancellationToken cancellationToken)
+        protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
+
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
             this.ComponentModel.GetService<DiagnosticProgressReporter>();
@@ -219,6 +233,65 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 _ruleSetEventHandler.Unregister();
                 _ruleSetEventHandler = null;
+            }
+        }
+
+        private void TrackBulkFileOperations()
+        {
+            // we will pause whatever ambient work loads we have that are tied to IGlobalOperationNotificationService
+            // such as solution crawler, pre-emptive remote host synchronization and etc. any background work users didn't
+            // explicitly asked for.
+            //
+            // this should give all resources to BulkFileOperation. we do same for things like build, 
+            // debugging, wait dialog and etc. BulkFileOperation is used for things like git branch switching and etc.
+            var globalNotificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
+
+            // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
+            // so we only need simple tracking.
+            object gate = new object();
+            GlobalOperationRegistration localRegistration = null;
+
+            BulkFileOperation.End += (s, a) =>
+            {
+                StopBulkFileOperationNotification();
+            };
+
+            BulkFileOperation.Begin += (s, a) =>
+            {
+                StartBulkFileOperationNotification();
+            };
+
+            void StartBulkFileOperationNotification()
+            {
+                lock (gate)
+                {
+                    // this shouldn't happen, but we are using external component
+                    // so guarding us from them
+                    if (localRegistration != null)
+                    {
+                        WatsonReporter.Report(new Exception("BulkFileOperation already exist"));
+                        return;
+                    }
+
+                    localRegistration = globalNotificationService.Start("BulkFileOperation");
+                }
+            }
+
+            void StopBulkFileOperationNotification()
+            {
+                lock (gate)
+                {
+                    // this can happen if BulkFileOperation was already in the middle
+                    // of running. to make things simpler, decide to not use IsInProgress
+                    // which we need to worry about race case.
+                    if (localRegistration == null)
+                    {
+                        return;
+                    }
+
+                    localRegistration.Dispose();
+                    localRegistration = null;
+                }
             }
         }
     }
