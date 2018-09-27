@@ -6465,7 +6465,7 @@ class C
         }
 
         [WorkItem(844472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void LocalSignatureWithNoPIAType()
         {
             var sourcePIA = @"
