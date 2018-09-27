@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             var snapshotSpan = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot);
             var textSpan = TextSpan.FromBounds(snapshotSpan.Start, snapshotSpan.End);
 
-            _pasteTrackingService.RegisterPastedTextSpan(args.TextView, args.SubjectBuffer, textSpan);
+            _pasteTrackingService.RegisterPastedTextSpan(args.SubjectBuffer, textSpan);
         }
     }
 }

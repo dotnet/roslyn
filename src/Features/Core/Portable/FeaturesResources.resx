@@ -1442,4 +1442,7 @@ This version used in: {2}</value>
   <data name="Add_missing_imports" xml:space="preserve">
     <value>Add missing imports</value>
   </data>
+  <data name="Add_missing_usings" xml:space="preserve">
+    <value>Add missing usings</value>
+  </data>
 </root>

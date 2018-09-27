@@ -207,6 +207,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add missing usings.
+        /// </summary>
+        internal static string Add_missing_usings {
+            get {
+                return ResourceManager.GetString("Add_missing_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add null check.
         /// </summary>
         internal static string Add_null_check {

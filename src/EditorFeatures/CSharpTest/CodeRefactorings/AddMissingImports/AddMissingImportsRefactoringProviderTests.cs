@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.PasteTracking;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             if (!pastedTextSpan.IsEmpty)
             {
                 var pasteTrackingService = workspace.ExportProvider.GetExportedValue<PasteTrackingService>();
-                pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextView(), hostDocument.TextBuffer, pastedTextSpan);
+                pasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, pastedTextSpan);
             }
 
             return workspace;
@@ -107,13 +108,11 @@ class C
 
         private static Lazy<IExportProviderFactory> s_exportProviderFactory = new Lazy<IExportProviderFactory>(() =>
         {
-            var assemblies = TestExportProvider
-                .GetCSharpAndVisualBasicAssemblies()
-                .Concat(new[] { typeof(AddMissingImportsRefactoringProviderTests).Assembly });
+            var catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
+                .WithoutPartsOfType(typeof(IWorkspaceDiagnosticAnalyzerProviderService))
+                .WithPart(typeof(CSharpCompilerDiagnosticAnalyzerProviderService));
 
-            return ExportProviderCache.GetOrCreateExportProviderFactory(
-                ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies, ExportProviderCache.CreateResolver())
-            );
+            return ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
         });
 
         private static ExportProvider GetExportProvider() => s_exportProviderFactory.Value.CreateExportProvider();

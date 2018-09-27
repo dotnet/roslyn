@@ -1,25 +1,43 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using System.Threading;
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.AddMissingImports;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.AddMissingImports;
+using Microsoft.VisualStudio.Composition;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.AddMissingImports)]
-    public class CSharpAddMissingImportsFeatureServiceTests
+    public class CSharpAddMissingImportsFeatureServiceTests : AbstractAddMissingImportsFeatureServiceTest
     {
-        private const string LanguageName = LanguageNames.CSharp;
+        private static readonly Lazy<IExportProviderFactory> _exportProviderFactory = new Lazy<IExportProviderFactory>(() =>
+        {
+            // When running tests we need to get compiler diagnostics so we can find the missing imports
+            var catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
+                .WithoutPartsOfType(typeof(IWorkspaceDiagnosticAnalyzerProviderService))
+                .WithPart(typeof(CSharpCompilerDiagnosticAnalyzerProviderService));
+
+            return ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
+        });
+
+        public CSharpAddMissingImportsFeatureServiceTests()
+            : base(LanguageNames.CSharp)
+        {
+        }
+
+        protected override ExportProvider CreateExportProvider()
+        {
+            return _exportProviderFactory.Value.CreateExportProvider();
+        }
 
         [Fact]
-        public async Task AddMissingImports_DocumentUnchanged_SpanIsNotMissingImports()
+        public async Task AddMissingImports_NoChange_SpanIsNotMissingImports()
         {
             var code = @"
 class [|C|]
@@ -33,11 +51,11 @@ namespace A
 }
 ";
 
-            await AssertDocumentUnchangedAsync(code).ConfigureAwait(false);
+            await AssertDocumentUnchangedAsync(code);
         }
 
         [Fact]
-        public async Task AddMissingImports_DocumentChanged_SpanIsMissingImports()
+        public async Task AddMissingImports_AddedImport_SpanContainsMissingImport()
         {
             var code = @"
 class C
@@ -65,11 +83,59 @@ namespace A
 }
 ";
 
-            await AssertDocumentChangedAsync(code, expected).ConfigureAwait(false);
+            await AssertDocumentChangedAsync(code, expected);
         }
 
         [Fact]
-        public async Task AddMissingImports_DocumentUnchanged_SpanContainsAmbiguousImports()
+        public async Task AddMissingImports_AddedMultipleImports_SpanContainsMissingImports()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    [|public D Foo { get; }
+    public E Bar { get; }|]
+}
+
+namespace A
+{
+    public class D { }
+}
+
+namespace B
+{
+    public class E { }
+}
+";
+
+            var expected = @"
+using System;
+using A;
+using B;
+
+class C
+{
+    public D Foo { get; }
+    public E Bar { get; }
+}
+
+namespace A
+{
+    public class D { }
+}
+
+namespace B
+{
+    public class E { }
+}
+";
+
+            await AssertDocumentChangedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task AddMissingImports_NoChange_SpanContainsAmbiguousMissingImport()
         {
             var code = @"
 class C
@@ -88,64 +154,53 @@ namespace B
 }
 ";
 
-            await AssertDocumentUnchangedAsync(code).ConfigureAwait(false);
+            await AssertDocumentUnchangedAsync(code);
         }
 
-        private async Task AssertDocumentUnchangedAsync(string initialMarkup)
+        [Fact]
+        public async Task AddMissingImports_PartialFix_SpanContainsFixableAndAmbiguousMissingImports()
         {
-            using (var workspace = TestWorkspace.CreateCSharp(initialMarkup))
-            {
-                var diagnosticAnalyzerService = InitializeDiagnosticAnalyzerService(workspace);
+            var code = @"
+class C
+{
+    [|public D Foo { get; }
+    public E Bar { get; }|]
+}
 
-                var addMissingImportsService = new CSharpAddMissingImportsFeatureService(diagnosticAnalyzerService);
+namespace A
+{
+    public class D { }
+}
 
-                var hostDocument = workspace.Documents.First();
-                var documentId = hostDocument.Id;
-                var textSpan = hostDocument.SelectedSpans.First();
+namespace B
+{
+    public class D { }
+    public class E { }
+}
+";
 
-                var document = workspace.CurrentSolution.GetDocument(documentId);
+            var expected = @"
+using B;
 
-                var newProject = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, CancellationToken.None).ConfigureAwait(false);
-                var newDocument = newProject.GetDocument(documentId);
+class C
+{
+    public D Foo { get; }
+    public E Bar { get; }
+}
 
-                Assert.Equal(document, newDocument);
-            }
-        }
+namespace A
+{
+    public class D { }
+}
 
-        private async Task AssertDocumentChangedAsync(string initialMarkup, string expectedMarkup)
-        {
-            using (var workspace = TestWorkspace.CreateCSharp(initialMarkup))
-            {
-                var diagnosticAnalyzerService = InitializeDiagnosticAnalyzerService(workspace);
+namespace B
+{
+    public class D { }
+    public class E { }
+}
+";
 
-                var addMissingImportsService = new CSharpAddMissingImportsFeatureService(diagnosticAnalyzerService);
-
-                var hostDocument = workspace.Documents.First();
-                var documentId = hostDocument.Id;
-                var textSpan = hostDocument.SelectedSpans.First();
-
-                var document = workspace.CurrentSolution.GetDocument(documentId);
-
-                var newProject = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, CancellationToken.None).ConfigureAwait(false);
-                var newDocument = newProject.GetDocument(documentId);
-
-                Assert.NotEqual(document, newDocument);
-
-                var text = await newDocument.GetTextAsync().ConfigureAwait(false);
-
-                Assert.Equal(expectedMarkup, text.ToString());
-            }
-        }
-
-        private IDiagnosticAnalyzerService InitializeDiagnosticAnalyzerService(Workspace workspace)
-        {
-            var diagnosticAnalyzer = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageName);
-            var exceptionDiagnosticsSource = new TestHostDiagnosticUpdateSource(workspace);
-
-            var diagnosticAnalyzerService = new TestDiagnosticAnalyzerService(LanguageName, diagnosticAnalyzer, exceptionDiagnosticsSource);
-            diagnosticAnalyzerService.CreateIncrementalAnalyzer(workspace);
-
-            return diagnosticAnalyzerService;
+            await AssertDocumentChangedAsync(code, expected);
         }
     }
 }

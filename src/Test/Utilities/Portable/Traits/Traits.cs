@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Organizing = nameof(Organizing);
             public const string Outlining = nameof(Outlining);
             public const string Packaging = nameof(Packaging);
+            public const string PasteTracking = nameof(PasteTracking);
             public const string Peek = nameof(Peek);
             public const string Progression = nameof(Progression);
             public const string ProjectSystemShims = nameof(ProjectSystemShims);

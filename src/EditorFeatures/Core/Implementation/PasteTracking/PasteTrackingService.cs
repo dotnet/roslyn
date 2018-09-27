@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PasteTracking
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
-        public PasteTrackingService(IThreadingContext threadingContext)
+        public PasteTrackingService(IThreadingContext threadingContext, ITextBufferAssociatedViewService textBufferAssociatedViewService)
         {
             _threadingContext = threadingContext;
         }
@@ -34,22 +33,18 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             return textBuffer.Properties.TryGetProperty(this, out textSpan);
         }
 
-        internal void RegisterPastedTextSpan(ITextView textView, ITextBuffer textBuffer, TextSpan textSpan)
+        internal void RegisterPastedTextSpan(ITextBuffer textBuffer, TextSpan textSpan)
         {
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
 
-            textView.Closed += ClearTracking;
-            textBuffer.Changed += ClearTracking;
-
+            textBuffer.Changed += RemovePastedTestSpan;
             textBuffer.Properties.AddProperty(this, textSpan);
 
             return;
 
-            void ClearTracking(object sender, EventArgs e)
+            void RemovePastedTestSpan(object sender, TextContentChangedEventArgs e)
             {
-                textView.Closed -= ClearTracking;
-                textBuffer.Changed -= ClearTracking;
-
+                textBuffer.Changed -= RemovePastedTestSpan;
                 textBuffer.Properties.RemoveProperty(this);
             }
         }

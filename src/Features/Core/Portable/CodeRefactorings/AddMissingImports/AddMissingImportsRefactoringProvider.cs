@@ -36,7 +36,11 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 return;
             }
 
-            context.RegisterRefactoring(new AddMissingImportsCodeAction(_ => Task.FromResult(newProject.Solution)));
+            var title = document.Project.Language == LanguageNames.CSharp
+                ? FeaturesResources.Add_missing_usings
+                : FeaturesResources.Add_missing_imports;
+
+            context.RegisterRefactoring(new AddMissingImportsCodeAction(title, _ => Task.FromResult(newProject.Solution)));
         }
     }
 }

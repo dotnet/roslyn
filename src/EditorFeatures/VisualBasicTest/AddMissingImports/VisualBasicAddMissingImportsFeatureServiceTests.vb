@@ -1,20 +1,38 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.VisualBasic.AddMissingImports
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Test.Utilities.AddMissingImports
+Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.AddMissingImports
 
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.AddMissingImports)>
     Public Class VisualBasicAddMissingImportsFeatureServiceTests
-        Private Const LanguageName = LanguageNames.VisualBasic
+        Inherits AbstractAddMissingImportsFeatureServiceTest
+
+        Private Shared ReadOnly _exportProviderFactory As Lazy(Of IExportProviderFactory) = New Lazy(Of IExportProviderFactory)(
+            Function()
+                ' When running tests we need to get compiler diagnostics so we can find the missing imports
+                Dim catalog As ComposableCatalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.
+                    WithoutPartsOfType(GetType(IWorkspaceDiagnosticAnalyzerProviderService)).
+                    WithPart(GetType(VisualBasicCompilerDiagnosticAnalyzerProviderService))
+
+                Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog)
+            End Function)
+
+        Public Sub New()
+            MyBase.New(LanguageNames.VisualBasic)
+        End Sub
+
+        Protected Overrides Function CreateExportProvider() As ExportProvider
+            Return _exportProviderFactory.Value.CreateExportProvider()
+        End Function
 
         <Fact>
-        Public Async Function AddMissingImports_DocumentUnchanged_SpanIsNotMissingImports() As Task
+        Public Async Function AddMissingImports_NoChange_SpanIsNotMissingImports() As Task
             Dim code = "
 Class [|C|]
     Dim foo As D
@@ -26,11 +44,11 @@ Namespace A
 End Namespace
 "
 
-            Await AssertDocumentUnchangedAsync(code).ConfigureAwait(False)
+            Await AssertDocumentUnchangedAsync(code)
         End Function
 
         <Fact>
-        Public Async Function AddMissingImports_DocumentChanged_SpanIsMissingImports() As Task
+        Public Async Function AddMissingImports_AddedImport_SpanContainsMissingImport() As Task
             Dim code = "
 Class C
     Dim foo As [|D|]
@@ -55,11 +73,56 @@ Namespace A
 End Namespace
 "
 
-            Await AssertDocumentChangedAsync(code, expected).ConfigureAwait(False)
+            Await AssertDocumentChangedAsync(code, expected)
         End Function
 
         <Fact>
-        Public Async Function AddMissingImports_DocumentUnchanged_SpanContainsAmbiguousImports() As Task
+        Public Async Function AddMissingImports_AddedMultipleImports_SpanContainsMissingImports() As Task
+            Dim code = "
+Imports System
+
+Class C
+    [|Dim foo As D
+    Dim bar As E|]
+End Class
+
+Namespace A
+    Public Class D
+    End Class
+End Namespace
+
+Namespace B
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Dim expected = "
+Imports System
+Imports A
+Imports B
+
+Class C
+    Dim foo As D
+    Dim bar As E
+End Class
+
+Namespace A
+    Public Class D
+    End Class
+End Namespace
+
+Namespace B
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Await AssertDocumentChangedAsync(code, expected)
+        End Function
+
+        <Fact>
+        Public Async Function AddMissingImports_NoChange_SpanContainsAmbiguousMissingImport() As Task
             Dim code = "
 Class C
     Dim foo As [|D|]
@@ -76,62 +139,57 @@ Namespace B
 End Namespace
 "
 
-            Await AssertDocumentUnchangedAsync(code).ConfigureAwait(False)
+            Await AssertDocumentUnchangedAsync(code)
         End Function
 
-        Private Async Function AssertDocumentUnchangedAsync(initialMarkup As String) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup)
+        <Fact>
+        Public Async Function AddMissingImports_PartialFix_SpanContainsFixableAndAmbiguousMissingImports() As Task
+            Dim code = "
+Imports System
 
-                Dim diagnosticAnalyzerService = InitializeDiagnosticAnalyzerService(workspace)
+Class C
+    [|Dim foo As D
+    Dim bar As E|]
+End Class
 
-                Dim addMissingImportsService = New VisualBasicAddMissingImportsFeatureService(diagnosticAnalyzerService)
-
-                Dim hostDocument = workspace.Documents.First()
-                Dim documentId = hostDocument.Id
-                Dim textSpan = hostDocument.SelectedSpans.First()
-
-                Dim document = workspace.CurrentSolution.GetDocument(documentId)
-
-                Dim newProject = Await addMissingImportsService.AddMissingImportsAsync(document, textSpan, CancellationToken.None).ConfigureAwait(False)
-                Dim newDocument = newProject.GetDocument(documentId)
-
-                Assert.Equal(document, newDocument)
-            End Using
-        End Function
-
-        Private Async Function AssertDocumentChangedAsync(initialMarkup As String, expectedMarkup As String) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup)
-
-                Dim diagnosticAnalyzerService = InitializeDiagnosticAnalyzerService(workspace)
-
-                Dim addMissingImportsService = New VisualBasicAddMissingImportsFeatureService(diagnosticAnalyzerService)
-
-                Dim hostDocument = workspace.Documents.First()
-                Dim documentId = hostDocument.Id
-                Dim textSpan = hostDocument.SelectedSpans.First()
-
-                Dim document = workspace.CurrentSolution.GetDocument(documentId)
-
-                Dim newProject = Await addMissingImportsService.AddMissingImportsAsync(document, textSpan, CancellationToken.None).ConfigureAwait(False)
-                Dim newDocument = newProject.GetDocument(documentId)
-
-                Assert.NotEqual(document, newDocument)
-
-                Dim Text = Await newDocument.GetTextAsync().ConfigureAwait(False)
-
-                Assert.Equal(expectedMarkup, Text.ToString())
-            End Using
-        End Function
-
-        Private Function InitializeDiagnosticAnalyzerService(workspace As Workspace) As IDiagnosticAnalyzerService
-            Dim diagnosticAnalyzer = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageName)
-            Dim exceptionDiagnosticsSource = New TestHostDiagnosticUpdateSource(workspace)
-
-            Dim diagnosticAnalyzerService = New TestDiagnosticAnalyzerService(LanguageName, diagnosticAnalyzer, exceptionDiagnosticsSource)
-            diagnosticAnalyzerService.CreateIncrementalAnalyzer(workspace)
-
-            Return diagnosticAnalyzerService
-        End Function
+Namespace A
+    Public Class D
     End Class
 End Namespace
 
+Namespace B
+    Public Class D
+    End Class
+
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Dim expected = "
+Imports System
+Imports B
+
+Class C
+    Dim foo As D
+    Dim bar As E
+End Class
+
+Namespace A
+    Public Class D
+    End Class
+End Namespace
+
+Namespace B
+    Public Class D
+    End Class
+
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Await AssertDocumentChangedAsync(code, expected)
+        End Function
+    End Class
+End Namespace

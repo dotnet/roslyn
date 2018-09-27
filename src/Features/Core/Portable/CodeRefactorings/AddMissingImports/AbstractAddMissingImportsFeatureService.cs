@@ -11,10 +11,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             var diagnosticData = await _diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, textSpan, cancellationToken: cancellationToken).ConfigureAwait(false);
             var getDiagnosticTasks = diagnosticData
-                .Where(d => FixableDiagnosticIds.Contains(d.Id))
+                .Where(datum => FixableDiagnosticIds.Contains(datum.Id))
                 .Select(datum => datum.ToDiagnosticAsync(project, cancellationToken));
 
             await Task.WhenAll(getDiagnosticTasks).ConfigureAwait(false);
@@ -80,8 +78,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var getFixesForSpanTasks = diagnostics
                 .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
                 .Select(diagnosticsForSourceSpan => addImportService
-                    .GetFixesForDiagnosticsAsync(document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(), symbolSearchService, true, packageSources, cancellationToken)
-                );
+                    .GetFixesForDiagnosticsAsync(document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(), symbolSearchService, searchReferenceAssemblies: true, packageSources, cancellationToken));
 
             await Task.WhenAll(getFixesForSpanTasks).ConfigureAwait(false);
 
@@ -121,23 +118,23 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             await Task.WhenAll(getChangesTasks).ConfigureAwait(false);
 
-            var allTextChanges = Enumerable.Empty<TextChange>();
-            var allAddedProjectReferences = Enumerable.Empty<ProjectReference>();
-            var allAddedMetaDataReferences = Enumerable.Empty<MetadataReference>();
+            var allTextChanges = new HashSet<TextChange>();
+            var allAddedProjectReferences = new HashSet<ProjectReference>();
+            var allAddedMetaDataReferences = new HashSet<MetadataReference>();
 
             foreach (var getChangesTask in getChangesTasks)
             {
                 var (projectChanges, textChanges) = await getChangesTask.ConfigureAwait(false);
 
-                allTextChanges = allTextChanges.Concat(textChanges);
-                allAddedProjectReferences = allAddedProjectReferences.Concat(projectChanges.GetAddedProjectReferences());
-                allAddedMetaDataReferences = allAddedMetaDataReferences.Concat(projectChanges.GetAddedMetadataReferences());
+                allTextChanges.UnionWith(textChanges);
+                allAddedProjectReferences.UnionWith(projectChanges.GetAddedProjectReferences());
+                allAddedMetaDataReferences.UnionWith(projectChanges.GetAddedMetadataReferences());
             }
 
-            var newProject = document.Project.AddMetadataReferences(allAddedMetaDataReferences.Distinct());
-            newProject = newProject.AddProjectReferences(allAddedProjectReferences.Distinct());
+            var newProject = document.Project.AddMetadataReferences(allAddedMetaDataReferences);
+            newProject = newProject.AddProjectReferences(allAddedProjectReferences);
 
-            var newText = text.WithChanges(allTextChanges.Distinct());
+            var newText = text.WithChanges(allTextChanges);
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
 
             return newDocument;
@@ -145,7 +142,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
         private async Task<(ProjectChanges projectChanges, IEnumerable<TextChange> textChanges)> GetChangesForCodeActionAsync(Document document, CodeAction codeAction, CancellationToken cancellationToken)
         {
-            var newSolution = await codeAction.GetChangedSolutionAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+            var newSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             var newDocument = newSolution.GetDocument(document.Id);
 
             var textChanges = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
