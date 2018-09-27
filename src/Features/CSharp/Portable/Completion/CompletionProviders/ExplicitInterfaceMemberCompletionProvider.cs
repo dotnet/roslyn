@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 foreach (var member in members)
                 {
+                    if (IsPropertyGetOrSetMethod(member)) continue;
+
                     var displayText = member.ToMinimalDisplayString(
                         semanticModel, namePosition, s_signatureDisplayFormat);
                     var insertionText = displayText;
@@ -128,6 +130,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, selectedItem.DisplayText));
+        }
+
+        private bool IsPropertyGetOrSetMethod(ISymbol symbol)
+        {
+            if (symbol.Kind == SymbolKind.Method)
+            {
+                var methodSymbol = symbol as IMethodSymbol;
+                return methodSymbol.MethodKind == MethodKind.PropertyGet || methodSymbol.MethodKind == MethodKind.PropertySet;
+            }
+
+            return false;
         }
     }
 }
