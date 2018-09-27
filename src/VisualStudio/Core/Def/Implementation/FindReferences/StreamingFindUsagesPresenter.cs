@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
             new HashSet<AbstractTableDataSourceFindUsagesContext>();
-        private readonly ImmutableHashSet<AbstractFindUsagesCustomColumnDefinition> _customColumns;
+        private readonly ImmutableArray<AbstractFindUsagesCustomColumnDefinition> _customColumns;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             EditorOptionsFactoryService = editorOptionsFactoryService;
 
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
-            _customColumns = columns.OfType<AbstractFindUsagesCustomColumnDefinition>().ToImmutableHashSet();
+            _customColumns = columns.OfType<AbstractFindUsagesCustomColumnDefinition>().ToImmutableArray();
         }
 
         public void ClearAll()

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -67,24 +67,19 @@ namespace Microsoft.CodeAnalysis
         public static bool ContainsNonReadWriteReference(this ValueUsageInfo valueUsageInfo)
             => (valueUsageInfo & ValueUsageInfo.NonReadWriteReference) != 0;
 
-        public static ImmutableArray<string> ToValues(this ValueUsageInfo valueUsageInfo)
+        public static IEnumerable<string> ToValues(this ValueUsageInfo valueUsageInfo)
         {
-            if (valueUsageInfo == ValueUsageInfo.None)
+            if (valueUsageInfo != ValueUsageInfo.None)
             {
-                return ImmutableArray<string>.Empty;
-            }
-
-            var builder = ImmutableArray.CreateBuilder<string>();
-            foreach (ValueUsageInfo value in Enum.GetValues(typeof(ValueUsageInfo)))
-            {
-                bool singleBitIsSet = (value & (value - 1)) == 0;
-                if (singleBitIsSet && (valueUsageInfo & value) != 0)
+                foreach (ValueUsageInfo value in Enum.GetValues(typeof(ValueUsageInfo)))
                 {
-                    builder.Add(value.ToString());
+                    bool singleBitIsSet = (value & (value - 1)) == 0;
+                    if (singleBitIsSet && (valueUsageInfo & value) != 0)
+                    {
+                        yield return value.ToString();
+                    }
                 }
             }
-
-            return builder.ToImmutable();
         }
     }
 }

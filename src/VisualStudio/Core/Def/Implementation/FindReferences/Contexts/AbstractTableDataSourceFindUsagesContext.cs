@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -77,15 +78,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public int CurrentVersionNumber { get; protected set; }
 
             /// <summary>
-            /// Column states for custom columns.
+            /// Map from custom column names to column states.
             /// </summary>
-            private readonly Dictionary<string, ColumnState2> _customColumnStatesMap;
+            private readonly Dictionary<string, ColumnState2> _customColumnTitleToStatesMap;
+
             #endregion
 
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
-                 ImmutableHashSet<AbstractFindUsagesCustomColumnDefinition> customColumns)
+                 ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
             {
                 presenter.AssertIsForeground();
 
@@ -101,29 +103,31 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 Debug.Assert(_findReferencesWindow.Manager.Sources.Count == 0);
 
-                var customColumnNames = customColumns.Select(c => c.Name).ToImmutableHashSet();
-
                 // And add ourselves as the source of results for the window.
                 // Additionally, add custom columns to display custom reference information.
-                _findReferencesWindow.Manager.AddSource(this, customColumnNames);
+                _findReferencesWindow.Manager.AddSource(this, customColumns.SelectAsArray(c => c.Name));
 
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
                 Debug.Assert(_tableDataSink != null);
 
                 // Initialize and update custom column states.
-                _customColumnStatesMap = GetInitialCustomColumnStates(findReferencesWindow.TableControl.ColumnStates, customColumns, customColumnNames);
-                TableControl.SetColumnStates(_customColumnStatesMap.Values);
+                // Note that the TableControl.SetColumnStates is not dependent on order of the input column states.
+                _customColumnTitleToStatesMap = GetInitialCustomColumnStates(findReferencesWindow.TableControl.ColumnStates, customColumns);
+                TableControl.SetColumnStates(_customColumnTitleToStatesMap.Values);
             }
 
             private static Dictionary<string, ColumnState2> GetInitialCustomColumnStates(
                 IReadOnlyList<ColumnState> allColumnStates,
-                ImmutableHashSet<AbstractFindUsagesCustomColumnDefinition> customColumns,
-                ImmutableHashSet<string> customColumnNames)
+                ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
             {
-                var customColumnStatesMap = new Dictionary<string, ColumnState2>(customColumnNames.Count);
-
-                // If there is an existing column state for the custom column, flip it to be non-visible by default.
+                var customColumnStatesMap = new Dictionary<string, ColumnState2>(customColumns.Length);
+                var customColumnNames = new HashSet<string>(customColumns.Select(c => c.Name));
+                
+                // Set the default visibility for each custom column.
+                // If there is an existing column state for the custom column, flip it to be non-visible by default at the start of FAR query.
+                // We do so because the column will have empty values for all results for a FAR query for certain cases such as types, literals, no references found case, etc.
+                // It is preferable to dynamically hide an empty column for such queries, and dynamically show the column if it has at least one non-default value.
                 foreach (ColumnState2 columnState in allColumnStates.Where(c => customColumnNames.Contains(c.Name)))
                 {
                     var newColumnState = new ColumnState2(columnState.Name, isVisible: false, columnState.Width,
@@ -307,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
-                ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt = null)
+                MultiDictionary<string, string> customColumnsDataOpt)
             {
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
@@ -322,15 +326,33 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // Local functions.
                 ImmutableDictionary<string, string> GetAggregatedCustomColumnsData()
                 {
-                    if (customColumnsDataOpt == null || customColumnsDataOpt.IsEmpty)
+                    // Aggregate multidictionary values to get column display values. For example, below input:
+                    //
+                    // {
+                    //   { "Column1", {"Value1", "Value2"} },
+                    //   { "Column2", {"Value3", "Value4"} }
+                    // }
+                    //
+                    // will transform to:
+                    //
+                    // {
+                    //   { "Column1", "Value1, Value2" },
+                    //   { "Column2", "Value3, Value4" }
+                    // }
+
+                    if (customColumnsDataOpt == null || customColumnsDataOpt.Count == 0)
                     {
                         return ImmutableDictionary<string, string>.Empty;
                     }
 
                     return customColumnsDataOpt.ToImmutableDictionary(
                         keySelector: kvp => kvp.Key,
-                        elementSelector: kvp => ((AbstractFindUsagesCustomColumnDefinition)TableControl.ColumnDefinitionManager.GetColumnDefinition(kvp.Key)).GetDisplayStringForColumnValues(kvp.Value));
+                        elementSelector: kvp => GetCustomColumn(kvp.Key).GetDisplayStringForColumnValues(kvp.Value));
+
                 }
+
+                AbstractFindUsagesCustomColumnDefinition GetCustomColumn(string columnName)
+                    => (AbstractFindUsagesCustomColumnDefinition)TableControl.ColumnDefinitionManager.GetColumnDefinition(columnName);
             }
 
             private TextSpan GetRegionSpanForReference(SourceText sourceText, TextSpan referenceSpan)
@@ -346,10 +368,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     sourceText.Lines[lastLineNumber].End);
             }
 
-            private void UpdateCustomColumnsVisibility(ImmutableDictionary<string, ImmutableArray<string>> customData)
+            private void UpdateCustomColumnsVisibility(MultiDictionary<string, string> customData)
             {
                 // Check if we have any custom reference data to display.
-                if (customData.IsEmpty)
+                if (customData.Count == 0)
                 {
                     return;
                 }
@@ -371,7 +393,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                         // Ensure that we flip the visibility to true for the custom column.
                         ColumnState2 newColumnStateOpt = null;
-                        if (_customColumnStatesMap.TryGetValue(customColumnDefinition.Name, out var columnState))
+                        if (_customColumnTitleToStatesMap.TryGetValue(customColumnDefinition.Name, out var columnState))
                         {
                             if (!columnState.IsVisible)
                             {
@@ -386,7 +408,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                         if (newColumnStateOpt != null)
                         {
-                            _customColumnStatesMap[customColumnDefinition.Name] = newColumnStateOpt;
+                            _customColumnTitleToStatesMap[customColumnDefinition.Name] = newColumnStateOpt;
 
                             newColumnStatesOpt = newColumnStatesOpt ?? new List<ColumnState2>();
                             newColumnStatesOpt.Add(newColumnStateOpt);
@@ -397,6 +419,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // Update the column states if required.
                 if (newColumnStatesOpt != null)
                 {
+                    // SetColumnStates API forces a switch to UI thread, so it should be safe to call from a background thread here.
+                    // Also note that we will call it only once for each new custom column to add for each find references query - the lock above guarantees that
+                    // newColumnStatesOpt is going to be non-null only for the first result that has a non-empty column value.
                     TableControl.SetColumnStates(newColumnStatesOpt);
                 }
             }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -21,6 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         public override bool TryGetFilterItems(ITableEntryHandle entry, out IEnumerable<string> filterItems)
         {
+            // Determine the constituent strings for the display value in column, which should be used for applying the filter.
+            // For example, if value "Read, Write" is displayed in column for an entry, we will return "Read" and "Write" here,
+            // so filtering based on individual filter terms can be done.
             if (IsFilterable &&
                 entry.TryGetValue(Name, out var value) &&
                 value is string displayString &&
@@ -33,8 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             return base.TryGetFilterItems(entry, out filterItems);
         }
 
-        // Default implementation for column display value.
-        public virtual string GetDisplayStringForColumnValues(ImmutableArray<string> values) => string.Join(", ", values);
-        protected virtual IEnumerable<string> SplitColumnDisplayValue(string displayValue) => displayValue.Split(',').Select(v => v.Trim());
+        public abstract string GetDisplayStringForColumnValues(MultiDictionary<string, string>.ValueSet values);
+        protected abstract IEnumerable<string> SplitColumnDisplayValue(string displayValue);
+
+        protected static string JoinValues(MultiDictionary<string, string>.ValueSet values) => string.Join(", ", values.Order());
+        protected static IEnumerable<string> SplitAndTrimValue(string displayValue) => displayValue.Split(',').Select(v => v.Trim());
     }
 }

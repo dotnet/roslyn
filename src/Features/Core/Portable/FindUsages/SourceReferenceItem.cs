@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Concurrent;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
@@ -11,6 +12,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// </summary>
     internal sealed class SourceReferenceItem
     {
+        // We can have only a handful of different values for ValueUsageInfo flags enum, so the maximum size of this dictionary is capped.
+        // So, we store this as a static dictionary which will be held in memory for the lifetime of the process.
+        private static readonly ConcurrentDictionary<ValueUsageInfo, MultiDictionary<string, string>> s_valueUsageInfoToReferenceInfoMap
+            = new ConcurrentDictionary<ValueUsageInfo, MultiDictionary<string, string>>();
+
         /// <summary>
         /// The definition this reference corresponds to.
         /// </summary>
@@ -33,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// This entry indicates that the reference has additional value usage information which indicate
         /// it is a read/write reference, such as say 'a++'.
         /// </summary>
-        public ImmutableDictionary<string, ImmutableArray<string>> ReferenceInfo { get; }
+        public MultiDictionary<string, string> ReferenceInfo { get; }
 
         [Obsolete]
         public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, bool isWrittenTo)
@@ -41,10 +47,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
             Definition = definition;
             SourceSpan = sourceSpan;
             IsWrittenTo = isWrittenTo;
-            ReferenceInfo = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
+            ReferenceInfo = GetOrCreateReferenceInfo(ValueUsageInfo.None);
         }
 
-        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ImmutableDictionary<string, ImmutableArray<string>> referenceInfo)
+        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, MultiDictionary<string, string> referenceInfo)
         {
             Definition = definition;
             SourceSpan = sourceSpan;
@@ -52,19 +58,20 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ValueUsageInfo valueUsageInfo)
-            : this(definition, sourceSpan, CreateReferenceInfo(valueUsageInfo))
+            : this(definition, sourceSpan, GetOrCreateReferenceInfo(valueUsageInfo))
         {
             IsWrittenTo = valueUsageInfo.ContainsWriteOrWritableReference();
         }
 
-        private static ImmutableDictionary<string, ImmutableArray<string>> CreateReferenceInfo(ValueUsageInfo valueUsageInfo)
-        {
-            var referenceInfo = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
+        private static MultiDictionary<string, string> GetOrCreateReferenceInfo(ValueUsageInfo valueUsageInfo)
+            => s_valueUsageInfoToReferenceInfoMap.GetOrAdd(valueUsageInfo, CreateReferenceInfo);
 
-            var values = valueUsageInfo.ToValues();
-            if (!values.IsEmpty)
+        private static MultiDictionary<string, string> CreateReferenceInfo(ValueUsageInfo valueUsageInfo)
+        {
+            var referenceInfo = new MultiDictionary<string, string>();
+            foreach (var value in valueUsageInfo.ToValues())
             {
-                referenceInfo = referenceInfo.Add(nameof(ValueUsageInfo), values);
+                referenceInfo.Add(nameof(ValueUsageInfo), value);
             }
 
             return referenceInfo;
