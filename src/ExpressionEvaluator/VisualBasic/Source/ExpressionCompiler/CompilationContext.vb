@@ -560,7 +560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             [namespace] As NamespaceSymbol,
             importRecordGroups As ImmutableArray(Of ImmutableArray(Of ImportRecord))) As Binder
 
-            Dim binder = BackstopBinder.Instance
+            Dim binder As Binder = BackstopBinder.Instance
             binder = New SuppressDiagnosticsBinder(binder)
             binder = New IgnoreAccessibilityBinder(binder)
             binder = New SourceModuleBinder(binder, DirectCast(compilation.Assembly.Modules(0), SourceModuleSymbol))
