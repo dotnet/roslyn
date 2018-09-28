@@ -346,6 +346,40 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InExpressionTreeSimpleLambdaAfterArrow()
+        {
+            var markup =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    Expression<Func<bool, DayOfWeek>> M()
+    {
+        return _ => $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InExpressionTreeParenthesizedLambdaAfterArrow()
+        {
+            var markup =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    Expression<Func<DayOfWeek>> M()
+    {
+        return () => $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoCompletionListTag()
         {
             var markup =
