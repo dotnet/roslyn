@@ -3316,10 +3316,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(lookupResult.IsClear);
 
-            var currentType = patternType;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             ArrayBuilder<MethodSymbol> candidateMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            PooledHashSet<NamedTypeSymbol> checkedMethods = null;
+            PooledHashSet<NamedTypeSymbol> visitedTypes = null;
 
             while (!(patternType is null))
             {
@@ -3358,7 +3357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // the ones we found weren't viable. Try again, starting from the parent of where we found these
-                        patternType = patternType.GetNextBaseTypeNoUseSiteDiagnostics(null, Compilation, ref checkedMethods);
+                        patternType = patternType.GetNextBaseTypeNoUseSiteDiagnostics(null, Compilation, ref visitedTypes);
                         lookupResult.Clear();
                     }
                 }
@@ -3370,6 +3369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol patternMethod = PerformPatternOverloadResolution(patternType, candidateMethods, syntaxExpr, warningsOnly, diagnostics, syntaxTree, messageID);
             candidateMethods.Free();
+            visitedTypes?.Free();
 
             return patternMethod;
         }
