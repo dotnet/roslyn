@@ -3294,7 +3294,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return patternMethod;
         }
 
-
         /// <summary>
         /// Perform a lookup for the specified method on the specified type, searching further if the first resolved symbol doesn't match
         /// the requirements. Perform overload resolution the lookup results.
