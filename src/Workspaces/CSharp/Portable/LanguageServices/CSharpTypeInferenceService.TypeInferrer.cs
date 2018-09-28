@@ -157,12 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case LockStatementSyntax lockStatement: return InferTypeInLockStatement(lockStatement);
                     case MemberAccessExpressionSyntax memberAccessExpression: return InferTypeInMemberAccessExpression(memberAccessExpression, expression);
                     case NameEqualsSyntax nameEquals: return InferTypeInNameEquals(nameEquals);
-                    case ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression: return InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression);
+                    case LambdaExpressionSyntax lambdaExpression: return InferTypeInLambdaExpression(lambdaExpression);
                     case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary);
                     case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary);
                     case RefExpressionSyntax refExpression: return InferTypeInRefExpression(refExpression);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement);
-                    case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel);
                     case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement);
                     case ThrowExpressionSyntax throwExpression: return InferTypeInThrowExpression(throwExpression);
@@ -229,11 +228,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case NameColonSyntax nameColon: return InferTypeInNameColon(nameColon, token);
                     case NameEqualsSyntax nameEquals: return InferTypeInNameEquals(nameEquals, token);
                     case ObjectCreationExpressionSyntax objectCreation: return InferTypeInObjectCreationExpression(objectCreation, token);
-                    case ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression: return InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression, token);
+                    case LambdaExpressionSyntax lambdaExpression: return InferTypeInLambdaExpression(lambdaExpression, token);
                     case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary, token);
                     case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary, token);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement, token);
-                    case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression, token);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel, token);
                     case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement, token);
                     case ThrowStatementSyntax throwStatement: return InferTypeInThrowStatement(throwStatement, token);
@@ -1439,18 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Object)));
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax lambdaExpression, SyntaxToken? previousToken = null)
-            {
-                // If we have a position, it has to be after the lambda arrow.
-                if (previousToken.HasValue && previousToken.Value != lambdaExpression.ArrowToken)
-                {
-                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
-
-                return InferTypeInAnonymousFunctionExpression(lambdaExpression);
-            }
-
-            private IEnumerable<TypeInferenceInfo> InferTypeInSimpleLambdaExpression(SimpleLambdaExpressionSyntax lambdaExpression, SyntaxToken? previousToken = null)
+            private IEnumerable<TypeInferenceInfo> InferTypeInLambdaExpression(LambdaExpressionSyntax lambdaExpression, SyntaxToken? previousToken = null)
             {
                 // If we have a position, it has to be after the lambda arrow.
                 if (previousToken.HasValue && previousToken.Value != lambdaExpression.ArrowToken)
