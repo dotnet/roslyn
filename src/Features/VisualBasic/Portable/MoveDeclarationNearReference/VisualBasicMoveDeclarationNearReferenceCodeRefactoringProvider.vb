@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.MoveDeclarationNearReference), [Shared]>
+    <Export(GetType(VisualBasicMoveDeclarationNearReferenceCodeRefactoringProvider))>
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.InlineTemporary)>
     Friend Class VisualBasicMoveDeclarationNearReferenceCodeRefactoringProvider
         Inherits AbstractMoveDeclarationNearReferenceCodeRefactoringProvider(Of

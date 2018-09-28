@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -126,5 +127,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol LazyOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(Lazy<>).FullName);
+
+        public static INamedTypeSymbol ConditionalAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ConditionalAttribute).FullName);
+
+        public static INamedTypeSymbol ObsoleteAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName);
+
+        public static INamedTypeSymbol OnDeserializingAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.Serialization.OnDeserializingAttribute");
+
+        public static INamedTypeSymbol OnDeserializedAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.Serialization.OnDeserializedAttribute");
+
+        public static INamedTypeSymbol OnSerializingAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.Serialization.OnSerializingAttribute");
+
+        public static INamedTypeSymbol OnSerializedAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.Serialization.OnSerializedAttribute");
+
+        public static INamedTypeSymbol InterlockedType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(System.Threading.Interlocked).FullName);
+
+        public static INamedTypeSymbol ImmutableInterlockedType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.ImmutableInterlocked).FullName);
     }
 }

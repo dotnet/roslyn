@@ -42,6 +42,29 @@ namespace Microsoft.CodeAnalysis
             | typeof(x)       |      |       |             |             |       ✔️        | ️
 
             */
+            if (operation is ILocalReferenceOperation localReference &&
+                localReference.IsDeclaration &&
+                !localReference.IsImplicit) // Workaround for https://github.com/dotnet/roslyn/issues/30753
+            {
+                // Declaration expression.
+                return ValueUsageInfo.Write;
+            }
+            else if (operation is IDeclarationPatternOperation)
+            {
+                switch (operation.Parent)
+                {
+                    case IPatternCaseClauseOperation _:
+                        return ValueUsageInfo.Write;
+
+                    case IIsPatternOperation _:
+                        return ValueUsageInfo.ReadWrite;
+
+                    default:
+                        Debug.Fail("Unhandled declaration pattern context");
+                        // Conservatively assume read/write.
+                        return ValueUsageInfo.ReadWrite;
+                }
+            }
 
             if (operation.Parent is IAssignmentOperation assignmentOperation &&
                 assignmentOperation.Target == operation)
@@ -92,7 +115,11 @@ namespace Microsoft.CodeAnalysis
                     ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }
-            else if (IsInLeftOfDeconstructionAssignment(operation))
+            else if (operation.Parent is IDeclarationExpressionOperation declarationExpression)
+            {
+                return declarationExpression.GetValueUsageInfo();
+            }
+            else if (operation.IsInLeftOfDeconstructionAssignment(out _))
             {
                 return ValueUsageInfo.Write;
             }
@@ -100,8 +127,10 @@ namespace Microsoft.CodeAnalysis
             return ValueUsageInfo.Read;
         }
 
-        private static bool IsInLeftOfDeconstructionAssignment(IOperation operation)
+        public static bool IsInLeftOfDeconstructionAssignment(this IOperation operation, out IDeconstructionAssignmentOperation deconstructionAssignment)
         {
+            deconstructionAssignment = null;
+
             var previousOperation = operation;
             operation = operation.Parent;
 
@@ -110,7 +139,7 @@ namespace Microsoft.CodeAnalysis
                 switch (operation.Kind)
                 {
                     case OperationKind.DeconstructionAssignment:
-                        var deconstructionAssignment = (IDeconstructionAssignmentOperation)operation;
+                        deconstructionAssignment = (IDeconstructionAssignmentOperation)operation;
                         return deconstructionAssignment.Target == previousOperation;
 
                     case OperationKind.Tuple:
@@ -126,6 +155,24 @@ namespace Microsoft.CodeAnalysis
             }
 
             return false;
+        }
+
+        public static ILocalFunctionOperation GetLocalFunctionOperation(this IOperation rootOperation, IMethodSymbol localFunction)
+        {
+            Debug.Assert(localFunction.IsLocalFunction());
+            foreach (var operation in rootOperation.DescendantsAndSelf())
+            {
+                if (operation.Kind == OperationKind.LocalFunction)
+                {
+                    var localFunctionOperation = (ILocalFunctionOperation)operation;
+                    if (localFunctionOperation.Symbol == localFunction)
+                    {
+                        return localFunctionOperation;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

@@ -351,8 +351,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 void setRegion(BasicBlockBuilder block)
                 {
-                    Debug.Assert(block.Region == null);
-                    block.Region = result;
+                    Debug.Assert(block.EnclosingRegion == null);
+                    block.EnclosingRegion = result;
 
                     // Populate the map of IFlowAnonymousFunctionOperation nodes, if we have any
                     if (anonymousFunctionsMapOpt != null)

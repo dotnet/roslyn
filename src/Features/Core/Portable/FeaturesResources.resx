@@ -1466,6 +1466,39 @@ This version used in: {2}</value>
   <data name="Failed_to_analyze_data_flow_for_0" xml:space="preserve">
     <value>Failed to analyze data-flow for: {0}</value>
   </data>
+  <data name="Expression_value_is_never_used" xml:space="preserve">
+    <value>Expression value is never used</value>
+  </data>
+  <data name="Value_assigned_here_to_0_is_never_used" xml:space="preserve">
+    <value>Value assigned here to '{0}' is never used</value>
+  </data>
+  <data name="Value_assigned_here_to_symbol_is_never_used" xml:space="preserve">
+    <value>Value assigned here to symbol is never used</value>
+  </data>
+  <data name="Use_discarded_local" xml:space="preserve">
+    <value>Use discarded local</value>
+  </data>
+  <data name="Use_discard_underscore" xml:space="preserve">
+    <value>Use discard '_'</value>
+  </data>
+  <data name="Remove_redundant_assignment" xml:space="preserve">
+    <value>Remove redundant assignment</value>
+  </data>
+  <data name="comma_its_initial_value_is_never_used" xml:space="preserve">
+    <value>, its initial value is never used</value>
+    <comment>Optional addition to Remove_unused_parameter_0_1</comment>
+  </data>
+  <data name="if_it_is_not_part_of_a_shipped_public_API" xml:space="preserve">
+    <value> if it is not part of a shipped public API</value>
+    <comment>Optional addition to Remove_unused_parameter_0_1</comment>
+  </data>
+  <data name="Remove_unused_parameter" xml:space="preserve">
+    <value>Remove unused parameter</value>
+  </data>
+  <data name="Remove_unused_parameter_0_1" xml:space="preserve">
+    <value>Remove unused parameter '{0}'{1}</value>
+    <comment>String {1} is an optional addition to this message, see comma_its_initial_value_is_never_used</comment>
+  </data>
   <data name="Fix_formatting" xml:space="preserve">
     <value>Fix formatting</value>
   </data>

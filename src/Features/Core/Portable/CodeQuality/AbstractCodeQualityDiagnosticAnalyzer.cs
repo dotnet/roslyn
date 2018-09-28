@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeQuality
 {
@@ -43,26 +40,11 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
             params string[] customTags)
-        {
-            var customTagsBuilder = ArrayBuilder<string>.GetInstance();
-            customTagsBuilder.AddRange(customTags.Concat(WellKnownDiagnosticTags.Telemetry));
-
-            if (!isConfigurable)
-            {
-                customTagsBuilder.Add(WellKnownDiagnosticTags.NotConfigurable);
-            }
-
-            if (isUnneccessary)
-            {
-                customTagsBuilder.Add(WellKnownDiagnosticTags.Unnecessary);
-            }
-
-            return new DiagnosticDescriptor(
-                id, title, messageFormat,
-                DiagnosticCategory.CodeQuality,
-                DiagnosticSeverity.Info,
-                isEnabledByDefault,
-                customTags: customTagsBuilder.ToArrayAndFree());
-        }
+            =>  new DiagnosticDescriptor(
+                    id, title, messageFormat,
+                    DiagnosticCategory.CodeQuality,
+                    DiagnosticSeverity.Info,
+                    isEnabledByDefault,
+                    customTags: DiagnosticCustomTags.Create(isUnneccessary, isConfigurable, customTags));
     }
 }

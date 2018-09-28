@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 namespace Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveDeclarationNearReference), Shared]
+    [Export(typeof(CSharpMoveDeclarationNearReferenceCodeRefactoringProvider))]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InlineTemporary)]
     internal partial class CSharpMoveDeclarationNearReferenceCodeRefactoringProvider :
         AbstractMoveDeclarationNearReferenceCodeRefactoringProvider<

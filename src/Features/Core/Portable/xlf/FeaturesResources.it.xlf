@@ -67,6 +67,11 @@
         <target state="new">Convert to tuple</target>
         <note />
       </trans-unit>
+      <trans-unit id="Expression_value_is_never_used">
+        <source>Expression value is never used</source>
+        <target state="new">Expression value is never used</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="new">Failed to analyze data-flow for: {0}</target>
@@ -132,6 +137,11 @@
         <target state="translated">Le firme del metodo correlate trovate nei metadati non verranno aggiornate.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_assignment">
+        <source>Remove redundant assignment</source>
+        <target state="new">Remove redundant assignment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="new">Remove unread private members</target>
@@ -141,6 +151,16 @@
         <source>Remove unused member</source>
         <target state="new">Remove unused member</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter">
+        <source>Remove unused parameter</source>
+        <target state="new">Remove unused parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_1">
+        <source>Remove unused parameter '{0}'{1}</source>
+        <target state="new">Remove unused parameter '{0}'{1}</target>
+        <note>String {1} is an optional addition to this message, see comma_its_initial_value_is_never_used</note>
       </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
@@ -162,6 +182,16 @@
         <target state="new">Use compound assignment</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_discard_underscore">
+        <source>Use discard '_'</source>
+        <target state="new">Use discard '_'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_discarded_local">
+        <source>Use discarded local</source>
+        <target state="new">Use discarded local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="new">Use expression body for lambda expressions</target>
@@ -172,6 +202,21 @@
         <target state="new">Use interpolated verbatim string</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_assigned_here_to_0_is_never_used">
+        <source>Value assigned here to '{0}' is never used</source>
+        <target state="new">Value assigned here to '{0}' is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_here_to_symbol_is_never_used">
+        <source>Value assigned here to symbol is never used</source>
+        <target state="new">Value assigned here to symbol is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="comma_its_initial_value_is_never_used">
+        <source>, its initial value is never used</source>
+        <target state="new">, its initial value is never used</target>
+        <note>Optional addition to Remove_unused_parameter_0_1</note>
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">overload generico</target>
@@ -181,6 +226,11 @@
         <source>generic overloads</source>
         <target state="translated">overload generici</target>
         <note />
+      </trans-unit>
+      <trans-unit id="if_it_is_not_part_of_a_shipped_public_API">
+        <source> if it is not part of a shipped public API</source>
+        <target state="new"> if it is not part of a shipped public API</target>
+        <note>Optional addition to Remove_unused_parameter_0_1</note>
       </trans-unit>
       <trans-unit id="overload">
         <source>overload</source>

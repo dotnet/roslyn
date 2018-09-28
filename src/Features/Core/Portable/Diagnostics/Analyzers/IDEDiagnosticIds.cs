@@ -88,6 +88,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string FormattingDiagnosticId = "IDE0055";
 
+        public const string ExpressionValueIsUnusedDiagnosticId = "IDE0056";
+        public const string ValueAssignedIsUnusedDiagnosticId = "IDE0057";
+        public const string ParameterCanBeRemovedDiagnosticId = "IDE0058";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

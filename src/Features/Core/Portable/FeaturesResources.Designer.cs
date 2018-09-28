@@ -836,6 +836,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to , its initial value is never used.
+        /// </summary>
+        internal static string comma_its_initial_value_is_never_used {
+            get {
+                return ResourceManager.GetString("comma_its_initial_value_is_never_used", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Compiler.
         /// </summary>
         internal static string Compiler1 {
@@ -1240,6 +1249,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Exceptions_colon {
             get {
                 return ResourceManager.GetString("Exceptions_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expression value is never used.
+        /// </summary>
+        internal static string Expression_value_is_never_used {
+            get {
+                return ResourceManager.GetString("Expression_value_is_never_used", resourceCulture);
             }
         }
         
@@ -1735,6 +1753,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Hosting_process_exited_with_exit_code_0 {
             get {
                 return ResourceManager.GetString("Hosting_process_exited_with_exit_code_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  if it is not part of a shipped public API.
+        /// </summary>
+        internal static string if_it_is_not_part_of_a_shipped_public_API {
+            get {
+                return ResourceManager.GetString("if_it_is_not_part_of_a_shipped_public_API", resourceCulture);
             }
         }
         
@@ -2835,6 +2862,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove redundant assignment.
+        /// </summary>
+        internal static string Remove_redundant_assignment {
+            get {
+                return ResourceManager.GetString("Remove_redundant_assignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove reference to &apos;{0}&apos;..
         /// </summary>
         internal static string Remove_reference_to_0 {
@@ -2921,6 +2957,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remove_unused_member {
             get {
                 return ResourceManager.GetString("Remove_unused_member", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused parameter.
+        /// </summary>
+        internal static string Remove_unused_parameter {
+            get {
+                return ResourceManager.GetString("Remove_unused_parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused parameter &apos;{0}&apos;{1}.
+        /// </summary>
+        internal static string Remove_unused_parameter_0_1 {
+            get {
+                return ResourceManager.GetString("Remove_unused_parameter_0_1", resourceCulture);
             }
         }
         
@@ -3853,6 +3907,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use discard &apos;_&apos;.
+        /// </summary>
+        internal static string Use_discard_underscore {
+            get {
+                return ResourceManager.GetString("Use_discard_underscore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use discarded local.
+        /// </summary>
+        internal static string Use_discarded_local {
+            get {
+                return ResourceManager.GetString("Use_discarded_local", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use explicitly provided tuple name.
         /// </summary>
         internal static string Use_explicitly_provided_tuple_name {
@@ -4039,6 +4111,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value assigned here to &apos;{0}&apos; is never used.
+        /// </summary>
+        internal static string Value_assigned_here_to_0_is_never_used {
+            get {
+                return ResourceManager.GetString("Value_assigned_here_to_0_is_never_used", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value assigned here to symbol is never used.
+        /// </summary>
+        internal static string Value_assigned_here_to_symbol_is_never_used {
+            get {
+                return ResourceManager.GetString("Value_assigned_here_to_symbol_is_never_used", resourceCulture);
             }
         }
         

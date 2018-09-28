@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
         }
 
-        private Task<Document> FixAllAsync(
+        protected virtual Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             return FixAllWithEditorAsync(document,

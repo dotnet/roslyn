@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         TService,
         TStatementSyntax,
         TLocalDeclarationStatementSyntax,
-        TVariableDeclaratorSyntax> : CodeRefactoringProvider
+        TVariableDeclaratorSyntax> : CodeRefactoringProvider, IMoveDeclarationNearReferenceService
         where TService : AbstractMoveDeclarationNearReferenceCodeRefactoringProvider<TService, TStatementSyntax, TLocalDeclarationStatementSyntax, TVariableDeclaratorSyntax>
         where TStatementSyntax : SyntaxNode
         where TLocalDeclarationStatementSyntax : TStatementSyntax
@@ -53,13 +53,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 return;
             }
 
-            var state = await State.GenerateAsync((TService)this, document, statement, cancellationToken).ConfigureAwait(false);
+            var state = await TryGetApplicableStateAsync(document, statement, skipIfInDeclarationStatementGroup: true, cancellationToken).ConfigureAwait(false);
             if (state == null)
-            {
-                return;
-            }
-
-            if (!CanMoveToBlock(state.LocalSymbol, state.OutermostBlock, state.InnermostBlock))
             {
                 return;
             }
@@ -80,32 +75,65 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 new MyCodeAction(c => MoveDeclarationNearReferenceAsync(document, state, root, c)));
         }
 
+        private async Task<State> TryGetApplicableStateAsync(
+            Document document,
+            TLocalDeclarationStatementSyntax statement,
+            bool skipIfInDeclarationStatementGroup,
+            CancellationToken cancellationToken)
+        {
+            var state = await State.GenerateAsync((TService)this, document, statement, skipIfInDeclarationStatementGroup, cancellationToken).ConfigureAwait(false);
+            if (state == null)
+            {
+                return null;
+            }
+
+            if (!CanMoveToBlock(state.LocalSymbol, state.OutermostBlock, state.InnermostBlock))
+            {
+                return null;
+            }
+
+            return state;
+        }
+
         private async Task<Document> MoveDeclarationNearReferenceAsync(
             Document document, State state, SyntaxNode root, CancellationToken cancellationToken)
         {
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
+            await MoveDeclarationNearReferenceAsync(document, state, editor, cancellationToken).ConfigureAwait(false);
+
+            var newRoot = editor.GetChangedRoot();
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        private async Task MoveDeclarationNearReferenceAsync(Document document, State state, SyntaxEditor editor, CancellationToken cancellationToken)
+        {
             var crossesMeaningfulBlock = CrossesMeaningfulBlock(state);
             var warningAnnotation = crossesMeaningfulBlock
                 ? WarningAnnotation.Create(FeaturesResources.Warning_colon_Declaration_changes_scope_and_may_change_meaning)
                 : null;
 
-            editor.RemoveNode(state.DeclarationStatement);
-
             var canMergeDeclarationAndAssignment = await CanMergeDeclarationAndAssignmentAsync(document, state, cancellationToken).ConfigureAwait(false);
             if (canMergeDeclarationAndAssignment)
             {
+                editor.RemoveNode(state.DeclarationStatement);
                 MergeDeclarationAndAssignment(
                     document, state, editor, warningAnnotation);
             }
             else
             {
+                var statementIndex = state.OutermostBlockStatements.IndexOf(state.DeclarationStatement);
+                if (statementIndex + 1 < state.OutermostBlockStatements.Count &&
+                    state.OutermostBlockStatements[statementIndex + 1] == state.FirstStatementAffectedInInnermostBlock)
+                {
+                    // Already at the correct location.
+                    return;
+                }
+
+                editor.RemoveNode(state.DeclarationStatement);
                 await MoveDeclarationToFirstReferenceAsync(
                     document, state, editor, warningAnnotation, cancellationToken).ConfigureAwait(false);
             }
-
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
         }
 
         private static async Task MoveDeclarationToFirstReferenceAsync(Document document, State state, SyntaxEditor editor, SyntaxAnnotation warningAnnotation, CancellationToken cancellationToken)
@@ -237,9 +265,28 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             return state.DeclarationStatement.ReplaceNode(
                 state.VariableDeclarator,
                 generator.WithInitializer(
-                    state.VariableDeclarator,
-                    generator.EqualsValueClause(operatorToken, right)));
+                    state.VariableDeclarator.WithoutTrailingTrivia(),
+                    generator.EqualsValueClause(operatorToken, right))
+                    .WithTrailingTrivia(state.VariableDeclarator.GetTrailingTrivia()));
         }
+
+        #region IMoveDeclarationNearReferenceService implementation
+        async Task IMoveDeclarationNearReferenceService.MoveDeclarationNearReferenceAsync(
+            SyntaxNode statement,
+            Document document,
+            SyntaxEditor editor,
+            CancellationToken cancellationToken)
+        {
+            if (statement is TLocalDeclarationStatementSyntax localDeclarationStatement)
+            {
+                var state = await TryGetApplicableStateAsync(document, localDeclarationStatement, skipIfInDeclarationStatementGroup: false, cancellationToken).ConfigureAwait(false);
+                if (state != null)
+                {
+                    await MoveDeclarationNearReferenceAsync(document, state, editor, cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+        #endregion
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

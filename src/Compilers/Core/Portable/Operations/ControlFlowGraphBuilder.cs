@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -130,8 +131,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             ControlFlowRegion region = root.ToImmutableRegionAndFree(blocks, localFunctions, localFunctionsMap, anonymousFunctionsMapOpt, enclosing);
             root = null;
-            MarkReachableBlocks(blocks);
 
+            ReachabilityAnalyzer.Run(blocks, CancellationToken.None);
+            
             Debug.Assert(builder._evalStack.Count == 0);
             builder._evalStack.Free();
             builder._regionMap.Free();
@@ -172,14 +174,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             ControlFlowBranch getFallThroughSuccessor(BasicBlockBuilder blockBuilder)
             {
                 return blockBuilder.Kind != BasicBlockKind.Exit ?
-                           getBranch(in blockBuilder.FallThrough, blockBuilder, isConditionalSuccessor: false) :
+                           getBranch(in blockBuilder.FallThroughSuccessor, blockBuilder, isConditionalSuccessor: false) :
                            null;
             }
 
             ControlFlowBranch getConditionalSuccessor(BasicBlockBuilder blockBuilder)
             {
                 return blockBuilder.HasCondition ?
-                           getBranch(in blockBuilder.Conditional, blockBuilder, isConditionalSuccessor: true) :
+                           getBranch(in blockBuilder.ConditionalSuccessor, blockBuilder, isConditionalSuccessor: true) :
                            null;
             }
 
@@ -188,269 +190,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 return new ControlFlowBranch(
                         source: builder[source.Ordinal],
                         destination: branch.Destination != null ? builder[branch.Destination.Ordinal] : null,
-                        branch.Kind,
+                        branch.Semantics,
                         isConditionalSuccessor);
             }
         }
 
-        private static void MarkReachableBlocks(ArrayBuilder<BasicBlockBuilder> blocks)
-        {
-            var continueDispatchAfterFinally = PooledDictionary<ControlFlowRegion, bool>.GetInstance();
-            var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowRegion>.GetInstance();
-            MarkReachableBlocks(blocks, firstBlockOrdinal: 0, lastBlockOrdinal: blocks.Count - 1,
-                                outOfRangeBlocksToVisit: null,
-                                continueDispatchAfterFinally,
-                                dispatchedExceptionsFromRegions,
-                                out _);
-            continueDispatchAfterFinally.Free();
-            dispatchedExceptionsFromRegions.Free();
-        }
-
-        private static BitVector MarkReachableBlocks(
-            ArrayBuilder<BasicBlockBuilder> blocks,
-            int firstBlockOrdinal,
-            int lastBlockOrdinal,
-            ArrayBuilder<BasicBlockBuilder> outOfRangeBlocksToVisit,
-            PooledDictionary<ControlFlowRegion, bool> continueDispatchAfterFinally,
-            PooledHashSet<ControlFlowRegion> dispatchedExceptionsFromRegions,
-            out bool fellThrough)
-        {
-            var visited = BitVector.Empty;
-            var toVisit = ArrayBuilder<BasicBlockBuilder>.GetInstance();
-
-            fellThrough = false;
-            toVisit.Push(blocks[firstBlockOrdinal]);
-
-            do
-            {
-                BasicBlockBuilder current = toVisit.Pop();
-
-                if (current.Ordinal < firstBlockOrdinal || current.Ordinal > lastBlockOrdinal)
-                {
-                    outOfRangeBlocksToVisit.Push(current);
-                    continue;
-                }
-
-                if (visited[current.Ordinal])
-                {
-                    continue;
-                }
-
-                visited[current.Ordinal] = true;
-                current.IsReachable = true;
-                bool fallThrough = true;
-
-                if (current.HasCondition)
-                {
-                    if (current.BranchValue.ConstantValue.HasValue && current.BranchValue.ConstantValue.Value is bool constant)
-                    {
-                        if (constant == (current.ConditionKind == ControlFlowConditionKind.WhenTrue))
-                        {
-                            followBranch(current, in current.Conditional);
-                            fallThrough = false;
-                        }
-                    }
-                    else
-                    {
-                        followBranch(current, in current.Conditional);
-                    }
-                }
-
-                if (fallThrough)
-                {
-                    BasicBlockBuilder.Branch branch = current.FallThrough;
-                    followBranch(current, in branch);
-
-                    if (current.Ordinal == lastBlockOrdinal && branch.Kind != ControlFlowBranchSemantics.Throw && branch.Kind != ControlFlowBranchSemantics.Rethrow)
-                    {
-                        fellThrough = true;
-                    }
-                }
-
-                // We are using very simple approach: 
-                // If try block is reachable, we should dispatch an exception from it, even if it is empty.
-                // To simplify implementation, we dispatch exception from every reachable basic block and rely
-                // on dispatchedExceptionsFromRegions cache to avoid doing duplicate work.
-                dispatchException(current.Region);
-            }
-            while (toVisit.Count != 0);
-
-            toVisit.Free();
-            return visited;
-
-            void followBranch(BasicBlockBuilder current, in BasicBlockBuilder.Branch branch)
-            {
-                switch (branch.Kind)
-                {
-                    case ControlFlowBranchSemantics.None:
-                    case ControlFlowBranchSemantics.ProgramTermination:
-                    case ControlFlowBranchSemantics.StructuredExceptionHandling:
-                    case ControlFlowBranchSemantics.Throw:
-                    case ControlFlowBranchSemantics.Rethrow:
-                    case ControlFlowBranchSemantics.Error:
-                        Debug.Assert(branch.Destination == null);
-                        return;
-
-                    case ControlFlowBranchSemantics.Regular:
-                    case ControlFlowBranchSemantics.Return:
-                        Debug.Assert(branch.Destination != null);
-
-                        if (stepThroughFinally(current.Region, branch.Destination))
-                        {
-                            toVisit.Add(branch.Destination);
-                        }
-
-                        return;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(branch.Kind);
-                }
-            }
-
-            // Returns whether we should proceed to the destination after finallies were taken care of.
-            bool stepThroughFinally(ControlFlowRegion region, BasicBlockBuilder destination)
-            {
-                int destinationOrdinal = destination.Ordinal;
-                while (!region.ContainsBlock(destinationOrdinal))
-                {
-                    Debug.Assert(region.Kind != ControlFlowRegionKind.Root);
-                    ControlFlowRegion enclosing = region.EnclosingRegion;
-                    if (region.Kind == ControlFlowRegionKind.Try && enclosing.Kind == ControlFlowRegionKind.TryAndFinally)
-                    {
-                        Debug.Assert(enclosing.NestedRegions[0] == region);
-                        Debug.Assert(enclosing.NestedRegions[1].Kind == ControlFlowRegionKind.Finally);
-                        if (!stepThroughSingleFinally(enclosing.NestedRegions[1]))
-                        {
-                            // The point that continues dispatch is not reachable. Cancel the dispatch.
-                            return false;
-                        }
-                    }
-
-                    region = enclosing;
-                }
-
-                return true;
-            }
-
-            // Returns whether we should proceed with dispatch after finally was taken care of.
-            bool stepThroughSingleFinally(ControlFlowRegion @finally)
-            {
-                Debug.Assert(@finally.Kind == ControlFlowRegionKind.Finally);
-
-                if (!continueDispatchAfterFinally.TryGetValue(@finally, out bool continueDispatch))
-                {
-                    // For simplicity, we do a complete walk of the finally/filter region in isolation
-                    // to make sure that the resume dispatch point is reachable from its beginning.
-                    // It could also be reachable through invalid branches into the finally and we don't want to consider 
-                    // these cases for regular finally handling.
-                    BitVector isolated = MarkReachableBlocks(blocks,
-                                                             @finally.FirstBlockOrdinal,
-                                                             @finally.LastBlockOrdinal,
-                                                             outOfRangeBlocksToVisit: toVisit,
-                                                             continueDispatchAfterFinally,
-                                                             dispatchedExceptionsFromRegions,
-                                                             out bool isolatedFellThrough);
-                    visited.UnionWith(isolated);
-
-                    continueDispatch = isolatedFellThrough &&
-                                       blocks[@finally.LastBlockOrdinal].FallThrough.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling;
-
-                    continueDispatchAfterFinally.Add(@finally, continueDispatch);
-                }
-
-                return continueDispatch;
-            }
-
-            void dispatchException(ControlFlowRegion fromRegion)
-            {
-                do
-                {
-                    if (!dispatchedExceptionsFromRegions.Add(fromRegion))
-                    {
-                        return;
-                    }
-
-                    ControlFlowRegion enclosing = fromRegion.Kind == ControlFlowRegionKind.Root ? null : fromRegion.EnclosingRegion;
-                    if (fromRegion.Kind == ControlFlowRegionKind.Try)
-                    {
-                        switch (enclosing.Kind)
-                        {
-                            case ControlFlowRegionKind.TryAndFinally:
-                                Debug.Assert(enclosing.NestedRegions[0] == fromRegion);
-                                Debug.Assert(enclosing.NestedRegions[1].Kind == ControlFlowRegionKind.Finally);
-                                if (!stepThroughSingleFinally(enclosing.NestedRegions[1]))
-                                {
-                                    // The point that continues dispatch is not reachable. Cancel the dispatch.
-                                    return;
-                                }
-                                break;
-
-                            case ControlFlowRegionKind.TryAndCatch:
-                                Debug.Assert(enclosing.NestedRegions[0] == fromRegion);
-                                dispatchExceptionThroughCatches(enclosing, startAt: 1);
-                                break;
-
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(enclosing.Kind);
-                        }
-                    }
-                    else if (fromRegion.Kind == ControlFlowRegionKind.Filter)
-                    {
-                        // If filter throws, dispatch is resumed at the next catch with an original exception
-                        Debug.Assert(enclosing.Kind == ControlFlowRegionKind.FilterAndHandler);
-                        ControlFlowRegion tryAndCatch = enclosing.EnclosingRegion;
-                        Debug.Assert(tryAndCatch.Kind == ControlFlowRegionKind.TryAndCatch);
-
-                        int index = tryAndCatch.NestedRegions.IndexOf(enclosing, startIndex: 1);
-
-                        if (index > 0)
-                        {
-                            dispatchExceptionThroughCatches(tryAndCatch, startAt: index + 1);
-                            fromRegion = tryAndCatch;
-                            continue;
-                        }
-
-                        throw ExceptionUtilities.Unreachable;
-                    }
-
-                    fromRegion = enclosing;
-                }
-                while (fromRegion != null);
-            }
-
-            void dispatchExceptionThroughCatches(ControlFlowRegion tryAndCatch, int startAt)
-            {
-                // For simplicity, we do not try to figure out whether a catch clause definitely
-                // handles all exceptions.
-
-                Debug.Assert(tryAndCatch.Kind == ControlFlowRegionKind.TryAndCatch);
-                Debug.Assert(startAt > 0);
-                Debug.Assert(startAt <= tryAndCatch.NestedRegions.Length);
-
-                for (int i = startAt; i < tryAndCatch.NestedRegions.Length; i++)
-                {
-                    ControlFlowRegion @catch = tryAndCatch.NestedRegions[i];
-
-                    switch (@catch.Kind)
-                    {
-                        case ControlFlowRegionKind.Catch:
-                            toVisit.Add(blocks[@catch.FirstBlockOrdinal]);
-                            break;
-
-                        case ControlFlowRegionKind.FilterAndHandler:
-                            BasicBlockBuilder entryBlock = blocks[@catch.FirstBlockOrdinal];
-                            Debug.Assert(@catch.NestedRegions[0].Kind == ControlFlowRegionKind.Filter);
-                            Debug.Assert(entryBlock.Ordinal == @catch.NestedRegions[0].FirstBlockOrdinal);
-
-                            toVisit.Add(entryBlock);
-                            break;
-
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(@catch.Kind);
-                    }
-                }
-            }
-        }
+        
 
         /// <summary>
         /// Do a pass to eliminate blocks without statements that can be merged with predecessor(s) and
@@ -650,11 +395,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             !predecessor.HasCondition &&
                             predecessor.Ordinal < block.Ordinal &&
                             predecessor.Kind != BasicBlockKind.Entry &&
-                            predecessor.FallThrough.Destination == block &&
+                            predecessor.FallThroughSuccessor.Destination == block &&
                             regionMap[predecessor] == regionMap[block])
                         {
                             Debug.Assert(predecessor.BranchValue == null);
-                            Debug.Assert(predecessor.FallThrough.Kind == ControlFlowBranchSemantics.Regular);
+                            Debug.Assert(predecessor.FallThroughSuccessor.Semantics == ControlFlowBranchSemantics.Regular);
 
                             predecessor.MoveStatementsFrom(block);
                             retry = true;
@@ -665,18 +410,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         }
                     }
 
-                    ref BasicBlockBuilder.Branch next = ref block.FallThrough;
+                    ref BasicBlockBuilder.Branch next = ref block.FallThroughSuccessor;
 
-                    Debug.Assert((block.BranchValue != null && !block.HasCondition) == (next.Kind == ControlFlowBranchSemantics.Return || next.Kind == ControlFlowBranchSemantics.Throw));
+                    Debug.Assert((block.BranchValue != null && !block.HasCondition) == (next.Semantics == ControlFlowBranchSemantics.Return || next.Semantics == ControlFlowBranchSemantics.Throw));
                     Debug.Assert((next.Destination == null) ==
-                                 (next.Kind == ControlFlowBranchSemantics.ProgramTermination ||
-                                  next.Kind == ControlFlowBranchSemantics.Throw ||
-                                  next.Kind == ControlFlowBranchSemantics.Rethrow ||
-                                  next.Kind == ControlFlowBranchSemantics.Error ||
-                                  next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling));
+                                 (next.Semantics == ControlFlowBranchSemantics.ProgramTermination ||
+                                  next.Semantics == ControlFlowBranchSemantics.Throw ||
+                                  next.Semantics == ControlFlowBranchSemantics.Rethrow ||
+                                  next.Semantics == ControlFlowBranchSemantics.Error ||
+                                  next.Semantics == ControlFlowBranchSemantics.StructuredExceptionHandling));
 
 #if DEBUG
-                    if (next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling)
+                    if (next.Semantics == ControlFlowBranchSemantics.StructuredExceptionHandling)
                     {
                         RegionBuilder currentRegion = regionMap[block];
                         Debug.Assert(currentRegion.Kind == ControlFlowRegionKind.Filter ||
@@ -702,7 +447,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                             // Remove Try/Finally if Finally is empty
                             if (currentRegion.Kind == ControlFlowRegionKind.Finally &&
-                                next.Destination == null && next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling &&
+                                next.Destination == null && next.Semantics == ControlFlowBranchSemantics.StructuredExceptionHandling &&
                                 !block.HasPredecessors)
                             {
                                 // Nothing useful is happening in this finally, let's remove it
@@ -741,7 +486,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             continue;
                         }
 
-                        if (next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling)
+                        if (next.Semantics == ControlFlowBranchSemantics.StructuredExceptionHandling)
                         {
                             Debug.Assert(block.HasCondition || block.BranchValue == null);
                             Debug.Assert(next.Destination == null);
@@ -757,8 +502,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                 }
 
                                 if (predecessor.Ordinal != i - 1 ||
-                                    predecessor.FallThrough.Destination != block ||
-                                    predecessor.Conditional.Destination == block ||
+                                    predecessor.FallThroughSuccessor.Destination != block ||
+                                    predecessor.ConditionalSuccessor.Destination == block ||
                                     regionMap[predecessor] != currentRegion)
                                 {
                                     // Do not merge StructuredExceptionHandling into the middle of the filter or finally,
@@ -769,17 +514,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                     continue;
                                 }
 
-                                predecessor.FallThrough = block.FallThrough;
+                                predecessor.FallThroughSuccessor = block.FallThroughSuccessor;
                             }
                         }
                         else
                         {
-                            Debug.Assert(next.Kind == ControlFlowBranchSemantics.Regular ||
-                                         next.Kind == ControlFlowBranchSemantics.Return ||
-                                         next.Kind == ControlFlowBranchSemantics.Throw ||
-                                         next.Kind == ControlFlowBranchSemantics.Rethrow ||
-                                         next.Kind == ControlFlowBranchSemantics.Error ||
-                                         next.Kind == ControlFlowBranchSemantics.ProgramTermination);
+                            Debug.Assert(next.Semantics == ControlFlowBranchSemantics.Regular ||
+                                         next.Semantics == ControlFlowBranchSemantics.Return ||
+                                         next.Semantics == ControlFlowBranchSemantics.Throw ||
+                                         next.Semantics == ControlFlowBranchSemantics.Rethrow ||
+                                         next.Semantics == ControlFlowBranchSemantics.Error ||
+                                         next.Semantics == ControlFlowBranchSemantics.ProgramTermination);
 
                             Debug.Assert(!block.HasCondition); // This is ensured by an "if" above.
                             IOperation value = block.BranchValue;
@@ -801,7 +546,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                             if (value != null)
                             {
-                                if (!block.HasPredecessors && next.Kind == ControlFlowBranchSemantics.Return)
+                                if (!block.HasPredecessors && next.Semantics == ControlFlowBranchSemantics.Return)
                                 {
                                     // Let's drop an unreachable compiler generated return that VB optimistically adds at the end of a method body
                                     if (next.Destination.Kind != BasicBlockKind.Exit ||
@@ -827,7 +572,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                         continue;
                                     }
 
-                                    Debug.Assert(predecessor.FallThrough.Destination == block);
+                                    Debug.Assert(predecessor.FallThroughSuccessor.Destination == block);
                                 }
                             }
 
@@ -862,7 +607,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                                 foreach (BasicBlockBuilder predecessor in predecessorsBuilder)
                                 {
-                                    if (tryMergeBranch(predecessor, ref predecessor.FallThrough, block))
+                                    if (tryMergeBranch(predecessor, ref predecessor.FallThroughSuccessor, block))
                                     {
                                         if (value != null)
                                         {
@@ -871,7 +616,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                         }
                                     }
 
-                                    if (tryMergeBranch(predecessor, ref predecessor.Conditional, block))
+                                    if (tryMergeBranch(predecessor, ref predecessor.ConditionalSuccessor, block))
                                     {
                                         Debug.Assert(value == null);
                                     }
@@ -889,17 +634,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     }
                     else
                     {
-                        if (next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling)
+                        if (next.Semantics == ControlFlowBranchSemantics.StructuredExceptionHandling)
                         {
                             continue;
                         }
 
-                        Debug.Assert(next.Kind == ControlFlowBranchSemantics.Regular ||
-                                     next.Kind == ControlFlowBranchSemantics.Return ||
-                                     next.Kind == ControlFlowBranchSemantics.Throw ||
-                                     next.Kind == ControlFlowBranchSemantics.Rethrow ||
-                                     next.Kind == ControlFlowBranchSemantics.Error ||
-                                     next.Kind == ControlFlowBranchSemantics.ProgramTermination);
+                        Debug.Assert(next.Semantics == ControlFlowBranchSemantics.Regular ||
+                                     next.Semantics == ControlFlowBranchSemantics.Return ||
+                                     next.Semantics == ControlFlowBranchSemantics.Throw ||
+                                     next.Semantics == ControlFlowBranchSemantics.Rethrow ||
+                                     next.Semantics == ControlFlowBranchSemantics.Error ||
+                                     next.Semantics == ControlFlowBranchSemantics.ProgramTermination);
 
                         BasicBlockBuilder predecessor = block.GetSingletonPredecessorOrDefault();
 
@@ -917,21 +662,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         }
 
                         if (predecessor.Kind != BasicBlockKind.Entry &&
-                            predecessor.FallThrough.Destination == block &&
+                            predecessor.FallThroughSuccessor.Destination == block &&
                             !predecessor.HasCondition &&
                             regionMap[predecessor] == currentRegion)
                         {
                             Debug.Assert(predecessor != block);
                             Debug.Assert(predecessor.BranchValue == null);
 
-                            mergeBranch(predecessor, ref predecessor.FallThrough, ref next);
+                            mergeBranch(predecessor, ref predecessor.FallThroughSuccessor, ref next);
 
                             next.Destination?.RemovePredecessor(block);
 
                             predecessor.BranchValue = block.BranchValue;
                             predecessor.ConditionKind = block.ConditionKind;
-                            predecessor.Conditional = block.Conditional;
-                            BasicBlockBuilder destination = block.Conditional.Destination;
+                            predecessor.ConditionalSuccessor = block.ConditionalSuccessor;
+                            BasicBlockBuilder destination = block.ConditionalSuccessor.Destination;
                             if (destination != null)
                             {
                                 destination.AddPredecessor(predecessor);
@@ -1026,7 +771,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 if (predecessorBranch.Destination == successor)
                 {
-                    mergeBranch(predecessor, ref predecessorBranch, ref successor.FallThrough);
+                    mergeBranch(predecessor, ref predecessorBranch, ref successor.FallThroughSuccessor);
                     return true;
                 }
 
@@ -1037,8 +782,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 predecessorBranch.Destination = successorBranch.Destination;
                 successorBranch.Destination?.AddPredecessor(predecessor);
-                Debug.Assert(predecessorBranch.Kind == ControlFlowBranchSemantics.Regular);
-                predecessorBranch.Kind = successorBranch.Kind;
+                Debug.Assert(predecessorBranch.Semantics == ControlFlowBranchSemantics.Regular);
+                predecessorBranch.Semantics = successorBranch.Semantics;
             }
 
             bool checkBranchesFromPredecessors(ArrayBuilder<BasicBlockBuilder> predecessors, RegionBuilder currentRegion, RegionBuilder destinationRegionOpt)
@@ -1155,8 +900,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // Mark branches using unresolved labels as errors.
             foreach (BasicBlockBuilder block in blocks)
             {
-                fixupBranch(ref block.Conditional);
-                fixupBranch(ref block.FallThrough);
+                fixupBranch(ref block.ConditionalSuccessor);
+                fixupBranch(ref block.FallThroughSuccessor);
             }
 
             unresolved.Free();
@@ -1166,9 +911,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 if (branch.Destination != null && unresolved.Contains(branch.Destination))
                 {
-                    Debug.Assert(branch.Kind == ControlFlowBranchSemantics.Regular);
+                    Debug.Assert(branch.Semantics == ControlFlowBranchSemantics.Regular);
                     branch.Destination = null;
-                    branch.Kind = ControlFlowBranchSemantics.Error;
+                    branch.Semantics = ControlFlowBranchSemantics.Error;
                 }
             }
         }
@@ -1242,7 +987,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 BasicBlockBuilder prevBlock = _blocks.Last();
 
-                if (prevBlock.FallThrough.Destination == null)
+                if (prevBlock.FallThroughSuccessor.Destination == null)
                 {
                     LinkBlocks(prevBlock, block);
                 }
@@ -1307,9 +1052,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private static void LinkBlocks(BasicBlockBuilder prevBlock, BasicBlockBuilder nextBlock, ControlFlowBranchSemantics branchKind = ControlFlowBranchSemantics.Regular)
         {
             Debug.Assert(prevBlock.HasCondition || prevBlock.BranchValue == null);
-            Debug.Assert(prevBlock.FallThrough.Destination == null);
-            prevBlock.FallThrough.Destination = nextBlock;
-            prevBlock.FallThrough.Kind = branchKind;
+            Debug.Assert(prevBlock.FallThroughSuccessor.Destination == null);
+            prevBlock.FallThroughSuccessor.Destination = nextBlock;
+            prevBlock.FallThroughSuccessor.Semantics = branchKind;
             nextBlock.AddPredecessor(prevBlock);
         }
 
@@ -2712,7 +2457,7 @@ oneMoreTime:
             branch.Destination.AddPredecessor(previous);
             previous.BranchValue = condition;
             previous.ConditionKind = jumpIfTrue ? ControlFlowConditionKind.WhenTrue : ControlFlowConditionKind.WhenFalse;
-            previous.Conditional = branch;
+            previous.ConditionalSuccessor = branch;
         }
 
         /// <summary>
@@ -2916,7 +2661,7 @@ oneMoreTime:
 
         private static BasicBlockBuilder.Branch RegularBranch(BasicBlockBuilder destination)
         {
-            return new BasicBlockBuilder.Branch() { Destination = destination, Kind = ControlFlowBranchSemantics.Regular };
+            return new BasicBlockBuilder.Branch() { Destination = destination, Semantics = ControlFlowBranchSemantics.Regular };
         }
 
         private static IOperation MakeInvalidOperation(ITypeSymbol type, IOperation child)
@@ -3293,10 +3038,10 @@ oneMoreTime:
                         VisitConditionalBranch(filter, ref catchBlock, sense: true);
                         var continueDispatchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
                         AppendNewBlock(continueDispatchBlock);
-                        continueDispatchBlock.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
+                        continueDispatchBlock.FallThroughSuccessor.Semantics = ControlFlowBranchSemantics.StructuredExceptionHandling;
                         LeaveRegion();
 
-                        Debug.Assert(filterRegion.LastBlock.FallThrough.Destination == null);
+                        Debug.Assert(filterRegion.LastBlock.FallThroughSuccessor.Destination == null);
                         Debug.Assert(!filterRegion.FirstBlock.HasPredecessors);
                     }
 
@@ -3321,7 +3066,7 @@ oneMoreTime:
                         Debug.Assert(_currentRegion == filterAndHandlerRegion);
                         LeaveRegion();
 #if DEBUG
-                        Debug.Assert(filterAndHandlerRegion.Regions[0].LastBlock.FallThrough.Destination == null);
+                        Debug.Assert(filterAndHandlerRegion.Regions[0].LastBlock.FallThroughSuccessor.Destination == null);
                         if (handlerRegion.FirstBlock.HasPredecessors)
                         {
                             var predecessors = ArrayBuilder<BasicBlockBuilder>.GetInstance();
@@ -3353,16 +3098,16 @@ oneMoreTime:
                 VisitStatement(operation.Finally);
                 var continueDispatchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
                 AppendNewBlock(continueDispatchBlock);
-                continueDispatchBlock.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
+                continueDispatchBlock.FallThroughSuccessor.Semantics = ControlFlowBranchSemantics.StructuredExceptionHandling;
                 LeaveRegion();
                 Debug.Assert(_currentRegion == tryAndFinallyRegion);
                 LeaveRegion();
-                Debug.Assert(finallyRegion.LastBlock.FallThrough.Destination == null);
+                Debug.Assert(finallyRegion.LastBlock.FallThroughSuccessor.Destination == null);
                 Debug.Assert(!finallyRegion.FirstBlock.HasPredecessors);
             }
 
             AppendNewBlock(afterTryCatchFinally, linkToPrevious: false);
-            Debug.Assert(tryAndFinallyRegion?.Regions[1].LastBlock.FallThrough.Destination == null);
+            Debug.Assert(tryAndFinallyRegion?.Regions[1].LastBlock.FallThroughSuccessor.Destination == null);
 
             return FinishVisitingStatement(operation);
         }
@@ -3507,10 +3252,10 @@ oneMoreTime:
             BasicBlockBuilder current = CurrentBasicBlock;
             Debug.Assert(current.BranchValue == null);
             Debug.Assert(!current.HasCondition);
-            Debug.Assert(current.FallThrough.Destination == null);
-            Debug.Assert(current.FallThrough.Kind == ControlFlowBranchSemantics.None);
+            Debug.Assert(current.FallThroughSuccessor.Destination == null);
+            Debug.Assert(current.FallThroughSuccessor.Semantics == ControlFlowBranchSemantics.None);
             current.BranchValue = exception;
-            current.FallThrough.Kind = operation.Exception == null ? ControlFlowBranchSemantics.Rethrow : ControlFlowBranchSemantics.Throw;
+            current.FallThroughSuccessor.Semantics = operation.Exception == null ? ControlFlowBranchSemantics.Rethrow : ControlFlowBranchSemantics.Throw;
 
             PopStackFrameAndLeaveRegion(frame);
 
@@ -3671,7 +3416,7 @@ oneMoreTime:
             Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
 
             var endOfFinally = new BasicBlockBuilder(BasicBlockKind.Block);
-            endOfFinally.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
+            endOfFinally.FallThroughSuccessor.Semantics = ControlFlowBranchSemantics.StructuredExceptionHandling;
 
             var finallyRegion = new RegionBuilder(ControlFlowRegionKind.Finally);
             EnterRegion(finallyRegion);
@@ -3865,7 +3610,7 @@ oneMoreTime:
             LeaveRegion();
 
             var endOfFinally = new BasicBlockBuilder(BasicBlockKind.Block);
-            endOfFinally.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
+            endOfFinally.FallThroughSuccessor.Semantics = ControlFlowBranchSemantics.StructuredExceptionHandling;
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.Finally));
             AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
@@ -5119,9 +4864,9 @@ oneMoreTime:
             AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block), linkToPrevious: false);
             Debug.Assert(current.BranchValue == null);
             Debug.Assert(!current.HasCondition);
-            Debug.Assert(current.FallThrough.Destination == null);
-            Debug.Assert(current.FallThrough.Kind == ControlFlowBranchSemantics.None);
-            current.FallThrough.Kind = ControlFlowBranchSemantics.ProgramTermination;
+            Debug.Assert(current.FallThroughSuccessor.Destination == null);
+            Debug.Assert(current.FallThroughSuccessor.Semantics == ControlFlowBranchSemantics.None);
+            current.FallThroughSuccessor.Semantics = ControlFlowBranchSemantics.ProgramTermination;
             return FinishVisitingStatement(operation);
         }
 

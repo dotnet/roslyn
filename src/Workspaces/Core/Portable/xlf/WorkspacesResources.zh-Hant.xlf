@@ -52,6 +52,11 @@
         <target state="new">Organize usings</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_preferences">
+        <source>Parameter preferences</source>
+        <target state="new">Parameter preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parentheses_preferences">
         <source>Parentheses preferences</source>
         <target state="new">Parentheses preferences</target>

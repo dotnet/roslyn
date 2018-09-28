@@ -33,10 +33,11 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 TService service,
                 Document document,
                 TLocalDeclarationStatementSyntax statement,
+                bool skipIfInDeclarationStatementGroup,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!await state.TryInitializeAsync(service, document, statement, cancellationToken).ConfigureAwait(false))
+                if (!await state.TryInitializeAsync(service, document, statement, skipIfInDeclarationStatementGroup, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 TService service,
                 Document document,
                 TLocalDeclarationStatementSyntax node,
+                bool skipIfInDeclarationStatementGroup,
                 CancellationToken cancellationToken)
             {
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -130,26 +132,29 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                var originalIndexInBlock = this.InnermostBlockStatements.IndexOf(this.DeclarationStatement);
-                var firstStatementIndexAffectedInBlock = this.InnermostBlockStatements.IndexOf(this.FirstStatementAffectedInInnermostBlock);
-                if (originalIndexInBlock >= 0 &&
-                    originalIndexInBlock < firstStatementIndexAffectedInBlock)
+                if (skipIfInDeclarationStatementGroup)
                 {
-                    // Don't want to move a decl past other decls in order to move it to the first
-                    // affected statement.  If we do we can end up in the following situation: 
+                    var originalIndexInBlock = this.InnermostBlockStatements.IndexOf(this.DeclarationStatement);
+                    var firstStatementIndexAffectedInBlock = this.InnermostBlockStatements.IndexOf(this.FirstStatementAffectedInInnermostBlock);
+                    if (originalIndexInBlock >= 0 &&
+                        originalIndexInBlock < firstStatementIndexAffectedInBlock)
+                    {
+                        // Don't want to move a decl past other decls in order to move it to the first
+                        // affected statement.  If we do we can end up in the following situation: 
 #if false
                     int x = 0;
                     int y = 0;
                     Console.WriteLine(x + y);
 #endif
-                    // Each of these declarations will want to 'move' down to the WriteLine
-                    // statement and we don't want to keep offering the refactoring.  Note: this
-                    // solution is overly aggressive.  Technically if 'y' weren't referenced in
-                    // Console.Writeline, then it might be a good idea to move the 'x'.  But this
-                    // gives good enough behavior most of the time.
-                    if (InDeclarationStatementGroup(originalIndexInBlock, firstStatementIndexAffectedInBlock))
-                    {
-                        return false;
+                        // Each of these declarations will want to 'move' down to the WriteLine
+                        // statement and we don't want to keep offering the refactoring.  Note: this
+                        // solution is overly aggressive.  Technically if 'y' weren't referenced in
+                        // Console.Writeline, then it might be a good idea to move the 'x'.  But this
+                        // gives good enough behavior most of the time.
+                        if (InDeclarationStatementGroup(originalIndexInBlock, firstStatementIndexAffectedInBlock))
+                        {
+                            return false;
+                        }
                     }
                 }
 

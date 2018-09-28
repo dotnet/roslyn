@@ -225,6 +225,15 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs">
       <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Operations\ControlFlowRegionExtensions.cs">
+      <Link>FlowAnalysis\ControlFlowRegionExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Operations\CustomDataFlowAnalysis.cs">
+      <Link>FlowAnalysis\CustomDataFlowAnalysis.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Operations\IDataFlowAnalyzer.cs">
+      <Link>FlowAnalysis\IDataFlowAnalyzer.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />
