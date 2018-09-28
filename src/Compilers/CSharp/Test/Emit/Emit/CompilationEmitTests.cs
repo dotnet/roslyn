@@ -619,7 +619,7 @@ public class C
             CompareAssemblies(sourceTemplate, left, right, expectedMatch, includePrivateMembers: false);
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void RefAssembly_NoPia()
         {
             string piaSource = @"
@@ -697,7 +697,7 @@ public class D : ITest1
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void RefAssembly_NoPia_ReferenceFromMethodBody()
         {
             string piaSource = @"
@@ -4114,7 +4114,7 @@ public class Test
             CompileAndVerify(source2, references: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(530879, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530879")]
         public void TestCompilationEmitUsesDifferentStreamsForBinaryAndPdb()
         {
@@ -4157,7 +4157,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b").WithArguments("b"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_01()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4241,7 +4241,7 @@ public interface IUsePlatform
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_02()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4285,7 +4285,7 @@ public interface IUsePlatform
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_03()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4340,7 +4340,7 @@ public interface IUsePlatform
                 Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_04()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4370,7 +4370,7 @@ public interface IUsePlatform
                 Diagnostic(ErrorCode.ERR_ConflictingMachineModule).WithArguments("PlatformMismatch.netmodule"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_05()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4417,7 +4417,7 @@ public interface IUsePlatform
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_06()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4445,7 +4445,7 @@ public interface IUsePlatform
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_07()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4492,7 +4492,7 @@ public interface IUsePlatform
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_08()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4681,7 +4681,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void BrokenPDBStream()
         {
             string source = @"class Goo {}";
