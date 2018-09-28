@@ -1870,17 +1870,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (ancestor is AnonymousMethodExpressionSyntax delegateExpression)
                 {
                     // If we are inside a delegate then use the return type of the Invoke Method of the delegate type
-                    var delegateType = InferTypes(delegateExpression).FirstOrDefault().InferredType;
-                    if (delegateType != null && delegateType.IsDelegateType())
-                    {
-                        var delegateInvokeMethod = delegateType.GetDelegateType(this.Compilation).DelegateInvokeMethod;
-                        if (delegateInvokeMethod != null)
-                        {
-                            types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(delegateInvokeMethod.ReturnType));
-                            isAsync = delegateExpression.AsyncKeyword.Kind() != SyntaxKind.None;
-                            return;
-                        }
-                    }
+                    types = InferTypeInAnonymousFunctionExpression(delegateExpression);
+                    isAsync = delegateExpression.AsyncKeyword.Kind() != SyntaxKind.None;
                 }
                 else if (ancestor is LocalFunctionStatementSyntax localFunctionStatement)
                 {
