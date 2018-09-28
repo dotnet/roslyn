@@ -22,9 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
-            SyntaxReference blockSyntaxReference,
             ImmutableArray<Location> locations)
-            : base(@event.containingType, syntaxReference, blockSyntaxReference, locations)
+            : base(@event.containingType, syntaxReference, locations)
         {
             _event = @event;
         }

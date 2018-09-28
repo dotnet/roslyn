@@ -16,7 +16,6 @@
     <dependencies>
       <group targetFramework="netstandard1.3">
         <dependency id="Microsoft.CodeAnalysis.Analyzers"              version="$MicrosoftCodeAnalysisAnalyzersVersion$" />
-
         <dependency id="System.AppContext"                             version="$SystemAppContextVersion$"/>
         <dependency id="System.Collections"                            version="$SystemCollectionsVersion$"/>
         <dependency id="System.Collections.Concurrent"                 version="$SystemCollectionsConcurrentVersion$"/>
@@ -48,6 +47,7 @@
         <dependency id="System.Text.Encoding.Extensions"               version="$SystemTextEncodingExtensionsVersion$"/>
         <dependency id="System.Threading"                              version="$SystemThreadingVersion$" exclude="Compile" />
         <dependency id="System.Threading.Tasks"                        version="$SystemThreadingTasksVersion$"/>
+        <dependency id="System.Threading.Tasks.Extensions"             version="$SystemThreadingTasksExtensionsVersion$"/>
         <dependency id="System.Threading.Tasks.Parallel"               version="$SystemThreadingTasksParallelVersion$"/>
         <dependency id="System.Threading.Thread"                       version="$SystemThreadingThreadVersion$" exclude="Compile" />
         <dependency id="System.ValueTuple"                             version="$SystemValueTupleVersion$" />
@@ -62,11 +62,13 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
   </metadata>
   <files>
     <!-- Include PDB unless embedded into DLL -->
@@ -74,5 +76,8 @@
     <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.xml" target="lib\netstandard1.3" />
     <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\CodeAnalysis\**\Microsoft.CodeAnalysis.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>

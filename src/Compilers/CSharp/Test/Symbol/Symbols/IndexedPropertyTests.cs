@@ -51,7 +51,7 @@ End Class";
         a.P[2] = o;
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"P[1]
 P[2] = 2
 ");
@@ -117,7 +117,7 @@ End Class";
         a.P = o;
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"P[3, 4].get
 P[5, 6].set
 P[3, 2].get
@@ -217,7 +217,7 @@ End Class";
         a.P = o;
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"0: 0
 0: 1
 1: 2
@@ -344,7 +344,7 @@ class B
 }";
             // Note that Dev11 (incorrectly) calls F() twice in a.P[ref F()[0]]
             // for compound assignment and increment.
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"F()
 F()
 0
@@ -581,7 +581,7 @@ F()
         b.set_P(ref y, b.get_P(ref x));
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (7,9): error CS1545: Property, indexer, or event 'IB.this[ref int]' is not supported by the language; try directly calling accessor methods 'IB.get_P(ref int)' or 'IB.set_P(ref int, int)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "b[y]").WithArguments("IB.this[ref int]", "IB.get_P(ref int)", "IB.set_P(ref int, int)").WithLocation(7, 9),
@@ -611,7 +611,7 @@ F()
         System.Console.WriteLine(""{0}, {1}"", x, y);
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation3 = CompileAndVerify(source3, references: new[] { reference1 }, expectedOutput:
 @"0, 0
 1, 2
 2, 4
@@ -720,7 +720,7 @@ F()
         y = 0;
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"0, 0
 0, 0
 0, 3");
@@ -854,7 +854,7 @@ End Class";
         a.set_P(10, a.get_P(9));
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,11): error CS1061: 'A' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A", "P").WithLocation(6, 11),
@@ -877,7 +877,7 @@ End Class";
         a[2] = a[1];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 });
+            var compilation3 = CompileAndVerify(source3, references: new[] { reference1 });
             compilation3.VerifyIL("C.M()",
 @"{
   // Code size       21 (0x15)
@@ -970,7 +970,7 @@ class C
         s(6, o);
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"P[1]
 P[2] = 1
 Q[3]
@@ -1078,7 +1078,7 @@ Q[6] = 5
         o = i.valid_name(1);
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, verify: Verification.Passes);
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, verify: Verification.Passes);
 
             var @namespace = (NamespaceSymbol)compilation2.Compilation.GlobalNamespace;
             // Indexed property with valid name.
@@ -1140,7 +1140,7 @@ class B
         o = a.R[3];
     }
 }";
-            CreateStandardCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (14,13): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "a.P[1]").WithArguments("object").WithLocation(14, 13),
                 // (16,15): error CS1061: 'A' does not contain a definition for 'R' and no extension method 'R' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
@@ -1179,7 +1179,7 @@ End Class";
         base.P[4] = o;
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
         }
 
@@ -1215,7 +1215,7 @@ End Class";
         A.P[3] = o;
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,13): error CS1545: Property, indexer, or event 'A.P[int]' is not supported by the language; try directly calling accessor methods 'A.get_P(int)' or 'A.set_P(int, object)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A.P[int]", "A.get_P(int)", "A.set_P(int, object)").WithLocation(6, 13),
@@ -1258,7 +1258,7 @@ End Interface";
         b.P[null] = b.Q[null];
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (5,11): error CS1545: Property, indexer, or event 'IA.P[object]' is not supported by the language; try directly calling accessor methods 'IA.get_P(object)' or 'IA.set_P(object, object)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("IA.P[object]", "IA.get_P(object)", "IA.set_P(object, object)").WithLocation(5, 11),
@@ -1322,7 +1322,7 @@ End Interface";
         c = c.C.C[0];
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (17,13): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.D[0]").WithArguments("int[]", "int").WithLocation(17, 13),
@@ -1356,7 +1356,7 @@ End Interface";
         i.P = o;
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
         }
 
@@ -1398,7 +1398,7 @@ End Interface";
         c.Q[1, 2] = o; // Dev11: CS1501: No overload for method 'Q' takes 2 arguments
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
         }
 
@@ -1484,7 +1484,7 @@ End Class";
         c.Q[2] = o;
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
         }
 
@@ -1541,7 +1541,7 @@ End Class";
         var o = b.Q[0];
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (5,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'B.Q[object, object]'
                 //         var o = b.Q[0];
@@ -1555,7 +1555,7 @@ End Class";
         o = b.Q[2, 3];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, verify: Verification.Skipped);
+            var compilation3 = CompileAndVerify(source3, references: new[] { reference1 }, verify: Verification.Skipped);
             compilation3.VerifyIL("C.M(B)",
 @"{
   // Code size       33 (0x21)
@@ -1681,7 +1681,7 @@ public class B2 : A2
         Console.WriteLine(""B2.set_P({0}, ...)"", index);
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 });
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 });
             var reference2 = MetadataReference.CreateFromImage(compilation2.EmittedAssemblyData);
             // Can invoke C# implementations by invoking the accessors directly
             // or by casting to the COM interface and invoking the indexed property.
@@ -1709,7 +1709,7 @@ public class B2 : A2
         i.P[6] = i.P[5];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1, reference2 }, expectedOutput:
+            var compilation3 = CompileAndVerify(source3, references: new[] { reference1, reference2 }, expectedOutput:
 @"A2.get_P(1)
 A2.set_P(2, ...)
 A2.get_P(3)
@@ -1747,7 +1747,7 @@ B2.set_P(6, ...)
         b.P[4] = b.P[3];
     }
 }";
-            var compilation4 = CreateStandardCompilation(source4, new[] { reference1, reference2 });
+            var compilation4 = CreateCompilation(source4, new[] { reference1, reference2 });
             compilation4.VerifyDiagnostics(
                 // (6,11): error CS1061: 'A2' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A2' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A2", "P").WithLocation(6, 11),
@@ -1830,7 +1830,7 @@ class C
         b2.set_P(1, b2.get_P(0));
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"B1.get_P(0)
 A1.set_P(1, ...)
 A1.get_P(0)
@@ -1864,7 +1864,7 @@ class C
         b1.P[1] = b1.P[0];
     }
 }";
-            var compilation3 = CreateStandardCompilation(source3, new[] { reference1 });
+            var compilation3 = CreateCompilation(source3, new[] { reference1 });
             compilation3.VerifyDiagnostics(
                 // (13,21): warning CS0108: 'B2.get_P(int)' hides inherited member 'A1.get_P(int)'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "get_P").WithArguments("B2.get_P(int)", "A1.get_P(int)").WithLocation(13, 21),
@@ -1899,7 +1899,7 @@ End Interface";
         a.Q[null] = a.Q[null];
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (5,9): error CS0200: Property or indexer 'IA.P[object]' cannot be assigned to -- it is read only
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "a.P[null]").WithArguments("IA.P[object]").WithLocation(5, 9),
@@ -2048,7 +2048,7 @@ End Class";
         a = new A() { P3 = 5 };
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,23): error CS0200: Property or indexer 'A.P1[int, int]' cannot be assigned to -- it is read only
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P1").WithArguments("A.P1[int, int]").WithLocation(6, 23),
@@ -2101,7 +2101,7 @@ End Class";
 class B
 {
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (1,5): error CS1545: Property, indexer, or event 'A1.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, int)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, int)").WithLocation(1, 5));
@@ -2140,7 +2140,7 @@ class C
         return from o in arg select o.P;
     }
 }";
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,30): error CS1955: Non-invocable member 'IEnumerableOfA.Select[System.Func<IA, object>]' cannot be used like a method.
                 Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "select o.P").WithArguments("IEnumerableOfA.Select[System.Func<IA, object>]"));
@@ -2179,7 +2179,7 @@ End Interface";
         return c.P[null];
     }
 }";
-            var compilation3 = CreateStandardCompilation(source3, new[] { reference1, reference2 });
+            var compilation3 = CreateCompilation(source3, new[] { reference1, reference2 });
             compilation3.VerifyDiagnostics(
                 // (5,18): error CS0229: Ambiguity between 'IA.P' and 'IB.P[object]'
                 Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("IA.P", "IB.P[object]").WithLocation(5, 18));
@@ -2322,7 +2322,7 @@ class B
 }
 ";
 
-            var compilation2 = CompileAndVerify(source2, new[] { reference1, SystemCoreRef }, verify: Verification.Passes, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
 @"P1(2).get
 P1(2).get
 P1(2).get
@@ -2496,7 +2496,7 @@ class D : CodeModule
     public string get_ProcOfLine(int line, out Microsoft.Vbe.Interop.vbext_ProcKind procKind) { throw null; }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il);
             comp.VerifyDiagnostics(
                 // (4,7): error CS0535: 'C' does not implement interface member 'Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get'
                 // class C : CodeModule
@@ -2576,7 +2576,7 @@ class Test
 ";
             string expectedOutput = @"1
 0";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -2622,7 +2622,7 @@ End Class";
         IA.P[2] = o;
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"P[1]
 P[2] = 2
 ");
@@ -2697,7 +2697,7 @@ End Class";
     }
 }";
 
-            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
+            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.
         }
 
@@ -2756,7 +2756,7 @@ End Class";
     }
 }";
 
-            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
+            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
             compilation2.VerifyEmitDiagnostics(); // Used to assert.
 
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.

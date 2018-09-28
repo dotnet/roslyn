@@ -6,10 +6,11 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 Imports Microsoft.CodeAnalysis.Snippets
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
+    <[UseExportProvider]>
     Public Class CSharpCompletionSnippetNoteTests
         Private _markup As XElement = <document>
                                           <![CDATA[using System;
@@ -110,7 +111,6 @@ class C
             Using state = TestState.CreateTestStateFromWorkspace(
                 workspaceXml,
                 New CompletionProvider() {New MockCompletionProvider()},
-                Nothing,
                 New List(Of Type) From {GetType(TestCSharpSnippetInfoService)},
                 WorkspaceKind.Interactive)
 
@@ -131,8 +131,7 @@ class C
             Dim state = TestState.CreateCSharpTestState(
                 xElement,
                 New CompletionProvider() {New MockCompletionProvider()},
-                Nothing,
-                New List(Of Type) From {GetType(TestCSharpSnippetInfoService)})
+                extraExportedTypes:=New List(Of Type) From {GetType(TestCSharpSnippetInfoService)})
 
             Dim testSnippetInfoService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService(Of ISnippetInfoService)(), TestCSharpSnippetInfoService)
             testSnippetInfoService.SetSnippetShortcuts(snippetShortcuts)

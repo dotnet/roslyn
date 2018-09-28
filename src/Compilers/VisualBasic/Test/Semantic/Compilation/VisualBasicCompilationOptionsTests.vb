@@ -416,7 +416,7 @@ End Module
 
             ' Baseline
             Dim commonoption = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, commonoption)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, commonoption)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
@@ -426,7 +426,7 @@ End Module
             ' Suppress All
             ' vbc a.vb /nowarn
             Dim options = commonoption.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics()
 
             ' Suppress 42024
@@ -434,7 +434,7 @@ End Module
             Dim warnings As IDictionary(Of String, ReportDiagnostic) = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z"),
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo"))
@@ -445,13 +445,13 @@ End Module
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42099), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo"))
 
             ' Treat All as Errors
             ' vbc a.vb /warnaserror
             options = commonoption.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y").WithWarningAsError(True),
@@ -463,7 +463,7 @@ End Module
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42105), ReportDiagnostic.Error)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
@@ -476,7 +476,7 @@ End Module
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42105), ReportDiagnostic.Error)
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42099), ReportDiagnostic.Error)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
@@ -488,7 +488,7 @@ End Module
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings)).WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo").WithWarningAsError(True))
@@ -499,7 +499,7 @@ End Module
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings)).WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics()
 
         End Sub
@@ -510,7 +510,7 @@ End Module
 
             Assert.Equal(2042, options.Errors.Single().Code)
 
-            AssertTheseDiagnostics(CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, options),
+            AssertTheseDiagnostics(CreateCompilationWithMscorlib40AndVBRuntime(<compilation><file/></compilation>, options),
                                    <expected>
 BC2042: The options /vbruntime* and /target:module cannot be combined.
                                    </expected>)

@@ -58,7 +58,7 @@ namespace Microsoft.Cci
 
         public override bool Equals(object obj)
         {
-            return obj is UsedNamespaceOrType && base.Equals((UsedNamespaceOrType)obj);
+            return obj is UsedNamespaceOrType other && Equals(other);
         }
 
         public bool Equals(UsedNamespaceOrType other)

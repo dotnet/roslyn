@@ -9,7 +9,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SemanticEquivalence
     {
-        public static bool AreSemanticallyEquivalent(
+        public static bool AreEquivalent(SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2)
+            => AreEquivalent(semanticModel, semanticModel, node1, node2);
+
+        public static bool AreEquivalent(
             SemanticModel semanticModel1,
             SemanticModel semanticModel2,
             SyntaxNode node1,

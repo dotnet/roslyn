@@ -7,6 +7,11 @@
         <target state="translated">Une erreur s'est produite lors de la lecture du fichier de configuration spécifié : {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">Refactorisation uniquement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">Le symbole "{0}" ne provient pas de la source.</target>
@@ -795,6 +800,11 @@
       <trans-unit id="Changing_document_property_is_not_supported">
         <source>Changing document properties is not supported</source>
         <target state="translated">Le changement des propriétés du document n'est pas pris en charge</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variables_captured_colon">
+        <source>Variables captured:</source>
+        <target state="translated">Variables capturées :</target>
         <note />
       </trans-unit>
     </body>

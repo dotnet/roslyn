@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(String.Empty, il, references: new[] { MscorlibRef, SystemCoreRef });
+            var compilation = CreateCompilationWithILAndMscorlib40(String.Empty, il);
             var classA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
             var classB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
 
@@ -432,7 +432,7 @@ class D
 ";
             var dll = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidDynamicAttributeArgs.AsImmutableOrNull());
 
-            var c = CreateStandardCompilation(csSource, new[] { dll });
+            var c = CreateCompilation(csSource, new[] { dll });
 
             c.VerifyDiagnostics(
                 // (7,20): error CS0570: 'C.F1' is not supported by the language
@@ -547,7 +547,7 @@ str
 3
 str";
 
-            var compilation = CreateCompilationWithCustomILSource(source, il, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             var classDerived = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");

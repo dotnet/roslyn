@@ -57,25 +57,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                public void RemoveCancellationSource(object key)
-                {
-                    lock (_gate)
-                    {
-                        // just remove cancellation token from the map.
-                        // the cancellation token might be passed out to other service
-                        // so don't call cancel on the source only because we are done using it.
-                        _cancellationMap.Remove(key);
-
-                        if (!HasAnyWork_NoLock)
-                        {
-                            Contract.Requires(_cancellationMap.Count == 0);
-
-                            // last work is done.
-                            _progressReporter.Stop();
-                        }
-                    }
-                }
-
                 public virtual Task WaitAsync(CancellationToken cancellationToken)
                 {
                     return _semaphore.WaitAsync(cancellationToken);
@@ -85,25 +66,45 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     lock (_gate)
                     {
-                        // we need to check both work enqueued and work sent
-                        // out that are still running before start new progress
-                        // report otherwise, we can start progress again
-                        // while last work item is still running causing
-                        // progress bar to be broken
-                        if (!HasAnyWork_NoLock && _cancellationMap.Count == 0)
-                        {
-                            // first work is added.
-                            _progressReporter.Start();
-                        }
-
                         if (AddOrReplace_NoLock(item))
                         {
+                            // the item is new item that got added to the queue.
+                            // let solution crawler progress report to know about new item enqueued.
+                            // progress reporter will take care of nested/overlapped works by itself
+                            // 
+                            // order of events is as follow
+                            // 1. first item added by AddOrReplace which is the point where progress start.
+                            // 2. bunch of other items added or replaced (workitem in the queue > 0)
+                            // 3. items start dequeued to be processed by TryTake or TryTakeAnyWork
+                            // 4. once item is done processed, it is marked as done by MarkWorkItemDoneFor
+                            // 5. all items in the queue are dequeued (workitem in the queue == 0) 
+                            //    but there can be still work in progress
+                            // 6. all works are considered done when last item is marked done by MarkWorkItemDoneFor
+                            //    and at the point, we will set progress to stop.
+                            _progressReporter.Start();
+
                             // increase count 
                             _semaphore.Release();
                             return true;
                         }
 
                         return false;
+                    }
+                }
+
+                public void MarkWorkItemDoneFor(object key)
+                {
+                    lock (_gate)
+                    {
+                        // just remove cancellation token from the map.
+                        // the cancellation token might be passed out to other service
+                        // so don't call cancel on the source only because we are done using it.
+                        _cancellationMap.Remove(key);
+
+                        // every works enqueued by "AddOrReplace" will be processed
+                        // at some point, and when it is processed, this method will be called to mark
+                        // work has been done.
+                        _progressReporter.Stop();
                     }
                 }
 

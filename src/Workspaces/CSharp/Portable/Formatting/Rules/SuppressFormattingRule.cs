@@ -124,9 +124,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            if (node is AnonymousMethodExpressionSyntax anonymousMethod)
+            if (node is AnonymousFunctionExpressionSyntax ||
+                node is LocalFunctionStatementSyntax)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
+                AddSuppressWrappingIfOnSingleLineOperation(list,
+                    node.GetFirstToken(includeZeroWidth: true),
+                    node.GetLastToken(includeZeroWidth: true),
+                    SuppressOption.IgnoreElastic);
                 return;
             }
 

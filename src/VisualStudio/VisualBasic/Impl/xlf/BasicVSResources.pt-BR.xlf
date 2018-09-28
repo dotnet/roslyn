@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
+        <target state="translated">Em operadores relacionais:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
         <source>Microsoft Visual Basic</source>
         <target state="translated">Microsoft Visual Basic</target>
@@ -25,6 +30,11 @@
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">_Inserção automática de membros Interface e MustOverride</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
+        <source>Prefer 'Is Nothing' for reference equality checks</source>
+        <target state="translated">Prefira 'Is Nothing' para as verificações de igualdade de referência</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -257,11 +267,6 @@
         <target state="translated">Esmaecer importações não utilizadas</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_Is_Nothing_over_ReferenceEquals">
-        <source>Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</source>
-        <target state="translated">Prefira usar 'Is Nothing' em vez de ' Object.ReferenceEquals(..., Nothing)'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'String.Format' calls</source>
         <target state="translated">Relatar espaços reservados inválidos em chamadas 'String.Format'</target>
@@ -270,6 +275,16 @@
       <trans-unit id="Separate_import_directive_groups">
         <source>Separate import directive groups</source>
         <target state="translated">Separar grupos de diretiva de importação</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</source>
+        <target state="translated">Em operadores aritméticos:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
+        <target state="translated">Em outros operadores binários:  And   AndAlso   Or   OrElse</target>
         <note />
       </trans-unit>
     </body>

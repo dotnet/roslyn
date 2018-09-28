@@ -16,10 +16,12 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlNonRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" commit="$repositoryCommit$" />
     <dependencies>
       <dependency id="Microsoft.VisualStudio.LanguageServices" version="$version$" />
       <dependency id="Microsoft.VisualStudio.Setup.Configuration.Interop" version="$MicrosoftVisualStudioSetupConfigurationInteropVersion$" />
@@ -27,8 +29,8 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Dlls\TestUtilities\net461\Roslyn.Test.Utilities.dll" target="lib\net461" />
-    <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.dll" target="lib\net461" />
-    <file src="Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll" target="lib\net461" />
+    <file src="Dlls\TestUtilities\net46\Roslyn.Test.Utilities.dll" target="lib\net46" />
+    <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.dll" target="lib\net46" />
+    <file src="Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll" target="lib\net46" />
   </files>
 </package>

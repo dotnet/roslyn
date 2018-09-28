@@ -134,7 +134,7 @@ internal class C : B
         return this.M(this.P);
     }
 }";
-            var compilation0 = CreateStandardCompilation(
+            var compilation0 = CreateCompilation(
                 source,
                 options: TestOptions.DebugDll,
                 assemblyName: Guid.NewGuid().ToString("D"));

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -63,11 +64,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddSequencePoint(rewritten);
         }
 
-        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement original, BoundStatement rewritten)
         {
-            rewritten = base.InstrumentExpressionStatement(original, rewritten);
+            rewritten = base.InstrumentFieldOrPropertyInitializer(original, rewritten);
             SyntaxNode syntax = original.Syntax;
 
+            if (rewritten.Kind == BoundKind.Block)
+            {
+                var block = (BoundBlock)rewritten;
+                return block.Update(block.Locals, block.LocalFunctions, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
+            }
+
+            return InstrumentFieldOrPropertyInitializer(rewritten, syntax);
+        }
+
+        private static BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement rewritten, SyntaxNode syntax)
+        {
             switch (syntax.Parent.Parent.Kind())
             {
                 case SyntaxKind.VariableDeclarator:

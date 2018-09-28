@@ -19,10 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         [ImportingConstructor]
         public RemoteHostClientServiceFactory(
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            IAsynchronousOperationListenerProvider listenerProvider,
             IDiagnosticAnalyzerService analyzerService)
         {
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.RemoteHostClient);
+            _listener = listenerProvider.GetListener(FeatureAttribute.RemoteHostClient);
             _analyzerService = analyzerService;
         }
 

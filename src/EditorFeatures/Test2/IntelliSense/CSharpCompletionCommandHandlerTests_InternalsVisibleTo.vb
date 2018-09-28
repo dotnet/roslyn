@@ -4,6 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
+    <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_InternalsVisibleTo
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -577,6 +578,24 @@ using System.Reflection;
                 Await state.AssertCompletionSession()
                 Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
                 Assert.True(state.CompletionItemsContainsAll({"ClassLibrary2"}))
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIgnoresUnsupportedProjectTypes() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="NoCompilation" AssemblyName="ClassLibrary1"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+using System.Runtime.CompilerServices;
+using System.Reflection;
+[assembly: InternalsVisibleTo("$$
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertNoCompletionSession()
             End Using
         End Function
     End Class

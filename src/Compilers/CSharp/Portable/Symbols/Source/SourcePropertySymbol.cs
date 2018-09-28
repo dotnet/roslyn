@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -394,8 +393,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, location, this);
             }
 
+            if (_isAutoProperty)
+            {
+                CheckForFieldTargetedAttribute(syntax, diagnostics);
+            }
+
             CheckForBlockAndExpressionBody(
                 syntax.AccessorList, syntax.GetExpressionBodySyntax(), syntax, diagnostics);
+        }
+
+        private void CheckForFieldTargetedAttribute(BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        {
+            var languageVersion = this.DeclaringCompilation.LanguageVersion;
+            if (languageVersion.AllowAttributesOnBackingFields())
+            {
+                return;
+            }
+
+            foreach (var attribute in syntax.AttributeLists)
+            {
+                if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                {
+                    diagnostics.Add(
+                        new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
+                            languageVersion.ToDisplayString(),
+                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
+                        attribute.Target.Location);
+                }
+            }
         }
 
         internal bool IsExpressionBodied
@@ -1028,11 +1053,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
         {
-            get { return AttributeLocation.Property; }
+            get
+            {
+                return _isAutoProperty
+                    ? AttributeLocation.Property | AttributeLocation.Field
+                    : AttributeLocation.Property;
+            }
         }
 
         /// <summary>
-        /// Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
+        /// Returns a bag of custom attributes applied on the property and data decoded from well-known attributes. Returns null if there are no attributes.
         /// </summary>
         /// <remarks>
         /// Forces binding and decoding of attributes.
@@ -1044,6 +1074,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return bag;
             }
+
+            // The property is responsible for completion of the backing field
+            _ = _backingField?.GetAttributes();
 
             if (LoadAndValidateAttributes(OneOrMany.Create(this.CSharpSyntaxNode.AttributeLists), ref _lazyCustomAttributesBag))
             {
@@ -1117,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes,
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
             }
-            
+
             if (this.ReturnsByRefReadonly)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
@@ -1230,6 +1263,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // IsReadOnlyAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
+            {
+                // IsUnmanagedAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
             {
                 // IsByRefLikeAttribute should not be set explicitly.
@@ -1249,12 +1287,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_lazyCustomAttributesBag != null);
             Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
-
-            if (this.IsAutoProperty && !this.IsStatic && this.ContainingType.Layout.Kind == LayoutKind.Explicit)
-            {
-                // error CS0842: '<property>': Automatically implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)
-                diagnostics.Add(ErrorCode.ERR_ExplicitLayoutAndAutoImplementedProperty, this.Location, this);
-            }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }

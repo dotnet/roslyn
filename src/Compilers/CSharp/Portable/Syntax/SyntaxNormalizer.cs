@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (token.IsKind(SyntaxKind.ColonToken))
             {
-                return true;
+                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause);
             }
 
             if (next.IsKind(SyntaxKind.ColonToken))

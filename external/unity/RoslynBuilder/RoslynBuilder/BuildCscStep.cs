@@ -33,7 +33,8 @@ namespace RoslynBuilder
 			{
 				"publish",
 				"--configuration", "Release",
-				"--no-restore",
+				// Allow restore as --self-contained builds are complicated without it https://docs.microsoft.com/en-us/dotnet/core/deploying/runtime-patch-selection
+				//"--no-restore",
 				projectDir.ToString(),
 				$"-o", outputDir.ToString(),
 				$"--framework", framework.ToString()
@@ -49,6 +50,8 @@ namespace RoslynBuilder
 			commandLineArgs.Add("/p:UseShippingAssemblyVersion=true");
 			commandLineArgs.Add("/p:OfficialBuild=true");
 			commandLineArgs.Add("/p:SkipApplyOptimizations=true");
+			// turn off source link since it assumes Roslyn is checked out from a github repo
+			commandLineArgs.Add("/p:EnableSourceLink=false");
 
 			var args = commandLineArgs.Select(a => $"\"{a}\"").Aggregate((a, b) => a + " " + b);
 			var dotnetOutput = Shell.ExecuteAndCaptureOutput(KnownPaths.DotNet, args);

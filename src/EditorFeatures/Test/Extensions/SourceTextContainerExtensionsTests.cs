@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             var textSnapshotMock = new Mock<VisualStudio.Text.ITextSnapshot2>();
             var bufferMock = new Mock<VisualStudio.Text.ITextBuffer>();
 
-            textSnapshotMock.Setup(s => s.TextImage).Returns(textImageMock.Object);
+            textSnapshotMock.SetupGet(s => s.TextImage).Returns(textImageMock.Object);
+            textSnapshotMock.SetupGet(s => s.TextBuffer).Returns(bufferMock.Object);
             bufferMock.SetupGet(x => x.CurrentSnapshot).Returns(textSnapshotMock.Object);
             bufferMock.SetupGet(x => x.Properties).Returns(new VisualStudio.Utilities.PropertyCollection());
 

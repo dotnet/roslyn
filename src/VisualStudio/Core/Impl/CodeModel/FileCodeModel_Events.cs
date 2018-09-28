@@ -57,13 +57,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return needMoreTime;
             }
 
-            var provider = GetAbstractProject() as IProjectCodeModelProvider;
-            if (provider == null)
+            var projectCodeModel = GetAbstractProject().ProjectCodeModel as ProjectCodeModel;
+            if (projectCodeModel == null)
             {
                 return needMoreTime;
             }
 
-            if (!provider.ProjectCodeModel.TryGetCachedFileCodeModel(this.Workspace.GetFilePath(GetDocumentId()), out var fileCodeModelHandle))
+            if (!projectCodeModel.TryGetCachedFileCodeModel(this.Workspace.GetFilePath(GetDocumentId()), out var fileCodeModelHandle))
             {
                 return needMoreTime;
             }

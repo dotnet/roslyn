@@ -607,7 +607,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M", @"
 {
@@ -650,7 +650,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.<M>g__M1|0_0(in int, in (int Alice, int Bob))", @"
 {
@@ -720,7 +720,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -753,7 +753,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -1919,7 +1919,7 @@ struct S1
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -1942,15 +1942,15 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary_Right()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -1973,15 +1973,15 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary_Left()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -2004,15 +2004,15 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Unary()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public bool Value { get; set; }
@@ -2034,15 +2034,15 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
         }
 
         [Fact]
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Conversion()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public bool Value { get; set; }
@@ -2064,8 +2064,8 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
         }
 
         [Fact]
@@ -2883,7 +2883,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "XX");
 
             verifier.VerifyIL("X.M()", @"
@@ -2893,6 +2893,676 @@ class Program
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""void Ex.InMethod(in X)""
   IL_0007:  ret
+}
+");
+        }
+
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_Local()
+        {
+            var code = @"
+using System;
+
+public class Test
+{
+    static void Main(string[] args)
+    {
+        int x = 50;
+        Moo(x + 0, () => x = 60);
+    }
+    
+    static void Moo(in int y, Action change)
+    {
+        Console.Write(y);
+        change();
+        Console.Write(y);
+    }
+}
+";
+
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
+
+            verifier.VerifyIL("Test.Main(string[])", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (Test.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                int V_1)
+  IL_0000:  newobj     ""Test.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.s   50
+  IL_0009:  stfld      ""int Test.<>c__DisplayClass0_0.x""
+  IL_000e:  ldloc.0
+  IL_000f:  ldfld      ""int Test.<>c__DisplayClass0_0.x""
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  ldloc.0
+  IL_0018:  ldftn      ""void Test.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_001e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0023:  call       ""void Test.Moo(in int, System.Action)""
+  IL_0028:  ret
+}
+");
+        }
+
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_ArrayAccess()
+        {
+            var code = @"
+using System;
+
+public class Test
+{
+    static void Main(string[] args)
+    {
+        int[] x = new int[] { 50 };
+        Moo(x[0] + 0, () => x[0] = 60);
+    }
+
+    static void Moo(in int y, Action change)
+    {
+        Console.Write(y);
+        change();
+        Console.Write(y);
+    }
+}
+";
+
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
+
+            verifier.VerifyIL("Test.Main(string[])", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  5
+  .locals init (Test.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                int V_1)
+  IL_0000:  newobj     ""Test.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  newarr     ""int""
+  IL_000d:  dup
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.s   50
+  IL_0011:  stelem.i4
+  IL_0012:  stfld      ""int[] Test.<>c__DisplayClass0_0.x""
+  IL_0017:  ldloc.0
+  IL_0018:  ldfld      ""int[] Test.<>c__DisplayClass0_0.x""
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldelem.i4
+  IL_001f:  stloc.1
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  ldftn      ""void Test.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_0029:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_002e:  call       ""void Test.Moo(in int, System.Action)""
+  IL_0033:  ret
+}
+");
+        }
+
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_ArrayAccessReordered()
+        {
+            var code = @"
+using System;
+
+public class Test
+{
+    static void Main(string[] args)
+    {
+        int[] x = new int[] { 50 };
+        Moo(change: () => x[0] = 60, y: x[0] + 0);
+    }
+
+    static void Moo(in int y, Action change)
+    {
+        Console.Write(y);
+        change();
+        Console.Write(y);
+    }
+}
+";
+
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
+
+            verifier.VerifyIL("Test.Main(string[])", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  5
+  .locals init (Test.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                int V_1)
+  IL_0000:  newobj     ""Test.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  newarr     ""int""
+  IL_000d:  dup
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.s   50
+  IL_0011:  stelem.i4
+  IL_0012:  stfld      ""int[] Test.<>c__DisplayClass0_0.x""
+  IL_0017:  ldloc.0
+  IL_0018:  ldfld      ""int[] Test.<>c__DisplayClass0_0.x""
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldelem.i4
+  IL_001f:  stloc.1
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  ldftn      ""void Test.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_0029:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_002e:  call       ""void Test.Moo(in int, System.Action)""
+  IL_0033:  ret
+}
+");
+        }
+
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_FieldAcces()
+        {
+            var code = @"
+using System;
+
+public class Test
+{
+    struct S1
+    {
+        public int x;
+    }
+
+    static S1 s = new S1 { x = 555 };
+
+    static void Main(string[] args)
+    {
+        Moo(s.x + 0);
+    }
+
+    static void Moo(in int y)
+    {
+        Console.Write(y);
+        s.x = 123;
+        Console.Write(y);
+    }
+}
+";
+
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "555555");
+
+            verifier.VerifyIL("Test.Main(string[])", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldsflda    ""Test.S1 Test.s""
+  IL_0005:  ldfld      ""int Test.S1.x""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""void Test.Moo(in int)""
+  IL_0012:  ret
+}
+");
+        }
+
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_RoFieldAcces()
+        {
+            var code = @"
+using System;
+
+public class Test
+{
+    struct S1
+    {
+        public int x;
+    }
+
+    readonly S1 s;
+
+    static void Main(string[] args)
+    {
+        var x = new Test();
+    }
+
+    public Test()
+    {
+        Test1(s.x + 0, ref s.x);
+    }
+
+    private void Test1(in int y, ref int f)
+    {
+        Console.Write(y);
+        f = 1;
+        Console.Write(y);
+
+        Test2(s.x + 0, ref f);
+    }
+
+    private void Test2(in int y, ref int f)
+    {
+        Console.Write(y);
+        f = 2;
+        Console.Write(y);
+    }
+}
+";
+
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.Fails);
+
+            verifier.VerifyIL("Test..ctor()", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldflda     ""Test.S1 Test.s""
+  IL_000d:  ldfld      ""int Test.S1.x""
+  IL_0012:  stloc.0
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  ldarg.0
+  IL_0016:  ldflda     ""Test.S1 Test.s""
+  IL_001b:  ldflda     ""int Test.S1.x""
+  IL_0020:  call       ""void Test.Test1(in int, ref int)""
+  IL_0025:  ret
+}
+");
+
+            verifier.VerifyIL("Test.Test1(in int, ref int)", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldind.i4
+  IL_0002:  call       ""void System.Console.Write(int)""
+  IL_0007:  ldarg.2
+  IL_0008:  ldc.i4.1
+  IL_0009:  stind.i4
+  IL_000a:  ldarg.1
+  IL_000b:  ldind.i4
+  IL_000c:  call       ""void System.Console.Write(int)""
+  IL_0011:  ldarg.0
+  IL_0012:  ldarg.0
+  IL_0013:  ldflda     ""Test.S1 Test.s""
+  IL_0018:  ldfld      ""int Test.S1.x""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  ldarg.2
+  IL_0021:  call       ""void Test.Test2(in int, ref int)""
+  IL_0026:  ret
+}
+");
+
+        }
+
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_ThisAcces()
+        {
+            var code = @"
+using System;
+
+public class Test
+{
+    static void Main(string[] args)
+    {
+        var x = new Test();
+    }
+
+    public Test()
+    {
+        Test3(null ?? this);
+    }
+
+    private void Test3(in Test y)
+    {
+    }
+}
+";
+
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "");
+
+            verifier.VerifyIL("Test..ctor()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (Test V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.0
+  IL_0008:  stloc.0
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  call       ""void Test.Test3(in Test)""
+  IL_0010:  ret
+}
+");
+        }
+
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_RefMethod()
+        {
+            var code = @"
+using System;
+
+public class Test
+{
+    static void Main(string[] args)
+    {
+        var x = new Test();
+    }
+
+    private string s = ""hi"";
+
+    private ref string M1()
+    {
+        return ref s;
+    }
+
+    public Test()
+    {
+        Test3(null ?? M1());
+    }
+
+    private void Test3(in string y)
+    {
+        Console.Write(y);
+        s = ""bye"";
+        Console.Write(y);
+    }
+}
+";
+
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
+
+            verifier.VerifyIL("Test..ctor()", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""hi""
+  IL_0006:  stfld      ""string Test.s""
+  IL_000b:  ldarg.0
+  IL_000c:  call       ""object..ctor()""
+  IL_0011:  ldarg.0
+  IL_0012:  ldarg.0
+  IL_0013:  call       ""ref string Test.M1()""
+  IL_0018:  ldind.ref
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       ""void Test.Test3(in string)""
+  IL_0021:  ret
+}
+");
+        }
+
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_InOperator()
+        {
+            var code = @"
+using System;
+
+public class Test
+{
+    static void Main(string[] args)
+    {
+        var x = new Test();
+    }
+
+    private static string s = ""hi"";
+
+    public Test()
+    {
+        var dummy = (null ?? s) + this;
+    }
+
+    public static string operator +(in string y, in Test t)
+    {
+        Console.Write(y);
+        s = ""bye"";
+        Console.Write(y);
+
+        return y;
+    }
+}
+";
+
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
+
+            verifier.VerifyIL("Test..ctor()", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldsfld     ""string Test.s""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldarga.s   V_0
+  IL_0010:  call       ""string Test.op_Addition(in string, in Test)""
+  IL_0015:  pop
+  IL_0016:  ret
+}
+");
+        }
+
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_InOperatorLifted()
+        {
+            var code = @"
+using System;
+
+public struct Test
+{
+    static void Main(string[] args)
+    {
+        var x = new Test();
+        x.Test1();
+    }
+
+    private Action change;
+    public Test(Action change)
+    {
+        this.change = change;
+    }
+
+
+    public void Test1()
+    {
+        int s = 1;
+        Test? t = new Test(() => s = 42);
+
+        var dummy = s + t;
+    }
+
+    public static int operator +(in int y, in Test t)
+    {
+        Console.Write(y);
+        t.change();
+        Console.Write(y);
+
+        return 88;
+    }
+}
+";
+
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "11");
+
+            verifier.VerifyIL("Test.Test1()", @"
+{
+  // Code size       71 (0x47)
+  .maxstack  2
+  .locals init (Test.<>c__DisplayClass3_0 V_0, //CS$<>8__locals0
+                int V_1,
+                Test? V_2,
+                Test V_3)
+  IL_0000:  newobj     ""Test.<>c__DisplayClass3_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  stfld      ""int Test.<>c__DisplayClass3_0.s""
+  IL_000d:  ldloc.0
+  IL_000e:  ldftn      ""void Test.<>c__DisplayClass3_0.<Test1>b__0()""
+  IL_0014:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0019:  newobj     ""Test..ctor(System.Action)""
+  IL_001e:  newobj     ""Test?..ctor(Test)""
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""int Test.<>c__DisplayClass3_0.s""
+  IL_0029:  stloc.1
+  IL_002a:  stloc.2
+  IL_002b:  ldloca.s   V_2
+  IL_002d:  call       ""bool Test?.HasValue.get""
+  IL_0032:  brfalse.s  IL_0046
+  IL_0034:  ldloca.s   V_1
+  IL_0036:  ldloca.s   V_2
+  IL_0038:  call       ""Test Test?.GetValueOrDefault()""
+  IL_003d:  stloc.3
+  IL_003e:  ldloca.s   V_3
+  IL_0040:  call       ""int Test.op_Addition(in int, in Test)""
+  IL_0045:  pop
+  IL_0046:  ret
+}
+");
+        }
+
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_InOperatorUnary()
+        {
+            var code = @"
+using System;
+
+public class Test
+{
+    static void Main(string[] args)
+    {
+        Test1();
+    }
+
+    private static Test s = new Test();
+
+    public static void Test1()
+    {
+        var dummy = +(null ?? s);
+    }
+
+    public static Test operator +(in Test y)
+    {
+        Console.Write(y);
+        s = default;
+        Console.Write(y);
+
+        return y;
+    }
+}
+";
+
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "TestTest");
+
+            verifier.VerifyIL("Test.Test1()", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (Test V_0)
+  IL_0000:  ldsfld     ""Test Test.s""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       ""Test Test.op_UnaryPlus(in Test)""
+  IL_000d:  pop
+  IL_000e:  ret
+}
+");
+        }
+
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_InConversion()
+        {
+            var code = @"
+using System;
+
+public class Test
+{
+    static void Main(string[] args)
+    {
+        Test1();
+    }
+
+    private static Test s = new Test();
+
+    public static void Test1()
+    {
+        int dummyI = (null ?? s);
+
+        s = new Derived();
+
+        long dummyL = (null ?? s);
+    }
+
+    public static implicit operator int(in Test y)
+    {
+        Console.Write(y.ToString());
+        s = default;
+        Console.Write(y.ToString());
+
+        return 1;
+    }
+}
+
+class Derived : Test { }
+";
+
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "TestTestDerivedDerived");
+
+            verifier.VerifyIL("Test.Test1()", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  1
+  .locals init (Test V_0)
+  IL_0000:  ldsfld     ""Test Test.s""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       ""int Test.op_Implicit(in Test)""
+  IL_000d:  pop
+  IL_000e:  newobj     ""Derived..ctor()""
+  IL_0013:  stsfld     ""Test Test.s""
+  IL_0018:  ldsfld     ""Test Test.s""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""int Test.op_Implicit(in Test)""
+  IL_0025:  pop
+  IL_0026:  ret
 }
 ");
         }

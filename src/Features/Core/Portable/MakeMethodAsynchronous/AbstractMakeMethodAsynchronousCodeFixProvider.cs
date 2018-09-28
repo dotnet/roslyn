@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
     internal abstract class AbstractMakeMethodAsynchronousCodeFixProvider : CodeFixProvider
     {
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
+
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
             INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType);
@@ -48,28 +50,30 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
 
-            // If it's a void returning method, offer to keep the void return type, or convert to 
-            // a Task return type.
-            bool isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
-            if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid)
-            {
-                context.RegisterCodeFix(
-                    new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: false, cancellationToken: c)),
-                    context.Diagnostics);
+            // Heuristic to recognize the common case for entry point method
+            var isEntryPoint = symbol != null && symbol.IsStatic && IsLikelyEntryPointName(symbol.Name, context.Document);
 
+            // Offer to convert to a Task return type.
+            context.RegisterCodeFix(
+                new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
+                    context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c)),
+                context.Diagnostics);
+
+            // If it's a void returning method (and not an entry point), also offer to keep the void return type
+            bool isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
+            if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid && !isEntryPoint)
+            {
                 context.RegisterCodeFix(
                     new MyCodeAction(GetMakeAsyncVoidFunctionResource(), c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: true, cancellationToken: c)),
+                        context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c)),
                     context.Diagnostics);
             }
-            else
-            {
-                context.RegisterCodeFix(
-                    new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: false, cancellationToken: c)),
-                    context.Diagnostics);
-            }
+        }
+
+        private bool IsLikelyEntryPointName(string name, Document document)
+        {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            return syntaxFacts.StringComparer.Equals(name, "Main");
         }
 
         private (INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTTypeOpt) GetTaskTypes(Compilation compilation)
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
         private async Task<Solution> FixNodeAsync(
             Document document, Diagnostic diagnostic,
-            bool keepVoid, CancellationToken cancellationToken)
+            bool keepVoid, bool isEntryPoint, CancellationToken cancellationToken)
         {
             var node = GetContainingFunction(diagnostic, cancellationToken);
 
@@ -100,7 +104,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
 
             bool isOrdinaryOrLocalFunction = methodSymbolOpt.IsOrdinaryMethodOrLocalFunction();
-            if (isOrdinaryOrLocalFunction && !methodSymbolOpt.Name.EndsWith(AsyncSuffix))
+            if (isOrdinaryOrLocalFunction && !methodSymbolOpt.Name.EndsWith(AsyncSuffix) && !isEntryPoint)
             {
                 return await RenameThenAddAsyncTokenAsync(
                     keepVoid, document, node, methodSymbolOpt, cancellationToken).ConfigureAwait(false);
@@ -132,6 +136,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
             // Rename the method to add the 'Async' suffix, then add the 'async' keyword.
             var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
+
             var newDocument = newSolution.GetDocument(document.Id);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxPath.TryResolve(newRoot, out SyntaxNode newNode))

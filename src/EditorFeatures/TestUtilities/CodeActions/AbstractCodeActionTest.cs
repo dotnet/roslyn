@@ -28,13 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(
             Workspace workspace, TestParameters parameters);
 
-        protected override async Task<ImmutableArray<CodeAction>> GetCodeActionsWorkerAsync(
+        protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
-            return refactoring == null
+            var actions = refactoring == null
                 ? ImmutableArray<CodeAction>.Empty
                 : refactoring.Actions;
+            return (actions, actions.IsDefaultOrEmpty ? null : actions[parameters.index]);
         }
 
         protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
@@ -73,14 +74,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return result;
         }
 
-        protected async Task TestActionsOnLinkedFiles(
+        protected async Task TestActionOnLinkedFiles(
             TestWorkspace workspace,
             string expectedText,
-            int index,
-            ImmutableArray<CodeAction> actions,
+            CodeAction action,
             string expectedPreviewContents = null)
         {
-            var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
+            var operations = await VerifyActionAndGetOperationsAsync(action, default);
 
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
             int index = 0,
             CodeActionPriority? priority = null,
-            TestParameters parameters = default(TestParameters))
+            TestParameters parameters = default)
         {
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
             return TestInRegularAndScript1Async(

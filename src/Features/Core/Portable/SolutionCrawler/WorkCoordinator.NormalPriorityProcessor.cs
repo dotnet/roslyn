@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         CancellationToken shutdownToken) :
                         base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
-                        _running = SpecializedTasks.EmptyTask;
+                        _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
 
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             // First the active document
                             var activeDocumentId = this.Processor._documentTracker.GetActiveDocument();
-                            if (activeDocumentId != null && _higherPriorityDocumentsNotProcessed.ContainsKey(activeDocumentId))
+                            if (activeDocumentId != null)
                             {
                                 yield return activeDocumentId;
                             }
@@ -240,10 +240,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // Now any visible documents
                             foreach (var visibleDocumentId in this.Processor._documentTracker.GetVisibleDocuments())
                             {
-                                if (_higherPriorityDocumentsNotProcessed.ContainsKey(visibleDocumentId))
-                                {
-                                    yield return visibleDocumentId;
-                                }
+                                yield return visibleDocumentId;
                             }
                         }
 
@@ -264,6 +261,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 {
                                     return true;
                                 }
+
                                 // this is a best effort algorithm with some shortcomings.
                                 //
                                 // the most obvious issue is if there is a new work item (without a solution change - but very unlikely) 
@@ -312,7 +310,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         try
                         {
-                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, source.Token))
+                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, source.Token))
                             {
                                 var cancellationToken = source.Token;
                                 var document = _processingSolution.GetDocument(documentId);
@@ -364,7 +362,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             SolutionCrawlerLogger.LogProcessDocument(this.Processor._logAggregator, documentId.Id, processedEverything);
 
                             // remove one that is finished running
-                            _workItemQueue.RemoveCancellationSource(workItem.DocumentId);
+                            _workItemQueue.MarkWorkItemDoneFor(workItem.DocumentId);
                         }
                     }
 

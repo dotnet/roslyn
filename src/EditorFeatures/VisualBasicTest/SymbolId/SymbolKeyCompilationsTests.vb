@@ -66,8 +66,8 @@ End Namespace
                            </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
-            Dim comp2 = CreateCompilationWithMscorlib(src2)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
+            Dim comp2 = CreateCompilationWithMscorlib40(src2)
 
             Dim originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType Or SymbolCategory.DeclaredNamespace)
             Dim newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType Or SymbolCategory.DeclaredNamespace)
@@ -100,8 +100,8 @@ End Namespace
                            </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
-            Dim comp2 = CreateCompilationWithMscorlib(src2)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
+            Dim comp2 = CreateCompilationWithMscorlib40(src2)
 
             Dim originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType Or SymbolCategory.DeclaredNamespace)
             Dim newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType Or SymbolCategory.DeclaredNamespace)
@@ -188,8 +188,8 @@ End Namespace
                            </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
-            Dim comp2 = CreateCompilationWithMscorlib(src2)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
+            Dim comp2 = CreateCompilationWithMscorlib40(src2)
 
             Dim originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType)
             Dim newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType)
@@ -218,8 +218,8 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
-            Dim comp2 = CreateCompilationWithMscorlib(src2)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
+            Dim comp2 = CreateCompilationWithMscorlib40(src2)
 
             Dim sym1 = comp1.SourceModule.GlobalNamespace.GetMembers("C").FirstOrDefault()
             Dim sym2 = comp2.SourceModule.GlobalNamespace.GetMembers("C").FirstOrDefault()
@@ -251,8 +251,8 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
-            Dim comp2 = CreateCompilationWithMscorlib(src2)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
+            Dim comp2 = CreateCompilationWithMscorlib40(src2)
 
             Dim originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType)
             Dim newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType)

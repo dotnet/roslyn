@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                     else
                     {
-                        var node = (TNode)(SyntaxNode)item.AsNode();
+                        var node = (TNode)item.AsNode();
 
                         if (this.IsForRemoval(node))
                         {
@@ -213,16 +213,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                                 alternate.Add(withSeps, 0, i);
                             }
 
-                            if (alternate.Count > 0 && alternate[alternate.Count - 1].IsToken)
+                            CommonSyntaxNodeRemover.GetSeparatorInfo(
+                                withSeps, i, (int)SyntaxKind.EndOfLineTrivia,
+                                out bool nextTokenIsSeparator, out bool nextSeparatorBelongsToNode);
+
+                            if (!nextSeparatorBelongsToNode &&
+                                alternate.Count > 0 &&
+                                alternate[alternate.Count - 1].IsToken)
                             {
-                                // remove preceding separator if any
                                 var separator = alternate[alternate.Count - 1].AsToken();
                                 this.AddTrivia(separator, node);
                                 alternate.RemoveLast();
                             }
-                            else if (i + 1 < n && withSeps[i + 1].IsToken)
+                            else if (nextTokenIsSeparator)
                             {
-                                // otherwise remove following separator if any
                                 var separator = withSeps[i + 1].AsToken();
                                 this.AddTrivia(node, separator);
                                 removeNextSeparator = true;
@@ -232,11 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                                 this.AddTrivia(node);
                             }
 
-                            visited = default(SyntaxNodeOrToken);
+                            visited = default;
                         }
                         else
                         {
-                            visited = this.VisitListElement((TNode)(SyntaxNode)item.AsNode());
+                            visited = this.VisitListElement((TNode)item.AsNode());
                         }
                     }
 

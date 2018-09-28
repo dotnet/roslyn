@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.ComponentModel
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
 
@@ -27,6 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private _ignoreCorLibraryDuplicatedTypes As Boolean
 
+#Disable Warning RS0026 ' Do not add multiple overloads with optional parameters
         ''' <summary>
         ''' Initializes a new instance of the VisualBasicCompilationOptions type with various options.
         ''' </summary>
@@ -59,6 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="strongNameProvider">An optional parameter to specify <see cref="CodeAnalysis.StrongNameProvider"/>.</param>
         ''' <param name="publicSign">An optional parameter to specify whether the assembly will be public signed.</param>
         ''' <param name="reportSuppressedDiagnostics">An optional parameter to specify whether or not suppressed diagnostics should be reported.</param>
+        ''' <param name="metadataImportOptions">An optional parameter to specify metadata import options.</param>
         Public Sub New(
             outputKind As OutputKind,
             Optional moduleName As String = Nothing,
@@ -89,7 +92,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional assemblyIdentityComparer As AssemblyIdentityComparer = Nothing,
             Optional strongNameProvider As StrongNameProvider = Nothing,
             Optional publicSign As Boolean = False,
-            Optional reportSuppressedDiagnostics As Boolean = False)
+            Optional reportSuppressedDiagnostics As Boolean = False,
+            Optional metadataImportOptions As MetadataImportOptions = MetadataImportOptions.Public)
 
             MyClass.New(
                 outputKind,
@@ -125,9 +129,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=MetadataImportOptions.Public,
+                metadataImportOptions:=metadataImportOptions,
                 referencesSupersedeLowerVersions:=False,
                 ignoreCorLibraryDuplicatedTypes:=False)
+
+        End Sub
+#Enable Warning RS0026 ' Do not add multiple overloads with optional parameters
+
+        '' 15.6 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        Public Sub New(
+            outputKind As OutputKind,
+            moduleName As String,
+            mainTypeName As String,
+            scriptClassName As String,
+            globalImports As IEnumerable(Of GlobalImport),
+            rootNamespace As String,
+            optionStrict As OptionStrict,
+            optionInfer As Boolean,
+            optionExplicit As Boolean,
+            optionCompareText As Boolean,
+            parseOptions As VisualBasicParseOptions,
+            embedVbCoreRuntime As Boolean,
+            optimizationLevel As OptimizationLevel,
+            checkOverflow As Boolean,
+            cryptoKeyContainer As String,
+            cryptoKeyFile As String,
+            cryptoPublicKey As ImmutableArray(Of Byte),
+            delaySign As Boolean?,
+            platform As Platform,
+            generalDiagnosticOption As ReportDiagnostic,
+            specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
+            concurrentBuild As Boolean,
+            deterministic As Boolean,
+            xmlReferenceResolver As XmlReferenceResolver,
+            sourceReferenceResolver As SourceReferenceResolver,
+            metadataReferenceResolver As MetadataReferenceResolver,
+            assemblyIdentityComparer As AssemblyIdentityComparer,
+            strongNameProvider As StrongNameProvider,
+            publicSign As Boolean,
+            reportSuppressedDiagnostics As Boolean)
+
+            MyClass.New(
+                outputKind,
+                moduleName,
+                mainTypeName,
+                scriptClassName,
+                globalImports,
+                rootNamespace,
+                optionStrict,
+                optionInfer,
+                optionExplicit,
+                optionCompareText,
+                parseOptions,
+                embedVbCoreRuntime,
+                optimizationLevel,
+                checkOverflow,
+                cryptoKeyContainer,
+                cryptoKeyFile,
+                cryptoPublicKey,
+                delaySign,
+                platform,
+                generalDiagnosticOption,
+                specificDiagnosticOptions,
+                concurrentBuild,
+                deterministic,
+                xmlReferenceResolver,
+                sourceReferenceResolver,
+                metadataReferenceResolver,
+                assemblyIdentityComparer,
+                strongNameProvider,
+                publicSign,
+                reportSuppressedDiagnostics,
+                MetadataImportOptions.Public)
 
         End Sub
 
@@ -739,7 +813,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics)
         End Function
 
-        Friend Overrides Function CommonWithMetadataImportOptions(value As MetadataImportOptions) As CompilationOptions
+        Protected Overrides Function CommonWithMetadataImportOptions(value As MetadataImportOptions) As CompilationOptions
             Return WithMetadataImportOptions(value)
         End Function
 
@@ -812,12 +886,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.OptimizationLevel = value}
         End Function
 
-        Friend Shadows Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
+        ''' <summary>
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a specified <see cref="CodeAnalysis.MetadataImportOptions"/>.
+        ''' </summary>
+        ''' <returns>A new instance of <see cref="VisualBasicCompilationOptions"/>, if the value is different; otherwise the current instance.</returns>        
+        Public Shadows Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
             If value = Me.MetadataImportOptions Then
                 Return Me
             End If
 
-            Return New VisualBasicCompilationOptions(Me) With {.MetadataImportOptions_internal_protected_set = value}
+            Return New VisualBasicCompilationOptions(Me) With {.MetadataImportOptions = value}
         End Function
 
         Friend Function WithReferencesSupersedeLowerVersions(value As Boolean) As VisualBasicCompilationOptions
@@ -967,6 +1045,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_LibAnycpu32bitPreferredConflict, NameOf(Platform), Platform.ToString()))
             End If
 
+            If Not MetadataImportOptions.IsValid() Then
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, NameOf(MetadataImportOptions), MetadataImportOptions.ToString()))
+            End If
+
             ' TODO: add check for 
             '          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             '          (version >= "6.2")
@@ -1031,6 +1113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         '' 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        <EditorBrowsable(EditorBrowsableState.Never)>
         Public Sub New(
             outputKind As OutputKind,
             moduleName As String,
@@ -1095,6 +1178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        <EditorBrowsable(EditorBrowsableState.Never)>
         Public Sub New(
             outputKind As OutputKind,
             moduleName As String,
@@ -1155,9 +1239,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 strongNameProvider:=strongNameProvider)
         End Sub
 
+#Disable Warning RS0027 ' Public API with optional parameter(s) should have the most parameters amongst its public overloads
         '' Bad constructor, do not use!
         '' Violates the rules for optional parameter overloads detailed at
         '' https://github.com/dotnet/roslyn/blob/e8fdb391703dcb5712ff6a5b83d768d784cba4cf/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md
+        <EditorBrowsable(EditorBrowsableState.Never)>
         Public Sub New(
             outputKind As OutputKind,
             reportSuppressedDiagnostics As Boolean,
@@ -1228,6 +1314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ignoreCorLibraryDuplicatedTypes:=False)
 
         End Sub
+#Enable Warning RS0027 ' Public API with optional parameter(s) should have the most parameters amongst its public overloads
 
         Protected Overrides Function CommonWithModuleName(moduleName As String) As CompilationOptions
             Return WithModuleName(moduleName)

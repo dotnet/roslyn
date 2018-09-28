@@ -12,16 +12,6 @@
         <target state="translated">程序集名称中有无效字符</target>
         <note />
       </trans-unit>
-      <trans-unit id="Msbuild_failed_when_processing_the_file_0">
-        <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="translated">处理文件“{0}”时，Msbuild 失败</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
-        <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="translated">处理文件“{0}”时，Msbuild 失败，消息: {1}</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

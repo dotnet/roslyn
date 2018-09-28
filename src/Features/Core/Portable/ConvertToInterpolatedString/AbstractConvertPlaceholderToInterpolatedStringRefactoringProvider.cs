@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
             var literalExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) as TLiteralExpressionSyntax;
             var text = literalExpression.GetFirstToken().ToString();
-            var syntaxGenerator = document.Project.LanguageServices.GetService<SyntaxGenerator>();
+            var syntaxGenerator = document.GetLanguageService<SyntaxGenerator>();
             var expandedArguments = GetExpandedArguments(semanticModel, arguments, syntaxGenerator, syntaxFactsService);
             var interpolatedString = GetInterpolatedString(text);
             var newInterpolatedString = VisitArguments(expandedArguments, interpolatedString, syntaxFactsService);

@@ -46,21 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds, diagnostics);
         }
 
-        public LambdaSymbol(
-            Symbol containingSymbol,
-            MessageID messageID,
-            SyntaxNode syntax,
-            bool isSynthesized)
-        {
-            _containingSymbol = containingSymbol;
-            _messageID = messageID;
-            _syntax = syntax;
-            _refKind = RefKind.None;
-            _returnType = ErrorTypeSymbol.UnknownResultType;
-            _isSynthesized = isSynthesized;
-            _parameters = ImmutableArray<ParameterSymbol>.Empty;
-        }
-
         public MessageID MessageID { get { return _messageID; } }
 
         public override MethodKind MethodKind

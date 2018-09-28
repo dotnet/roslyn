@@ -39,11 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments.Insert(0, this.ReceiverOpt));
     }
 
-    internal partial class BoundUserDefinedConditionalLogicalOperator
-    {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Left, this.Right);
-    }
-
     internal partial class BoundAnonymousObjectCreationExpression
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments);
@@ -106,22 +101,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundStackAllocArrayCreation
     {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Count);
+        internal static ImmutableArray<BoundExpression> GetChildInitializers(BoundArrayInitialization arrayInitializer)
+        {
+            return arrayInitializer?.Initializers ?? ImmutableArray<BoundExpression>.Empty;
+        }
+
+        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(GetChildInitializers(this.InitializerOpt).Insert(0, this.Count));
     }
 
     internal partial class BoundConvertedStackAllocExpression
     {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Count);
+        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(GetChildInitializers(this.InitializerOpt).Insert(0, this.Count));
     }
 
     internal partial class BoundDynamicObjectCreationExpression
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments.AddRange(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt)));
-    }
-
-    internal partial class BoundNoPiaObjectCreationExpression
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt));
     }
 
     partial class BoundThrowExpression
@@ -143,5 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override ImmutableArray<BoundNode> Children => 
             (this.Kind == BoundKind.StatementList || this.Kind == BoundKind.Scope) ? StaticCast<BoundNode>.From(this.Statements) : ImmutableArray<BoundNode>.Empty;
+    }
+
+    internal partial class BoundPassByCopy
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Expression);
     }
 }

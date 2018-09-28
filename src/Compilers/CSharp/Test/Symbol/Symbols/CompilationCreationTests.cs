@@ -2531,7 +2531,7 @@ class Module1
     {}
 }
 ";
-            var c1 = CreateCompilation(text, new MetadataReference[]
+            var c1 = CreateEmptyCompilation(text, new MetadataReference[]
             {
                 MscorlibRef,
                 TestReferences.SymbolsTests.V1.MTTestLib1.dll,
@@ -2954,10 +2954,10 @@ Console.WriteLine(2);
             var source1 = "public class C1 { }";
             var source2 = "public class C2 { }";
 
-            var lib1 = CreateStandardCompilation(source1, assemblyName: "Lib1", options: TestOptions.ReleaseModule);
+            var lib1 = CreateCompilation(source1, assemblyName: "Lib1", options: TestOptions.ReleaseModule);
             var ref1 = lib1.EmitToImageReference(); // NOTE: can't use a compilation reference for a module.
 
-            var lib2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "Lib2");
+            var lib2 = CreateCompilation(source2, new[] { ref1 }, assemblyName: "Lib2");
             lib2.VerifyDiagnostics();
 
             var sourceAssembly = lib2.Assembly;

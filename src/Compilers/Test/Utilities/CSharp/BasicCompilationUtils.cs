@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references = new[] { TestBase.MscorlibRef };
             }
             var compilation = CreateCompilationWithMscorlib(source, assemblyName, references);
-            var verifier = Instance.CompileAndVerify(compilation, verify: verify);
+            var verifier = Instance.CompileAndVerifyCommon(compilation, verify: verify);
             return MetadataReference.CreateFromImage(verifier.EmittedAssemblyData);
         }
 
@@ -43,16 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private sealed class BasicTestBase : CommonTestBase
         {
-            protected override CompilationOptions CompilationOptionsReleaseDll
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            protected override Compilation GetCompilationForEmit(IEnumerable<string> source, IEnumerable<MetadataReference> additionalRefs, CompilationOptions options, ParseOptions parseOptions)
-            {
-                throw new NotImplementedException();
-            }
-
             internal override string VisualizeRealIL(IModuleSymbol peModule, CodeAnalysis.CodeGen.CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
             {
                 throw new NotImplementedException();

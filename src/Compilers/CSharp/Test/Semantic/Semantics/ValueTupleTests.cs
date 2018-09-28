@@ -75,7 +75,7 @@ namespace System
         public TRest Rest;
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             Assert.Equal("T1 System.ValueTuple<T1>.Item1",
                 comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__Item1).ToTestDisplayString());
 
@@ -160,7 +160,7 @@ namespace System
         [Fact]
         public void TestMissingWellKnownMembersForValueTuple()
         {
-            var comp = CreateStandardCompilation("");
+            var comp = CreateCompilationWithMscorlib40("");
             Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T1).IsErrorType());
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__Item1));
 

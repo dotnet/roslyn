@@ -10,6 +10,7 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
+    <[UseExportProvider]>
     Public Class InteractivePasteCommandhandlerTests
         Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
         Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
@@ -56,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             End Using
         End Sub
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24850")>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithOutInteractiveFormat()
             Using workspace = TestWorkspace.Create(
@@ -130,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             End Using
         End Sub
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24749")>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormatAsBoxCopy()
             Using workspace = TestWorkspace.Create(

@@ -37,13 +37,13 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(code).VerifyEmitDiagnostics();
+            CreateCompilation(code).VerifyEmitDiagnostics();
         }
 
         [Fact]
         public void ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Internal()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 [assembly:System.Runtime.CompilerServices.InternalsVisibleToAttribute(""Source"")]
 namespace Microsoft.CodeAnalysis
 {
@@ -71,7 +71,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference.ToMetadataReference() }, assemblyName: "Source").VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { reference.ToMetadataReference() }, assemblyName: "Source").VerifyDiagnostics(
                 // (6,38): error CS0234: The type or namespace name 'TestType1' does not exist in the namespace 'TestReference' (are you missing an assembly reference?)
                 //         var obj1 = new TestReference.TestType1();
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType1").WithArguments("TestType1", "TestReference").WithLocation(6, 38),
@@ -83,7 +83,7 @@ class Program
         [Fact]
         public void ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Module()
         {
-            var module = CreateStandardCompilation(@"
+            var module = CreateCompilation(@"
 namespace Microsoft.CodeAnalysis
 {
     internal class EmbeddedAttribute : System.Attribute { }
@@ -112,7 +112,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }, assemblyName: "Source").VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { reference }, assemblyName: "Source").VerifyDiagnostics(
                 // (6,38): error CS0234: The type or namespace name 'TestType1' does not exist in the namespace 'TestReference' (are you missing an assembly reference?)
                 //         var obj1 = new TestReference.TestType1();
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType1").WithArguments("TestType1", "TestReference").WithLocation(6, 38),
@@ -124,7 +124,7 @@ class Program
         [Fact]
         public void ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Public()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 namespace Microsoft.CodeAnalysis
 {
     internal class EmbeddedAttribute : System.Attribute { }
@@ -151,7 +151,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
                 // (6,38): error CS0234: The type or namespace name 'TestType1' does not exist in the namespace 'TestReference' (are you missing an assembly reference?)
                 //         var obj1 = new TestReference.TestType1();
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType1").WithArguments("TestType1", "TestReference").WithLocation(6, 38),
@@ -204,7 +204,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(code, assemblyName: "testModule").VerifyEmitDiagnostics(
+            CreateCompilation(code, assemblyName: "testModule").VerifyEmitDiagnostics(
                 // (4,18): error CS8336: The type name 'Microsoft.CodeAnalysis.EmbeddedAttribute' is reserved to be used by the compiler.
                 //     public class EmbeddedAttribute : System.Attribute { }
                 Diagnostic(ErrorCode.ERR_TypeReserved, "EmbeddedAttribute").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(4, 18));
@@ -213,7 +213,7 @@ class Test
         [Fact]
         public void EmbeddedAttributeInReferencedModuleShouldTriggerAnErrorIfCompilerNeedsToGenerateOne()
         {
-            var module = CreateStandardCompilation(options: TestOptions.ReleaseModule, assemblyName: "testModule", text: @"
+            var module = CreateCompilation(options: TestOptions.ReleaseModule, assemblyName: "testModule", source: @"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
@@ -230,7 +230,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { moduleRef }).VerifyEmitDiagnostics(
+            CreateCompilation(code, references: new[] { moduleRef }).VerifyEmitDiagnostics(
                 // error CS8004: Type 'EmbeddedAttribute' exported from module 'testModule.netmodule' conflicts with type declared in primary module of this assembly.
                 Diagnostic(ErrorCode.ERR_ExportedTypeConflictsWithDeclaration).WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute", "testModule.netmodule").WithLocation(1, 1));
         }
@@ -238,7 +238,7 @@ class Test
         [Fact]
         public void EmbeddedAttributeForwardedToAnotherAssemblyShouldTriggerAnError()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
@@ -254,7 +254,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyEmitDiagnostics(
+            CreateCompilation(code, references: new[] { reference }).VerifyEmitDiagnostics(
                 // error CS8006: Forwarded type 'EmbeddedAttribute' conflicts with type declared in primary module of this assembly.
                 Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(1, 1));
         }
@@ -262,7 +262,7 @@ class Test
         [Fact]
         public void CompilerShouldIgnorePublicEmbeddedAttributesInReferencedAssemblies()
         {
-            var reference = CreateStandardCompilation(assemblyName: "testRef", text: @"
+            var reference = CreateCompilation(assemblyName: "testRef", source: @"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
@@ -282,7 +282,7 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, verify: Verification.Passes, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, references: new[] { reference }, symbolValidator: module =>
             {
                 var attributeName = AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName;
 
@@ -310,7 +310,7 @@ public class Test
     public void M(in object x) { } // should trigger synthesizing IsReadOnly
 }";
 
-            CreateCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+            CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
@@ -331,7 +331,7 @@ public class Test
     public object M(in object x) { return x; } // should trigger synthesizing IsReadOnly
 }";
 
-            CreateCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+            CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // (5,18): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     public class Void {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Void").WithArguments("System.Object").WithLocation(5, 18),
@@ -372,7 +372,7 @@ public class Test
     public object M(in object x) { return x; } // should trigger synthesizing IsReadOnly
 }";
 
-            CreateCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+            CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // (7,14): error CS0518: Predefined type 'System.Void' is not defined or imported
                 // public class Test
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Void").WithLocation(7, 14),
@@ -403,7 +403,7 @@ public class Test
     public void M(in object x) { } // should trigger synthesizing IsReadOnly
 }";
 
-            CreateCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+            CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
@@ -413,7 +413,7 @@ public class Test
         [Fact]
         public void EmbeddedTypesInAnAssemblyAreNotExposedExternally()
         {
-            var compilation1 = CreateStandardCompilation(@"
+            var compilation1 = CreateCompilation(@"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
@@ -426,7 +426,7 @@ public class TestReference2 { }
             Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference1"));
             Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference2"));
 
-            var compilation2 = CreateStandardCompilation("", references: new[] { compilation1.EmitToImageReference() });
+            var compilation2 = CreateCompilation("", references: new[] { compilation1.EmitToImageReference() });
 
             Assert.Null(compilation2.GetTypeByMetadataName("TestReference1"));
             Assert.NotNull(compilation2.GetTypeByMetadataName("TestReference2"));

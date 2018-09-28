@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly SemaphoreSlim _gate;
 
             public ImplicitCacheMonitor(ProjectCacheService owner, int backOffTimeSpanInMS) :
-                base(AggregateAsynchronousOperationListener.CreateEmptyListener(),
+                base(AsynchronousOperationListenerProvider.NullListener,
                      backOffTimeSpanInMS,
                      CancellationToken.None)
             {
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 _owner.ClearExpiredImplicitCache(DateTime.UtcNow - TimeSpan.FromMilliseconds(BackOffTimeSpanInMS));
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void Touch()
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Host
                     return _gate.WaitAsync(cancellationToken);
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

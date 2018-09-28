@@ -38,8 +38,8 @@
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
-        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</source>
-        <target state="translated">Noktalı virgül girildiğinde deyimi otomatik biçimlendir;Küme ayracı girildiğinde bloğu otomatik biçimlendir;Yapıştırma sonrasında otomatik biçimlendir</target>
+        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
+        <target state="translated">Noktalı virgül girildiğinde deyimi otomatik biçimlendir;Küme ayracı girildiğinde bloğu otomatik biçimlendir;Yapıştırma sonrasında otomatik biçimlendir;kod temizleme;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">

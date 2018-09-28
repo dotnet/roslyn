@@ -27,6 +27,7 @@ using Roslyn.VisualStudio.Setup;
 //[assembly: ProvideDependencyBindingRedirection("System.Text.Encoding.dll")] // no implementation assembly for net46
 //[assembly: ProvideDependencyBindingRedirection("System.Text.Encoding.Extensions.dll")] // no implementation assembly for net46
 //[assembly: ProvideDependencyBindingRedirection("System.Text.RegularExpressions.dll")] // no implementation assembly for net46
+[assembly: ProvideDependencyBindingRedirection("System.Threading.Tasks.Extensions.dll")]
 //[assembly: ProvideDependencyBindingRedirection("System.Threading.Tasks.Parallel.dll")] // no implementation assembly for net46
 [assembly: ProvideDependencyBindingRedirection("System.Text.Encoding.CodePages.dll")]
 [assembly: ProvideDependencyBindingRedirection("System.ValueTuple.dll")]

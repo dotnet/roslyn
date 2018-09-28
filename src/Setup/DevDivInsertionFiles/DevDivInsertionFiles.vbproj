@@ -4,7 +4,6 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{5FE910A9-E7C9-40E1-AAF1-6C6C7DD61B67}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>
     <RootNamespace>Roslyn.BuildDevDivInsertionFiles</RootNamespace>

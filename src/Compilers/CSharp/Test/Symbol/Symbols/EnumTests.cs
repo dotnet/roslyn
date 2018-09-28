@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void EnumWithPrivateLiterals()
         {
-            CreateCompilationWithCustomILSource(
+            CreateCompilationWithILAndMscorlib40(
 @"class C
 {
     static void F(E e) { }
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
         private void EnumWithBogusUnderlyingType(string ilSource)
         {
-            CreateCompilationWithCustomILSource(ExampleSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(ExampleSource, ilSource).VerifyDiagnostics(
                 // (6,15): error CS0570: 'E.A' is not supported by the language
                 //         E e = E.A; // Dev10: 'E.A' is not supported by the language
                 Diagnostic(ErrorCode.ERR_BindToBogus, "E.A").WithArguments("E.A"),
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     A = A,
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.A' involves a circular definition
                 //     A = A,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E.A").WithLocation(3, 5));
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     A = B + 1,
     B = A + 1,
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.A' involves a circular definition
                 //     A = B + 1,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E.A").WithLocation(3, 5));
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     B = A + 1,
     C = A + 2,
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.A' involves a circular definition
                 //     A = B | C,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E.A").WithLocation(3, 5));
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     C = D,
     D = D
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.A' involves a circular definition
                 //     A = A | B,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E.A").WithLocation(3, 5),
@@ -221,7 +221,7 @@ enum F
     A = 1,
     B = E.A
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -238,7 +238,7 @@ enum F
     A = E.B + 1,
     B = A + 1,
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.A' involves a circular definition
                 //     A = B + F.B,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E.A").WithLocation(3, 5),
@@ -253,7 +253,7 @@ enum F
             // enum E { M0 = Mn + 1, M1, ..., Mn, }
             // Dev12 reports "CS1647: An expression is too long or complex to compile" at ~5600 members.
             var source = GenerateEnum(10000, (i, n) => (i == 0) ? string.Format("M{0} + 1", n - 1) : "");
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.M0' involves a circular definition
                 //     M0 = M5999 + 1,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "M0").WithArguments("E.M0").WithLocation(3, 5));
@@ -266,7 +266,7 @@ enum F
             // enum E { M0 = Mn + 1, M1 = M0 + 1, ..., Mn = Mn-1 + 1, }
             // Dev12 reports "CS1647: An expression is too long or complex to compile" at ~1600 members.
             var source = GenerateEnum(10000, (i, n) => string.Format("M{0} + 1", (i == 0) ? (n - 1) : (i - 1)));
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.M0' involves a circular definition
                 //     M0 = M1999 + 1,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "M0").WithArguments("E.M0").WithLocation(3, 5));
@@ -279,7 +279,7 @@ enum F
             // enum E { M0 = M1 - 1, M1 = M2 - 1, ..., Mn = n, }
             // Dev12 reports "CS1647: An expression is too long or complex to compile" at ~1500 members.
             var source = GenerateEnum(10000, (i, n) => (i < n - 1) ? string.Format("M{0} - 1", i + 1) : i.ToString());
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         /// <summary>

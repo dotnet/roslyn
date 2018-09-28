@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         ' Every argument could not be empty
         <Fact>
         Public Sub ArgumentCouldNotEmpty()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ArgumentCouldNotEmpty">
     <file name="a.vb">
 Option Infer Off
@@ -75,7 +75,7 @@ End Module
         ' Can't declare variable in argument
         <Fact>
         Public Sub DeclVarInArgument()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="DeclVarInArgument">
     <file name="a.vb">
 Option Infer Off
@@ -130,7 +130,7 @@ End Module
         ' Conditional operator could not as statement 
         <Fact>
         Public Sub ConditionalOperatorAsStatement()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ConditionalOperatorAsStatement">
     <file name="a.vb">
 Module Program
@@ -150,7 +150,7 @@ End Module
         ' Conditional operator as parameter
         <Fact>
         Public Sub ConditionalOperatorAsParameter()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ConditionalOperatorAsParameter">
     <file name="a.vb">
 Option Infer Off
@@ -196,7 +196,7 @@ End Module
         ' 'Goto' is Invalid in expression
         <Fact>
         Public Sub GotoInConditionalOperator()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="GotoInConditionalOperator">
     <file name="a.vb">
 Imports System
@@ -241,7 +241,7 @@ End Module
         ' Function call in return expression
         <Fact>
         Public Sub FunctionCallAsArgument()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 imports System
@@ -337,7 +337,7 @@ End Module
         <Fact>
         Public Sub QueryAsArgument()
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="QueryAsArgument">
     <file name="a.vb">
 Option Infer On
@@ -371,7 +371,7 @@ End Module
         <Fact>
         Public Sub LambdaAsArgument()
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="QueryAsArgument">
     <file name="a.vb">
 Option Infer On
@@ -423,7 +423,7 @@ End Module
         <Fact>
         Public Sub VariableNameConflict_1()
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="VariableNameConflict">
     <file name="a.vb">
 Option Infer On
@@ -458,7 +458,7 @@ End Module
         <WorkItem(528700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528700")>
         <Fact>
         Public Sub VariableNameConflict_2()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="VariableNameConflict">
     <file name="a.vb">
 Option Infer Off
@@ -492,7 +492,7 @@ End Module
         ' Object initializer's in a ternary expression 
         <Fact>
         Public Sub ObjInit()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ObjInit">
     <file name="a.vb">
 Imports System
@@ -539,7 +539,7 @@ End Class
         ' Multiple conditional  operator in expression
         <Fact>
         Public Sub MultipleConditional()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="MultipleConditional">
     <file name="a.vb">
 Imports System
@@ -581,7 +581,7 @@ End Module
         ' Arguments are of types: bool, constant, enum
         <Fact>
         Public Sub EnumAsArguments()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="EnumAsArguments">
     <file name="a.vb">
 Imports System
@@ -630,7 +630,7 @@ End Enum
         ' Arguments are of types: bool, IEnumerable<int> and int[]
         <Fact()>
         Public Sub IEnumerableAsArguments()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="IEnumerableAsArguments">
     <file name="a.vb">
 Imports System
@@ -714,7 +714,7 @@ End Enum
         ' Implicit type conversion on conditional
         <Fact>
         Public Sub ImplicitConversionForConditional()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ImplicitConversionForConditional">
     <file name="a.vb">
 Imports System
@@ -758,7 +758,7 @@ End Module
         ' Implicitly typed arrays used in arguments
         <Fact()>
         Public Sub ImplicitlyTypedArraysUsedAsarguments()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ImplicitlyTypedArraysUsedAsarguments">
     <file name="a.vb">
 Imports System
@@ -789,7 +789,7 @@ End Module
         ' Nullable bool type can be conditional-argument
         <Fact()>
         Public Sub NullableAsarguments()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NullableAsarguments">
     <file name="a.vb">
 Imports System
@@ -819,7 +819,7 @@ End Module
         ' Not boolean type as conditional-argument
         <Fact>
         Public Sub NotBooleanAsConditionalArgument()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NotBooleanAsConditionalArgument">
     <file name="a.vb">
 Option Infer Off
@@ -879,7 +879,7 @@ End Module
         ' Not boolean type as conditional-argument
         <Fact>
         Public Sub NotBooleanAsConditionalArgument_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NotBooleanAsConditionalArgument">
     <file name="a.vb">
 Option Infer Off
@@ -929,7 +929,7 @@ End Enum
 
         <Fact>
         Public Sub FunctionWithNoReturnType()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="FunctionWithNoReturnType">
     <file name="a.vb">
 Option Infer Off
@@ -976,7 +976,7 @@ End Module
         ' General type as argument
         <Fact>
         Public Sub GeneralTypeAsArgument()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="GeneralTypeAsArgument">
     <file name="a.vb">
 Imports System
@@ -1007,7 +1007,7 @@ End Module
         ' General Method as argument
         <Fact>
         Public Sub GeneralMethodAsArgument()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="GeneralMethodAsArgument">
     <file name="a.vb">
 Imports System
@@ -1056,7 +1056,7 @@ End Module
         ' IF operator on Try Catch
         <Fact()>
         Public Sub TryCatch()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="TryCatch">
     <file name="a.vb">
 Option Infer Off

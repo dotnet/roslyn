@@ -9,415 +9,353 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New InvertIfCodeRefactoringProvider()
+            Return New VisualBasicInvertIfCodeRefactoringProvider()
+        End Function
+
+        Public Async Function TestFixOneAsync(initial As String, expected As String) As Task
+            Await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected))
+        End Function
+
+        Function CreateTreeText(initial As String) As String
+            Return "
+Module Module1
+    Sub Main()
+        Dim a As Boolean = True
+        Dim b As Boolean = True
+        Dim c As Boolean = True
+        Dim d As Boolean = True
+
+" + initial + "
+    End Sub
+
+    Private Sub aMethod()
+
+    End Sub
+
+    Private Sub bMethod()
+
+    End Sub
+
+    Private Sub cMethod()
+
+    End Sub
+
+    Private Sub dMethod()
+
+    End Sub
+
+End Module
+
+"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestSingleLineIdentifier() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If Not a Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a Then aMethod() Else bMethod()
+",
+"
+        If Not a Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMultiLineIdentifier() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
+            Await TestFixOneAsync(
+"
         [||]If a Then
-            a()
+            aMethod()
         Else
-            b()
+            bMethod()
         End If
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
+",
+"
         If Not a Then
-            b()
+            bMethod()
         Else
-            a()
+            aMethod()
         End If
-    End Sub
-End Module")
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestCall() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a.Goo() Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If Not a.Goo() Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a.Goo() Then aMethod() Else bMethod()
+",
+"
+        If Not a.Goo() Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestNotIdentifier() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If Not a Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If Not a Then aMethod() Else bMethod()
+",
+"
+        If a Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestTrueLiteral() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If True Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If False Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If True Then aMethod() Else bMethod()
+",
+"
+        If False Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestFalseLiteral() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If False Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If True Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If False Then aMethod() Else bMethod()
+",
+"
+        If True Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestEquals() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a = b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a <> b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a = b Then aMethod() Else bMethod()
+",
+"
+        If a <> b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestNotEquals() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a <> b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a = b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a <> b Then aMethod() Else bMethod()
+",
+"
+        If a = b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestLessThan() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a < b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a >= b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a < b Then aMethod() Else bMethod()
+",
+"
+        If a >= b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestLessThanOrEqual() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a <= b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a > b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a <= b Then aMethod() Else bMethod()
+",
+"
+        If a > b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestGreaterThan() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a > b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a <= b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a > b Then aMethod() Else bMethod()
+",
+"
+        If a <= b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestGreaterThanOrEqual() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a >= b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a < b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a >= b Then aMethod() Else bMethod()
+",
+"
+        If a < b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestIs() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a Is b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a IsNot b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        Dim myObject As New Object
+        Dim thisObject = myObject
+
+        [||]If thisObject Is myObject Then aMethod() Else bMethod()
+",
+"
+        Dim myObject As New Object
+        Dim thisObject = myObject
+
+        If thisObject IsNot myObject Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestIsNot() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a IsNot b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a Is b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        Dim myObject As New Object
+        Dim thisObject = myObject
+
+        [||]If thisObject IsNot myObject Then aMethod() Else bMethod()
+",
+"
+        Dim myObject As New Object
+        Dim thisObject = myObject
+
+        If thisObject Is myObject Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOr() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a Or b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If Not a And Not b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a Or b Then aMethod() Else bMethod()
+",
+"
+        If Not a And Not b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAnd() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a And b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If Not a Or Not b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a And b Then aMethod() Else bMethod()
+",
+"
+        If Not a Or Not b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOrElse() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a OrElse b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If Not a AndAlso Not b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a OrElse b Then aMethod() Else bMethod()
+",
+"
+        If Not a AndAlso Not b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAndAlso() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a AndAlso b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If Not a OrElse Not b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a AndAlso b Then aMethod() Else bMethod()
+",
+"
+        If Not a OrElse Not b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOr2() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        I[||]f Not a Or Not b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a And b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        I[||]f Not a Or Not b Then aMethod() Else bMethod()
+",
+"
+        If a And b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOrElse2() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        I[||]f Not a OrElse Not b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a AndAlso b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        I[||]f Not a OrElse Not b Then aMethod() Else bMethod()
+",
+"
+        If a AndAlso b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAnd2() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If Not a And Not b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a Or b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If Not a And Not b Then aMethod() Else bMethod()
+",
+"
+        If a Or b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAndAlso2() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If Not a AndAlso Not b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a OrElse b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If Not a AndAlso Not b Then aMethod() Else bMethod()
+",
+"
+        If a OrElse b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestXor() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        I[||]f a Xor b Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If Not (a Xor b) Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        I[||]f a Xor b Then aMethod() Else bMethod()
+",
+"
+        If Not (a Xor b) Then bMethod() Else aMethod()
+")
         End Function
 
         <WorkItem(545411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545411")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WpfFact(Skip:="545411"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestXor2() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        I[||]f Not (a Xor b) Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a Xor b Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        I[||]f Not (a Xor b) Then aMethod() Else bMethod()
+",
+"
+        If (a Xor b) Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestNested() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If (((a = b) AndAlso (c <> d)) OrElse ((e < f) AndAlso (Not g))) Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If (a <> b OrElse c = d) AndAlso (e >= f OrElse g) Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If (((a = b) AndAlso (c <> d)) OrElse ((e < f) AndAlso (Not g))) Then aMethod() Else bMethod()
+",
+"
+        If (a <> b OrElse c = d) AndAlso (e >= f OrElse g) Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestElseIf() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
+            Await TestMissingInRegularAndScriptAsync(
+"
+Sub Main()
         If a Then
-            a()
+            aMethod()
         [||]ElseIf b Then
-            b()
+            bMethod()
         Else
-            c()
-        End If
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a Then
-            a()
-        ElseIf Not b Then
-            c()
-        Else
-            b()
+            cMethod()
         End If
     End Sub
 End Module")
@@ -425,26 +363,15 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestKeepElseIfKeyword() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         If a Then
-            a()
+            aMethod()
         [||]ElseIf b Then
-            b()
+            bMethod()
         Else
-            c()
-        End If
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a Then
-            a()
-        ElseIf Not b Then
-            c()
-        Else
-            b()
+            cMethod()
         End If
     End Sub
 End Module")
@@ -456,11 +383,11 @@ End Module")
 "Module Program
     Sub Main()
         I[||]f a Then
-            a()
+            aMethod()
         Else If b Then
-            b()
+            bMethod()
         Else
-            c()
+            cMethod()
         End If
     End Sub
 End Module")
@@ -472,9 +399,9 @@ End Module")
 "Module Program
     Sub Main()
         [|If a Then
-            a()
+            aMethod()
         Else
-            b()
+            bMethod()
         End If|]
     End Sub
 End Module")
@@ -489,9 +416,9 @@ End Module")
         goo()
 #ExternalSource File.vb 1 
         [||]If a Then
-            a()
+            aMethod()
         Else
-            b()
+            bMethod()
         End If
     End Sub
 End Module",
@@ -501,9 +428,9 @@ End Module",
         goo()
 #ExternalSource File.vb 1 
         If Not a Then
-            b()
+            bMethod()
         Else
-            a()
+            aMethod()
         End If
     End Sub
 End Module")
@@ -516,9 +443,9 @@ End Module")
     Sub Main()
 #ExternalSource File.vb 1 
         [||]If a Then
-            a()
+            aMethod()
         Else
-            b()
+            bMethod()
         End If
 #End ExternalSource
     End Sub
@@ -527,9 +454,9 @@ End Module",
     Sub Main()
 #ExternalSource File.vb 1 
         If Not a Then
-            b()
+            bMethod()
         Else
-            a()
+            aMethod()
         End If
 #End ExternalSource
     End Sub
@@ -544,10 +471,10 @@ End Module")
     Sub Main()
         [||]If a Then
 #ExternalSource File.vb 1 
-            a()
+            aMethod()
 #End ExternalSource
         Else
-            b()
+            bMethod()
         End If
     End Sub
 End Module")
@@ -560,13 +487,13 @@ End Module")
 "Module Program
     Sub Main()
         If a Then
-            a()
+            aMethod()
         [||]Else If b Then
 #ExternalSource File.vb 1 
-            b()
+            bMethod()
 #End ExternalSource
         Else
-            c()
+            cMethod()
         End If
     End Sub
 End Module")
@@ -578,13 +505,13 @@ End Module")
 "Module Program
     Sub Main()
         [||]If a Then
-            a()
+            aMethod()
 #ExternalSource File.vb 1 
         Else If b Then
-            b()
+            bMethod()
 #End ExternalSource
         Else
-            c()
+            cMethod()
         End If
     End Sub
 End Module")
@@ -597,10 +524,10 @@ End Module")
 "Module Program
     Sub Main()
         [||]If a Then
-            a()
+            aMethod()
         Else
 #ExternalSource File.vb 1 
-            b()
+            bMethod()
 #End ExternalSource
         End If
     End Sub
@@ -615,9 +542,9 @@ End Module")
     Sub Main()
         [||]If a Then
 #ExternalSource File.vb 1 
-            a()
+            aMethod()
         Else
-            b()
+            bMethod()
 #End ExternalSource
         End If
     End Sub
@@ -631,11 +558,11 @@ End Module")
 "Module Program
     Sub Main()
         [||]If a Then
-            a()
+            aMethod()
 #ExternalSource File.vb 1 
         Else
 #End ExternalSource
-            b()
+            bMethod()
         End If
     End Sub
 End Module")
@@ -646,24 +573,20 @@ End Module")
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
     Sub Main()
-        [|If a Th|]en a() Else b()
+        [|If a Th|]en aMethod() Else bMethod()
     End Sub
 End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMultipleStatementsSingleLineIfStatement() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        If[||] a Then a() : b() Else c() : d()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If Not a Then c() : d() Else a() : b()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        If[||] a Then aMethod() : bMethod() Else cMethod() : d()
+",
+"
+        If Not a Then cMethod() : d() Else aMethod() : bMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
@@ -695,17 +618,13 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestTriviaAfterSingleLineIfStatement() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If a Then a() Else b() ' I will stay put 
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If Not a Then b() Else a() ' I will stay put 
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If a Then aMethod() Else bMethod() ' I will stay put 
+",
+"
+        If Not a Then bMethod() Else aMethod() ' I will stay put 
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
@@ -714,18 +633,18 @@ End Module")
 "Module Program
     Sub Main()
         [||]If a Then
-            a()
+            aMethod()
         Else
-            b()
+            bMethod()
         End If ' I will stay put 
     End Sub
 End Module",
 "Module Program
     Sub Main()
         If Not a Then
-            b()
+            bMethod()
         Else
-            a()
+            aMethod()
         End If ' I will stay put 
     End Sub
 End Module")
@@ -735,25 +654,25 @@ End Module")
         Public Async Function TestParenthesizeForLogicalExpressionPrecedence() As Task
             Await TestInRegularAndScriptAsync(
 "Sub Main()
-    I[||]f a AndAlso b Or c Then a() Else b()
+    I[||]f a AndAlso b Or c Then aMethod() Else bMethod()
 End Sub
 End Module",
 "Sub Main()
-    If (Not a OrElse Not b) And Not c Then b() Else a()
+    If (Not a OrElse Not b) And Not c Then bMethod() Else aMethod()
 End Sub
 End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        Public Async Function TestKeepExplicitLineContinuationTrivia() As Task
+        Public Async Function TestKeepExplicitLineContinuationTriviaMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         I[||]f a And b _
         Or c Then
-            a()
+            aMethod()
         Else
-            b()
+            bMethod()
         End If
     End Sub
 End Module",
@@ -761,9 +680,9 @@ End Module",
     Sub Main()
         If (Not a Or Not b) _
         And Not c Then
-            b()
+            bMethod()
         Else
-            a()
+            aMethod()
         End If
     End Sub
 End Module")
@@ -775,10 +694,10 @@ End Module")
 "Module Program
     Sub Main()
         [||]If a Then
-            a()
+            aMethod()
 
         Else
-            b()
+            bMethod()
 
 
         End If
@@ -787,11 +706,11 @@ End Module",
 "Module Program
     Sub Main()
         If Not a Then
-            b()
+            bMethod()
 
 
         Else
-            a()
+            aMethod()
 
         End If
     End Sub
@@ -800,17 +719,13 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestParenthesizeComparisonOperands() As Task
-            Await TestInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [||]If 0 <= <x/>.GetHashCode Then a() Else b()
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If 0 > (<x/>.GetHashCode) Then b() Else a()
-    End Sub
-End Module")
+            Await TestFixOneAsync(
+"
+        [||]If 0 <= <x/>.GetHashCode Then aMethod() Else bMethod()
+",
+"
+        If 0 > (<x/>.GetHashCode) Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
@@ -870,7 +785,7 @@ End Module")
     Sub Main(args As String())
         Dim x() As String
         [||]If x.Length > 0x0 Then 
- GreaterThanZero()
+            GreaterThanZero()
         Else
             EqualsZero()
         End If
@@ -920,9 +835,9 @@ End Module")
     Sub Main(args As String())
         Dim x As String
         [||]If x.Length >= 0 Then
-            a()
+            aMethod()
         Else
-            b()
+            bMethod()
         End If
     End Sub
 End Module",
@@ -930,9 +845,9 @@ End Module",
     Sub Main(args As String())
         Dim x As String
         If x.Length < 0 Then
-            b()
+            bMethod()
         Else
-            a()
+            aMethod()
         End If
     End Sub
 End Module")
@@ -945,9 +860,9 @@ End Module")
     Sub Main(args As String())
         Dim x As String
         [||]If x.Length > 0.0 Then
-            a()
+            aMethod()
         Else
-            b()
+            bMethod()
         End If
     End Sub
 End Module",
@@ -955,9 +870,9 @@ End Module",
     Sub Main(args As String())
         Dim x As String
         If x.Length <= 0.0 Then
-            b()
+            bMethod()
         Else
-            a()
+            aMethod()
         End If
     End Sub
 End Module")
@@ -1004,7 +919,7 @@ End Module")
 
         <WorkItem(529747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529747")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        Public Async Function TestTryToParenthesizeAwkwardSyntaxInsideSingleLineLambda() As Task
+        Public Async Function TestTryToParenthesizeAwkwardSyntaxInsideSingleLineLambdaMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
@@ -1022,11 +937,16 @@ End Module")
 
         <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        Public Async Function TestOnlyOnIfOfSingleLineIf() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestOnCoditionOfSingleLineIf() As Task
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        If True [||]Then Return Else Console.WriteLine(""a"")
+        If T[||]rue Then Return Else Console.WriteLine(""a"")
+    End Sub
+End Module",
+"Module Program
+    Sub Main(args As String())
+        If False Then Console.WriteLine(""a"") Else Return
     End Sub
 End Module")
         End Function
@@ -1050,14 +970,23 @@ End Module")
 
         <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        Public Async Function TestOnlyOnIfOfMultiLine() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestOnConditionOfMultiLineIfStatement() As Task
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         If [||]False Then
             Return
         Else
             Console.WriteLine(""a"")
+        End If
+    End Sub
+End Module",
+"Module Program
+    Sub Main(args As String())
+        If [||]True Then
+            Console.WriteLine(""a"")
+        Else
+            Return
         End If
     End Sub
 End Module")
@@ -1260,7 +1189,7 @@ End Module
 <File>
 Module A
     Sub Main()
-        If False Then : Else
+        If False Then :        Else
             Goo() : Goo
         End If
     End Sub
@@ -1273,10 +1202,11 @@ End Module
         End Function
 
         <WorkItem(531474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531474")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WpfFact(Skip:="531474"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestDoNotRemoveTypeCharactersDuringComplexification() As Task
             Dim markup =
 <File>
+Imports System
     Module Program
         Sub Main()
             Goo(Function(take)
@@ -1294,6 +1224,7 @@ End Module
 
             Dim expected =
 <File>
+Imports System
     Module Program
         Sub Main()
             Goo(Function(take)

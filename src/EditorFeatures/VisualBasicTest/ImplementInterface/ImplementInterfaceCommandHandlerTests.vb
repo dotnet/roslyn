@@ -15,6 +15,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
+    <[UseExportProvider]>
     Public Class ImplementInterfaceCommandHandlerTests
 
         Private Sub Test(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, TestWorkspace), assertion As Action(Of String, String, IWpfTextView))

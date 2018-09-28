@@ -106,7 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
                 var run = new Run(text);
 
-                var format = formatMap.GetTextProperties(typeMap.GetClassificationType(ClassificationTags.GetClassificationTypeName(part.Tag)));
+                var format = formatMap.GetTextProperties(
+                    typeMap.GetClassificationType(ClassificationTags.GetClassificationTypeName(part.Tag)));
+
                 run.SetTextProperties(format);
 
                 return run;

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub SimpleForLoopsTest()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="SimpleForLoopsTest">
     <file name="a.vb">
 Public Class MyClass1
@@ -37,7 +37,7 @@ End Class
 
         <Fact>
         Public Sub SimpleForLoopsTestConversion()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="SimpleForLoopsTest">
     <file name="a.vb">
 option strict off
@@ -69,7 +69,7 @@ End Class
 
         <Fact>
         Public Sub ForLoopStepIsFloatNegativeVar()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="SimpleForLoopsTest">
     <file name="a.vb">
 Option Strict On
@@ -97,7 +97,7 @@ End Class
 
         <Fact>
         Public Sub ForLoopObject()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="SimpleForLoopsTest">
     <file name="a.vb">
 Option Strict On
@@ -130,7 +130,7 @@ End Class
         <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact>
         Public Sub ForLoopNested()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ForLoopNested">
     <file name="a.vb">
 Option Strict On
@@ -189,7 +189,7 @@ End Class
         <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact>
         Public Sub ChangeOuterVarInInnerFor()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ChangeOuterVarInInnerFor">
     <file name="a.vb">
 Option Strict On
@@ -228,7 +228,7 @@ End Class
         <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact>
         Public Sub InnerForRefOuterForVar()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="InnerForRefOuterForVar">
     <file name="a.vb">
 Option Strict On
@@ -266,7 +266,7 @@ End Class
         ' Exit for nested for loops
         <Fact>
         Public Sub ExitNestedFor()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ExitNestedFor">
     <file name="a.vb">
 Option Strict On
@@ -305,7 +305,7 @@ End Class
         ' Use nothing as the start value
         <Fact>
         Public Sub NothingAsStart()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NothingAsStart">
     <file name="a.vb">
 Option Strict Off
@@ -333,7 +333,7 @@ End Class
 
         <Fact>
         Public Sub EnumAsStart()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="EnumAsStart">
     <file name="a.vb">
 Option Strict Off
@@ -363,7 +363,7 @@ End Enum
 
         <Fact>
         Public Sub PropertyAsStart()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="PropertyAsStart">
     <file name="a.vb">
 Option Strict Off
@@ -397,7 +397,7 @@ End Class
 
         <Fact>
         Public Sub FieldNameAsIteration()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="FieldNameAsIteration">
     <file name="a.vb">
 Option Strict Off
@@ -424,7 +424,7 @@ End Class
 
         <Fact>
         Public Sub SingleLine()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="SingleLine">
     <file name="a.vb">
 Option Strict On
@@ -448,7 +448,7 @@ End Class
         ' For statement is split in every possible place
         <Fact>
         Public Sub SplitForLoop()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -479,7 +479,7 @@ End Class
 
         <Fact>
         Public Sub VarDeclOutOfForeach()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="VarDeclOutOfForeach">
     <file name="a.vb">
 Option Strict On
@@ -505,7 +505,7 @@ End Class
 
         <Fact>
         Public Sub GetDeclaredSymbolOfForStatement()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="CollectionHasConvertedType">
     <file name="a.vb">
 Option Strict On
@@ -671,7 +671,7 @@ End Module]]>,
 
         <Fact, WorkItem(652041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652041")>
         Public Sub Bug652041()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Infer On

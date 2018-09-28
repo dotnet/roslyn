@@ -170,7 +170,7 @@ End Namespace
             MscorlibRef_v4_0_30316_17626,
             SystemCoreRef_v4_0_30319_17929}
 
-            Dim winRtDelegateLibrary = CompilationUtils.CreateCompilationWithReferences(
+            Dim winRtDelegateLibrary = CompilationUtils.CreateEmptyCompilationWithReferences(
                 winRtDelegateLibrarySrc,
                 references:=coreRefs45,
                 options:=TestOptions.ReleaseWinMD).EmitToImageReference()
@@ -179,7 +179,7 @@ End Namespace
             fileElement.ReplaceAttributes(New XAttribute("name", "NonWinRTDelegateLibrary.vb"))
             fileElement.SetValue(fileElement.Value.Replace("WinRTDelegateLibrary", "NonWinRTDelegateLibrary"))
 
-            Dim nonWinRtDelegateLibrary = CompilationUtils.CreateCompilationWithReferences(
+            Dim nonWinRtDelegateLibrary = CompilationUtils.CreateEmptyCompilationWithReferences(
                 winRtDelegateLibrarySrc,
                 references:=coreRefs45,
                 options:=TestOptions.ReleaseDll).EmitToImageReference()
@@ -284,7 +284,7 @@ End Class
 
             Dim verifier = CompileAndVerify(
                 allDelegates,
-                additionalRefs:={
+                references:={
                     winRtDelegateLibrary,
                     nonWinRtDelegateLibrary},
                 symbolValidator:=validator)

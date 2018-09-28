@@ -15,6 +15,7 @@ Imports Roslyn.Utilities
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <[UseExportProvider]>
     Partial Public Class FindReferencesTests
         Private Const DefinitionKey As String = "Definition"
 
@@ -147,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Me.Definitions.Add(definition)
                 End SyncLock
 
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
 
             Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As Task
@@ -155,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     References.Add(reference)
                 End SyncLock
 
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
         End Class
 

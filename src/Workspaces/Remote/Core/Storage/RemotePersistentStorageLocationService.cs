@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.IO;
@@ -11,12 +12,14 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: WorkspaceKind.RemoteWorkspace), Shared]
     internal class RemotePersistentStorageLocationService : IPersistentStorageLocationService
     {
-        private static readonly object _gate = new object();
-        private static readonly Dictionary<SolutionId, string> _idToStorageLocation = new Dictionary<SolutionId, string>();
+        private readonly object _gate = new object();
+        private readonly Dictionary<SolutionId, string> _idToStorageLocation = new Dictionary<SolutionId, string>();
 
-        public string GetStorageLocation(Solution solution)
+        public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
+
+        public string TryGetStorageLocation(SolutionId solutionId)
         {
-            _idToStorageLocation.TryGetValue(solution.Id, out var result);
+            _idToStorageLocation.TryGetValue(solutionId, out var result);
             return result;
         }
 
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
             }
         }
 
-        public static void UpdateStorageLocation(SolutionId id, string storageLocation)
+        public void UpdateStorageLocation(SolutionId id, string storageLocation)
         {
             lock (_gate)
             {
@@ -44,9 +47,12 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
                 else
                 {
                     // Store the esent database in a different location for the out of proc server.
-                    _idToStorageLocation[id] = Path.Combine(storageLocation, "Server");
+                    storageLocation = Path.Combine(storageLocation, "Server");
+                    _idToStorageLocation[id] = storageLocation;
                 }
             }
+
+            StorageLocationChanging?.Invoke(this, new PersistentStorageLocationChangingEventArgs(id, storageLocation, mustUseNewStorageLocationImmediately: false));
         }
     }
 }

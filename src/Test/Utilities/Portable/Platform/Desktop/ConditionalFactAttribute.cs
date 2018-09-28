@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET461 || NET46
+#if NET46
 
 using System;
 using System.Drawing;
@@ -58,30 +58,6 @@ namespace Roslyn.Test.Utilities
         }
 
         public override string SkipReason { get { return "Test currently not supported on Framework 4.5"; } }
-    }
-
-    public class OSVersionWin8 : ExecutionCondition
-    {
-        public override bool ShouldSkip
-        {
-            get
-            {
-                return !OSVersion.IsWin8;
-            }
-        }
-
-        public override string SkipReason
-        {
-            get
-            {
-                return "Window Version is not Win8 (build:9200)";
-            }
-        }
-    }
-
-    public sealed class OSVersion
-    {
-        public static readonly bool IsWin8 = System.Environment.OSVersion.Version.Build >= 9200;
     }
 }
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -17,14 +18,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
     internal class PreviewSolutionCrawlerRegistrationServiceFactory : IWorkspaceServiceFactory
     {
         private readonly DiagnosticAnalyzerService _analyzerService;
+        private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
-        public PreviewSolutionCrawlerRegistrationServiceFactory(IDiagnosticAnalyzerService analyzerService)
+        public PreviewSolutionCrawlerRegistrationServiceFactory(IDiagnosticAnalyzerService analyzerService, IAsynchronousOperationListenerProvider listenerProvider)
         {
             // this service is directly tied to DiagnosticAnalyzerService and
             // depends on its implementation.
             _analyzerService = analyzerService as DiagnosticAnalyzerService;
             Contract.ThrowIfNull(_analyzerService);
+
+            _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -44,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             // we can have states for this specific workspace.
             private Task _analyzeTask;
 
-            [ImportingConstructor]
             public Service(PreviewSolutionCrawlerRegistrationServiceFactory owner, Workspace workspace)
             {
                 _owner = owner;
@@ -60,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 // this can't be called twice
                 Contract.ThrowIfFalse(_analyzeTask == null);
 
-                _analyzeTask = AnalyzeAsync();
+                var asyncToken = _owner._listener.BeginAsyncOperation(nameof(PreviewSolutionCrawlerRegistrationServiceFactory) + "." + nameof(Service) + "." + nameof(Register));
+                _analyzeTask = AnalyzeAsync().CompletesAsyncOperation(asyncToken);
             }
 
             private async Task AnalyzeAsync()

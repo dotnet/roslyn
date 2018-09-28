@@ -247,7 +247,7 @@ Module M1
 End Module
 ]]></file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source,
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source,
                                                                                                options:=TestOptions.ReleaseExe,
                                                                                                parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
             CompileAndVerify(comp,
@@ -263,7 +263,7 @@ blah
             Assert.Equal(True, dict("Blah"))
             Assert.Equal(True, dict("blah"))
 
-            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source,
+            comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source,
                                                                                                options:=TestOptions.ReleaseExe,
                                                                                                parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
             CompileAndVerify(comp,

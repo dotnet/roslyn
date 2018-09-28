@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.DesignerAttributes
 {
+    [UseExportProvider]
     public class DesignerAttributeServiceTests
     {
         [Fact]

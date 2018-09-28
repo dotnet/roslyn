@@ -788,6 +788,21 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
+        /// Creates an alias import declaration.
+        /// </summary>
+        /// <param name="aliasIdentifierName">The name of the alias.</param>
+        /// <param name="symbol">The namespace or type to be aliased.</param>
+        public SyntaxNode AliasImportDeclaration(string aliasIdentifierName, INamespaceOrTypeSymbol symbol)
+            => AliasImportDeclaration(aliasIdentifierName, NameExpression(symbol));
+
+        /// <summary>
+        /// Creates an alias import declaration.
+        /// </summary>
+        /// <param name="aliasIdentifierName">The name of the alias.</param>
+        /// <param name="name">The namespace or type to be aliased.</param>
+        public abstract SyntaxNode AliasImportDeclaration(string aliasIdentifierName, SyntaxNode name);
+
+        /// <summary>
         /// Creates an attribute.
         /// </summary>
         public abstract SyntaxNode Attribute(SyntaxNode name, IEnumerable<SyntaxNode> attributeArguments = null);
@@ -1382,6 +1397,12 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode ReturnStatement(SyntaxNode expression = null);
 
         /// <summary>
+        /// Creates a statement that can be used to yield a value from an iterator method.
+        /// </summary>
+        /// <param name="expression">An expression that can be yielded.</param>
+        internal abstract SyntaxNode YieldReturnStatement(SyntaxNode expression);
+
+        /// <summary>
         /// Creates a statement that can be used to throw an exception.
         /// </summary>
         /// <param name="expression">An optional expression that can be thrown.</param>
@@ -1395,7 +1416,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
-        public abstract SyntaxNode LocalDeclarationStatement(SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
+        public abstract SyntaxNode LocalDeclarationStatement(
+            SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
+
+        internal abstract SyntaxNode LocalDeclarationStatement(
+            SyntaxNode type, SyntaxToken identifier, SyntaxNode initializer = null, bool isConst = false);
 
         internal abstract SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer);
         internal abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
@@ -1403,18 +1428,21 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
-        public SyntaxNode LocalDeclarationStatement(ITypeSymbol type, string name, SyntaxNode initializer = null, bool isConst = false)
-        {
-            return LocalDeclarationStatement(TypeExpression(type), name, initializer, isConst);
-        }
+        public SyntaxNode LocalDeclarationStatement(
+            ITypeSymbol type, string name, SyntaxNode initializer = null, bool isConst = false)
+                => LocalDeclarationStatement(TypeExpression(type), name, initializer, isConst);
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
         public SyntaxNode LocalDeclarationStatement(string name, SyntaxNode initializer)
-        {
-            return LocalDeclarationStatement((SyntaxNode)null, name, initializer);
-        }
+            => LocalDeclarationStatement((SyntaxNode)null, name, initializer);
+
+        /// <summary>
+        /// Creates a statement that declares a single local variable.
+        /// </summary>
+        internal SyntaxNode LocalDeclarationStatement(SyntaxToken name, SyntaxNode initializer)
+            => LocalDeclarationStatement((SyntaxNode)null, name, initializer);
 
         /// <summary>
         /// Creates an if-statement
@@ -1422,7 +1450,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="condition">A condition expression.</param>
         /// <param name="trueStatements">The statements that are executed if the condition is true.</param>
         /// <param name="falseStatements">The statements that are executed if the condition is false.</param>
-        public abstract SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null);
+        public abstract SyntaxNode IfStatement(
+            SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null);
 
         /// <summary>
         /// Creates an if statement
@@ -1688,6 +1717,13 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         private static readonly char[] s_dotSeparator = new char[] { '.' };
+
+        /// <summary>
+        /// Creates a name that denotes a type or namespace.
+        /// </summary>
+        /// <param name="namespaceOrTypeSymbol">The symbol to create a name for.</param>
+        /// <returns></returns>
+        public abstract SyntaxNode NameExpression(INamespaceOrTypeSymbol namespaceOrTypeSymbol);
 
         /// <summary>
         /// Creates an expression that denotes a type.

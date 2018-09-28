@@ -98,6 +98,11 @@ namespace Microsoft.CodeAnalysis
             return _factory.IsAcceptedInAttributeModifierType(type);
         }
 
+        protected bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type)
+        {
+            return _factory.IsAcceptedUnmanagedTypeModifierType(type);
+        }
+
         protected Microsoft.Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type)
         {
             return _factory.GetPrimitiveTypeCode(this.moduleSymbol, type);

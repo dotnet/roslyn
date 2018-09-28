@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -473,6 +476,45 @@ partial class Bar
 }
 ";
             await VerifyCustomCommitProviderAsync(text, "PMethod(int i)", expected);
+        }
+
+        [WorkItem(26388, "https://github.com/dotnet/roslyn/issues/26388")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExpressionBodyMethod()
+        {
+            var workspace = WorkspaceFixture.GetWorkspace();
+            var originalOptions = workspace.Options;
+
+            try
+            {
+                workspace.Options = originalOptions.WithChangedOption(
+                    CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
+                    new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent));
+
+                var text = @"using System;
+partial class Bar
+{
+    partial void Foo();
+    partial $$
+}
+"
+;
+
+                var expected = @"using System;
+partial class Bar
+{
+    partial void Foo();
+    partial void Foo() => throw new NotImplementedException();$$
+}
+"
+;
+
+                await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
+            }
+            finally
+            {
+                workspace.Options = originalOptions;
+            }
         }
     }
 }

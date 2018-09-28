@@ -16,7 +16,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' 3 for the backing field and each accessor.
             comp.VerifyDiagnostics(
@@ -43,7 +43,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' 3 for the backing field and each accessor.
             ' 1 for the AddHandler statement
@@ -71,7 +71,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' 3 for the backing field and each accessor.
             ' 1 for the RemoveHandler statement
@@ -99,7 +99,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' 3 for the backing field and each accessor.
             ' 1 for the RaiseEvent statement
@@ -150,7 +150,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' 1 for the RaiseEvent statement
             comp.VerifyEmitDiagnostics(
@@ -184,7 +184,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' This test is specifically interested in the ERR_MissingRuntimeHelper errors: one for each helper times one for each handled event
             comp.VerifyDiagnostics(
@@ -527,11 +527,11 @@ End Namespace
     </file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithReferences(source1, WinRtRefs, options:=TestOptions.ReleaseWinMD)
+            Dim comp1 = CreateEmptyCompilationWithReferences(source1, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             comp1.VerifyDiagnostics()
 
             Dim serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization
-            Dim comp2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
+            Dim comp2 = CreateEmptyCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
             CompileAndVerify(comp2, expectedOutput:=<![CDATA[
 A
 False
@@ -595,7 +595,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             Dim verifier = CompileAndVerify(comp)
 
             ' Attach Me.InstanceHandler to {Base/Derived/Derived}.{InstanceEvent/SharedEvent} (from {MyBase/MyClass/Me}.{InstanceEvent/SharedEvent}).
@@ -917,7 +917,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.DebugWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, WinRtRefs, options:=TestOptions.DebugWinMD)
             Dim verifier = CompileAndVerify(comp)
         End Sub
 
@@ -964,7 +964,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             Dim verifier = CompileAndVerify(comp)
 
             verifier.VerifyIL("Test..ctor", <![CDATA[
@@ -1081,7 +1081,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             Dim verifier = CompileAndVerify(comp)
 
             ' Note: actually attaching a lambda.

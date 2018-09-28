@@ -112,7 +112,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(
                         Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "AnotherAttribute").WithArguments("AnotherAttribute"),
                         Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "A1").WithArguments("A1", "Do not use A1"),
                         Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "G(Of Integer, AnotherAttribute)").WithArguments("G(Of Integer, AnotherAttribute)"),
@@ -270,7 +270,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}).AssertTheseDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}).AssertTheseDiagnostics(
             <![CDATA[
 BC40008: 'Public Shared Sub ObsoleteMethod1()' is obsolete.
         ObsoleteMethod1()
@@ -408,7 +408,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "10").WithArguments("Public Shared Widening Operator CType(x As Integer) As Test"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "CType(""10"", Test)").WithArguments("Public Shared Narrowing Operator CType(x As String) As Test"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "-c").WithArguments("Public Shared Operator -(x As Test) As Test"),
@@ -466,7 +466,7 @@ End Class
     </file>
 </compilation>
 
-            Dim peReference = MetadataReference.CreateFromImage(CreateCompilationWithMscorlibAndVBRuntime(peSource).EmitToArray())
+            Dim peReference = MetadataReference.CreateFromImage(CreateCompilationWithMscorlib40AndVBRuntime(peSource).EmitToArray())
 
             Dim source =
 <compilation>
@@ -494,7 +494,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlibAndReferences(source, {peReference}).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndReferences(source, {peReference}).VerifyDiagnostics(
                         Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "TestClass1").WithArguments("TestClass1"),
                         Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "TestClass2").WithArguments("TestClass2", "TestClass2 is obsolete"),
                         Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "TestClass3").WithArguments("TestClass3", "Do not use TestClass3"),
@@ -584,7 +584,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                     Diagnostic(ERRID.ERR_BadInstanceMemberAccess, "F5"),
                     Diagnostic(ERRID.ERR_RequiredConstExpr, "F5"),
                     Diagnostic(ERRID.ERR_BadInstanceMemberAccess, "P1"),
@@ -648,7 +648,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -710,7 +710,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -760,7 +760,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC40008: 'A' is obsolete.
             Return New A()
@@ -830,7 +830,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC40008: 'A' is obsolete.
             M(New A())
@@ -896,7 +896,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithConcurrentBuild(False)).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll.WithConcurrentBuild(False)).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -916,7 +916,7 @@ end class
     </file>
 </compilation>
 
-            Dim other = CreateCompilationWithMscorlib(s)
+            Dim other = CreateCompilationWithMscorlib40(s)
 
             s =
 <compilation>
@@ -930,7 +930,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlibAndReferences(s, {New VisualBasicCompilationReference(other)}).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndReferences(s, {New VisualBasicCompilationReference(other)}).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "C").WithArguments("C"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "o.Goo()").WithArguments("Public Sub Goo()"))
 
@@ -998,7 +998,7 @@ Public Delegate Sub MyDeleg()
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "XEvent").WithArguments("Public Event XEvent()"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "MyDeleg").WithArguments("MyDeleg"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "MyDeleg").WithArguments("MyDeleg"),
@@ -1049,7 +1049,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "Att()").WithArguments("Public Sub New()", "Constructor"),
                 Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "Att").WithArguments("Public Sub New()", "Constructor"),
                 Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "Field:=1").WithArguments("Public Field As Integer", "Field"),
@@ -1126,7 +1126,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A.B.C1").WithArguments("A.B.C1"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A.B.C2(Of Integer)").WithArguments("A.B.C2(Of Integer)"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A.B.C2(Of Integer)").WithArguments("A.B.C2(Of Integer)"),
@@ -1147,7 +1147,7 @@ End Class
         <WorkItem(578023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578023")>
         <Fact>
         Public Sub TestObsoleteInAlias()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports X = C
@@ -1198,7 +1198,7 @@ Imports A(Of C()).B
         <WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")>
         <Fact>
         Public Sub TestObsoleteOnVirtualMethod()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1288,7 +1288,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithReferences(source1, WinRtRefs)
+            Dim compilation1 = CreateEmptyCompilationWithReferences(source1, WinRtRefs)
             compilation1.VerifyDiagnostics()
 
             Dim source2 =
@@ -1333,7 +1333,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat(New VisualBasicCompilationReference(compilation1)))
+            Dim compilation2 = CreateEmptyCompilationWithReferences(source2, WinRtRefs.Concat(New VisualBasicCompilationReference(compilation1)))
 
             Dim expected = <![CDATA[
 BC40000: 'Class1' is obsolete: 'Class1 is deprecated.'.
@@ -1354,7 +1354,7 @@ BC31142: 'Windows.Foundation.Metadata.DeprecatedAttribute' cannot be applied to 
 ]]>
             compilation2.AssertTheseDiagnostics(expected)
 
-            compilation2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat(compilation1.EmitToImageReference()))
+            compilation2 = CreateEmptyCompilationWithReferences(source2, WinRtRefs.Concat(compilation1.EmitToImageReference()))
 
             compilation2.AssertTheseDiagnostics(expected)
         End Sub
@@ -1420,7 +1420,7 @@ public class Test
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {ref})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2, {ref})
 
             Dim expected = <![CDATA[
 BC40000: 'Public Shared Overloads Sub Goo()' is obsolete: 'hello'.
@@ -1456,7 +1456,7 @@ BC40000: 'Public Shared Overloads Sub Bar()' is obsolete: 'hi'.
     </file>
 </compilation>
 
-            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {ref})
+            Dim compilation3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source3, {ref})
 
             Dim expected2 = <![CDATA[
 BC40000: 'Public Sub Goo()' is obsolete: 'hello'.
@@ -1490,7 +1490,7 @@ End Module
     </file>
 </compilation>
 
-            Dim vbCompilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource, {ref})
+            Dim vbCompilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(vbSource, {ref})
 
             vbCompilation.AssertTheseDiagnostics((<![CDATA[
 BC30668: 'S' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
@@ -1572,7 +1572,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithReferences(source1, WinRtRefs)
+            Dim compilation1 = CreateEmptyCompilationWithReferences(source1, WinRtRefs)
 
             Dim expected = <![CDATA[
 BC40000: 'Sub Goo()' is obsolete: 'IGoo1.Goo has been deprecated'.
@@ -1616,7 +1616,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CreateCompilationWithReferences(source0, WinRtRefs, TestOptions.ReleaseDll)
+            Dim compilation0 = CreateEmptyCompilationWithReferences(source0, WinRtRefs, TestOptions.ReleaseDll)
 
             compilation0.VerifyDiagnostics()
 
@@ -1634,7 +1634,7 @@ End Class]]>
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithReferences(source1, WinRtRefs.Append(New VisualBasicCompilationReference(compilation0)))
+            Dim compilation1 = CreateEmptyCompilationWithReferences(source1, WinRtRefs.Append(New VisualBasicCompilationReference(compilation0)))
 
             Dim expected = <![CDATA[
 BC30911: 'Set' accessor of 'Public Property ExceptionalProp As String' is obsolete: 'Changed my mind; don't put this prop.'.
@@ -1646,7 +1646,7 @@ BC30911: 'Get' accessor of 'Public Property ExceptionalProp As String' is obsole
 ]]>
             compilation1.AssertTheseDiagnostics(expected)
 
-            Dim compilation2 = CreateCompilationWithReferences(source1, WinRtRefs.Append(compilation0.EmitToImageReference()))
+            Dim compilation2 = CreateEmptyCompilationWithReferences(source1, WinRtRefs.Append(compilation0.EmitToImageReference()))
 
             compilation2.AssertTheseDiagnostics(expected)
         End Sub

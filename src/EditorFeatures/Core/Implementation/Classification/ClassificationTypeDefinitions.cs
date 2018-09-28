@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
@@ -71,6 +70,61 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.TypeParameterName)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition UserTypeTypeParametersTypeDefinition;
+        #endregion
+
+        #region Field Name
+        [Export]
+        [Name(ClassificationTypeNames.FieldName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition FieldNameTypeDefinition;
+        #endregion
+        #region Enum Member Name
+        [Export]
+        [Name(ClassificationTypeNames.EnumMemberName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition EnumMemberNameTypeDefinition;
+        #endregion
+        #region Constant Name
+        [Export]
+        [Name(ClassificationTypeNames.ConstantName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition ConstantNameTypeDefinition;
+        #endregion
+        #region Local Name
+        [Export]
+        [Name(ClassificationTypeNames.LocalName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition LocalNameTypeDefinition;
+        #endregion
+        #region Parameter Name
+        [Export]
+        [Name(ClassificationTypeNames.ParameterName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition ParameterNameTypeDefinition;
+        #endregion
+        #region Method Name
+        [Export]
+        [Name(ClassificationTypeNames.MethodName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition MethodNameTypeDefinition;
+        #endregion
+        #region Extension Method Name
+        [Export]
+        [Name(ClassificationTypeNames.ExtensionMethodName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition ExtensionMethodNameTypeDefinition;
+        #endregion
+        #region Property Name
+        [Export]
+        [Name(ClassificationTypeNames.PropertyName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition PropertyNameTypeDefinition;
+        #endregion
+        #region Event Name
+        [Export]
+        [Name(ClassificationTypeNames.EventName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition EventNameTypeDefinition;
         #endregion
 
         #region XML Doc Comments - Attribute Name 

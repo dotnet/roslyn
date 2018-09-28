@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         [ImportingConstructor]
         public CallHierarchyProvider(
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            IAsynchronousOperationListenerProvider listenerProvider,
             IGlyphService glyphService)
         {
-            _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.CallHierarchy);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.CallHierarchy);
             this.GlyphService = glyphService;
         }
 

@@ -11,6 +11,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
+    <[UseExportProvider]>
     Public Class VisualBasicCommentSelectionTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
         Public Sub Comment1()

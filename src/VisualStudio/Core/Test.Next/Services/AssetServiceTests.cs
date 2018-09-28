@@ -11,13 +11,14 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Serialization;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
+    [UseExportProvider]
     public class AssetServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -30,7 +31,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var storage = new AssetStorage();
             var source = new TestAssetSource(storage, checksum, data);
 
-            var service = new AssetService(sessionId, storage);
+            var service = new AssetService(sessionId, storage, new RemoteWorkspace());
             var stored = await service.GetAssetAsync<object>(checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
@@ -59,7 +60,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var storage = new AssetStorage();
                 var source = new TestAssetSource(storage, map);
 
-                var service = new AssetService(sessionId, storage);
+                var service = new AssetService(sessionId, storage, new RemoteWorkspace());
                 await service.SynchronizeAssetsAsync(new HashSet<Checksum>(map.Keys), CancellationToken.None);
 
                 foreach (var kv in map)
@@ -87,7 +88,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var storage = new AssetStorage();
                 var source = new TestAssetSource(storage, map);
 
-                var service = new AssetService(sessionId, storage);
+                var service = new AssetService(sessionId, storage, new RemoteWorkspace());
                 await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
 
                 foreach (var kv in map)
@@ -115,7 +116,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var storage = new AssetStorage();
                 var source = new TestAssetSource(storage, map);
 
-                var service = new AssetService(sessionId, storage);
+                var service = new AssetService(sessionId, storage, new RemoteWorkspace());
                 await service.SynchronizeProjectAssetsAsync(SpecializedCollections.SingletonEnumerable(await project.State.GetChecksumAsync(CancellationToken.None)), CancellationToken.None);
 
                 foreach (var kv in map)

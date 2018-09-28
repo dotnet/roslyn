@@ -32,30 +32,21 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         IChainedCommandHandler<InvokeSignatureHelpCommandArgs>
     {
         private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> _signatureHelpPresenter;
-        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
 
-        public string DisplayName => EditorFeaturesResources.Signature_Help_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Signature_Help;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SignatureHelpCommandHandler(
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
-            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters)
-            : this(ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                   signatureHelpProviders, asyncListeners)
-        {
-        }
-
-        // For testing purposes.
-        public SignatureHelpCommandHandler(
-            IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> signatureHelpPresenter,
-            [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _signatureHelpProviders = ExtensionOrderer.Order(signatureHelpProviders);
-            _asyncListeners = asyncListeners;
-            _signatureHelpPresenter = signatureHelpPresenter;
+            _listener = listenerProvider.GetListener(FeatureAttribute.SignatureHelp);
+            _signatureHelpPresenter = ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault();
         }
 
         private bool TryGetController(EditorCommandArgs args, out Controller controller)
@@ -80,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             controller = Controller.GetInstance(
                 args, _signatureHelpPresenter,
-                new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.SignatureHelp),
-                _signatureHelpProviders);
+                _listener, _signatureHelpProviders);
 
             return true;
         }

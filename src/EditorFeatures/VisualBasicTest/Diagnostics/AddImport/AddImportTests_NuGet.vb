@@ -30,7 +30,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Throw New NotImplementedException()
+            ' This is used by inherited tests to ensure the properties of diagnostic analyzers are correct. It's not
+            ' needed by the tests in this class, but can't throw an exception.
+            Return (Nothing, Nothing)
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
@@ -163,7 +165,7 @@ New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object
 Class C
     Dim n As [|NuGetType|]
 End Class",
-"Use local version '1.0'",
+String.Format(FeaturesResources.Use_local_version_0, "1.0"),
 parameters:=New TestParameters(fixProviderData:=data))
 
             Await TestSmartTagTextAsync(
@@ -171,18 +173,16 @@ parameters:=New TestParameters(fixProviderData:=data))
 Class C
     Dim n As [|NuGetType|]
 End Class",
-"Use local version '2.0'",
-index:=1,
-parameters:=New TestParameters(fixProviderData:=data))
+String.Format(FeaturesResources.Use_local_version_0, "2.0"),
+parameters:=New TestParameters(index:=1, fixProviderData:=data))
 
             Await TestSmartTagTextAsync(
 "
 Class C
     Dim n As [|NuGetType|]
 End Class",
-"Find and install latest version",
-index:=2,
-parameters:=New TestParameters(fixProviderData:=data))
+FeaturesResources.Find_and_install_latest_version,
+parameters:=New TestParameters(index:=2, fixProviderData:=data))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>

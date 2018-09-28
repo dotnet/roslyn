@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         ' Very simple test, just to make sure access checking works.
         <Fact>
         Public Sub SimpleAccess()
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="SimpleAccess">
     <file name="a.vb">
 Imports System.Collections.Generic
@@ -47,7 +47,7 @@ BC30389: 'A.prot' is not accessible in this context because it is 'Protected'.
 
         <Fact>
         Public Sub AccessCheckOutsideToInner()
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="OutsideToInner">
     <file name="a.vb">
 
@@ -141,7 +141,7 @@ BC30389: 'C.N1.N4' is not accessible in this context because it is 'Protected'.
 
         <Fact>
         Public Sub AccessCheckInnerToOuter()
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AccessCheckInnerToOuter">
     <file name="a.vb">
 Class C
@@ -212,7 +212,7 @@ End Class    </file>
 
         <Fact>
         Public Sub AccessCheckDerived()
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AccessCheckDerived">
     <file name="a.vb">
 Class C
@@ -314,7 +314,7 @@ BC30389: 'C.N4' is not accessible in this context because it is 'Private'.
 
         <Fact>
         Public Sub AccessCheckProtected()
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AccessCheckProtected">
     <file name="a.vb">
 Public Class A
@@ -441,14 +441,14 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
 
         <Fact>
         Public Sub AccessCheckCrossAssembly()
-            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AccessCheckCrossAssembly1">
     <file name="a.vb">
 Public Class C
@@ -468,7 +468,7 @@ End Class
             CompilationUtils.AssertNoErrors(other)
 
 
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="AccessCheckCrossAssembly2">
     <file name="a.vb">
 Public Class A
@@ -508,7 +508,7 @@ BC30389: 'D' is not accessible in this context because it is 'Friend'.
         <WorkItem(540036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540036")>
         <Fact>
         Public Sub AccessCheckCrossAssemblyParameterProtectedMethodP2P()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod1">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AccessCheckCrossAssemblyParameterProtectedMethod2")>
@@ -520,7 +520,7 @@ End Class
 
             other.VerifyDiagnostics()
 
-            Dim c As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod2">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -539,7 +539,7 @@ End Class
 
         <Fact>
         Public Sub EnsureAccessCheckWithBadIVTDenies()
-            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod1">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AccessCheckCrossAssemblyParameterProtectedMethod200000")>
@@ -550,7 +550,7 @@ End Class
 </compilation>, {SystemCoreRef})
             CompilationUtils.AssertNoErrors(other)
 
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod2">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -573,7 +573,7 @@ BC30389: 'C' is not accessible in this context because it is 'Friend'.
 
         <Fact>
         Public Sub AccessCheckCrossAssemblyParameterProtectedMethodMD()
-            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod1">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AccessCheckCrossAssemblyParameterProtectedMethod2")>
@@ -583,7 +583,7 @@ End Class
     </file>
 </compilation>, {SystemCoreRef})
 
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="AccessCheckCrossAssemblyParameterProtectedMethod2">
     <file name="a.vb"><![CDATA[
 Public Class A
@@ -602,7 +602,7 @@ End Class
         <WorkItem(542206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542206")>
         <Fact>
         Public Sub AccessCheckInternalVisibleToAttributeVBModule()
-            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="FriendAsmNightly01-Class1">
     <file name="a1.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -617,7 +617,7 @@ End Module
 
             Dim otherImage = other.EmitToArray()
 
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="FriendAsmNightly01a.1141284.1">
     <file name="a2.vb"><![CDATA[
     Friend Module FriendAsmNightly01amod
@@ -638,7 +638,7 @@ End Module
 
         <Fact>
         Public Sub AccessCheckApi1()
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AccessCheckApi1">
     <file name="a.vb">
 Imports System.Collections.Generic
@@ -742,7 +742,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -793,7 +793,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -839,7 +839,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -867,7 +867,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -896,7 +896,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -927,7 +927,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertNoErrors(compilation)
 
@@ -951,7 +951,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -985,7 +985,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1591,7 +1591,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1793,7 +1793,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1826,7 +1826,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1860,7 +1860,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1875,7 +1875,7 @@ BC30508: 'D' cannot expose type 'A.B(Of T).C' in class 'A' through class 'B'.
 
         <Fact(), WorkItem(545722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545722")>
         Public Sub AccessCheckInaccessibleReturnType()
-            Dim assem1 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim assem1 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Assem1">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1902,7 +1902,7 @@ Friend Delegate Sub Deleg1()
 </compilation>)
             Dim assem1Bytes = assem1.EmitToArray()
 
-            Dim assem2 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim assem2 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="Assem2">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1937,7 +1937,7 @@ End Module
 </compilation>, {MetadataReference.CreateFromImage(assem1Bytes)})
             Dim assem2Bytes = assem2.EmitToArray()
 
-            Dim assem3 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim assem3 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="Assem3">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1994,7 +1994,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(vbSource1)
             compilation1.AssertNoErrors()
             Dim compilationVerifier = CompileAndVerify(compilation1)
             Dim reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
@@ -2011,7 +2011,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {reference1})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(vbSource2, {reference1})
             compilation2.AssertNoErrors()
             compilationVerifier = CompileAndVerify(compilation2)
             Dim reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
@@ -2027,7 +2027,7 @@ End Module
 ]]>
                     </file>
                 </compilation>
-            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource3, {reference1, reference2})
+            Dim compilation3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(vbSource3, {reference1, reference2})
             compilation3.AssertNoErrors()
         End Sub
 
@@ -2046,7 +2046,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(vbSource1)
             compilation1.AssertNoErrors()
             Dim compilationVerifier = CompileAndVerify(compilation1)
             Dim reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
@@ -2063,7 +2063,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {reference1})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(vbSource2, {reference1})
             compilation2.AssertNoErrors()
             compilationVerifier = CompileAndVerify(compilation2)
             Dim reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
@@ -2079,13 +2079,13 @@ End Module
 ]]>
                     </file>
                 </compilation>
-            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource3, {reference1, reference2})
+            Dim compilation3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(vbSource3, {reference1, reference2})
             compilation3.AssertNoErrors()
         End Sub
 
         <Fact, WorkItem(531415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531415")>
         Public Sub Bug18091()
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C1

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -394,11 +395,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConstructorDeclaration:
                     return true;
 
-                // With the introduction of pattern-matching, many nodes now contain top-level
-                // expressions that may introduce pattern variables.
-                case SyntaxKind.EqualsValueClause:
-                    return true;
-
                 // Due to pattern-matching, any statement that contains an expression may introduce a scope.
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.ExpressionStatement:
@@ -423,6 +419,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 default:
+                    // With the introduction of pattern-matching, many nodes now contain top-level
+                    // expressions that may introduce pattern variables.
+                    if (node.Parent != null)
+                    {
+                        switch(node.Parent.Kind())
+                        {
+                            case SyntaxKind.EqualsValueClause:
+                                return true;
+
+                            case SyntaxKind.ForStatement:
+                                SeparatedSyntaxList<ExpressionSyntax> incrementors = ((ForStatementSyntax)node.Parent).Incrementors;
+                                if (incrementors.FirstOrDefault() == node)
+                                {
+                                    return true;
+                                }
+                                break;
+                        }
+                    }
+
                     break;
             }
 
