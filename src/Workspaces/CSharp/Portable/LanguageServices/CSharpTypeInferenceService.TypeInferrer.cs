@@ -1447,7 +1447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return InferTypeInLambdaExpression(lambdaExpression);
+                return InferTypeInAnonymousFunctionExpression(lambdaExpression);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInSimpleLambdaExpression(SimpleLambdaExpressionSyntax lambdaExpression, SyntaxToken? previousToken = null)
@@ -1458,13 +1458,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return InferTypeInLambdaExpression(lambdaExpression);
+                return InferTypeInAnonymousFunctionExpression(lambdaExpression);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInLambdaExpression(ExpressionSyntax lambdaExpression)
+            private IEnumerable<TypeInferenceInfo> InferTypeInAnonymousFunctionExpression(AnonymousFunctionExpressionSyntax anonymousFunction)
             {
                 // Func<int,string> = i => Goo();
-                var types = InferTypes(lambdaExpression);
+                // Func<int,string> = delegate (int i) { return Goo(); };
+                var types = InferTypes(anonymousFunction);
                 var type = types.FirstOrDefault().InferredType.GetDelegateType(this.Compilation);
 
                 if (type != null)
@@ -1862,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // If we're in a lambda, then use the return type of the lambda to figure out what to
                     // infer.  i.e.   Func<int,string> f = i => { return Goo(); }
-                    types = InferTypeInLambdaExpression(lambdaExpression);
+                    types = InferTypeInAnonymousFunctionExpression(lambdaExpression);
                     isAsync = lambdaExpression.AsyncKeyword.Kind() != SyntaxKind.None;
                     return;
                 }
