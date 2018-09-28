@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Location> locations)
             : base(owner, ordinal)
         {
+#if DEBUG
+            foreach (var location in locations)
+            {
+                Debug.Assert(location != null);
+            }
+#endif
             Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property));
             this.parameterType = parameterType;
             _refKind = refKind;
@@ -158,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            state.DefaultForceComplete(this);
+            state.DefaultForceComplete(this, cancellationToken);
         }
 
         /// <summary>

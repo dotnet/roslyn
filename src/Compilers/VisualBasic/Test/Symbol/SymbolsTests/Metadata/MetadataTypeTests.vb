@@ -257,7 +257,7 @@ End Class
 Public Class A
 End Class
     </file>
-</compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
+</compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim mscorNS = compilation.GetReferencedAssemblySymbol(compilation.References(0))
             Assert.Equal("mscorlib", mscorNS.Name)

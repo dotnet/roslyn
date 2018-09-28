@@ -901,7 +901,7 @@
     <value>Property or indexer '{0}' cannot be assigned to -- it is read only</value>
   </data>
   <data name="ERR_IllegalStatement" xml:space="preserve">
-    <value>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</value>
+    <value>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</value>
   </data>
   <data name="ERR_BadGetEnumerator" xml:space="preserve">
     <value>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</value>
@@ -1126,7 +1126,7 @@
     <value>Type does not implement the collection pattern; member has the wrong signature</value>
   </data>
   <data name="ERR_FriendRefNotEqualToThis" xml:space="preserve">
-    <value>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</value>
+    <value>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</value>
   </data>
   <data name="ERR_FriendRefSigningMismatch" xml:space="preserve">
     <value>Friend access was granted by '{0}', but the strong name signing state of the output assembly does not match that of the granting assembly.</value>
@@ -2894,7 +2894,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot convert {0} to type '{1}' because it is not a delegate type</value>
   </data>
   <data name="ERR_CantConvAnonMethParams" xml:space="preserve">
-    <value>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</value>
+    <value>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</value>
   </data>
   <data name="ERR_CantConvAnonMethReturns" xml:space="preserve">
     <value>Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type</value>
@@ -4452,6 +4452,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion7" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.0. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureIsExperimental" xml:space="preserve">
+    <value>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</value>
+  </data>
   <data name="ERR_FeatureIsUnimplemented" xml:space="preserve">
     <value>Feature '{0}' is not implemented in this compiler.</value>
   </data>
@@ -4750,6 +4753,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureInterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
   </data>
+  <data name="IDS_FeatureAltInterpolatedVerbatimStrings" xml:space="preserve">
+    <value>alternative interpolated verbatim strings</value>
+  </data>
   <data name="IDS_AwaitInCatchAndFinally" xml:space="preserve">
     <value>await in catch blocks and finally blocks</value>
   </data>
@@ -4947,10 +4953,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use ref local '{0}' inside an anonymous method, lambda expression, or query expression</value>
   </data>
   <data name="ERR_BadIteratorLocalType" xml:space="preserve">
-    <value>Iterators cannot have by reference locals</value>
+    <value>Iterators cannot have by-reference locals</value>
   </data>
   <data name="ERR_BadAsyncLocalType" xml:space="preserve">
-    <value>Async methods cannot have by reference locals</value>
+    <value>Async methods cannot have by-reference locals</value>
   </data>
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
@@ -5174,6 +5180,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion7_3" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion8" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_LanguageVersionCannotHaveLeadingZeroes" xml:space="preserve">
     <value>Specified language version '{0}' cannot have leading zeroes</value>
   </data>
@@ -5194,6 +5203,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
     <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
+  </data>
+  <data name="ERR_AltInterpolatedVerbatimStringsNotAvailable" xml:space="preserve">
+    <value>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</value>
   </data>
   <data name="WRN_AttributesOnBackingFieldsNotAvailable" xml:space="preserve">
     <value>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</value>
@@ -5344,5 +5356,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_UsingVarInSwitchCase" xml:space="preserve">
     <value>A using variable cannot be used directly within a switch section (consider using braces). </value>
+  </data>
+  <data name="IDS_FeatureCoalesceAssignmentExpression" xml:space="preserve">
+    <value>coalescing assignment</value>
+  </data>
+  <data name="CannotCreateConstructedFromConstructed" xml:space="preserve">
+    <value>Cannot create constructed generic type from another constructed generic type.</value>
+  </data>
+  <data name="CannotCreateConstructedFromNongeneric" xml:space="preserve">
+    <value>Cannot create constructed generic type from non-generic type.</value>
+  </data>
+  <data name="WRN_DefaultLiteralConvertedToNullIsNotIntended" xml:space="preserve">
+    <value>'default' is converted to 'null', not 'default({0})'</value>
+  </data>
+  <data name="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title" xml:space="preserve">
+    <value>'default' is converted to 'null'</value>
+  </data>
+  <data name="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator" xml:space="preserve">
+    <value>unconstrained type parameters in null coalescing operator</value>
   </data>
 </root>

@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -39,9 +37,15 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                 return;
             }
 
+            // We only create a diagnostic if the option's value is set to true.
             var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
-            var severity = option.Notification.Value;
-            if (severity == DiagnosticSeverity.Hidden)
+            if (!option.Value)
+            {
+                return;
+            }
+
+            var severity = option.Notification.Severity;
+            if (severity == ReportDiagnostic.Suppress)
             {
                 return;
             }
@@ -62,9 +66,11 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                         {
                             var properties = ImmutableDictionary<string, string>.Empty.Add(
                                 nameof(ElementName), namedField.Name);
-                            context.ReportDiagnostic(Diagnostic.Create(
-                                GetDescriptorWithSeverity(severity),
+                            context.ReportDiagnostic(DiagnosticHelper.Create(
+                                Descriptor,
                                 nameNode.GetLocation(),
+                                severity,
+                                additionalLocations: null,
                                 properties));
                         }
                     }

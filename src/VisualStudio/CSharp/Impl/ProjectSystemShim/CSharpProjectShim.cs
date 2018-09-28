@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             projectTracker.AddProject(this);
 
-            ProjectCodeModel = new ProjectCodeModel(this.Id, this, visualStudioWorkspaceOpt, ServiceProvider);
+            ProjectCodeModel = new ProjectCodeModel(projectTracker.ThreadingContext, this.Id, this, visualStudioWorkspaceOpt, ServiceProvider);
         }
 
         public override void Disconnect()
@@ -272,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 documentationMode = DocumentationMode.Diagnose;
             }
 
-            GetStringOption(CompilerOptions.OPTID_COMPATIBILITY, defaultValue: "").TryParse(out var languageVersion);
+            LanguageVersionFacts.TryParse(GetStringOption(CompilerOptions.OPTID_COMPATIBILITY, defaultValue: ""), out var languageVersion);
 
             return options.WithKind(SourceCodeKind.Regular)
                 .WithLanguageVersion(languageVersion)

@@ -1000,7 +1000,7 @@ End Namespace
         Assert.Equal(VarianceKind.None, SyntaxFacts.VarianceKindFromToken(keywordToken))
     End Sub
 
-    <Fact>
+    <ConditionalFact(GetType(DesktopOnly))>
     Public Sub AllowsLeadingOrTrailingImplicitLineContinuation()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)
@@ -1098,7 +1098,7 @@ End Namespace
 
     End Sub
 
-    <Fact>
+    <ConditionalFact(GetType(DesktopOnly))>
     Public Sub AllowsLeadingOrTrailingImplicitLineContinuationNegativeTests()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)

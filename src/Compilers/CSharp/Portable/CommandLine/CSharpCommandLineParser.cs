@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 displayLangVersions = true;
                             }
-                            else if (!value.TryParse(out languageVersion))
+                            else if (!LanguageVersionFacts.TryParse(value, out languageVersion))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadCompatMode, value);
                             }
@@ -1796,7 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (fullPath == null || !PathUtilities.IsValidFilePath(fileName))
+            if (!PathUtilities.IsValidFilePath(fullPath))
             {
                 AddDiagnostic(diagnostics, ErrorCode.FTL_InvalidInputFileName, filePath);
                 return null;

@@ -581,7 +581,7 @@ class F
             // Can't use CheckExpressionAndParent because we're using alias.
 
             var tree = Parse(text);
-            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = (IdentifierNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -1096,7 +1096,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,32): error CS1061: 'E' does not contain a definition for 'Q' and no extension method 'Q' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Q").WithArguments("E", "Q"));
@@ -1186,7 +1186,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,58): error CS0123: No overload for 'M' matches delegate 'System.Action<string>'
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action<string>"));

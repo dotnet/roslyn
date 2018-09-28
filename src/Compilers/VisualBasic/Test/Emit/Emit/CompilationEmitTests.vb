@@ -3887,7 +3887,7 @@ End interface
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(useSource, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(useSource, options:=TestOptions.ReleaseDll)
             Dim metadataReader = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).Module.GetMetadataReader()
 
             Dim P1RVA = 0
@@ -3949,7 +3949,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
             Using stream As Stream = compilation.EmitToStream()
                 Dim len As Integer = CType(stream.Length, Integer)
                 Dim bytes(len) As Byte
@@ -3994,7 +3994,7 @@ Class C6
 End Class
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
             Dim bytes = compilation.EmitToArray()
             Using metadata = ModuleMetadata.CreateFromImage(bytes)
                 Dim reader = metadata.MetadataReader

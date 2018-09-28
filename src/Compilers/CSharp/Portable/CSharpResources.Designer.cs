@@ -62,6 +62,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot create constructed generic type from another constructed generic type..
+        /// </summary>
+        internal static string CannotCreateConstructedFromConstructed {
+            get {
+                return ResourceManager.GetString("CannotCreateConstructedFromConstructed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot create constructed generic type from non-generic type..
+        /// </summary>
+        internal static string CannotCreateConstructedFromNongeneric {
+            get {
+                return ResourceManager.GetString("CannotCreateConstructedFromNongeneric", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t reference compilation of type &apos;{0}&apos; from {1} compilation..
         /// </summary>
         internal static string CantReferenceCompilationOf {
@@ -283,6 +301,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AliasQualifiedNameNotAnExpression {
             get {
                 return ResourceManager.GetString("ERR_AliasQualifiedNameNotAnExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To use &apos;@$&apos; instead of &apos;$@&apos; for an interpolated verbatim string, please use language version {0} or greater..
+        /// </summary>
+        internal static string ERR_AltInterpolatedVerbatimStringsNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_AltInterpolatedVerbatimStringsNotAvailable", resourceCulture);
             }
         }
         
@@ -953,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async methods cannot have by reference locals.
+        ///   Looks up a localized string similar to Async methods cannot have by-reference locals.
         /// </summary>
         internal static string ERR_BadAsyncLocalType {
             get {
@@ -1637,7 +1664,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Iterators cannot have by reference locals.
+        ///   Looks up a localized string similar to Iterators cannot have by-reference locals.
         /// </summary>
         internal static string ERR_BadIteratorLocalType {
             get {
@@ -2501,7 +2528,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert {0} to delegate type &apos;{1}&apos; because the parameter types do not match the delegate parameter types.
+        ///   Looks up a localized string similar to Cannot convert {0} to type &apos;{1}&apos; because the parameter types do not match the delegate parameter types.
         /// </summary>
         internal static string ERR_CantConvAnonMethParams {
             get {
@@ -4571,6 +4598,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is experimental and unsupported; use &apos;/features:{1}&apos; to enable..
+        /// </summary>
+        internal static string ERR_FeatureIsExperimental {
+            get {
+                return ResourceManager.GetString("ERR_FeatureIsExperimental", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not implemented in this compiler..
         /// </summary>
         internal static string ERR_FeatureIsUnimplemented {
@@ -4666,6 +4702,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_FeatureNotAvailableInVersion7_3 {
             get {
                 return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion7_3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 8.0. Please use language version {1} or greater..
+        /// </summary>
+        internal static string ERR_FeatureNotAvailableInVersion8 {
+            get {
+                return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion8", resourceCulture);
             }
         }
         
@@ -4931,7 +4976,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Friend access was granted by &apos;{0}&apos;, but the public key of the output assembly does not match that specified by the attribute in the granting assembly..
+        ///   Looks up a localized string similar to Friend access was granted by &apos;{0}&apos;, but the public key of the output assembly (&apos;{1}&apos;) does not match that specified by the InternalsVisibleTo attribute in the granting assembly..
         /// </summary>
         internal static string ERR_FriendRefNotEqualToThis {
             get {
@@ -5201,7 +5246,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only assignment, call, increment, decrement, and new object expressions can be used as a statement.
+        ///   Looks up a localized string similar to Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement.
         /// </summary>
         internal static string ERR_IllegalStatement {
             get {
@@ -10413,6 +10458,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to alternative interpolated verbatim strings.
+        /// </summary>
+        internal static string IDS_FeatureAltInterpolatedVerbatimStrings {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAltInterpolatedVerbatimStrings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous methods.
         /// </summary>
         internal static string IDS_FeatureAnonDelegates {
@@ -10472,6 +10526,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureBinaryLiteral {
             get {
                 return ResourceManager.GetString("IDS_FeatureBinaryLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to coalescing assignment.
+        /// </summary>
+        internal static string IDS_FeatureCoalesceAssignmentExpression {
+            get {
+                return ResourceManager.GetString("IDS_FeatureCoalesceAssignmentExpression", resourceCulture);
             }
         }
         
@@ -11021,6 +11084,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureTypeVariance {
             get {
                 return ResourceManager.GetString("IDS_FeatureTypeVariance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unconstrained type parameters in null coalescing operator.
+        /// </summary>
+        internal static string IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator", resourceCulture);
             }
         }
         
@@ -12938,6 +13010,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_DebugFullNameTooLong_Title {
             get {
                 return ResourceManager.GetString("WRN_DebugFullNameTooLong_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;default&apos; is converted to &apos;null&apos;, not &apos;default({0})&apos;.
+        /// </summary>
+        internal static string WRN_DefaultLiteralConvertedToNullIsNotIntended {
+            get {
+                return ResourceManager.GetString("WRN_DefaultLiteralConvertedToNullIsNotIntended", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;default&apos; is converted to &apos;null&apos;.
+        /// </summary>
+        internal static string WRN_DefaultLiteralConvertedToNullIsNotIntended_Title {
+            get {
+                return ResourceManager.GetString("WRN_DefaultLiteralConvertedToNullIsNotIntended_Title", resourceCulture);
             }
         }
         

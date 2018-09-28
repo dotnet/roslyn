@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             context.ReportDiagnostic(
                 Diagnostic.Create(
-                    this.HiddenDescriptor, isExpression.GetLocation()));
+                    this.Descriptor, isExpression.GetLocation()));
         }
 
         public (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                                              .ToSet();
 
             var localName = NameGenerator.EnsureUniqueness(
-                ICodeDefinitionFactoryExtensions.GetLocalName(typeSymbol),
+                SyntaxGeneratorExtensions.GetLocalName(typeSymbol),
                 reservedNames).EscapeIdentifier();
 
             // Now, go and actually try to make the change.  This will allow us to see all the

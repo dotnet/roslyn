@@ -7,10 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
     public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
     {
-        private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<object>[] expectedResults)
+        private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             using (var workspace = TestWorkspace.CreateCSharp(markup, options))
             {
@@ -28,16 +28,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
         }
 
-        private async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<object>[] expectedResults)
+        private async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<QuickInfoItem>[] expectedResults)
         {
             var testDocument = workspace.DocumentWithCursor;
             var position = testDocument.CursorPosition.GetValueOrDefault();
             var documentId = workspace.GetDocumentId(testDocument);
             var document = workspace.CurrentSolution.GetDocument(documentId);
 
-            var provider = new SemanticQuickInfoProvider();
+            var service = QuickInfoService.GetService(document);
 
-            await TestWithOptionsAsync(document, provider, position, expectedResults);
+            await TestWithOptionsAsync(document, service, position, expectedResults);
 
             // speculative semantic model
             if (await CanUseSpeculativeSemanticModelAsync(document, position))
@@ -50,34 +50,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                     edit.Apply();
                 }
 
-                await TestWithOptionsAsync(document, provider, position, expectedResults);
+                await TestWithOptionsAsync(document, service, position, expectedResults);
             }
         }
 
-        private async Task TestWithOptionsAsync(Document document, SemanticQuickInfoProvider provider, int position, Action<object>[] expectedResults)
+        private async Task TestWithOptionsAsync(Document document, QuickInfoService service, int position, Action<QuickInfoItem>[] expectedResults)
         {
-            var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
-            if (state != null)
-            {
-                WaitForDocumentationComment(state.Content);
-            }
+            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
 
             if (expectedResults.Length == 0)
             {
-                Assert.Null(state);
+                Assert.Null(info);
             }
             else
             {
-                Assert.NotNull(state);
+                Assert.NotNull(info);
 
                 foreach (var expected in expectedResults)
                 {
-                    expected(state.Content);
+                    expected(info);
                 }
             }
         }
 
-        private async Task VerifyWithMscorlib45Async(string markup, Action<object>[] expectedResults)
+        private async Task VerifyWithMscorlib45Async(string markup, Action<QuickInfoItem>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -94,37 +90,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
-                var provider = new SemanticQuickInfoProvider();
+                var service = QuickInfoService.GetService(document);
 
-                var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
-                if (state != null)
-                {
-                    WaitForDocumentationComment(state.Content);
-                }
+                var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
 
                 if (expectedResults.Length == 0)
                 {
-                    Assert.Null(state);
+                    Assert.Null(info);
                 }
                 else
                 {
-                    Assert.NotNull(state);
+                    Assert.NotNull(info);
 
                     foreach (var expected in expectedResults)
                     {
-                        expected(state.Content);
+                        expected(info);
                     }
                 }
             }
         }
 
-        protected override async Task TestAsync(string markup, params Action<object>[] expectedResults)
+        protected override async Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             await TestWithOptionsAsync(Options.Regular, markup, expectedResults);
             await TestWithOptionsAsync(Options.Script, markup, expectedResults);
         }
 
-        protected async Task TestWithUsingsAsync(string markup, params Action<object>[] expectedResults)
+        private async Task TestWithUsingsAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             var markupWithUsings =
 @"using System;
@@ -135,13 +127,13 @@ using System.Linq;
             await TestAsync(markupWithUsings, expectedResults);
         }
 
-        protected Task TestInClassAsync(string markup, params Action<object>[] expectedResults)
+        private Task TestInClassAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             var markupInClass = "class C { " + markup + " }";
             return TestWithUsingsAsync(markupInClass, expectedResults);
         }
 
-        protected Task TestInMethodAsync(string markup, params Action<object>[] expectedResults)
+        private Task TestInMethodAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             var markupInMethod = "class C { void M() { " + markup + " } }";
             return TestWithUsingsAsync(markupInMethod, expectedResults);
@@ -151,7 +143,7 @@ using System.Linq;
             string referencedCode,
             string sourceLanguage,
             string referencedLanguage,
-            params Action<object>[] expectedResults)
+            params Action<QuickInfoItem>[] expectedResults)
         {
             await TestWithMetadataReferenceHelperAsync(sourceCode, referencedCode, sourceLanguage, referencedLanguage, expectedResults);
             await TestWithProjectReferenceHelperAsync(sourceCode, referencedCode, sourceLanguage, referencedLanguage, expectedResults);
@@ -168,7 +160,7 @@ using System.Linq;
             string referencedCode,
             string sourceLanguage,
             string referencedLanguage,
-            params Action<object>[] expectedResults)
+            params Action<QuickInfoItem>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -193,7 +185,7 @@ using System.Linq;
             string referencedCode,
             string sourceLanguage,
             string referencedLanguage,
-            params Action<object>[] expectedResults)
+            params Action<QuickInfoItem>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -219,7 +211,7 @@ using System.Linq;
             string sourceCode,
             string referencedCode,
             string sourceLanguage,
-            params Action<object>[] expectedResults)
+            params Action<QuickInfoItem>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -236,7 +228,7 @@ using System.Linq;
             await VerifyWithReferenceWorkerAsync(xmlString, expectedResults);
         }
 
-        private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<object>[] expectedResults)
+        private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<QuickInfoItem>[] expectedResults)
         {
             using (var workspace = TestWorkspace.Create(xmlString))
             {
@@ -244,25 +236,21 @@ using System.Linq;
                 var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
-                var provider = new SemanticQuickInfoProvider();
+                var service = QuickInfoService.GetService(document);
 
-                var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
-                if (state != null)
-                {
-                    WaitForDocumentationComment(state.Content);
-                }
+                var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
 
                 if (expectedResults.Length == 0)
                 {
-                    Assert.Null(state);
+                    Assert.Null(info);
                 }
                 else
                 {
-                    Assert.NotNull(state);
+                    Assert.NotNull(info);
 
                     foreach (var expected in expectedResults)
                     {
-                        expected(state.Content);
+                        expected(info);
                     }
                 }
             }
@@ -5313,6 +5301,106 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLocalFunction4()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        void OuterLocalFunction$$()
+        {
+            int local = 0;
+            int InnerLocalFunction() 
+            {
+                field++;
+                return local;
+            }
+        }
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLocalFunction5()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        void OuterLocalFunction()
+        {
+            int local = 0;
+            int InnerLocalFunction$$() 
+            {
+                field++;
+                return local;
+            }
+        }
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, local"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLocalFunction6()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        int local1 = 0;
+        int local2 = 0;
+
+        void OuterLocalFunction$$()
+        {
+            _ = local1;
+            void InnerLocalFunction() 
+            {
+                _ = local2;
+            }
+        }
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local1, local2"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLocalFunction7()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        int local1 = 0;
+        int local2 = 0;
+
+        void OuterLocalFunction()
+        {
+            _ = local1;
+            void InnerLocalFunction$$() 
+            {
+                _ = local2;
+            }
+        }
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local2"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
         public async Task QuickInfoCapturesOnLambda()
         {
@@ -5393,6 +5481,106 @@ class C
     void N(System.Action x, System.Action y) { }
 }",
                 Captures($"\r\n{WorkspacesResources.Variables_captured_colon} i"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLambda5()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        System.Action a = () =$$>
+        {
+            int local = 0;
+            System.Func<int> b = () =>
+            {
+                field++;
+                return local;
+            };
+        };
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLambda6()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        System.Action a = () =>
+        {
+            int local = 0;
+            System.Func<int> b = () =$$>
+            {
+                field++;
+                return local;
+            };
+        };
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, local"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLambda7()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        int local1 = 0;
+        int local2 = 0;
+
+        System.Action a = () =$$>
+        {
+            _ = local1;
+            System.Action b = () =>
+            {
+                _ = local2;
+            };
+        };
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local1, local2"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26101, "https://github.com/dotnet/roslyn/issues/26101")]
+        public async Task QuickInfoCapturesOnLambda8()
+        {
+            await TestAsync(@"
+class C
+{
+    int field;
+    void M()
+    {
+        int local1 = 0;
+        int local2 = 0;
+
+        System.Action a = () =>
+        {
+            _ = local1;
+            System.Action b = () =$$>
+            {
+                _ = local2;
+            };
+        };
+    }
+}",
+                Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local2"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

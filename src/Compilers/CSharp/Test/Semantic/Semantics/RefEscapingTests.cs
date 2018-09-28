@@ -3391,5 +3391,128 @@ public struct Thing
                 //     public void Foo(Span<Thing>[] first, Thing[] second)
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "Span<Thing>").WithArguments("System.Span<Thing>").WithLocation(5, 21));
         }
+
+        [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
+        public void RefThisAssignement_Class()
+        {
+            CreateCompilation(@"
+class Test
+{
+    public void M(ref Test obj)
+    {
+        this = ref this;
+        obj = ref this;
+        this = ref obj;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         this = ref this;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(6, 9),
+                // (6,20): error CS1510: A ref or out value must be an assignable variable
+                //         this = ref this;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithArguments("this").WithLocation(6, 20),
+                // (7,19): error CS1510: A ref or out value must be an assignable variable
+                //         obj = ref this;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithArguments("this").WithLocation(7, 19),
+                // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         this = ref obj;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
+        public void RefThisAssignement_Struct()
+        {
+            CreateCompilation(@"
+struct Test
+{
+    public void M(ref Test obj)
+    {
+        this = ref this;
+        obj = ref this;
+        this = ref obj;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         this = ref this;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(6, 9),
+                // (7,9): error CS8374: Cannot ref-assign 'this' to 'obj' because 'this' has a narrower escape scope than 'obj'.
+                //         obj = ref this;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "obj = ref this").WithArguments("obj", "this").WithLocation(7, 9),
+                // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         this = ref obj;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
+        public void RefThisAssignement_ReadOnlyStruct()
+        {
+            CreateCompilation(@"
+readonly struct Test
+{
+    public void M(ref Test obj)
+    {
+        this = ref this;
+        obj = ref this;
+        this = ref obj;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         this = ref this;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(6, 9),
+                // (7,19): error CS1510: A ref or out value must be an assignable variable
+                //         obj = ref this;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithArguments("this").WithLocation(7, 19),
+                // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         this = ref obj;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
+        public void RefThisAssignement_RefStruct()
+        {
+            CreateCompilation(@"
+ref struct Test
+{
+    public void M(ref Test obj)
+    {
+        this = ref this;
+        obj = ref this;
+        this = ref obj;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         this = ref this;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(6, 9),
+                // (7,9): error CS8374: Cannot ref-assign 'this' to 'obj' because 'this' has a narrower escape scope than 'obj'.
+                //         obj = ref this;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "obj = ref this").WithArguments("obj", "this").WithLocation(7, 9),
+                // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         this = ref obj;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
+        public void RefThisAssignement_ReadOnlyRefStruct()
+        {
+            CreateCompilation(@"
+readonly ref struct Test
+{
+    public void M(ref Test obj)
+    {
+        this = ref this;
+        obj = ref this;
+        this = ref obj;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         this = ref this;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(6, 9),
+                // (7,19): error CS1510: A ref or out value must be an assignable variable
+                //         obj = ref this;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithArguments("this").WithLocation(7, 19),
+                // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         this = ref obj;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
+        }
     }
 }

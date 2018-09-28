@@ -1942,10 +1942,9 @@ class C
   IL_0008:  ret
 }";
 
-
             CompileAndVerify(source).VerifyIL("C.Main", expectedIL);
 
-            var compilation = GetCompilationForEmit(new[] { source }, references: null, options: null, parseOptions: null);
+            var compilation = CreateCompilationWithMscorlib40(source);
             compilation.CreateAnonymousTypeSymbol(
                 ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
                 ImmutableArray.Create("m1", "m2"));

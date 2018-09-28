@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ParseOptions WithLanguageVersion(ParseOptions options, string version)
         {
             var csharpOptions = (CSharpParseOptions)options;
-            Contract.ThrowIfFalse(version.TryParse(out var newVersion));
+            Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(version, out var newVersion));
 
             return csharpOptions.WithLanguageVersion(newVersion);
         }

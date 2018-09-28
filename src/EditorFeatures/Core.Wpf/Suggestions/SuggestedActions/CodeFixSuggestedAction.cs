@@ -5,8 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -20,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly CodeFix _fix;
 
         public CodeFixSuggestedAction(
+            IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             object provider,
             CodeAction action,
             SuggestedActionSet fixAllFlavors)
-            : base(sourceProvider, workspace, subjectBuffer, 
+            : base(threadingContext, sourceProvider, workspace, subjectBuffer, 
                    provider, action, fixAllFlavors)
         {
             _fix = fix;

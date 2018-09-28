@@ -5288,7 +5288,7 @@ class C
             await TestInRegularAndScriptAsync(
 @"public class C
 {
-    public string Foo { get; set; }
+    public string Goo { get; set; }
 
     [Example([|2+2|])]
     public string Bar { get; set; }
@@ -5297,7 +5297,7 @@ class C
 {
     private const int {|Rename:V|} = 2 + 2;
 
-    public string Foo { get; set; }
+    public string Goo { get; set; }
 
     [Example(V)]
     public string Bar { get; set; }
@@ -5626,6 +5626,149 @@ class C
         M2(ref [|(y = ref x)|]);
     }
     void M2(ref int p) { }
+}");
+        }
+
+        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestCaretAtEndOfExpression1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void Goo()
+    {
+        Bar(1[||], 2);
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 1;
+
+    void Goo()
+    {
+        Bar(V, 2);
+    }
+}");
+        }
+
+        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestCaretAtEndOfExpression2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void Goo()
+    {
+        Bar(1, 2[||]);
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 2;
+
+    void Goo()
+    {
+        Bar(1, V);
+    }
+}");
+        }
+
+        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestCaretAtEndOfExpression3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void Goo()
+    {
+        Bar(1, (2[||]));
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 2;
+
+    void Goo()
+    {
+        Bar(1, V);
+    }
+}");
+        }
+
+        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestCaretAtEndOfExpression4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void Goo()
+    {
+        Bar(1, Bar(2[||]));
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 2;
+
+    void Goo()
+    {
+        Bar(1, Bar(V));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(27949, "https://github.com/dotnet/roslyn/issues/27949")]
+        public async Task TestWhitespaceSpanInAssignment()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    int x = [| |] 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(28665, "https://github.com/dotnet/roslyn/issues/28665")]
+        public async Task TestWhitespaceSpanInAttribute()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    [Example( [| |] )]
+    public void Goo()
+    {
+    }
+}");
+        }
+
+        [WorkItem(28941, "https://github.com/dotnet/roslyn/issues/28941")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestElementAccessExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    byte[] getArray() => null;
+    void test()
+    {
+        var goo = [|getArray()|][0];
+    }
+}",
+@"using System;
+class C
+{
+    byte[] getArray() => null;
+    void test()
+    {
+        byte[] {|Rename:v|} = getArray();
+        var goo = v[0];
+    }
 }");
         }
     }

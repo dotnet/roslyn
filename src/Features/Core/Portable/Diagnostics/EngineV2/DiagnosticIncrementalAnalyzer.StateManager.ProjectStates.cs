@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return;
                     }
 
-                    Contract.Requires(!entry.AnalyzerReferences.Equals(project.AnalyzerReferences));
+                    Debug.Assert(!entry.AnalyzerReferences.Equals(project.AnalyzerReferences));
 
                     // there has been change. find out what has changed
                     var addedStates = DiffStateSets(project.AnalyzerReferences.Except(entry.AnalyzerReferences), newMapPerReference, newMap);

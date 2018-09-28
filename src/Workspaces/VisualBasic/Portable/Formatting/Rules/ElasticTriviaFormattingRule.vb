@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, lastToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation))
+        Public Overrides Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation))
             nextOperation.Invoke(list)
         End Sub
 
@@ -370,6 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Function TopLevelStatement(statement As StatementSyntax) As Boolean
             Return TypeOf statement Is MethodStatementSyntax OrElse
                    TypeOf statement Is SubNewStatementSyntax OrElse
+                   TypeOf statement Is LambdaHeaderSyntax OrElse
                    TypeOf statement Is OperatorStatementSyntax OrElse
                    TypeOf statement Is PropertyStatementSyntax OrElse
                    TypeOf statement Is EventStatementSyntax OrElse

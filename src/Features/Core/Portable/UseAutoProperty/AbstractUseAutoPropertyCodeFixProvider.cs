@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     diagnostic);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private async Task<Solution> ProcessResultAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
@@ -92,9 +92,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var updatedProperty = await UpdatePropertyAsync(
                 propertyDocument, compilation, fieldSymbol, propertySymbol, property,
                 isWrittenToOutsideOfConstructor, cancellationToken).ConfigureAwait(false);
-
-            // Ensure the new and old property share the same trailing trivia.
-            updatedProperty = updatedProperty.WithTrailingTrivia(property.GetTrailingTrivia());
 
             // Note: rename will try to update all the references in linked files as well.  However, 
             // this can lead to some very bad behavior as we will change the references in linked files

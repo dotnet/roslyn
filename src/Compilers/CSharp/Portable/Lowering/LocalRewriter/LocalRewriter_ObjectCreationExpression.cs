@@ -37,7 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
             ImmutableArray<RefKind> argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-            rewrittenArguments = MakeArguments(node.Syntax, rewrittenArguments, node.Constructor, node.Constructor, node.Expanded, node.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps);
+            rewrittenArguments = MakeArguments(
+                node.Syntax,
+                rewrittenArguments,
+                node.Constructor,
+                node.Constructor,
+                node.Expanded,
+                node.ArgsToParamsOpt,
+                ref argumentRefKindsOpt,
+                out temps);
 
             BoundExpression rewrittenObjectCreation;
 
@@ -91,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeObjectCreationWithInitializer(node.Syntax, rewrittenObjectCreation, node.InitializerExpressionOpt, node.Type);
         }
 
-        private BoundExpression MakeObjectCreationInitializerForExpressionTree(BoundExpression initializerExpressionOpt)
+        private BoundObjectInitializerExpressionBase MakeObjectCreationInitializerForExpressionTree(BoundObjectInitializerExpressionBase initializerExpressionOpt)
         {
             if (initializerExpressionOpt != null && !initializerExpressionOpt.HasErrors)
             {

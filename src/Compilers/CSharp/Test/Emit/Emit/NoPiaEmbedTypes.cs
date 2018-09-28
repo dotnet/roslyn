@@ -1991,7 +1991,7 @@ class UsePia
 
             verifier.VerifyIL("UsePia.Test", expected);
 
-            compilation = CreateCompilation(consumer,
+            compilation = CreateEmptyCompilation(consumer,
                                                         new MetadataReference[] { MscorlibRef_v4_0_30316_17626, piaCompilation.EmitToImageReference(embedInteropTypes: true) },
                                                         options: TestOptions.DebugExe);
 

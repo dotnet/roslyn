@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             if (TryGetCodeStyleValueAndOptionalNotification(
                     arg, out string value, out NotificationOption notificationOpt))
             {
-                option = new CodeStyleOption<string>(value, notificationOpt ?? NotificationOption.None);
+                option = new CodeStyleOption<string>(value, notificationOpt ?? NotificationOption.Silent);
                 return true;
             }
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     // 'true' must always be provided with a notification option.
                     if (isEnabled == false)
                     {
-                        notificationOpt = notificationOpt ?? NotificationOption.None;
+                        notificationOpt = notificationOpt ?? NotificationOption.Silent;
                         option = new CodeStyleOption<bool>(false, notificationOpt);
                         return true;
                     }
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             // caller of this to determine what to do in this case.
             if (args.Length == 1)
             {
-                value = args[0];
+                value = args[0].Trim();
                 notificationOpt = null;
                 return true;
             }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 // it isn't, then this isn't a valid code style option at all.
                 if (TryParseNotification(args[1], out var localNotification))
                 {
-                    value = args[0];
+                    value = args[0].Trim();
                     notificationOpt = localNotification;
                     return true;
                 }
@@ -95,8 +95,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             switch (value.Trim())
             {
                 case EditorConfigSeverityStrings.None:
-                case EditorConfigSeverityStrings.Silent:
                     notification = NotificationOption.None;
+                    return true;
+
+                case EditorConfigSeverityStrings.Refactoring:
+                case EditorConfigSeverityStrings.Silent:
+                    notification = NotificationOption.Silent;
                     return true;
 
                 case EditorConfigSeverityStrings.Suggestion: notification = NotificationOption.Suggestion; return true;
@@ -104,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 case EditorConfigSeverityStrings.Error: notification = NotificationOption.Error; return true;
             }
 
-            notification = NotificationOption.None;
+            notification = NotificationOption.Silent;
             return false;
         }
     }

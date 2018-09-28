@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
     {
         private readonly ITextUndoHistoryRegistry _undoHistory;
 
-        public string DisplayName => EditorFeaturesResources.Xml_Tag_Completion_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.XML_End_Tag_Completion;
 
         public AbstractXmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory)
         {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Completing_Tag))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Completing_Tag))
             {
                 var buffer = args.SubjectBuffer;
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                     return;
                 }
 
-                TryCompleteTag(args.TextView, args.SubjectBuffer, document, position.Value, context.WaitContext.UserCancellationToken);
+                TryCompleteTag(args.TextView, args.SubjectBuffer, document, position.Value, context.OperationContext.UserCancellationToken);
             }
         }
 
