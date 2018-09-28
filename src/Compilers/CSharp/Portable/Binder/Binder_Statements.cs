@@ -723,34 +723,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                   syntaxNode.SyntaxTree,
                                                                   MessageID.IDS_Disposable);
 
-            if (disposeMethod != null && disposeMethod.ReturnsVoid == false)
-            {
-                ReportPatternWarning(initialDiagnostics, exprType, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
-                disposeMethod = null;
-            }
-
-            if (disposeMethod is null)
+            // we failed if we didn't find a void returing method; try searching extension methods
+            // PROTOTYPE: what happens if there is a no arg int returning method, but a params object[] void returning. Currently, overload resolution would choose the int return, and we'd fail here.
+            if (disposeMethod is null || !disposeMethod.ReturnsVoid)
             {
                 lookupResult.Clear();
-                disposeMethod = FindPatternExtensionMethod(exprType,
-                                                           WellKnownMemberNames.DisposeMethodName,
-                                                           lookupResult,
-                                                           syntaxNode,
-                                                           diagnostics,
-                                                           MessageID.IDS_Disposable);
+                var extDisposeMethod = FindPatternExtensionMethod(exprType,
+                                                                  WellKnownMemberNames.DisposeMethodName,
+                                                                  lookupResult,
+                                                                  syntaxNode,
+                                                                  diagnostics,
+                                                                  MessageID.IDS_Disposable);
 
-                if (disposeMethod != null && disposeMethod.ReturnsVoid == false)
+                // if we still can't satisfy the lookup via extension method, report the diagnostics from both lookups
+                if (extDisposeMethod is null || !extDisposeMethod.ReturnsVoid)
                 {
-                    ReportPatternWarning(diagnostics, exprType, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
-                    disposeMethod = null;
+                    diagnostics.AddRange(initialDiagnostics);
+                    if (disposeMethod?.ReturnsVoid == false)
+                    {
+                        ReportPatternWarning(diagnostics, exprType, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
+                    }
+                    if (extDisposeMethod?.ReturnsVoid == false)
+                    {
+                        ReportPatternWarning(diagnostics, exprType, extDisposeMethod, syntaxNode, MessageID.IDS_Disposable);
+                    }
+                    extDisposeMethod = null;
                 }
+
+                disposeMethod = extDisposeMethod;
             }
 
-            if (disposeMethod is null)
-            {
-                diagnostics.AddRange(initialDiagnostics);
-            }
-
+            initialDiagnostics.Free();
             lookupResult.Free();
             return disposeMethod;
         }
