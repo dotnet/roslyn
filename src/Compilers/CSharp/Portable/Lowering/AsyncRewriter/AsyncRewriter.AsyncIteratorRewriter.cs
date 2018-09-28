@@ -418,6 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void GenerateIAsyncDisposable_DisposeAsync()
             {
                 // Produce the implementation of `ValueTask IAsyncDisposable.DisposeAsync()`:
+                // this.builder.SetResult();
                 // this._valueOrEndPromise.Reset();
                 // this._state = StateNotStarted;
                 // return default;
@@ -437,6 +438,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol promise_Reset =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset)
                     .AsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
+
+                bodyBuilder.Add(
+                    // this.builder.SetResult();
+                    F.ExpressionStatement(
+                        F.Call(
+                            F.Field(F.This(), _builderField),
+                            _asyncMethodBuilderMemberCollection.SetResult)));
 
                 bodyBuilder.Add(
                     // this._valueOrEndPromise.Reset();

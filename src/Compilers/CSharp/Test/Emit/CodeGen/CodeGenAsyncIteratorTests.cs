@@ -551,7 +551,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void CallingWaitForNextAsyncTwice()
         {
             string source = @"
@@ -569,16 +569,18 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
-        var enumerator = M().GetAsyncEnumerator();
-        var found = await enumerator.WaitForNextAsync();
-        if (!found) throw null;
-        Write(""3 "");
-        found = await enumerator.WaitForNextAsync();
-        if (!found) throw null;
-        var value = enumerator.TryGetNext(out var success);
-        Write($""{value} "");
-        await enumerator.WaitForNextAsync();
-        Write(""6"");
+        using await (var enumerator = M().GetAsyncEnumerator())
+        {
+            var found = await enumerator.WaitForNextAsync();
+            if (!found) throw null;
+            Write(""3 "");
+            found = await enumerator.WaitForNextAsync();
+            if (!found) throw null;
+            var value = enumerator.TryGetNext(out var success);
+            Write($""{value} "");
+            await enumerator.WaitForNextAsync();
+            Write(""6"");
+        }
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
@@ -586,7 +588,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 6");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AsyncIteratorWithAwaitCompletedAndYield()
         {
             string source = @"
@@ -712,6 +714,26 @@ class C
   IL_0040:  newobj     ""System.Threading.Tasks.ValueTask<bool>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<bool>, short)""
   IL_0045:  ret
 }");
+                verifier.VerifyIL("C.<M>d__0.System.IAsyncDisposable.DisposeAsync()", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (System.Threading.Tasks.ValueTask V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0006:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+  IL_000b:  ldarg.0
+  IL_000c:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0011:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
+  IL_0016:  ldarg.0
+  IL_0017:  ldc.i4.m1
+  IL_0018:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  initobj    ""System.Threading.Tasks.ValueTask""
+  IL_0025:  ldloc.0
+  IL_0026:  ret
+}
+");
                 verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>>.get_Value()", @"
 {
   // Code size        7 (0x7)
@@ -1096,7 +1118,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndOneYieldAndOneInvocation()
         {
             string source = @"
@@ -1126,7 +1148,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndTwoYields()
         {
             string source = @"
@@ -1157,7 +1179,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithYieldAndAwait()
         {
             string source = @"
@@ -1186,7 +1208,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYieldBreak()
         {
             string source = @"
@@ -1215,7 +1237,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYieldBreakAndYieldReturn()
         {
             string source = @"
@@ -1249,7 +1271,7 @@ label2:
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithCustomCode()
         {
             verify(new[] { AwaitSlow, Write, Yield, AwaitSlow });
@@ -1363,7 +1385,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitAndYieldAndAwait()
         {
             string source = @"
@@ -1413,7 +1435,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithYieldReturnOnly()
         {
             string source = @"
@@ -1440,7 +1462,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "1");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithYieldBreakOnly()
         {
             string source = @"
@@ -1515,7 +1537,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWaitForNextAsyncCalledOutOfTurn()
         {
             string source = @"
@@ -1524,26 +1546,27 @@ class C
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        var enumerator = new C().M().GetAsyncEnumerator();
-        await enumerator.WaitForNextAsync();
-        await enumerator.WaitForNextAsync();
-        await enumerator.WaitForNextAsync();
+        using await (var enumerator = new C().M().GetAsyncEnumerator())
+        {
+            await enumerator.WaitForNextAsync();
+            await enumerator.WaitForNextAsync();
+            await enumerator.WaitForNextAsync();
 
-        var value = enumerator.TryGetNext(out bool success);
-        Assert(success);
-        Assert(value == 42);
+            var value = enumerator.TryGetNext(out bool success);
+            Assert(success);
+            Assert(value == 42);
 
-        enumerator.TryGetNext(out success);
-        Assert(!success);
+            enumerator.TryGetNext(out success);
+            Assert(!success);
 
-        await enumerator.WaitForNextAsync();
-        await enumerator.WaitForNextAsync();
-        await enumerator.WaitForNextAsync();
+            await enumerator.WaitForNextAsync();
+            await enumerator.WaitForNextAsync();
+            await enumerator.WaitForNextAsync();
 
-        value = enumerator.TryGetNext(out success);
-        Assert(success);
-        Assert(value == 43);
-
+            value = enumerator.TryGetNext(out success);
+            Assert(success);
+            Assert(value == 43);
+        }
         Write(""Done"");
     }
     async System.Collections.Generic.IAsyncEnumerable<int> M()
@@ -1562,7 +1585,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestTryGetNextCalledOutOfTurn()
         {
             string source = @"
@@ -1571,24 +1594,26 @@ class C
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        var enumerator = new C().M().GetAsyncEnumerator();
-        await enumerator.WaitForNextAsync();
-
-        var value = enumerator.TryGetNext(out bool success);
-        Assert(success);
-        Assert(value == 42);
-
-        enumerator.TryGetNext(out success);
-        Assert(!success);
-
-        try
+        using await (var enumerator = new C().M().GetAsyncEnumerator())
         {
+            await enumerator.WaitForNextAsync();
+
+            var value = enumerator.TryGetNext(out bool success);
+            Assert(success);
+            Assert(value == 42);
+
             enumerator.TryGetNext(out success);
-        }
-        catch (System.Exception e)
-        {
-            Assert(e != null);
-            Write(""Done"");
+            Assert(!success);
+
+            try
+            {
+                enumerator.TryGetNext(out success);
+            }
+            catch (System.Exception e)
+            {
+                Assert(e != null);
+                Write(""Done"");
+            }
         }
     }
     async System.Collections.Generic.IAsyncEnumerable<int> M()
@@ -1608,7 +1633,7 @@ class C
             //CompileAndVerify(comp, expectedOutput: "Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestThrownException_WhilePromiseInactive()
         {
             string source = @"
@@ -1617,23 +1642,25 @@ class C
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        var enumerator = new C().M().GetAsyncEnumerator();
-        await enumerator.WaitForNextAsync();
-
-        var value = enumerator.TryGetNext(out bool success);
-        Assert(success);
-        Assert(value == 42);
-
-        try
+        using await (var enumerator = new C().M().GetAsyncEnumerator())
         {
-            enumerator.TryGetNext(out success);
-            Write(""UNREACHABLE"");
+            await enumerator.WaitForNextAsync();
+
+            var value = enumerator.TryGetNext(out bool success);
+            Assert(success);
+            Assert(value == 42);
+
+            try
+            {
+                enumerator.TryGetNext(out success);
+                Write(""UNREACHABLE"");
+            }
+            catch (System.Exception e)
+            {
+                Assert(e.Message == ""message"");
+            }
+            Write(""Done"");
         }
-        catch (System.Exception e)
-        {
-            Assert(e.Message == ""message"");
-        }
-        Write(""Done"");
     }
     async System.Collections.Generic.IAsyncEnumerable<int> M()
     {
@@ -1653,7 +1680,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestThrownException_WhilePromiseActive()
         {
             string source = @"
@@ -1662,26 +1689,28 @@ class C
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        var enumerator = new C().M().GetAsyncEnumerator();
-        await enumerator.WaitForNextAsync();
-
-        var value = enumerator.TryGetNext(out bool success);
-        Assert(success);
-        Assert(value == 42);
-
-        enumerator.TryGetNext(out success);
-        Assert(!success);
-
-        try
+        using await (var enumerator = new C().M().GetAsyncEnumerator())
         {
             await enumerator.WaitForNextAsync();
-            Write(""UNREACHABLE"");
+
+            var value = enumerator.TryGetNext(out bool success);
+            Assert(success);
+            Assert(value == 42);
+
+            enumerator.TryGetNext(out success);
+            Assert(!success);
+
+            try
+            {
+                await enumerator.WaitForNextAsync();
+                Write(""UNREACHABLE"");
+            }
+            catch (System.Exception e)
+            {
+                Assert(e.Message == ""message"");
+            }
+            Write(""Done"");
         }
-        catch (System.Exception e)
-        {
-            Assert(e.Message == ""message"");
-        }
-        Write(""Done"");
     }
     async System.Collections.Generic.IAsyncEnumerable<int> M()
     {

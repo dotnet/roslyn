@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -95,6 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
         }
 
+        private bool IsAsyncIterator => _asyncIteratorInfo != null;
+
         private FieldSymbol GetAwaiterField(TypeSymbol awaiterType)
         {
             FieldSymbol result;
@@ -168,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }
 
-            if (_asyncIteratorInfo == null)
+            if (!IsAsyncIterator)
             {
                 // builder.SetResult([RetVal])
                 bodyBuilder.Add(
@@ -241,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression assignFinishedState =
                 F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine));
 
-            if (_asyncIteratorInfo == null)
+            if (!IsAsyncIterator)
             {
                 return new BoundCatchBlock(
                     F.Syntax,
@@ -451,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? F.Local(awaiterTemp)
                         : F.Convert(awaiterFieldType, F.Local(awaiterTemp))));
 
-            if (_asyncIteratorInfo != null)
+            if (IsAsyncIterator)
             {
                 blockBuilder.Add(
                     GenerateResetPromiseIfInactive());
@@ -611,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement GenerateResetPromiseIfInactive()
         {
-            Debug.Assert(_asyncIteratorInfo != null);
+            Debug.Assert(IsAsyncIterator);
 
             // this.promiseIsActive = true;
             BoundFieldAccess promiseIsActiveField = F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField);
@@ -630,23 +633,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return F.If(
                 F.Not(promiseIsActiveField),
                 thenClause: F.Block(assignTrue, callReset));
-        }
-
-        private BoundStatement GenerateSetResultOnPromiseIfActive(bool result)
-        {
-            Debug.Assert(_asyncIteratorInfo != null);
-
-            // this.promiseOfValueOrEnd.SetResult(result);
-            BoundExpressionStatement callSetResult = GenerateSetResultOnPromise(result);
-
-            // Produce:
-            // if (this.promiseIsActive)
-            // {
-            //    this.promiseOfValueOrEnd.SetResult(result);
-            // }
-            return F.If(
-                F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField),
-                thenClause: callSetResult);
         }
 
         private BoundExpressionStatement GenerateSetResultOnPromise(bool result)
@@ -708,11 +694,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Assignment(F.Field(F.This(), stateField), F.Literal(stateNumber)));
 
             blockBuilder.Add(
-                // if (promiseIsActive)
+                // if (this.promiseIsActive)
                 // {
-                //     _valueOrEndPromise.SetResult(true);
+                //    this.promiseOfValueOrEnd.SetResult(true);
                 // }
-                GenerateSetResultOnPromiseIfActive(true));
+                F.If(
+                    F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField),
+                    thenClause: F.Block(GenerateSetResultOnPromise(true))));
 
             blockBuilder.Add(
                 // goto <exit_label>;
