@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     /// </summary>
     public class EditAndContinueTests : EditAndContinueTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void DeltaHeapsStartWithEmptyItem()
         {
             var source0 =
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void Delta_AssemblyDefTable()
         {
             var source0 = @"public class C { public static void F() { System.Console.WriteLine(1); } }";
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Assert.False(diff1.GetMetadata().Reader.IsAssembly);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void SemanticErrors_MethodBody()
         {
             var source0 = MarkedSource(@"
@@ -170,7 +170,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void SemanticErrors_Declaration()
         {
             var source0 = MarkedSource(@"
@@ -219,7 +219,7 @@ class Bad : Bad
                 Diagnostic(ErrorCode.ERR_CircularBase, "Bad").WithArguments("Bad", "Bad").WithLocation(10, 7));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ModifyMethod()
         {
             var source0 =
@@ -283,7 +283,8 @@ class Bad : Bad
             }
         }
 
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ModifyMethod_WithTuples()
         {
             var source0 =
@@ -348,7 +349,7 @@ class Bad : Bad
         }
 
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PartialMethod()
         {
             var source =
@@ -405,7 +406,7 @@ class Bad : Bad
         /// Specifically, normal parameters or return types with attributes.
         /// Add the method in the first edit, then modify the method in the second.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AddThenModifyMethod()
         {
             var source0 =
@@ -509,7 +510,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AddField()
         {
             var source0 =
@@ -570,7 +571,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ModifyProperty()
         {
             var source0 =
@@ -623,7 +624,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AddProperty()
         {
             var source0 =
@@ -778,7 +779,7 @@ class B
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AddEvent()
         {
             var source0 =
@@ -1012,7 +1013,8 @@ class B
             }
         }
 
-        [Fact, WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")]
+        [WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void EventFields()
         {
             var source0 = MarkedSource(@"
@@ -1078,7 +1080,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AddNestedTypeAndMembers()
         {
             var source0 =
@@ -1176,7 +1178,7 @@ class C
         /// Nested types should be emitted in the
         /// same order as full emit.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AddNestedTypesOrder()
         {
             var source0 =
@@ -1238,7 +1240,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AddNestedGenericType()
         {
             var source0 =
@@ -1344,7 +1346,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ModifyExplicitImplementation()
         {
             var source =
@@ -1394,7 +1396,7 @@ class C : I
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AddThenModifyExplicitImplementation()
         {
             var source0 =
@@ -1482,7 +1484,8 @@ class B : I
             }
         }
 
-        [Fact, WorkItem(930065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930065")]
+        [WorkItem(930065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930065")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ModifyConstructorBodyInPresenceOfExplicitInterfaceImplementation()
         {
             var source = @"
@@ -1534,7 +1537,7 @@ class C : I
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AddAttributeReferences()
         {
             var source0 =
@@ -1712,7 +1715,7 @@ delegate void D();
         /// [assembly: ...] and [module: ...] attributes should
         /// not be included in delta metadata.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AssemblyAndModuleAttributeReferences()
         {
             var source0 =
@@ -1765,7 +1768,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void OtherReferences()
         {
             var source0 =
@@ -1937,7 +1940,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PInvokeModuleRefAndImplMap()
         {
             var source0 =
@@ -1990,7 +1993,7 @@ class C
         /// <summary>
         /// ClassLayout and FieldLayout tables.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ClassAndFieldLayout()
         {
             var source0 =
@@ -2055,7 +2058,7 @@ class B
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void NamespacesAndOverloads()
         {
             var compilation0 = CreateCompilation(options: TestOptions.DebugDll, source:
@@ -2161,7 +2164,7 @@ namespace M
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void TypesAndOverloads()
         {
             const string source =
@@ -2599,7 +2602,7 @@ class C
         /// Types should be retained in deleted locals
         /// for correct alignment of remaining locals.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void DeletedValueTypeLocal()
         {
             var source0 =
@@ -2700,7 +2703,7 @@ class C
         /// PrivateImplementationDetails should not be
         /// generated for delta.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PrivateImplementationDetails()
         {
             var source =
@@ -2758,7 +2761,7 @@ class C
 
         [WorkItem(780989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780989")]
         [WorkItem(829353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PrivateImplementationDetails_ArrayInitializer_FromMetadata()
         {
             var source0 =
@@ -2909,7 +2912,7 @@ class C
 
         [WorkItem(780989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780989")]
         [WorkItem(829353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PrivateImplementationDetails_ArrayInitializer_FromSource()
         {
             // PrivateImplementationDetails not needed initially.
@@ -3082,7 +3085,7 @@ class C
         /// the CLR only allows adding private members.
         /// </summary>
         [WorkItem(834086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834086")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PrivateImplementationDetails_ComputeStringHash()
         {
             var source =
@@ -3264,7 +3267,7 @@ class C
         /// Avoid adding references from method bodies
         /// other than the changed methods.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ReferencesInIL()
         {
             var source0 =
@@ -3313,7 +3316,7 @@ class C
         /// <summary>
         /// Local slots must be preserved based on signature.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PreserveLocalSlots()
         {
             var source0 =
@@ -3689,7 +3692,7 @@ class B : A<B>
         /// references to that slot, in a Watch window for instance.
         /// </summary>
         [WorkItem(843320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843320")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PreserveLocalTypes()
         {
             var source0 =
@@ -3747,7 +3750,7 @@ class B : A<B>
         /// <summary>
         /// Preserve locals if SemanticEdit.PreserveLocalVariables is set.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PreserveLocalVariablesFlag()
         {
             var source =
@@ -3870,7 +3873,7 @@ class B : A<B>
         }
 
         [WorkItem(779531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779531")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ChangeLocalType()
         {
             var source0 =
@@ -4053,7 +4056,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AnonymousTypes_Update()
         {
             var source0 = MarkedSource(@"
@@ -4156,7 +4159,7 @@ class C
             AssertEx.Equal(new[] { "[0x23000003] 0x000002af.0x000002bc" }, DumpTypeRefs(md2.Reader));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AnonymousTypes_UpdateAfterAdd()
         {
             var source0 = MarkedSource(@"
@@ -4254,7 +4257,7 @@ class C
         /// Reuse existing anonymous types.
         /// </summary>
         [WorkItem(825903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825903")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AnonymousTypes()
         {
             var source0 =
@@ -4451,7 +4454,7 @@ namespace M
         /// Update method with anonymous type that was
         /// not directly referenced in previous generation.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AnonymousTypes_SkipGeneration()
         {
             var source0 = MarkedSource(
@@ -4634,7 +4637,7 @@ class B
         /// Update another method (without directly referencing
         /// anonymous type) after updating method with anonymous type.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AnonymousTypes_SkipGeneration_2()
         {
             var source0 =
@@ -4757,7 +4760,7 @@ class B
         /// Local from previous generation is of an anonymous
         /// type not available in next generation.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AnonymousTypes_AddThenDelete()
         {
             var source0 =
@@ -4978,7 +4981,7 @@ class B
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AnonymousTypes_DifferentCase()
         {
             var source0 = MarkedSource(@"
@@ -5080,7 +5083,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AnonymousTypes_Nested1()
         {
             var template = @"
@@ -5203,7 +5206,7 @@ class C
             diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AnonymousTypes_Nested2()
         {
             var template = @"
@@ -5326,7 +5329,7 @@ class C
             diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AnonymousTypes_Query1()
         {
             var source0 = MarkedSource(@"
@@ -5443,7 +5446,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void AnonymousTypes_Dynamic1()
         {
             var template = @"
@@ -5725,7 +5728,7 @@ class C
         /// Temporaries for locals used within a single
         /// statement should not be preserved.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void TemporaryLocals_Other()
         {
             // Use increment as an example of a compiler generated
@@ -5790,7 +5793,7 @@ class C
         /// signature (from metadata) when the trailing slots are unnamed.
         /// </summary>
         [WorkItem(782270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782270")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void Bug782270()
         {
             var source =
@@ -5880,7 +5883,7 @@ class C
         /// Similar to above test but with no named locals in original.
         /// </summary>
         [WorkItem(782270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782270")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void Bug782270_NoNamedLocals()
         {
             // Equivalent to C#, but with unnamed locals.
@@ -5973,7 +5976,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void TemporaryLocals_ReferencedType()
         {
             var source =
@@ -6027,7 +6030,7 @@ class C
 
         [WorkItem(770502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770502")]
         [WorkItem(839565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839565")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void DynamicOperations()
         {
             var source =
@@ -6124,7 +6127,7 @@ class B
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void DynamicLocals()
         {
             var template = @"
@@ -6273,7 +6276,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ExceptionFilters()
         {
             var source0 = MarkedSource(@"
@@ -6414,7 +6417,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void MethodSignatureWithNoPIAType()
         {
             var sourcePIA = @"
@@ -6522,7 +6525,7 @@ class C
         /// <summary>
         /// Disallow edits that require NoPIA references.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void NoPIAReferences()
         {
             var sourcePIA =
@@ -6637,7 +6640,7 @@ public struct S
         }
 
         [WorkItem(844536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844536")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void NoPIATypeInNamespace()
         {
             var sourcePIA =
@@ -6710,7 +6713,7 @@ public interface IB
         /// local of a type defined in the original assembly.
         /// </summary>
         [WorkItem(910777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910777")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void UnrecognizedLocalOfTypeFromAssembly()
         {
             var source =
@@ -6795,7 +6798,7 @@ class C
         /// added in subsequent generation.
         /// </summary>
         [WorkItem(910777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910777")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void UnrecognizedLocalOfAnonymousTypeFromAssembly()
         {
             var source0 =
@@ -6894,7 +6897,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void BrokenOutputStreams()
         {
             var source0 =
@@ -6985,7 +6988,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void BrokenPortablePdbStream()
         {
             var source0 =
@@ -7078,7 +7081,7 @@ class C
         }
 
         [WorkItem(1058058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1058058")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void BlobContainsInvalidValues()
         {
             var source0 =
@@ -7145,7 +7148,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ReferenceToMemberAddedToAnotherAssembly1()
         {
             var sourceA0 = @"
@@ -7216,7 +7219,7 @@ public class Y : X { }
                 Diagnostic(ErrorCode.ERR_EncReferenceToAddedMember, "M").WithArguments("M", "LibA").WithLocation(4, 17));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ReferenceToMemberAddedToAnotherAssembly2()
         {
             var sourceA = @"
@@ -7292,7 +7295,7 @@ public class B
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void UniqueSynthesizedNames_DynamicSiteContainer()
         {
             var source0 = @"
@@ -7348,7 +7351,7 @@ public class C
         }
 
         [WorkItem(918650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918650")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ManyGenerations()
         {
             var source =
@@ -7379,7 +7382,7 @@ public class C
         }
 
         [WorkItem(187868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/187868")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PdbReadingErrors()
         {
             var source0 = MarkedSource(@"
@@ -7426,7 +7429,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidDebugInfo, "F").WithArguments("C.F()", "100663297", "PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 14));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PdbReadingErrors_PassThruExceptions()
         {
             var source0 = MarkedSource(@"
@@ -7471,7 +7474,7 @@ class C
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true))));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PatternVariable_TypeChange()
         {
             var source0 = MarkedSource(@"
@@ -7632,7 +7635,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PatternVariable_DeleteInsert()
         {
             var source0 = MarkedSource(@"
@@ -7779,7 +7782,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PatternVariable_InConstructorInitializer()
         {
             var baseClass = "public class Base { public Base(bool x) { } }";
@@ -7888,7 +7891,7 @@ public class C : Base
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PatternVariable_InFieldInitializer()
         {
             var source0 = MarkedSource(@"
@@ -7996,7 +7999,7 @@ public class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void PatternVariable_InQuery()
         {
             var source0 = MarkedSource(@"
@@ -8193,7 +8196,7 @@ public class Program
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void Tuple_Parenthesized()
         {
             var source0 = MarkedSource(@"
@@ -8322,7 +8325,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void Tuple_Decomposition()
         {
             var source0 = MarkedSource(@"
@@ -8446,7 +8449,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void ForeachStatement()
         {
             var source0 = MarkedSource(@"
@@ -8663,7 +8666,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void OutVar()
         {
             var source0 = MarkedSource(@"
@@ -8777,7 +8780,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void OutVar_InConstructorInitializer()
         {
             var baseClass = "public class Base { public Base(int x) { } }";
@@ -8885,7 +8888,7 @@ public class C : Base
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void OutVar_InConstructorInitializer_WithLambda()
         {
             var baseClass = "public class Base { public Base(int x) { } }";
@@ -9034,7 +9037,7 @@ public class C : Base
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void OutVar_InMethodBody_WithLambda()
         {
             var source0 = MarkedSource(@"
@@ -9181,7 +9184,7 @@ public class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void OutVar_InFieldInitializer()
         {
             var source0 = MarkedSource(@"
@@ -9284,7 +9287,7 @@ public class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void OutVar_InFieldInitializer_WithLambda()
         {
             var source0 = MarkedSource(@"
@@ -9434,7 +9437,7 @@ public class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void OutVar_InQuery()
         {
             var source0 = MarkedSource(@"
@@ -9632,7 +9635,7 @@ public class Program
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
         public void OutVar_InQuery_WithLambda()
         {
             var source0 = MarkedSource(@"

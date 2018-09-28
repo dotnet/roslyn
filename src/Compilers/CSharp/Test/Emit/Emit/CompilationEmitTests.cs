@@ -3730,7 +3730,7 @@ public sealed class ContentType
         }
 
         // Verify via MetadataReader - comp option
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes3()
         {
             string source = @"
@@ -3765,7 +3765,7 @@ class C
         }
 
         // Verify via MetadataReader - comp option, module case
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes4()
         {
             string source = @"
@@ -3787,7 +3787,7 @@ class C
         }
 
         // Verify via MetadataReader - attr in source
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes5()
         {
             // Writing the attributes in the source should have the same effect as the compilation option.
@@ -3834,7 +3834,7 @@ class C
         }
 
         // Verify via MetadataReader - two attrs in source, same action
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes6()
         {
             string source = @"
@@ -3895,7 +3895,7 @@ class C
         }
 
         // Verify via MetadataReader - two attrs in source, different actions
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes7()
         {
             string source = @"
@@ -3962,7 +3962,7 @@ class C
         }
 
         // Verify via MetadataReader - one attr in source, one synthesized, same action
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes8()
         {
             string source = @"
@@ -4019,7 +4019,7 @@ class C
         }
 
         // Verify via MetadataReader - one attr in source, one synthesized, different actions
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes9()
         {
             string source = @"
