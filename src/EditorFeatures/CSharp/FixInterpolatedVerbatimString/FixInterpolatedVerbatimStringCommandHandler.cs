@@ -92,6 +92,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
         }
 
         public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler)
-            => VSCommanding.CommandState.Unspecified;
+            => nextCommandHandler();
     }
 }
