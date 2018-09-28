@@ -106,7 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             progressTracker.AddItems(1);
 
             // and one for 'remove/sort usings' if we're going to run that.
-            if (enabledDiagnostics.OrganizeUsings.IsEnabled)
+            var organizeUsings = enabledDiagnostics.OrganizeUsings.IsRemoveUnusedImportEnabled || 
+                                           enabledDiagnostics.OrganizeUsings.IsSortImportsEnabled;
+            if (organizeUsings)
             {
                 progressTracker.AddItems(1);
             }
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             }
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
-            if (enabledDiagnostics.OrganizeUsings.IsEnabled)                
+            if (organizeUsings)
             {
                 progressTracker.Description = CSharpFeaturesResources.Organize_Usings;
                 document = await RemoveSortUsingsAsync(

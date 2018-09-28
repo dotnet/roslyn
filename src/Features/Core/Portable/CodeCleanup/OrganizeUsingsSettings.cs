@@ -7,9 +7,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
     internal class OrganizeUsingsSet
     {
         public bool IsRemoveUnusedImportEnabled { get; private set; }
-        public bool IsSortImportsEnabled { get; private set; }
-
-        public bool IsEnabled { get { return IsRemoveUnusedImportEnabled || IsSortImportsEnabled; } }
+        public bool IsSortImportsEnabled { get; private set; }       
 
         public OrganizeUsingsSet(DocumentOptionSet docOptions)
         {

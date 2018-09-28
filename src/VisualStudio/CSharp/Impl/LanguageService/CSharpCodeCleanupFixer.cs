@@ -39,8 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         }
 
         private Task<bool> FixHierarchyContentAsync(IVsHierarchyCodeCleanupScope hierarchyContent, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
-        {            
+        {
             // TODO: this one will be implemented later
+            // https://github.com/dotnet/roslyn/issues/30165
             var hierarchy = hierarchyContent.Hierarchy;
             if (hierarchy == null)
             {
@@ -88,22 +89,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
                     // TODO: enable all diagnostics for now, need to be replace by inclusion/ exclusion list from .editorconfig
+                    // https://github.com/dotnet/roslyn/issues/30163
                     var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
                     var newDoc = await codeCleanupService.CleanupAsync(
                         document, enabledDiagnostics, progressTracker, cancellationToken);
 
-                    var codeCleanupChanges = await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-                    if (codeCleanupChanges != null && codeCleanupChanges.Any())
-                    {
-                        progressTracker.Description = EditorFeaturesResources.Applying_changes;
-                        using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-                        {
-                            newDoc.Project.Solution.Workspace.ApplyTextChanges(newDoc.Id, codeCleanupChanges, cancellationToken);
-                        }
-
-                        return true;
-                    }
+                    return document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution, progressTracker);
                 }
             }
 
