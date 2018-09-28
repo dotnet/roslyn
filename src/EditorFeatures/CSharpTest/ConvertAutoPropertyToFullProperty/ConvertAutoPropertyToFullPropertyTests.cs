@@ -943,6 +943,27 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: UseUnderscorePrefixedFieldName);
         }
 
+        [WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task PropertyNameEqualsToClassNameExceptFirstCharCasingWhichCausesFieldNameCollisionByDefault()
+        {
+            var text = @"
+class stranger
+{
+    public int S[||]tranger { get; set; }
+}
+";
+            var expected = @"
+class stranger
+{
+    private int stranger;
+
+    public int Stranger { get => stranger; set => stranger = value; }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task NonStaticPropertyWithCustomStaticFieldName()
         {
