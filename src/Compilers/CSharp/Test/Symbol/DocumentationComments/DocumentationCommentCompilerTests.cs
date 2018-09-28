@@ -3782,6 +3782,167 @@ partial class C
             Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
+        [Fact]
+        [WorkItem(21348, "https://github.com/dotnet/roslyn/issues/21348")]
+        public void IncludedName_TypeParamAndTypeParamRefHandling()
+        {
+            var xml = @"
+<root>
+    <target>
+    Included section
+    <summary>
+      See <typeparam/>.
+      See <typeparam name=""X""/>.
+      See <typeparam name=""Y""/>.
+      See <typeparam name=""XY""/>.
+    </summary>
+    <remarks></remarks>
+    </target>
+    <target>
+    Included section
+    <summary>
+      See <typeparamref/>.
+      See <typeparamref name=""X""/>.
+      See <typeparamref name=""Y""/>.
+      See <typeparamref name=""XY""/>.
+    </summary>
+    <remarks></remarks>
+    </target>
+</root>
+";
+
+            var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(xml);
+            var xmlFilePath = xmlFile.Path;
+
+            var includeElementTemplate = @"<include file='{0}' path='//target'/>";
+            string includeElement = string.Format(includeElementTemplate, xmlFilePath);
+
+            var sourceTemplate = @"
+
+/// {0}
+class OuterClass<X>
+{{
+    /// {0}
+    class InnerClass<Y>
+    {{
+        /// {0}
+        public void Foo() {{}}
+    }}
+}}
+";
+            var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
+
+            var actual = GetDocumentationCommentText(comp, expectedDiagnostics: new[] {
+                // (3,5): warning CS1711: XML comment has a typeparam tag for 'Y', but there is no type parameter by that name
+                // /// <include file='b16c2dc7f738.xml' path='//target'/>
+                Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, includeElement).WithArguments("Y").WithLocation(3, 5),
+                // (3,5): warning CS1711: XML comment has a typeparam tag for 'XY', but there is no type parameter by that name
+                // /// <include file='b16c2dc7f738.xml' path='//target'/>
+                Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, includeElement).WithArguments("XY").WithLocation(3, 5),
+                // (3,5): warning CS1735: XML comment on 'OuterClass<X>' has a typeparamref tag for 'Y', but there is no type parameter by that name
+                // /// <include file='b16c2dc7f738.xml' path='//target'/>
+                Diagnostic(ErrorCode.WRN_UnmatchedTypeParamRefTag, includeElement).WithArguments("Y", "OuterClass<X>").WithLocation(3, 5),
+                // (3,5): warning CS1735: XML comment on 'OuterClass<X>' has a typeparamref tag for 'XY', but there is no type parameter by that name
+                // /// <include file='b16c2dc7f738.xml' path='//target'/>
+                Diagnostic(ErrorCode.WRN_UnmatchedTypeParamRefTag, includeElement).WithArguments("XY", "OuterClass<X>").WithLocation(3, 5),
+                // (6,9): warning CS1711: XML comment has a typeparam tag for 'X', but there is no type parameter by that name
+                //     /// <include file='b16c2dc7f738.xml' path='//target'/>
+                Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, includeElement).WithArguments("X").WithLocation(6, 9),
+                // (6,9): warning CS1711: XML comment has a typeparam tag for 'XY', but there is no type parameter by that name
+                //     /// <include file='b16c2dc7f738.xml' path='//target'/>
+                Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, includeElement).WithArguments("XY").WithLocation(6, 9),
+                // (6,9): warning CS1735: XML comment on 'OuterClass<X>.InnerClass<Y>' has a typeparamref tag for 'XY', but there is no type parameter by that name
+                //     /// <include file='b16c2dc7f738.xml' path='//target'/>
+                Diagnostic(ErrorCode.WRN_UnmatchedTypeParamRefTag, includeElement).WithArguments("XY", "OuterClass<X>.InnerClass<Y>").WithLocation(6, 9),
+                // (9,13): warning CS1711: XML comment has a typeparam tag for 'X', but there is no type parameter by that name
+                //         /// <include file='b16c2dc7f738.xml' path='//target'/>
+                Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, includeElement).WithArguments("X").WithLocation(9, 13),
+                // (9,13): warning CS1711: XML comment has a typeparam tag for 'Y', but there is no type parameter by that name
+                //         /// <include file='b16c2dc7f738.xml' path='//target'/>
+                Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, includeElement).WithArguments("Y").WithLocation(9, 13),
+                // (9,13): warning CS1711: XML comment has a typeparam tag for 'XY', but there is no type parameter by that name
+                //         /// <include file='b16c2dc7f738.xml' path='//target'/>
+                Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, includeElement).WithArguments("XY").WithLocation(9, 13),
+                // (9,13): warning CS1735: XML comment on 'OuterClass<X>.InnerClass<Y>.Foo()' has a typeparamref tag for 'XY', but there is no type parameter by that name
+                //         /// <include file='b16c2dc7f738.xml' path='//target'/>
+                Diagnostic(ErrorCode.WRN_UnmatchedTypeParamRefTag, includeElement).WithArguments("XY", "OuterClass<X>.InnerClass<Y>.Foo()").WithLocation(9, 13)
+            });
+            var expected = (@"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:OuterClass`1"">
+            <target>
+    Included section
+    <summary>
+      See <typeparam />.
+      See <typeparam name=""X"" />.
+      See <typeparam name=""Y"" />.
+      See <typeparam name=""XY"" />.
+    </summary>
+    <remarks />
+    </target><target>
+    Included section
+    <summary>
+      See <typeparamref />.
+      See <typeparamref name=""X"" />.
+      See <typeparamref name=""Y"" />.
+      See <typeparamref name=""XY"" />.
+    </summary>
+    <remarks />
+    </target>
+        </member>
+        <member name=""T:OuterClass`1.InnerClass`1"">
+            <target>
+    Included section
+    <summary>
+      See <typeparam />.
+      See <typeparam name=""X"" />.
+      See <typeparam name=""Y"" />.
+      See <typeparam name=""XY"" />.
+    </summary>
+    <remarks />
+    </target><target>
+    Included section
+    <summary>
+      See <typeparamref />.
+      See <typeparamref name=""X"" />.
+      See <typeparamref name=""Y"" />.
+      See <typeparamref name=""XY"" />.
+    </summary>
+    <remarks />
+    </target>
+        </member>
+        <member name=""M:OuterClass`1.InnerClass`1.Foo"">
+            <target>
+    Included section
+    <summary>
+      See <typeparam />.
+      See <typeparam name=""X"" />.
+      See <typeparam name=""Y"" />.
+      See <typeparam name=""XY"" />.
+    </summary>
+    <remarks />
+    </target><target>
+    Included section
+    <summary>
+      See <typeparamref />.
+      See <typeparamref name=""X"" />.
+      See <typeparamref name=""Y"" />.
+      See <typeparamref name=""XY"" />.
+    </summary>
+    <remarks />
+    </target>
+        </member>
+    </members>
+</doc>
+        ").Trim();
+            Assert.Equal(expected, actual);
+        }
+
         #endregion Included names
 
         #endregion Include
