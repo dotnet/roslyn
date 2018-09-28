@@ -1442,6 +1442,9 @@ This version used in: {2}</value>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
     <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
   </data>
+  <data name="Use_compound_assignment" xml:space="preserve">
+    <value>Use compound assignment</value>
+  </data>
   <data name="Invert_conditional" xml:space="preserve">
     <value>Invert conditional</value>
   </data>
