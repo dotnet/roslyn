@@ -17,9 +17,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
 
             private BinaryFormatterAbstractValueDomain() { }
 
-            public override BinaryFormatterAbstractValue Bottom => BinaryFormatterAbstractValue.Unknown;
+            public override BinaryFormatterAbstractValue Bottom => BinaryFormatterAbstractValue.NotApplicable;
 
-            public override BinaryFormatterAbstractValue UnknownOrMayBeValue => BinaryFormatterAbstractValue.Unknown;
+            public override BinaryFormatterAbstractValue UnknownOrMayBeValue => BinaryFormatterAbstractValue.NotApplicable;
 
             public override int Compare(BinaryFormatterAbstractValue oldValue, BinaryFormatterAbstractValue newValue)
             {

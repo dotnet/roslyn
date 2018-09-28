@@ -12,11 +12,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
     internal sealed class BinaryFormatterAnalysisResult : DataFlowAnalysisResult<BinaryFormatterBlockAnalysisResult, BinaryFormatterAbstractValue>
     {
         public BinaryFormatterAnalysisResult(
-            DataFlowAnalysisResult<BinaryFormatterBlockAnalysisResult, BinaryFormatterAbstractValue> analysisResult,
+            DataFlowAnalysisResult<BinaryFormatterBlockAnalysisResult, BinaryFormatterAbstractValue> parameterValidationAnalysisResult,
             ImmutableDictionary<IOperation, BinaryFormatterAbstractValue> hazardousUsages)
-            : base(analysisResult)
+            : base(parameterValidationAnalysisResult)
         {
-            HazardousUsages = hazardousUsages;
+            this.HazardousUsages = hazardousUsages;
         }
 
         public ImmutableDictionary<IOperation, BinaryFormatterAbstractValue> HazardousUsages { get; }

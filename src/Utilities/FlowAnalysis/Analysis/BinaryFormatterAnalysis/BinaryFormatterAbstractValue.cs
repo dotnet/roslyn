@@ -7,7 +7,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
         /// <summary>
         /// Who knows?
         /// </summary>
-        Unknown,
+        NotApplicable,
 
         /// <summary>
         /// Not flagged for badness.

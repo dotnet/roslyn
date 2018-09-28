@@ -13,7 +13,8 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
-    using InterproceduralBinaryFormatterAnalysisData = InterproceduralAnalysisData<BinaryFormatterAnalysisData, BinaryFormatterAnalysisContext, BinaryFormatterAbstractValue>;
+    using InterproceduralBinaryFormatterAnalysisData = InterproceduralAnalysisData<IDictionary<AbstractLocation, BinaryFormatterAbstractValue>, BinaryFormatterAnalysisContext, BinaryFormatterAbstractValue>;
+    using BinaryFormatterAnalysisData = IDictionary<AbstractLocation, BinaryFormatterAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
 
     /// <summary>
@@ -21,8 +22,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
     /// </summary>
     internal sealed class BinaryFormatterAnalysisContext : AbstractDataFlowAnalysisContext<BinaryFormatterAnalysisData, BinaryFormatterAnalysisContext, BinaryFormatterAnalysisResult, BinaryFormatterAbstractValue>
     {
-        public bool TrackHazardousUsages { get; }
-
         private BinaryFormatterAnalysisContext(
             AbstractValueDomain<BinaryFormatterAbstractValue> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
@@ -34,14 +33,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
             Func<BinaryFormatterAnalysisContext, BinaryFormatterAnalysisResult> getOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraphOpt,
             InterproceduralBinaryFormatterAnalysisData interproceduralAnalysisDataOpt,
-            bool trackHazardousUsages = false)
+            bool trackHazardousParameterUsages)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisKind, pessimisticAnalysis,
                   predicateAnalysis: false, copyAnalysisResultOpt: null, pointsToAnalysisResultOpt: pointsToAnalysisResultOpt,
                   getOrComputeAnalysisResult: getOrComputeAnalysisResult,
                   parentControlFlowGraphOpt: parentControlFlowGraphOpt,
                   interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
         {
-            this.TrackHazardousUsages = trackHazardousUsages;
+            TrackHazardousUsages = trackHazardousParameterUsages;
         }
 
         public static BinaryFormatterAnalysisContext Create(
@@ -57,7 +56,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
             return new BinaryFormatterAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisKind,
                 pessimisticAnalysis, pointsToAnalysisResultOpt, getOrComputeAnalysisResult, parentControlFlowGraphOpt: null,
-                interproceduralAnalysisDataOpt: null);
+                interproceduralAnalysisDataOpt: null, trackHazardousParameterUsages: false);
         }
 
         public override BinaryFormatterAnalysisContext ForkForInterproceduralAnalysis(
@@ -76,26 +75,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.BinaryFormatterAnalysis
             return new BinaryFormatterAnalysisContext(
                 ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, InterproceduralAnalysisKind.None,
                 PessimisticAnalysis, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph,
-                interproceduralAnalysisData);
+                interproceduralAnalysisData, TrackHazardousUsages);
         }
 
-        public BinaryFormatterAnalysisContext WithTrackHazardousUsages()
+        public BinaryFormatterAnalysisContext WithTrackHazardousParameterUsages()
             => new BinaryFormatterAnalysisContext(
-                ValueDomain,
-                WellKnownTypeProvider,
-                ControlFlowGraph,
-                OwningSymbol,
-                InterproceduralAnalysisKind,
-                PessimisticAnalysis,
-                PointsToAnalysisResultOpt,
-                GetOrComputeAnalysisResult,
-                ParentControlFlowGraphOpt,
-                InterproceduralAnalysisDataOpt,
-                trackHazardousUsages: true);
+                ValueDomain, WellKnownTypeProvider, ControlFlowGraph,
+                OwningSymbol, InterproceduralAnalysisKind, PessimisticAnalysis,
+                PointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ParentControlFlowGraphOpt,
+                InterproceduralAnalysisDataOpt, trackHazardousParameterUsages: true);
 
+        public bool TrackHazardousUsages { get; }
         protected override int GetHashCode(int hashCode)
-        {
-            return hashCode;
-        }
+            => HashUtilities.Combine(TrackHazardousUsages.GetHashCode(), hashCode);
     }
 }
