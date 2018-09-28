@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
 {
     /// <summary>
     /// Replaces <c>@$"</c> with <c>$@"</c>, which is the preferred and until C# 8.0 the only supported form
-    /// of an interpolated verbatim string start token
+    /// of an interpolated verbatim string start token. In C# 8.0 we still auto-correct to this form for consistency.
     /// </summary>
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
