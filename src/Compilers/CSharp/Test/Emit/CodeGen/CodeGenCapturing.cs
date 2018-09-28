@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30212")]
         public void GenerateAllTest()
         {
             Assert.Equal(new[]
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }, GenerateAllSetCombinations(3, 2));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30212")]
         public void ExpressionGeneratorTest01()
         {
             var ctx = new CaptureContext(1);
