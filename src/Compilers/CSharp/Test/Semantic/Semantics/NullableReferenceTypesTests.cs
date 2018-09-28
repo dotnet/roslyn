@@ -44283,6 +44283,7 @@ class B
         }
 
         [Fact]
+        [WorkItem(30214, "https://github.com/dotnet/roslyn/issues/30214")]
         public void ConstraintsChecks_27()
         {
             var source =
@@ -44324,6 +44325,9 @@ class B<TB1, TB2> where TB1 : C? where TB2 : C
 ";
             var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
+            // https://github.com/dotnet/roslyn/issues/30214 The following warning is unexpected:
+            // (22,12): warning CS8631: The type 'TB2' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB2' doesn't match constraint type 'object'.
+            //         IA<TB2> z1; // 4
             comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
                 // (21,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
                 //         IA<TB1> x1; // 3
@@ -47642,6 +47646,554 @@ class C
                 // (7,11): warning CS8631: The type 'S' cannot be used as type parameter 'T' in the generic type or method 'Nullable<T>'. Nullability of type argument 'S' doesn't match constraint type 'System.INullable<object>'.
                 // [A(typeof(S?))]
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "S?").WithArguments("System.Nullable<T>", "System.INullable<object>", "T", "S").WithLocation(7, 11));
+        }
+
+        [Fact]
+        [WorkItem(30178, "https://github.com/dotnet/roslyn/issues/30178")]
+        public void GenericSubstitution_01()
+        {
+            var source =
+@"
+using System.Runtime.CompilerServices;
+
+[NonNullTypes(true)]
+class A<T1, T2> where T1 : class where T2 : class
+{
+    T1 F;
+
+    [NonNullTypes(false)]
+    class B : A<T1, T2>
+    {
+        [NonNullTypes(true)]
+        void M1()
+        {
+            F = null; // 1
+        }
+    }
+
+    void M2()
+    {
+        F = null; // 2
+    }
+
+    [NonNullTypes(false)]
+    class C : A<C, C>
+    {
+        [NonNullTypes(true)]
+        void M3()
+        {
+            F = null; // 3
+        }
+    }
+
+    [NonNullTypes(false)]
+    class D : A<T1, D>
+    {
+        [NonNullTypes(true)]
+        void M4()
+        {
+            F = null; // 4
+        }
+    }
+
+    [NonNullTypes(false)]
+    class E : A<T2, T2>
+    {
+        [NonNullTypes(true)]
+        void M5()
+        {
+            F = null; // 5
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source });
+
+            // https://github.com/dotnet/roslyn/issues/30178 Missing warning for "F = null; // 3"
+            // https://github.com/dotnet/roslyn/issues/30178 Missing warning for "F = null; // 5"
+            comp.VerifyDiagnostics(
+                // (5,7): warning CS8618: Non-nullable field 'F' is uninitialized.
+                // class A<T1, T2> where T1 : class where T2 : class
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F").WithLocation(5, 7),
+                // (7,8): warning CS0414: The field 'A<T1, T2>.F' is assigned but its value is never used
+                //     T1 F;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F").WithArguments("A<T1, T2>.F").WithLocation(7, 8),
+                // (15,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //             F = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 17),
+                // (21,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F = null; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 13),
+                // (40,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //             F = null; // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(40, 17)
+                );
+
+            var b = comp.GetTypeByMetadataName("A`2+B");
+            Assert.NotNull(b);
+            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
+        }
+
+        [Fact]
+        [WorkItem(30177, "https://github.com/dotnet/roslyn/issues/30177")]
+        [WorkItem(30178, "https://github.com/dotnet/roslyn/issues/30178")]
+        public void GenericSubstitution_02()
+        {
+            var source =
+@"
+using System.Runtime.CompilerServices;
+
+[NonNullTypes(false)]
+class A<T1, T2> where T1 : class where T2 : class
+{
+    [NonNullTypes(true)]
+    T1 F;
+
+    [NonNullTypes(true)]
+    class B : A<T1, T2>
+    {
+        void M1()
+        {
+            F = null; // 1
+        }
+    }
+
+    [NonNullTypes(true)]
+    void M2()
+    {
+        F = null; // 2
+    }
+
+    [NonNullTypes(true)]
+    class C : A<C, C>
+    {
+        void M3()
+        {
+            F = null; // 3
+        }
+    }
+
+    [NonNullTypes(true)]
+    class D : A<T1, D>
+    {
+        void M4()
+        {
+            F = null; // 4
+        }
+    }
+
+    [NonNullTypes(true)]
+    class E : A<T2, T2>
+    {
+        void M5()
+        {
+            F = null; // 5
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            // https://github.com/dotnet/roslyn/issues/30177 Unexpected warning CS8618: Non-nullable field 'F' is uninitialized.
+            comp.VerifyDiagnostics(
+                // (5,7): warning CS8618: Non-nullable field 'F' is uninitialized.
+                // class A<T1, T2> where T1 : class where T2 : class
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F").WithLocation(5, 7),
+                // (8,8): warning CS0414: The field 'A<T1, T2>.F' is assigned but its value is never used
+                //     T1 F;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F").WithArguments("A<T1, T2>.F").WithLocation(8, 8),
+                // (30,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //             F = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(30, 17)
+                );
+
+            var b = comp.GetTypeByMetadataName("A`2+B");
+            Assert.NotNull(b);
+            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition); // https://github.com/dotnet/roslyn/issues/30178 Should be false.
+        }
+
+        [Fact]
+        public void GenericSubstitution_03()
+        {
+            var source =
+@"
+using System.Runtime.CompilerServices;
+
+[NonNullTypes(false)]
+class A<T> where T : class
+{
+    class B : A<T>
+    {}
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics();
+
+            var b = comp.GetTypeByMetadataName("A`1+B");
+            Assert.NotNull(b);
+            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
+        }
+
+        [Fact]
+        [WorkItem(30178, "https://github.com/dotnet/roslyn/issues/30178")]
+        public void GenericSubstitution_04()
+        {
+            var source =
+@"
+using System.Runtime.CompilerServices;
+
+[NonNullTypes(true)]
+class A<T> where T : class
+{
+    class B : A<T>
+    {}
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics();
+
+            var b = comp.GetTypeByMetadataName("A`1+B");
+            Assert.NotNull(b);
+            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition); // https://github.com/dotnet/roslyn/issues/30178 Should be false
+        }
+
+        [Fact]
+        [WorkItem(30178, "https://github.com/dotnet/roslyn/issues/30178")]
+        public void GenericSubstitution_05()
+        {
+            var source =
+@"
+using System.Runtime.CompilerServices;
+
+[NonNullTypes(true)]
+class A<T1, T2> where T1 : class where T2 : class
+{
+    [NonNullTypes(false)]
+    T1 F;
+
+    class B : A<T1, T2>
+    {
+        void M1()
+        {
+            F = null; // 1
+        }
+    }
+
+    void M2()
+    {
+        F = null; // 2
+    }
+
+    class C : A<C, C>
+    {
+        void M3()
+        {
+            F = null; // 3
+        }
+    }
+
+    class D : A<T1, D>
+    {
+        void M1()
+        {
+            F = null; // 4
+        }
+    }
+
+    class E : A<T2, T2>
+    {
+        void M1()
+        {
+            F = null; // 5
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source });
+
+            // https://github.com/dotnet/roslyn/issues/30178 Missing warning for "F = null; // 1"
+            // https://github.com/dotnet/roslyn/issues/30178 Missing warning for "F = null; // 4"
+            comp.VerifyDiagnostics(
+                // (8,8): warning CS0414: The field 'A<T1, T2>.F' is assigned but its value is never used
+                //     T1 F;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F").WithArguments("A<T1, T2>.F").WithLocation(8, 8),
+                // (27,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //             F = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 17),
+                // (43,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //             F = null; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(43, 17)
+                );
+
+            var b = comp.GetTypeByMetadataName("A`2+B");
+            Assert.NotNull(b);
+            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition); // https://github.com/dotnet/roslyn/issues/30178 Should be false
+        }
+
+        [Fact]
+        [WorkItem(30177, "https://github.com/dotnet/roslyn/issues/30177")]
+        [WorkItem(30178, "https://github.com/dotnet/roslyn/issues/30178")]
+        public void GenericSubstitution_06()
+        {
+            var source =
+@"
+using System.Runtime.CompilerServices;
+
+[NonNullTypes(false)]
+class A<T1, T2> where T1 : class where T2 : class
+{
+    T1 F;
+
+    [NonNullTypes(true)]
+    class B : A<T1, T2>
+    {
+        void M1()
+        {
+            F = null; // 1
+        }
+    }
+
+    [NonNullTypes(true)]
+    void M2()
+    {
+        F = null; // 2
+    }
+
+    [NonNullTypes(true)]
+    class C : A<C, C>
+    {
+        void M3()
+        {
+            F = null; // 3
+        }
+    }
+
+    [NonNullTypes(true)]
+    class D : A<T1, D>
+    {
+        void M3()
+        {
+            F = null; // 4
+        }
+    }
+
+    [NonNullTypes(true)]
+    class E : A<T2, T2>
+    {
+        void M3()
+        {
+            F = null; // 5
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            // https://github.com/dotnet/roslyn/issues/30177 Unexpected warning CS8618: Non-nullable field 'F' is uninitialized.
+            comp.VerifyDiagnostics(
+                // (5,7): warning CS8618: Non-nullable field 'F' is uninitialized.
+                // class A<T1, T2> where T1 : class where T2 : class
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F").WithLocation(5, 7),
+                // (7,8): warning CS0414: The field 'A<T1, T2>.F' is assigned but its value is never used
+                //     T1 F;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F").WithArguments("A<T1, T2>.F").WithLocation(7, 8),
+                // (29,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //             F = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(29, 17)
+                );
+
+            var b = comp.GetTypeByMetadataName("A`2+B");
+            Assert.NotNull(b);
+            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition); // https://github.com/dotnet/roslyn/issues/30178 Should be false
+        }
+
+        [Fact]
+        [WorkItem(30171, "https://github.com/dotnet/roslyn/issues/30171")]
+        public void NonNullTypesContext_01()
+        {
+            var source =
+@"
+using System.Runtime.CompilerServices;
+
+class A
+{
+    [NonNullTypes(false)]
+    B[] F1;
+
+    [NonNullTypes(true)]
+    C[] F2;
+}
+
+class B {}
+class C {}
+";
+            var comp = CreateCompilation(new[] { source });
+
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("B[]", f1.Type.ToTestDisplayString(includeNonNullable: true));
+
+            var f2 = comp.GetMember<FieldSymbol>("A.F2");
+            Assert.Equal("C![]!", f2.Type.ToTestDisplayString(includeNonNullable: true));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var arrays = tree.GetRoot().DescendantNodes().OfType<ArrayTypeSyntax>().ToArray();
+
+            Assert.Equal(2, arrays.Length);
+
+            Assert.Equal("B[]", model.GetTypeInfo(arrays[0]).Type.ToTestDisplayString(includeNonNullable: true));
+            // https://github.com/dotnet/roslyn/issues/30171 Expected "C![]"
+            Assert.Equal("C[]", model.GetTypeInfo(arrays[1]).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        [WorkItem(30214, "https://github.com/dotnet/roslyn/issues/30214")]
+        public void ObliviousTypeParameter_01()
+        {
+            var source =
+$@"
+#pragma warning disable {(int)ErrorCode.WRN_UninitializedNonNullableField}
+#pragma warning disable {(int)ErrorCode.WRN_UnreferencedField}
+#pragma warning disable {(int)ErrorCode.WRN_UnreferencedFieldAssg}
+#pragma warning disable {(int)ErrorCode.WRN_UnreferencedVarAssg}
+"
++
+@"
+using System.Runtime.CompilerServices;
+
+[NonNullTypes(false)]
+class A<T1, T2, T3> where T2 : class where T3 : object
+{
+    T1 F1;
+    T2 F2;
+    T3 F3;
+    B F4;
+
+    [NonNullTypes(true)]
+    void M1()
+    {
+        F1 = default;
+        F2 = default;
+        F3 = default;
+        F4 = default;
+    }
+
+    [NonNullTypes(true)]
+    void M2()
+    {
+        T1 x2 = default;
+        T2 y2 = default;
+        T3 z2 = default;
+    }
+
+    [NonNullTypes(true)]
+    void M3()
+    {
+        C.Test<T1>();
+        C.Test<T2>();
+        C.Test<T3>();
+    }
+
+    [NonNullTypes(true)]
+    void M4()
+    {
+        D.Test(F1);
+        D.Test(F2);
+        D.Test(F3);
+        D.Test(F4);
+    }
+}
+
+class B {}
+
+[NonNullTypes(true)]
+class C
+{
+    public static void Test<T>() where T : object
+    {}
+}
+
+[NonNullTypes(true)]
+class D
+{
+    public static void Test<T>(T x) where T : object
+    {}
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                // (20,14): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F1 = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(20, 14),
+                // (21,14): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F2 = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(21, 14),
+                // (22,14): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F3 = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(22, 14),
+                // (29,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         T1 x2 = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(29, 17),
+                // (30,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         T2 y2 = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(30, 17),
+                // (31,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         T3 z2 = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(31, 17),
+                // (37,9): warning CS8631: The type 'T1' cannot be used as type parameter 'T' in the generic type or method 'C.Test<T>()'. Nullability of type argument 'T1' doesn't match constraint type 'object'.
+                //         C.Test<T1>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C.Test<T1>").WithArguments("C.Test<T>()", "object", "T", "T1").WithLocation(37, 9),
+                // (38,9): warning CS8631: The type 'T2' cannot be used as type parameter 'T' in the generic type or method 'C.Test<T>()'. Nullability of type argument 'T2' doesn't match constraint type 'object'.
+                //         C.Test<T2>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C.Test<T2>").WithArguments("C.Test<T>()", "object", "T", "T2").WithLocation(38, 9),
+                // (39,9): warning CS8631: The type 'T3' cannot be used as type parameter 'T' in the generic type or method 'C.Test<T>()'. Nullability of type argument 'T3' doesn't match constraint type 'object'.
+                //         C.Test<T3>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C.Test<T3>").WithArguments("C.Test<T>()", "object", "T", "T3").WithLocation(39, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(30220, "https://github.com/dotnet/roslyn/issues/30220")]
+        public void ObliviousTypeParameter_02()
+        {
+            var source =
+$@"
+#pragma warning disable {(int)ErrorCode.WRN_UnreferencedVar}
+"
++
+@"
+using System.Runtime.CompilerServices;
+
+[NonNullTypes(true)]
+class A<T1> where T1 : class
+{
+    [NonNullTypes(false)]
+    class B<T2> where T2 : T1 
+    {
+    }
+
+    [NonNullTypes(true)]
+    void M1()
+    {
+        B<T1> a1;
+        B<T1?> b1;
+        A<T1>.B<T1> c1;
+        A<T1>.B<T1?> d1;
+        A<C>.B<C> e1;
+        A<C>.B<C?> f1;
+    }
+}
+
+class C {}
+";
+            var comp = CreateCompilation(new[] { source });
+            // https://github.com/dotnet/roslyn/issues/30220: Missing warnings for
+            // B<T1?> b1;
+            // A<T1>.B<T1?> d1;
+            comp.VerifyDiagnostics(
+                // (22,16): warning CS8631: The type 'C?' cannot be used as type parameter 'T2' in the generic type or method 'A<C>.B<T2>'. Nullability of type argument 'C?' doesn't match constraint type 'C'.
+                //         A<C>.B<C?> f1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C?").WithArguments("A<C>.B<T2>", "C", "T2", "C?").WithLocation(22, 16)
+                );
         }
     }
 }
