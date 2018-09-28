@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsInRefContext(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-            Dim simpleArgument = TryCast(expression.Parent, SimpleArgumentSyntax)
+            Dim simpleArgument = TryCast(expression?.Parent, SimpleArgumentSyntax)
 
             If simpleArgument Is Nothing Then
                 Return False
