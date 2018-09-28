@@ -1859,19 +1859,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var ancestor = returnStatement.AncestorsAndSelf().FirstOrDefault(e => e is AnonymousFunctionExpressionSyntax || e is LocalFunctionStatementSyntax);
 
-                if (ancestor is LambdaExpressionSyntax lambdaExpression)
+                if (ancestor is AnonymousFunctionExpressionSyntax anonymousFunction)
                 {
-                    // If we're in a lambda, then use the return type of the lambda to figure out what to
+                    // If we're in a lambda or anonymous method, then use its return type to figure out what to
                     // infer.  i.e.   Func<int,string> f = i => { return Goo(); }
-                    types = InferTypeInAnonymousFunctionExpression(lambdaExpression);
-                    isAsync = lambdaExpression.AsyncKeyword.Kind() != SyntaxKind.None;
+                    types = InferTypeInAnonymousFunctionExpression(anonymousFunction);
+                    isAsync = anonymousFunction.AsyncKeyword.Kind() != SyntaxKind.None;
                     return;
-                }
-                else if (ancestor is AnonymousMethodExpressionSyntax delegateExpression)
-                {
-                    // If we are inside a delegate then use the return type of the Invoke Method of the delegate type
-                    types = InferTypeInAnonymousFunctionExpression(delegateExpression);
-                    isAsync = delegateExpression.AsyncKeyword.Kind() != SyntaxKind.None;
                 }
                 else if (ancestor is LocalFunctionStatementSyntax localFunctionStatement)
                 {
