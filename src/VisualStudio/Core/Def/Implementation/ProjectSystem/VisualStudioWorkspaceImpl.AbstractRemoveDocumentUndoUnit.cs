@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
@@ -13,12 +14,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private abstract class AbstractRemoveDocumentUndoUnit : AbstractAddRemoveUndoUnit
         {
             protected readonly DocumentId DocumentId;
-            protected readonly IEnumerable<string> CreatedFolder;
+            protected readonly ImmutableArray<string> CreatedFolder;
 
             protected AbstractRemoveDocumentUndoUnit(
                 VisualStudioWorkspaceImpl workspace,
                 DocumentId documentId,
-                IEnumerable<string> createdFolder)
+                ImmutableArray<string> createdFolder)
                 : base(workspace, documentId.ProjectId)
             {
                 DocumentId = documentId;

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxFacts.IsKeywordKind(kind); // both contextual and reserved keywords
         }
 
-        public bool IsKeyword(string text)
+        public bool IsReservedKeyword(string text)
         {
             return SyntaxFacts.GetKeywordKind(text) != SyntaxKind.None; // reserved keywords only
         }
@@ -1847,27 +1847,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
-        }
-
-        public bool IsOnNamespaceDeclaration(SyntaxNode root, int position)
-        {
-            var token = root.FindToken(position);
-            if (token.Kind() == SyntaxKind.EndOfFileToken)
-            {
-                token = token.GetPreviousToken();
-            }
-
-            var namespaceDecl = token.GetAncestor<NamespaceDeclarationSyntax>();
-            if (namespaceDecl == null)
-            {
-                return false;
-            }
-
-            var start = namespaceDecl.SpanStart;
-            var end = namespaceDecl.Name?.GetLastToken().FullSpan.End ??
-                        namespaceDecl.NamespaceKeyword.FullSpan.End;
-
-            return position >= start && position <= end;
         }
 
         public ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan)

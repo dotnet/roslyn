@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
@@ -557,7 +558,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             folders = FilterFolderForProjectType(project, folders);
 
-            var firstCreatedFolder = Enumerable.Empty<string>();   
+            var firstCreatedFolder = ImmutableArray<string>.Empty;   
             if (IsWebsite(project))
             {
                 (_, firstCreatedFolder) = AddDocumentToFolder(hostProject, project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
@@ -661,7 +662,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return AddDocumentToProjectItems(hostProject, project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
         }
 
-        private (ProjectItem, IEnumerable<string>) AddDocumentToFolder(
+        private (ProjectItem, ImmutableArray<string>) AddDocumentToFolder(
             AbstractProject hostProject,
             EnvDTE.Project project,
             DocumentId documentId,

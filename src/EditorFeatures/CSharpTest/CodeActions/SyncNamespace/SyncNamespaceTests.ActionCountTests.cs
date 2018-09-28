@@ -127,5 +127,28 @@ namespace NS2
             RootNamespace = "NS";
             await TestMissingInRegularAndScriptAsync(code);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task SyncNamespace_ActionCounts_MoveAndRename()
+        {
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document Folders=""A\B""> 
+[||]namespace NS1.NS2.NS3
+{    
+    class Class1
+    {
+    }
+}  
+        </Document>
+    </Project>
+</Workspace>";
+
+            RootNamespace = "NS1";
+                                                                                      
+            await TestActionCountAsync(code, count: 2);
+        }
     }
 }

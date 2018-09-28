@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ProjectManagement;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             return _defaultNamespace;
         }
 
-        public Task<string> GetDefaultNamespaceAsync(Project project, Workspace workspace)
+        public Task<string> GetDefaultNamespaceAsync(Project project, Workspace workspace, CancellationToken cancellationToken)
         {
             return Task.FromResult(_defaultNamespace);
         }

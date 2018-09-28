@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPredefinedOperator(SyntaxToken token);
         bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op);
         bool IsKeyword(SyntaxToken token);
-        bool IsKeyword(string text);
+        bool IsReservedKeyword(string text);
         bool IsContextualKeyword(SyntaxToken token);
         bool IsPreprocessorKeyword(SyntaxToken token);
         bool IsHashToken(SyntaxToken token);
@@ -344,8 +344,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);
         bool IsOnTypeHeader(SyntaxNode root, int position);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
-
-        bool IsOnNamespaceDeclaration(SyntaxNode root, int position);
 
         // Walks the tree, starting from contextNode, looking for the first construct
         // with a missing close brace.  If found, the close brace will be added and the
