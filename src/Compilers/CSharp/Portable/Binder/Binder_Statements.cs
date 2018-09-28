@@ -3391,7 +3391,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             MethodSymbol patternMethod = null;
-            ArrayBuilder<MethodSymbol> checkedMethods = ArrayBuilder<MethodSymbol>.GetInstance();
 
             foreach (var scope in new ExtensionMethodScopes(this))
             {
@@ -3403,10 +3402,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var symbol in lookupResult.Symbols)
                     {
                         //PROTOTYPE: for now, just check for the single this param. We probably want to also  allow e.g. dispose(this, int a = 4, params object[] args)
-                        if (symbol is MethodSymbol method && method.ParameterCount == 1 && !checkedMethods.Contains(method))
+                        if (symbol is MethodSymbol method && method.ParameterCount == 1)
                         {
                             candidateMethods.Add(method);
-                            checkedMethods.Add(method);
                         }
                     }
 
@@ -3423,8 +3421,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     candidateMethods.Free();
                 }
+                lookupResult.Clear();
             }
-            checkedMethods.Free();
 
             return patternMethod;
         }
