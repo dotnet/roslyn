@@ -37,13 +37,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Function() New CommitViewManager(view, _commitBufferManagerFactory, _textBufferAssociatedViewService, _textUndoHistoryRegistry, _waitIndicator))
 
             ' Connect to each of these buffers, and increment their ref count
-            For Each buffer In subjectBuffers
+            For Each buffer In subjectBuffers.AsParallel.AsOrdered
                 _commitBufferManagerFactory.CreateForBuffer(buffer).AddReferencingView()
             Next
         End Sub
 
         Public Sub SubjectBuffersDisconnected(view As ITextView, reason As ConnectionReason, subjectBuffers As IReadOnlyCollection(Of ITextBuffer)) Implements ITextViewConnectionListener.SubjectBuffersDisconnected
-            For Each buffer In subjectBuffers
+            For Each buffer In subjectBuffers.AsParallel.AsOrdered
                 _commitBufferManagerFactory.CreateForBuffer(buffer).RemoveReferencingView()
             Next
 

@@ -95,13 +95,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 Dim snapshot = buffer.CurrentSnapshot
-                For index As Integer = 0 To selections.Count - 1
-                    Dim textspan = CommonFormattingHelpers.GetFormattingSpan(snapshot, selections(0))
-                    Dim selectedSpan = New SnapshotSpan(snapshot, textspan.Start, textspan.Length)
-                    Dim commitBufferManager = _bufferManagerFactory.CreateForBuffer(buffer)
-                    commitBufferManager.ExpandDirtyRegion(selectedSpan)
-                    commitBufferManager.CommitDirty(isExplicitFormat:=True, cancellationToken:=context.OperationContext.UserCancellationToken)
-                Next
+                Parallel.For(1, selections.Count, Sub(index)
+                                                      Dim textspan = CommonFormattingHelpers.GetFormattingSpan(snapshot, selections(0))
+                                                      Dim selectedSpan = New SnapshotSpan(snapshot, textspan.Start, textspan.Length)
+                                                      Dim commitBufferManager = _bufferManagerFactory.CreateForBuffer(buffer)
+                                                      commitBufferManager.ExpandDirtyRegion(selectedSpan)
+                                                      commitBufferManager.CommitDirty(isExplicitFormat:=True, cancellationToken:=context.OperationContext.UserCancellationToken)
+                                                  End Sub)
             End Using
 
             'We don't call nextHandler, since we have handled this command.

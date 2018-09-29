@@ -19,11 +19,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             TextSpan = span
             IsIncomplete = node.GetLastToken(includeZeroWidth:=True).IsMissing
 
-            ' We'll only do expansion if there were no errors
-            Dim statement = TryCast(node, StatementSyntax)
-
-            If Not IsIncomplete AndAlso statement IsNot Nothing Then
-                MatchingBlockConstruct = FindExpansionStatement(statement)
+            If Not IsIncomplete Then
+                ' We'll only do expansion if there were no errors
+                Dim statement = TryCast(node, StatementSyntax)
+                If statement IsNot Nothing Then
+                    MatchingBlockConstruct = FindExpansionStatement(statement)
+                End If
             End If
         End Sub
 
@@ -141,9 +142,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private Function FindExpansionStatement(node As StatementSyntax) As StatementSyntax
             For Each ancestor In node.Ancestors()
-                Dim matchingStatements = MatchingStatementsVisitor.Instance.Visit(ancestor)
+                Dim matchingStatements = MatchingStatementsVisitor.Instance.Visit(ancestor).AsImmutableOrEmpty
 
-                If matchingStatements Is Nothing Then
+                If matchingStatements.Count = 0 Then ' Is Nothing Then
                     Continue For
                 End If
 

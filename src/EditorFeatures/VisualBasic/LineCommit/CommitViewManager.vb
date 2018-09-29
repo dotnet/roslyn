@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 allowCancel:=True,
                 action:=
                 Sub(waitContext)
-                    For Each buffer In _view.BufferGraph.GetTextBuffers(Function(b) b.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType))
+                    For Each buffer In _view.BufferGraph.GetTextBuffers(Function(b) b.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType)).AsParallel.AsOrdered
                         _commitBufferManagerFactory.CreateForBuffer(buffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=waitContext.CancellationToken)
                     Next
                 End Sub)
