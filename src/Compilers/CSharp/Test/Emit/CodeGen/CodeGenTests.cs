@@ -1833,7 +1833,7 @@ public class D
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void TestAssignIdentity()
         {
             string source = @"
@@ -1879,7 +1879,7 @@ There are no context policies.
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void TestRefCast()
         {
             string source = @"
@@ -13332,7 +13332,7 @@ public static class P
         }
 
         [WorkItem(26113, "https://github.com/dotnet/roslyn/issues/26113")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void VarargByRef()
         {
             var code = @"
