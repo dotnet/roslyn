@@ -1830,24 +1830,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     e is LocalFunctionStatementSyntax ||
                     e is MemberDeclarationSyntax);
 
-                if (ancestor is AnonymousFunctionExpressionSyntax anonymousFunction)
-                {
-                    // If we're in a lambda or anonymous method, then use its return type to figure out what to
-                    // infer.  i.e.   Func<int,string> f = i => { return Goo(); }
-                    return InferTypeInAnonymousFunctionExpression(anonymousFunction);
-                }
-
-                var symbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(ancestor);
-                var type = GetMemberType(symbol, out var isAsync);
-
-                return type != null
-                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(UnwrapTaskLike(type, isAsync)))
-                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                return ancestor is AnonymousFunctionExpressionSyntax anonymousFunction
+                    ? InferTypeInAnonymousFunctionExpression(anonymousFunction)
+                    : InferTypeInDeclaration(ancestor);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
+                => InferTypeInDeclaration(arrowClause.Parent);
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInDeclaration(SyntaxNode declaration)
             {
-                var symbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(arrowClause.Parent);
+                var symbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(declaration);
                 var type = GetMemberType(symbol, out var isAsync);
 
                 return type != null
