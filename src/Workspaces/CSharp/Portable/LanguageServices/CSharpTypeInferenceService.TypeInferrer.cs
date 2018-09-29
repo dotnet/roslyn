@@ -1460,7 +1460,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var invoke = type.DelegateInvokeMethod;
                     if (invoke != null)
                     {
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(invoke.ReturnType));
+                        var isAsync = anonymousFunction.AsyncKeyword.Kind() != SyntaxKind.None;
+                        return SpecializedCollections.SingletonEnumerable(
+                            new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType, isAsync)));
                     }
                 }
 
@@ -1809,75 +1811,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInRefExpression(RefExpressionSyntax refExpression)
                 => InferTypes(refExpression);
 
-            private IEnumerable<TypeInferenceInfo> InferTypeForReturnStatement(ReturnStatementSyntax returnStatement, SyntaxToken? previousToken = null)
+            private ITypeSymbol UnwrapTaskLike(ITypeSymbol type, bool isAsync)
             {
-                InferTypeForReturnStatement(returnStatement, previousToken,
-                    out var isAsync, out var types);
+                return isAsync && type.OriginalDefinition.Equals(this.Compilation.TaskOfTType())
+                    ? ((INamedTypeSymbol)type).TypeArguments[0]
+                    : type;
+            }
 
-                if (!isAsync)
-                {
-                    return types;
-                }
-
-                var taskOfT = this.Compilation.TaskOfTType();
-                if (taskOfT == null || types == null)
+            private IEnumerable<TypeInferenceInfo> InferTypeForReturnStatement(
+                ReturnStatementSyntax returnStatement, SyntaxToken? previousToken = null)
+            {
+                // If we are position based, then we have to be after the return statement.
+                if (previousToken.HasValue && previousToken.Value != returnStatement.ReturnKeyword)
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return from t in types
-                       where t.InferredType != null && t.InferredType.OriginalDefinition.Equals(taskOfT)
-                       let nt = (INamedTypeSymbol)t.InferredType
-                       where nt.TypeArguments.Length == 1
-                       select new TypeInferenceInfo(nt.TypeArguments[0]);
-            }
-
-            private void InferTypeForReturnStatement(
-                ReturnStatementSyntax returnStatement, SyntaxToken? previousToken, out bool isAsync, out IEnumerable<TypeInferenceInfo> types)
-            {
-                isAsync = false;
-                types = SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-
-                // If we are position based, then we have to be after the return statement.
-                if (previousToken.HasValue && previousToken.Value != returnStatement.ReturnKeyword)
-                {
-                    return;
-                }
-
-                var ancestor = returnStatement.AncestorsAndSelf().FirstOrDefault(e => e is AnonymousFunctionExpressionSyntax || e is LocalFunctionStatementSyntax);
+                var ancestor = returnStatement.AncestorsAndSelf().FirstOrDefault(e =>
+                    e is AnonymousFunctionExpressionSyntax ||
+                    e is LocalFunctionStatementSyntax ||
+                    e is MemberDeclarationSyntax);
 
                 if (ancestor is AnonymousFunctionExpressionSyntax anonymousFunction)
                 {
                     // If we're in a lambda or anonymous method, then use its return type to figure out what to
                     // infer.  i.e.   Func<int,string> f = i => { return Goo(); }
-                    types = InferTypeInAnonymousFunctionExpression(anonymousFunction);
-                    isAsync = anonymousFunction.AsyncKeyword.Kind() != SyntaxKind.None;
-                    return;
-                }
-                else if (ancestor is LocalFunctionStatementSyntax localFunctionStatement)
-                {
-                    // If we are inside a local function then use the return type of the local function
-                    var methodSymbol = (IMethodSymbol)SemanticModel.GetDeclaredSymbol(localFunctionStatement);
-                    types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(methodSymbol.ReturnType));
-                    isAsync = methodSymbol.IsAsync;
-                    return;
+                    return InferTypeInAnonymousFunctionExpression(anonymousFunction);
                 }
 
-                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, returnStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
+                var symbol = ancestor is LocalFunctionStatementSyntax localFunction
+                    ? SemanticModel.GetDeclaredSymbol(localFunction, CancellationToken)
+                    : GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, (MemberDeclarationSyntax)ancestor);
 
-                switch (memberSymbol)
+                switch (symbol)
                 {
                     case IMethodSymbol method:
-                        isAsync = method.IsAsync;
-                        types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(method.ReturnType));
-                        return;
+                        return SpecializedCollections.SingletonEnumerable(
+                            new TypeInferenceInfo(UnwrapTaskLike(method.ReturnType, method.IsAsync)));
                     case IPropertySymbol property:
-                        types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(property.Type));
-                        return;
+                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(property.Type));
                     case IFieldSymbol field:
-                        types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(field.Type));
-                        return;
+                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(field.Type));
                 }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private ISymbol GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel currentSemanticModel, MemberDeclarationSyntax declarationInCurrentTree)
