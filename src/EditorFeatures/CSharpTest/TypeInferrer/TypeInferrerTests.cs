@@ -675,7 +675,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestReturn1()
+        public async Task TestReturnInMethod()
         {
             await TestInClassAsync(
 @"int M()
@@ -685,19 +685,55 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestReturn2()
+        public async Task TestReturnInAsyncMethod()
+        {
+            await TestInClassAsync(
+@"async System.Threading.Tasks.Task<int> M()
+{
+    return [|Goo()|];
+}", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInVoidMethod()
         {
             await TestInMethodAsync(
 @"return [|Goo()|];", "void");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestReturn3()
+        public async Task TestReturnInGetter()
         {
             await TestInClassAsync(
 @"int Property
 {
     get
+    {
+        return [|Goo()|];
+    }
+}", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInLocalFunction()
+        {
+            await TestInClassAsync(
+@"void M()
+{
+    int F()
+    {
+        return [|Goo()|];
+    }
+}", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAsyncLocalFunction()
+        {
+            await TestInClassAsync(
+@"void M()
+{
+    async System.Threading.Tasks.Task<int> F()
     {
         return [|Goo()|];
     }
