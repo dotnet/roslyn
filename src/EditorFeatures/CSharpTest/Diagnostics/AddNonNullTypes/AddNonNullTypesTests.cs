@@ -33,9 +33,32 @@ class C
         }
 
         [Fact]
+        public async Task TestNullableOnAttribute()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    [SomeAttribute(M(out [|string?|] x))]
+    class Inner
+    {
+    }
+}",
+@"
+class C
+{
+    [SomeAttribute(M(out string? x))]
+    [System.Runtime.CompilerServices.NonNullTypes]
+    class Inner
+    {
+    }
+}");
+        }
+
+        [Fact]
         public async Task TestNullableInNonNullTypesFalseContext()
         {
-            // https://github.com/dotnet/roslyn/issues/30099 We should detect present of NonNullTypes(false) and either not trigger, or toggle to `true`
+            // https://github.com/dotnet/roslyn/issues/30099 We should detect presence of NonNullTypes(false) and either not trigger, or toggle to `true`
             await TestInRegularAndScriptAsync(
 @"
 [System.Runtime.CompilerServices.NonNullTypes(false)]

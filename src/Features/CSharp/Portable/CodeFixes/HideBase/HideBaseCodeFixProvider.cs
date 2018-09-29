@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
-             c => FixAsync(context.Document, context.Diagnostics[0], c)),
+                c => FixAsync(context.Document, context.Diagnostics[0], c)),
              context.Diagnostics);
             return Task.CompletedTask;
         }
