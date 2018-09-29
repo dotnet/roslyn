@@ -1781,7 +1781,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, yieldStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
+                var declaration = yieldStatement.FirstAncestorOrSelf<SyntaxNode>(e => e is LocalFunctionStatementSyntax || e is MemberDeclarationSyntax);
+                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(declaration);
 
                 var memberType = GetMemberType(memberSymbol);
 
@@ -1827,7 +1828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var ancestor = returnStatement.AncestorsAndSelf().FirstOrDefault(e =>
+                var ancestor = returnStatement.FirstAncestorOrSelf<SyntaxNode>(e =>
                     e is AnonymousFunctionExpressionSyntax ||
                     e is LocalFunctionStatementSyntax ||
                     e is MemberDeclarationSyntax);
@@ -1839,9 +1840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return InferTypeInAnonymousFunctionExpression(anonymousFunction);
                 }
 
-                var symbol = ancestor is LocalFunctionStatementSyntax localFunction
-                    ? SemanticModel.GetDeclaredSymbol(localFunction, CancellationToken)
-                    : GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, (MemberDeclarationSyntax)ancestor);
+                var symbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(ancestor);
 
                 switch (symbol)
                 {
@@ -1857,22 +1856,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private ISymbol GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel currentSemanticModel, MemberDeclarationSyntax declarationInCurrentTree)
+            private ISymbol GetDeclaredMemberSymbolFromOriginalSemanticModel(SyntaxNode declarationInCurrentTree)
             {
+                var currentSemanticModel = SemanticModel;
                 var originalSemanticModel = currentSemanticModel.GetOriginalSemanticModel();
-                MemberDeclarationSyntax declaration;
 
-                if (currentSemanticModel.IsSpeculativeSemanticModel)
+                if (declarationInCurrentTree is MemberDeclarationSyntax &&
+                    currentSemanticModel.IsSpeculativeSemanticModel)
                 {
                     var tokenInOriginalTree = originalSemanticModel.SyntaxTree.GetRoot(CancellationToken).FindToken(currentSemanticModel.OriginalPositionForSpeculation);
-                    declaration = tokenInOriginalTree.GetAncestor<MemberDeclarationSyntax>();
-                }
-                else
-                {
-                    declaration = declarationInCurrentTree;
+                    var declaration = tokenInOriginalTree.GetAncestor<MemberDeclarationSyntax>();
+                    return originalSemanticModel.GetDeclaredSymbol(declaration, CancellationToken);
                 }
 
-                return originalSemanticModel.GetDeclaredSymbol(declaration, CancellationToken);
+                return currentSemanticModel.GetDeclaredSymbol(declarationInCurrentTree, CancellationToken);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInSwitchLabel(

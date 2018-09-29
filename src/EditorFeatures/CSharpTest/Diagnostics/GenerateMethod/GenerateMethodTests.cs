@@ -4893,7 +4893,7 @@ class Program
 
         [WorkItem(538521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538521")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public async Task TestInIterator1()
+        public async Task TestWithYieldReturnInMethod()
         {
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -4913,6 +4913,43 @@ class Program
     IEnumerable<int> Goo()
     {
         yield return Bar();
+    }
+
+    private int Bar()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithYieldReturnInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    void M()
+    {
+        IEnumerable<int> F()
+        {
+            yield return [|Bar|]();
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    void M()
+    {
+        IEnumerable<int> F()
+        {
+            yield return Bar();
+        }
     }
 
     private int Bar()

@@ -740,9 +740,9 @@ class C
 }", "global::System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
-        public async Task TestYieldReturn()
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestYieldReturnInMethod()
         {
             var markup =
 @"using System.Collections.Generic;
@@ -752,6 +752,26 @@ class Program
     IEnumerable<int> M()
     {
         yield return [|abc|]
+    }
+}";
+            await TestAsync(markup, "global::System.Int32");
+        }
+
+        [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestYieldReturnInLocalFunction()
+        {
+            var markup =
+@"using System.Collections.Generic;
+
+class Program
+{
+    void M()
+    {
+        IEnumerable<int> F()
+        {
+            yield return [|abc|]
+        }
     }
 }";
             await TestAsync(markup, "global::System.Int32");
