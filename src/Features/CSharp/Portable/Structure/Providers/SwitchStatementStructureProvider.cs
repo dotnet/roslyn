@@ -22,17 +22,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                type: BlockTypes.Conditional));
             if (includeInternalStructures)
             {
-                foreach (var switchcase in node.Sections.AsImmutable())
+                GetInternalStructures(node, spans, options, cancellationToken);
+            }
+        }
+        private void GetInternalStructures(SwitchStatementSyntax node, ArrayBuilder<BlockSpan> spans, OptionSet options, CancellationToken cancellationToken)
+        {
+            foreach (SwitchSectionSyntax switchcase in node.Sections.AsImmutable())
+            {
+                if(cancellationToken.IsCancellationRequested)
                 {
-                    var s = new BlockSpan(
-                                          isCollapsible: true,
-                                          textSpan: TextSpan.FromBounds(switchcase.SpanStart, switchcase.Span.End),
-                                          hintSpan: switchcase.Span,
-                                          type: BlockTypes.Conditional,
-                                          isDefaultCollapsed: false);
-                    spans.Add(s);
+                    break;
                 }
+                var hintText = switchcase.Labels[0].ToString();
+                var block = CSharpStructureHelpers.CreateBlockSpan(switchcase, hintText , false, BlockTypes.Conditional, true);
+                spans.Add(block);
             }
         }
     }
+
 }

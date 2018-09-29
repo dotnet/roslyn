@@ -52,9 +52,9 @@ class C
 }";
             await VerifyBlockSpansAsync(
                 code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("case0", "casetext", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("default", "defaulttext", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false ),
+                Region("case0", "casetext", "case 0:", autoCollapse: false),
+                Region("default", "defaulttext", "default:", false));
 
         }
     }
