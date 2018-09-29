@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var newDocumentId = DocumentId.CreateNewId(oldDocument.Project.Id, oldDocument.Name);
 
                 var newSolution = oldDocument.Project.Solution.RemoveDocument(oldDocument.Id);
-                var newFolders = _state.QualifiedIdentifierFromDeclaration.Split(new[] { '.' }).ToArray();
+                var newFolders = _state.RelativeDeclaredNamespace.Split(new[] { '.' }).ToArray();
                 var newFilePath = Path.Combine(Path.GetDirectoryName(oldDocument.Project.FilePath), Path.Combine(newFolders.ToArray()), Path.GetFileName(oldDocument.FilePath));
 
                 var text = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);

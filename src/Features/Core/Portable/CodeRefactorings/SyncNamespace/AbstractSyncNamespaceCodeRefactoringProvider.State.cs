@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectManagement;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
     {
         private class State
         {                                                                        
-            private static SymbolDisplayFormat QualifiedNameOnlyFormat => 
+            private static readonly SymbolDisplayFormat s_qualifiedNameOnlyFormat = 
                 new SymbolDisplayFormat(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                                         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
@@ -32,29 +33,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             public string DeclaredNamespace { get; }
                                                                                                        
             /// <summary>
-            /// This is the new name we want to change the namespace to use.
-            /// Empty string means global namespace, whereas null means renaming action is not availalbe.
+            /// This is the new name we want to change the namespace to.
+            /// Empty string means global namespace, whereas null means renaming action is not available.
             /// </summary>
             public string TargetNamespace { get; }
 
-            public string QualifiedIdentifierFromDeclaration { get; }
+            public string RelativeDeclaredNamespace { get; }
 
-            public string QualifiedIdentifierFromFolders { get; }
+            public string RelativeTargetNamespace { get; }
 
             private State(
                 Document document,
                 string rootNamespce,
-                string qualifiedIdentifierFromFolders,
+                string relativeTargetNamespace,
                 string targetNamespace,
                 string declaredNamespace,                           
-                string qualifiedIdentifierFromDeclaration)
+                string relativeDeclaredNamespace)
             {                      
                 Document = document;
                 RootNamespace = rootNamespce;
-                QualifiedIdentifierFromFolders = qualifiedIdentifierFromFolders;
+                RelativeTargetNamespace = relativeTargetNamespace;
                 TargetNamespace = targetNamespace;
                 DeclaredNamespace = declaredNamespace;
-                QualifiedIdentifierFromDeclaration = qualifiedIdentifierFromDeclaration;
+                RelativeDeclaredNamespace = relativeDeclaredNamespace;
             }
 
             private static bool IsLinkedDocument(Document document)
@@ -121,27 +122,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var namespaceFromFolders = TryBuildNamespaceFromFolders(service, document.Folders, syntaxFacts);
                 var targetNamespace = namespaceFromFolders == null ? null : ConcatNamespace(rootNamespace, namespaceFromFolders);
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false); 
-                var namespaceSymbol = semanticModel.GetDeclaredSymbol(namespaceDeclaration, cancellationToken) as INamespaceSymbol;
-                if (namespaceSymbol == null)
-                {
-                    return null;
-                }
-                var declaredNamespace = namespaceSymbol.ToDisplayString(QualifiedNameOnlyFormat);
+                // namespaceDeclaration == null means the target namespace is global namespace.
+                var declaredNamespace = namespaceDeclaration == null
+                    ? string.Empty
+                    : SyntaxGenerator.GetGenerator(document).GetName(namespaceDeclaration);
 
                 //TODO: Handle partial definitions.
 
                 // No action required if namespace already matches folders.
-                if (string.Equals(targetNamespace, declaredNamespace, System.StringComparison.Ordinal))
+                if (syntaxFacts.StringComparer.Equals(targetNamespace, declaredNamespace))
                 {
                     return null;
                 }
 
                 // Only provide "move file" action if root namespace contains declared namespace.
                 // It makes no sense to match folder hierarchy with namespace if it's not rooted at the root namespace of the project. 
-                TryGetRelativeNamespace(rootNamespace, declaredNamespace, out var qualifiedIdentifierFromDeclaration);                                                                           
+                TryGetRelativeNamespace(rootNamespace, declaredNamespace, out var relativeNamespace);                                                                           
                                                                                                                           
-                return new State(document, rootNamespace, namespaceFromFolders, targetNamespace, declaredNamespace, qualifiedIdentifierFromDeclaration);
+                return new State(document, rootNamespace, namespaceFromFolders, targetNamespace, declaredNamespace, relativeNamespace);
             }
 
             private static async Task<string> GetRootNamespaceAsync(Project project, CancellationToken cancellationToken)

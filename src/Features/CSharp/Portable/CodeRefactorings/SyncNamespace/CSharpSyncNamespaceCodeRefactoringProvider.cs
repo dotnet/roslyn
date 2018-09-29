@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -17,11 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
     internal sealed class CSharpSyncNamespaceCodeRefactoringProvider :
         AbstractSyncNamespaceCodeRefactoringProvider<CSharpSyncNamespaceCodeRefactoringProvider, NamespaceDeclarationSyntax, CompilationUnitSyntax>
     {
-        protected override NamespaceDeclarationSyntax ChangeNamespace(NamespaceDeclarationSyntax node, ImmutableArray<string> namespaceParts)
-        {
-            return node.WithName(CreateNameSyntax(namespaceParts, aliasQualifier: null, namespaceParts.Length - 1).WithTriviaFrom(node.Name));
-        }  
-
         protected override ImmutableArray<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
             SyntaxList<MemberDeclarationSyntax> declarations;
@@ -147,6 +143,49 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             }
 
             return false;
+        }
+
+        protected override SyntaxNode ChangeNamespaceDeclaration(SyntaxNode root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts)
+        {
+            if (declaredNamespaceParts.IsDefault || targetNamespaceParts.IsDefault || !(root is CompilationUnitSyntax compilationUnit))
+            {
+                return root;
+            }
+
+            //TODO: handle trivia
+
+            // Move everything from global namespace to a namespace declaration
+            if (declaredNamespaceParts.Length == 1 && declaredNamespaceParts[0].Length == 0)
+            {
+                var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
+                    name: CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1),
+                    externs: default, usings: default,
+                    members: compilationUnit.Members);
+                return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl))
+                    .WithAdditionalAnnotations(Formatter.Annotation);
+            }
+
+            // We should have a single member which is a namespace declaration in this compilation unit.
+            var namespaceDeclaration = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+
+            // Move everything to global namespace
+            if (targetNamespaceParts.Length == 1 && targetNamespaceParts[0].Length == 0)
+            {
+                return compilationUnit.Update(
+                    compilationUnit.Externs.AddRange(namespaceDeclaration.Externs), 
+                    compilationUnit.Usings.AddRange(namespaceDeclaration.Usings), 
+                    compilationUnit.AttributeLists, 
+                    namespaceDeclaration.Members,
+                    compilationUnit.EndOfFileToken).WithAdditionalAnnotations(Formatter.Annotation);
+            }
+            // Change namespace name
+            else
+            {
+                return root.ReplaceNode(namespaceDeclaration, 
+                    namespaceDeclaration.WithName(
+                        CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
+                        .WithTriviaFrom(namespaceDeclaration.Name)));
+            }
         }
     }
 }

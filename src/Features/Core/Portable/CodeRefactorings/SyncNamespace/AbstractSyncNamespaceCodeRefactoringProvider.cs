@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             var builder = ArrayBuilder<CodeAction>.GetInstance();
 
             // No move file action if rootnamespace isn't a prefix of current declared namespace
-            if (state.QualifiedIdentifierFromDeclaration != null)
+            if (state.RelativeDeclaredNamespace != null)
             {
                 builder.Add(new MoveFileCodeAction(service, state));
             }
@@ -48,13 +48,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             }
 
             return builder.ToImmutableAndFree();
-        }                      
-
-        abstract protected TNamespaceDeclarationSyntax ChangeNamespace(TNamespaceDeclarationSyntax node, ImmutableArray<string> namespaceParts);
-
+        }
         /// <summary>
-        /// Try to get a replacement node for given node which is a reference to a type declared inside the namespce to be renamed.
-        /// If this reference is the right side of a qualified name, the replacement node would be the entire qualified name. 
+        /// Try to get a replacement node for given node which is a reference to a top-level type declared inside the namespce to be renamed.
+        /// If this reference is the right side of a qualified name, the replacement node returned would be the entire qualified name.
+        /// If <paramref name="namespaceParts"/> is specified, the replacement node will be qualified with given namespace instead.
         /// </summary>
         /// <param name="reference">A reference to a type declared inside the namespce to be renamed, which is calculated based on results from `SymbolFinder.FindReferencesAsync`.</param>
         /// <param name="namespaceParts">If specified, the namespace of original reference will be replaced with given namespace in the replacement node.</param>
@@ -67,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         abstract protected string EscapeIdentifier(string identifier);
 
         abstract protected SyntaxNode CreateUsingDirective(ImmutableArray<string> namespaceParts);
+
+        abstract protected SyntaxNode ChangeNamespaceDeclaration(SyntaxNode root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts);
 
         /// <summary>
         /// Determine if this refactoring should be triggered based on current cursor position. 
