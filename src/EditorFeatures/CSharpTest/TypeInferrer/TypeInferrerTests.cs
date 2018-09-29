@@ -722,7 +722,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestReturnInLambda()
+        public async Task TestReturnInSimpleLambda()
         {
             await TestInMethodAsync(
 @"System.Func<string, int> f = s =>
@@ -732,10 +732,51 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestLambda()
+        public async Task TestReturnInParenthesizedLambda()
+        {
+            await TestInMethodAsync(
+@"System.Func<int> f = () =>
+{
+    return [|Goo()|];
+};", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAnonymousMethod()
+        {
+            await TestInMethodAsync(
+@"System.Func<int> f = delegate ()
+{
+    return [|Goo()|];
+};", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestSimpleLambda()
         {
             await TestInMethodAsync(
 @"System.Func<string, int> f = s => [|Goo()|];", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestParenthesizedLambda()
+        {
+            await TestInMethodAsync(
+@"System.Func<int> f = () => [|Goo()|];", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionTreeSimpleLambda()
+        {
+            await TestInMethodAsync(
+@"System.Linq.Expressions.Expression<System.Func<string, int>> f = s => [|Goo()|];", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionTreeParenthesizedLambda()
+        {
+            await TestInMethodAsync(
+@"System.Linq.Expressions.Expression<System.Func<int>> f = () => [|Goo()|];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
