@@ -173,16 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
-            {
-                var parentSymbol = SemanticModel.GetDeclaredSymbol(arrowClause.Parent, CancellationToken);
-                var parentMemberType = GetMemberType(parentSymbol);
-
-                return parentMemberType != null 
-                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(parentMemberType))
-                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-            }
-
             protected override IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(int position)
             {
                 var syntaxTree = SemanticModel.SyntaxTree;
@@ -1784,7 +1774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var declaration = yieldStatement.FirstAncestorOrSelf<SyntaxNode>(e => e is LocalFunctionStatementSyntax || e is MemberDeclarationSyntax);
                 var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(declaration);
 
-                var memberType = GetMemberType(memberSymbol);
+                var memberType = GetMemberType(memberSymbol, out _);
 
                 if (memberType is INamedTypeSymbol namedType)
                 {
@@ -1798,12 +1788,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private static ITypeSymbol GetMemberType(ISymbol memberSymbol)
+            private static ITypeSymbol GetMemberType(ISymbol memberSymbol, out bool isAsync)
             {
+                isAsync = false;
+
                 switch (memberSymbol)
                 {
-                    case IMethodSymbol method: return method.ReturnType;
-                    case IPropertySymbol property: return property.Type;
+                    case IMethodSymbol method:
+                        isAsync = method.IsAsync;
+                        return method.ReturnType;
+                    case IPropertySymbol property:
+                        return property.Type;
+                    case IFieldSymbol field:
+                        return field.Type;
                 }
 
                 return null;
@@ -1841,19 +1838,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var symbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(ancestor);
+                var type = GetMemberType(symbol, out var isAsync);
 
-                switch (symbol)
-                {
-                    case IMethodSymbol method:
-                        return SpecializedCollections.SingletonEnumerable(
-                            new TypeInferenceInfo(UnwrapTaskLike(method.ReturnType, method.IsAsync)));
-                    case IPropertySymbol property:
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(property.Type));
-                    case IFieldSymbol field:
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(field.Type));
-                }
+                return type != null
+                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(UnwrapTaskLike(type, isAsync)))
+                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
 
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            private IEnumerable<TypeInferenceInfo> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
+            {
+                var symbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(arrowClause.Parent);
+                var type = GetMemberType(symbol, out var isAsync);
+
+                return type != null
+                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(UnwrapTaskLike(type, isAsync)))
+                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private ISymbol GetDeclaredMemberSymbolFromOriginalSemanticModel(SyntaxNode declarationInCurrentTree)

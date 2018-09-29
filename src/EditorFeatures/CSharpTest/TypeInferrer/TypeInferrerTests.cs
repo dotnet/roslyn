@@ -740,6 +740,77 @@ class C
 }", "global::System.Int32");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedConstructor()
+        {
+            await TestInClassAsync(
+@"C() => [|Goo()|];", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedMethod()
+        {
+            await TestInClassAsync(
+@"int M() => [|Goo()|];", "global::System.Int32");
+        }
+
+        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedAsyncMethod()
+        {
+            await TestInClassAsync(
+@"async System.Threading.Tasks.Task<int> M() => [|Goo()|];", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedVoidMethod()
+        {
+            await TestInClassAsync(
+@"void M() => [|Goo()|];", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedProperty()
+        {
+            await TestInClassAsync(
+@"int P => [|Goo()|];", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedPropertyGetter()
+        {
+            await TestInClassAsync(
+@"int P { get => [|Goo()|]; }", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedPropertySetter()
+        {
+            await TestInClassAsync(
+@"int P { set => [|Goo()|]; }", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedLocalFunction()
+        {
+            await TestInClassAsync(
+@"void M()
+{
+    int F() => [|Goo()|];
+}", "global::System.Int32");
+        }
+
+        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedAsyncLocalFunction()
+        {
+            await TestInClassAsync(
+@"void M()
+{
+    async System.Threading.Tasks.Task<int> F() => [|Goo()|];
+}", "global::System.Int32");
+        }
+
         [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestYieldReturnInMethod()
