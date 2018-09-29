@@ -817,6 +817,31 @@ class Derived<X> : CGoo
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitWithExistingMethodBody()
+        {
+            var markupBeforeCommit = @"class c
+{
+    override bool $$
+    {
+        System.Console.WriteLine();
+    }
+}";
+
+            var expectedCodeAfterCommit = @"class c
+{
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);$$
+    }
+    {
+        System.Console.WriteLine();
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
+        }
+
         [WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitGenericMethodTypeParametersNotRenamed()
@@ -2756,6 +2781,62 @@ public class SomeClass : Base
 
                 Assert.Equal(after, actualCodeAfterCommit);
             }
+        }
+    }
+
+    public class OverrideCompletionWithExpressionBodyTests : AbstractCSharpCompletionProviderTests
+    {
+        public OverrideCompletionWithExpressionBodyTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
+        internal override CompletionProvider CreateCompletionProvider()
+            => new OverrideCompletionProvider();
+
+        protected override void SetWorkspaceOptions(TestWorkspace workspace)
+        {
+            workspace.Options = workspace.Options
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(29495, "https://github.com/dotnet/roslyn/issues/29495")]
+        public async Task CommitWithMethod()
+        {
+            var markupBeforeCommit = @"class c
+{
+        override $$
+}";
+
+            var expectedCodeAfterCommit = @"class c
+{
+    public override bool Equals(object obj) $$=> base.Equals(obj);
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(29495, "https://github.com/dotnet/roslyn/issues/29495")]
+        public async Task CommitWithExistingMethodBody()
+        {
+            var markupBeforeCommit = @"class c
+{
+    override $$
+    {
+        System.Console.WriteLine();
+    }
+}";
+
+            var expectedCodeAfterCommit = @"class c
+{
+    public override bool Equals(object obj) $$=> base.Equals(obj);
+    {
+        System.Console.WriteLine();
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
         }
     }
 }

@@ -119,16 +119,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public static int GetTargetCaretPositionForMethod(MethodDeclarationSyntax methodDeclaration)
         {
-            if (methodDeclaration.Body == null)
+            if (methodDeclaration.ExpressionBody != null)
             {
-                return methodDeclaration.GetLocation().SourceSpan.End;
+                return methodDeclaration.ExpressionBody.ArrowToken.GetLocation().SourceSpan.Start;
             }
-            else
+            else if (methodDeclaration.Body != null)
             {
                 // move to the end of the last statement in the method
                 var lastStatement = methodDeclaration.Body.Statements.Last();
                 return lastStatement.GetLocation().SourceSpan.End;
             }
+
+            return methodDeclaration.GetLocation().SourceSpan.End;
         }
     }
 }
