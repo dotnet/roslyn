@@ -1771,7 +1771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var declaration = yieldStatement.FirstAncestorOrSelf<SyntaxNode>(e => e is LocalFunctionStatementSyntax || e is MemberDeclarationSyntax);
+                var declaration = yieldStatement.FirstAncestorOrSelf<SyntaxNode>(n => n.IsReturnableConstruct());
                 var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(declaration);
 
                 var memberType = GetMemberType(memberSymbol, out _);
@@ -1825,10 +1825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var ancestor = returnStatement.FirstAncestorOrSelf<SyntaxNode>(e =>
-                    e is AnonymousFunctionExpressionSyntax ||
-                    e is LocalFunctionStatementSyntax ||
-                    e is MemberDeclarationSyntax);
+                var ancestor = returnStatement.FirstAncestorOrSelf<SyntaxNode>(n => n.IsReturnableConstruct());
 
                 return ancestor is AnonymousFunctionExpressionSyntax anonymousFunction
                     ? InferTypeInAnonymousFunctionExpression(anonymousFunction)
