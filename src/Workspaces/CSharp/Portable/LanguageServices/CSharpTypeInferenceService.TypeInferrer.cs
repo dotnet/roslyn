@@ -1811,9 +1811,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private ITypeSymbol UnwrapTaskLike(ITypeSymbol type, bool isAsync)
             {
-                return isAsync && type.OriginalDefinition.Equals(this.Compilation.TaskOfTType())
-                    ? ((INamedTypeSymbol)type).TypeArguments[0]
-                    : type;
+                if (!isAsync)
+                {
+                    return type;
+                }
+
+                return
+                    type.OriginalDefinition.Equals(this.Compilation.TaskOfTType())
+                        ? ((INamedTypeSymbol)type).TypeArguments[0] :
+                    type.OriginalDefinition.Equals(this.Compilation.TaskType())
+                        ? this.Compilation.GetSpecialType(SpecialType.System_Void) :
+                    type;
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeForReturnStatement(

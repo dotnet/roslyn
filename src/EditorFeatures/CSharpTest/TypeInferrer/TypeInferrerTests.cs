@@ -705,7 +705,17 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestReturnInAsyncMethod()
+        public async Task TestReturnInVoidMethod()
+        {
+            await TestInClassAsync(
+@"void M()
+{
+    return [|Goo()|];
+}", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAsyncTaskOfTMethod()
         {
             await TestInClassAsync(
 @"async System.Threading.Tasks.Task<int> M()
@@ -715,10 +725,23 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestReturnInVoidMethod()
+        public async Task TestReturnInAsyncTaskMethod()
         {
-            await TestInMethodAsync(
-@"return [|Goo()|];", "void");
+            await TestInClassAsync(
+@"async System.Threading.Tasks.Task M()
+{
+    return [|Goo()|];
+}", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAsyncVoidMethod()
+        {
+            await TestInClassAsync(
+@"async void M()
+{
+    return [|Goo()|];
+}", "void");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -835,7 +858,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestReturnInAsyncLocalFunction()
+        public async Task TestReturnInAsyncTaskOfTLocalFunction()
         {
             await TestInClassAsync(
 @"void M()
@@ -845,6 +868,32 @@ class C
         return [|Goo()|];
     }
 }", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAsyncTaskLocalFunction()
+        {
+            await TestInClassAsync(
+@"void M()
+{
+    async System.Threading.Tasks.Task F()
+    {
+        return [|Goo()|];
+    }
+}", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAsyncVoidLocalFunction()
+        {
+            await TestInClassAsync(
+@"void M()
+{
+    async void F()
+    {
+        return [|Goo()|];
+    }
+}", "void");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -868,19 +917,34 @@ class C
 @"int M() => [|Goo()|];", "global::System.Int32");
         }
 
-        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestExpressionBodiedAsyncMethod()
-        {
-            await TestInClassAsync(
-@"async System.Threading.Tasks.Task<int> M() => [|Goo()|];", "global::System.Int32");
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestExpressionBodiedVoidMethod()
         {
             await TestInClassAsync(
 @"void M() => [|Goo()|];", "void");
+        }
+
+        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedAsyncTaskOfTMethod()
+        {
+            await TestInClassAsync(
+@"async System.Threading.Tasks.Task<int> M() => [|Goo()|];", "global::System.Int32");
+        }
+
+        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedAsyncTaskMethod()
+        {
+            await TestInClassAsync(
+@"async System.Threading.Tasks.Task M() => [|Goo()|];", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedAsyncVoidMethod()
+        {
+            await TestInClassAsync(
+@"async void M() => [|Goo()|];", "void");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -965,13 +1029,34 @@ class C
 
         [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestExpressionBodiedAsyncLocalFunction()
+        public async Task TestExpressionBodiedAsyncTaskOfTLocalFunction()
         {
             await TestInClassAsync(
 @"void M()
 {
     async System.Threading.Tasks.Task<int> F() => [|Goo()|];
 }", "global::System.Int32");
+        }
+
+        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedAsyncTaskLocalFunction()
+        {
+            await TestInClassAsync(
+@"void M()
+{
+    async System.Threading.Tasks.Task F() => [|Goo()|];
+}", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedAsyncVoidLocalFunction()
+        {
+            await TestInClassAsync(
+@"void M()
+{
+    async void F() => [|Goo()|];
+}", "void");
         }
 
         [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
@@ -1043,7 +1128,7 @@ class Program
 
         [WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestReturnInAsyncSimpleLambda()
+        public async Task TestReturnInAsyncTaskOfTSimpleLambda()
         {
             await TestInMethodAsync(
 @"System.Func<string, System.Threading.Tasks.Task<int>> f = async s =>
@@ -1054,7 +1139,7 @@ class Program
 
         [WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestReturnInAsyncParenthesizedLambda()
+        public async Task TestReturnInAsyncTaskOfTParenthesizedLambda()
         {
             await TestInMethodAsync(
 @"System.Func<System.Threading.Tasks.Task<int>> f = async () =>
@@ -1065,13 +1150,73 @@ class Program
 
         [WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestReturnInAsyncAnonymousMethod()
+        public async Task TestReturnInAsyncTaskOfTAnonymousMethod()
         {
             await TestInMethodAsync(
 @"System.Func<System.Threading.Tasks.Task<int>> f = async delegate ()
 {
     return [|Goo()|];
 };", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAsyncTaskSimpleLambda()
+        {
+            await TestInMethodAsync(
+@"System.Func<string, System.Threading.Tasks.Task> f = async s =>
+{
+    return [|Goo()|];
+};", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAsyncTaskParenthesizedLambda()
+        {
+            await TestInMethodAsync(
+@"System.Func<System.Threading.Tasks.Task> f = async () =>
+{
+    return [|Goo()|];
+};", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAsyncTaskAnonymousMethod()
+        {
+            await TestInMethodAsync(
+@"System.Func<System.Threading.Tasks.Task> f = async delegate ()
+{
+    return [|Goo()|];
+};", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAsyncVoidSimpleLambda()
+        {
+            await TestInMethodAsync(
+@"System.Action<string> f = async s =>
+{
+    return [|Goo()|];
+};", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAsyncVoidParenthesizedLambda()
+        {
+            await TestInMethodAsync(
+@"System.Action f = async () =>
+{
+    return [|Goo()|];
+};", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInAsyncVoidAnonymousMethod()
+        {
+            await TestInMethodAsync(
+@"System.Action f = async delegate ()
+{
+    return [|Goo()|];
+};", "void");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -1090,7 +1235,7 @@ class Program
 
         [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestAsyncSimpleLambda()
+        public async Task TestAsyncTaskOfTSimpleLambda()
         {
             await TestInMethodAsync(
 @"System.Func<string, System.Threading.Tasks.Task<int>> f = async s => [|Goo()|];", "global::System.Int32");
@@ -1098,10 +1243,40 @@ class Program
 
         [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestAsyncParenthesizedLambda()
+        public async Task TestAsyncTaskOfTParenthesizedLambda()
         {
             await TestInMethodAsync(
 @"System.Func<System.Threading.Tasks.Task<int>> f = async () => [|Goo()|];", "global::System.Int32");
+        }
+
+        [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestAsyncTaskSimpleLambda()
+        {
+            await TestInMethodAsync(
+@"System.Func<string, System.Threading.Tasks.Task> f = async s => [|Goo()|];", "void");
+        }
+
+        [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestAsyncTaskParenthesizedLambda()
+        {
+            await TestInMethodAsync(
+@"System.Func<System.Threading.Tasks.Task> f = async () => [|Goo()|];", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestAsyncVoidSimpleLambda()
+        {
+            await TestInMethodAsync(
+@"System.Action<string> f = async s => [|Goo()|];", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestAsyncVoidParenthesizedLambda()
+        {
+            await TestInMethodAsync(
+@"System.Action f = async () => [|Goo()|];", "void");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]

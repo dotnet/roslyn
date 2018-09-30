@@ -1475,7 +1475,7 @@ class Program
 
         [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateFieldInAsyncSimpleLambda()
+        public async Task TestGenerateFieldInAsyncTaskOfTSimpleLambda()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -1504,7 +1504,7 @@ class Program
 
         [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateFieldInAsyncParenthesizedLambda()
+        public async Task TestGenerateFieldInAsyncTaskOfTParenthesizedLambda()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -6543,7 +6543,7 @@ index: PropertyIndex);
 
         [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGeneratePropertyInExpressionBodiedAsyncMethod()
+        public async Task TestGeneratePropertyInExpressionBodiedAsyncTaskOfTMethod()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -7969,7 +7969,7 @@ index: PropertyIndex);
 
         [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGeneratePropertyInExpressionBodiedAsyncLocalFunction()
+        public async Task TestGeneratePropertyInExpressionBodiedAsyncTaskOfTLocalFunction()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -8104,7 +8104,7 @@ index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGeneratePropertyInBlockBodiedAsyncLocalFunction()
+        public async Task TestGeneratePropertyInBlockBodiedAsyncTaskOfTLocalFunction()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
