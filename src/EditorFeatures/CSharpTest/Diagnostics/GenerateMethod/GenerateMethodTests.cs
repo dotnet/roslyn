@@ -2514,7 +2514,7 @@ class C
 
         [WorkItem(538993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538993")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public async Task TestGenerateInLambda()
+        public async Task TestGenerateInSimpleLambda()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -2523,7 +2523,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, int> f = x => [|Goo|](x);
+        Func<string, int> f = x => [|Goo|](x);
     }
 }",
 @"using System;
@@ -2532,10 +2532,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, int> f = x => Goo(x);
+        Func<string, int> f = x => Goo(x);
     }
 
-    private static int Goo(int x)
+    private static int Goo(string x)
     {
         throw new NotImplementedException();
     }
@@ -2543,7 +2543,100 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public async Task TestGenerateInAnonymousMethod()
+        public async Task TestGenerateInParenthesizedLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int> f = () => [|Goo|]();
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int> f = () => Goo();
+    }
+
+    private static int Goo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateInAsyncSimpleLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<string, Task<int>> f = async x => [|Goo|](x);
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<string, Task<int>> f = async x => Goo(x);
+    }
+
+    private static int Goo(string x)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateInAsyncParenthesizedLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<Task<int>> f = async () => [|Goo|]();
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<Task<int>> f = async () => Goo();
+    }
+
+    private static int Goo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateInAssignmentInAnonymousMethod()
         {
             await TestInRegularAndScriptAsync(
 @"class C

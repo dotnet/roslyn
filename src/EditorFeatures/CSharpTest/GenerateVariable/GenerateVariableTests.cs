@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
 {
     public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        private const int FieldIndex = 0;
         private const int ReadonlyFieldIndex = 1;
         private const int PropertyIndex = 2;
         private const int LocalIndex = 3;
@@ -1418,6 +1419,116 @@ class Class
     {
         this.[|Goo|] += Bar();
     }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInSimpleLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<string, int> f = x => [|goo|];
+    }
+}",
+@"using System;
+
+class Program
+{
+    private static int goo;
+
+    static void Main(string[] args)
+    {
+        Func<string, int> f = x => goo;
+    }
+}", FieldIndex);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInParenthesizedLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int> f = () => [|goo|];
+    }
+}",
+@"using System;
+
+class Program
+{
+    private static int goo;
+
+    static void Main(string[] args)
+    {
+        Func<int> f = () => goo;
+    }
+}", FieldIndex);
+        }
+
+        [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInAsyncSimpleLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<string, Task<int>> f = async x => [|goo|];
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    private static int goo;
+
+    static void Main(string[] args)
+    {
+        Func<string, Task<int>> f = async x => goo;
+    }
+}", FieldIndex);
+        }
+
+        [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInAsyncParenthesizedLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<Task<int>> f = async () => [|goo|];
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    private static int goo;
+
+    static void Main(string[] args)
+    {
+        Func<Task<int>> f = async () => goo;
+    }
+}", FieldIndex);
         }
 
         [WorkItem(539427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539427")]
