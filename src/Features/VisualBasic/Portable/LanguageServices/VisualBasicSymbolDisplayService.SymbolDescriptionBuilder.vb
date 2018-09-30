@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Linq
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -158,6 +159,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     AddCaptures(syntax)
                 End If
             End Sub
+
+            Protected Overrides Function FieldDescriptionModifiers(symbol As IFieldSymbol) As IEnumerable(Of SymbolDisplayPart)
+                Dim desc = Enumerable.Empty(Of SymbolDisplayPart)
+
+                If (symbol.IsStatic) Then
+                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.StaticKeyword))).Concat(Space())
+                End If
+
+                If (symbol.IsReadOnly) Then
+                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword))).Concat(Space())
+                End If
+
+                Return desc
+            End Function
 
             Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat
                 Get

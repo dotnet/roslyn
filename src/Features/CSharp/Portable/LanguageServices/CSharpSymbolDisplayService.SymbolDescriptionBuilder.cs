@@ -197,6 +197,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 }
             }
 
+            protected override IEnumerable<SymbolDisplayPart> FieldDescriptionModifiers(IFieldSymbol symbol)
+            {
+                var desc = Enumerable.Empty<SymbolDisplayPart>();
+
+                if (symbol.IsStatic)
+                {
+                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.StaticKeyword)))
+                        .Concat(Space());
+                }
+
+                if (symbol.IsVolatile)
+                {
+                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.VolatileKeyword)))
+                        .Concat(Space());
+                }
+
+                if (symbol.IsReadOnly)
+                {
+                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword)))
+                        .Concat(Space());
+                }
+
+                return desc;
+            }
+
             protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants => s_minimallyQualifiedFormatWithConstants;
