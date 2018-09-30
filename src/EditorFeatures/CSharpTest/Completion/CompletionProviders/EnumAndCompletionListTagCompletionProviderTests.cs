@@ -166,7 +166,7 @@ enum Colors
 
         [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InYieldReturn()
+        public async Task InYieldReturnInMethod()
         {
             var markup =
 @"using System;
@@ -177,6 +177,27 @@ class Program
     IEnumerable<DayOfWeek> M()
     {
         yield return $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InYieldReturnInLocalFunction()
+        {
+            var markup =
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    void M()
+    {
+        IEnumerable<DayOfWeek> F()
+        {
+            yield return $$
+        }
     }
 }";
             await VerifyItemExistsAsync(markup, "DayOfWeek");

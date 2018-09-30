@@ -675,6 +675,26 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInConstructor()
+        {
+            await TestInClassAsync(
+@"C()
+{
+    return [|Goo()|];
+}", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInDestructor()
+        {
+            await TestInClassAsync(
+@"~C()
+{
+    return [|Goo()|];
+}", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestReturnInMethod()
         {
             await TestInClassAsync(
@@ -702,16 +722,103 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestReturnInGetter()
+        public async Task TestReturnInOperator()
         {
             await TestInClassAsync(
-@"int Property
+@"public static C operator ++(C c)
+{
+    return [|Goo()|];
+}", "global::C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInConversionOperator()
+        {
+            await TestInClassAsync(
+@"public static implicit operator int(C c)
+{
+    return [|Goo()|];
+}", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInPropertyGetter()
+        {
+            await TestInClassAsync(
+@"int P
 {
     get
     {
         return [|Goo()|];
     }
 }", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInPropertySetter()
+        {
+            await TestInClassAsync(
+@"int P
+{
+    set
+    {
+        return [|Goo()|];
+    }
+}", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInIndexerGetter()
+        {
+            await TestInClassAsync(
+@"int this[int i]
+{
+    get
+    {
+        return [|Goo()|];
+    }
+}", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInIndexerSetter()
+        {
+            await TestInClassAsync(
+@"int this[int i]
+{
+    set
+    {
+        return [|Goo()|];
+    }
+}", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInEventAdder()
+        {
+            await TestInClassAsync(
+@"event System.EventHandler E
+{
+    add
+    {
+        return [|Goo()|];
+    }
+    remove { }
+}", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnInEventRemover()
+        {
+            await TestInClassAsync(
+@"event System.EventHandler E
+{
+    add { }
+    remove
+    {
+        return [|Goo()|];
+    }
+}", "void");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -748,6 +855,13 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedDestructor()
+        {
+            await TestInClassAsync(
+@"~C() => [|Goo()|];", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestExpressionBodiedMethod()
         {
             await TestInClassAsync(
@@ -770,10 +884,31 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedOperator()
+        {
+            await TestInClassAsync(
+@"public static C operator ++(C c) => [|Goo()|];", "global::C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedConversionOperator()
+        {
+            await TestInClassAsync(
+@"public static implicit operator int(C c) => [|Goo()|];", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestExpressionBodiedProperty()
         {
             await TestInClassAsync(
 @"int P => [|Goo()|];", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedIndexer()
+        {
+            await TestInClassAsync(
+@"int this[int i] => [|Goo()|];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -788,6 +923,34 @@ class C
         {
             await TestInClassAsync(
 @"int P { set => [|Goo()|]; }", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedIndexerGetter()
+        {
+            await TestInClassAsync(
+@"int this[int i] { get => [|Goo()|]; }", "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedIndexerSetter()
+        {
+            await TestInClassAsync(
+@"int this[int i] { set => [|Goo()|]; }", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedEventAdder()
+        {
+            await TestInClassAsync(
+@"event System.EventHandler E { add => [|Goo()|]; remove { } }", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestExpressionBodiedEventRemover()
+        {
+            await TestInClassAsync(
+@"event System.EventHandler E { add { } remove => [|Goo()|]; }", "void");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
