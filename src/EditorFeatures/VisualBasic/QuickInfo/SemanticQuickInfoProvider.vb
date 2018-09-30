@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
 
             Dim semantics = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
-            Dim types = declarators.SelectMany(Function(d) d.Names).Select(
+            Dim types = declarators.SelectMany(Function(d) d.Names).AsParallel.AsOrdered.Select(
                 Function(n)
                     Dim symbol = semantics.GetDeclaredSymbol(n, cancellationToken)
                     If symbol Is Nothing Then

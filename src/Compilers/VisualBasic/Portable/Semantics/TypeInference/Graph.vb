@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class TypeArgumentInference
 
         Private Class GraphNode(Of TGraphNode As GraphNode(Of TGraphNode))
+            Implements IDisposable
 
             Public ReadOnly Graph As Graph(Of TGraphNode)
             Public IsAddedToVertices As Boolean
@@ -25,9 +26,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Protected Sub New(graph As Graph(Of TGraphNode))
                 Me.Graph = graph
                 Me.IsAddedToVertices = False
-                Me.IncomingEdges = New ArrayBuilder(Of TGraphNode)()
-                Me.OutgoingEdges = New ArrayBuilder(Of TGraphNode)()
+                Me.IncomingEdges = ArrayBuilder(Of TGraphNode).GetInstance ' New ArrayBuilder(Of TGraphNode)()
+                Me.OutgoingEdges = ArrayBuilder(Of TGraphNode).GetInstance ' New ArrayBuilder(Of TGraphNode)()
             End Sub
+
+#Region "IDisposable Support"
+            Protected Friend disposedValue As Boolean ' To detect redundant calls
+
+            ' IDisposable
+            Protected Overridable Sub Dispose(disposing As Boolean)
+                If Not disposedValue Then
+                    If disposing Then
+                        ' TODO: dispose managed state (managed objects).
+                        Me.IncomingEdges.Free()
+                        Me.OutgoingEdges.Free()
+                    End If
+
+                    ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
+                    ' TODO: set large fields to null.
+                End If
+                disposedValue = True
+            End Sub
+
+            ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
+            'Protected Overrides Sub Finalize()
+            '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+            '    Dispose(False)
+            '    MyBase.Finalize()
+            'End Sub
+
+            ' This code added by Visual Basic to correctly implement the disposable pattern.
+            Public Sub Dispose() Implements IDisposable.Dispose
+                ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+                Dispose(True)
+                ' TODO: uncomment the following line if Finalize() is overridden above.
+                ' GC.SuppressFinalize(Me)
+            End Sub
+#End Region
 
         End Class
 
@@ -49,20 +84,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class StronglyConnectedComponent(Of TGraphNode As GraphNode(Of TGraphNode))
             Inherits GraphNode(Of StronglyConnectedComponent(Of TGraphNode))
 
+
+
             Public ReadOnly ChildNodes As ArrayBuilder(Of TGraphNode)
 
             Public Sub New(graph As Graph(Of StronglyConnectedComponent(Of TGraphNode)))
                 MyBase.New(graph)
-                ChildNodes = New ArrayBuilder(Of TGraphNode)()
+                ChildNodes = ArrayBuilder(Of TGraphNode).GetInstance
+            End Sub
+
+            Protected Overrides Sub Dispose(disposing As Boolean)
+                If Not disposedValue Then
+                    If disposing Then
+                        Me.ChildNodes.Free()
+                        MyBase.Dispose(disposing)
+                    End If
+                End If
             End Sub
         End Class
 
         Private Class Graph(Of TGraphNode As GraphNode(Of TGraphNode))
+            Implements IDisposable
 
             Public ReadOnly Vertices As ArrayBuilder(Of TGraphNode)
 
             Public Sub New()
-                Vertices = New ArrayBuilder(Of TGraphNode)()
+                Vertices = ArrayBuilder(Of TGraphNode).GetInstance
             End Sub
 
             Public Sub AddEdge(
@@ -229,6 +276,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function Contains(node As TGraphNode) As Boolean
                 Return node.Graph Is Me AndAlso node.IsAddedToVertices
             End Function
+
+#Region "IDisposable Support"
+            Private disposedValue As Boolean ' To detect redundant calls
+
+            ' IDisposable
+            Protected Overridable Sub Dispose(disposing As Boolean)
+                If Not disposedValue Then
+                    If disposing Then
+                        ' TODO: dispose managed state (managed objects).
+                        Me.Vertices.Free()
+                    End If
+
+                    ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
+                    ' TODO: set large fields to null.
+                End If
+                disposedValue = True
+            End Sub
+
+            ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
+            'Protected Overrides Sub Finalize()
+            '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+            '    Dispose(False)
+            '    MyBase.Finalize()
+            'End Sub
+
+            ' This code added by Visual Basic to correctly implement the disposable pattern.
+            Public Sub Dispose() Implements IDisposable.Dispose
+                ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+                Dispose(True)
+                ' TODO: uncomment the following line if Finalize() is overridden above.
+                ' GC.SuppressFinalize(Me)
+            End Sub
+#End Region
 
         End Class
 

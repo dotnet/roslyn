@@ -69,7 +69,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
             ' We'll keep going to the left to see if we find a LineContinuation trivia before we see more than one newline
             Dim alreadySawNewLine = False
-
             Do While trivia.Kind <> SyntaxKind.None
                 If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
                     Dim lineNumberOfContinuation = snapshot.GetLineNumberFromPosition(trivia.SpanStart)
@@ -106,9 +105,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Return New ContainingStatementInfo(containingDirective)
             End If
 
-            Dim containingStatement = token.GetAncestors(Of StatementSyntax) _
-                                           .Where(Function(a) Not TypeOf a Is LambdaHeaderSyntax) _
-                                           .FirstOrDefault()
+            Dim containingStatement = token.GetAncestors(Of StatementSyntax).
+                                            Where(Function(a) TypeOf a IsNot LambdaHeaderSyntax).
+                                            FirstOrDefault()
 
             Dim containingTypeStatement = TryCast(containingStatement, TypeStatementSyntax)
             If containingTypeStatement IsNot Nothing Then
