@@ -3989,6 +3989,30 @@ static class Program
 }");
         }
 
+        [WorkItem(29264, "https://github.com/dotnet/roslyn/issues/29264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnDictionaryIndexer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+using System.Reflection;
+using System.Collections.Generic;
+using Windows.UI.Xaml.Controls;
+
+static class Program
+{
+    static void Main()
+    {
+        Dictionary<int, string> Icons = new Dictionary<int, string>
+        {
+            [[|(int)|]SymbolKind.Alias] = null,
+        };
+    }
+}
+");
+        }
+
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnCallToAttributeWithParamsArgsAndProperty()
