@@ -3988,7 +3988,7 @@ static class Program
   }
 }");
         }
-
+        
         [WorkItem(29264, "https://github.com/dotnet/roslyn/issues/29264")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnDictionaryIndexer()
@@ -3998,15 +3998,19 @@ static class Program
 using System;
 using System.Reflection;
 using System.Collections.Generic;
-using Windows.UI.Xaml.Controls;
 
 static class Program
 {
+    enum TestEnum
+    {
+        Test,
+    }
+
     static void Main()
     {
         Dictionary<int, string> Icons = new Dictionary<int, string>
         {
-            [[|(int)|]SymbolKind.Alias] = null,
+            [[|(int)|]TestEnum.Test] = null,
         };
     }
 }
