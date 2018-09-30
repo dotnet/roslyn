@@ -6281,7 +6281,7 @@ index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateFieldInExpressionBodyMember()
+        public async Task TestGenerateFieldInExpressionBodiedProperty()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -6297,7 +6297,7 @@ index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateReadonlyFieldInExpressionBodyMember()
+        public async Task TestGenerateReadonlyFieldInExpressionBodiedProperty()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -6314,7 +6314,7 @@ index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGeneratePropertyInExpressionBodyMember()
+        public async Task TestGeneratePropertyInExpressionBodiedProperty()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -6331,7 +6331,7 @@ index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateFieldInExpressionBodyMember2()
+        public async Task TestGenerateFieldInExpressionBodiedOperator()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -6347,7 +6347,7 @@ index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateReadOnlyFieldInExpressionBodyMember2()
+        public async Task TestGenerateReadOnlyFieldInExpressionBodiedOperator()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -6364,7 +6364,7 @@ index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGeneratePropertyInExpressionBodyMember2()
+        public async Task TestGeneratePropertyInExpressionBodiedOperator()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -6381,7 +6381,7 @@ index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateFieldInExpressionBodyMember3()
+        public async Task TestGenerateFieldInExpressionBodiedMethod()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -6397,7 +6397,7 @@ index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateReadOnlyFieldInExpressionBodyMember3()
+        public async Task TestGenerateReadOnlyFieldInExpressionBodiedMethod()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -6414,7 +6414,7 @@ index: ReadonlyFieldIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGeneratePropertyInExpressionBodyMember3()
+        public async Task TestGeneratePropertyInExpressionBodiedMethod()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -6426,6 +6426,24 @@ index: ReadonlyFieldIndex);
     public static C x { get; private set; }
 
     public static C GetValue(C p) => x;
+}",
+index: PropertyIndex);
+        }
+
+        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGeneratePropertyInExpressionBodiedAsyncMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static async System.Threading.Tasks.Task<C> GetValue(C p) => [|x|];
+}",
+@"class C
+{
+    public static C x { get; private set; }
+
+    public static async System.Threading.Tasks.Task<C> GetValue(C p) => x;
 }",
 index: PropertyIndex);
         }
@@ -7838,6 +7856,30 @@ index: ReadonlyFieldIndex);
 index: PropertyIndex);
         }
 
+        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGeneratePropertyInExpressionBodiedAsyncLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public void Method()
+    {
+        async System.Threading.Tasks.Task<int> Local() => [|prop|];
+    }
+}",
+@"class Program
+{
+    public int prop { get; private set; }
+
+    public void Method()
+    {
+        async System.Threading.Tasks.Task<int> Local() => prop;
+    }
+}",
+index: PropertyIndex);
+        }
+
         [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInExpressionBodiedLocalFunctionInferredFromType()
@@ -7942,6 +7984,35 @@ index: ReadonlyFieldIndex);
     public void Method()
     {
         int Local()
+        {
+            return prop;
+        }
+    }
+}",
+index: PropertyIndex);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGeneratePropertyInBlockBodiedAsyncLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public void Method()
+    {
+        async System.Threading.Tasks.Task<int> Local()
+        {
+            return [|prop|];
+        }
+    }
+}",
+@"class Program
+{
+    public int prop { get; private set; }
+
+    public void Method()
+    {
+        async System.Threading.Tasks.Task<int> Local()
         {
             return prop;
         }
