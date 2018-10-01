@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GeneratedNames.MakeAsyncIteratorPromiseIsActiveFieldName(), isPublic: true);
 
                 // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
-                TypeSymbol elementType = ((AsyncStateMachine)stateMachineType).ElementType;
+                TypeSymbol elementType = ((AsyncStateMachine)stateMachineType).IteratorElementType;
 
                 // Add a field: T current
                 _currentField = F.StateMachineField(elementType, GeneratedNames.MakeIteratorCurrentFieldName());

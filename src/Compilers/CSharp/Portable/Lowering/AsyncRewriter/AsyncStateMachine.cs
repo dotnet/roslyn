@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TypeKind _typeKind;
         private readonly MethodSymbol _constructor;
         private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
-        internal readonly TypeSymbol ElementType; // only for async-iterators
+        internal readonly TypeSymbol IteratorElementType; // only for async-iterators
 
         public AsyncStateMachine(VariableSlotAllocator variableAllocatorOpt, TypeCompilationState compilationState, MethodSymbol asyncMethod, int asyncMethodOrdinal, TypeKind typeKind)
             : base(variableAllocatorOpt, compilationState, asyncMethod, asyncMethodOrdinal)
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (asyncMethod.IsIterator)
             {
                 var elementType = TypeMap.SubstituteType(asyncMethod.IteratorElementType).Type;
-                this.ElementType = elementType;
+                this.IteratorElementType = elementType;
 
                 // IAsyncEnumerable<TResult>
                 interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T).Construct(elementType));
