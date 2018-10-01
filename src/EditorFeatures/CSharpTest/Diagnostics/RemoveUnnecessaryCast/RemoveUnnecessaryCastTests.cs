@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -3988,7 +3989,7 @@ static class Program
   }
 }");
         }
-        
+
         [WorkItem(29264, "https://github.com/dotnet/roslyn/issues/29264")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnDictionaryIndexer()
@@ -4010,11 +4011,10 @@ static class Program
     {
         Dictionary<int, string> Icons = new Dictionary<int, string>
         {
-            [[|(int)|]TestEnum.Test] = null,
+            [[|(int)|] TestEnum.Test] = null,
         };
     }
-}
-");
+}");
         }
 
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
