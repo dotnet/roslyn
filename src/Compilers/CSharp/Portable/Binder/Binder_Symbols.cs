@@ -1782,7 +1782,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!suppressUseSiteDiagnostics)
                         {
-                            wasError = ReportUseSiteDiagnostics(singleResult, diagnostics, where);
+                            if (result.Error != null)
+                                wasError = true;
+                            else
+                                wasError = ReportUseSiteDiagnostics(singleResult, diagnostics, where);
                         }
                         else if (singleResult.Kind == SymbolKind.ErrorType)
                         {
@@ -1832,7 +1835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(symbols.Count > 0);
 
             // Report any errors we encountered with the symbol we looked up.
-            if (!suppressUseSiteDiagnostics)
+            if (!suppressUseSiteDiagnostics && result.Error == null)
             {
                 for (int i = 0; i < symbols.Count; i++)
                 {

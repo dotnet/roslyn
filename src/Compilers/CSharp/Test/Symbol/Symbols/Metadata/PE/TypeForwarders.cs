@@ -936,15 +936,12 @@ class Test
             var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
-                // (8,21): error CS0246: The type or namespace name 'Forwarded' could not be found (are you missing a using directive or an assembly reference?)
+                // (8,21): error CS1069: The type name 'Forwarded' could not be found in the namespace 'Namespace'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
                 //         var f = new Forwarded();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Forwarded").WithArguments("Forwarded"),
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "Forwarded").WithArguments("Forwarded", "Namespace", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using Namespace;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Namespace;"));
-
-            // We'd like to report this diagnostic, but the dev cost is too high.
-            // (8,21): error CS1069: The type name 'Forwarded' could not be found in the namespace 'Namespace'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
         }
 
         [Fact]
