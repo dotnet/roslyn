@@ -3402,7 +3402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var symbol in lookupResult.Symbols)
                     {
                         //PROTOTYPE: for now, just check for the single this param. We probably want to also  allow e.g. dispose(this, int a = 4, params object[] args)
-                        if (symbol is MethodSymbol method && method.ParameterCount == 1)
+                        if (symbol is MethodSymbol method && method.ParameterCount == 1 && !(method.ReduceExtensionMethod(patternType) is null))
                         {
                             candidateMethods.Add(method);
                         }

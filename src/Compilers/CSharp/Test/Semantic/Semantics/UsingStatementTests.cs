@@ -694,6 +694,78 @@ namespace N4
         }
 
         [Fact]
+        public void UsingPatternWithMultipleExtensionTargets()
+        {
+            var source = @"
+class C1
+{
+}
+
+class C2
+{
+}
+
+static class C3 
+{
+    public static void Dispose(this C1 c1) { }
+
+    public static void Dispose(this C2 c2) { }
+
+}
+
+class C4
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+        C1 c1b = new C1();
+        using (c1b) { }
+
+        using (C2 c = new C2())
+        {
+        }
+        C2 c2b = new C2();
+        using (c2b) { }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternWithLessDerivedTarget()
+        {
+            var source = @"
+class C1
+{
+}
+
+class C2 : C1
+{
+}
+
+static class C3 
+{
+    public static void Dispose(this C1 c1) { }
+
+}
+
+class C4
+{
+    static void Main()
+    {
+        using (C2 c = new C2())
+        {
+        }
+        C2 c2b = new C2();
+        using (c2b) { }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UsingPatternWithParamsTest()
         {
             var source = @"
