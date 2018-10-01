@@ -1,10 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Linq
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -160,18 +160,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 End If
             End Sub
 
-            Protected Overrides Function FieldDescriptionModifiers(symbol As IFieldSymbol) As IEnumerable(Of SymbolDisplayPart)
-                Dim desc = Enumerable.Empty(Of SymbolDisplayPart)
+            Protected Overrides Function FieldDescriptionModifiers(symbol As IFieldSymbol) As ImmutableArray(Of SymbolDisplayPart)
+                Dim modifiers = New ArrayBuilder(Of SymbolDisplayPart)
 
                 If (symbol.IsStatic) Then
-                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.SharedKeyword))).Concat(Space())
+                    modifiers.AddRange(Keyword(SyntaxFacts.GetText(SyntaxKind.SharedKeyword)))
+                    modifiers.AddRange(Space())
                 End If
 
                 If (symbol.IsReadOnly) Then
-                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword))).Concat(Space())
+                    modifiers.AddRange(Keyword(SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword)))
+                    modifiers.AddRange(Space())
                 End If
 
-                Return desc
+                Return modifiers.ToImmutableAndFree()
             End Function
 
             Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat

@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     .Concat(Space());
             }
 
-            protected abstract IEnumerable<SymbolDisplayPart> FieldDescriptionModifiers(IFieldSymbol symbol);
+            protected abstract ImmutableArray<SymbolDisplayPart> FieldDescriptionModifiers(IFieldSymbol symbol);
 
             protected IEnumerable<SymbolDisplayPart> Keyword(string text)
             {

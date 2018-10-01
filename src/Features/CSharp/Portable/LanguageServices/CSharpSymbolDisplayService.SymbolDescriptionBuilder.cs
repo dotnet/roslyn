@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -197,29 +198,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 }
             }
 
-            protected override IEnumerable<SymbolDisplayPart> FieldDescriptionModifiers(IFieldSymbol symbol)
+            protected override ImmutableArray<SymbolDisplayPart> FieldDescriptionModifiers(IFieldSymbol symbol)
             {
-                var desc = Enumerable.Empty<SymbolDisplayPart>();
+                var modifiers = new ArrayBuilder<SymbolDisplayPart>();
 
                 if (symbol.IsStatic)
                 {
-                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.StaticKeyword)))
-                        .Concat(Space());
+                    modifiers.AddRange(Keyword(SyntaxFacts.GetText(SyntaxKind.StaticKeyword)));
+                    modifiers.AddRange(Space());
                 }
 
                 if (symbol.IsVolatile)
                 {
-                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.VolatileKeyword)))
-                        .Concat(Space());
+                    modifiers.AddRange(Keyword(SyntaxFacts.GetText(SyntaxKind.VolatileKeyword)));
+                    modifiers.AddRange(Space());
                 }
 
                 if (symbol.IsReadOnly)
                 {
-                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword)))
-                        .Concat(Space());
+                    modifiers.AddRange(Keyword(SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword)));
+                    modifiers.AddRange(Space());
                 }
 
-                return desc;
+                return modifiers.ToImmutableAndFree();
             }
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;
