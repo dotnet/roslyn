@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                   syntaxNode.SyntaxTree,
                                                                   MessageID.IDS_Disposable);
 
-            // we failed if we didn't find a void returing method; try searching extension methods
+            // we failed if we didn't find a void returning method; try searching extension methods
             // PROTOTYPE: what happens if there is a no arg int returning method, but a params object[] void returning. Currently, overload resolution would choose the int return, and we'd fail here.
             if (disposeMethod is null || !disposeMethod.ReturnsVoid)
             {
