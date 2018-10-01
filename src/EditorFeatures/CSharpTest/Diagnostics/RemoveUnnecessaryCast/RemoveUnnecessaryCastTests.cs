@@ -4017,6 +4017,53 @@ static class Program
 }");
         }
 
+        [WorkItem(29264, "https://github.com/dotnet/roslyn/issues/29264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastOnDictionaryIndexer()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+using System;
+using System.Reflection;
+using System.Collections.Generic;
+
+static class Program
+{
+    enum TestEnum
+    {
+        Test,
+    }
+
+    static void Main()
+    {
+        Dictionary<int, string> Icons = new Dictionary<int, string>
+        {
+            [[|(int)|] 0] = null,
+        };
+    }
+}",
+                @"
+using System;
+using System.Reflection;
+using System.Collections.Generic;
+
+static class Program
+{
+    enum TestEnum
+    {
+        Test,
+    }
+
+    static void Main()
+    {
+        Dictionary<int, string> Icons = new Dictionary<int, string>
+        {
+            [0] = null,
+        };
+    }
+}");
+        }
+
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnCallToAttributeWithParamsArgsAndProperty()
