@@ -88,3 +88,4 @@ override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetSymbolsWithName(stri
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.QuestionQuestionEqualsToken = 8284 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CoalesceAssignmentExpression = 8725 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseMemberDeclaration(string text, int offset = 0, Microsoft.CodeAnalysis.ParseOptions options = null, bool consumeFullText = true) -> Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax

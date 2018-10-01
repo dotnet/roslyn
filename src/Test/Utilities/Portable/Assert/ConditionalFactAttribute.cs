@@ -37,6 +37,11 @@ namespace Roslyn.Test.Utilities
 
         public const string TestExecutionHasCOMInterop = "Test execution depends on COM Interop";
         public const string TestHasWindowsPaths = "Test depends on Windows style paths";
+
+        /// <summary>
+        /// Edit and continue is only supported on desktop at the moment.
+        /// </summary>
+        public const string EditAndContinueRequiresDesktop = "Edit and continue is only supported on desktop";
     }
 
     public class ConditionalFactAttribute : FactAttribute
@@ -130,6 +135,8 @@ namespace Roslyn.Test.Utilities
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsDesktop => CoreClrShim.AssemblyLoadContext.Type == null;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
+        public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
+        public static bool IsCoreClr => !IsDesktop;
     }
 
     public class x86 : ExecutionCondition
