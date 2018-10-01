@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
@@ -18,15 +19,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private WellKnownTypeProvider(Compilation compilation)
         {
             Compilation = compilation;
-            Exception = Analyzer.Utilities.WellKnownTypes.Exception(compilation);
-            Contract = Analyzer.Utilities.WellKnownTypes.SystemDiagnosticContractsContract(compilation);
-            IDisposable = Analyzer.Utilities.WellKnownTypes.IDisposable(compilation);
-            Monitor = Analyzer.Utilities.WellKnownTypes.Monitor(compilation);
-            Task = Analyzer.Utilities.WellKnownTypes.Task(compilation);
+            TypeToFullName = new Dictionary<ISymbol, string>();
+            FullNameToType = new Dictionary<string, INamedTypeSymbol>();
+
+            Exception = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemException);
+            Contract = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemDiagnosticContractsContract);
+            IDisposable = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemIDisposable);
+            Monitor = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemThreadingMonitor);
+            Task = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemThreadingTasksTask);
             CollectionTypes = GetWellKnownCollectionTypes(compilation);
-            SerializationInfo = Analyzer.Utilities.WellKnownTypes.SerializationInfo(compilation);
-            GenericIEquatable = Analyzer.Utilities.WellKnownTypes.GenericIEquatable(compilation);
-            BinaryFormatter = Analyzer.Utilities.WellKnownTypes.BinaryFormatter(compilation);
+            SerializationInfo = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemRuntimeSerializationSerializationInfo);
+            GenericIEquatable = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemIEquatable1);
+            BinaryFormatter = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemRuntimeSerializationFormattersBinaryBinaryFormatter);
+            LosFormatter = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemWebUILosFormatter);
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation) => s_providerCache.GetValue(compilation, s_ProviderCacheCallback);
@@ -68,7 +73,67 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         public INamedTypeSymbol GenericIEquatable { get; }
 
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Runtime.Serialization.Formatters.Binary.BinaryFormatter"/>
+        /// </summary>
         public INamedTypeSymbol BinaryFormatter { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Web.UI.LosFormatter"/>
+        /// </summary>
+        public INamedTypeSymbol LosFormatter { get; }
+
+        /// <summary>
+        /// Mapping of <see cref="ISymbol"/> to full name (e.g. "System.Exception").
+        /// </summary>
+        private Dictionary<ISymbol, string> TypeToFullName { get; }
+
+        /// <summary>
+        /// Mapping of full name to <see cref="INamedTypeSymbol"/>.
+        /// </summary>
+        private Dictionary<string, INamedTypeSymbol> FullNameToType { get; }
+
+        /// <summary>
+        /// Attempts to get the full type name (namespace + type) of the specifed symbol.
+        /// </summary>
+        /// <param name="symbol">Symbol, if any.</param>
+        /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
+        /// <returns>True if found, false otherwise.</returns>
+        /// <remarks>This only works for types that this <see cref="WellKnownTypeProvider"/> knows about.</remarks>
+        public bool TryGetKnownFullTypeName(ISymbol symbol, out string fullTypeName)
+        {
+            return TypeToFullName.TryGetValue(symbol, out fullTypeName);
+        }
+
+        /// <summary>
+        /// Attempts to get the type by the full type name.
+        /// </summary>
+        /// <param name="fullTypeName">>Namespace + type name, e.g. "System.Exception".</param>
+        /// <param name="namedTypeSymbol">Named type symbol, if any.</param>
+        /// <returns>True if found, false otherwise.</returns>
+        /// <remarks>This only works for types that this <see cref="WellKnownTypeProvider"/> knows about.</remarks>
+        public bool TryGetKnownType(string fullTypeName, out INamedTypeSymbol namedTypeSymbol)
+        {
+            return FullNameToType.TryGetValue(fullTypeName, out namedTypeSymbol);
+        }
+
+        /// <summary>
+        /// Gets the INamedTypeSymbol from the compilation and caches a mapping from the INamedTypeSymbol to its canonical name.
+        /// </summary>
+        /// <param name="compilation">Compilation from which to retrieve the INamedTypeSymbol from.</param>
+        /// <param name="metadataName">Metadata name.</param>
+        /// <returns>INamedTypeSymbol, if any.</returns>
+        private INamedTypeSymbol GetTypeByMetadataName(Compilation compilation, string metadataName)
+        {
+            INamedTypeSymbol namedTypeSymbol = compilation.GetTypeByMetadataName(metadataName);
+            if (namedTypeSymbol != null)
+            {
+                this.TypeToFullName.Add(namedTypeSymbol, metadataName);
+                this.FullNameToType.Add(metadataName, namedTypeSymbol);
+            }
+
+            return namedTypeSymbol;
+        }
 
         /// <summary>
         /// Set containing following named types, if not null:
@@ -78,22 +143,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         public ImmutableHashSet<INamedTypeSymbol> CollectionTypes { get; }
 
-        private static ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes(Compilation compilation)
+        private ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes(Compilation compilation)
         {
             var builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
-            var iCollection = Analyzer.Utilities.WellKnownTypes.ICollection(compilation);
+            var iCollection = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemCollectionsICollection);
             if (iCollection != null)
             {
                 builder.Add(iCollection);
             }
 
-            var genericICollection = Analyzer.Utilities.WellKnownTypes.GenericICollection(compilation);
+            var genericICollection = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemCollectionsGenericICollection);
             if (genericICollection != null)
             {
                 builder.Add(genericICollection);
             }
 
-            var genericIReadOnlyCollection = Analyzer.Utilities.WellKnownTypes.GenericIReadOnlyCollection(compilation);
+            var genericIReadOnlyCollection = GetTypeByMetadataName(compilation, Analyzer.Utilities.WellKnownTypes.SystemCollectionsGenericIReadOnlyCollection);
             if (genericIReadOnlyCollection != null)
             {
                 builder.Add(genericIReadOnlyCollection);

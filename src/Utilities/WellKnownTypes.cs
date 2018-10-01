@@ -7,8 +7,18 @@ namespace Analyzer.Utilities
 {
     internal static class WellKnownTypes
     {
+        public const string SystemException = "System.Exception";
+        public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
+        public const string SystemIDisposable = "System.IDisposable";
+        public const string SystemThreadingMonitor = "System.Threading.Monitor";
+        public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
+        public const string SystemCollectionsICollection = "System.Collections.ICollection";
+        public const string SystemCollectionsGenericICollection = "System.Collections.Generic.ICollection`1";
+        public const string SystemCollectionsGenericIReadOnlyCollection = "System.Collections.Generic.IReadOnlyCollection`1";
+        public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
+        public const string SystemIEquatable1 = "System.IEquatable`1";
         public const string SystemRuntimeSerializationFormattersBinaryBinaryFormatter = "System.Runtime.Serialization.Formatters.Binary.BinaryFormatter";
-
+        public const string SystemWebUILosFormatter = "System.Web.UI.LosFormatter";
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.ICollection");
@@ -42,11 +52,6 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol GenericIEnumerator(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerator`1");
-        }
-
-        internal static INamedTypeSymbol BinaryFormatter(Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName(SystemRuntimeSerializationFormattersBinaryBinaryFormatter);
         }
 
         public static INamedTypeSymbol IList(Compilation compilation)
@@ -578,11 +583,6 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol NunitTheory(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("NUnit.Framework.TheoryAttribute");
-        }
-
-        public static INamedTypeSymbol SystemDiagnosticContractsContract(Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Diagnostics.Contracts.Contract");
         }
 
         public static INamedTypeSymbol XmlWriter(Compilation compilation)
