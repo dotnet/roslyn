@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsMoveType = "CodeActions.MoveType";
             public const string CodeActionsOrderModifiers = "CodeActions.OrderModifiers";
             public const string CodeActionsPopulateSwitch = "CodeActions.PopulateSwitch";
+            public const string CodeActionsPushMemberUp = "CodeActions.PushMemberup";
             public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";
             public const string CodeActionsReplaceDocCommentTextWithTag = "CodeActions.ReplaceDocCommentTextWithTag";
             public const string CodeActionsReplaceMethodWithProperty = "CodeActions.ReplaceMethodWithProperty";

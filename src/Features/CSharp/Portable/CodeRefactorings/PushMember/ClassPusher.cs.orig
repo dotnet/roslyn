@@ -1,0 +1,91 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
+using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
+
+namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PushMember
+{
+    internal class ClassPusher
+    {
+        private SyntaxNode UserSelectedNode { get; set; }
+        private INamedTypeSymbol TargetClassSymbol { get; set; }
+
+        private static bool CanPushDirectly(MethodDeclarationSyntax userSelectedNode, INamedTypeSymbol targetClassSymbol)
+        {
+            // Abstract member can't be push to non-abstract class
+            if (targetClassSymbol.IsAbstract)
+            {
+                return true;
+            }
+            else
+            {
+                return !userSelectedNode.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.AbstractKeyword));
+            }
+        }
+
+        public static CodeAction ComputeRefactoring(
+            INamedTypeSymbol targetClassSymbol,
+            MemberDeclarationSyntax userSelectedNode,
+            Document contextDocument)
+        {
+            var targetSyntaxRef = targetClassSymbol.DeclaringSyntaxReferences.First();
+            var title = $"Add to class {targetClassSymbol.Name}";
+
+            if (targetSyntaxRef.SyntaxTree == userSelectedNode.SyntaxTree)
+            {
+                // Create a document wide action
+                return new DocumentChangeAction(
+                    title,
+                    async _ =>
+                    {
+                        var editor = await DocumentEditor.CreateAsync(contextDocument).ConfigureAwait(false);
+                        editor.RemoveNode(userSelectedNode);
+                        editor.InsertMembers(targetSyntaxRef.GetSyntax(), 0, new List<MemberDeclarationSyntax>() { userSelectedNode});
+                        return editor.GetChangedDocument();
+                    });
+            }
+            else
+            {
+                // Create a solution wide action
+                return new SolutionChangeAction
+                (
+                    title,
+                    async _ =>
+                    {
+<<<<<<< HEAD
+                        var contextRoot = await contextDocument.GetSyntaxRootAsync().ConfigureAwait(false);
+                        var removedMemberRoot = contextRoot.RemoveNode(userSelectedNode, SyntaxRemoveOptions.KeepNoTrivia);
+
+                        var targetSyntax = (await targetSyntaxRef.GetSyntaxAsync().ConfigureAwait(false)) as ClassDeclarationSyntax;
+                        Debug.Assert(targetSyntax != null, "Push to a null class");
+                        var targetClassSyntaxRoot = targetSyntax.AddMembers(userSelectedNode);
+
+                        var solution = contextDocument.Project.Solution;
+                        return solution.WithDocumentSyntaxRoot();
+=======
+                        var solution = contextDocument.Project.Solution;
+                        var solutionEditor = new SolutionEditor(solution);
+                        var targetDocument = solution.GetDocument(targetSyntaxRef.SyntaxTree);
+
+                        var contextDocumentEditor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Id);
+                        var targetDocumentEditor = await solutionEditor.GetDocumentEditorAsync(targetDocument.Id);
+
+                        // Remove in old
+                        contextDocumentEditor.RemoveNode(userSelectedNode, SyntaxRemoveOptions.KeepNoTrivia);
+
+                        // Insert in new
+                        targetDocumentEditor.AddMember(targetSyntaxRef.GetSyntax(), userSelectedNode);
+
+                        return solutionEditor.GetChangedSolution();
+>>>>>>> Simplify the code by semantic model
+                    }
+                );
+            }
+        }
+    }
+}
