@@ -108,6 +108,86 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Await TestCSharpAsync(workspace, $"({FeaturesResources.local_constant}) int x = 2")
         End Function
 
+        <Fact>
+        Public Async Function TestCSharpStaticField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Foo
+            {
+                private static int $$x;
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"(static {FeaturesResources.field}) int Foo.x")
+        End Function
+
+        <Fact>
+        Public Async Function TestCSharpReadOnlyField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Foo
+            {
+                private readonly int $$x;
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"(readonly {FeaturesResources.field}) int Foo.x")
+        End Function
+
+        <Fact>
+        Public Async Function TestCSharpVolatileField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Foo
+            {
+                private volatile int $$x;
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"(volatile {FeaturesResources.field}) int Foo.x")
+        End Function
+
+        <Fact>
+        Public Async Function TestCSharpStaticReadOnlyField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Foo
+            {
+                private static readonly int $$x;
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"(static readonly {FeaturesResources.field}) int Foo.x")
+        End Function
+
+        <Fact>
+        Public Async Function TestCSharpStaticVolatileField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Foo
+            {
+                private static volatile int $$x;
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"(static volatile {FeaturesResources.field}) int Foo.x")
+        End Function
+
 #End Region
 
 #Region "Basic SymbolDescription Tests"
@@ -436,6 +516,60 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
             Await TestBasicAsync(workspace, $"({FeaturesResources.field}) Goo.field As Integer")
+        End Function
+
+        <Fact>
+        Public Async Function TestSharedField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Goo
+                private Shared field as Integer
+                sub Method()
+                    fie$$ld = 5
+                End sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestBasicAsync(workspace, $"(Shared {FeaturesResources.field}) Goo.field As Integer")
+        End Function
+
+        <Fact>
+        Public Async Function TestReadOnlyField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Goo
+                private ReadOnly field as Integer
+                sub Method()
+                    fie$$ld = 5
+                End sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestBasicAsync(workspace, $"(ReadOnly {FeaturesResources.field}) Goo.field As Integer")
+        End Function
+
+        <Fact>
+        Public Async Function TestSharedReadOnlyField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Goo
+                private Shared ReadOnly field as Integer
+                sub Method()
+                    fie$$ld = 5
+                End sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestBasicAsync(workspace, $"(Shared ReadOnly {FeaturesResources.field}) Goo.field As Integer")
         End Function
 
         <Fact>

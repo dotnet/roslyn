@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 Dim desc = Enumerable.Empty(Of SymbolDisplayPart)
 
                 If (symbol.IsStatic) Then
-                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.StaticKeyword))).Concat(Space())
+                    desc = desc.Concat(Keyword(SyntaxFacts.GetText(SyntaxKind.SharedKeyword))).Concat(Space())
                 End If
 
                 If (symbol.IsReadOnly) Then
