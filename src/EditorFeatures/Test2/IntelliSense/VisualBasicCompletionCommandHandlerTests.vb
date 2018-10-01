@@ -2947,22 +2947,19 @@ End Class
         <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionDoesNotRemoveBracketsOnEnum(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
-                       <document>
+                       <Document>
                           Class C
                              Sub S
-                                 [$$]
+                                 [$$] 
                              End Sub
                          End Class
-                       </document>)
+                       </Document>)
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars("Enu")
-                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="Enum", isHardSelected:=True)
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
-                Assert.Equal("[Enum]", state.GetLineTextFromCaretPosition().Trim())
-                state.SendTypeChars(".")
-                Await state.AssertCompletionSession()
+                Assert.Contains("[Enum]", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
