@@ -2959,7 +2959,7 @@ End Class
                 state.SendTypeChars("Enu")
                 Await state.AssertSelectedCompletionItem(displayText:="Enum", isHardSelected:=True)
                 state.SendTab()
-                Assert.Contains("[Enum]", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("[Enum]", state.GetDocumentText(), StringComparison.Ordinal)
             End Using
         End Function
 
