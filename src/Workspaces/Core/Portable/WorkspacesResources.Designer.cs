@@ -1053,6 +1053,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to NameReference.
+        /// </summary>
+        internal static string NameReference {
+            get {
+                return ResourceManager.GetString("NameReference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nested quantifier {0}.
         /// </summary>
         internal static string Nested_quantifier_0 {
@@ -1215,11 +1224,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Read.
+        /// </summary>
+        internal static string Read {
+            get {
+                return ResourceManager.GetString("Read", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Refactoring Only.
         /// </summary>
         internal static string Refactoring_Only {
             get {
                 return ResourceManager.GetString("Refactoring_Only", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference.
+        /// </summary>
+        internal static string Reference {
+            get {
+                return ResourceManager.GetString("Reference", resourceCulture);
             }
         }
         
@@ -1788,6 +1815,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Workspace_is_not_empty {
             get {
                 return ResourceManager.GetString("Workspace_is_not_empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Write.
+        /// </summary>
+        internal static string Write {
+            get {
+                return ResourceManager.GetString("Write", resourceCulture);
             }
         }
         

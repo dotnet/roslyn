@@ -747,4 +747,16 @@
   <data name="Refactoring_Only" xml:space="preserve">
     <value>Refactoring Only</value>
   </data>
+  <data name="NameReference" xml:space="preserve">
+    <value>NameReference</value>
+  </data>
+  <data name="Read" xml:space="preserve">
+    <value>Read</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="Write" xml:space="preserve">
+    <value>Write</value>
+  </data>
 </root>

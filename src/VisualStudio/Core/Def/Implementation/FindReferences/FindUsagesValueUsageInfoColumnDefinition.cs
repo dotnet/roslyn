@@ -32,8 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         // Allow filtering of the column by each ValueUsageInfo kind.
         private static readonly ImmutableArray<string> s_defaultFilters = Enum.GetValues(typeof(ValueUsageInfo))
                                                                 .Cast<ValueUsageInfo>()
-                                                                .Where(value => value != ValueUsageInfo.None && (value & (value - 1)) == 0) // Single bit set
-                                                                .Select(v => v.ToString())
+                                                                .Where(value => value != ValueUsageInfo.None && value.IsSingleBitSet())
+                                                                .Select(v => v.ToLocalizableString())
                                                                 .ToImmutableArray();
         public override IEnumerable<string> FilterPresets => s_defaultFilters;
         public override bool IsFilterable => true;

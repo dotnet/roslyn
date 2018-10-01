@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Indicates if this is a location where the reference is written to.
         /// </summary>
-        internal bool IsWrittenTo => ValueUsageInfo.ContainsWriteOrWritableReference();
+        internal bool IsWrittenTo => ValueUsageInfo.IsWrittenTo();
 
         /// <summary>
         /// Value usage info for this reference.

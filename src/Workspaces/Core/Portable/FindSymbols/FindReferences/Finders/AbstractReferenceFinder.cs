@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                         var location = token.GetLocation();
                         var valueUsageInfo = semanticModel.GetValueUsageInfo(token.Parent, semanticFacts, cancellationToken);
-                        var isWrittenTo = valueUsageInfo.ContainsWriteOrWritableReference();
+                        var isWrittenTo = valueUsageInfo.IsWrittenTo();
                         locations.Add(new FinderLocation(token.Parent, new ReferenceLocation(
                             document, alias, location, isImplicit: false,
                             valueUsageInfo: valueUsageInfo, candidateReason: match.reason)));

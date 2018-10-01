@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ValueUsageInfo valueUsageInfo)
             : this(definition, sourceSpan, GetOrCreateReferenceInfo(valueUsageInfo))
         {
-            IsWrittenTo = valueUsageInfo.ContainsWriteOrWritableReference();
+            IsWrittenTo = valueUsageInfo.IsWrittenTo();
         }
 
         private static MultiDictionary<string, string> GetOrCreateReferenceInfo(ValueUsageInfo valueUsageInfo)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         private static MultiDictionary<string, string> CreateReferenceInfo(ValueUsageInfo valueUsageInfo)
         {
             var referenceInfo = new MultiDictionary<string, string>();
-            foreach (var value in valueUsageInfo.ToValues())
+            foreach (var value in valueUsageInfo.ToLocalizableValues())
             {
                 referenceInfo.Add(nameof(ValueUsageInfo), value);
             }

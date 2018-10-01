@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -11,37 +12,31 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Represents default value indicating no usage.
         /// </summary>
-        None = 0x00000,
+        None = 0x0000,
 
         /// <summary>
         /// Represents a value read.
         /// For example, reading the value of a local/field/parameter.
         /// </summary>
-        Read = 0x00001,
+        Read = 0x0001,
 
         /// <summary>
         /// Represents a value write.
         /// For example, assigning a value to a local/field/parameter.
         /// </summary>
-        Write = 0x00010,
+        Write = 0x0010,
 
         /// <summary>
-        /// Represents a readable reference being taken to the value.
-        /// For example, passing an argument to an "in" or "ref readonly" parameter.
+        /// Represents a reference being taken for the symbol.
+        /// For example, passing an argument to an "in", "ref" or "out" parameter.
         /// </summary>
-        ReadableReference = 0x00100,
+        Reference = 0x0100,
 
         /// <summary>
-        /// Represents a readable reference being taken to the value.
-        /// For example, passing an argument to an "out" parameter.
-        /// </summary>
-        WritableReference = 0x01000,
-
-        /// <summary>
-        /// Represents a symbol reference that neither reads nor writes the underlying value.
+        /// Represents a name reference that neither reads nor writes the underlying value.
         /// For example, 'nameof(x)' does not read or write the underlying value stored in 'x'.
         /// </summary>
-        NonReadWriteReference = 0x10000,
+        NameReference = 0x1000,
 
         /// <summary>
         /// Represents a value read and/or write.
@@ -50,33 +45,72 @@ namespace Microsoft.CodeAnalysis
         ReadWrite = Read | Write,
 
         /// <summary>
+        /// Represents a readable reference being taken to the value.
+        /// For example, passing an argument to an "in" or "ref readonly" parameter.
+        /// </summary>
+        ReadableReference = Read | Reference,
+
+        /// <summary>
+        /// Represents a readable reference being taken to the value.
+        /// For example, passing an argument to an "out" parameter.
+        /// </summary>
+        WritableReference = Write | Reference,
+
+        /// <summary>
         /// Represents a value read or write.
         /// For example, passing an argument to a "ref" parameter.
         /// </summary>
-        ReadableWritableReference = ReadableReference | WritableReference
+        ReadableWritableReference = Read | Write | Reference
     }
 
     internal static class ValueUsageInfoExtensions
     {
-        public static bool ContainsReadOrReadableReference(this ValueUsageInfo valueUsageInfo)
-            => (valueUsageInfo & (ValueUsageInfo.Read | ValueUsageInfo.ReadableReference)) != 0;
+        public static bool IsReadFrom(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & ValueUsageInfo.Read) != 0;
 
-        public static bool ContainsWriteOrWritableReference(this ValueUsageInfo valueUsageInfo)
-            => (valueUsageInfo & (ValueUsageInfo.Write | ValueUsageInfo.WritableReference)) != 0;
+        public static bool IsWrittenTo(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & ValueUsageInfo.Write) != 0;
 
-        public static bool ContainsNonReadWriteReference(this ValueUsageInfo valueUsageInfo)
-            => (valueUsageInfo & ValueUsageInfo.NonReadWriteReference) != 0;
+        public static bool IsNameReference(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & ValueUsageInfo.NameReference) != 0;
 
-        public static IEnumerable<string> ToValues(this ValueUsageInfo valueUsageInfo)
+        public static string ToLocalizableString(this ValueUsageInfo value)
+        {
+            // We don't support localizing value combinations.
+            Debug.Assert(value.IsSingleBitSet());
+
+            switch (value)
+            {
+                case ValueUsageInfo.Read:
+                    return WorkspacesResources.Read;
+
+                case ValueUsageInfo.Write:
+                    return WorkspacesResources.Write;
+
+                case ValueUsageInfo.Reference:
+                    return WorkspacesResources.Reference;
+
+                case ValueUsageInfo.NameReference:
+                    return WorkspacesResources.NameReference;
+
+                default:
+                    Debug.Fail($"Unhandled value: '{value.ToString()}'");
+                    return value.ToString();
+            }
+        }
+
+        public static bool IsSingleBitSet(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & (valueUsageInfo - 1)) == 0;
+
+        public static IEnumerable<string> ToLocalizableValues(this ValueUsageInfo valueUsageInfo)
         {
             if (valueUsageInfo != ValueUsageInfo.None)
             {
                 foreach (ValueUsageInfo value in Enum.GetValues(typeof(ValueUsageInfo)))
                 {
-                    bool singleBitIsSet = (value & (value - 1)) == 0;
-                    if (singleBitIsSet && (valueUsageInfo & value) != 0)
+                    if (value.IsSingleBitSet() && (valueUsageInfo & value) != 0)
                     {
-                        yield return value.ToString();
+                        yield return value.ToLocalizableString();
                     }
                 }
             }

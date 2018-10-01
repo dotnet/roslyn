@@ -60,13 +60,13 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(parenthesizedOperation.Language == LanguageNames.VisualBasic);
 
                 return parenthesizedOperation.GetValueUsageInfo() &
-                    ~(ValueUsageInfo.Write | ValueUsageInfo.WritableReference);
+                    ~(ValueUsageInfo.Write | ValueUsageInfo.Reference);
             }
             else if (operation.Parent is INameOfOperation ||
                      operation.Parent is ITypeOfOperation ||
                      operation.Parent is ISizeOfOperation)
             {
-                return ValueUsageInfo.NonReadWriteReference;
+                return ValueUsageInfo.NameReference;
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {
