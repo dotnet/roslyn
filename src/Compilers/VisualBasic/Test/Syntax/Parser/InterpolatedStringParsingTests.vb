@@ -922,4 +922,108 @@ BC30648: String constants must end with a double quote.
 
     End Sub
 
+    <Fact>
+    Public Sub Test_KeywordExpression()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As Integer
+  Public Overrides Function ToString() As String
+    Return $""{End.ToString()}""
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+        <expected>
+BC30183: Keyword is not valid as an identifier.
+    Return $"{End.ToString()}"
+              ~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    Public Sub Test_ErrorRecovery_KeywordExpression_InUnclosedInterpolation()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As Integer
+  Public Overrides Function ToString() As String
+    Return $""{End.ToString()""
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+            <expected>
+BC30183: Keyword is not valid as an identifier.
+    Return $"{End.ToString()"
+              ~~~
+BC30370: '}' expected.
+    Return $"{End.ToString()"
+                            ~
+</expected>)
+    End Sub
+
+    <Fact>
+    Public Sub Test_ErrorRecovery_KeywordExpression_InUnclosedInterpolation2()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As DateTime = DateTime.Now
+  Public Overrides Function ToString() As String
+    Return $""{End.Day""
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+                    <expected>
+BC30183: Keyword is not valid as an identifier.
+    Return $"{End.Day"
+              ~~~
+BC30370: '}' expected.
+    Return $"{End.Day"
+                     ~
+</expected>
+        )
+    End Sub
+
+    <Fact>
+    Public Sub Test_ErrorRecovery_KeywordExpression_InUnclosedInterpolation3()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As DateTime? = DateTime.Now
+  Public Overrides Function ToString() As String
+    Return $""{End?.Day""
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+                    <expected>
+BC30183: Keyword is not valid as an identifier.
+    Return $"{End?.Day"
+              ~~~
+BC30370: '}' expected.
+    Return $"{End?.Day"
+                      ~
+</expected>
+        )
+    End Sub
+
+    <Fact>
+    Public Sub Test_ErrorRecovery_KeywordExpression_InUnclosedInterpolation4()
+        Dim code =
+"Class Example
+  Public ReadOnly Property [End] As New System.Collections.Generic.Dictionary(Of String,Integer) From {{""A"", 1},{""B"",2}}
+  Public Overrides Function ToString() As String
+    Return $""{End!A""
+  End Function
+End Class"
+        Dim result = Parse(code)
+        result.AssertTheseDiagnostics(
+                    <expected>
+BC30183: Keyword is not valid as an identifier.
+    Return $"{End!A"
+              ~~~
+BC30370: '}' expected.
+    Return $"{End!A"
+                   ~
+</expected>
+        )
+    End Sub
 End Class
