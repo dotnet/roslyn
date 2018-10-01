@@ -93,13 +93,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString(symbol);
         }
 
-        public static string ToTestDisplayString(this TypeSymbolWithAnnotations symbol, bool includeNonNullable = false)
+        private static SymbolDisplayFormat GetDisplayFormat(bool includeNonNullable)
         {
             var format = SymbolDisplayFormat.TestFormat;
             if (includeNonNullable)
             {
                 format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
             }
+
+            return format;
+        }
+
+        public static string ToTestDisplayString(this TypeSymbolWithAnnotations symbol, bool includeNonNullable = false)
+        {
+            SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
+            return symbol.ToDisplayString(format);
+        }
+
+        public static string ToTestDisplayString(this ISymbol symbol, bool includeNonNullable)
+        {
+            SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
             return symbol.ToDisplayString(format);
         }
     }
