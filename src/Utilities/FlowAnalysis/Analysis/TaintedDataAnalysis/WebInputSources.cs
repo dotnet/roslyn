@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.Operations;
@@ -10,40 +11,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     internal static class WebInputSources
     {
-        /// <summary>
-        /// Info for tainted data sources.
-        /// </summary>
-        private class SourceInfo
-        {
-            /// <summary>
-            /// Constructs.
-            /// </summary>
-            /// <param name="fullTypeName">Full type name of the...type (namespace + type).</param>
-            /// <param name="taintedProperties">Properties that generate tainted data.</param>
-            /// <param name="taintedMethods">Methods that generate tainted data.</param>
-            public SourceInfo(string fullTypeName, HashSet<string> taintedProperties, HashSet<string> taintedMethods)
-            {
-                this.FullTypeName = fullTypeName;
-                this.TaintedProperties = taintedProperties;
-                this.TaintedMethods = taintedMethods;
-            }
-
-            /// <summary>
-            /// Full type name of the...type (namespace + type).
-            /// </summary>
-            public string FullTypeName { get; private set; }
-
-            /// <summary>
-            /// Properties that generate tainted data.
-            /// </summary>
-            public HashSet<string> TaintedProperties { get; private set; }
-
-            /// <summary>
-            /// Methods that generate tainted data.
-            /// </summary>
-            public HashSet<string> TaintedMethods { get; private set; }
-        }
-
         /// <summary>
         /// Metadata for tainted data sources.
         /// </summary>
@@ -87,12 +54,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 });
         }
 
-        private static void AddSourceMetadata(string fullTypeName, IEnumerable<string> taintedProperties, IEnumerable<string> taintedMethods)
+        private static void AddSourceMetadata(string fullTypeName, string[] taintedProperties, string[] taintedMethods)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
-                new HashSet<string>(taintedProperties, StringComparer.Ordinal),
-                new HashSet<string>(taintedMethods, StringComparer.Ordinal));
+                ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedProperties),
+                ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedMethods));
             SourceInfos.Add(metadata.FullTypeName, metadata);
         }
 
