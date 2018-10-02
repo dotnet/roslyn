@@ -7,7 +7,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Doesn't matter.
         /// </summary>
-        NotApplicable,
+        Unknown,
 
         /// <summary>
         /// Not flagged for badness.

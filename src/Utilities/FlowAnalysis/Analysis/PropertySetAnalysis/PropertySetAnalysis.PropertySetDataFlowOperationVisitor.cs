@@ -67,7 +67,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             protected override void SetAbstractValue(AbstractLocation location, PropertySetAbstractValue value)
             {
-                if (value != PropertySetAbstractValue.NotApplicable
+                if (value != PropertySetAbstractValue.Unknown
                     || this.CurrentAnalysisData.ContainsKey(location))
                 {
                     this.CurrentAnalysisData[location] = value;
@@ -153,7 +153,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return baseValue;
             }
 
-            public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, PropertySetAbstractValue defaultValue)
+            public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IInvocationOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
                 if (this._hazardousUsageBuilderOpt != null
@@ -173,25 +173,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                             hasFlagged = true;
                         }
                         else if (locationAbstractValue == PropertySetAbstractValue.MaybeFlagged
-                            || locationAbstractValue == PropertySetAbstractValue.NotApplicable)
+                            || locationAbstractValue == PropertySetAbstractValue.Unknown)
                         {
-                            // NotApplicable also means we don't know.
                             hasMaybeFlagged = true;
                         }
                     }
 
-
                     if (hasFlagged && !hasMaybeFlagged)
                     {
-                        this._hazardousUsageBuilderOpt.Add(
-                            (IInvocationOperation) originalOperation,
-                            PropertySetAbstractValue.Flagged);
+                        this._hazardousUsageBuilderOpt.Add(originalOperation, PropertySetAbstractValue.Flagged);
                     }
                     else if (hasFlagged || hasMaybeFlagged)
                     {
-                        this._hazardousUsageBuilderOpt.Add(
-                            (IInvocationOperation) originalOperation, 
-                            PropertySetAbstractValue.MaybeFlagged);
+                        this._hazardousUsageBuilderOpt.Add(originalOperation, PropertySetAbstractValue.MaybeFlagged);
                     }
                 }
 

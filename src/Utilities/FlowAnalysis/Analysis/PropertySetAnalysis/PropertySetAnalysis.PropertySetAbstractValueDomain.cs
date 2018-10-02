@@ -17,9 +17,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             private PropertySetAbstractValueDomain() { }
 
-            public override PropertySetAbstractValue Bottom => PropertySetAbstractValue.NotApplicable;
+            public override PropertySetAbstractValue Bottom => PropertySetAbstractValue.Unknown;
 
-            public override PropertySetAbstractValue UnknownOrMayBeValue => PropertySetAbstractValue.NotApplicable;
+            public override PropertySetAbstractValue UnknownOrMayBeValue => PropertySetAbstractValue.Unknown;
 
             public override int Compare(PropertySetAbstractValue oldValue, PropertySetAbstractValue newValue)
             {
