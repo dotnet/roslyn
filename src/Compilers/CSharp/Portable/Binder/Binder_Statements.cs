@@ -686,18 +686,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declTypeExpr.Type, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
-              if (!iDisposableConversion.IsImplicit)
-              {
-                 disposeMethod = TryFindDisposePatternMethod(declTypeExpr, declarationSyntax, diagnostics);
-                 if (disposeMethod is null)
-                 {
-                     if (!declTypeExpr.Type.IsErrorType())
-                     {
-                         Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declTypeExpr.Type);
-                     }
-                     hasErrors = true;
-                 }
-              }
+                if (!iDisposableConversion.IsImplicit)
+                {
+                   disposeMethod = TryFindDisposePatternMethod(declTypeExpr, declarationSyntax, diagnostics);
+                   if (disposeMethod is null)
+                   {
+                       if (!declTypeExpr.Type.IsErrorType())
+                       {
+                           Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declTypeExpr.Type);
+                       }
+                       hasErrors = true;
+                   }
+                }
             }
             return declarations;
         }
