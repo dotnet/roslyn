@@ -96,6 +96,64 @@ class D
         }
 
         [Fact]
+        public void TestWithUIntToIntConversion()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+public class C : IAsyncEnumerable<uint>
+{
+    public static async Task Main()
+    {
+        try
+        {
+            REPLACE
+            {
+                foreach await (int i in new C()) { System.Console.Write($""0x{i:X8}""); }
+            }
+        }
+        catch (System.OverflowException)
+        {
+            System.Console.Write(""overflow"");
+        }
+    }
+
+    public IAsyncEnumerator<uint> GetAsyncEnumerator()
+        => new AsyncEnumerator();
+    public sealed class AsyncEnumerator : IAsyncEnumerator<uint>
+    {
+        bool firstWait = true;
+        bool firstValue = true;
+        public uint TryGetNext(out bool found)
+        {
+            found = firstValue;
+            firstValue = false;
+            return 0xFFFFFFFF;
+        }
+        public async ValueTask<bool> WaitForNextAsync()
+        {
+            await Task.Delay(10);
+            bool result = firstWait;
+            firstWait = false;
+            return result;
+        }
+        public async ValueTask DisposeAsync()
+        {
+            await Task.Delay(10);
+        }
+    }
+}
+";
+            var comp_checked = CreateCompilationWithTasksExtensions(new[] { source.Replace("REPLACE", "checked"), s_interfaces }, options: TestOptions.DebugExe);
+            comp_checked.VerifyDiagnostics();
+            CompileAndVerify(comp_checked, expectedOutput: "overflow");
+
+            var comp_unchecked = CreateCompilationWithTasksExtensions(new[] { source.Replace("REPLACE", "unchecked"), s_interfaces }, options: TestOptions.DebugExe);
+            comp_unchecked.VerifyDiagnostics();
+            CompileAndVerify(comp_unchecked, expectedOutput: "0xFFFFFFFF");
+        }
+
+        [Fact]
         public void TestWithTwoIAsyncEnumerableImplementations()
         {
             string source = @"
@@ -2489,16 +2547,6 @@ class Client
             BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.False(internalInfo.NeedsDisposeMethod);
-
-            // PROTOTYPE(async-streams) I didn't manage to hit the case I wanted in ForEachLoopBinder.GetEnumeratorInfo:
-            //if (!enumeratorType.IsSealed ||
-            //    this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
-            //        IsAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
-            //        ref useSiteDiagnostics).IsImplicit)
-            //{
-            //    builder.NeedsDisposeMethod = true;
-            //    diagnostics.AddRange(useSiteDiagnosticBag);
-            //}
         }
 
         [Fact]

@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: loop.Checked),
                 conversion: loop.ElementConversion,
                 rewrittenType: loop.IterationVariableType.Type,
-                @checked: loop.Checked); // PROTOTYPE(async-streams) confirm what the two conversions are and how checked affects them (test that)
+                @checked: loop.Checked);
 
             // V v = (V)(T)e.TryGetNext(out bool success); or (D1 d1, ...) = (V)(T)e.TryGetNext(out bool success);
             ImmutableArray<LocalSymbol> iterationVariables = loop.IterationVariables;
