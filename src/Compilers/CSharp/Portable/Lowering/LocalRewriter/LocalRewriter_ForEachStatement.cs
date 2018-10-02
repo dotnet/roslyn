@@ -182,8 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> iterationVariables = loop.IterationVariables;
             BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(loop, iterationVariables, iterationVarAssignValue);
 
-            // PROTOTYPE(async-streams)
-            //InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVarDecl);
+            InstrumentForEachStatementIterationVarDeclaration(loop, ref iterationVarDecl);
 
             // outer_loop_continue:
             GeneratedLabelSymbol outerLoopContinueLabel = new GeneratedLabelSymbol("outer_loop_continue");
@@ -256,8 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals: ImmutableArray.Create(enumeratorVar),
                 statements: ImmutableArray.Create(enumeratorVarDecl, outerLoopOrTryFinally));
 
-            // PROTOTYPE(async-streams)
-            //InstrumentForEachStatement(node, ref result);
+            InstrumentForEachStatement(loop, ref result);
 
             return result;
         }
