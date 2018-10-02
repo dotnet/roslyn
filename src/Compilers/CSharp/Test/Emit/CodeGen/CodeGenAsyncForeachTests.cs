@@ -40,6 +40,32 @@ namespace System
 ";
 
         [Fact]
+        public void TestWithTwoIAsyncEnumerableImplementations()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (int i in new C())
+        {
+        }
+    }
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+        => throw null;
+    IAsyncEnumerator<string> IAsyncEnumerable<string>.GetAsyncEnumerator()
+        => throw null;
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            comp.VerifyDiagnostics(
+                // (7,33): error CS9003: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
+                //         foreach await (int i in new C())
+                Diagnostic(ErrorCode.ERR_MultipleIAsyncEnumOfT, "new C()").WithArguments("C", "System.Collections.Generic.IAsyncEnumerable<T>").WithLocation(7, 33)
+                );
+        }
+
+        [Fact]
         public void TestWithMissingPattern()
         {
             string source = @"
@@ -699,6 +725,237 @@ class Element
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Convert(11) Got(11) Next(12) Convert(12) Got(12) " +
                 "Next(13) Convert(0) NextAsync(13) Next(24) Convert(24) Got(24) Next(25) Convert(25) Got(25) " +
                 "Next(26) Convert(0) NextAsync(26) Dispose(37)", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void TestWithGenericIterationVariable()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+class IntContainer
+{
+    public int Value { get; set; }
+}
+public class Program
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (var i in new C<IntContainer>())
+        {
+            Write($""Got({i.Value}) "");
+        }
+    }
+}
+class C<T> where T : IntContainer, new()
+{
+    public AsyncEnumerator GetAsyncEnumerator()
+    {
+        return new AsyncEnumerator();
+    }
+    public sealed class AsyncEnumerator : System.IAsyncDisposable
+    {
+        int i = 0;
+        public T TryGetNext(out bool found)
+        {
+            Write($""Next({i}) "");
+            found = i % 10 % 3 != 0;
+            var result = new T();
+            ((IntContainer)result).Value = found ? i++ : 0;
+            return result;
+        }
+        public async Task<bool> WaitForNextAsync()
+        {
+            Write($""NextAsync({i}) "");
+            i = i + 11;
+            bool more = await Task.FromResult(i < 30);
+            return more;
+        }
+        public async ValueTask DisposeAsync()
+        {
+            Write($""Dispose({i}) "");
+            await Task.Delay(10);
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11) Next(12) Got(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Got(25) Next(26) NextAsync(26) Dispose(37) ",
+                verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void TestWithThrowingGetAsyncEnumerator()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+public class C
+{
+    public static async Task Main()
+    {
+        try
+        {
+            foreach await (var i in new C())
+            {
+                throw null;
+            }
+            throw null;
+        }
+        catch (System.ArgumentException e)
+        {
+            Write(e.Message);
+        }
+    }
+    public AsyncEnumerator GetAsyncEnumerator()
+        => throw new System.ArgumentException(""exception"");
+    public sealed class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int TryGetNext(out bool found)
+            => throw null;
+        public Task<bool> WaitForNextAsync()
+            => throw null;
+        public ValueTask DisposeAsync()
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "exception", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void TestWithThrowingWaitForNextAsync()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+public class C
+{
+    public static async Task Main()
+    {
+        try
+        {
+            foreach await (var i in new C())
+            {
+                throw null;
+            }
+            throw null;
+        }
+        catch (System.ArgumentException e)
+        {
+            Write(e.Message);
+        }
+    }
+    public AsyncEnumerator GetAsyncEnumerator()
+        => new AsyncEnumerator();
+    public sealed class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int TryGetNext(out bool found)
+            => throw null;
+        public Task<bool> WaitForNextAsync()
+            => throw new System.ArgumentException(""exception"");
+        public async ValueTask DisposeAsync()
+        {
+            Write(""dispose "");
+            await Task.Delay(10);
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "dispose exception", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void TestWithThrowingTryGetNext()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+public class C
+{
+    public static async Task Main()
+    {
+        try
+        {
+            foreach await (var i in new C())
+            {
+                throw null;
+            }
+            throw null;
+        }
+        catch (System.ArgumentException e)
+        {
+            Write(e.Message);
+        }
+    }
+    public AsyncEnumerator GetAsyncEnumerator()
+        => new AsyncEnumerator();
+    public sealed class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int TryGetNext(out bool found)
+            => throw new System.ArgumentException(""exception"");
+        public async Task<bool> WaitForNextAsync()
+        {
+            Write(""wait "");
+            await Task.Delay(10);
+            return true;
+        }
+        public async ValueTask DisposeAsync()
+        {
+            Write(""dispose "");
+            await Task.Delay(10);
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "wait dispose exception", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void TestWithThrowingDisposeAsync()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+public class C
+{
+    public static async Task Main()
+    {
+        try
+        {
+            foreach await (var i in new C())
+            {
+                throw null;
+            }
+            throw null;
+        }
+        catch (System.ArgumentException e)
+        {
+            Write(e.Message);
+        }
+    }
+    public AsyncEnumerator GetAsyncEnumerator()
+        => new AsyncEnumerator();
+    public sealed class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int TryGetNext(out bool found)
+            => throw null;
+        public async Task<bool> WaitForNextAsync()
+        {
+            Write(""wait "");
+            await Task.Delay(10);
+            return false;
+        }
+        public ValueTask DisposeAsync()
+            => throw new System.ArgumentException(""exception"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "wait exception", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -3749,12 +4006,8 @@ class C
         //}
         //    f();
 
-        // nested deconstruction or tuple
         // review instrumentation
         // test various things that could go wrong with binding the await for DisposeAsync
-        // throwing exception from enumerator, or from inside the async-foreach
-        // collection has type from type parameter
-        // collection type implements multiple IAsyncEnumerable<T>'s
         // semantic model
         // IOperation
         // IDE
@@ -3763,7 +4016,6 @@ class C
 
         // Misc other test ideas:
         // Verify that async-dispose doesn't have a similar bug with struct resource
-        // IAsyncEnumerable has an 'out' type parameter, any tests I need to do related to that?
         // spec: struct case should be blocked?
         // spec: extension methods don't contribute
     }
