@@ -16,7 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         private readonly IServiceProvider _serviceProvider;
         private readonly Workspace _workspace;
 
-        public WorkspaceFailureOutputPane(IServiceProvider serviceProvider, Workspace workspace)
+        public WorkspaceFailureOutputPane(IThreadingContext threadingContext, IServiceProvider serviceProvider, Workspace workspace)
+            : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _workspace = workspace;
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void OnWorkspaceFailed(object sender, WorkspaceDiagnosticEventArgs e)
         {
-            InvokeBelowInputPriority(() =>
+            InvokeBelowInputPriorityAsync(() =>
             {
                 var outputPane = this.OutputPane;
                 if (outputPane == null)

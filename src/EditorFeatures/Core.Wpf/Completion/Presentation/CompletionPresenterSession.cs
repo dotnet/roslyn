@@ -51,10 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private IDisposable _logger;
 
         public CompletionPresenterSession(
+            IThreadingContext threadingContext,
             ICompletionBroker completionBroker,
             IGlyphService glyphService,
             ITextView textView,
             ITextBuffer subjectBuffer)
+            : base(threadingContext)
         {
             _completionBroker = completionBroker;
             this.GlyphService = glyphService;

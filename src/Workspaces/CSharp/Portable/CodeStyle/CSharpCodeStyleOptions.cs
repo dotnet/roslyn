@@ -103,6 +103,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 new EditorConfigStorageLocation<CodeStyleOption<ExpressionBodyPreference>>("csharp_style_expression_bodied_accessors", s => ParseExpressionBodyPreference(s, WhenPossibleWithSilentEnforcement)),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedAccessors)}")});
 
+        public static readonly Option<CodeStyleOption<ExpressionBodyPreference>> PreferExpressionBodiedLambdas = new Option<CodeStyleOption<ExpressionBodyPreference>>(
+            nameof(CodeStyleOptions), nameof(PreferExpressionBodiedLambdas),
+            defaultValue: WhenPossibleWithSilentEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                new EditorConfigStorageLocation<CodeStyleOption<ExpressionBodyPreference>>("csharp_style_expression_bodied_lambdas", s => ParseExpressionBodyPreference(s, WhenPossibleWithSilentEnforcement)),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedLambdas)}")});
+
         public static CodeStyleOption<ExpressionBodyPreference> ParseExpressionBodyPreference(
             string optionString, CodeStyleOption<ExpressionBodyPreference> @default)
         {
@@ -189,6 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferExpressionBodiedProperties;
             yield return PreferExpressionBodiedIndexers;
             yield return PreferExpressionBodiedAccessors;
+            yield return PreferExpressionBodiedLambdas;
         }
     }
 }

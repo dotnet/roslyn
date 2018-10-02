@@ -471,14 +471,6 @@ namespace Microsoft.CodeAnalysis
             return project1.LanguageServices == project2.LanguageServices;
         }
 
-        public ProjectState AddProjectReference(ProjectReference projectReference)
-        {
-            Debug.Assert(!this.ProjectReferences.Contains(projectReference));
-
-            return this.With(
-                projectInfo: this.ProjectInfo.WithProjectReferences(this.ProjectReferences.ToImmutableArray().Add(projectReference)).WithVersion(this.Version.GetNewerVersion()));
-        }
-
         public ProjectState RemoveProjectReference(ProjectReference projectReference)
         {
             Debug.Assert(this.ProjectReferences.Contains(projectReference));
@@ -576,14 +568,14 @@ namespace Microsoft.CodeAnalysis
                 projectInfo: this.ProjectInfo.WithAnalyzerReferences(analyzerReferences).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState AddDocument(DocumentState document)
+        public ProjectState AddDocuments(ImmutableArray<DocumentState> documents)
         {
-            Debug.Assert(!this.DocumentStates.ContainsKey(document.Id));
+            Debug.Assert(!documents.Any(d => this.DocumentStates.ContainsKey(d.Id)));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                documentIds: _documentIds.Add(document.Id),
-                documentStates: _documentStates.Add(document.Id, document));
+                documentIds: _documentIds.AddRange(documents.Select(d => d.Id)),
+                documentStates: _documentStates.AddRange(documents.Select(d => KeyValuePairUtil.Create(d.Id, d))));
         }
 
         public ProjectState AddAdditionalDocument(TextDocumentState document)

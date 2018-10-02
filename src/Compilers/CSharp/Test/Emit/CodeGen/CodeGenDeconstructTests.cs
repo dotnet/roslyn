@@ -7367,7 +7367,7 @@ Handler");
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_03()
         {
@@ -7414,7 +7414,7 @@ Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataRe
             Assert.True(comp2.Compilation.GetMember<EventSymbol>("C.E").IsWindowsRuntimeEvent);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_04()
         {

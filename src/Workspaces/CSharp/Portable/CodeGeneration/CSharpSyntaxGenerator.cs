@@ -3766,6 +3766,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return DefaultExpression(type.GenerateTypeSyntax());
         }
 
+        internal override SyntaxNode AddParentheses(SyntaxNode expression)
+        {
+            return Parenthesize(expression);
+        }
+
         private static ExpressionSyntax Parenthesize(SyntaxNode expression)
         {
             return ((ExpressionSyntax)expression).Parenthesize();

@@ -2202,9 +2202,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             AddTypeAndName((TupleExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
                         }
-                        else if (expr.IsKind(SyntaxKind.IdentifierName))
+                        else if (expr is IdentifierNameSyntax name)
                         {
-                            elementNamesBuilder.Add(((IdentifierNameSyntax)expr).Identifier.ValueText);
+                            elementNamesBuilder.Add(name.Identifier.ValueText == "" ? null : 
+                                name.Identifier.ValueText);
                             elementTypesBuilder.Add(GetTypes(expr).FirstOrDefault().InferredType ?? this.Compilation.ObjectType);
                         }
                         else

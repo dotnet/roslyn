@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [InlineData("1")]
         [InlineData("1 + 1")]
         [InlineData("true ? 1 : 1")]
-        // [InlineData("(1 + )")] // https://github.com/dotnet/roslyn/issues/25998 this resembles a positional pattern that it not handled by the recommender
+        [InlineData("(1 + )")]
         public async Task TestForSwitchCase_AfterExpression(string expression) =>
             await VerifyKeywordAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ }}"));
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [InlineData("1")]
         [InlineData("1 + 1")]
         [InlineData("true ? 1 : 1")]
-        // [InlineData("(1 + )")] // https://github.com/dotnet/roslyn/issues/25998 this resembles a positional pattern that it not handled by the recommender
+        [InlineData("(1 + )")]
         public async Task TestForSwitchCase_AfterExpression_BeforeBreak(string expression) =>
             await VerifyKeywordAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ break; }}"));
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [InlineData("1")]
         [InlineData("1 + 1")]
         [InlineData("true ? 1 : 1")]
-        // [InlineData("(1 + )")] // https://github.com/dotnet/roslyn/issues/25998 this resembles a positional pattern that it not handled by the recommender
+        [InlineData("(1 + )")]
         public async Task TestForSwitchCase_AfterExpression_BeforeWhen(string expression) =>
             await VerifyKeywordAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ when }}"));
 

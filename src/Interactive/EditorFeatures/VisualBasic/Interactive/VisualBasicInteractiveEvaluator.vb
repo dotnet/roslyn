@@ -3,11 +3,11 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Editor.Interactive
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Interactive
+Imports Microsoft.VisualStudio.InteractiveWindow.Commands
 Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Utilities
-Imports Microsoft.VisualStudio.InteractiveWindow.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
@@ -18,7 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
         Private Const s_interactiveResponseFile As String = "VisualBasicInteractive.rsp"
 
-        Public Sub New(hostServices As HostServices,
+        Public Sub New(threadingContext As IThreadingContext,
+                       hostServices As HostServices,
                        classifierAggregator As IViewClassifierAggregatorService,
                        commandsFactory As IInteractiveWindowCommandsFactory,
                        commands As ImmutableArray(Of IInteractiveWindowCommand),
@@ -26,7 +27,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
                        responseFileDirectory As String,
                        initialWorkingDirectory As String)
 
-            MyBase.New(contentTypeRegistry.GetContentType(ContentTypeNames.VisualBasicContentType),
+            MyBase.New(threadingContext,
+                       contentTypeRegistry.GetContentType(ContentTypeNames.VisualBasicContentType),
                        hostServices,
                        classifierAggregator,
                        commandsFactory,

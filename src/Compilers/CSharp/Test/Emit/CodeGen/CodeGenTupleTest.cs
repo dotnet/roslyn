@@ -11538,7 +11538,7 @@ class C
                 "System.Int32 ValueTuple<System.Int32>.System.ITupleInternal.Size { get; }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void DefaultAndFriendlyElementNames_09()
         {
             var source = @"

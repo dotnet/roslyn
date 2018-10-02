@@ -5396,6 +5396,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
     <value>An out variable cannot be declared as a ref local</value>
   </data>
+  <data name="CannotCreateConstructedFromConstructed" xml:space="preserve">
+    <value>Cannot create constructed generic type from another constructed generic type.</value>
+  </data>
+  <data name="CannotCreateConstructedFromNongeneric" xml:space="preserve">
+    <value>Cannot create constructed generic type from non-generic type.</value>
+  </data>
   <data name="ERR_SwitchGoverningExpressionRequiresParens" xml:space="preserve">
     <value>Parentheses are required around the switch governing expression.</value>
   </data>
