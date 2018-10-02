@@ -728,6 +728,54 @@ class Element
         }
 
         [Fact]
+        public void TestWithCaptureOfIterationVariable()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+public class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        System.Action f = null;
+        foreach await (var i in new C())
+        {
+            Write($""Got({i}) "");
+            if (f == null) f = () => Write($""Captured({i})"");
+        }
+        f();
+    }
+    public AsyncEnumerator GetAsyncEnumerator()
+    {
+        return new AsyncEnumerator();
+    }
+    public sealed class AsyncEnumerator : System.IAsyncDisposable
+    {
+        int i = 0;
+        public int TryGetNext(out bool found)
+        {
+            found = i % 10 % 3 != 0;
+            return found ? i++ : 0;
+        }
+        public async Task<bool> WaitForNextAsync()
+        {
+            i = i + 11;
+            bool more = await Task.FromResult(i < 30);
+            return more;
+        }
+        public async ValueTask DisposeAsync()
+        {
+            await Task.Delay(10);
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Got(11) Got(12) Got(24) Got(25) Captured(11)",
+                verify: Verification.Skipped);
+        }
+
+        [Fact]
         public void TestWithGenericIterationVariable()
         {
             string source = @"
@@ -3997,21 +4045,11 @@ class C
 
         // PROTOTYPE(async-streams) More test ideas
 
-        // test with captures:
-        //        int[] values = { 7, 9, 13 };
-        //        Action f = null;
-        //foreach (var value in values)
-        //{
-        //    if (f == null) f = () => Console.WriteLine("First value: " + value); // captures 7, which ends up printed
-        //}
-        //    f();
-
         // review instrumentation
         // test various things that could go wrong with binding the await for DisposeAsync
 
         // Misc other test ideas:
         // Verify that async-dispose doesn't have a similar bug with struct resource
         // spec: struct case should be blocked?
-        // spec: extension methods don't contribute
     }
 }
