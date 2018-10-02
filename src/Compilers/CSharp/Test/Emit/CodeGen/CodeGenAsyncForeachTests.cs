@@ -4008,11 +4008,6 @@ class C
 
         // review instrumentation
         // test various things that could go wrong with binding the await for DisposeAsync
-        // semantic model
-        // IOperation
-        // IDE
-        // scripting?
-        // expression trees
 
         // Misc other test ideas:
         // Verify that async-dispose doesn't have a similar bug with struct resource

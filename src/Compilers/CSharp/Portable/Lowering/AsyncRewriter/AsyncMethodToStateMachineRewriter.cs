@@ -680,7 +680,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int stateNumber;
             GeneratedLabelSymbol resumeLabel;
             AddState(out stateNumber, out resumeLabel);
-            //_currentFinallyFrame.AddState(stateNumber); // PROTOTYPE(async-streams): Need to review this logic from IteratorMethodToStateMachineRewriter
+            // https://github.com/dotnet/roslyn/issues/30260 Need to handle try/finally statements (see IteratorMethodToStateMachineRewriter)
+            //_currentFinallyFrame.AddState(stateNumber);
 
             var rewrittenExpression = (BoundExpression)Visit(node.Expression);
             var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();
@@ -713,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             blockBuilder.Add(
                 F.HiddenSequencePoint());
 
-            // PROTOTYPE(async-streams): Need to review this logic from IteratorMethodToStateMachineRewriter
+            // https://github.com/dotnet/roslyn/issues/30260 Need to handle try/finally statements (see IteratorMethodToStateMachineRewriter)
             //blockBuilder.Add(
             //    // this.state = finalizeState;
             //    F.Assignment(F.Field(F.This(), stateField), F.Literal(_currentFinallyFrame.finalizeState)));
