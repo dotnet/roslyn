@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool GetAwaitDisposeAsyncInfo(ref ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics)
         {
             bool hasErrors = false;
-            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask));
+            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax));
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
             return hasErrors;
         }

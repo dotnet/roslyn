@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
         IDS_FeatureCoalesceAssignmentExpression = MessageBase + 12746,
         IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator = MessageBase + 12747,
-        IDS_FeatureAsyncStreams = MessageBase + 12777, // PROTOTYPE(async-streams) Compact IDs
+        IDS_FeatureAsyncStreams = MessageBase + 12748,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -211,6 +211,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 default:
                     return null;
+            }
+        }
+
+        internal static void CheckFeatureAvailability(this MessageID feature, LanguageVersion availableVersion, DiagnosticBag diagnostics, Location errorLocation)
+        {
+            LanguageVersion requiredVersion = feature.RequiredVersion();
+            if (requiredVersion > availableVersion)
+            {
+                diagnostics.Add(availableVersion.GetErrorCode(), errorLocation, feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
             }
         }
 

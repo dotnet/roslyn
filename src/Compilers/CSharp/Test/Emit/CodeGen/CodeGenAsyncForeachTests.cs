@@ -40,6 +40,62 @@ namespace System
 ";
 
         [Fact]
+        public void TestWithCSharp7_3()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C : IAsyncEnumerable<int>
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (int i in new C())
+        {
+        }
+    }
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+        => throw null;
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (7,17): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         foreach await (int i in new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
+        public void TestWithMissingValueTask()
+        {
+            string lib_cs = @"
+using System.Collections.Generic;
+public class C : IAsyncEnumerable<int>
+{
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+        => throw null;
+}";
+
+            var lib = CreateCompilationWithTasksExtensions(new[] { lib_cs, s_interfaces });
+            lib.VerifyDiagnostics();
+
+            string source = @"
+class D
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (int i in new C()) { }
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib.EmitToImageReference() });
+            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
+                //         foreach await (int i in new C()) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "foreach await (int i in new C()) { }").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
         public void TestWithTwoIAsyncEnumerableImplementations()
         {
             string source = @"

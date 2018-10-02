@@ -22,21 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
-        // PROTOTYPE(async-streams) Add more tests:
-        // Test with yield or await in try/catch/finally
-        // More tests with exception thrown
-        // There is a case in GetIteratorElementType with IsDirectlyInIterator that relates to speculation, needs testing
-        // yield break disallowed in finally and top-level script (see BindYieldBreakStatement); same for yield return (see BindYieldReturnStatement)
-        // binding for yield return (BindYieldReturnStatement) validates escape rules, needs testing
-        // test yield in async lambda (still error)
-        // test with IAsyncEnumerable<dynamic>
-        // other tests with dynamic?
-        // test should cover both case with AwaitOnCompleted and AwaitUnsafeOnCompleted
-        // test `async IAsyncEnumerable<int> M() { return TaskLike(); }`
-        // Can we avoid making IAsyncEnumerable<T> special from the start? Making mark it with an attribute like we did for task-like?
-        // Do some manual validation on debugging scenarios, including with exceptions (thrown after yield and after await).
-        // Test with one or both or the threadID APIs missing.
-
         private void VerifyMissingMember(WellKnownMember member, params DiagnosticDescription[] expected)
         {
             var lib = CreateCompilationWithTasksExtensions(s_common);
@@ -72,6 +57,30 @@ class C
         }
 
         [Fact]
+        public void AsyncIteratorInCSharp7_3()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 4;
+        yield break;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (4,67): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M").WithArguments("async streams", "8.0").WithLocation(4, 67),
+                // (4,67): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M").WithArguments("async streams", "8.0").WithLocation(4, 67)
+                );
+        }
+
+        [Fact]
         public void RefStructElementType()
         {
             string source = @"
@@ -98,6 +107,34 @@ ref struct S
                 //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("S").WithLocation(4, 65)
                 );
+        }
+
+        [Fact]
+        public void ReturningIAsyncEnumerable()
+        {
+            string source = @"
+class C
+{
+    static System.Collections.Generic.IAsyncEnumerable<int> M2()
+    {
+        return M();
+    }
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 42;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
+            comp.VerifyDiagnostics();
+
+            var m2 = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M2");
+            Assert.False(m2.IsAsync);
+            Assert.False(m2.IsIterator);
+
+            var m = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            Assert.True(m.IsAsync);
+            Assert.True(m.IsIterator);
         }
 
         [Fact]
