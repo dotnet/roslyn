@@ -70,6 +70,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        internal bool TryGetProjectByBinPath(string filePath, out AbstractProject project)
+        {
+            var projectsWithBinPath = _workspace.CurrentSolution.Projects.Where(p => string.Equals(p.OutputFilePath, filePath, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (projectsWithBinPath.Count == 1)
+            {
+                project = new StubProject(this, projectsWithBinPath[0]);
+                return true;
+            }
+            else
+            {
+                project = null;
+                return false;
+            }
+        }
+
         private sealed class StubProject : AbstractProject
         {
             public StubProject(VisualStudioProjectTracker projectTracker, Project project)
