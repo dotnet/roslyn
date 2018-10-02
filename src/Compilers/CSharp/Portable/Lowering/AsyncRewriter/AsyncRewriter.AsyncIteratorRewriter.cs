@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void GenerateIAsyncEnumerableImplementation_GetAsyncEnumerator()
             {
-                // PROTOTYPE(async-streams): do the threadID dance to decide if we can return this or should instantiate.
+                // https://github.com/dotnet/roslyn/issues/30275 do the threadID dance to decide if we can return this or should instantiate.
 
                 NamedTypeSymbol IAsyncEnumerableOfElementType =
                     F.WellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T)
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Generates IAsyncEnumerator<elementType> IAsyncEnumerable<elementType>.GetEnumerator()
                 OpenMethodImplementation(IAsyncEnumerableOfElementType_GetEnumerator, hasMethodBodyDependency: false);
 
-                // PROTOTYPE(async-streams): 0 is not the proper state to start with
+                // https://github.com/dotnet/roslyn/issues/30275 0 may not be the proper state to start with
                 F.CloseMethod(F.Block(
                     //F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FirstUnusedState)), // this.state = 0;
                     F.Return(F.This()))); // return this;
