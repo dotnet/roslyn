@@ -46,8 +46,6 @@ elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
     file_list=( "${unittest_dir}"/*/net46/*.UnitTests.dll )
     file_skiplist=(
         'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll'
-        # Missing mscoree.dll, other problems
-        'Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll'
         # Omitted because we appear to be missing things necessary to compile vb.net.
         # See https://github.com/mono/mono/issues/10679
         'Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests.dll'
@@ -63,8 +61,6 @@ elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
         'Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.dll'
         # Multiple test failures
         'Microsoft.Build.Tasks.CodeAnalysis.UnitTests.dll'
-        # Various failures related to PDBs, along with a runtime crash
-        'Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll'
         # Disabling on assumption
         'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll'
         # A zillion test failures + crash
