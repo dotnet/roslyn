@@ -317,7 +317,9 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.Compilation;
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private static string LogBuildCompilationAsync(ProjectState state)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 return string.Join(",", state.AssemblyName, state.DocumentIds.Count);
             }

@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.Completion
             return description.WithTaggedParts(parts);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<ImmutableArray<TaggedText>> TryAddSnippetInvocationPart(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document document, CompletionItem item, 
             ImmutableArray<TaggedText> parts, CancellationToken cancellationToken)
         {

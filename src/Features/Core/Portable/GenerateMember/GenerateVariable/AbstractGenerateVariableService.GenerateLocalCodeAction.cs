@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return newDocument;
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private async Task<SyntaxNode> GetNewRoot(CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);

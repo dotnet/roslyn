@@ -46,7 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 context, spanToTag, delegationService, classificationService, typeMap).ConfigureAwait(false);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static async Task<bool> TryClassifyContainingMemberSpan<TClassificationService>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
             IClassificationDelegationService<TClassificationService> delegationService,

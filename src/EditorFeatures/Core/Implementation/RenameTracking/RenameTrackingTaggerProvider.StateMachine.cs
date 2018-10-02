@@ -276,7 +276,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             internal async Task<IEnumerable<Diagnostic>> GetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 try
                 {

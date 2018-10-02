@@ -70,7 +70,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActions(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -245,7 +247,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return currentSolution;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocuments(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
             CancellationToken cancellationToken)

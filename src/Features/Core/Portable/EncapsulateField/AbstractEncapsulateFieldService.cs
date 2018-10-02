@@ -396,7 +396,9 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         protected abstract Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
         internal class Result

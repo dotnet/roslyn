@@ -230,7 +230,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Note: The early cancellation behavior is intentional.
         /// </summary>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static Task<T> WithCancellation<T>(Task<T> task, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             if (task.IsCompleted || !cancellationToken.CanBeCanceled)
             {
@@ -246,7 +248,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private Task<TElement> DequeueAsyncCore()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             lock (SyncObject)
             {

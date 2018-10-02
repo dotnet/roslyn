@@ -10,7 +10,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         bool TrackActiveTokens { get; set; }
         ImmutableArray<AsynchronousOperationListener.DiagnosticAsyncToken> ActiveDiagnosticTokens { get; }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         Task CreateWaitTask();
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         bool HasPendingWork { get; }
     }
 }

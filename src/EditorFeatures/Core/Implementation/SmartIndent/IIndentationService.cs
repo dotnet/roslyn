@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor
 
     internal interface IIndentationService : ILanguageService
     {
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         Task<IndentationResult?> GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
     }
 
     internal interface ISynchronousIndentationService : ILanguageService

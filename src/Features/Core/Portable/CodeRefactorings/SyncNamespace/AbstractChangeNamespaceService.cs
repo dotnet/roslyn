@@ -274,7 +274,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return originalSolution;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static async Task<ImmutableArray<ReferenceLocation>> FindReferenceLocationsForSymbol(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

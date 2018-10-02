@@ -99,7 +99,9 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static async Task<TextSpan> GetExpandedNodeSpan(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document document,
             SyntaxNode node,
             CancellationToken cancellationToken)

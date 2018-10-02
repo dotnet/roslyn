@@ -2523,7 +2523,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if a bad special by ref local was found.
         /// </summary>
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         internal static bool CheckRestrictedTypeInAsync(Symbol containingSymbol, TypeSymbol type, DiagnosticBag diagnostics, SyntaxNode syntax)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync

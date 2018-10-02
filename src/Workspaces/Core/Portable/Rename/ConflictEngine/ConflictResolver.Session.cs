@@ -644,7 +644,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// The method determines the set of documents that need to be processed for Rename and also determines
             ///  the possible set of names that need to be checked for conflicts.
             /// </summary>
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private async Task FindDocumentsAndPossibleNameConflicts()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 try
                 {
@@ -671,7 +673,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private async Task AddDocumentsWithPotentialConflicts(IEnumerable<Document> documents)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 try
                 {

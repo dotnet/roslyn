@@ -120,7 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Reports an error if the await expression did not occur in an async context.
         /// </summary>
         /// <returns>True if the expression contains errors.</returns>
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private bool ReportBadAwaitWithoutAsync(Location location, DiagnosticBag diagnostics)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             DiagnosticInfo info = null;
             var containingMemberOrLambda = this.ContainingMemberOrLambda;

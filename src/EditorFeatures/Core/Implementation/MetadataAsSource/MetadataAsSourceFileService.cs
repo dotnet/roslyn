@@ -191,7 +191,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<Location> RelocateSymbol_NoLock(MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             // We need to relocate the symbol in the already existing file. If the file is open, we can just
             // reuse that workspace. Otherwise, we have to go spin up a temporary project to do the binding.
@@ -263,7 +265,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             _openedDocumentIds = _openedDocumentIds.RemoveKey(fileInfo);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<UniqueDocumentKey> GetUniqueDocumentKey(Project project, INamedTypeSymbol topLevelNamedType, bool allowDecompilation, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var peMetadataReference = compilation.GetMetadataReference(topLevelNamedType.ContainingAssembly) as PortableExecutableReference;

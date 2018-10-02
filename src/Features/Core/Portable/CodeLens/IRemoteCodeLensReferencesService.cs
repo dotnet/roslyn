@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.CodeLens
         Task<ReferenceCount> GetReferenceCountAsync(DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken);
         Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
         Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         Task<string> GetFullyQualifiedName(DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
     }
 }

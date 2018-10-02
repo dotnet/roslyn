@@ -318,7 +318,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 return (succeeded: true, delay);
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private async Task WriteDatabaseFile(byte[] bytes)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 await _service.LogInfoAsync("Writing database file").ConfigureAwait(false);
 

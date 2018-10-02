@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
             return await parser.InvokeAsync(args).ConfigureAwait(false);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static async Task<int> Run(string workspace, string verbosity, IConsole console = null)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var serviceCollection = new ServiceCollection();
             var logLevel = GetLogLevel(verbosity);

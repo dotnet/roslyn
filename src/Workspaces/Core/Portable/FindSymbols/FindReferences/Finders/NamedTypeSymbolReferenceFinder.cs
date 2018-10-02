@@ -95,7 +95,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 namedType, document, semanticModel, namedTypeReferences, cancellationToken).ConfigureAwait(false);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<ImmutableArray<FinderLocation>> MarkConstructorReferences(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             INamedTypeSymbol namedType, Document document,
             SemanticModel semanticModel,
             ImmutableArray<FinderLocation> namedTypeReferences,
@@ -142,7 +144,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return false;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentWorker(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             INamedTypeSymbol namedType,
             Document document,
             SemanticModel semanticModel,

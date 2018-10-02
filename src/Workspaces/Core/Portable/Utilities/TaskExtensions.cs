@@ -108,7 +108,9 @@ namespace Roslyn.Utilities
         // simply changing the default underlying behavior, but rejected that idea because there was
         // a good chance that existing users had already drawn a dependency on the current behavior.
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task SafeContinueWith(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task task,
             Action<Task> continuationAction,
             CancellationToken cancellationToken,
@@ -126,7 +128,9 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, cancellationToken, continuationOptions, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<TResult> SafeContinueWith<TInput, TResult>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
             CancellationToken cancellationToken,
@@ -136,7 +140,9 @@ namespace Roslyn.Utilities
                 task, continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<TResult> SafeContinueWith<TInput, TResult>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
             CancellationToken cancellationToken,
@@ -149,7 +155,9 @@ namespace Roslyn.Utilities
                 (Task antecedent) => continuationFunction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task SafeContinueWith<TInput>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task<TInput> task,
             Action<Task<TInput>> continuationAction,
             CancellationToken cancellationToken,
@@ -162,7 +170,9 @@ namespace Roslyn.Utilities
                 (Task antecedent) => continuationAction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<TResult> SafeContinueWith<TResult>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task task,
             Func<Task, TResult> continuationFunction,
             CancellationToken cancellationToken,
@@ -205,7 +215,9 @@ namespace Roslyn.Utilities
             return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<TResult> SafeContinueWith<TResult>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task task,
             Func<Task, TResult> continuationFunction,
             CancellationToken cancellationToken,
@@ -214,7 +226,9 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task SafeContinueWith(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task task,
             Action<Task> continuationAction,
             TaskScheduler scheduler)
@@ -222,7 +236,9 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationAction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task SafeContinueWith<TInput>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task<TInput> task,
             Action<Task<TInput>> continuationFunction,
             TaskScheduler scheduler)
@@ -230,7 +246,9 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<TResult> SafeContinueWith<TInput, TResult>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
             TaskScheduler scheduler)
@@ -238,7 +256,9 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task SafeContinueWith(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task task,
             Action<Task> continuationAction,
             CancellationToken cancellationToken,
@@ -248,7 +268,9 @@ namespace Roslyn.Utilities
         }
 
         // Code provided by Stephen Toub.
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<TResult> ContinueWithAfterDelay<TInput, TResult>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
             CancellationToken cancellationToken,
@@ -264,7 +286,9 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<TNResult> ContinueWithAfterDelay<TNResult>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task task,
             Func<Task, TNResult> continuationFunction,
             CancellationToken cancellationToken,
@@ -280,7 +304,9 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task ContinueWithAfterDelay(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task task,
             Action continuationAction,
             CancellationToken cancellationToken,

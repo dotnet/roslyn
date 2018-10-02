@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.CodeLens
         /// <summary>
         /// Given a document and syntax node, returns the fully qualified name of the located node's declaration.
         /// </summary>
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             CancellationToken cancellationToken);
     }
 }

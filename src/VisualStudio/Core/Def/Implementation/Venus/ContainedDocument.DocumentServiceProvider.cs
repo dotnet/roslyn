@@ -152,7 +152,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     return new ExcerptResult(content, spanOnContent, classifiedSpansOnContent, document, span);
                 }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
                 private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansOnContent(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
                     Document document, ITextSnapshot roslynSnapshot, SnapshotSpan contentSpanOnPrimarySnapshot, CancellationToken cancellationToken)
                 {
                     var primarySnapshot = (IProjectionSnapshot)contentSpanOnPrimarySnapshot.Snapshot;

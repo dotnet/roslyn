@@ -76,7 +76,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Returns a Task that resolves if the client stream gets disconnected.
         /// </summary>
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected abstract Task CreateMonitorDisconnectTask(CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         protected virtual void ValidateBuildRequest(BuildRequest request)
         {
@@ -132,7 +134,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<ConnectionData> HandleCompilationRequest(BuildRequest request, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var keepAlive = CheckForNewKeepAlive(request);
 
@@ -172,28 +176,36 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return new ConnectionData(reason, keepAlive);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<ConnectionData> HandleMismatchedVersionRequest(CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var response = new MismatchedVersionBuildResponse();
             await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
             return new ConnectionData(CompletionReason.CompilationNotStarted);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<ConnectionData> HandleIncorrectHashRequest(CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var response = new IncorrectHashBuildResponse();
             await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
             return new ConnectionData(CompletionReason.CompilationNotStarted);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<ConnectionData> HandleRejectedRequest(CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var response = new RejectedBuildResponse();
             await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
             return new ConnectionData(CompletionReason.CompilationNotStarted);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<ConnectionData> HandleShutdownRequest(CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var id = Process.GetCurrentProcess().Id;
             var response = new ShutdownBuildResponse(id);
@@ -232,7 +244,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return request.Arguments.Count == 1 && request.Arguments[0].ArgumentId == BuildProtocolConstants.ArgumentId.Shutdown;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected virtual Task<BuildResponse> ServeBuildRequest(BuildRequest buildRequest, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             Func<BuildResponse> func = () =>
             {

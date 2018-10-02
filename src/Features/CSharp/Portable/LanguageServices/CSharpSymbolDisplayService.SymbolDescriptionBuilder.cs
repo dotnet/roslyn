@@ -152,7 +152,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return ImmutableArray<SymbolDisplayPart>.Empty;
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private async Task<T> GetFirstDeclaration<T>(ISymbol symbol) where T : SyntaxNode
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 {

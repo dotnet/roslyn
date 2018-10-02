@@ -126,7 +126,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return false;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<Document> CreateInterpolatedString(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             TInvocationExpressionSyntax invocation,
             Document document,
             ISyntaxFactsService syntaxFactsService,

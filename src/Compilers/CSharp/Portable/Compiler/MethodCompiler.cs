@@ -333,7 +333,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private Task CompileNamespaceAsTask(NamespaceSymbol symbol)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
@@ -379,7 +381,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private Task CompileNamedTypeAsTask(NamedTypeSymbol symbol)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {

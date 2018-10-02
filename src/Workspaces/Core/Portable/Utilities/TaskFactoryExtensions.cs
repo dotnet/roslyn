@@ -11,12 +11,16 @@ namespace Roslyn.Utilities
     [SuppressMessage("ApiDesign", "CA1068", Justification = "Matching TPL Signatures")]
     internal static partial class TaskFactoryExtensions
     {
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task SafeStartNew(this TaskFactory factory, Action action, CancellationToken cancellationToken, TaskScheduler scheduler)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return factory.SafeStartNew(action, cancellationToken, TaskCreationOptions.None, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task SafeStartNew(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this TaskFactory factory,
             Action action,
             CancellationToken cancellationToken,
@@ -39,12 +43,16 @@ namespace Roslyn.Utilities
             return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<TResult> SafeStartNew<TResult>(this TaskFactory factory, Func<TResult> func, CancellationToken cancellationToken, TaskScheduler scheduler)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return factory.SafeStartNew(func, cancellationToken, TaskCreationOptions.None, scheduler);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<TResult> SafeStartNew<TResult>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this TaskFactory factory,
             Func<TResult> func,
             CancellationToken cancellationToken,

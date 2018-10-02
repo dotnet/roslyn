@@ -10,7 +10,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     internal static class JoinableTaskFactoryExtensions
     {
         // Provides 'alwaysYield' support prior to https://github.com/Microsoft/vs-threading/issues/326
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static ConfiguredMainThreadAwaitable SwitchToMainThreadAsync(this JoinableTaskFactory joinableTaskFactory, bool alwaysYield, CancellationToken cancellationToken = default)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
 #pragma warning disable VSTHRD004 // Await SwitchToMainThreadAsync
             return new ConfiguredMainThreadAwaitable(joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken), alwaysYield);

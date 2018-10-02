@@ -203,7 +203,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 return false;
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             internal static async Task<SymbolAndProjectId> GetPropertyFromAccessorOrAnOverride(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
                 SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
             {
                 var symbol = symbolAndProjectId.Symbol;
@@ -244,7 +246,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 return default;
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private static async Task<bool> IsPropertyAccessorOrAnOverride(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
                 ISymbol symbol, Solution solution, CancellationToken cancellationToken)
             {
                 var result = await GetPropertyFromAccessorOrAnOverride(

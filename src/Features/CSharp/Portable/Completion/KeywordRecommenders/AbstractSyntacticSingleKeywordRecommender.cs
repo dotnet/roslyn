@@ -54,7 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected virtual bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         internal async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync_Test(int position, CSharpSyntaxContext context)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         { 
             var syntaxKind = await this.RecommendKeywordAsync(position, context, CancellationToken.None).ConfigureAwait(false);
             if (syntaxKind.HasValue)

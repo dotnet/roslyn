@@ -99,7 +99,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         [NonEvent]
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private void SendFunctionDefinitionsAsync()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             Task.Run((Action)SendFunctionDefinitions);
         }

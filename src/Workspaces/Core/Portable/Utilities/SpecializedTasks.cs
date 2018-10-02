@@ -17,12 +17,16 @@ namespace Roslyn.Utilities
         [Obsolete("Use Task.CompletedTask instead which is available in the framework.")]
         public static readonly Task EmptyTask = Task.CompletedTask;
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<T> Default<T>()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return Empty<T>.Default;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<T> DefaultOrResult<T>(T value)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             if (EqualityComparer<T>.Default.Equals(value, default))
             {
@@ -32,27 +36,37 @@ namespace Roslyn.Utilities
             return Task.FromResult(value);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<IReadOnlyList<T>> EmptyReadOnlyList<T>()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return Empty<T>.EmptyReadOnlyList;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<IList<T>> EmptyList<T>()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return Empty<T>.EmptyList;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<ImmutableArray<T>> EmptyImmutableArray<T>()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return Empty<T>.EmptyImmutableArray;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<IEnumerable<T>> EmptyEnumerable<T>()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return Empty<T>.EmptyEnumerable;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<T> FromResult<T>(T t) where T : class
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return FromResultCache<T>.FromResult(t);
         }
@@ -71,7 +85,9 @@ namespace Roslyn.Utilities
             private static readonly ConditionalWeakTable<T, Task<T>> s_fromResultCache = new ConditionalWeakTable<T, Task<T>>();
             private static readonly ConditionalWeakTable<T, Task<T>>.CreateValueCallback s_taskCreationCallback = Task.FromResult<T>;
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             public static Task<T> FromResult(T t)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 return s_fromResultCache.GetValue(t, s_taskCreationCallback);
             }

@@ -191,7 +191,9 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 equivalenceKey: newName);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<Document> Update(Document document, SyntaxToken nameToken, string newName, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceToken(nameToken, CreateIdentifier(nameToken, newName));

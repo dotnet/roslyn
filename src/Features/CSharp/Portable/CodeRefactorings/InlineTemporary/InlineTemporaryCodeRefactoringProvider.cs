@@ -480,7 +480,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return expression.AncestorsAndSelf().OfType<ExpressionSyntax>().Last();
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static async Task<Document> DetectSemanticConflicts(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document inlinedDocument,
             SemanticModel newSemanticModelForInlinedDocument,
             SemanticModel semanticModelBeforeInline,

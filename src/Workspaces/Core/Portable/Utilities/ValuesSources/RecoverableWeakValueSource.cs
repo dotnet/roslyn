@@ -130,7 +130,9 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private Task EnsureInstanceIsSaved(T instance)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             if (_weakInstance == s_noReference)
             {

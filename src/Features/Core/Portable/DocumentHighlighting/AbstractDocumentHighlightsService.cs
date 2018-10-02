@@ -330,7 +330,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return true;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static async Task AddLocationSpan(Location location, Solution solution, HashSet<DocumentSpan> spanSet, MultiDictionary<Document, HighlightSpan> tagList, HighlightSpanKind kind, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var span = await GetLocationSpanAsync(solution, location, cancellationToken).ConfigureAwait(false);
             if (span != null && !spanSet.Contains(span.Value))

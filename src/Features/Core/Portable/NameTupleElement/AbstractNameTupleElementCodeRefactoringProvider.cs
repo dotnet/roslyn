@@ -38,7 +38,9 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                     c => AddNamedElementAsync(document, span, cancellationToken)));
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<(SyntaxNode root, TArgumentSyntax argument, string argumentName)> TryGetArgumentInfo(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)

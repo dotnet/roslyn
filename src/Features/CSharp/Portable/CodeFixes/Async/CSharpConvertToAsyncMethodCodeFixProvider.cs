@@ -52,7 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return Tuple.Create(oldRoot.SyntaxTree, newRoot);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<MethodDeclarationSyntax> GetMethodDeclaration(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             SyntaxNode node,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)

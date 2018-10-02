@@ -61,7 +61,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static Task<BuildResponse> RunServerCompilationCore(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             RequestLanguage language,
             List<string> arguments,
             BuildPaths buildPaths,

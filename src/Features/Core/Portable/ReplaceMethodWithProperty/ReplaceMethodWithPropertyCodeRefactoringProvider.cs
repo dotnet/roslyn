@@ -157,7 +157,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 setMethod.DeclaringSyntaxReferences.Length == 1;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<Solution> ReplaceMethodsWithProperty(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document document,
             string propertyName,
             bool nameChanged,

@@ -176,7 +176,9 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private void ParseDocumentAsync(Document document)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var cancellationTokenSource = new CancellationTokenSource();
 

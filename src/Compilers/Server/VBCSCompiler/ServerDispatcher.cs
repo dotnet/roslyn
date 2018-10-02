@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal interface IClientConnectionHost
     {
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
     }
 
     /// <summary>
@@ -338,7 +340,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// will never fail.  It will always produce a <see cref="ConnectionData"/> value.  Connection errors
         /// will end up being represented as <see cref="CompletionReason.ClientDisconnect"/>
         /// </summary>
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         internal static async Task<ConnectionData> HandleClientConnection(Task<IClientConnection> clientConnectionTask, bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             IClientConnection clientConnection;
             try

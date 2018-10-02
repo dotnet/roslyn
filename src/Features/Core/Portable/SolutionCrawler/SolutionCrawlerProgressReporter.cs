@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             public Task Start()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 if (Interlocked.Increment(ref _count) == 1)
                 {
@@ -69,7 +71,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 return Task.CompletedTask;
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             public Task Stop()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 if (Interlocked.Decrement(ref _count) == 0)
                 {
@@ -80,17 +84,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 return Task.CompletedTask;
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private Task RaiseStarted()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 return RaiseEvent(nameof(ProgressChanged), running: true);
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private Task RaiseStopped()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 return RaiseEvent(nameof(ProgressChanged), running: false);
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private Task RaiseEvent(string eventName, bool running)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 // this method name doesn't have Async since it should work as async void.
                 var ev = _eventMap.GetEventHandlers<EventHandler<bool>>(eventName);

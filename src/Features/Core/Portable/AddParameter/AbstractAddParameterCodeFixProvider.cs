@@ -480,7 +480,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return (argumentType, refKind);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferences(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
         {
             var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);

@@ -165,7 +165,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return fullResult;
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private async Task<bool> TryGetSyntaxAndSemanticCompilerDiagnostics(StateSet stateSet, List<DiagnosticData> list, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 // First, get syntax errors and semantic errors
                 var fullResult = true;

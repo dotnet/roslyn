@@ -103,7 +103,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static async Task<IEnumerable<ReferenceLocationDescriptor>> FixUpDescriptors(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Solution solution, IEnumerable<ReferenceLocationDescriptor> descriptors, CancellationToken cancellationToken)
         {
             var list = new List<ReferenceLocationDescriptor>();

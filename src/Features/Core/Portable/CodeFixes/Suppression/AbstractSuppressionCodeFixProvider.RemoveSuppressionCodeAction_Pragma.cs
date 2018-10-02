@@ -217,7 +217,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public SyntaxToken StartToken_TestOnly => _suppressionTargetInfo.StartToken;
                 public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
                 private Task<SyntaxNode> FormatNode(SyntaxNode node)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
                 {
                     return Formatter.FormatAsync(node, _document.Project.Solution.Workspace);
                 }

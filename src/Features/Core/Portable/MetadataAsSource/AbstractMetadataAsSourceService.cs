@@ -70,7 +70,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// </summary>
         protected abstract Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken);
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected abstract Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         protected abstract ImmutableArray<AbstractReducer> GetReducers();
 

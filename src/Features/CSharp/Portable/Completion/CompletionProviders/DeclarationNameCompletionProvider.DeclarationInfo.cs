@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             public IAliasSymbol Alias { get; }
             public Accessibility? DeclaredAccessibility { get; }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             internal static async Task<NameDeclarationInfo> GetDeclarationInfo(Document document, int position, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position);

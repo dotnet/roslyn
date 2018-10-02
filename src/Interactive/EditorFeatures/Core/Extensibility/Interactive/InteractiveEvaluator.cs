@@ -480,7 +480,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                  culture: CultureInfo.CurrentUICulture,
                  is64Bit: is64bit ?? _interactiveHost.OptionsOpt?.Is64Bit ?? InteractiveHost.DefaultIs64Bit);
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<ExecutionResult> ResetAsyncWorker(InteractiveHostOptions options)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             try
             {

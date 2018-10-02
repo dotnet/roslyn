@@ -120,7 +120,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private async Task AnalyzeForKind(Document document, AnalysisKind kind, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 var diagnosticData = await _service._analyzerService.GetDiagnosticsAsync(document, GetAnalyzers(), kind, cancellationToken).ConfigureAwait(false);
 

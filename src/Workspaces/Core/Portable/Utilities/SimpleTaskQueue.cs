@@ -45,28 +45,36 @@ namespace Roslyn.Utilities
             }
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public Task ScheduleTask(Action taskAction, CancellationToken cancellationToken = default)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return ScheduleTaskWorker<Task>(delay => _latestTask.ContinueWithAfterDelay(
                 taskAction, cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),
                 cancellationToken);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public Task<T> ScheduleTask<T>(Func<T> taskFunc, CancellationToken cancellationToken = default)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return ScheduleTaskWorker<Task<T>>(delay => _latestTask.ContinueWithAfterDelay(
                 t => taskFunc(), cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),
                 cancellationToken);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public Task ScheduleTask(Func<Task> taskFuncAsync, CancellationToken cancellationToken = default)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return ScheduleTaskWorker<Task>(delay => _latestTask.ContinueWithAfterDelayFromAsync(
                 t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),
                 cancellationToken);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public Task<T> ScheduleTask<T>(Func<Task<T>> taskFuncAsync, CancellationToken cancellationToken = default)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return ScheduleTaskWorker<Task<T>>(delay => _latestTask.ContinueWithAfterDelayFromAsync(
                 t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),

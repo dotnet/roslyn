@@ -237,7 +237,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 itemsForCurrentDocument.SelectedItemIndex);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItems(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var resultSets = new List<Tuple<ProjectId, ISet<ISymbol>>>();
             foreach (var related in relatedDocuments)
@@ -282,7 +284,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return item;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected async Task<List<Tuple<Document, IEnumerable<SignatureHelpItem>>>> GetItemsForRelatedDocuments(Document document, IEnumerable<DocumentId> relatedDocuments, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var supportedPlatforms = new List<Tuple<Document, IEnumerable<SignatureHelpItem>>>();
             foreach (var relatedDocumentId in relatedDocuments)

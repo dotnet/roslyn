@@ -137,7 +137,9 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             }
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private Task<Document> ApplyConversion(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             IConverter<TForEachStatement, TStatement> converter,
             Document document,
             bool convertToQuery,

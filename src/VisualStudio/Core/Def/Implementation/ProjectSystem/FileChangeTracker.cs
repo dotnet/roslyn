@@ -91,7 +91,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var unused = _fileChangeCookie.Value;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public void StartFileChangeListeningAsync()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             if (_disposed)
             {

@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         public abstract SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node);
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, Document document, CancellationToken cancellationToken);
 
         public abstract SyntaxNode ChangeSignature(

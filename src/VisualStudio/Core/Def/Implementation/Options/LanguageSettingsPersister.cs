@@ -261,7 +261,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return true;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private void SetUserPreferencesMaybeAsync(LANGPREFERENCES3[] languagePreferences)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             if (IsForeground())
             {

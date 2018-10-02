@@ -89,7 +89,9 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<Document> ReduceAsyncInternal(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document document,
             ImmutableArray<TextSpan> spans,
             OptionSet optionSet,

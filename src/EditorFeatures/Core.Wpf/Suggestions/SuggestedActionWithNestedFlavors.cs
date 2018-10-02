@@ -69,7 +69,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return _nestedFlavors;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavors(CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
@@ -88,7 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return builder.ToImmutableAndFree();
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<SuggestedActionSet> GetPreviewChangesFlavor(CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             // We use ConfigureAwait(true) to stay on the UI thread.
             var previewChangesAction = await PreviewChangesSuggestedAction.CreateAsync(

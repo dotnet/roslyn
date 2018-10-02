@@ -46,7 +46,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             context.RegisterRefactoring(addImportsCodeAction);
     }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<Solution> AddMissingImports(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             // Add missing imports for the pasted text span.
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();

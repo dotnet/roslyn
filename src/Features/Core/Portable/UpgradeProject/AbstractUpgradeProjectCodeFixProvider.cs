@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             return Task.CompletedTask;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActionsAsync(CodeFixContext context)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var project = context.Document.Project;
             var solution = project.Solution;

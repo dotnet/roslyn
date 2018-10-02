@@ -50,7 +50,9 @@ namespace Microsoft.CodeAnalysis.Notification
             }
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected virtual Task RaiseGlobalOperationStarted()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
             if (ev.HasHandlers)
@@ -65,7 +67,9 @@ namespace Microsoft.CodeAnalysis.Notification
             return Task.CompletedTask;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected virtual Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
             if (ev.HasHandlers)

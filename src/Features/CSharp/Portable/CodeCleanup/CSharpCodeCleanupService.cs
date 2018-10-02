@@ -192,7 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             return document;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIds(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document document, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
         {
             foreach (var diagnosticId in diagnosticIds)
@@ -207,7 +209,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             return document;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticId(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document document, string diagnosticId, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

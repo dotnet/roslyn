@@ -169,7 +169,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Generates the `ValueTask&lt;bool> MoveNextAsync()` method.
             /// </summary>
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private void GenerateIAsyncEnumeratorImplementation_MoveNextAsync()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 // Produce:
                 //  if (State == StateMachineStates.FinishedStateMachine)
@@ -339,7 +341,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Return())); // return;
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private void GenerateIAsyncDisposable_DisposeAsync()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 // Produce the implementation of `ValueTask IAsyncDisposable.DisposeAsync()`:
                 // this.builder.SetResult();

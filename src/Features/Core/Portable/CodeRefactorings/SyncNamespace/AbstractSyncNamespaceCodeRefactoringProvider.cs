@@ -54,7 +54,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         /// <typeparamref name="TNamespaceDeclarationSyntax"/>) or the compilation unit node (of type <typeparamref name="TCompilationUnitSyntax"/>)
         /// if no namespace declaration in the document. Otherwise, return null.
         /// </returns>
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected abstract Task<SyntaxNode> TryGetApplicableInvocationNode(Document document, int position, CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         protected abstract string EscapeIdentifier(string identifier);
 

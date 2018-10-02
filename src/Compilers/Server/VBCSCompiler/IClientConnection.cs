@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Server the connection and return the result.
         /// </summary>
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         Task<ConnectionData> HandleConnection(bool allowCompilationRequests, CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         /// <summary>
         /// Close the underlying client connection.

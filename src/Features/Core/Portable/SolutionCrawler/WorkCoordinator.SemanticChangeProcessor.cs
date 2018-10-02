@@ -98,7 +98,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return DequeueWorker(_workGate, _pendingWork, this.CancellationToken);
                 }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
                 private async Task<bool> TryEnqueueFromHint(Document document, SyntaxPath changedMember)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
                 {
                     if (changedMember == null)
                     {

@@ -148,7 +148,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 filter);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private Task<ImmutableArray<ISymbol>> FindAsyncWorker(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -333,7 +335,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
             _ => new SemaphoreSlim(1);
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private static Task<SpellChecker> GetSpellCheckerTask(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Solution solution, Checksum checksum, string filePath, 
             string concatenatedNames, ImmutableArray<Node> sortedNodes)
         {

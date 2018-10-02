@@ -274,7 +274,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 : formattingResult.GetTextChanges(cancellationToken);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         internal static Task<IFormattingResult> GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             if (workspace == null)
             {

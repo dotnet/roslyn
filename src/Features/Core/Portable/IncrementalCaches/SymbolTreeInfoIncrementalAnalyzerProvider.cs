@@ -225,7 +225,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private Task GetTask(Project project, Func<Task> func, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
                 return isRemoteWorkspace
@@ -233,7 +235,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     : func();
             }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
             private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 // Process all metadata references. If it remote workspace, do this in parallel.
                 var tasks = new List<Task>();

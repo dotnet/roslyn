@@ -9,8 +9,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
     internal abstract partial class AbstractChangeToAsyncCodeFixProvider : AbstractAsyncCodeFix
     {
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected abstract Task<string> GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected abstract Task<Tuple<SyntaxTree, SyntaxNode>> GetRootInOtherSyntaxTree(SyntaxNode node, SemanticModel semanticModel, Diagnostic diagnostic, CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         protected override async Task<CodeAction> GetCodeActionAsync(
             SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)

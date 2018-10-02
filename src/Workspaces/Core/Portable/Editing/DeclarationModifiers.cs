@@ -143,7 +143,9 @@ namespace Microsoft.CodeAnalysis.Editing
             return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Partial, isPartial));
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public DeclarationModifiers WithAsync(bool isAsync)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Async, isAsync));
         }

@@ -111,7 +111,9 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private void BuildCompilationsAsync(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Solution solution,
             ProjectId initialProject,
             ISet<ProjectId> allProjects)

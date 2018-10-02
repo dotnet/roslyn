@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return GetSymbolsWorkerInternal(context, position, options, preselect: true, cancellationToken);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private Task<ImmutableArray<ISymbol>> GetSymbolsWorkerInternal(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             SyntaxContext context, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
             var newExpression = this.GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);

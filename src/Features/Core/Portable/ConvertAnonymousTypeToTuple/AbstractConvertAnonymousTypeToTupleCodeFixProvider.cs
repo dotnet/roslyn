@@ -41,7 +41,9 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
             return Task.CompletedTask;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private async Task FixInCurrentMember(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document document, SyntaxEditor editor,
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {

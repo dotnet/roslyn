@@ -145,9 +145,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 : symbol.Name;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected abstract Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected virtual Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
@@ -247,7 +251,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedTasks.True;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private Task<ImmutableArray<ISymbol>> GetSymbolsWorker(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             try
             {
@@ -284,7 +290,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return result;
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected async Task<ImmutableArray<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)>> GetPerContextSymbols(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             Document document, int position, OptionSet options, IEnumerable<DocumentId> relatedDocuments, bool preselect, CancellationToken cancellationToken)
         {
             var perContextSymbols = ArrayBuilder<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)>.GetInstance();
@@ -319,9 +327,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .WithChangedOption(RecommendationOptions.HideAdvancedMembers, language, hideAdvancedMembers);
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected abstract Task<SyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         private Task<SyntaxContext> GetOrCreateContext(Document document, int position, CancellationToken cancellationToken)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             lock (s_cacheGate)
             {
